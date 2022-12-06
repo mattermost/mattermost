@@ -6,7 +6,7 @@ on:
     branches: [ master ]
   schedule:
     - cron: '30 5,17 * * *'
-
+    
 permissions:
   contents: read
 
@@ -20,17 +20,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go', 'javascript' ]
+        language: [ 'go' ]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        debug: true
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+        debug: false
+        config-file: ./.github/codeql/codeql-config.yml              
+    
+    - name: Build
+      run: |
+        make setup-go-work
+        make build-linux-amd64
+
+    # Perform Analysis
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2    

@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -2122,10 +2122,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "Kunde inte ta fram den uppladdade flen."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Kunde inte ladda upp. Filen är för stor."
   },
   {
     "id": "app.upload.create.save.app_error",
@@ -5274,14 +5270,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "De kanaler som ingår i inbjudan måste tillhöra de team som inbjudan gäller för."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Din licens tillåter inte gäståtkomst"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gäståtkomst har inaktiverats"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9199,20 +9187,12 @@
     "translation": "Elasticsearch-inställningarna har odefinierade värden."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fel vid uppdatering av prenumeration från webhook."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Fel när senaste sökningar skulle hämtas"
   },
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -9372,7 +9352,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Starter."
+    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9436,7 +9416,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Starter."
+    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9460,11 +9440,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Starter."
+    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Starter. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
+    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Free. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9475,7 +9455,7 @@
     "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9504,7 +9484,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Starter nedan."
+    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Free nedan."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9519,7 +9499,7 @@
     "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9541,5 +9521,41 @@
   {
     "id": "app.job.error",
     "translation": "Fel under utförandet av jobbet."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "gruppnamnet finns redan som ett reserverat namn"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fel vid hämtning av den senast tillgängliga filen"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta filen."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Din licens tillåter inte gäståtkomst"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gäståtkomst har inaktiverats"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ogiltigt tidsintervall."
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kan inte aktiveras i produktionsläge."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Samlingstypen finns redan."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Ämnestypen finns redan."
   }
 ]

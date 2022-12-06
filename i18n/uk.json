@@ -5584,14 +5584,6 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -6592,10 +6584,6 @@
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Неможливо розмістити публікацію на видаленому каналі."
   },
@@ -6858,5 +6846,17 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Помилка синтаксісу багато-форматного запиту"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Помилка валідації кешу"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Повернутися до {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "Канали"
   }
 ]

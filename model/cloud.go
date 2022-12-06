@@ -52,13 +52,16 @@ type Product struct {
 	Family            SubscriptionFamily `json:"product_family"`
 	RecurringInterval RecurringInterval  `json:"recurring_interval"`
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
+	CrossSellsTo      string             `json:"cross_sells_to"`
 }
 
 type UserFacingProduct struct {
-	ID           string  `json:"id"`
-	Name         string  `json:"name"`
-	SKU          string  `json:"sku"`
-	PricePerSeat float64 `json:"price_per_seat"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	SKU               string            `json:"sku"`
+	PricePerSeat      float64           `json:"price_per_seat"`
+	RecurringInterval RecurringInterval `json:"recurring_interval"`
+	CrossSellsTo      string            `json:"cross_sells_to"`
 }
 
 // AddOn represents an addon to a product.
@@ -107,11 +110,12 @@ type ValidateBusinessEmailResponse struct {
 
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
-	Name             string `json:"name"`
-	Email            string `json:"email,omitempty"`
-	ContactFirstName string `json:"contact_first_name,omitempty"`
-	ContactLastName  string `json:"contact_last_name,omitempty"`
-	NumEmployees     int    `json:"num_employees"`
+	Name                  string `json:"name"`
+	Email                 string `json:"email,omitempty"`
+	ContactFirstName      string `json:"contact_first_name,omitempty"`
+	ContactLastName       string `json:"contact_last_name,omitempty"`
+	NumEmployees          int    `json:"num_employees"`
+	CloudAltPaymentMethod string `json:"monthly_subscription_alt_payment_method"`
 }
 
 // Address model represents a customer's address.
@@ -136,21 +140,36 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID              string   `json:"id"`
-	CustomerID      string   `json:"customer_id"`
-	ProductID       string   `json:"product_id"`
-	AddOns          []string `json:"add_ons"`
-	StartAt         int64    `json:"start_at"`
-	EndAt           int64    `json:"end_at"`
-	CreateAt        int64    `json:"create_at"`
-	Seats           int      `json:"seats"`
-	Status          string   `json:"status"`
-	DNS             string   `json:"dns"`
-	IsPaidTier      string   `json:"is_paid_tier"`
-	LastInvoice     *Invoice `json:"last_invoice"`
-	IsFreeTrial     string   `json:"is_free_trial"`
-	TrialEndAt      int64    `json:"trial_end_at"`
-	DelinquentSince *int64   `json:"delinquent_since"`
+	ID                      string   `json:"id"`
+	CustomerID              string   `json:"customer_id"`
+	ProductID               string   `json:"product_id"`
+	AddOns                  []string `json:"add_ons"`
+	StartAt                 int64    `json:"start_at"`
+	EndAt                   int64    `json:"end_at"`
+	CreateAt                int64    `json:"create_at"`
+	Seats                   int      `json:"seats"`
+	Status                  string   `json:"status"`
+	DNS                     string   `json:"dns"`
+	IsPaidTier              string   `json:"is_paid_tier"`
+	LastInvoice             *Invoice `json:"last_invoice"`
+	IsFreeTrial             string   `json:"is_free_trial"`
+	TrialEndAt              int64    `json:"trial_end_at"`
+	DelinquentSince         *int64   `json:"delinquent_since"`
+	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
+}
+
+// Subscription History model represents true up event in a yearly subscription
+type SubscriptionHistory struct {
+	ID             string `json:"id"`
+	SubscriptionID string `json:"subscription_id"`
+	Seats          int    `json:"seats"`
+	CreateAt       int64  `json:"create_at"`
+}
+
+type SubscriptionHistoryChange struct {
+	SubscriptionID string `json:"subscription_id"`
+	Seats          int    `json:"seats"`
+	CreateAt       int64  `json:"create_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -223,6 +242,7 @@ type CloudWorkspaceOwner struct {
 }
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
+	Seats     int    `json:"seats"`
 }
 
 type BoardsLimits struct {
@@ -252,4 +272,25 @@ type ProductLimits struct {
 	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
+}
+
+type BootstrapSelfHostedSignupRequest struct {
+	Email string `json:"email"`
+}
+
+type BootstrapSelfHostedSignupResponse struct {
+	Progress string `json:"progress"`
+}
+
+type BootstrapSelfHostedSignupResponseInternal struct {
+	Progress string `json:"progress"`
+	License  string `json:"license"`
+}
+
+func (p *Product) IsYearly() bool {
+	return p.RecurringInterval == RecurringIntervalYearly
+}
+
+func (p *Product) IsMonthly() bool {
+	return p.RecurringInterval == RecurringIntervalMonthly
 }

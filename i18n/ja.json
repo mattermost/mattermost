@@ -1429,11 +1429,11 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "アーカイブチャンネルのリアクションは削除できません。"
+    "translation": "アーカイブされたチャンネルのリアクションは削除できません。"
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルにはリアクションできません。"
+    "translation": "アーカイブされたチャンネルにはリアクションできません。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1773,7 +1773,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "あなたは電子メールアドレスを更新しました"
+    "translation": "電子メールアドレスが正常に更新されました"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4601,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルは変更できません。"
+    "translation": "アーカイブされたチャンネルは変更できません。"
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5578,14 +5578,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "招待チャンネルは招待チーム内のチャンネルでなくてはなりません。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "ゲストアカウントは無効化されています"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -6642,10 +6634,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}}の大きさ({{.Width}} x {{.Height}} ピクセル)が制限を超えています。"
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -9200,10 +9188,6 @@
     "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
-  },
-  {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
   },
@@ -9289,7 +9273,7 @@
   },
   {
     "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "クラウド製品を取得できませんでした"
+    "translation": "クラウドプロダクトを取得できませんでした"
   },
   {
     "id": "api.templates.delinquency_90.title",
@@ -9301,7 +9285,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Starterの制限により、あなたのデータがアーカイブされている可能性があります。"
+    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9321,11 +9305,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Starter にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
+    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9336,7 +9320,7 @@
     "translation": "あなたのMattermostワークスペースは15日後にダウングレードされます"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Cloud Starterへダウングレード"
   },
   {
@@ -9357,7 +9341,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9372,7 +9356,7 @@
     "translation": "対応が必要です: ワークスペースは30日後にダウングレードされます"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Cloud Starterへのダウングレード"
   },
   {
@@ -9437,7 +9421,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Starterにダウングレードされる危険性があることを意味します。"
+    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9534,5 +9518,41 @@
   {
     "id": "app.job.error",
     "translation": "ジョブ実行中にエラーが発生しました。"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "時間の範囲が無効です。"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "グループ名は予約語として既に登録されています"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "プラグイン {{.Name}} はプロダクトモードでは有効化できません。"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "最後にアクセスしたファイルの取得エラー"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "クラウドプランの制限を超えているため、ファイルを取得できません。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "現在のライセンス ではゲストアカウントはサポートされていません"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "ゲストアカウントは無効化されています"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type はすでに存在しています。"
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection typeはすでに存在しています。"
   }
 ]

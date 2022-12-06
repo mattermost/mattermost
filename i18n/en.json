@@ -60,6 +60,18 @@
     "translation": "September"
   },
   {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "You cannot remove an acknowledgment in an archived channel."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "You cannot delete an acknowledgment after 5min have passed."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "You cannot acknowledgment in an archived channel."
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -146,6 +158,10 @@
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
     "translation": "Missing content type."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "failed to add user to group-teams and group-channels"
   },
   {
     "id": "api.admin.test_email.body",
@@ -482,10 +498,6 @@
   {
     "id": "api.cloud.request_error",
     "translation": "Error processing request to CWS."
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Error updating subscription from webhook."
   },
   {
     "id": "api.cloud.teams_limit_reached.create",
@@ -1629,6 +1641,14 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Can not save draft to deleted channel"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Drafts feature is disabled."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -3144,12 +3164,16 @@
     "translation": "Mattermost Upgrade Confirmation"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
     "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "You are now upgraded!"
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -3220,6 +3244,10 @@
     "translation": "Your workspace is ready to go!"
   },
   {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "View your invoice"
+  },
+  {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
@@ -3245,11 +3273,11 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Starter."
+    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subtitle2",
@@ -3293,7 +3321,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "if no action is taken, your workspace will be downgraded and the following data may be archived:"
+    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
   },
   {
     "id": "api.templates.delinquency_30.title",
@@ -3309,7 +3337,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "We've been unable to collect payment for outstanding invoices dated {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
+    "translation": "We've been unable to collect payment for outstanding invoices since {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
@@ -3328,8 +3356,8 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Downgrade to Cloud Starter"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.subject",
@@ -3345,7 +3373,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Update your payment information now or downgrade to Cloud Starter below."
+    "translation": "Update your payment information now or downgrade to Cloud Free below."
   },
   {
     "id": "api.templates.delinquency_60.title",
@@ -3357,7 +3385,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "We couldn't process your most recent payment"
+    "translation": "We couldn't process your most recent payment."
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
@@ -3372,8 +3400,8 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Downgrade to Cloud Starter"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -3381,15 +3409,15 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}"
+    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Your workspace will be downgraded to Cloud Starter. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Update your payment information now, or downgrade to Cloud Starter."
+    "translation": "Update your payment information now, or downgrade to Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.title",
@@ -3413,7 +3441,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "In addition, your data may have been archived due to Cloud Starter limitations."
+    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
   },
   {
     "id": "api.templates.delinquency_90.subtitle3",
@@ -3445,7 +3473,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "You updated your email"
+    "translation": "You successfully updated your email"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -3908,6 +3936,10 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Failed to get upload."
   },
@@ -3930,6 +3962,10 @@
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "not an ldap user"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -4452,6 +4488,22 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Unable to get acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Unable to save acknowledgement for post."
+  },
+  {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
     "translation": "Could not decode the XML metadata information received from the Identity Provider."
   },
@@ -4542,6 +4594,10 @@
   {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Unable to count urgent posts since given date."
   },
   {
     "id": "app.channel.create_channel.internal_error",
@@ -4670,6 +4726,10 @@
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -4816,6 +4876,14 @@
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
   },
   {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection type already exists."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type already exists."
+  },
+  {
     "id": "app.command.createcommand.internal_error",
     "translation": "Unable to save the command."
   },
@@ -4906,6 +4974,34 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "group name is not unique"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Unable to delete the Draft."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Unable to get the Draft."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Unable to get user's Drafts."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Unable to get files for Draft."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Unable to update the Draft."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -5604,10 +5700,6 @@
     "translation": "Insights feature is disabled."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6100,6 +6192,10 @@
     "translation": "Unable to update the Post."
   },
   {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Unable to get postpriority for post"
+  },
+  {
     "id": "app.post_reminder_dm",
     "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
@@ -6528,10 +6624,6 @@
     "translation": "Failed to save upload."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
-  },
-  {
     "id": "app.upload.get.app_error",
     "translation": "Failed to get upload."
   },
@@ -6906,6 +6998,14 @@
   {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook."
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Unable to get work template categories"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Unable to get work templates"
   },
   {
     "id": "bleveengine.already_started.error",
@@ -7908,6 +8008,14 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Invalid post id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
+  },
+  {
     "id": "model.authorize.is_valid.auth_code.app_error",
     "translation": "Invalid authorization code."
   },
@@ -8572,6 +8680,42 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Invalid file ids."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Invalid message."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Invalid priority"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Invalid props."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Invalid root id."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
+  },
+  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -8738,6 +8882,10 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -9473,11 +9621,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -9489,7 +9637,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -9554,5 +9702,25 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Product Teams"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
   }
 ]

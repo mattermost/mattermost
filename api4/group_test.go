@@ -214,6 +214,33 @@ func TestDeleteGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 }
+
+func TestUndeleteGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	validGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewString("name" + model.NewId()),
+		Source:      model.GroupSourceCustom,
+	})
+	assert.Nil(t, appErr)
+
+	_, response, err := th.Client.DeleteGroup(validGroup.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
+}
+
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1264,6 +1291,28 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
 
+	// Test IncludeChannelMemberCount url param is working
+	opts.IncludeChannelMemberCount = th.BasicChannel.Id
+	opts.IncludeTimezones = true
+	opts.Q = "-fOo"
+	opts.IncludeMemberCount = true
+
+	groups, _, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.Equal(t, *groups[0].MemberCount, int(0))
+	assert.Equal(t, *groups[0].ChannelMemberCount, int(0))
+
+	_, appErr = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
+	assert.Nil(t, appErr)
+
+	groups, _, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.NotNil(t, groups[0].MemberCount)
+	assert.Equal(t, *groups[0].ChannelMemberCount, int(1))
+
+	opts.IncludeChannelMemberCount = ""
+	opts.IncludeTimezones = false
+	opts.Q = ""
+	opts.IncludeMemberCount = false
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableCustomGroups = false
 	})
@@ -1518,7 +1567,7 @@ func TestAddMembersToGroup(t *testing.T) {
 
 	assert.Len(t, groupMembers, 2)
 
-	count, countErr := th.App.GetGroupMemberCount(group.Id)
+	count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
 	assert.Nil(t, countErr)
 
 	assert.Equal(t, count, int64(2))

@@ -619,7 +619,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "打开 Mattermost 帮助页面"
+    "translation": "显示 Mattermost 帮助信息"
   },
   {
     "id": "api.command_help.name",
@@ -1773,7 +1773,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "您已更新电子邮件地址"
+    "translation": "您已成功更新您的电子邮件"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4565,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab 的使用条款已更新。请到 gitlab.com 接受新的使用条款后再尝试登入 Mattermost。"
+    "translation": "GitLab 的使用条款已更新。请到 {{.URL}} 接受新的使用条款后再尝试登入 Mattermost。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5612,10 +5612,6 @@
     "translation": "作废邮件邀请错误。"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "您的许可证不支持访客帐号"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "无法从组受限团队移除用户。"
   },
@@ -5626,10 +5622,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "仅搜索公共团队不支持分页。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "访客帐号已停用"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -5837,11 +5829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 44+"
+    "translation": "版本 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 100+"
+    "translation": "版本 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6642,10 +6634,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "获取上传失败。"
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "无法上传文件。文件过大。"
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",
@@ -7601,15 +7589,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "付款失败"
+    "translation": "付款不成功"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "需要采取的措施：Mattermost Cloud 付款失败"
+    "translation": "需要采取的措施：Mattermost {{.Plan}} 付款失败"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "为确保不间断地订阅 Mattermost Cloud，请与您的金融机构联系以解决潜在问题或更新您的付款信息。付款信息更新后，Mattermost 将尝试结清任何未结余额。"
+    "translation": "为确保不间断地使用 Mattermost {{.Plan}}，请与您的金融机构联系以解决潜在问题或更新您的付款信息。付款信息更新后，Mattermost 将尝试结清任何未结余额。"
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8973,7 +8961,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve  Bulk索引的的大小不能小于{{.BatchSize}}."
+    "translation": "Bleve Bulk索引的的大小不能小于{{.BatchSize}}."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9212,10 +9200,6 @@
     "translation": "无法创建团队，因为已达到团队限制"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "从 webhook 更新订阅时出错。"
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "已通知管理员"
   },
@@ -9238,10 +9222,6 @@
   {
     "id": "app.post_reminder_dm",
     "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -9278,5 +9258,37 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "获取最后可访问的帖子时出错"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "更新付款"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "您的许可证不支持访客帐号"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含三个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[Playbooks](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n**[Boards](/boards)** - 在看板结构中管理项目和任务，以帮助您的团队实现关键里程碑。\n\n[查看文档和指南]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "缺少发送拖欠电子邮件的必填字段。"
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "您的 Mattermost {{.Plan}} 付款已逾期。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "访客帐户已禁用"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "商城"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "打开商城"
   }
 ]

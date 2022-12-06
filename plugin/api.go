@@ -1157,6 +1157,35 @@ type API interface {
 	//
 	// Minimum server version: 7.1
 	EnsureBotUser(bot *model.Bot) (string, error)
+
+	// RegisterCollectionAndTopic informs the server that this plugin handles
+	// the given collection and topic types.
+	//
+	// It is an error for different plugins to register the same pair of types,
+	// or even to register a new topic against another plugin's collection.
+	//
+	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	RegisterCollectionAndTopic(collectionType, topicType string) error
+
+	// CreateUploadSession creates and returns a new (resumable) upload session.
+	//
+	// @tag Upload
+	// Minimum server version: 7.6
+	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error)
+
+	// UploadData uploads the data for a given upload session.
+	//
+	// @tag Upload
+	// Minimum server version: 7.6
+	UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error)
+
+	// GetUploadSession returns the upload session for the provided id.
+	//
+	// @tag Upload
+	// Minimum server version: 7.6
+	GetUploadSession(uploadID string) (*model.UploadSession, error)
 }
 
 var handshake = plugin.HandshakeConfig{

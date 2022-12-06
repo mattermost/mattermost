@@ -104,6 +104,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetMembersForUserWithCursor", func(t *testing.T) { testChannelStoreGetMembersForUserWithCursor(t, ss) })
 	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, ss) })
 	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, ss) })
+	t.Run("CountUrgentPostsAfter", func(t *testing.T) { testCountUrgentPostsAfter(t, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
@@ -3566,6 +3567,22 @@ func testChannelStoreGetChannelsWithCursor(t *testing.T, ss store.Store) {
 	require.Len(t, list, 1)
 	require.Equal(t, teamID, list[0].TeamId, "incorrect teamID")
 
+	// all channels should be returned
+	list, nErr = ss.Channel().GetChannelsWithCursor(o1.TeamId, m1.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	}, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 3)
+
+	// should return empty list
+	list, nErr = ss.Channel().GetChannelsWithCursor(o1.TeamId, m1.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	}, list[2].Id)
+	require.NoError(t, nErr)
+	require.Len(t, list, 0)
+
 	// Sleeping to guarantee that the
 	// UpdateAt is different.
 	// The proper way would be to set UpdateAt during channel creation itself,
@@ -4817,6 +4834,66 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 	})
 }
 
+func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
+	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
+		userId1 := model.NewId()
+		userId2 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString(model.PostPriorityUrgent),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString("important"),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId2,
+			ChannelId: channelId,
+			CreateAt:  1002,
+		})
+		require.NoError(t, err)
+
+		count, err := ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, "")
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, "")
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, userId1)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, userId1)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+	})
+}
+
 func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
@@ -4896,16 +4973,16 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false, false)
 	require.NoError(t, err, "failed to update")
 }
 
@@ -6894,11 +6971,19 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 
 	t.Run("with correct ReplyCount", func(t *testing.T) {
-		channelId := model.NewId()
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		userId := model.NewId()
 
 		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
 			IsPinned:  true,
@@ -6907,7 +6992,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
 			IsPinned:  true,
@@ -6916,7 +7001,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		post3, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			RootId:    post1.Id,
 			Message:   "message",
@@ -6925,7 +7010,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		posts, err := ss.Channel().GetPinnedPosts(channelId)
+		posts, err := ss.Channel().GetPinnedPosts(channel.Id)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 3)
 		require.Equal(t, posts.Posts[post1.Id].ReplyCount, int64(1))

@@ -2725,7 +2725,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Takım adında ayrılmış bir sözcük var."
+    "translation": "Takım adında sistem kullanımına ayrılmış bir sözcük var."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
@@ -5577,7 +5577,7 @@
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "aynı adlı bir grup zaten ayrılmış bir ad olarak var"
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
@@ -5654,14 +5654,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Lisansınızda konuk hesaplarını kullanma özelliği yok"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -5849,11 +5841,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 100+"
+    "translation": "Sürüm 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 44+"
+    "translation": "Sürüm 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -6790,10 +6782,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} boyutları ({{.Width}} x {{.Height}} piksel) sınırını aşıyor."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Dosya yüklenemedi. Dosya çok büyük."
   },
   {
     "id": "app.team.get_by_scheme.app_error",
@@ -9199,20 +9187,12 @@
     "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Son aramalar alınırken sorun çıktı"
   },
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Kullanabileceğiniz en fazla {{.NumIntegrations}} bütünleştirme sınırına ulaştınız. Sınırsız bütünleştirme için ücretli tarifelerimizden birine geçin."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
@@ -9324,7 +9304,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "ek olarak, Cloud Starter tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
+    "translation": "ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9348,11 +9328,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Starter alt tarifesine geçebilirsiniz."
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Free alt tarifesine geçebilirsiniz."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Çalışma alanınız Cloud Starter alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
+    "translation": "Çalışma alanınız Cloud Free alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9367,8 +9347,8 @@
     "translation": "Mattermost {{.Plan}} tarifeniz 15 gün sonra alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Cloud Starter alt tarifesine geç"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9392,7 +9372,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Starter alt tarifesine geçebilirsiniz."
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Free alt tarifesine geçebilirsiniz."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9424,7 +9404,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Starter alt tarifesine geçirilme riski var."
+    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Free alt tarifesine geçirilme riski var."
   },
   {
     "id": "api.templates.delinquency_60.subtitle1",
@@ -9435,8 +9415,8 @@
     "translation": "İşlem yapılması gerekli: Çalışma alanı 30 gün sonra alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Cloud Starter alt tarifesine geç"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9537,5 +9517,45 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "Kullanıcının nişan sayısını alamadık."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Görev yürütülürken sorun çıktı."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Erişilebilen son dosya alınırken sorun çıktı"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından dosya alınamadı."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konuk hesapları devre dışı bırakılmış"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Zaman aralığı geçersiz."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Konu türü zaten var."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Derleme türü zaten var."
   }
 ]

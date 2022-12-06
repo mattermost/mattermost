@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
@@ -39,8 +40,9 @@ type PlatformService struct {
 
 	WebSocketRouter *WebSocketRouter
 
-	serviceConfig *ServiceConfig
-	configStore   *config.Store
+	configStore *config.Store
+
+	filestore filestore.FileBackend
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -57,6 +59,7 @@ type PlatformService struct {
 
 	startMetrics bool
 	metrics      *platformMetrics
+	metricsIFace einterfaces.MetricsInterface
 
 	featureFlagSynchronizerMutex sync.Mutex
 	featureFlagSynchronizer      *featureflag.Synchronizer
@@ -92,7 +95,12 @@ type PlatformService struct {
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 	sharedChannelService      SharedChannelServiceIFace
 
-	pluginEnv *plugin.Environment
+	pluginEnv HookRunner
+}
+
+type HookRunner interface {
+	RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int)
+	GetPluginsEnvironment() *plugin.Environment
 }
 
 // New creates a new PlatformService.
@@ -100,7 +108,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 0: Create the PlatformService.
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
-		serviceConfig:       &sc,
 		Store:               sc.Store,
 		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
@@ -170,15 +177,20 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
-	// Step 5: Store.
-	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
+	// Step 5: Init Metrics
+	if metricsInterfaceFn != nil && ps.metricsIFace == nil { // if the metrics interface is set by options, do not override it
+		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
+	}
+
+	// Step 6: Store.
+	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.Metrics())
+			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(ps.sqlStore),
-				ps.Metrics(),
+				ps.metricsIFace,
 				ps.clusterIFace,
 				ps.cacheProvider,
 			)
@@ -204,9 +216,21 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 			return timerlayer.New(
 				searchStore,
-				ps.Metrics(),
+				ps.metricsIFace,
 			), nil
 		}
+	}
+
+	license := ps.License()
+	// Step 3: Initialize filestore
+	if ps.filestore == nil {
+		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
+		backend, err2 := filestore.NewFileBackend(ps.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
+		}
+
+		ps.filestore = backend
 	}
 
 	var err error
@@ -234,20 +258,19 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
+	// Step 7: Init License
 	if model.BuildEnterpriseReady == "true" {
 		ps.LoadLicense()
 	}
 
-	if metricsInterface != nil {
-		sc.Metrics = metricsInterface(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
-	}
-
+	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
 	if ps.startMetrics {
-		if err = ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
-			return nil, err
+		if mErr := ps.resetMetrics(); mErr != nil {
+			return nil, mErr
 		}
 	}
 
+	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
@@ -299,6 +322,7 @@ func (ps *PlatformService) Start(suite SuiteIFace) error {
 			return
 		}
 	})
+
 	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		ps.regenerateClientConfig()
 
@@ -371,6 +395,12 @@ func (ps *PlatformService) Shutdown() error {
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
 
+	// we need to wait the goroutines to finish before closing the store
+	// and this needs to be called after hub stop because hub generates goroutines
+	// when it is active. If we wait first we have no mechanism to prevent adding
+	// more go routines hence they still going to be invoked.
+	ps.waitForGoroutines()
+
 	if ps.Store != nil {
 		ps.Store.Close()
 	}
@@ -401,17 +431,17 @@ func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) 
 	ps.sharedChannelService = s
 }
 
-func (ps *PlatformService) SetPluginsEnvironment(env *plugin.Environment) {
-	ps.pluginEnv = env
+func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
+	ps.pluginEnv = runner
 }
 
 // GetPluginStatuses meant to be used by cluster implementation
 func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	if ps.pluginEnv == nil {
+	if ps.pluginEnv == nil || ps.pluginEnv.GetPluginsEnvironment() == nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	pluginStatuses, err := ps.pluginEnv.Statuses()
+	pluginStatuses, err := ps.pluginEnv.GetPluginsEnvironment().Statuses()
 	if err != nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -426,4 +456,8 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 	}
 
 	return pluginStatuses, nil
+}
+
+func (ps *PlatformService) FileBackend() filestore.FileBackend {
+	return ps.filestore
 }

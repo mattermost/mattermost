@@ -28,6 +28,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
 	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, ss) })
 	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, ss) })
+	t.Run("FileInfoUpdateMinipreview", func(t *testing.T) { testFileInfoUpdateMinipreview(t, ss) })
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
@@ -608,6 +609,39 @@ func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
+func testFileInfoUpdateMinipreview(t *testing.T, ss store.Store) {
+	info := &model.FileInfo{
+		CreatorId: model.NewId(),
+		Path:      "image.png",
+	}
+
+	info, err := ss.FileInfo().Save(info)
+	require.NoError(t, err)
+	require.NotEqual(t, len(info.Id), 0)
+
+	defer func() {
+		ss.FileInfo().PermanentDelete(info.Id)
+	}()
+
+	rinfo, err := ss.FileInfo().Get(info.Id)
+	require.NoError(t, err)
+	require.Equal(t, info.Id, rinfo.Id)
+	require.Nil(t, rinfo.MiniPreview)
+
+	miniPreview := []byte{0x0, 0x1, 0x2}
+
+	rinfo.MiniPreview = &miniPreview
+
+	rinfo, err = ss.FileInfo().Upsert(rinfo)
+	require.NoError(t, err)
+	require.Equal(t, info.Id, rinfo.Id)
+
+	tinfo, err := ss.FileInfo().Get(info.Id)
+	require.NoError(t, err)
+	require.Equal(t, info.Id, tinfo.Id)
+	require.Equal(t, *tinfo.MiniPreview, miniPreview)
+}
+
 func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
@@ -776,6 +810,7 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
+	t.Skip("MM-48627")
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)

@@ -296,6 +296,20 @@ func Test_requestTrial(t *testing.T) {
 		require.Equal(t, subscriptionChanged, subscription)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
+
+	t.Run("Empty body returns bad request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		r, err := th.SystemAdminClient.DoAPIPutBytes("/cloud/request-trial", nil)
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
+	})
 }
 
 func Test_validateBusinessEmail(t *testing.T) {
@@ -373,6 +387,20 @@ func Test_validateBusinessEmail(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, res.StatusCode, "200")
 	})
+
+	t.Run("Empty body returns bad request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-business-email", nil)
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
+	})
 }
 
 func Test_validateWorkspaceBusinessEmail(t *testing.T) {
@@ -442,6 +470,39 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail()
 		require.NoError(t, err)
 	})
+
+	t.Run("Error while grabbing the cloud customer returns bad request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloudCustomerInfo := model.CloudCustomerInfo{
+			Email: "badrequest@gmail.com",
+		}
+
+		// return an error while getting the cloud customer so we validate the forbidden error return
+		cloud.Mock.On("GetCloudCustomer", th.SystemAdminUser.Id).Return(nil, errors.New("error while gettings the cloud customer"))
+
+		// required cloud mocks so the request doesn't fail
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, cloudCustomerInfo.Email).Return(errors.New("invalid email"))
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, th.SystemAdminUser.Email).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-workspace-business-email", nil)
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
+	})
 }
 
 func TestGetCloudProducts(t *testing.T) {
@@ -454,8 +515,9 @@ func TestGetCloudProducts(t *testing.T) {
 			SKU:               "sku",
 			PriceID:           "price_id",
 			Family:            "family",
-			RecurringInterval: "recurring_interval",
+			RecurringInterval: "monthly",
 			BillingScheme:     "billing_scheme",
+			CrossSellsTo:      "",
 		},
 		{
 			ID:                "prod_test2",
@@ -465,8 +527,9 @@ func TestGetCloudProducts(t *testing.T) {
 			SKU:               "sku2",
 			PriceID:           "price_id2",
 			Family:            "family2",
-			RecurringInterval: "recurring_interval2",
+			RecurringInterval: "monthly",
 			BillingScheme:     "billing_scheme2",
+			CrossSellsTo:      "prod_test3",
 		},
 		{
 			ID:                "prod_test3",
@@ -476,29 +539,36 @@ func TestGetCloudProducts(t *testing.T) {
 			SKU:               "sku3",
 			PriceID:           "price_id3",
 			Family:            "family3",
-			RecurringInterval: "recurring_interval3",
+			RecurringInterval: "yearly",
 			BillingScheme:     "billing_scheme3",
+			CrossSellsTo:      "prod_test2",
 		},
 	}
 
 	sanitizedProducts := []*model.Product{
 		{
-			ID:           "prod_test1",
-			Name:         "name",
-			PricePerSeat: 10,
-			SKU:          "sku",
+			ID:                "prod_test1",
+			Name:              "name",
+			PricePerSeat:      10,
+			SKU:               "sku",
+			RecurringInterval: "monthly",
+			CrossSellsTo:      "",
 		},
 		{
-			ID:           "prod_test2",
-			Name:         "name2",
-			PricePerSeat: 100,
-			SKU:          "sku2",
+			ID:                "prod_test2",
+			Name:              "name2",
+			PricePerSeat:      100,
+			SKU:               "sku2",
+			RecurringInterval: "monthly",
+			CrossSellsTo:      "prod_test3",
 		},
 		{
-			ID:           "prod_test3",
-			Name:         "name3",
-			PricePerSeat: 1000,
-			SKU:          "sku3",
+			ID:                "prod_test3",
+			Name:              "name3",
+			PricePerSeat:      1000,
+			SKU:               "sku3",
+			RecurringInterval: "yearly",
+			CrossSellsTo:      "prod_test2",
 		},
 	}
 	t.Run("get products for admins", func(t *testing.T) {
@@ -554,8 +624,9 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[0].Description, "")
 		require.Equal(t, returnedProducts[0].PriceID, "")
 		require.Equal(t, returnedProducts[0].Family, model.SubscriptionFamily(""))
-		require.Equal(t, returnedProducts[0].RecurringInterval, model.RecurringInterval(""))
+		require.Equal(t, returnedProducts[0].RecurringInterval, model.RecurringInterval("monthly"))
 		require.Equal(t, returnedProducts[0].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[0].CrossSellsTo, "")
 
 		require.Equal(t, returnedProducts[1].ID, "prod_test2")
 		require.Equal(t, returnedProducts[1].Name, "name2")
@@ -564,8 +635,9 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[1].Description, "")
 		require.Equal(t, returnedProducts[1].PriceID, "")
 		require.Equal(t, returnedProducts[1].Family, model.SubscriptionFamily(""))
-		require.Equal(t, returnedProducts[1].RecurringInterval, model.RecurringInterval(""))
+		require.Equal(t, returnedProducts[1].RecurringInterval, model.RecurringInterval("monthly"))
 		require.Equal(t, returnedProducts[1].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[1].CrossSellsTo, "prod_test3")
 
 		require.Equal(t, returnedProducts[2].ID, "prod_test3")
 		require.Equal(t, returnedProducts[2].Name, "name3")
@@ -574,7 +646,115 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[2].Description, "")
 		require.Equal(t, returnedProducts[2].PriceID, "")
 		require.Equal(t, returnedProducts[2].Family, model.SubscriptionFamily(""))
-		require.Equal(t, returnedProducts[2].RecurringInterval, model.RecurringInterval(""))
+		require.Equal(t, returnedProducts[2].RecurringInterval, model.RecurringInterval("yearly"))
 		require.Equal(t, returnedProducts[2].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[2].CrossSellsTo, "prod_test2")
+	})
+}
+
+func TestGetSelfHostedProducts(t *testing.T) {
+	products := []*model.Product{
+		{
+			ID:                "prod_test",
+			Name:              "Self-Hosted Professional",
+			Description:       "Ideal for small companies and departments with data security requirements",
+			PricePerSeat:      10,
+			SKU:               "professional",
+			PriceID:           "price_1JPXbNI67GP2qpb4VuFdFbwQ",
+			Family:            "on-prem",
+			RecurringInterval: model.RecurringIntervalYearly,
+		},
+		{
+			ID:                "prod_test2",
+			Name:              "Self-Hosted Enterprise",
+			Description:       "Built to scale for high-trust organizations and companies in regulated industries.",
+			PricePerSeat:      30,
+			SKU:               "enterprise",
+			PriceID:           "price_1JPXaVI67GP2qpb4l40bXyRu",
+			Family:            "on-prem",
+			RecurringInterval: model.RecurringIntervalYearly,
+		},
+	}
+
+	sanitizedProducts := []*model.Product{
+		{
+			ID:                "prod_test",
+			Name:              "Self-Hosted Professional",
+			PricePerSeat:      10,
+			SKU:               "professional",
+			RecurringInterval: model.RecurringIntervalYearly,
+		},
+		{
+			ID:                "prod_test2",
+			Name:              "Self-Hosted Enterprise",
+			PricePerSeat:      30,
+			SKU:               "enterprise",
+			RecurringInterval: model.RecurringIntervalYearly,
+		},
+	}
+
+	t.Run("get products for admins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("GetSelfHostedProducts", mock.Anything, mock.Anything).Return(products, nil)
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		returnedProducts, r, err := th.Client.GetSelfHostedProducts()
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+		require.Equal(t, returnedProducts, products)
+	})
+
+	t.Run("get products for non admins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetSelfHostedProducts", mock.Anything, mock.Anything).Return(products, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		returnedProducts, r, err := th.Client.GetSelfHostedProducts()
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+		require.Equal(t, returnedProducts, sanitizedProducts)
+
+		// make a more explicit check
+		require.Equal(t, returnedProducts[0].ID, "prod_test")
+		require.Equal(t, returnedProducts[0].Name, "Self-Hosted Professional")
+		require.Equal(t, returnedProducts[0].SKU, "professional")
+		require.Equal(t, returnedProducts[0].PricePerSeat, float64(10))
+		require.Equal(t, returnedProducts[0].Description, "")
+		require.Equal(t, returnedProducts[0].PriceID, "")
+		require.Equal(t, returnedProducts[0].Family, model.SubscriptionFamily(""))
+		require.Equal(t, returnedProducts[0].RecurringInterval, model.RecurringInterval("year"))
+		require.Equal(t, returnedProducts[0].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[0].CrossSellsTo, "")
+
+		require.Equal(t, returnedProducts[1].ID, "prod_test2")
+		require.Equal(t, returnedProducts[1].Name, "Self-Hosted Enterprise")
+		require.Equal(t, returnedProducts[1].SKU, "enterprise")
+		require.Equal(t, returnedProducts[1].PricePerSeat, float64(30))
+		require.Equal(t, returnedProducts[1].Description, "")
+		require.Equal(t, returnedProducts[1].PriceID, "")
+		require.Equal(t, returnedProducts[1].Family, model.SubscriptionFamily(""))
+		require.Equal(t, returnedProducts[1].RecurringInterval, model.RecurringInterval("year"))
+		require.Equal(t, returnedProducts[1].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[1].CrossSellsTo, "")
 	})
 }

@@ -85,6 +85,8 @@ func (worker *Worker) IsEnabled(_ *model.Config) bool {
 }
 
 func (worker *Worker) DoJob(job *model.Job) {
+	defer worker.jobServer.HandleJobPanic(job)
+
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
 		mlog.Info("Worker experienced an error while trying to claim job",
 			mlog.String("worker", worker.name),

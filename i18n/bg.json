@@ -3668,10 +3668,6 @@
     "translation": "Не можа да се вземе качването."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Не може да се качи файл. Файлът е прекалено голям."
-  },
-  {
     "id": "app.upload.create.save.app_error",
     "translation": "Не можа да се запише качването."
   },
@@ -4266,14 +4262,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Каналите в поканата трябва да са част от канещият екип."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Вашият лиценз не поддържа профили за гости"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Профилите за гости са забранени"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
