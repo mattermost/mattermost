@@ -359,7 +359,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 
-	if rpost.RootId != "" && (!user.IsGuest() || *a.Config().GuestAccountsSettings.AllowPersistentNotifications) {
+	if rpost.RootId != "" && (!user.IsGuest() || *a.Config().ServiceSettings.AllowPersistentNotificationsForGuests) {
 		if appErr := a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true); appErr != nil {
 			return nil, appErr
 		}
@@ -1281,7 +1281,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 
 	if post.RootId == "" {
 		isGuestAllowed := true
-		if !*a.Config().GuestAccountsSettings.AllowPersistentNotifications {
+		if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
 			user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
 			if nErr != nil {
 				var nfErr *store.ErrNotFound

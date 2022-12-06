@@ -372,6 +372,11 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool `access:"site_posts"`
 	EnableInlineLatex                                 *bool `access:"site_posts"`
 	PostPriority                                      *bool `access:"site_posts"`
+	AllowPersistentNotifications                      *bool `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
+	PersistentNotificationInterval                    *int  `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
@@ -848,6 +853,26 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.PostPriority == nil {
 		s.PostPriority = NewBool(true)
+	}
+
+	if s.AllowPersistentNotifications == nil {
+		s.AllowPersistentNotifications = NewBool(true)
+	}
+
+	if s.AllowPersistentNotificationsForGuests == nil {
+		s.AllowPersistentNotificationsForGuests = NewBool(false)
+	}
+
+	if s.PersistentNotificationInterval == nil {
+		s.PersistentNotificationInterval = NewInt(5)
+	}
+
+	if s.PersistentNotificationMaxCount == nil {
+		s.PersistentNotificationMaxCount = NewInt(6)
+	}
+
+	if s.PersistentNotificationMaxRecipients == nil {
+		s.PersistentNotificationMaxRecipients = NewInt(5)
 	}
 
 	if s.AllowSyncedDrafts == nil {
@@ -2973,7 +2998,6 @@ func (s *DisplaySettings) SetDefaults() {
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
-	AllowPersistentNotifications     *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
 }
@@ -2985,10 +3009,6 @@ func (s *GuestAccountsSettings) SetDefaults() {
 
 	if s.AllowEmailAccounts == nil {
 		s.AllowEmailAccounts = NewBool(true)
-	}
-
-	if s.AllowPersistentNotifications == nil {
-		s.AllowPersistentNotifications = NewBool(false)
 	}
 
 	if s.EnforceMultifactorAuthentication == nil {

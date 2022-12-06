@@ -43,7 +43,7 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 	}
 
 	isGuestAllowed := true
-	if !*a.Config().GuestAccountsSettings.AllowPersistentNotifications {
+	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
 		user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound

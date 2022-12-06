@@ -132,6 +132,11 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableCustomGroups"] = "false"
 	props["InsightsEnabled"] = strconv.FormatBool(c.FeatureFlags.InsightsEnabled)
 	props["PostPriority"] = strconv.FormatBool(*c.ServiceSettings.PostPriority)
+	props["AllowPersistentNotifications"] = strconv.FormatBool(*c.ServiceSettings.AllowPersistentNotifications)
+	props["AllowPersistentNotificationsForGuests"] = strconv.FormatBool(*c.ServiceSettings.AllowPersistentNotificationsForGuests)
+	props["PersistentNotificationMaxCount"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxCount), 10)
+	props["PersistentNotificationInterval"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationInterval), 10)
+	props["PersistentNotificationMaxRecipients"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxRecipients), 10)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 
 	if license != nil {
@@ -315,7 +320,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
-	props["AllowPersistentNotificationsForGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.AllowPersistentNotifications)
 	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
 
 	if license != nil {

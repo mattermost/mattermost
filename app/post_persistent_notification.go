@@ -57,13 +57,8 @@ func (a *App) SendPersistentNotifications() error {
 		return nil
 	}
 
-	// notificationInterval := a.Config().ServiceSettings.PersistenceNotificationInterval
-	notificationInterval, err := time.ParseDuration("5m")
-	if err != nil {
-		return errors.Wrap(err, "failed to parse persistent notifications interval")
-	}
-	// notificationMaxCount := a.Config().ServiceSettings.PersistenceNotificationMaxCount
-	notificationMaxCount := int64(6)
+	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationInterval) * time.Minute
+	notificationMaxCount := int64(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 	notificationMaxDuration := time.Duration(notificationInterval.Nanoseconds() * notificationMaxCount)
 
 	// fetch posts for which first notificationInterval duration has passed
