@@ -6636,10 +6636,6 @@
     "translation": "获取上传失败。"
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "无法上传文件。文件过大。"
-  },
-  {
     "id": "app.upload.create.incorrect_channel_id.app_error",
     "translation": "无法上传到指定的频道。"
   },
@@ -9204,10 +9200,6 @@
     "translation": "无法创建团队，因为已达到团队限制"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "从 webhook 更新订阅时出错。"
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "已通知管理员"
   },
@@ -9230,10 +9222,6 @@
   {
     "id": "app.post_reminder_dm",
     "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
   },
   {
     "id": "app.usage.get_storage_usage.app_error",

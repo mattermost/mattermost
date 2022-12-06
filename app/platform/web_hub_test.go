@@ -17,7 +17,6 @@ import (
 
 	platform_mocks "github.com/mattermost/mattermost-server/v6/app/platform/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -50,7 +49,7 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 		TFunc:     i18n.IdentityTfunc(),
 		Locale:    "en",
 	}
-	wc := th.Service.NewWebConn(cfg, th.Suite, func() *plugin.Environment { return nil })
+	wc := th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
 	th.Service.HubRegister(wc)
 	go wc.Pump()
 	return wc

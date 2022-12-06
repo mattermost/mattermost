@@ -67,7 +67,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
@@ -127,11 +127,6 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 }
 
 func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
-	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
-			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
-	}
-
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)

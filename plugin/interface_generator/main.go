@@ -35,6 +35,7 @@ var excludedPluginHooks = []string{
 	"OnActivate",
 	"PluginHTTP",
 	"ServeHTTP",
+	"UploadData",
 }
 
 var excludedProductHooks = []string{
@@ -398,13 +399,13 @@ type {{.Name}}IFace interface {
 
 {{end}}
 
-type hooksAdapter struct {
+type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
 }
 
-func newAdapter(productHooks any) (*hooksAdapter, error) {
-	a := &hooksAdapter{
+func NewAdapter(productHooks any) (*HooksAdapter, error) {
+	a := &HooksAdapter{
 		implemented:  make(map[int]struct{}),
 		productHooks: productHooks,
 	}
@@ -426,7 +427,7 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 }
 
 {{range .HooksMethods}}
-func (a *hooksAdapter) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
+func (a *HooksAdapter) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	if _, ok := a.implemented[{{.Name}}ID]; !ok {
 		panic("product hooks must implement {{.Name}}")
 	}

@@ -93,7 +93,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	defer ch.pluginsLock.Unlock()
 
 	ch.pluginsEnvironment = pluginsEnvironment
-	ch.srv.Platform().SetPluginsEnvironment(pluginsEnvironment)
+	ch.srv.Platform().SetPluginsEnvironment(ch)
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -200,10 +200,6 @@ func (ch *Channels) syncPluginsActiveState() {
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
-
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
-	}
 }
 
 func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
@@ -217,7 +213,7 @@ func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
-		ch.srv.Platform().SetPluginsEnvironment(ch.pluginsEnvironment)
+		ch.srv.Platform().SetPluginsEnvironment(ch)
 	}()
 
 	ch.pluginsLock.RLock()
@@ -247,7 +243,15 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		return New(ServerConnector(ch)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(ch.srv), pluginDir, webappPluginDir, ch.srv.Log(), ch.srv.GetMetrics())
+	env, err := plugin.NewEnvironment(
+		newAPIFunc,
+		NewDriverImpl(ch.srv),
+		pluginDir,
+		webappPluginDir,
+		*ch.cfgSvc.Config().ExperimentalSettings.PatchPluginsReactDOM,
+		ch.srv.Log(),
+		ch.srv.GetMetrics(),
+	)
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -283,7 +287,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 			ch.syncPluginsActiveState()
 		}
 		if pluginsEnvironment := ch.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 				if err := hooks.OnConfigurationChange(); err != nil {
 					ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
 				}
@@ -422,11 +426,6 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
-	appErr := a.checkIfIntegrationsMeetFreemiumLimits([]string{id})
-	if appErr != nil {
-		return appErr
-	}
-
 	return a.ch.enablePlugin(id)
 }
 
@@ -533,20 +532,6 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	return nil
-}
-
-func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
-	usage, appErr := ch.getIntegrationsUsage()
-	if appErr != nil {
-		return appErr
-	}
-
-	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil, "")
-	message.Add("usage", usage)
-	message.GetBroadcast().ContainsSensitiveData = true
-	ch.Publish(message)
 
 	return nil
 }
