@@ -979,6 +979,7 @@ func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
 		model.PermissionManageCustomGroupMembers.Id,
 		model.PermissionEditCustomGroup.Id,
 		model.PermissionDeleteCustomGroup.Id,
+		model.PermissionRestoreCustomGroup.Id,
 	}
 
 	t = append(t, permissionTransformation{
