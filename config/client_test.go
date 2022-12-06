@@ -216,11 +216,7 @@ func TestGetClientConfig(t *testing.T) {
 		},
 		{
 			"Custom groups professional license",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					CustomGroups: true,
-				},
-			},
+			&model.Config{},
 			"",
 			&model.License{
 				Features:     &model.Features{},
@@ -232,11 +228,7 @@ func TestGetClientConfig(t *testing.T) {
 		},
 		{
 			"Custom groups enterprise license",
-			&model.Config{
-				FeatureFlags: &model.FeatureFlags{
-					CustomGroups: true,
-				},
-			},
+			&model.Config{},
 			"",
 			&model.License{
 				Features:     &model.Features{},

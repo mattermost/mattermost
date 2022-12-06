@@ -898,7 +898,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			var newBytes bytes.Buffer
 			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 			if rejectionReason != "" {
@@ -1378,6 +1378,28 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 	limit, appErr := a.getCloudFilesSizeLimit()
 	if appErr != nil {
 		return appErr
+	}
+
+	if limit == 0 {
+		// All files are accessible - we must check if a previous value was set so we can clear it
+		systemValue, err := a.Srv().Store().System().GetByName(model.SystemLastAccessibleFileTime)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				// All files are already accessible
+				return nil
+			default:
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		if systemValue != nil {
+			// Previous value was set, so we must clear it
+			if _, err := a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		return nil
 	}
 
 	createdAt, err := a.Srv().GetStore().FileInfo().GetUptoNSizeFileTime(limit)
