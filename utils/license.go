@@ -56,10 +56,7 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 	}
 
 	var license model.License
-	fmt.Println("licenseStr:")
-	fmt.Println(licenseStr)
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		fmt.Printf("json error: %s\n", jsonErr.Error())
 		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
@@ -71,7 +68,6 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		mlog.Info(string(signed))
 		mlog.Error("Encountered error decoding license", mlog.Err(err))
 		return false, ""
 	}
