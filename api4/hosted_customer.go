@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -106,7 +105,12 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customerResponse, err := c.App.Cloud().CreateCustomerSelfHostedSignup(*form)
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = userErr
+		return
+	}
+	customerResponse, err := c.App.Cloud().CreateCustomerSelfHostedSignup(*form, user.Email)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -145,7 +149,12 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm)
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = userErr
+		return
+	}
+	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

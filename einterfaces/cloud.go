@@ -35,8 +35,8 @@ type CloudInterface interface {
 
 	SelfHostedSignupAvailable() error
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
-	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error)
-	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (*model.SelfHostedSignupConfirmResponse, error)
+	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm, requesterEmail string) (*model.SelfHostedSignupCustomerResponse, error)
+	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
 	ConfirmSelfHostedSignupLicenseApplication() error
 
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)

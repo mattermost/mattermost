@@ -74,13 +74,13 @@ func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *
 	return r0
 }
 
-// ConfirmSelfHostedSignup provides a mock function with given fields: req
-func (_m *CloudInterface) ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (*model.SelfHostedSignupConfirmResponse, error) {
-	ret := _m.Called(req)
+// ConfirmSelfHostedSignup provides a mock function with given fields: req, requesterEmail
+func (_m *CloudInterface) ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error) {
+	ret := _m.Called(req, requesterEmail)
 
 	var r0 *model.SelfHostedSignupConfirmResponse
-	if rf, ok := ret.Get(0).(func(model.SelfHostedConfirmPaymentMethodRequest) *model.SelfHostedSignupConfirmResponse); ok {
-		r0 = rf(req)
+	if rf, ok := ret.Get(0).(func(model.SelfHostedConfirmPaymentMethodRequest, string) *model.SelfHostedSignupConfirmResponse); ok {
+		r0 = rf(req, requesterEmail)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SelfHostedSignupConfirmResponse)
@@ -88,8 +88,8 @@ func (_m *CloudInterface) ConfirmSelfHostedSignup(req model.SelfHostedConfirmPay
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.SelfHostedConfirmPaymentMethodRequest) error); ok {
-		r1 = rf(req)
+	if rf, ok := ret.Get(1).(func(model.SelfHostedConfirmPaymentMethodRequest, string) error); ok {
+		r1 = rf(req, requesterEmail)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -134,13 +134,13 @@ func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSet
 	return r0, r1
 }
 
-// CreateCustomerSelfHostedSignup provides a mock function with given fields: req
-func (_m *CloudInterface) CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error) {
-	ret := _m.Called(req)
+// CreateCustomerSelfHostedSignup provides a mock function with given fields: req, requesterEmail
+func (_m *CloudInterface) CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm, requesterEmail string) (*model.SelfHostedSignupCustomerResponse, error) {
+	ret := _m.Called(req, requesterEmail)
 
 	var r0 *model.SelfHostedSignupCustomerResponse
-	if rf, ok := ret.Get(0).(func(model.SelfHostedCustomerForm) *model.SelfHostedSignupCustomerResponse); ok {
-		r0 = rf(req)
+	if rf, ok := ret.Get(0).(func(model.SelfHostedCustomerForm, string) *model.SelfHostedSignupCustomerResponse); ok {
+		r0 = rf(req, requesterEmail)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SelfHostedSignupCustomerResponse)
@@ -148,8 +148,8 @@ func (_m *CloudInterface) CreateCustomerSelfHostedSignup(req model.SelfHostedCus
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.SelfHostedCustomerForm) error); ok {
-		r1 = rf(req)
+	if rf, ok := ret.Get(1).(func(model.SelfHostedCustomerForm, string) error); ok {
+		r1 = rf(req, requesterEmail)
 	} else {
 		r1 = ret.Error(1)
 	}
