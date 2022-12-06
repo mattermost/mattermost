@@ -232,18 +232,23 @@ func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
 }
 
 // Create/ Update a subscription history event
-func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error) {
+func (a *App) SendSubscriptionHistoryEvent(userID string) {
 	license := a.Srv().License()
 
 	// No need to create a Subscription History Event if the license isn't cloud
 	if !license.IsCloud() {
-		return nil, nil
+		return
 	}
 
 	// Get user count
 	userCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, err
+		a.Log().Error("Error getting the user count", mlog.Err(err))
+		return
 	}
-	return a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
+
+	_, err = a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
+	if err != nil {
+		a.Log().Error("Error creating/updating the SubscriptionHistoryEvent", mlog.Err(err))
+	}
 }

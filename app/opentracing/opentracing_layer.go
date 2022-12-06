@@ -15507,7 +15507,7 @@ func (a *OpenTracingAppLayer) SendPaymentFailedEmail(failedPayment *model.Failed
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error) {
+func (a *OpenTracingAppLayer) SendSubscriptionHistoryEvent(userID string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendSubscriptionHistoryEvent")
 
@@ -15519,14 +15519,7 @@ func (a *OpenTracingAppLayer) SendSubscriptionHistoryEvent(userID string) (*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendSubscriptionHistoryEvent(userID)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
+	a.app.SendSubscriptionHistoryEvent(userID)
 }
 
 func (a *OpenTracingAppLayer) SendTestPushNotification(deviceID string) string {
