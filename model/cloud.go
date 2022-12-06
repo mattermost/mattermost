@@ -154,6 +154,7 @@ type Subscription struct {
 	DNS                     string   `json:"dns"`
 	IsPaidTier              string   `json:"is_paid_tier"`
 	LastInvoice             *Invoice `json:"last_invoice"`
+	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
 	DelinquentSince         *int64   `json:"delinquent_since"`
