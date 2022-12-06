@@ -168,6 +168,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionCreateCustomGroup.Id,
 			model.PermissionEditCustomGroup.Id,
 			model.PermissionDeleteCustomGroup.Id,
+			model.PermissionRestoreCustomGroup.Id,
 			model.PermissionManageCustomGroupMembers.Id,
 		},
 		"system_post_all": {
@@ -227,6 +228,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PermissionCreateCustomGroup.Id,
 		model.PermissionEditCustomGroup.Id,
 		model.PermissionDeleteCustomGroup.Id,
+		model.PermissionRestoreCustomGroup.Id,
 		model.PermissionManageCustomGroupMembers.Id,
 		model.PermissionListPublicTeams.Id,
 		model.PermissionJoinPublicTeams.Id,

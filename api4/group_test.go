@@ -232,6 +232,12 @@ func TestUndeleteGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
+	// shouldn't allow restoring unless user has required permission
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, response)
+
+	th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
