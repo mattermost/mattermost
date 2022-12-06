@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -144,8 +143,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Error("Error finding the new cloud product", mlog.Err(err))
 	}
 
-	starterSku := fmt.Sprintf("%s-%s", model.SubscriptionFamilyCloud, model.ProductSkuStarter)
-	if product.SKU == starterSku {
+	if product.SKU == string(model.SkuCloudStarter) {
 		w.Write(json)
 		return
 	}
