@@ -311,11 +311,16 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasBeenCreated(pluginContext, ruser)
 				return true
 			}, plugin.UserHasBeenCreatedID)
 		})
+	}
+
+	_, cwsErr := a.SendSubscriptionHistoryEvent(ruser.Id)
+	if cwsErr != nil {
+		c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(cwsErr))
 	}
 
 	return ruser, nil

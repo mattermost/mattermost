@@ -34,7 +34,6 @@ func TestGetDraft(t *testing.T) {
 	draft := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft",
@@ -84,7 +83,6 @@ func TestUpsertDraft(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
@@ -93,7 +91,6 @@ func TestUpsertDraft(t *testing.T) {
 	draft2 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00002,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft2",
@@ -148,7 +145,6 @@ func TestCreateDraft(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft",
@@ -157,7 +153,6 @@ func TestCreateDraft(t *testing.T) {
 	draft2 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -223,7 +218,6 @@ func TestUpdateDraft(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
@@ -232,7 +226,6 @@ func TestUpdateDraft(t *testing.T) {
 	draft2 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00002,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft2",
@@ -305,7 +298,6 @@ func TestGetDraftsForUser(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
@@ -314,7 +306,6 @@ func TestGetDraftsForUser(t *testing.T) {
 	draft2 := &model.Draft{
 		CreateAt:  00005,
 		UpdateAt:  00005,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -400,7 +391,6 @@ func TestDeleteDraft(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",

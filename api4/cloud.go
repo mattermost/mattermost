@@ -22,6 +22,8 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/limits
 	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods("GET")
 
+	api.BaseRoutes.Cloud.Handle("/products/selfhosted", api.APISessionRequired(getSelfHostedProducts)).Methods("GET")
+
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
 	api.BaseRoutes.Cloud.Handle("/payment", api.APISessionRequired(createCustomerPayment)).Methods("POST")
@@ -134,9 +136,16 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	product, err := c.App.Cloud().GetCloudProduct(c.AppContext.Session().UserId, subscriptionChange.ProductID)
+	if err != nil || product == nil {
+		c.Logger.Error("Error finding the new cloud product", mlog.Err(err))
+	}
+
+	isYearly := product.IsYearly()
+
 	// Log failures for purchase confirmation email, but don't show an error to the user so as not to confuse them
 	// At this point, the upgrade is complete.
-	if appErr := c.App.SendUpgradeConfirmationEmail(); appErr != nil {
+	if appErr := c.App.SendUpgradeConfirmationEmail(isYearly); appErr != nil {
 		c.Logger.Error("Error sending purchase confirmation email", mlog.Err(appErr))
 	}
 
@@ -274,6 +283,40 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getSelfHostedProducts(c *Context, w http.ResponseWriter, r *http.Request) {
+	products, err := c.App.Cloud().GetSelfHostedProducts(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	byteProductsData, err := json.Marshal(products)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		sanitizedProducts := []model.UserFacingProduct{}
+		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		byteSanitizedProductsData, err := json.Marshal(sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		w.Write(byteSanitizedProductsData)
+		return
+	}
+
+	w.Write(byteProductsData)
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -600,7 +643,26 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case model.EventTypeSendUpgradeConfirmationEmail:
-		if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
+
+		// isYearly determines whether to send the yearly or monthly Upgrade email
+		isYearly := false
+		if event.Subscription != nil && event.CloudWorkspaceOwner != nil {
+			user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
+			if appErr != nil {
+				c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+				return
+			}
+
+			// Get the current cloud product to determine whether it's a monthly or yearly product
+			product, err := c.App.Cloud().GetCloudProduct(user.Id, event.Subscription.ProductID)
+			if err != nil {
+				c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			isYearly = product.IsYearly()
+		}
+
+		if nErr := c.App.SendUpgradeConfirmationEmail(isYearly); nErr != nil {
 			c.Err = nErr
 			return
 		}
