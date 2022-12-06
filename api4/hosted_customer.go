@@ -52,7 +52,7 @@ func checkSelfHostedPurchaseEnabled(c *Context) bool {
 }
 
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
-	where := "Api4.selfHostedBootstrap"
+	const where = "Api4.selfHostedBootstrap"
 	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -84,7 +84,7 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
-	where := "Api4.selfHostedPayment"
+	const where = "Api4.selfHostedCustomer"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
@@ -102,7 +102,6 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var form *model.SelfHostedCustomerForm
 	if err = json.Unmarshal(bodyBytes, &form); err != nil {
-		fmt.Printf("%s\n", bodyBytes)
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -123,8 +122,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
-	where := "Api4.selfHostedConfirm"
-	fmt.Println(where + " A")
+	const where = "Api4.selfHostedConfirm"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
@@ -135,7 +133,6 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
-	fmt.Println(where + " B")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -143,23 +140,19 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var confirm model.SelfHostedConfirmPaymentMethodRequest
 	err = json.Unmarshal(bodyBytes, &confirm)
-	fmt.Println(where + " C")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm)
-	fmt.Println(where + " D")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
-	fmt.Println(where + " E")
 	// dealing with an AppError
 	if !(reflect.ValueOf(err).Kind() == reflect.Ptr && reflect.ValueOf(err).IsNil()) {
-		fmt.Println(where + " E1")
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
@@ -167,7 +160,6 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		License:  utils.GetClientLicense(license),
 		Progress: confirmResponse.Progress,
 	})
-	fmt.Println(where + " F")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -184,7 +176,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
-	where := "Api4.handleCWSHealthCheck"
+	const where = "Api4.handleCWSHealthCheck"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
