@@ -168,7 +168,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := c.App.Cloud().ConfirmSelfHostedSignupLicenseApplication()
 		if err != nil {
-			c.Logger.Warn("Error confirming license", mlog.Err(err))
+			c.Logger.Warn("Unable to confirm license application", mlog.Err(err))
 		}
 	}()
 
