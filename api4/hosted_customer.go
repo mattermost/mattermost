@@ -176,7 +176,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
-	const where = "Api4.handleCWSHealthCheck"
+	const where = "Api4.handleSignupAvailable"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
