@@ -270,7 +270,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
 			if rejectionReason != "" {
 				id := "Post rejected by plugin. " + rejectionReason
@@ -332,7 +332,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		pluginPost := rpost.ForPlugin()
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
 				return true
 			}, plugin.MessageHasBeenPostedID)
@@ -661,7 +661,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
 			return post != nil
 		}, plugin.MessageWillBeUpdatedID)
@@ -689,7 +689,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		pluginNewPost := newPost.ForPlugin()
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedID)
@@ -2149,6 +2149,74 @@ func (a *App) CheckPostReminders() {
 		}
 	}
 
+}
+
+func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError) {
+	userID := c.Session().UserId
+	post, appErr := a.GetSinglePost(postID, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channel, appErr := a.GetChannel(c, post.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	notFoundError := model.NewAppError("GetPostInfo", "app.post.get.app_error", nil, "", http.StatusNotFound)
+
+	var team *model.Team
+	hasPermissionToAccessTeam := false
+	if channel.TeamId != "" {
+		team, appErr = a.GetTeam(channel.TeamId)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		if team.Type == model.TeamOpen {
+			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPublicTeams)
+		} else if team.Type == model.TeamInvite {
+			hasPermissionToAccessTeam = a.HasPermissionToTeam(userID, team.Id, model.PermissionJoinPrivateTeams)
+		}
+	} else {
+		// This happens in case of DMs and GMs.
+		hasPermissionToAccessTeam = true
+	}
+
+	if !hasPermissionToAccessTeam {
+		return nil, notFoundError
+	}
+
+	hasPermissionToAccessChannel := false
+	if channel.Type == model.ChannelTypeOpen {
+		hasPermissionToAccessChannel = true
+	} else if channel.Type == model.ChannelTypePrivate {
+		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
+	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel)
+	}
+
+	if !hasPermissionToAccessChannel {
+		return nil, notFoundError
+	}
+
+	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
+
+	info := model.PostInfo{
+		ChannelId:          channel.Id,
+		ChannelType:        channel.Type,
+		ChannelDisplayName: channel.DisplayName,
+		HasJoinedChannel:   channelMemberErr == nil,
+	}
+	if team != nil {
+		_, teamMemberErr := a.GetTeamMember(team.Id, userID)
+
+		info.TeamId = team.Id
+		info.TeamType = team.Type
+		info.TeamDisplayName = team.DisplayName
+		info.HasJoinedTeam = teamMemberErr == nil
+	}
+	return &info, nil
 }
 
 func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {

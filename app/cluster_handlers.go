@@ -28,10 +28,6 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
-	env := s.pluginService.GetPluginsEnvironment()
-	if env == nil {
-		return
-	}
 	if msg.Props == nil {
 		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
 		return
@@ -48,7 +44,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	hooks, err := env.HooksForPlugin(pluginID)
+	hooks, err := s.HooksForPluginOrProduct(pluginID)
 	if err != nil {
 		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return

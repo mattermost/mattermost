@@ -346,7 +346,7 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, sc)
 				return true
 			}, plugin.ChannelHasBeenCreatedID)
@@ -432,7 +432,7 @@ func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, cha
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, channel)
 				return true
 			}, plugin.ChannelHasBeenCreatedID)
@@ -1602,7 +1602,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 				return true
 			}, plugin.UserHasJoinedChannelID)
@@ -2180,7 +2180,7 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
 			}, plugin.UserHasJoinedChannelID)
@@ -2492,7 +2492,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 				return true
 			}, plugin.UserHasLeftChannelID)

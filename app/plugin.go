@@ -187,7 +187,7 @@ func (s *PluginService) SetPluginsEnvironment(pluginsEnvironment *plugin.Environ
 	defer s.pluginsLock.Unlock()
 
 	s.pluginsEnvironment = pluginsEnvironment
-	s.platform.SetPluginsEnvironment(pluginsEnvironment)
+	s.platform.SetPluginsEnvironment(s)
 }
 
 func (s *PluginService) syncPluginsActiveState() {
@@ -309,7 +309,7 @@ func (s *PluginService) initPlugins(c *request.Context, pluginDir, webappPluginD
 	defer func() {
 		// platform service requires plugins environment to be initialized
 		// so that it can use it in cluster service initialization
-		s.platform.SetPluginsEnvironment(s.pluginsEnvironment)
+		s.platform.SetPluginsEnvironment(s)
 	}()
 
 	s.pluginsLock.RLock()

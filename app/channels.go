@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -265,5 +266,33 @@ func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 		return errors.New("could not find plugins environment")
 	}
 
-	return s.ch.srv.pluginService.pluginsEnvironment.AddProduct(productID, hooks)
+	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
+}
+
+func (s *Server) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+	if env := s.pluginService.GetPluginsEnvironment(); env != nil {
+		env.RunMultiPluginHook(hookRunnerFunc, hookId)
+	}
+
+	// run hook for the products
+	s.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
+}
+
+func (s *Server) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
+	var hooks plugin.Hooks
+	if env := s.pluginService.GetPluginsEnvironment(); env != nil {
+		// we intentionally ignore the error here, because the id can be a product id
+		// we are going to check if we have the hooks or not
+		hooks, _ = env.HooksForPlugin(id)
+		if hooks != nil {
+			return hooks, nil
+		}
+	}
+
+	hooks = s.hooksManager.HooksForProduct(id)
+	if hooks != nil {
+		return hooks, nil
+	}
+
+	return nil, fmt.Errorf("could not find hooks for id %s", id)
 }

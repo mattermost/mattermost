@@ -53,7 +53,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 				return
 			}
 
-			hooks, err := pluginsEnvironment.HooksForPlugin(id)
+			hooks, err := a.ch.HooksForPluginOrProduct(id)
 			if err != nil {
 				mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
 				return
