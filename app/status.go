@@ -21,174 +21,33 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 // status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 // while an 'away' device is still connected
 func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
-	var status *model.Status
-	var err *model.AppError
-	if status, err = a.GetStatus(userID); err != nil {
-		return
-	}
-
-	status.LastActivityAt = activityAt
-
-	a.Srv().Platform().AddStatusCacheSkipClusterSend(status)
-	a.SetStatusAwayIfNeeded(userID, false)
+	a.Srv().Platform().SetStatusLastActivityAt(userID, activityAt)
 }
 
 func (a *App) SetStatusOnline(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	broadcast := false
-
-	var oldStatus string = model.StatusOffline
-	var oldTime int64
-	var oldManual bool
-	var status *model.Status
-	var err *model.AppError
-
-	if status, err = a.GetStatus(userID); err != nil {
-		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-		broadcast = true
-	} else {
-		if status.Manual && !manual {
-			return // manually set status always overrides non-manual one
-		}
-
-		if status.Status != model.StatusOnline {
-			broadcast = true
-		}
-
-		oldStatus = status.Status
-		oldTime = status.LastActivityAt
-		oldManual = status.Manual
-
-		status.Status = model.StatusOnline
-		status.Manual = false // for "online" there's no manual setting
-		status.LastActivityAt = model.GetMillis()
-	}
-
-	a.Srv().Platform().AddStatusCache(status)
-
-	// Only update the database if the status has changed, the status has been manually set,
-	// or enough time has passed since the previous action
-	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.StatusMinUpdateTime {
-		if broadcast {
-			if err := a.Srv().Store().Status().SaveOrUpdate(status); err != nil {
-				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
-			}
-		} else {
-			if err := a.Srv().Store().Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
-				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
-			}
-		}
-	}
-
-	if broadcast {
-		a.Srv().Platform().BroadcastStatus(status)
-	}
+	a.Srv().Platform().SetStatusOnline(userID, manual)
 }
 
 func (a *App) SetStatusOffline(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	status, err := a.GetStatus(userID)
-	if err == nil && status.Manual && !manual {
-		return // manually set status always overrides non-manual one
-	}
-
-	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-
-	a.Srv().Platform().SaveAndBroadcastStatus(status)
+	a.Srv().Platform().SetStatusOffline(userID, manual)
 }
 
 func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	status, err := a.GetStatus(userID)
-
-	if err != nil {
-		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: 0, ActiveChannel: ""}
-	}
-
-	if !manual && status.Manual {
-		return // manually set status always overrides non-manual one
-	}
-
-	if !manual {
-		if status.Status == model.StatusAway {
-			return
-		}
-
-		if !a.IsUserAway(status.LastActivityAt) {
-			return
-		}
-	}
-
-	status.Status = model.StatusAway
-	status.Manual = manual
-	status.ActiveChannel = ""
-
-	a.Srv().Platform().SaveAndBroadcastStatus(status)
+	a.Srv().Platform().SetStatusAwayIfNeeded(userID, manual)
 }
 
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
 func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	status, err := a.GetStatus(userId)
-
-	if err != nil {
-		status = &model.Status{UserId: userId, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	}
-
-	status.PrevStatus = status.Status
-	status.Status = model.StatusDnd
-	status.Manual = true
-
-	status.DNDEndTime = endtime
-
-	a.Srv().Platform().SaveAndBroadcastStatus(status)
+	a.Srv().Platform().SetStatusDoNotDisturbTimed(userId, endtime)
 }
 
 func (a *App) SetStatusDoNotDisturb(userID string) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	status, err := a.GetStatus(userID)
-
-	if err != nil {
-		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	}
-
-	status.Status = model.StatusDnd
-	status.Manual = true
-
-	a.Srv().Platform().SaveAndBroadcastStatus(status)
+	a.Srv().Platform().SetStatusDoNotDisturb(userID)
 }
 
 func (a *App) SetStatusOutOfOffice(userID string) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	status, err := a.GetStatus(userID)
-
-	if err != nil {
-		status = &model.Status{UserId: userID, Status: model.StatusOutOfOffice, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	}
-
-	status.Status = model.StatusOutOfOffice
-	status.Manual = true
-
-	a.Srv().Platform().SaveAndBroadcastStatus(status)
+	a.Srv().Platform().SetStatusOutOfOffice(userID)
 }
 
 func (a *App) GetStatusFromCache(userID string) *model.Status {
@@ -197,10 +56,6 @@ func (a *App) GetStatusFromCache(userID string) *model.Status {
 
 func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 	return a.Srv().Platform().GetStatus(userID)
-}
-
-func (a *App) IsUserAway(lastActivityAt int64) bool {
-	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
 }
 
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
