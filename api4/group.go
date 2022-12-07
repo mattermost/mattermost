@@ -99,9 +99,15 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
-	})
+	}, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -190,7 +196,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -300,7 +306,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -611,7 +617,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -629,7 +635,13 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -667,7 +679,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupID := c.Params.GroupId
-	count, appErr := c.App.GetGroupMemberCount(groupID)
+	count, appErr := c.App.GetGroupMemberCount(groupID, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -927,10 +939,31 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	groups, appErr := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	var (
+		groups      = []*model.Group{}
+		canSee bool = true
+	)
+
+	if opts.FilterHasMember != "" {
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if canSee {
+		groups, appErr = c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts, restrictions)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	var (
@@ -966,7 +999,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -1009,7 +1042,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1063,7 +1096,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
