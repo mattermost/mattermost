@@ -326,7 +326,7 @@ func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 }
 
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
-	if env := ch.pluginsEnvironment; env != nil {
+	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
 
@@ -336,7 +336,7 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, h
 
 func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
 	var hooks plugin.Hooks
-	if env := ch.pluginsEnvironment; env != nil {
+	if env := ch.GetPluginsEnvironment(); env != nil {
 		// we intentionally ignore the error here, because the id can be a product id
 		// we are going to check if we have the hooks or not
 		hooks, _ = env.HooksForPlugin(id)
