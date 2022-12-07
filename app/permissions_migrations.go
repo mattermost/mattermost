@@ -979,6 +979,25 @@ func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
 		model.PermissionManageCustomGroupMembers.Id,
 		model.PermissionEditCustomGroup.Id,
 		model.PermissionDeleteCustomGroup.Id,
+	}
+
+	t = append(t, permissionTransformation{
+		On:  isExactRole(model.SystemUserRoleId),
+		Add: customGroupPermissions,
+	})
+
+	t = append(t, permissionTransformation{
+		On:  isExactRole(model.SystemAdminRoleId),
+		Add: customGroupPermissions,
+	})
+
+	return t, nil
+}
+
+func (a *App) getAddCustomUserGroupsPermissionRestore() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	customGroupPermissions := []string{
 		model.PermissionRestoreCustomGroup.Id,
 	}
 
@@ -992,6 +1011,10 @@ func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
 		Add: customGroupPermissions,
 	})
 
+	t = append(t, permissionTransformation{
+		On:  isExactRole(model.SystemCustomGroupAdminRoleId),
+		Add: customGroupPermissions,
+	})
 	return t, nil
 }
 
@@ -1111,6 +1134,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissions, Migration: a.getAddCustomUserGroupsPermissions},
 		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
 		{Key: model.MigrationKeyAddProductsBoardsPermissions, Migration: a.getProductsBoardsPermissions},
+		{Key: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Migration: a.getAddCustomUserGroupsPermissionRestore},
 	}
 
 	roles, err := s.Store().Role().GetAll()
