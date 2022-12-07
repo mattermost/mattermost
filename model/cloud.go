@@ -42,6 +42,20 @@ const (
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
 
+type ProductSku string
+
+const (
+	SkuStarterGov        = ProductSku("starter-gov")
+	SkuProfessionalGov   = ProductSku("professional-gov")
+	SkuEnterpriseGov     = ProductSku("enterprise-gov")
+	SkuStarter           = ProductSku("starter")
+	SkuProfessional      = ProductSku("professional")
+	SkuEnterprise        = ProductSku("enterprise")
+	SkuCloudStarter      = ProductSku("cloud-starter")
+	SkuCloudProfessional = ProductSku("cloud-professional")
+	SkuCloudEnterprise   = ProductSku("cloud-enterprise")
+)
+
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID                string             `json:"id"`
