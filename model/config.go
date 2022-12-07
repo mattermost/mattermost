@@ -383,6 +383,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
+	SelfHostedFirstTimePurchase                       *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
@@ -852,6 +853,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.AllowSyncedDrafts == nil {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
+
+	if s.SelfHostedFirstTimePurchase == nil {
+		s.SelfHostedFirstTimePurchase = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -963,6 +968,7 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
+	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -996,6 +1002,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
+	}
+
+	if s.PatchPluginsReactDOM == nil {
+		s.PatchPluginsReactDOM = NewBool(false)
 	}
 }
 

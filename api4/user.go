@@ -1914,6 +1914,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
+	campaignToURL := map[string]string{
+		"focalboard": "/boards",
+	}
+
 	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
@@ -1921,6 +1925,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	var loginID string
 	var token string
+	var campaign string
 	if len(r.Form) > 0 {
 		for key, value := range r.Form {
 			if key == "login_id" {
@@ -1928,6 +1933,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if key == "cws_token" {
 				token = value[0]
+			}
+			if key == "utm_campaign" {
+				campaign = value[0]
 			}
 		}
 	}
@@ -1952,7 +1960,14 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
+
+	redirectURL := *c.App.Config().ServiceSettings.SiteURL
+	if campaign != "" {
+		if url, ok := campaignToURL[campaign]; ok {
+			redirectURL += url
+		}
+	}
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {

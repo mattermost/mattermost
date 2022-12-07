@@ -5360,10 +5360,6 @@
     "translation": "بارگیری انجام نشد."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "بارگذاری پرونده امکان پذیر نیست. پرونده خیلی بزرگ است."
-  },
-  {
     "id": "app.upload.create.save.app_error",
     "translation": "بارگذاری ذخیره نشد."
   },
