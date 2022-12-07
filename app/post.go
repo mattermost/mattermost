@@ -263,38 +263,36 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.Metadata.Priority = nil
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var metadata *model.PostMetadata
-		if post.Metadata != nil {
-			metadata = post.Metadata.Copy()
-		}
-		var rejectionError *model.AppError
-		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
-			if rejectionReason != "" {
-				id := "Post rejected by plugin. " + rejectionReason
-				if rejectionReason == plugin.DismissPostError {
-					id = plugin.DismissPostError
-				}
-				rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
-				return false
+	var metadata *model.PostMetadata
+	if post.Metadata != nil {
+		metadata = post.Metadata.Copy()
+	}
+	var rejectionError *model.AppError
+	pluginContext := pluginContext(c)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
+		if rejectionReason != "" {
+			id := "Post rejected by plugin. " + rejectionReason
+			if rejectionReason == plugin.DismissPostError {
+				id = plugin.DismissPostError
 			}
-			if replacementPost != nil {
-				post = replacementPost
-				if post.Metadata != nil && metadata != nil {
-					post.Metadata.Priority = metadata.Priority
-				} else {
-					post.Metadata = metadata
-				}
-			}
-
-			return true
-		}, plugin.MessageWillBePostedID)
-
-		if rejectionError != nil {
-			return nil, rejectionError
+			rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
+			return false
 		}
+		if replacementPost != nil {
+			post = replacementPost
+			if post.Metadata != nil && metadata != nil {
+				post.Metadata.Priority = metadata.Priority
+			} else {
+				post.Metadata = metadata
+			}
+		}
+
+		return true
+	}, plugin.MessageWillBePostedID)
+
+	if rejectionError != nil {
+		return nil, rejectionError
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -328,16 +326,13 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// We make a copy of the post for the plugin hook to avoid a race condition,
 	// and to remove the non-GOB-encodable Metadata from it.
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		pluginPost := rpost.ForPlugin()
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
-				return true
-			}, plugin.MessageHasBeenPostedID)
-		})
-	}
+	pluginPost := rpost.ForPlugin()
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenPostedID)
+	})
 
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
@@ -658,20 +653,18 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		oldPost.RemoteId = model.NewString(*post.RemoteId)
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionReason string
-		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-			return post != nil
-		}, plugin.MessageWillBeUpdatedID)
-		if newPost == nil {
-			return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
-		}
-		// Restore the post metadata that was stripped by the plugin. Set it to
-		// the last known good.
-		newPost.Metadata = oldPost.Metadata
+	var rejectionReason string
+	pluginContext := pluginContext(c)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
+		return post != nil
+	}, plugin.MessageWillBeUpdatedID)
+	if newPost == nil {
+		return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
+	// Restore the post metadata that was stripped by the plugin. Set it to
+	// the last known good.
+	newPost.Metadata = oldPost.Metadata
 
 	rpost, nErr := a.Srv().Store().Post().Update(newPost, oldPost)
 	if nErr != nil {
@@ -684,17 +677,14 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		}
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		pluginOldPost := oldPost.ForPlugin()
-		pluginNewPost := newPost.ForPlugin()
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
-				return true
-			}, plugin.MessageHasBeenUpdatedID)
-		})
-	}
+	pluginOldPost := oldPost.ForPlugin()
+	pluginNewPost := newPost.ForPlugin()
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
+			return true
+		}, plugin.MessageHasBeenUpdatedID)
+	})
 
 	rpost = a.PreparePostForClientWithEmbedsAndImages(c, rpost, false, true, true)
 
