@@ -743,7 +743,7 @@ func (c *Context) RequireInvoiceId() *Context {
 		return c
 	}
 
-	if len(c.Params.InvoiceId) != 27 {
+	if len(c.Params.InvoiceId) != 27 && c.Params.InvoiceId != model.UpcomingInvoice {
 		c.SetInvalidURLParam("invoice_id")
 	}
 
