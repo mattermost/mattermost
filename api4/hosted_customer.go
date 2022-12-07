@@ -210,13 +210,18 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
-	const where = "Api4.handleSignupAvailable"
+	const where = "Api4.selfHostedInvoices"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
 	}
 
 	invoices, err := c.App.Cloud().GetSelfHostedInvoices()
+
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
 	json, err := json.Marshal(invoices)
 	if err != nil {
@@ -228,7 +233,7 @@ func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
-	const where = "Api4.handleSignupAvailable"
+	const where = "Api4.selfHostedInvoicePDF"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
