@@ -415,7 +415,6 @@ func getLicenseExpandStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := c.App.Cloud().GetLicenseExpandStats(c.AppContext.Session().UserId, licenseID)
-
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
