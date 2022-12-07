@@ -343,15 +343,13 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 		a.InvalidateCacheForUser(channel.CreatorId)
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-				hooks.ChannelHasBeenCreated(pluginContext, sc)
-				return true
-			}, plugin.ChannelHasBeenCreatedID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, sc)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
 
 	return sc, nil
 }
@@ -429,15 +427,13 @@ func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, cha
 	a.InvalidateCacheForUser(userID)
 	a.InvalidateCacheForUser(otherUserID)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-				hooks.ChannelHasBeenCreated(pluginContext, channel)
-				return true
-			}, plugin.ChannelHasBeenCreatedID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, channel)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", channel.Id, "", nil, "")
 	message.Add("creator_id", userID)
@@ -1599,15 +1595,13 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 		return nil, err
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
-				return true
-			}, plugin.UserHasJoinedChannelID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
+			return true
+		}, plugin.UserHasJoinedChannelID)
+	})
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
@@ -2177,15 +2171,13 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		return err
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
-				return true
-			}, plugin.UserHasJoinedChannelID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasJoinedChannel(pluginContext, cm, nil)
+			return true
+		}, plugin.UserHasJoinedChannelID)
+	})
 
 	if err := a.postJoinChannelMessage(c, user, channel); err != nil {
 		return err
@@ -2484,20 +2476,18 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	a.InvalidateCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var actorUser *model.User
-		if removerUserId != "" {
-			actorUser, _ = a.GetUser(removerUserId)
-		}
-
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
-				return true
-			}, plugin.UserHasLeftChannelID)
-		})
+	var actorUser *model.User
+	if removerUserId != "" {
+		actorUser, _ = a.GetUser(removerUserId)
 	}
+
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
+			return true
+		}, plugin.UserHasLeftChannelID)
+	})
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
 	message.Add("user_id", userIDToRemove)
