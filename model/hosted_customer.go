@@ -48,3 +48,11 @@ type SelfHostedSignupConfirmClientResponse struct {
 	License  map[string]string
 	Progress string `json:"progress"`
 }
+
+type SelfHostedBillingAccessRequest struct {
+	LicenseId string `json:"license_id"`
+}
+
+type SelfHostedBillingAccessResponse struct {
+	Token string `json:"token"`
+}

@@ -4,10 +4,13 @@
 package api4
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"io"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -25,6 +28,10 @@ func (api *API) InitHostedCustomer() {
 	api.BaseRoutes.HostedCustomer.Handle("/customer", api.APISessionRequired(selfHostedCustomer)).Methods("POST")
 	// POST /api/v4/hosted_customer/confirm
 	api.BaseRoutes.HostedCustomer.Handle("/confirm", api.APISessionRequired(selfHostedConfirm)).Methods("POST")
+	// GET /api/v4/hosted_customer/invoices
+	api.BaseRoutes.HostedCustomer.Handle("/invoices", api.APISessionRequired(selfHostedInvoices)).Methods("GET")
+	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
+	api.BaseRoutes.HostedCustomer.Handle("/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(selfHostedInvoicePDF)).Methods("GET")
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
@@ -200,4 +207,53 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.selfHostedInvoices"
+	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
+
+	invoices, err := c.App.Cloud().GetSelfHostedInvoices()
+
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	json, err := json.Marshal(invoices)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(json)
+}
+
+func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.selfHostedInvoicePDF"
+	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
+
+	pdfData, filename, appErr := c.App.Cloud().GetSelfHostedInvoicePDF(c.Params.InvoiceId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getSubscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeFileResponse(
+		filename,
+		"application/pdf",
+		int64(binary.Size(pdfData)),
+		time.Now(),
+		*c.App.Config().ServiceSettings.WebserverMode,
+		bytes.NewReader(pdfData),
+		false,
+		w,
+		r,
+	)
 }

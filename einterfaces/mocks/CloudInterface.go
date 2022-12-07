@@ -339,6 +339,59 @@ func (_m *CloudInterface) GetLicenseRenewalStatus(userID string, token string) e
 	return r0
 }
 
+// GetSelfHostedInvoicePDF provides a mock function with given fields: invoiceID
+func (_m *CloudInterface) GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error) {
+	ret := _m.Called(invoiceID)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(invoiceID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 string
+	if rf, ok := ret.Get(1).(func(string) string); ok {
+		r1 = rf(invoiceID)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string) error); ok {
+		r2 = rf(invoiceID)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// GetSelfHostedInvoices provides a mock function with given fields:
+func (_m *CloudInterface) GetSelfHostedInvoices() ([]*model.Invoice, error) {
+	ret := _m.Called()
+
+	var r0 []*model.Invoice
+	if rf, ok := ret.Get(0).(func() []*model.Invoice); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Invoice)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSelfHostedProducts provides a mock function with given fields: userID
 func (_m *CloudInterface) GetSelfHostedProducts(userID string) ([]*model.Product, error) {
 	ret := _m.Called(userID)
