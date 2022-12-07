@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	platform_mocks "github.com/mattermost/mattermost-server/v6/app/platform/mocks"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
@@ -467,7 +468,7 @@ func TestHubIsRegistered(t *testing.T) {
 	require.NoError(t, err)
 
 	mockSuite := &platform_mocks.SuiteIFace{}
-	mockSuite.On("SetStatusOnline", th.BasicUser.Id, false).Return()
+	mockSuite.On("SetStatusOnline", request.EmptyContext(th.Service.Logger()), th.BasicUser.Id, false).Return()
 	mockSuite.On("UpdateLastActivityAtIfNeeded", *session).Return()
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
 	mockSuite.On("IsUserAway", mock.Anything).Return(false)

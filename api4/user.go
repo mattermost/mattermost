@@ -1326,7 +1326,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
+	c.App.SetAutoResponderStatus(c.AppContext, ruser, ouser.NotifyProps)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(ruser)

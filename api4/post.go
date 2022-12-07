@@ -100,7 +100,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("post")
 
 	if setOnlineBool {
-		c.App.SetStatusOnline(c.AppContext.Session().UserId, false)
+		c.App.SetStatusOnline(c.AppContext, c.AppContext.Session().UserId, false)
 	}
 
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())

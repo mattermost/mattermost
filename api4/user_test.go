@@ -2448,7 +2448,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
-	th.App.SetStatusOnline(th.BasicUser.Id, true)
+	th.App.SetStatusOnline(th.Context, th.BasicUser.Id, true)
 
 	rusers, _, err := th.Client.GetRecentlyActiveUsersInTeam(teamId, 0, 60, "")
 	require.NoError(t, err)

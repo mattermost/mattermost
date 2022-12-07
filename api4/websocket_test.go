@@ -374,7 +374,7 @@ func TestWebSocketStatuses(t *testing.T) {
 	time.Sleep(1500 * time.Millisecond)
 
 	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
-	th.App.SetStatusOnline(th.BasicUser.Id, false)
+	th.App.SetStatusOnline(th.Context, th.BasicUser.Id, false)
 
 	time.Sleep(1500 * time.Millisecond)
 
