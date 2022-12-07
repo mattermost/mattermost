@@ -16,6 +16,8 @@ const (
 	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
+const UpcomingInvoice = "upcoming"
+
 var MockCWS string
 
 type BillingScheme string
@@ -38,6 +40,20 @@ type SubscriptionFamily string
 const (
 	SubscriptionFamilyCloud  = SubscriptionFamily("cloud")
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
+)
+
+type ProductSku string
+
+const (
+	SkuStarterGov        = ProductSku("starter-gov")
+	SkuProfessionalGov   = ProductSku("professional-gov")
+	SkuEnterpriseGov     = ProductSku("enterprise-gov")
+	SkuStarter           = ProductSku("starter")
+	SkuProfessional      = ProductSku("professional")
+	SkuEnterprise        = ProductSku("enterprise")
+	SkuCloudStarter      = ProductSku("cloud-starter")
+	SkuCloudProfessional = ProductSku("cloud-professional")
+	SkuCloudEnterprise   = ProductSku("cloud-enterprise")
 )
 
 // Product model represents a product on the cloud system.
@@ -152,6 +168,7 @@ type Subscription struct {
 	DNS                     string   `json:"dns"`
 	IsPaidTier              string   `json:"is_paid_tier"`
 	LastInvoice             *Invoice `json:"last_invoice"`
+	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
 	DelinquentSince         *int64   `json:"delinquent_since"`
