@@ -318,7 +318,13 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		})
 	}
 
-	go a.SendSubscriptionHistoryEvent(ruser.Id)
+	// Create/Update the subscriptionHistoryEvent
+	go func() {
+		_, err := a.SendSubscriptionHistoryEvent(ruser.Id)
+		if err != nil {
+			c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
+		}
+	}()
 
 	return ruser, nil
 }
