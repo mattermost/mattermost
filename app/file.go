@@ -895,29 +895,27 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionError *model.AppError
-		pluginContext := pluginContext(c)
-		a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
-			var newBytes bytes.Buffer
-			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
-			if rejectionReason != "" {
-				rejectionError = model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
-				return false
-			}
-			if replacementInfo != nil {
-				info = replacementInfo
-			}
-			if newBytes.Len() != 0 {
-				data = newBytes.Bytes()
-				info.Size = int64(len(data))
-			}
-
-			return true
-		}, plugin.FileWillBeUploadedID)
-		if rejectionError != nil {
-			return nil, data, rejectionError
+	var rejectionError *model.AppError
+	pluginContext := pluginContext(c)
+	a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
+		var newBytes bytes.Buffer
+		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
+		if rejectionReason != "" {
+			rejectionError = model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+			return false
 		}
+		if replacementInfo != nil {
+			info = replacementInfo
+		}
+		if newBytes.Len() != 0 {
+			data = newBytes.Bytes()
+			info.Size = int64(len(data))
+		}
+
+		return true
+	}, plugin.FileWillBeUploadedID)
+	if rejectionError != nil {
+		return nil, data, rejectionError
 	}
 
 	if _, err := a.WriteFile(bytes.NewReader(data), info.Path); err != nil {

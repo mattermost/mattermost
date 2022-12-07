@@ -343,7 +343,15 @@ func (s *PluginService) initPlugins(c *request.Context, pluginDir, webappPluginD
 		return New(ServerConnector(s.channels)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(s.platform), pluginDir, webappPluginDir, s.platform.Log().(*mlog.Logger), s.platform.Metrics())
+	env, err := plugin.NewEnvironment(
+		newAPIFunc,
+		NewDriverImpl(s.platform),
+		pluginDir,
+		webappPluginDir,
+		*s.platform.Config().ExperimentalSettings.PatchPluginsReactDOM,
+		s.platform.Logger(),
+		s.platform.Metrics(),
+	)
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -378,14 +386,13 @@ func (s *PluginService) initPlugins(c *request.Context, pluginDir, webappPluginD
 			s.installFeatureFlagPlugins()
 			s.syncPluginsActiveState()
 		}
-		if pluginsEnvironment := s.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				if err := hooks.OnConfigurationChange(); err != nil {
-					s.platform.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
-				}
-				return true
-			}, plugin.OnConfigurationChangeID)
-		}
+
+		s.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			if err := hooks.OnConfigurationChange(); err != nil {
+				s.platform.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+			}
+			return true
+		}, plugin.OnConfigurationChangeID)
 	})
 	s.pluginsLock.Unlock()
 
