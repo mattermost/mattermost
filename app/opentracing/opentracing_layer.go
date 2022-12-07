@@ -15546,7 +15546,7 @@ func (a *OpenTracingAppLayer) SendTestPushNotification(deviceID string) string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendUpgradeConfirmationEmail() *model.AppError {
+func (a *OpenTracingAppLayer) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendUpgradeConfirmationEmail")
 
@@ -15558,7 +15558,7 @@ func (a *OpenTracingAppLayer) SendUpgradeConfirmationEmail() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendUpgradeConfirmationEmail()
+	resultVar0 := a.app.SendUpgradeConfirmationEmail(isYearly)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
