@@ -286,14 +286,13 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 			ch.installFeatureFlagPlugins()
 			ch.syncPluginsActiveState()
 		}
-		if pluginsEnvironment := ch.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-				if err := hooks.OnConfigurationChange(); err != nil {
-					ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
-				}
-				return true
-			}, plugin.OnConfigurationChangeID)
-		}
+
+		ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			if err := hooks.OnConfigurationChange(); err != nil {
+				ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+			}
+			return true
+		}, plugin.OnConfigurationChangeID)
 	})
 	ch.pluginsLock.Unlock()
 
