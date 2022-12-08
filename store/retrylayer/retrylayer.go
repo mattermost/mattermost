@@ -14211,6 +14211,27 @@ func (s *RetryLayerWebhookStore) GetIncomingListByUser(userID string, offset int
 
 }
 
+func (s *RetryLayerWebhookStore) GetIncomingTotal() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncomingTotal()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 
 	tries := 0
@@ -14342,6 +14363,27 @@ func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userID string, offset int
 	tries := 0
 	for {
 		result, err := s.WebhookStore.GetOutgoingListByUser(userID, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingTotal() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingTotal()
 		if err == nil {
 			return result, nil
 		}

@@ -12462,6 +12462,24 @@ func (s *OpenTracingLayerWebhookStore) GetIncomingListByUser(userID string, offs
 	return result, err
 }
 
+func (s *OpenTracingLayerWebhookStore) GetIncomingTotal() (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.GetIncomingTotal")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.WebhookStore.GetIncomingTotal()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.GetOutgoing")
@@ -12580,6 +12598,24 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingListByUser(userID string, offs
 
 	defer span.Finish()
 	result, err := s.WebhookStore.GetOutgoingListByUser(userID, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerWebhookStore) GetOutgoingTotal() (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.GetOutgoingTotal")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.WebhookStore.GetOutgoingTotal()
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
