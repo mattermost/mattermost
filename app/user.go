@@ -308,15 +308,13 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasBeenCreated(pluginContext, ruser)
-				return true
-			}, plugin.UserHasBeenCreatedID)
-		})
-	}
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasBeenCreated(pluginContext, ruser)
+			return true
+		}, plugin.UserHasBeenCreatedID)
+	})
 
 	_, cwsErr := a.SendSubscriptionHistoryEvent(ruser.Id)
 	if cwsErr != nil {

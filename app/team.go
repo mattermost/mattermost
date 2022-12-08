@@ -846,20 +846,18 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForUserTeams(user.Id)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var actor *model.User
-		if userRequestorId != "" {
-			actor, _ = a.GetUser(userRequestorId)
-		}
-
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasJoinedTeam(pluginContext, teamMember, actor)
-				return true
-			}, plugin.UserHasJoinedTeamID)
-		})
+	var actor *model.User
+	if userRequestorId != "" {
+		actor, _ = a.GetUser(userRequestorId)
 	}
+
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasJoinedTeam(pluginContext, teamMember, actor)
+			return true
+		}, plugin.UserHasJoinedTeamID)
+	})
 
 	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil, "")
 	message.Add("team_id", team.Id)
@@ -1220,20 +1218,18 @@ func (a *App) RemoveUserFromTeam(c request.CTX, teamID string, userID string, re
 }
 
 func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var actor *model.User
-		if requestorId != "" {
-			actor, _ = a.GetUser(requestorId)
-		}
-
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
-				return true
-			}, plugin.UserHasLeftTeamID)
-		})
+	var actor *model.User
+	if requestorId != "" {
+		actor, _ = a.GetUser(requestorId)
 	}
+
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
+			return true
+		}, plugin.UserHasLeftTeamID)
+	})
 
 	user, nErr := a.Srv().Store().User().Get(context.Background(), teamMember.UserId)
 	if nErr != nil {

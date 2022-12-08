@@ -181,7 +181,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	err = th.Service.Start(th.Suite)
+	err = th.Service.Start()
 	if err != nil {
 		panic(err)
 	}
