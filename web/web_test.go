@@ -410,14 +410,14 @@ func TestStaticFilesCaching(t *testing.T) {
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, fakeRemoteEntry, res.Body.String())
-	require.Equal(t, []string{"no-cache, max-age=0"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	req, _ = http.NewRequest("GET", "/static/products/boards/remote_entry.js", nil)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, fakeRemoteEntry, res.Body.String())
-	require.Equal(t, []string{"no-cache, max-age=0"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 }
 
 func TestCheckClientCompatability(t *testing.T) {
