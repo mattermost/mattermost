@@ -247,6 +247,23 @@ func ToDailyPostCountViewModel(dpc []*DurationPostCount, startTime *time.Time, n
 	return viewModel
 }
 
+// Deprecated: This method doesn't perform error checking.
+// Use GetStartOfDayForTimeRange instead.
+//
+// StartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
+// Time range can be one of: "today", "7_day", or "28_day".
+func StartOfDayForTimeRange(timeRange string, location *time.Location) *time.Time {
+	now := time.Now().In(location)
+	resultTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	switch timeRange {
+	case TimeRange7Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-144))
+	case TimeRange28Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-648))
+	}
+	return &resultTime
+}
+
 // GetStartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
 // Time range can be one of: "today", "7_day", or "28_day".
 func GetStartOfDayForTimeRange(timeRange string, location *time.Location) (*time.Time, *AppError) {
