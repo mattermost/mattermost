@@ -81,6 +81,8 @@ const (
 	TrackLicense  = "license"
 	TrackServer   = "server"
 	TrackPlugins  = "plugins"
+
+	TrackTrueUpReview = "true_up_review"
 )
 
 type ServerIface interface {

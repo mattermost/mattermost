@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
+	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 
@@ -24,6 +26,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
 	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/license/review", api.APIHandler(requestTrueUpReview)).Methods("POST")
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -295,4 +298,84 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapToJSON(clientLicense)))
+}
+
+func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
+	license := c.App.Channels().License()
+	if license == nil {
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	subscription, err := c.App.Cloud().GetSubscription(userId)
+	if err != nil {
+		fmt.Printf("1: %+v", err)
+		return
+	}
+
+	reviewProfile := model.TrueUpReviewProfile{}
+
+	// Server Data
+	reviewProfile.ServerId = c.App.TelemetryId()
+	reviewProfile.ServerVersion = model.CurrentVersion
+	reviewProfile.ServerInstallationType = os.Getenv(telemetry.EnvVarInstallType)
+
+	// License Data
+	reviewProfile.LicenseId = license.Id
+	reviewProfile.LicensedSeats = subscription.Seats
+	reviewProfile.LicensePlan = license.SkuName
+
+	activeUserCount, err := c.App.Srv().GetStore().Status().GetTotalActiveUsersCount()
+	if err != nil {
+		fmt.Printf("2: %+v", err)
+		return
+	}
+
+	// Customer Info & Usage Analytics
+	reviewProfile.CustomerName = license.Customer.Name
+	reviewProfile.ActiveUsers = activeUserCount
+
+	// Webhook, call, board, playbook counts
+	var totalWebHookCount int64 = 0
+	incomingWebhookCount, err := c.App.Srv().Store().Webhook().GetIncomingTotal()
+	if err != nil {
+		fmt.Printf("3: %+v", err)
+		return
+	}
+	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().GetOutgoingTotal()
+	if err != nil {
+		fmt.Printf("4: %+v", err)
+		return
+	}
+
+	totalWebHookCount += incomingWebhookCount
+	totalWebHookCount += outgoingWebhookCount
+
+	reviewProfile.TotalWebhooks = totalWebHookCount
+	reviewProfile.TotalCalls = 0
+	reviewProfile.TotalBoards = 0
+	reviewProfile.TotalPlaybooks = 0
+
+	// Plugin Data
+	trueUpReviewPlugins := model.TrueUpReviewPlugins{}
+	if pluginResponse, err := c.App.GetPlugins(); err == nil {
+		for _, plugin := range pluginResponse.Active {
+			trueUpReviewPlugins.ActivePluginNames = append(trueUpReviewPlugins.ActivePluginNames, plugin.Name)
+			trueUpReviewPlugins.TotalActivePlugins += 1
+		}
+
+		for _, plugin := range pluginResponse.Inactive {
+			trueUpReviewPlugins.InactivePluginNames = append(trueUpReviewPlugins.InactivePluginNames, plugin.Name)
+			trueUpReviewPlugins.TotalInactivePlugins += 1
+		}
+	}
+
+	reviewProfile.Plugins = trueUpReviewPlugins
+
+	json, err := json.Marshal(reviewProfile)
+	if err != nil {
+		fmt.Printf("5: %+v", err)
+		return
+	}
+	w.Write(json)
 }

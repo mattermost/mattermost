@@ -615,6 +615,9 @@ type WebhookStore interface {
 	AnalyticsOutgoingCount(teamID string) (int64, error)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
+
+	GetOutgoingTotal() (int64, error)
+	GetIncomingTotal() (int64, error)
 }
 
 type CommandStore interface {
