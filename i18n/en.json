@@ -6760,6 +6760,10 @@
     "translation": "We could not count the users."
   },
   {
+    "id": "app.user.get_total_users_no_bots_count.app_error",
+    "translation": "We could not count the users."
+  },
+  {
     "id": "app.user.get_unread_count.app_error",
     "translation": "We could not get the unread message count for the user."
   },

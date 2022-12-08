@@ -30,6 +30,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.APISessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.APISessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats_no_bots", api.APISessionRequired(getTotalUsersNoBotsStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats/filtered", api.APISessionRequired(getFilteredUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.APISessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
@@ -543,6 +544,28 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats, err := c.App.GetTotalUsersStats(restrictions)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getTotalUsersNoBotsStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Err != nil {
+		return
+	}
+
+	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats, err := c.App.GetTotalUsersNoBotsStats(restrictions)
 	if err != nil {
 		c.Err = err
 		return

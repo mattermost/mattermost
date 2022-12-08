@@ -1817,6 +1817,21 @@ func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) 
 	return stats, nil
 }
 
+// GetTotalUsersStats returns only human users (no bots)
+func (a *App) GetTotalUsersNoBotsStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError) {
+	count, err := a.Srv().Store().User().Count(model.UserCountOptions{
+		IncludeBotAccounts: false,
+		ViewRestrictions:   viewRestrictions,
+	})
+	if err != nil {
+		return nil, model.NewAppError("GetTotalUsersNoBotsStats", "app.user.get_total_users_no_bots_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	stats := &model.UsersStats{
+		TotalUsersCount: count,
+	}
+	return stats, nil
+}
+
 // GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
 func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError) {
 	count, err := a.Srv().Store().User().Count(*options)
