@@ -28,7 +28,7 @@ const (
 	actionSymlink
 )
 
-const root = "___mattermost-server"
+const root = "___mattermot-server"
 
 type testResourceDetails struct {
 	src     string
