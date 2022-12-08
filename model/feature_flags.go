@@ -94,7 +94,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.SendWelcomePost = true
-	f.PostPriority = false
+	f.PostPriority = true
 	f.PeopleProduct = false
 	f.WorkTemplate = false
 	f.AnnualSubscription = false
