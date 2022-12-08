@@ -6,7 +6,8 @@ package model
 type TrueUpReviewProfile struct {
 	ServerId               string              `json:"server_id"`
 	ServerVersion          string              `json:"server_version"`
-	CustomerName           string              `json:"customer_name"`
+	ServerInstallationType string              `json:"server_installation_type"`
+	CustomerName           *string             `json:"customer_name"` // Might not be availabe?
 	LicenseId              string              `json:"licnes_id"`
 	LicnesedSeats          int                 `json:"license_seats"`
 	LicensePlan            string              `json:"license_plan"`
