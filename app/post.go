@@ -1845,7 +1845,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 
 		if a.isPostPriorityEnabled() {
 			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
-			if err != nil {
+			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 			for _, priority := range priorityList {
