@@ -259,10 +259,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
-	if !a.isPostPriorityEnabled() && post.GetPriority() != nil {
-		post.Metadata.Priority = nil
-	}
-
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var metadata *model.PostMetadata
 		if post.Metadata != nil {
@@ -359,8 +355,8 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 
-	if rpost.RootId != "" && (!user.IsGuest() || *a.Config().ServiceSettings.AllowPersistentNotificationsForGuests) {
-		if appErr := a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true); appErr != nil {
+	if rpost.RootId != "" {
+		if appErr := a.DeletePersistentNotificationsPost(c, parentPostList.Posts[post.RootId], rpost.UserId, true); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -1280,27 +1276,8 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 
 	if post.RootId == "" {
-		isGuestAllowed := true
-		if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-			user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
-			if nErr != nil {
-				var nfErr *store.ErrNotFound
-				switch {
-				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("DeletePost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
-				default:
-					return nil, model.NewAppError("DeletePost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-				}
-			}
-			if user.IsGuest() {
-				isGuestAllowed = false
-			}
-		}
-
-		if isGuestAllowed {
-			if appErr := a.DeletePersistentNotificationsPost(post, "", false); appErr != nil {
-				return nil, appErr
-			}
+		if appErr := a.DeletePersistentNotificationsPost(c, post, "", false); appErr != nil {
+			return nil, appErr
 		}
 	}
 
@@ -1808,7 +1785,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		}
 
 		var urgentCount int
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1848,7 +1825,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if a.isPostPriorityEnabled() {
+			if a.IsPostPriorityEnabled() {
 				priority, err := a.GetPriorityForPost(post.Id)
 				if err != nil {
 					return 0, 0, 0, err
@@ -1884,7 +1861,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			}
 		}
 
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
 			if err != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2192,8 +2169,4 @@ func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThrea
 		topThread.Post = sanitizedPost
 	}
 	return topThreadList, nil
-}
-
-func (a *App) isPostPriorityEnabled() bool {
-	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }

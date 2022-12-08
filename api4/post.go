@@ -78,6 +78,24 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if (post.GetPriority() != nil && !c.App.IsPostPriorityEnabled()) ||
+		(post.GetPersistentNotification() != nil && !c.App.IsPersistentNotificationsEnabled()) ||
+		(post.GetPersistentNotification() != nil && user.IsGuest() && !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests) {
+		c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
+		return
+	}
+
+	if post.GetPriority() != nil && post.RootId != "" {
+		c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	setOnline := r.URL.Query().Get("set_online")
 	setOnlineBool := true // By default, always set online.
 	var err2 error

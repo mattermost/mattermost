@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -42,27 +41,8 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 		}
 	}
 
-	isGuestAllowed := true
-	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-		user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
-		if nErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("SaveAcknowledgementForPost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
-			default:
-				return nil, model.NewAppError("SaveAcknowledgementForPost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-			}
-		}
-		if user.IsGuest() {
-			isGuestAllowed = false
-		}
-	}
-
-	if isGuestAllowed {
-		if appErr := a.DeletePersistentNotificationsPost(post, userID, true); appErr != nil {
-			return nil, appErr
-		}
+	if appErr := a.DeletePersistentNotificationsPost(c, post, userID, true); appErr != nil {
+		return nil, appErr
 	}
 
 	a.Srv().Go(func() {

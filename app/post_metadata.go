@@ -61,7 +61,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 		list.Posts[id] = post
 	}
 
-	if a.isPostPriorityEnabled() {
+	if a.IsPostPriorityEnabled() {
 		priority, _ := a.GetPriorityForPostList(list)
 		acknowledgements, _ := a.GetAcknowledgementsForPostList(list)
 
@@ -137,7 +137,7 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 		post.Metadata.Files = fileInfos
 	}
 
-	if includePriority && a.isPostPriorityEnabled() && post.RootId == "" {
+	if includePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
 			mlog.Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))

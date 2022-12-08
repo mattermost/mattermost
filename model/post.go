@@ -798,11 +798,18 @@ func (o *Post) GetPreviewedPostProp() string {
 }
 
 func (o *Post) GetPriority() *PostPriority {
-	if o.Metadata != nil && o.Metadata.Priority != nil {
-		return o.Metadata.Priority
+	if o.Metadata == nil {
+		return nil
 	}
+	return o.Metadata.Priority
+}
 
-	return nil
+func (o *Post) GetPersistentNotification() *bool {
+	priority := o.GetPriority()
+	if priority == nil {
+		return nil
+	}
+	return priority.PersistentNotifications
 }
 
 func (o *Post) IsUrgent() bool {

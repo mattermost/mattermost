@@ -120,7 +120,7 @@ type AppIface interface {
 	DeleteGroupConstrainedMemberships(c *request.Context) error
 	// DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
 	// Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
-	DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError
+	DeletePersistentNotificationsPost(c request.CTX, post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError
 	// DeletePublicKey will delete plugin public key from the config.
 	DeletePublicKey(name string) *model.AppError
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
@@ -887,7 +887,9 @@ type AppIface interface {
 	IsFirstUserAccount() bool
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
+	IsPersistentNotificationsEnabled() bool
 	IsPhase2MigrationCompleted() *model.AppError
+	IsPostPriorityEnabled() bool
 	IsUserAway(lastActivityAt int64) bool
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError

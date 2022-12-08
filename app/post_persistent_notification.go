@@ -11,17 +11,33 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/pkg/errors"
 )
 
 // DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
 // Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
-func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
-	license := a.License()
-	cfg := a.Config()
-	if !(license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority) {
-		mlog.Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled")
+func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
+	if !a.IsPersistentNotificationsEnabled() {
+		c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled.")
 		return nil
+	}
+
+	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
+		user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return model.NewAppError("DeletePersistentNotificationsPost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+			default:
+				return model.NewAppError("DeletePersistentNotificationsPost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+		if user.IsGuest() {
+			c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled for guests.")
+			return nil
+		}
 	}
 
 	if posts, _, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
@@ -50,13 +66,6 @@ func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserI
 }
 
 func (a *App) SendPersistentNotifications() error {
-	license := a.License()
-	cfg := a.Config()
-	if !(license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority) {
-		mlog.Debug("SendPersistentNotifications: Persistent Notification feature is not enabled")
-		return nil
-	}
-
 	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationInterval) * time.Minute
 	notificationMaxCount := int64(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 	notificationMaxDuration := time.Duration(notificationInterval.Nanoseconds() * notificationMaxCount)
@@ -301,4 +310,8 @@ func (a *App) persistentNotificationsAllowedForStatus(userID string) bool {
 	}
 
 	return status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice
+}
+
+func (a *App) IsPersistentNotificationsEnabled() bool {
+	return a.IsPostPriorityEnabled() && *a.Config().ServiceSettings.AllowPersistentNotifications
 }

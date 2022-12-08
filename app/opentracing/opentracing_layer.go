@@ -3271,7 +3271,7 @@ func (a *OpenTracingAppLayer) DeleteOutgoingWebhook(hookID string) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
+func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePersistentNotificationsPost")
 
@@ -3283,7 +3283,7 @@ func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(post *model.Post
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeletePersistentNotificationsPost(post, mentionedUserID, checkMentionedUser)
+	resultVar0 := a.app.DeletePersistentNotificationsPost(c, post, mentionedUserID, checkMentionedUser)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11919,6 +11919,23 @@ func (a *OpenTracingAppLayer) IsPasswordValid(password string) *model.AppError {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) IsPersistentNotificationsEnabled() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsPersistentNotificationsEnabled")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsPersistentNotificationsEnabled()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) IsPhase2MigrationCompleted() *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsPhase2MigrationCompleted")
@@ -11937,6 +11954,23 @@ func (a *OpenTracingAppLayer) IsPhase2MigrationCompleted() *model.AppError {
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) IsPostPriorityEnabled() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsPostPriorityEnabled")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsPostPriorityEnabled()
 
 	return resultVar0
 }

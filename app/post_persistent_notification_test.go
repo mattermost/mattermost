@@ -34,7 +34,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		cfg := th.App.Config()
 		*cfg.ServiceSettings.PostPriority = true
 
-		err := th.App.DeletePersistentNotificationsPost(post, "", false)
+		err := th.App.DeletePersistentNotificationsPost(th.Context, post, "", false)
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
 	})
@@ -63,7 +63,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		cfg := th.App.Config()
 		*cfg.ServiceSettings.PostPriority = true
 
-		err := th.App.DeletePersistentNotificationsPost(post, "", false)
+		err := th.App.DeletePersistentNotificationsPost(th.Context, post, "", false)
 		require.Nil(t, err)
 
 		mockChannel.AssertNotCalled(t, "GetChannelsByIds", mock.Anything, mock.Anything)
@@ -135,7 +135,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 			cfg := th.App.Config()
 			*cfg.ServiceSettings.PostPriority = true
 
-			err := th.App.DeletePersistentNotificationsPost(post, tc.mentionedUserID, true)
+			err := th.App.DeletePersistentNotificationsPost(th.Context, post, tc.mentionedUserID, true)
 			tc.assertFn(t, err, mockPostPersistentNotification)
 		})
 	}
