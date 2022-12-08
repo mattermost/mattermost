@@ -1718,6 +1718,21 @@ func TestGetTotalUsersStat(t *testing.T) {
 	require.Equal(t, total, rstats.TotalUsersCount)
 }
 
+func TestGetTotalUsersNoBotsStat(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	total, _ := th.Server.Store().User().Count(model.UserCountOptions{
+		IncludeDeleted:     false,
+		IncludeBotAccounts: false,
+	})
+
+	rstats, _, err := th.Client.GetTotalUsersNoBotsStats("")
+	require.NoError(t, err)
+
+	require.Equal(t, total, rstats.TotalUsersCount)
+}
+
 func TestUpdateUser(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

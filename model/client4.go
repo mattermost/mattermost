@@ -506,6 +506,10 @@ func (c *Client4) totalUsersStatsRoute() string {
 	return fmt.Sprintf(c.usersRoute() + "/stats")
 }
 
+func (c *Client4) totalUsersStatsNoBotsRoute() string {
+	return fmt.Sprintf(c.usersRoute() + "/stats_no_bots")
+}
+
 func (c *Client4) redirectLocationRoute() string {
 	return "/redirect_location"
 }
@@ -2561,6 +2565,21 @@ func (c *Client4) GetTotalUsersStats(etag string) (*UsersStats, *Response, error
 	var stats UsersStats
 	if err := json.NewDecoder(r.Body).Decode(&stats); err != nil {
 		return nil, nil, NewAppError("GetTotalUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &stats, BuildResponse(r), nil
+}
+
+// GetTotalUsersStats returns a total system user stats.
+// Must be authenticated.
+func (c *Client4) GetTotalUsersNoBotsStats(etag string) (*UsersStats, *Response, error) {
+	r, err := c.DoAPIGet(c.totalUsersStatsNoBotsRoute(), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var stats UsersStats
+	if err := json.NewDecoder(r.Body).Decode(&stats); err != nil {
+		return nil, nil, NewAppError("GetTotalUsersNoBotsStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &stats, BuildResponse(r), nil
 }
