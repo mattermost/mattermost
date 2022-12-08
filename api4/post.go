@@ -85,11 +85,19 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (post.GetPriority() != nil && !c.App.IsPostPriorityEnabled()) ||
-		(post.GetPersistentNotification() != nil && !c.App.IsPersistentNotificationsEnabled()) ||
-		(post.GetPersistentNotification() != nil && user.IsGuest() && !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests) {
-		c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
-		return
+	if post.GetPriority() != nil {
+		permissionErr := minimumProfessionalLicense(c)
+		if permissionErr != nil {
+			c.Err = permissionErr
+			return
+		}
+
+		if !c.App.IsPostPriorityEnabled() ||
+			(post.GetPersistentNotification() != nil && !c.App.IsPersistentNotificationsEnabled()) ||
+			(post.GetPersistentNotification() != nil && user.IsGuest() && !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests) {
+			c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
+			return
+		}
 	}
 
 	if post.GetPriority() != nil && post.RootId != "" {

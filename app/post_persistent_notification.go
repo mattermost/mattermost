@@ -23,6 +23,13 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		return nil
 	}
 
+	if posts, _, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
+		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if len(posts) == 0 {
+		// Either the notification post already deleted or was never a notification post
+		return nil
+	}
+
 	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
 		user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
 		if nErr != nil {
@@ -38,13 +45,6 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 			c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled for guests.")
 			return nil
 		}
-	}
-
-	if posts, _, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
-		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	} else if len(posts) == 0 {
-		// Either the notification post already deleted or was never a notification post
-		return nil
 	}
 
 	if checkMentionedUser {

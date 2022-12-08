@@ -34,7 +34,5 @@ func (a *App) GetPriorityForPostList(list *model.PostList) (map[string]*model.Po
 }
 
 func (a *App) IsPostPriorityEnabled() bool {
-	license := a.License()
-	cfg := a.Config()
-	return license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags.PostPriority && *cfg.ServiceSettings.PostPriority
+	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }
