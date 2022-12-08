@@ -215,9 +215,10 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 		TeamId:                "ccc",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		OmitConnectionId:      "ddd",
 	}
 
-	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "")
+	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "ddd")
 
 	ev.Add("post", &Post{})
 	ev.SetBroadcast(broadcast)

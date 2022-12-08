@@ -32,16 +32,6 @@ func TestCreateUploadSession(t *testing.T) {
 		FileSize:  8 * 1024 * 1024,
 	}
 
-	t.Run("FileSize over limit", func(t *testing.T) {
-		maxFileSize := *th.App.Config().FileSettings.MaxFileSize
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = us.FileSize - 1 })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
-		u, err := th.App.CreateUploadSession(th.Context, us)
-		require.NotNil(t, err)
-		require.Equal(t, "app.upload.create.upload_too_large.app_error", err.Id)
-		require.Nil(t, u)
-	})
-
 	t.Run("invalid Id", func(t *testing.T) {
 		u, err := th.App.CreateUploadSession(th.Context, us)
 		require.NotNil(t, err)

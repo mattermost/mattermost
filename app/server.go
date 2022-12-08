@@ -161,6 +161,8 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]Product
+
+	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -255,6 +257,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
+	s.hooksManager = product.NewHooksManager(s.GetMetrics())
+
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
@@ -283,7 +287,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
-	s.platform.Start(New(ServerConnector(s.Channels())))
+	s.platform.Start()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -365,7 +369,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log())
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{

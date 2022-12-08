@@ -118,13 +118,14 @@ type NewTeamMembersList struct {
 }
 
 type NewTeamMember struct {
-	Id        string `json:"id"`
-	Username  string `json:"username"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Position  string `json:"position"`
-	Nickname  string `json:"nickname"`
-	CreateAt  int64  `json:"create_at"`
+	Id                string `json:"id"`
+	Username          string `json:"username"`
+	FirstName         string `json:"first_name"`
+	LastName          string `json:"last_name"`
+	Position          string `json:"position"`
+	Nickname          string `json:"nickname"`
+	LastPictureUpdate int64  `json:"last_picture_update,omitempty"`
+	CreateAt          int64  `json:"create_at"`
 }
 
 type DurationPostCount struct {
