@@ -508,6 +508,28 @@ func (a *OpenTracingAppLayer) AddPreviewerToChannel(c request.CTX, userID string
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) RemovePreviewerFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemovePreviewerFromChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemovePreviewerFromChannel(c, userIDToRemove, removerUserId, channel)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddUserToTeam(c request.CTX, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeam")

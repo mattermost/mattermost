@@ -3593,6 +3593,16 @@ func (c *Client4) AddChannelPreviewer(channelId, userId string) (*ChannelMember,
 	return cm, BuildResponse(r), nil
 }
 
+// RemovePreviewerFromChannel will remove a previewer by deleting their channel member object from a channel
+func (c *Client4) RemoveChannelPreviewer(channelId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.channelPreviewerRoute(channelId, userId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
 func (c *Client4) RemoveUserFromChannel(channelId, userId string) (*Response, error) {
 	r, err := c.DoAPIDelete(c.channelMemberRoute(channelId, userId))

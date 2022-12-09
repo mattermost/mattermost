@@ -1576,6 +1576,22 @@ func TestAddChannelPreviewer(t *testing.T) {
 	require.Equal(t, cm.Roles, "channel_previewer")
 }
 
+func TestRemoveChannelPreviewer(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ruser := th.CreateUser()
+
+	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
+
+	_, err := th.App.AddPreviewerToChannel(th.Context, ruser.Id, th.BasicChannel)
+	require.Nil(t, err)
+
+	// User should be able to remove themselves
+	err = th.App.RemovePreviewerFromChannel(th.Context, ruser.Id, ruser.Id, th.BasicChannel)
+	require.Nil(t, err)
+}
+
 func TestRemoveUserFromChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

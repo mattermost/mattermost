@@ -3266,6 +3266,10 @@ func TestAddChannelPreviewer(t *testing.T) {
 	require.Equal(t, cm.Roles, expectedRoles)
 }
 
+func TestRemoveChannelPreviewer(t *testing.T) {
+	// TODO
+}
+
 func TestRemoveChannelMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	user1 := th.BasicUser

@@ -969,7 +969,7 @@ type AppIface interface {
 	RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	// RemovePreviewerFromChannel removes a user from previewing a channel.
-	// RemovePreviewerFromChannel(c request.CTX, user *model.User, channel *model.Channel) *model.AppError
+	RemovePreviewerFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError

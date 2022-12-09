@@ -75,7 +75,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.APISessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
 
 	api.BaseRoutes.ChannelPreviewers.Handle("", api.APISessionRequired(addChannelPreviewer)).Methods("POST")
-	// api.BaseRoutes.ChannelPreviewer.Handle("", api.APISessionRequired(removeChannelPreviewer)).Methods("DELETE")
+	api.BaseRoutes.ChannelPreviewer.Handle("", api.APISessionRequired(removeChannelPreviewer)).Methods("DELETE")
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
@@ -1881,8 +1881,51 @@ func addChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func removeChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
-// }
+func removeChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("removeChannelPreviewer", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("channel_id", channel.Id)
+	auditRec.AddEventParameter("user_id", user.Id)
+
+	if !(channel.Type == model.ChannelTypeOpen) {
+		c.Err = model.NewAppError("removeChannelPreviewer", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if c.Params.UserId != c.AppContext.Session().UserId {
+		if channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) {
+			c.SetPermissionError(model.PermissionManagePublicChannelMembers)
+			return
+		}
+	}
+
+	if err = c.App.RemovePreviewerFromChannel(c.AppContext, c.Params.UserId, c.AppContext.Session().UserId, channel); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
+
+	ReturnStatusOK(w)
+}
 
 func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()

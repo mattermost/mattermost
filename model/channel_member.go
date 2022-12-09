@@ -189,6 +189,18 @@ func (o *ChannelMember) PreUpdate() {
 	o.LastUpdateAt = GetMillis()
 }
 
+func (o *ChannelMember) HasRole(inRole string) bool {
+	roles := o.GetRoles()
+
+	for _, r := range roles {
+		if r == inRole {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (o *ChannelMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
 }

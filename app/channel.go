@@ -1677,7 +1677,26 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 	return newMember, nil
 }
 
-func (a *App) RemovePreviewerFromChannel(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) RemovePreviewerFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+
+	_, err := a.GetUser(userIDToRemove)
+	if err != nil {
+		return err
+	}
+
+	cm, err := a.GetChannelMember(c, channel.Id, userIDToRemove)
+	if err != nil {
+		return model.NewAppError("RemovePreviewerFromChannel", "app.channel.non_channel_member.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if !cm.HasRole("channel_previewer") {
+		return model.NewAppError("RemovePreviewerFromChannel", "app.channel.removing_non_previewer.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if err := a.removeUserFromChannel(c, userIDToRemove, removerUserId, channel); err != nil {
+		return err
+	}
+
 	return nil
 }
 
