@@ -268,6 +268,14 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		if mErr := ps.resetMetrics(); mErr != nil {
 			return nil, mErr
 		}
+
+		ps.configStore.AddListener(func(oldCfg, newCfg *model.Config) {
+			if *oldCfg.MetricsSettings.Enable != *newCfg.MetricsSettings.Enable || *oldCfg.MetricsSettings.ListenAddress != *newCfg.MetricsSettings.ListenAddress {
+				if mErr := ps.resetMetrics(); mErr != nil {
+					mlog.Warn("Failed to reset metrics", mlog.Err(mErr))
+				}
+			}
+		})
 	}
 
 	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
@@ -304,8 +312,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start(suite SuiteIFace) error {
-	ps.hubStart(suite)
+func (ps *PlatformService) Start() error {
+	ps.hubStart()
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()

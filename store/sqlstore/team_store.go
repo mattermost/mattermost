@@ -1675,7 +1675,7 @@ func (s SqlTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset 
 		return nil, 0, errors.Wrap(err, "failed to count team members since")
 	}
 
-	newTeamMembersBuilder := builderF("Users.Id, Users.Username, Users.FirstName, Users.LastName, Users.Position, TeamMembers.CreateAt, Users.Nickname").
+	newTeamMembersBuilder := builderF("Users.Id, Users.Username, Users.FirstName, Users.LastName, Users.Position, Users.LastPictureUpdate, TeamMembers.CreateAt, Users.Nickname").
 		Limit(uint64(limit + 1)).
 		Offset(uint64(offset))
 	query, args, err = newTeamMembersBuilder.ToSql()
