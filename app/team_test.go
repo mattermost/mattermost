@@ -102,6 +102,7 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("block user by domain but allow bot", func(t *testing.T) {
+		t.Skip("MM-48973")
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
