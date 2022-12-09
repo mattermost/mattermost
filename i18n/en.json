@@ -2340,6 +2340,10 @@
     "translation": "Only root posts are allowed to have priority."
   },
   {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistent notification posts must have the Urgent Priority"
+  },
+  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
