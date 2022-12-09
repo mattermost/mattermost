@@ -47,10 +47,11 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		}
 	}
 
+	isUserMentioned := !checkMentionedUser
 	if checkMentionedUser {
 		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
-			if !mentions.isUserMentioned(mentionedUserID) {
-				return errors.Errorf("User %s is not mentioned", mentionedUserID)
+			if mentions.isUserMentioned(mentionedUserID) {
+				isUserMentioned = true
 			}
 			return nil
 		}); err != nil {
@@ -58,8 +59,10 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		}
 	}
 
-	if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
-		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if isUserMentioned {
+		if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
+			return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return nil
@@ -68,7 +71,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 func (a *App) SendPersistentNotifications() error {
 	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationInterval) * time.Minute
 	notificationMaxCount := int64(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
-	notificationMaxDuration := time.Duration(notificationInterval.Nanoseconds() * notificationMaxCount)
+	notificationMaxDuration := time.Duration(notificationInterval.Nanoseconds() * notificationMaxCount).Milliseconds()
 
 	// fetch posts for which first notificationInterval duration has passed
 	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
@@ -107,8 +110,8 @@ func (a *App) SendPersistentNotifications() error {
 		var expiredPosts []*model.Post
 		var validPosts []*model.Post
 		for _, p := range posts {
-			expireAt := time.UnixMilli(p.CreateAt).Add(notificationMaxDuration)
-			if time.Now().UTC().After(expireAt) {
+			expireAt := p.CreateAt + notificationMaxDuration
+			if model.GetMillis() > expireAt {
 				expiredPosts = append(expiredPosts, p)
 			} else {
 				validPosts = append(validPosts, p)
@@ -201,7 +204,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 
 	for _, post := range posts {
 		channel := channelsMap[post.ChannelId]
-		team := teamsMap[channel.Id]
+		team := teamsMap[channel.TeamId]
 		if channel.IsGroupOrDirect() {
 			team = &model.Team{}
 		}
