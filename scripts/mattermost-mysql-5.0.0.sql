@@ -371,7 +371,7 @@ CREATE TABLE `IncomingWebhooks` (
   `Username` varchar(255) DEFAULT NULL,
   `IconURL` text,
   `ChannelLocked` tinyint(1) DEFAULT 0,
-  `Enabled` tinyint(1) DEFAULT 1,
+  `Enabled` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`Id`),
   KEY `idx_incoming_webhook_user_id` (`UserId`),
   KEY `idx_incoming_webhook_team_id` (`TeamId`),
