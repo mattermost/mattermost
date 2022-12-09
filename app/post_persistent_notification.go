@@ -316,7 +316,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			continue
 		}
 
-		if user.NotifyProps[model.DesktopNotifyProp] != model.UserNotifyNone {
+		if user.NotifyProps[model.DesktopNotifyProp] != model.UserNotifyNone && a.persistentNotificationsAllowedForStatus(id) {
 			desktopUsers = append(desktopUsers, id)
 		}
 	}
