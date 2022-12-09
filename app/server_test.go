@@ -487,3 +487,25 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 	require.Nil(t, task)
 	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }
+
+func TestDoubleSlashesAreNotCleaned(t *testing.T) {
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = ":0"
+	})
+	require.NoError(t, err)
+
+	serverErr := s.Start()
+	defer s.Shutdown()
+
+	doubleSlashURL := "/api/v4/users//preferences"
+
+	client := &http.Client{}
+	resp, err := client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + doubleSlashURL)
+	require.NotNil(t, resp)
+	require.NoError(t, err)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	require.Equal(t, doubleSlashURL, resp.Request.URL.EscapedPath())
+
+	require.NoError(t, serverErr)
+}

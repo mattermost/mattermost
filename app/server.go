@@ -183,6 +183,12 @@ func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
 	localRouter := mux.NewRouter()
 
+	// We expect clients to send well-formed URLs. If they don't, we want to fail early.
+	// These lines prevent the routers from automatically cleaning double slashes, to avoid
+	// cases such as /api/v4/users//preferences being magically converted to /api/v4/users/preferences
+	rootRouter.SkipClean(true)
+	localRouter.SkipClean(true)
+
 	s := &Server{
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
