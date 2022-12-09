@@ -19,4 +19,3 @@ func TestConnCreateTimeout(t *testing.T) {
 	_, err := d.Conn(true)
 	require.Error(t, err)
 }
-
