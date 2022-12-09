@@ -11,13 +11,9 @@ import (
 )
 
 func MakeScheduler(jobServer *jobs.JobServer, license *model.License, config *model.Config) model.Scheduler {
-	isEnabled := func(cfg *model.Config) bool {
-		// enabled := license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority
-		// mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", model.JobTypePostPersistentNotifications))
-		// return enabled
-		return true
+	isEnabled := func(_ *model.Config) bool {
+		return license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise)
 	}
-	// schedFreq := config.ServiceSettings.PersistenceNotificationInterval / 2
-	schedFreq := 30 * time.Second
+	schedFreq := (time.Duration(*config.ServiceSettings.PersistentNotificationInterval) * time.Minute) / 2
 	return jobs.NewPeriodicScheduler(jobServer, model.JobTypePostPersistentNotifications, schedFreq, isEnabled)
 }
