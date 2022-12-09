@@ -289,17 +289,73 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			}
 
 			if user.NotifyProps[model.PushNotifyProp] != model.UserNotifyNone && a.persistentNotificationsAllowedForStatus(id) {
-				mentionType := mentions.Mentions[id]
-
 				a.sendPushNotification(
 					notification,
 					user,
-					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
-					mentionType == ChannelMention,
+					true,
+					false,
 					"",
+				)
+			} else {
+				// register that a notification was not sent
+				a.NotificationsLog().Debug("Persistent Notification not sent",
+					mlog.String("ackId", ""),
+					mlog.String("type", model.PushTypeMessage),
+					mlog.String("userId", id),
+					mlog.String("postId", post.Id),
+					mlog.String("status", model.PushNotSent),
 				)
 			}
 		}
+	}
+
+	desktopUsers := make([]string, 0, len(mentionedUsersList))
+	for _, id := range mentionedUsersList {
+		user := profileMap[id]
+		if user == nil {
+			continue
+		}
+
+		if user.NotifyProps[model.DesktopNotifyProp] != model.UserNotifyNone {
+			desktopUsers = append(desktopUsers, id)
+		}
+	}
+
+	if len(desktopUsers) != 0 {
+		message := model.NewWebSocketEvent(model.WebsocketEventPersistentNotificationTriggered, "", post.ChannelId, "", nil, "")
+
+		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, false, false, true)
+		// Note that PreparePostForClient should've already been called by this point
+		postJSON, jsonErr := post.ToJSON()
+		if jsonErr != nil {
+			return errors.Wrapf(jsonErr, "failed to encode post to JSON")
+		}
+		message.Add("post", postJSON)
+
+		message.Add("channel_type", channel.Type)
+		message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
+		message.Add("channel_name", channel.Name)
+		message.Add("sender_name", notification.GetSenderName(model.ShowUsername, *a.Config().ServiceSettings.EnablePostUsernameOverride))
+		message.Add("team_id", team.Id)
+
+		if len(post.FileIds) != 0 {
+			message.Add("otherFile", "true")
+
+			infos, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
+			if err != nil {
+				mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
+
+			for _, info := range infos {
+				if info.IsImage() {
+					message.Add("image", "true")
+					break
+				}
+			}
+		}
+
+		message.Add("mentions", model.ArrayToJSON(desktopUsers))
+		a.Publish(message)
 	}
 
 	return nil

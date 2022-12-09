@@ -81,6 +81,7 @@ const (
 	WebsocketEventDraftDeleted                        = "draft_deleted"
 	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
+	WebsocketEventPersistentNotificationTriggered     = "persistent_notification_triggered"
 )
 
 type WebSocketMessage interface {
