@@ -1061,8 +1061,7 @@ func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Respon
 }
 
 func (c *Client4) GetUsersWithOptions(etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?inactive")
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(c.usersRoute()+"/inactive", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
