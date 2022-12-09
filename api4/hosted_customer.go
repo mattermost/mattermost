@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -163,6 +164,10 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
 	if err != nil {
+		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+			return
+		}
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
