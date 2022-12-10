@@ -866,3 +866,55 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B)
 	return nil
 }
+
+type Z_UploadDataArgs struct {
+	A              *model.UploadSession
+	PluginStreamID uint32
+}
+
+type Z_UploadDataReturns struct {
+	A *model.FileInfo
+	B error
+}
+
+func (g *apiRPCClient) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error) {
+	pluginStreamID := g.muxBroker.NextId()
+
+	go func() {
+		pluginConnection, err := g.muxBroker.Accept(pluginStreamID)
+		if err != nil {
+			log.Print("Failed to upload data. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer pluginConnection.Close()
+		serveIOReader(rd, pluginConnection)
+	}()
+
+	_args := &Z_UploadDataArgs{us, pluginStreamID}
+	_returns := &Z_UploadDataReturns{}
+	if err := g.client.Call("Plugin.UploadData", _args, _returns); err != nil {
+		log.Print("RPC call UploadData to plugin failed.", mlog.Err(err))
+	}
+
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UploadData(args *Z_UploadDataArgs, returns *Z_UploadDataReturns) error {
+	hook, ok := s.impl.(interface {
+		UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API UploadData called but not implemented"))
+	}
+
+	receivePluginConnection, err := s.muxBroker.Dial(args.PluginStreamID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote plugin stream, error: %v", err.Error())
+		return err
+	}
+	pluginReader := connectIOReader(receivePluginConnection)
+	defer pluginReader.Close()
+
+	returns.A, returns.B = hook.UploadData(args.A, pluginReader)
+	return nil
+}
