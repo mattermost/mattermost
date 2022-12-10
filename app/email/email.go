@@ -233,19 +233,25 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string) error {
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string, isYearly bool) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_upgrade_confirmation.subject")
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
+	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_monthly.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
 	data.Props["SiteURL"] = siteURL
 	data.Props["ButtonURL"] = siteURL
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+
+	if isYearly {
+		data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_yearly.subtitle", map[string]any{"WorkspaceName": workspaceName})
+		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history"
+		data.Props["Button"] = T("api.templates.cloud_welcome_email.yearly_plan_button")
+	}
 
 	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
 	if err != nil {
@@ -1037,7 +1043,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.payment_failed.subject")
+	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL

@@ -28,15 +28,15 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
-	env := s.Channels().GetPluginsEnvironment()
-	if env == nil {
-		return
-	}
 	if msg.Props == nil {
 		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
 		return
 	}
 	pluginID := msg.Props["PluginID"]
+	// if the plugin key is empty, the message might be coming from a product.
+	if pluginID == "" {
+		pluginID = msg.Props["ProductID"]
+	}
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
 		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
@@ -44,7 +44,12 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	hooks, err := env.HooksForPlugin(pluginID)
+	channels, ok := s.products["channels"].(*Channels)
+	if !ok {
+		return
+	}
+
+	hooks, err := channels.HooksForPluginOrProduct(pluginID)
 	if err != nil {
 		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return

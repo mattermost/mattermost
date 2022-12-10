@@ -43,15 +43,13 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ReactionHasBeenAdded(pluginContext, reaction)
-				return true
-			}, plugin.ReactionHasBeenAddedID)
-		})
-	}
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ReactionHasBeenAdded(pluginContext, reaction)
+			return true
+		}, plugin.ReactionHasBeenAddedID)
+	})
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
@@ -142,15 +140,13 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
-				return true
-			}, plugin.ReactionHasBeenRemovedID)
-		})
-	}
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ReactionHasBeenRemoved(pluginContext, reaction)
+			return true
+		}, plugin.ReactionHasBeenRemovedID)
+	})
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)

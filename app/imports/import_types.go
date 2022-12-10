@@ -5,6 +5,7 @@ package imports
 
 import (
 	"archive/zip"
+	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -22,6 +23,14 @@ type LineImportData struct {
 	DirectPost    *DirectPostImportData    `json:"direct_post,omitempty"`
 	Emoji         *EmojiImportData         `json:"emoji,omitempty"`
 	Version       *int                     `json:"version,omitempty"`
+	Info          *VersionInfoImportData   `json:"info,omitempty"`
+}
+
+type VersionInfoImportData struct {
+	Generator  string          `json:"generator"`
+	Version    string          `json:"version"`
+	Created    string          `json:"created"`
+	Additional json.RawMessage `json:"additional,omitempty"`
 }
 
 type TeamImportData struct {

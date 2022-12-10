@@ -104,6 +104,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetMembersForUserWithCursor", func(t *testing.T) { testChannelStoreGetMembersForUserWithCursor(t, ss) })
 	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, ss) })
 	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, ss) })
+	t.Run("CountUrgentPostsAfter", func(t *testing.T) { testCountUrgentPostsAfter(t, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
@@ -4833,6 +4834,66 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 	})
 }
 
+func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
+	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
+		userId1 := model.NewId()
+		userId2 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString(model.PostPriorityUrgent),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString("important"),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId2,
+			ChannelId: channelId,
+			CreateAt:  1002,
+		})
+		require.NoError(t, err)
+
+		count, err := ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, "")
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, "")
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt-1, userId1)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+
+		count, err = ss.Channel().CountUrgentPostsAfter(channelId, p1.CreateAt, userId1)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+	})
+}
+
 func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
@@ -4912,16 +4973,16 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false, false)
 	require.NoError(t, err, "failed to update")
 }
 
