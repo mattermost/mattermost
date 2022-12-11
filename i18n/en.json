@@ -3265,7 +3265,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
@@ -3313,7 +3313,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "if no action is taken, your workspace will be downgraded and the following data may be archived:"
+    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
   },
   {
     "id": "api.templates.delinquency_30.title",
@@ -3329,7 +3329,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "We've been unable to collect payment for outstanding invoices dated {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
+    "translation": "We've been unable to collect payment for outstanding invoices since {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
@@ -3377,7 +3377,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "We couldn't process your most recent payment"
+    "translation": "We couldn't process your most recent payment."
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
@@ -3401,7 +3401,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}"
+    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
@@ -6992,6 +6992,14 @@
     "translation": "Unable to update the webhook."
   },
   {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Unable to get work template categories"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Unable to get work templates"
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
@@ -8680,6 +8688,10 @@
     "translation": "Invalid message."
   },
   {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Invalid priority"
+  },
+  {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Invalid props."
   },
@@ -9682,5 +9694,25 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Product Teams"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
   }
 ]
