@@ -6186,6 +6186,22 @@ func (s *TimerLayerPostPersistentNotificationStore) Get(params model.GetPersiste
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerPostPersistentNotificationStore) UpdateLastSentAt(postIds []string) error {
+	start := time.Now()
+
+	err := s.PostPersistentNotificationStore.UpdateLastSentAt(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.UpdateLastSentAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
 	start := time.Now()
 

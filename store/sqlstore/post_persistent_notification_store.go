@@ -90,6 +90,31 @@ func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
 	return nil
 }
 
+// UpdateLastSentAt in batches of 1000
+func (s *SqlPostPersistentNotificationStore) UpdateLastSentAt(postIds []string) error {
+	count := len(postIds)
+	if count == 0 {
+		return nil
+	}
+
+	lastSentAt := model.GetMillis()
+	for i := 0; i < count; i += paginationLimit {
+		j := utils.MinInt(i+paginationLimit, count)
+
+		builder := s.getQueryBuilder().
+			Update("PersistentNotifications").
+			Set("LastSentAt", lastSentAt).
+			Where(sq.Eq{"PostId": postIds[i:j]})
+
+		_, err := s.GetMasterX().ExecBuilder(builder)
+		if err != nil {
+			return errors.Wrapf(err, "failed to update lastSentAt for posts %s", postIds[i:j])
+		}
+	}
+
+	return nil
+}
+
 // DeleteByChannel in batches of 1000
 func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
 	count := len(channelIds)

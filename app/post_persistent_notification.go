@@ -119,11 +119,11 @@ func (a *App) SendPersistentNotifications() error {
 			}
 		}
 
+		// Delete expired notifications posts
 		expiredPostsIds := make([]string, 0, len(expiredPosts))
 		for _, p := range expiredPosts {
 			expiredPostsIds = append(expiredPostsIds, p.Id)
 		}
-		// Delete expired notifications posts
 		if err := a.Srv().Store().PostPersistentNotification().Delete(expiredPostsIds); err != nil {
 			return errors.Wrapf(err, "failed to delete expired notifications: %v", expiredPostsIds)
 		}
@@ -132,6 +132,17 @@ func (a *App) SendPersistentNotifications() error {
 		if err := a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
 			return err
 		}
+
+		// Update lastSentAt for valid notifications posts
+		validPostsIds := make([]string, 0, len(validPosts))
+		for _, p := range validPosts {
+			validPostsIds = append(validPostsIds, p.Id)
+		}
+		if err := a.Srv().Store().PostPersistentNotification().UpdateLastSentAt(validPostsIds); err != nil {
+			return errors.Wrapf(err, "failed to update lastSentAt for valid notifications: %v", validPostsIds)
+		}
+
+		// Break pagination loop
 		if !hasNext {
 			break
 		}
