@@ -154,8 +154,8 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 	return us, nil
 }
 
-func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(uploadId)
+func (a *App) GetUploadSession(c *request.Context, uploadId string) (*model.UploadSession, *model.AppError) {
+	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -202,7 +202,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	if storedSession, err := a.GetUploadSession(us.Id); err != nil {
+	c.SetContext(WithMaster(c.Context()))
+	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
