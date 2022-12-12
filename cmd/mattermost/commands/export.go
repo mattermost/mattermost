@@ -79,6 +79,7 @@ func init() {
 	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
 	GlobalRelayZipExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
