@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool) (*app.App, error) {
-	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), readOnlyConfigStore)
+func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore, startMetrics bool) (*app.App, error) {
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), readOnlyConfigStore, startMetrics)
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
@@ -28,24 +28,31 @@ func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool)
 }
 
 func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	return initDBCommandContextCobra(command, true)
+	return initDBCommandContextCobra(command, true, true)
 }
 
 func InitDBCommandContextCobraReadWrite(command *cobra.Command) (*app.App, error) {
-	return initDBCommandContextCobra(command, false)
+	return initDBCommandContextCobra(command, false, true)
 }
 
-func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App, error) {
+func InitDBCommandContextCobraWithoutMetrics(command *cobra.Command) (*app.App, error) {
+	return initDBCommandContextCobra(command, true, false)
+}
+
+func initDBCommandContext(configDSN string, readOnlyConfigStore, startMetrics bool) (*app.App, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
 	model.AppErrorInit(i18n.T)
 
-	s, err := app.NewServer(
-		// The option order is important as app.Config option reads app.StartMetrics option.
-		app.StartMetrics,
-		app.Config(configDSN, readOnlyConfigStore, nil),
-	)
+	options := []app.Option{}
+	if startMetrics {
+		options = append(options, app.StartMetrics)
+	}
+
+	// The option order is important as app.Config option reads app.StartMetrics option.
+	options = append(options, app.Config(configDSN, readOnlyConfigStore, nil))
+	s, err := app.NewServer(options...)
 	if err != nil {
 		return nil, err
 	}

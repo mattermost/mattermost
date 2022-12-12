@@ -93,7 +93,7 @@ func init() {
 }
 
 func scheduleExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraWithoutMetrics(command)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
-		a, err := InitDBCommandContextCobra(command)
+		a, err := InitDBCommandContextCobraWithoutMetrics(command)
 		license := a.Srv().License()
 		if err != nil {
 			return err
@@ -201,7 +201,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 }
 
 func bulkExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraWithoutMetrics(command)
 	if err != nil {
 		return err
 	}
