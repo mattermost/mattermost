@@ -9060,10 +9060,6 @@
     "translation": "您已经完成升级更新！"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "您的“ {{.WorkspaceName}}”工作空间现在已经升级。您将从{{.TrialEnd}}开始收到账单通知"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "确认升级Mattermost"
   },
