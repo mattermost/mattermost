@@ -4,6 +4,7 @@
 package export_process
 
 import (
+	"errors"
 	"io"
 	"path/filepath"
 
@@ -44,15 +45,21 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		errCh := make(chan *model.AppError, 1)
 		go func() {
-			defer close(errCh)
+			defer func() {
+				close(errCh)
+
+				// we close the reader here to prevent a deadlock when the bulk exporter tries to
+				// write into the pipe while app.WriteFile has already returned. The error will be
+				// returned by the writer part of the pipe when app.BulkExport tries to call
+				// wr.Write() on it.
+				rd.CloseWithError(errors.New("Worker: writer has been closed"))
+			}()
 			_, appErr := app.WriteFile(rd, filepath.Join(outPath, exportFilename))
 			errCh <- appErr
 		}()
 
 		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, opts)
-		if err := wr.Close(); err != nil {
-			mlog.Warn("Worker: error closing writer")
-		}
+		wr.Close()
 
 		if appErr != nil {
 			return appErr
