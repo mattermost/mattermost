@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9300,7 +9300,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Vi har inte kunnat få betalt för utestående fakturor med datum {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
+    "translation": "Vi har inte kunnat få betalt för utestående fakturor sedan {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9316,7 +9316,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
+    "translation": "Om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
@@ -9352,7 +9352,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad."
+    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9444,7 +9444,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}"
+    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9468,7 +9468,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Vi kunde inte behandla din senaste betalning"
+    "translation": "Vi kunde inte behandla din senaste betalning."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9553,5 +9553,177 @@
   {
     "id": "app.collection.add_topic.exists.app_error",
     "translation": "Ämnestypen finns redan."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Kunde inte att radera utkastet."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Det går inte att få en bekräftelse för publiceringen."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Det går inte att få en bekräftelse."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Det går inte att radera bekräftelsen."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "inte en ldap-användare"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Kunde inte ladda upp fil. Filen är för stor."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Funktionen Utkast är inaktiverad."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Kan inte spara utkast i en borttagen kanal"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "misslyckades med att lägga till användaren i gruppens team och gruppens kanaler"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan inte bekräfta i en arkiverad kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan inte radera en bekräftelse efter att 5 minuter har gått."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan inte ta bort en bekräftelse i en arkiverad kanal."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Skapa transparenta arbetsflöden mellan utvecklingsteamen för att säkerställa att utvecklingsprocessen för funktioner är smidig."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Öka produktiviteten i kanalen genom att integrera en Jira-bot och en Github-bot. Dessa kommer att laddas ner åt dig."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chatta med ditt team i kanalen för Kommande leveranser som enkelt kan anslutas till dina boards, playbooks och app-bottar."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Använd vår mall för mötesagenda för återkommande möten exempelvis standup och vår Projekt-board för projektuppgifter och att hantera uppgifternas framskridande."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Produkt-team"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Ogiltigt användarid."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "\"Update at\" måste vara en giltig tid."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Ogiltigt root-id."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Ogiltig prioritet"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Ogiltigt meddelande."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Ogiltiga fil-ID:n."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Skapad vid måste vara en giltig tid."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Ogiltigt kanal-id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Ogiltigt användarid."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Ogiltigt meddelande-id."
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Det går inte att få fram arbetsmallar"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Det går inte att få fram kategorier för arbetsmallar"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Det går inte att få fram inläggets prioritet"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Kunde inte uppdatera utkastet."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Kunde inte spara utkastet."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Det går inte att hämta utkastets filer."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Kunde inte hämta användarens utkast."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Kunde inte hämta utkastet."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Funktionen utkast är inaktiverad."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Det går inte att få fram inläggets prioritet"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Kunde inte räkna brådskande meddelanden från angivet datum."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Det går inte att spara bekräftelsen för inlägget."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Fel vid hämtning av roller vid valideringen."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Visa fakturan"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
   }
 ]
