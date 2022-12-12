@@ -270,9 +270,9 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	return append(channelPosts, directMessagePosts...), cursor, nil
 }
 
-func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, endAt int64, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 	var args []any
-	args = append(args, model.ChannelTypeDirect, model.ChannelTypeGroup, cursor.LastPostUpdateAt, cursor.LastPostUpdateAt, cursor.LastPostId, limit)
+	args = append(args, model.ChannelTypeDirect, model.ChannelTypeGroup, cursor.LastPostUpdateAt, cursor.LastPostUpdateAt, cursor.LastPostId, endAt, limit)
 	query :=
 		`SELECT
 			Posts.Id AS PostId,
@@ -307,12 +307,11 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE (
-			Posts.UpdateAt > ?
-			OR (
-				Posts.UpdateAt = ?
-				AND Posts.Id > ?
+				Posts.UpdateAt > ?
+				OR (Posts.UpdateAt = ? AND Posts.Id > ?)
 			)
-		) AND Posts.Type NOT LIKE 'system_%'
+			AND Posts.UpdateAt < ?
+			AND Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostUpdateAt, PostId
 		LIMIT ?`
 
