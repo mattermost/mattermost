@@ -11,7 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -56,7 +56,7 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 
 	var license model.License
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 
 	return &license, nil
@@ -141,7 +141,7 @@ func GetLicenseFileFromDisk(fileName string) []byte {
 	}
 	defer file.Close()
 
-	licenseBytes, err := io.ReadAll(file)
+	licenseBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		mlog.Error("Failed to read license key from disk at", mlog.String("filename", fileName), mlog.Err(err))
 		return nil
