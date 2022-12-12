@@ -17,7 +17,7 @@ import (
 
 const (
 	LicenseEnv                = "MM_LICENSE"
-	LicenseRenewalURL         = "https://customers.mattermost.com/subscribe/renew"
+	LicenseRenewalURL         = "https://portal.test.cloud.mattermost.com/subscribe/renew"
 	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
 
