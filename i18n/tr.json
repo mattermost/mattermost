@@ -9171,10 +9171,6 @@
     "translation": "Üst tarifeye geçtiniz!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "{{.WorkspaceName}} çalışma alanınız üst tarifeye geçirildi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost üst tarifeye geçme onayı"
   },

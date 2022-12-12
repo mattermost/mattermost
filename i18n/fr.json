@@ -8804,10 +8804,6 @@
     "translation": "Vous avez été mis à niveau !"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Votre espace de travail {{.WorkspaceName}} a été mis à niveau. Vous serez facturé le {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Confirmation de mise à niveau de Mattermost"
   },
