@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 // Top Reactions
@@ -1155,6 +1157,41 @@ func TestNewTeamMembersSince(t *testing.T) {
 
 		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
 		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("includes all data for the user", func(t *testing.T) {
+		checkUser := func(ntm *model.NewTeamMember, hasProfilePicture bool) {
+			require.Equal(t, th.BasicUser.Id, ntm.Id)
+			require.Equal(t, th.BasicUser.Username, ntm.Username)
+			require.Equal(t, th.BasicUser.FirstName, ntm.FirstName)
+			require.Equal(t, th.BasicUser.LastName, ntm.LastName)
+			require.Equal(t, th.BasicUser.Position, ntm.Position)
+			require.Equal(t, th.BasicUser.Nickname, ntm.Nickname)
+			member, err := th.App.GetTeamMember(team.Id, th.BasicUser.Id)
+			require.Nil(t, err)
+			require.Equal(t, member.CreateAt, ntm.CreateAt)
+			if hasProfilePicture {
+				require.Truef(t, ntm.LastPictureUpdate > int64(0), "should be greater than 0, but was %d", ntm.LastPictureUpdate)
+			} else {
+				require.Equal(t, int64(0), ntm.LastPictureUpdate)
+			}
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		checkUser(list.Items[0], false)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		_, err = th.Client.SetProfileImage(th.BasicUser.Id, data)
+		require.NoError(t, err)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		checkUser(list.Items[0], true)
 	})
 
 	t.Run("implements pagination", func(t *testing.T) {

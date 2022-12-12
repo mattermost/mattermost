@@ -3164,12 +3164,16 @@
     "translation": "Mattermost Upgrade Confirmation"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
     "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "You are now upgraded!"
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -3238,6 +3242,10 @@
   {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Your workspace is ready to go!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "View your invoice"
   },
   {
     "id": "api.templates.copyright",
@@ -4122,6 +4130,10 @@
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
     "translation": "Unable to get user by email."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Error fetching roles during validation."
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",

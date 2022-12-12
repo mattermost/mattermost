@@ -49,11 +49,6 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 }
 
 func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil
-	}
-
 	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
@@ -67,7 +62,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
