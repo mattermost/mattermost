@@ -326,6 +326,10 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
+func (c *Client4) hostedCustomerRoute() string {
+	return "/hosted_customer"
+}
+
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -1041,6 +1045,24 @@ func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response, error
 // GetUsers returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
+func (c *Client4) GetUsersWithCustomQueryParameters(page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
 	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -8037,6 +8059,19 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 	return cloudProducts, BuildResponse(r), nil
 }
 
+func (c *Client4) GetSelfHostedProducts() ([]*Product, *Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/products/selfhosted", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var products []*Product
+	json.NewDecoder(r.Body).Decode(&products)
+
+	return products, BuildResponse(r), nil
+}
+
 func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/limits", "")
 	if err != nil {
@@ -8218,6 +8253,23 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r), nil
+}
+
+func (c *Client4) BootstrapSelfHostedSignup(req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
+	reqBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(c.hostedCustomerRoute()+"/bootstrap", reqBytes)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var res *BootstrapSelfHostedSignupResponse
+	json.NewDecoder(r.Body).Decode(&res)
+
+	return res, BuildResponse(r), nil
 }
 
 func (c *Client4) ListImports() ([]string, *Response, error) {
@@ -8506,6 +8558,20 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	return newTeamMembersList, BuildResponse(r), nil
 }
 
+func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var info *PostInfo
+	if err = json.NewDecoder(r.Body).Decode(&info); err != nil {
+		return nil, nil, NewAppError("GetPostInfo", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return info, BuildResponse(r), nil
+}
+
 func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
 	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
 	if err != nil {
@@ -8535,4 +8601,35 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// Worktemplates sections
+
+func (c *Client4) worktemplatesRoute() string {
+	return "/worktemplates"
+}
+
+// GetWorktemplateCategories returns categories of worktemplates
+func (c *Client4) GetWorktemplateCategories() ([]*WorkTemplateCategory, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var categories []*WorkTemplateCategory
+	err = json.NewDecoder(r.Body).Decode(&categories)
+	return categories, BuildResponse(r), err
+}
+
+func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories/"+category+"/templates", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var templates []*WorkTemplate
+	err = json.NewDecoder(r.Body).Decode(&templates)
+	return templates, BuildResponse(r), err
 }

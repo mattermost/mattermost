@@ -101,6 +101,7 @@ type TelemetryService struct {
 	rudderClient               rudder.Client
 	TelemetryID                string
 	timestampLastTelemetrySent time.Time
+	verbose                    bool
 }
 
 type RudderConfig struct {
@@ -108,12 +109,13 @@ type RudderConfig struct {
 	DataplaneURL string
 }
 
-func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
+func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) *TelemetryService {
 	service := &TelemetryService{
 		srv:          srv,
 		dbStore:      dbStore,
 		searchEngine: searchEngine,
 		log:          log,
+		verbose:      verbose,
 	}
 	service.ensureTelemetryID()
 	return service
@@ -128,7 +130,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 	systemID, err := ts.dbStore.System().InsertIfExists(systemID)
 	if err != nil {
-		mlog.Error("unable to get the telemetry ID", mlog.Err(err))
+		ts.log.Error("unable to get the telemetry ID", mlog.Err(err))
 		return
 	}
 
@@ -173,12 +175,15 @@ func (ts *TelemetryService) SendTelemetry(event string, properties map[string]an
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
 			context = &rudder.Context{Traits: map[string]any{"installationId": installationId}}
 		}
-		ts.rudderClient.Enqueue(rudder.Track{
+		err := ts.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
 			UserId:     ts.TelemetryID,
 			Properties: properties,
 			Context:    context,
 		})
+		if err != nil {
+			ts.log.Warn("Error sending telemetry", mlog.Err(err))
+		}
 	}
 }
 
@@ -450,6 +455,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
+		"self_hosted_first_time_purchase":                         *cfg.ServiceSettings.SelfHostedFirstTimePurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 	})
 
@@ -733,6 +739,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
+		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
@@ -1143,62 +1150,62 @@ func (ts *TelemetryService) trackElasticsearch() {
 func (ts *TelemetryService) trackGroups() {
 	groupCount, err := ts.dbStore.Group().GroupCount()
 	if err != nil {
-		mlog.Debug("Could not get group_count", mlog.Err(err))
+		ts.log.Debug("Could not get group_count", mlog.Err(err))
 	}
 
 	ldapGroupCount, err := ts.dbStore.Group().GroupCountBySource(model.GroupSourceLdap)
 	if err != nil {
-		mlog.Debug("Could not get group_count", mlog.Err(err))
+		ts.log.Debug("Could not get group_count", mlog.Err(err))
 	}
 
 	customGroupCount, err := ts.dbStore.Group().GroupCountBySource(model.GroupSourceCustom)
 	if err != nil {
-		mlog.Debug("Could not get group_count", mlog.Err(err))
+		ts.log.Debug("Could not get group_count", mlog.Err(err))
 	}
 
 	groupTeamCount, err := ts.dbStore.Group().GroupTeamCount()
 	if err != nil {
-		mlog.Debug("Could not get group_team_count", mlog.Err(err))
+		ts.log.Debug("Could not get group_team_count", mlog.Err(err))
 	}
 
 	groupChannelCount, err := ts.dbStore.Group().GroupChannelCount()
 	if err != nil {
-		mlog.Debug("Could not get group_channel_count", mlog.Err(err))
+		ts.log.Debug("Could not get group_channel_count", mlog.Err(err))
 	}
 
 	groupSyncedTeamCount, nErr := ts.dbStore.Team().GroupSyncedTeamCount()
 	if nErr != nil {
-		mlog.Debug("Could not get group_synced_team_count", mlog.Err(nErr))
+		ts.log.Debug("Could not get group_synced_team_count", mlog.Err(nErr))
 	}
 
 	groupSyncedChannelCount, nErr := ts.dbStore.Channel().GroupSyncedChannelCount()
 	if nErr != nil {
-		mlog.Debug("Could not get group_synced_channel_count", mlog.Err(nErr))
+		ts.log.Debug("Could not get group_synced_channel_count", mlog.Err(nErr))
 	}
 
 	groupMemberCount, err := ts.dbStore.Group().GroupMemberCount()
 	if err != nil {
-		mlog.Debug("Could not get group_member_count", mlog.Err(err))
+		ts.log.Debug("Could not get group_member_count", mlog.Err(err))
 	}
 
 	distinctGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCount()
 	if err != nil {
-		mlog.Debug("Could not get distinct_group_member_count", mlog.Err(err))
+		ts.log.Debug("Could not get distinct_group_member_count", mlog.Err(err))
 	}
 
 	distinctCustomGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
 	if err != nil {
-		mlog.Debug("Could not get distinct_custom_group_member_count", mlog.Err(err))
+		ts.log.Debug("Could not get distinct_custom_group_member_count", mlog.Err(err))
 	}
 
 	distinctLdapGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
 	if err != nil {
-		mlog.Debug("Could not get distinct_ldap_group_member_count", mlog.Err(err))
+		ts.log.Debug("Could not get distinct_ldap_group_member_count", mlog.Err(err))
 	}
 
 	groupCountWithAllowReference, err := ts.dbStore.Group().GroupCountWithAllowReference()
 	if err != nil {
-		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
+		ts.log.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
 	ts.SendTelemetry(TrackGroups, map[string]any{
@@ -1220,44 +1227,44 @@ func (ts *TelemetryService) trackGroups() {
 func (ts *TelemetryService) trackChannelModeration() {
 	channelSchemeCount, err := ts.dbStore.Scheme().CountByScope(model.SchemeScopeChannel)
 	if err != nil {
-		mlog.Debug("Could not get channel_scheme_count", mlog.Err(err))
+		ts.log.Debug("Could not get channel_scheme_count", mlog.Err(err))
 	}
 
 	createPostUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionCreatePost.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Debug("Could not get create_post_user_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get create_post_user_disabled_count", mlog.Err(err))
 	}
 
 	createPostGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionCreatePost.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
-		mlog.Debug("Could not get create_post_guest_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get create_post_guest_disabled_count", mlog.Err(err))
 	}
 
 	// only need to track one of 'add_reaction' or 'remove_reaction` because they're both toggled together by the channel moderation feature
 	postReactionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionAddReaction.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Debug("Could not get post_reactions_user_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get post_reactions_user_disabled_count", mlog.Err(err))
 	}
 
 	postReactionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionAddReaction.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
-		mlog.Debug("Could not get post_reactions_guest_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get post_reactions_guest_disabled_count", mlog.Err(err))
 	}
 
 	// only need to track one of 'manage_public_channel_members' or 'manage_private_channel_members` because they're both toggled together by the channel moderation feature
 	manageMembersUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionManagePublicChannelMembers.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Debug("Could not get manage_members_user_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get manage_members_user_disabled_count", mlog.Err(err))
 	}
 
 	useChannelMentionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionUseChannelMentions.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Debug("Could not get use_channel_mentions_user_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get use_channel_mentions_user_disabled_count", mlog.Err(err))
 	}
 
 	useChannelMentionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionUseChannelMentions.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
-		mlog.Debug("Could not get use_channel_mentions_guest_disabled_count", mlog.Err(err))
+		ts.log.Debug("Could not get use_channel_mentions_guest_disabled_count", mlog.Err(err))
 	}
 
 	ts.SendTelemetry(TrackChannelModeration, map[string]any{
@@ -1281,14 +1288,14 @@ func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(ts.log.With(mlog.String("source", "rudder")).StdLogger(mlog.LvlDebug))
 		config.Endpoint = endpoint
+		config.Verbose = ts.verbose
 		// For testing
 		if endpoint != RudderDataplaneURL {
-			config.Verbose = true
 			config.BatchSize = 1
 		}
 		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)
 		if err != nil {
-			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
+			ts.log.Error("Failed to create Rudder instance", mlog.Err(err))
 			return
 		}
 		client.Enqueue(rudder.Identify{
@@ -1414,7 +1421,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
-			mlog.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
+			ts.log.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
