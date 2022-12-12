@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'Enabled'
     ) > 0,
-    'ALTER TABLE Reactions DROP COLUMN Enabled;',
+    'ALTER TABLE IncomingWebhooks DROP COLUMN Enabled;',
     'SELECT 1;'
 ));
 
