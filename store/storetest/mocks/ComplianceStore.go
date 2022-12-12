@@ -90,13 +90,13 @@ func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, err
 	return r0, r1
 }
 
-// MessageExport provides a mock function with given fields: cursor, limit
-func (_m *ComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
-	ret := _m.Called(cursor, limit)
+// MessageExport provides a mock function with given fields: cursor, endAt, limit
+func (_m *ComplianceStore) MessageExport(cursor model.MessageExportCursor, endAt int64, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+	ret := _m.Called(cursor, endAt, limit)
 
 	var r0 []*model.MessageExport
-	if rf, ok := ret.Get(0).(func(model.MessageExportCursor, int) []*model.MessageExport); ok {
-		r0 = rf(cursor, limit)
+	if rf, ok := ret.Get(0).(func(model.MessageExportCursor, int64, int) []*model.MessageExport); ok {
+		r0 = rf(cursor, endAt, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.MessageExport)
@@ -104,15 +104,15 @@ func (_m *ComplianceStore) MessageExport(cursor model.MessageExportCursor, limit
 	}
 
 	var r1 model.MessageExportCursor
-	if rf, ok := ret.Get(1).(func(model.MessageExportCursor, int) model.MessageExportCursor); ok {
-		r1 = rf(cursor, limit)
+	if rf, ok := ret.Get(1).(func(model.MessageExportCursor, int64, int) model.MessageExportCursor); ok {
+		r1 = rf(cursor, endAt, limit)
 	} else {
 		r1 = ret.Get(1).(model.MessageExportCursor)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(model.MessageExportCursor, int) error); ok {
-		r2 = rf(cursor, limit)
+	if rf, ok := ret.Get(2).(func(model.MessageExportCursor, int64, int) error); ok {
+		r2 = rf(cursor, endAt, limit)
 	} else {
 		r2 = ret.Error(2)
 	}

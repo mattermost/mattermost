@@ -17,20 +17,20 @@ type MessageExportInterface struct {
 	mock.Mock
 }
 
-// RunExport provides a mock function with given fields: format, since, limit
-func (_m *MessageExportInterface) RunExport(format string, since int64, limit int) (int64, *model.AppError) {
-	ret := _m.Called(format, since, limit)
+// RunExport provides a mock function with given fields: format, since, until, limit
+func (_m *MessageExportInterface) RunExport(format string, since int64, until int64, limit int) (int64, *model.AppError) {
+	ret := _m.Called(format, since, until, limit)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, int64, int) int64); ok {
-		r0 = rf(format, since, limit)
+	if rf, ok := ret.Get(0).(func(string, int64, int64, int) int64); ok {
+		r0 = rf(format, since, until, limit)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64, int) *model.AppError); ok {
-		r1 = rf(format, since, limit)
+	if rf, ok := ret.Get(1).(func(string, int64, int64, int) *model.AppError); ok {
+		r1 = rf(format, since, until, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
