@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -15,6 +16,7 @@ import (
 func TestPostPersistentNotificationStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("Get", func(t *testing.T) { testPostPersistentNotificationStoreGet(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostPersistentNotificationStoreDelete(t, ss) })
+	t.Run("UpdateLastSentAt", func(t *testing.T) { testPostPersistentNotificationStoreUpdateLastSentAt(t, ss) })
 }
 
 func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
@@ -423,4 +425,76 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		assert.Equal(t, p4.Id, pn[0].PostId)
 		assert.Equal(t, p5.Id, pn[1].PostId)
 	})
+}
+
+func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.Store) {
+	p1 := model.Post{}
+	p1.ChannelId = model.NewId()
+	p1.UserId = model.NewId()
+	p1.Message = NewTestId()
+	p1.CreateAt = 10
+	p1.Metadata = &model.PostMetadata{
+		Priority: &model.PostPriority{
+			Priority:                model.NewString("important"),
+			RequestedAck:            model.NewBool(false),
+			PersistentNotifications: model.NewBool(true),
+		},
+	}
+
+	_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1})
+	require.NoError(t, err)
+	require.Equal(t, -1, errIdx)
+
+	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.PostPersistentNotification().Delete([]string{p1.Id})
+
+	// Update from 0 value
+	now := model.GetTimeForMillis(model.GetMillis())
+	delta := 2 * time.Second
+	err = ss.PostPersistentNotification().UpdateLastSentAt([]string{p1.Id})
+	require.NoError(t, err)
+
+	pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+		MaxCreateAt:   100,
+		MaxLastSentAt: model.GetMillisForTime(now.Add(delta)),
+		Pagination: model.CursorPagination{
+			Direction: "down",
+			PerPage:   20,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, pn, 1)
+	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
+
+	time.Sleep(time.Second)
+
+	// Update from non-zero value
+	now = model.GetTimeForMillis(model.GetMillis())
+	delta = 2 * time.Second
+	err = ss.PostPersistentNotification().UpdateLastSentAt([]string{p1.Id})
+	require.NoError(t, err)
+
+	pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+		MaxCreateAt:   100,
+		MaxLastSentAt: model.GetMillisForTime(now.Add(delta)),
+		Pagination: model.CursorPagination{
+			Direction: "down",
+			PerPage:   20,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, pn, 1)
+	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
+
+	// should not fetch if maxLastSent is smaller than lastSentAt
+	pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+		MaxCreateAt:   100,
+		MaxLastSentAt: model.GetMillisForTime(now.Add(-delta)),
+		Pagination: model.CursorPagination{
+			Direction: "down",
+			PerPage:   20,
+		},
+	})
+	require.NoError(t, err)
+	assert.Len(t, pn, 0)
 }
