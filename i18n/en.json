@@ -7568,6 +7568,10 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
+    "id": "ent.jobs.do_job.batch_end_timestamp.parse_error",
+    "translation": "Could not parse message export job end timestamp."
+  },
+  {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Could not parse message export job BatchSize."
   },
