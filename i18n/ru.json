@@ -9189,7 +9189,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Просрочена оплата вашего Mattermost {{.Plan}}."
+    "translation": "Просрочена оплата вашего Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9425,7 +9425,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Это последнее напоминание о том, что мы не получили оплату за ваше рабочее пространство Mattermost Cloud с {{.DelinquencyDate}}"
+    "translation": "Это последнее напоминание о том, что мы не получили оплату за ваше рабочее пространство Mattermost Cloud с {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9445,7 +9445,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Мы не смогли обработать ваш последний платёж"
+    "translation": "Мы не смогли обработать ваш последний платёж."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9505,7 +9505,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "если не предпринять никаких действий, ваше рабочее пространство будет понижено по тарифной сетке, а следующие данные могут быть заархивированы:"
+    "translation": "Если не предпринять никаких действий, ваше рабочее пространство будет понижено по тарифной сетке, а следующие данные могут быть заархивированы:"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
@@ -9566,5 +9566,169 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "не удалось добавить пользователя в group-teams и group-channels"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Некорректный user id."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "\"Обновить в\" должно быть корректным временем."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Некорректный идентификатор root."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Некорректные свойства."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Неверное сообщение."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Недопустимые идентификаторы файлов."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "\"Создать\" должно быть корректным временем."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Некорректный идентификатор канала."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Некорректный user id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Неверный идентификатор сообщения."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Невозможно получить приоритет для сообщения"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Невозможно обновить черновик."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Невозможно сохранить черновик."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Невозможно получить файлы для черновика."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Невозможно получить черновики пользователя."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Невозможно получить черновик."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Функция \"Черновики\" отключена."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Невозможно удалить черновик."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Невозможно получить приоритет для сообщений"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Невозможно подсчитать срочные сообщения с указанной даты."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Невозможно сохранить подтверждение для сообщения."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Невозможно получить подтверждение о получении сообщения."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Невозможно получить подтверждение."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Невозможно удалить подтверждение."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Функция \"Черновики\" отключена."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Невозможно сохранить черновик в удаленном канале"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Вы не можете подтвердить в архивированном канале."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Вы не можете удалить подтверждение после того, как прошло 5 минут."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Вы не можете удалить подтверждение в архивированном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Создайте прозрачные рабочие процессы между командами разработчиков, чтобы обеспечить бесперебойный процесс разработки функций."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав бота для Jira и бота для Github. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Общайтесь со своей командой в канале Feature Release, который легко соединяется с вашими досками, сценариями и ботами приложений."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Используйте наш шаблон доски \"Повестка дня совещания\" для повторяющихся совещаний, например, совещаний по подготовке к работе, и доску \"Задачи проекта\" для управления ходом выполнения задач."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Продуктовые команды"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Неверный приоритет"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Невозможно получить рабочие шаблоны"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Невозможно получить категории рабочих шаблонов"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Просмотр счета-фактуры"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} теперь обновлено."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет с {{.Date}}"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Ошибка при получении ролей во время проверки."
   }
 ]
