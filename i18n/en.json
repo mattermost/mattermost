@@ -2332,6 +2332,14 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post allows maximum of {{.MaxRecipients}} recipients."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Persistent notification validation failed."
+  },
+  {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
     "translation": "User is not allowed to create priority post or persistent notification."
   },
@@ -2341,7 +2349,7 @@
   },
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
-    "translation": "Persistent notification posts must have the Urgent Priority"
+    "translation": "Persistent notification posts must have the Urgent Priority."
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",

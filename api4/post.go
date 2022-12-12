@@ -120,6 +120,17 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+
+			err := c.App.ForEachPersistentNotificationPost([]*model.Post{&post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *app.ExplicitMentions, _ model.UserMap) error {
+				if len(mentions.Mentions) > *c.App.Config().ServiceSettings.PersistentNotificationMaxRecipients {
+					return model.NewAppError("Api4.createPost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": *c.App.Config().ServiceSettings.PersistentNotificationMaxRecipients}, "", http.StatusBadRequest)
+				}
+				return nil
+			})
+			if err != nil {
+				c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return
+			}
 		}
 	}
 
