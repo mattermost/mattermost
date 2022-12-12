@@ -84,8 +84,9 @@ func (a *App) SendPersistentNotifications() error {
 	// Pagination loop
 	for {
 		notificationPosts, hasNext, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: maxCreateAt,
-			Pagination:  pagination,
+			MaxCreateAt:   maxCreateAt,
+			MaxLastSentAt: maxCreateAt,
+			Pagination:    pagination,
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to get posts for persistent notifications")

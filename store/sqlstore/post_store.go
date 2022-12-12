@@ -2949,10 +2949,11 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
 		if priority := post.GetPriority(); priority != nil && priority.PersistentNotifications != nil && *priority.PersistentNotifications {
-			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, DeleteAt) VALUES (:PostId, :CreateAt, :DeleteAt)`, &model.PostPersistentNotifications{
-				PostId:   post.Id,
-				CreateAt: post.CreateAt,
-				DeleteAt: 0,
+			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt) VALUES (:PostId, :CreateAt, :LastSentAt, :DeleteAt)`, &model.PostPersistentNotifications{
+				PostId:     post.Id,
+				CreateAt:   post.CreateAt,
+				LastSentAt: 0,
+				DeleteAt:   0,
 			}); err != nil {
 				return err
 			}

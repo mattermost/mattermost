@@ -34,6 +34,9 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 	if params.MaxCreateAt > 0 {
 		andCond = append(andCond, sq.LtOrEq{"CreateAt": params.MaxCreateAt})
 	}
+	if params.MaxLastSentAt > 0 {
+		andCond = append(andCond, sq.LtOrEq{"LastSentAt": params.MaxLastSentAt})
+	}
 
 	builder := s.getQueryBuilder().
 		Select("*").
