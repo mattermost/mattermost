@@ -40,7 +40,7 @@ type SelfHostedSignupCustomerResponse struct {
 
 // SelfHostedSignupConfirmResponse contains data received on successful self hosted signup
 type SelfHostedSignupConfirmResponse struct {
-	License  string `json:"-"`
+	License  string `json:"license"`
 	Progress string `json:"progress"`
 }
 
