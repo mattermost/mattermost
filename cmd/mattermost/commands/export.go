@@ -75,7 +75,7 @@ func init() {
 	CsvExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	CsvExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
 	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
