@@ -49,7 +49,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 
 	isUserMentioned := !checkMentionedUser
 	if checkMentionedUser {
-		if err := a.ForEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
+		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
 			if mentions.isUserMentioned(mentionedUserID) {
 				isUserMentioned = true
 			}
@@ -129,7 +129,7 @@ func (a *App) SendPersistentNotifications() error {
 		}
 
 		// Send notifications to validPosts
-		if err := a.ForEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
+		if err := a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
 			return err
 		}
 		if !hasNext {
@@ -139,7 +139,7 @@ func (a *App) SendPersistentNotifications() error {
 	return nil
 }
 
-func (a *App) ForEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
+func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
 	channelIds := make(model.StringSet)
 	for _, p := range posts {
 		channelIds.Add(p.ChannelId)
