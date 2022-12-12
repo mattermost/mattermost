@@ -9171,10 +9171,6 @@
     "translation": "Du bist jetzt upgegraded worden!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Dein {{.WorkspaceName}} wird ab {{.Date}} abgerechnet"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost Upgrade Bestätigung"
   },
