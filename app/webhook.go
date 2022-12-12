@@ -55,7 +55,7 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 
 	relevantHooks := []*model.OutgoingWebhook{}
 	for _, hook := range hooks {
-		if hook.Enabled && (hook.ChannelId == post.ChannelId || hook.ChannelId == "") {
+		if hook.ChannelId == post.ChannelId || hook.ChannelId == "" {
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
