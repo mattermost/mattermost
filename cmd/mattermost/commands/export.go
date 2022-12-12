@@ -71,9 +71,11 @@ func init() {
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	CsvExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
 	CsvExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	CsvExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
 	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
@@ -168,6 +170,11 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
+		endTime, err := command.Flags().GetInt64("exportTo")
+		if err != nil {
+			return errors.New("exportFrom flag error")
+		}
+
 		limit, err := command.Flags().GetInt("limit")
 		if err != nil {
 			return errors.New("limit flag error")
@@ -177,7 +184,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
+		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, endTime, limit)
 		if appErr != nil {
 			return appErr
 		}
