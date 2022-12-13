@@ -48,7 +48,7 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 	return info, nil
 }
 
-func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
+func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader) *model.AppError {
 	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
@@ -154,7 +154,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 	return us, nil
 }
 
-func (a *App) GetUploadSession(c *request.Context, uploadId string) (*model.UploadSession, *model.AppError) {
+func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
 	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -179,7 +179,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.ch.uploadLockMapMut.Lock()
