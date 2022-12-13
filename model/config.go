@@ -855,7 +855,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SelfHostedPurchase == nil {
-		s.SelfHostedPurchase = NewBool(false)
+		s.SelfHostedPurchase = NewBool(true)
 	}
 }
 
