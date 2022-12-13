@@ -6,6 +6,8 @@ package app
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,6 +37,9 @@ func (p *productB) Start() error { return nil }
 func (p *productB) Stop() error  { return nil }
 
 func TestInitializeProducts(t *testing.T) {
+	ps, err := platform.New(platform.ServiceConfig{ConfigStore: config.NewTestMemoryStore()})
+	require.NoError(t, err)
+
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
 		serviceMap := map[ServiceKey]any{
 			ConfigKey:    nil,
@@ -63,11 +68,13 @@ func TestInitializeProducts(t *testing.T) {
 				},
 			},
 		}
+
 		server := &Server{
 			products: make(map[string]Product),
+			platform: ps,
 		}
 
-		err := server.initializeProducts(products, serviceMap)
+		err = server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
 		require.Len(t, server.products, 2)
 	})
@@ -103,6 +110,7 @@ func TestInitializeProducts(t *testing.T) {
 		}
 		server := &Server{
 			products: make(map[string]Product),
+			platform: ps,
 		}
 
 		err := server.initializeProducts(products, serviceMap)
@@ -131,10 +139,31 @@ func TestInitializeProducts(t *testing.T) {
 		}
 		server := &Server{
 			products: make(map[string]Product),
+			platform: ps,
 		}
 
 		err := server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
 		require.Len(t, server.products, 2)
+	})
+
+	t.Run("boards product to be blocked", func(t *testing.T) {
+		products := map[string]ProductManifest{
+			"productA": {
+				Initializer: newProductA,
+			},
+			"boards": {
+				Initializer: newProductB,
+			},
+		}
+
+		server := &Server{
+			products: make(map[string]Product),
+			platform: ps,
+		}
+
+		err := server.initializeProducts(products, map[ServiceKey]any{})
+		require.NoError(t, err)
+		require.Len(t, server.products, 1)
 	})
 }
