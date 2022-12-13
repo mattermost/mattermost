@@ -70,16 +70,16 @@ func init() {
 	ScheduleExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 
-	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	CsvExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
+	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in milliseconds since the unix epoch.")
+	CsvExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in milliseconds since the unix epoch.")
 	CsvExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
-	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	ActianceExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in milliseconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in milliseconds since the unix epoch.")
 	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
-	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	GlobalRelayZipExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in milliseconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int64("exportTo", -1, "The timestamp until which posts are exported (excluding), expressed in milliseconds since the unix epoch.")
 	GlobalRelayZipExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
