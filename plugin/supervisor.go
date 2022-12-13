@@ -65,20 +65,9 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 
 	cmd := exec.Command(executable)
 
-	// JAVI
-	myFile, err := os.Open(executable)
+	pluginChecksum, err := getPluginExecutableChecksum(executable)
 	if err != nil {
-		mlog.Debug("Error reading the file");
-	}
-	secureConfigHash := md5.New()
-	_, err = io.Copy(secureConfigHash, myFile);
-	if err != nil {
-		mlog.Debug("Error hashing the file");
-	}
-
-	secureConfig := &plugin.SecureConfig{
-		Checksum: secureConfigHash.Sum(nil),
-		Hash: secureConfigHash,
+		return nil, fmt.Errorf("unable to generate a checksum for the plugin %s", pluginInfo.Path)
 	}
 
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
@@ -89,7 +78,10 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
-		SecureConfig:    secureConfig,
+		SecureConfig:    &plugin.SecureConfig{
+			Checksum: pluginChecksum,
+			Hash:     md5.New(),
+		},
 	})
 
 	rpcClient, err := sup.client.Client()
@@ -177,4 +169,23 @@ func (sup *supervisor) Implements(hookId int) bool {
 	sup.lock.RLock()
 	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
+}
+
+
+func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
+	secureConfigHash := md5.New()
+	file, err := os.Open(executablePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	_, err = io.Copy(secureConfigHash, file)
+	if err != nil {
+		return nil, err
+	}
+
+	return secureConfigHash.Sum(nil), nil
 }
