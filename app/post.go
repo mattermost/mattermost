@@ -153,19 +153,6 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 }
 
 func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
-	// Validate maxRecipients
-	if post.GetPersistentNotification() != nil {
-		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
-			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
-				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
 	foundPost, err := a.deduplicateCreatePost(post)
 	if err != nil {
 		return nil, err
@@ -188,6 +175,21 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
+
+	// Validate recipients counts in case it's not DM
+	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
+		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
+			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
+				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
+			} else if len(mentions.Mentions) == 0 {
+				return model.NewAppError("CreatePost", "api.post.post_priority.min_recipients_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
 
 	post.SanitizeProps()
 

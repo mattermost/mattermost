@@ -2336,6 +2336,10 @@
     "translation": "Persistent notification post allows maximum of {{.MaxRecipients}} recipients."
   },
   {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post must have minimum 1 recipient."
+  },
+  {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Persistent notification validation failed."
   },
