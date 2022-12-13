@@ -78,7 +78,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
-		SecureConfig:    &plugin.SecureConfig{
+		SecureConfig: &plugin.SecureConfig{
 			Checksum: pluginChecksum,
 			Hash:     md5.New(),
 		},
@@ -170,7 +170,6 @@ func (sup *supervisor) Implements(hookId int) bool {
 	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
 }
-
 
 func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
 	secureConfigHash := md5.New()
