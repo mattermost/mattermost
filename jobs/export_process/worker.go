@@ -4,6 +4,7 @@
 package export_process
 
 import (
+	"context"
 	"io"
 	"path/filepath"
 
@@ -19,6 +20,7 @@ const jobName = "ExportProcess"
 type AppIface interface {
 	configservice.ConfigService
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
+	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
@@ -45,7 +47,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		errCh := make(chan *model.AppError, 1)
 		go func() {
 			defer close(errCh)
-			_, appErr := app.WriteFile(rd, filepath.Join(outPath, exportFilename))
+			// Try to write without a timeout
+			_, appErr := app.WriteFileContext(context.Background(), rd, filepath.Join(outPath, exportFilename))
 			errCh <- appErr
 		}()
 
