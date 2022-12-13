@@ -64,6 +64,43 @@ func (s *channelsWrapper) UpdateChannelSidebarCategories(userID, teamID string, 
 	return s.app.UpdateSidebarCategories(request.EmptyContext(s.srv.Log()), userID, teamID, categories)
 }
 
+func (s *channelsWrapper) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	return s.app.CreateChannel(request.EmptyContext(s.srv.Log()), channel, false)
+}
+
+func (s *channelsWrapper) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
+	ctx := request.EmptyContext(s.srv.Log())
+	channel, err := s.app.GetChannel(ctx, channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
+		UserRequestorID: asUserID,
+	})
+}
+
+func (s *channelsWrapper) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
+	return s.app.UpdateChannelMemberRoles(request.EmptyContext(s.srv.Log()), channelID, userID, newRoles)
+}
+
+func (s *channelsWrapper) DeleteChannelMember(channelID, userID string) *model.AppError {
+	return s.app.LeaveChannel(request.EmptyContext(s.srv.Log()), channelID, userID)
+}
+
+func (s *channelsWrapper) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
+	channel, err := s.GetChannelByID(channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.app.AddChannelMember(request.EmptyContext(s.srv.Log()), userID, channel, ChannelMemberOpts{
+		// For now, don't allow overriding these via the plugin API.
+		UserRequestorID: "",
+		PostRootID:      "",
+	})
+}
+
 // Ensure the wrapper implements the product service.
 var _ product.ChannelService = (*channelsWrapper)(nil)
 

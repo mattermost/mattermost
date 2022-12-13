@@ -54,6 +54,18 @@ func (s *postServiceWrapper) SendEphemeralPost(ctx *request.Context, userID stri
 	return s.app.SendEphemeralPost(ctx, userID, post)
 }
 
+func (s *postServiceWrapper) GetPost(postID string) (*model.Post, *model.AppError) {
+	return s.app.GetSinglePost(postID, false)
+}
+
+func (s *postServiceWrapper) DeletePost(ctx *request.Context, postID, productID string) (*model.Post, *model.AppError) {
+	return s.app.DeletePost(ctx, postID, productID)
+}
+
+func (s *postServiceWrapper) UpdatePost(ctx *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+	return s.app.UpdatePost(ctx, post, false)
+}
+
 func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(post.ChannelId, true)
