@@ -118,7 +118,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 		pchan <- p
 	}))
 
-	service := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+	service := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 	service.TelemetryID = testTelemetryID
 	service.rudderClient = nil
 	service.initRudder(receiver.URL, RudderKey)
@@ -295,7 +295,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 		assert.Equal(t, "test", telemetryService.TelemetryID)
 
 		telemetryService.ensureTelemetryID()
@@ -328,7 +328,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 		assert.Equal(t, generatedID, telemetryService.TelemetryID)
 	})
 
@@ -348,7 +348,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 		assert.Equal(t, "", telemetryService.TelemetryID)
 	})
 }

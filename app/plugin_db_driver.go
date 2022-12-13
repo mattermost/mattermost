@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -45,7 +46,10 @@ func (d *DriverImpl) Conn(isMaster bool) (string, error) {
 	if !isMaster {
 		dbFunc = d.ps.Store.GetInternalReplicaDB
 	}
-	conn, err := dbFunc().Conn(context.Background())
+	timeout := time.Duration(*d.s.Config().SqlSettings.QueryTimeout) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	conn, err := dbFunc().Conn(ctx)
 	if err != nil {
 		return "", err
 	}
