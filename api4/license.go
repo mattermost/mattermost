@@ -303,13 +303,14 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	license := c.App.Channels().License()
 	if license == nil {
+		http.Error(w, "A License is required to perform a true-up review", http.StatusBadRequest)
 		return
 	}
 
 	userId := c.AppContext.Session().UserId
 	subscription, err := c.App.Cloud().GetSubscription(userId)
 	if err != nil {
-		fmt.Printf("1: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -325,26 +326,26 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	reviewProfile.LicensedSeats = subscription.Seats
 	reviewProfile.LicensePlan = license.SkuName
 
+	// Customer Info & Usage Analytics
 	activeUserCount, err := c.App.Srv().GetStore().Status().GetTotalActiveUsersCount()
 	if err != nil {
-		fmt.Printf("2: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Customer Info & Usage Analytics
 	reviewProfile.CustomerName = license.Customer.Name
 	reviewProfile.ActiveUsers = activeUserCount
 
-	// Webhook, call, board, playbook counts
+	// Webhook, calls, boards, and playbook counts
 	var totalWebHookCount int64 = 0
 	incomingWebhookCount, err := c.App.Srv().Store().Webhook().GetIncomingTotal()
 	if err != nil {
-		fmt.Printf("3: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().GetOutgoingTotal()
 	if err != nil {
-		fmt.Printf("4: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -352,12 +353,16 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	totalWebHookCount += outgoingWebhookCount
 
 	reviewProfile.TotalWebhooks = totalWebHookCount
-	reviewProfile.TotalCalls = 0
-	reviewProfile.TotalBoards = 0
-	reviewProfile.TotalPlaybooks = 0
+	reviewProfile.TotalCalls = 0     // TODO: Maybe from plugin?
+	reviewProfile.TotalBoards = 0    // TODO: Maybe from plugin?
+	reviewProfile.TotalPlaybooks = 0 // TODO: Maybe from plugin?
 
 	// Plugin Data
-	trueUpReviewPlugins := model.TrueUpReviewPlugins{}
+	trueUpReviewPlugins := model.TrueUpReviewPlugins{
+		ActivePluginNames:   []string{},
+		InactivePluginNames: []string{},
+	}
+
 	if pluginResponse, err := c.App.GetPlugins(); err == nil {
 		for _, plugin := range pluginResponse.Active {
 			trueUpReviewPlugins.ActivePluginNames = append(trueUpReviewPlugins.ActivePluginNames, plugin.Name)
@@ -369,12 +374,42 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 			trueUpReviewPlugins.TotalInactivePlugins += 1
 		}
 	}
-
 	reviewProfile.Plugins = trueUpReviewPlugins
+
+	// Authentication Data
+	mfaUsed := c.App.Config().ServiceSettings.EnforceMultifactorAuthentication
+	ldapUsed := c.App.Config().LdapSettings.Enable
+	samlUsed := c.App.Config().SamlSettings.Enable
+	openIdUsed := c.App.Config().OpenIdSettings.Enable
+	guessAccessAllowed := c.App.Config().GuestAccountsSettings.Enable
+
+	authFeatures := map[string]*bool{
+		model.TrueUpReviewAuthFeaturesMfa:        mfaUsed,
+		model.TueUpReviewAuthFeaturesAdLdap:      ldapUsed,
+		model.TrueUpReviewauthFeaturesSaml:       samlUsed,
+		model.TrueUpReviewAuthFeatureOpenId:      openIdUsed,
+		model.TrueUpReviewAuthFeatureGuestAccess: guessAccessAllowed,
+	}
+
+	reviewProfile.AuthenticationFeatures = []string{}
+	for feature, used := range authFeatures {
+		if used != nil && *used {
+			reviewProfile.AuthenticationFeatures = append(reviewProfile.AuthenticationFeatures, feature)
+		}
+	}
+
+	// Convert true up review profile struct to map
+	var telemetryProperties map[string]interface{}
+	marshalled, _ := json.Marshal(reviewProfile)
+	json.Unmarshal(marshalled, &telemetryProperties)
+
+	// Send telemetry data.
+	telemetryService := c.App.Srv().GetTelemetryService()
+	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
 
 	json, err := json.Marshal(reviewProfile)
 	if err != nil {
-		fmt.Printf("5: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Write(json)
