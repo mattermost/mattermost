@@ -25,6 +25,8 @@ func TestGetAllSharedChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
 	const pages = 3
 	const pageSize = 7
 
@@ -98,6 +100,8 @@ func TestGetRemoteClusterById(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
 	mockService := app.NewMockRemoteClusterService(nil, app.MockOptionRemoteClusterServiceWithActive(true))
 	th.App.Srv().SetRemoteClusterService(mockService)
 
@@ -159,6 +163,8 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		defer th.TearDown()
 		client := th.Client
 		defer client.Logout()
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
