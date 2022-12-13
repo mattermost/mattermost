@@ -712,6 +712,7 @@ type AppIface interface {
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)
+	GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError)
 	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -808,7 +809,7 @@ type AppIface interface {
 	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
 	GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
-	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
+	GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
 	GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError)
@@ -885,7 +886,6 @@ type AppIface interface {
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
 	IsPhase2MigrationCompleted() *model.AppError
-	IsUserAway(lastActivityAt int64) bool
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
@@ -1037,7 +1037,7 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendTestPushNotification(deviceID string) string
-	SendUpgradeConfirmationEmail() *model.AppError
+	SendUpgradeConfirmationEmail(isYearly bool) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
@@ -1112,7 +1112,6 @@ type AppIface interface {
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	UpdateLastActivityAtIfNeeded(session model.Session)
 	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
@@ -1148,7 +1147,7 @@ type AppIface interface {
 	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
+	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(c request.CTX, id string, imageData *multipart.FileHeader) *model.AppError
 	UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)

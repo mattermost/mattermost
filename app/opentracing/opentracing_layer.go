@@ -7952,6 +7952,28 @@ func (a *OpenTracingAppLayer) GetPostIfAuthorized(c request.CTX, postID string, 
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostInfo")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetPostInfo(c, postID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostThread")
@@ -10283,7 +10305,7 @@ func (a *OpenTracingAppLayer) GetTotalUsersStats(viewRestrictions *model.ViewUse
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUploadSession")
 
@@ -10295,7 +10317,7 @@ func (a *OpenTracingAppLayer) GetUploadSession(uploadId string) (*model.UploadSe
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUploadSession(uploadId)
+	resultVar0, resultVar1 := a.app.GetUploadSession(c, uploadId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11915,23 +11937,6 @@ func (a *OpenTracingAppLayer) IsPhase2MigrationCompleted() *model.AppError {
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) IsUserAway(lastActivityAt int64) bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUserAway")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.IsUserAway(lastActivityAt)
 
 	return resultVar0
 }
@@ -15524,7 +15529,7 @@ func (a *OpenTracingAppLayer) SendTestPushNotification(deviceID string) string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendUpgradeConfirmationEmail() *model.AppError {
+func (a *OpenTracingAppLayer) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendUpgradeConfirmationEmail")
 
@@ -15536,7 +15541,7 @@ func (a *OpenTracingAppLayer) SendUpgradeConfirmationEmail() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendUpgradeConfirmationEmail()
+	resultVar0 := a.app.SendUpgradeConfirmationEmail(isYearly)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17293,21 +17298,6 @@ func (a *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebho
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateLastActivityAtIfNeeded(session model.Session) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateLastActivityAtIfNeeded")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.UpdateLastActivityAtIfNeeded(session)
-}
-
 func (a *OpenTracingAppLayer) UpdateMfa(c request.CTX, activate bool, userID string, token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateMfa")
@@ -18145,7 +18135,7 @@ func (a *OpenTracingAppLayer) UpdateWebConnUserActivity(session model.Session, a
 	a.app.UpdateWebConnUserActivity(session, activityAt)
 }
 
-func (a *OpenTracingAppLayer) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadData")
 

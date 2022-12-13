@@ -1060,6 +1060,24 @@ func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Respon
 	return list, BuildResponse(r), nil
 }
 
+// GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
+func (c *Client4) GetUsersWithCustomQueryParameters(page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
+	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
@@ -8538,6 +8556,20 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 		return nil, nil, NewAppError("GetNewTeamMembersSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return newTeamMembersList, BuildResponse(r), nil
+}
+
+func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var info *PostInfo
+	if err = json.NewDecoder(r.Body).Decode(&info); err != nil {
+		return nil, nil, NewAppError("GetPostInfo", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return info, BuildResponse(r), nil
 }
 
 func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
