@@ -200,7 +200,7 @@ endif
 
 # Playbooks
 BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
-BUILD_PLAYBOOKS ?= false
+BUILD_PLAYBOOKS ?= true
 
 ifeq ($(BUILD_PLAYBOOKS),true)
 IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)

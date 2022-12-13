@@ -27,6 +27,7 @@ import (
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
 type channelsWrapper struct {
 	srv *Server
+	app *App
 }
 
 func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
@@ -45,6 +46,22 @@ func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*mo
 
 func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
 	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.Log()), teamID, userID, opts)
+}
+
+func (s *channelsWrapper) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return s.app.GetSidebarCategoriesForTeamForUser(request.EmptyContext(s.srv.Log()), userID, teamID)
+}
+
+func (s *channelsWrapper) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
+	return s.app.GetChannelMembersPage(request.EmptyContext(s.srv.Log()), channelID, page, perPage)
+}
+
+func (s *channelsWrapper) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return s.app.CreateSidebarCategory(request.EmptyContext(s.srv.Log()), userID, teamID, newCategory)
+}
+
+func (s *channelsWrapper) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	return s.app.UpdateSidebarCategories(request.EmptyContext(s.srv.Log()), userID, teamID, categories)
 }
 
 // Ensure the wrapper implements the product service.
