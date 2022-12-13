@@ -192,7 +192,7 @@ func (s *FileBackendTestSuite) TestReadWriteFileContext() {
 
 		r, w := io.Pipe()
 		go func() {
-			// close the writer after two seconds
+			// close the writer after a short time
 			time.Sleep(500 * time.Millisecond)
 			w.Close()
 		}()
