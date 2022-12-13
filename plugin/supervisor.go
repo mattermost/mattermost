@@ -4,7 +4,10 @@
 package plugin
 
 import (
+	"crypto/md5"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -62,6 +65,22 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 
 	cmd := exec.Command(executable)
 
+	// JAVI
+	myFile, err := os.Open(executable)
+	if err != nil {
+		mlog.Debug("Error reading the file");
+	}
+	secureConfigHash := md5.New()
+	_, err = io.Copy(secureConfigHash, myFile);
+	if err != nil {
+		mlog.Debug("Error hashing the file");
+	}
+
+	secureConfig := &plugin.SecureConfig{
+		Checksum: secureConfigHash.Sum(nil),
+		Hash: secureConfigHash,
+	}
+
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
@@ -70,7 +89,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
-		SecureConfig:    &plugin.SecureConfig{},
+		SecureConfig:    secureConfig,
 	})
 
 	rpcClient, err := sup.client.Client()
