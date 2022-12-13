@@ -65,6 +65,10 @@ type ChannelService interface {
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
+	GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
+	GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError)
+	CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 }
 
 // LicenseService provides license related utilities.
@@ -161,6 +165,8 @@ type CloudService interface {
 type KVStoreService interface {
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	KVGet(productID, key string) ([]byte, *model.AppError)
+	KVDelete(productID, key string) *model.AppError
+	KVList(productID string, page, perPage int) ([]string, *model.AppError)
 }
 
 // LogService is the API for accessing the log service APIs.
