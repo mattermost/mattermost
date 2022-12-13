@@ -70,6 +70,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
+		SecureConfig:    &plugin.SecureConfig{},
 	})
 
 	rpcClient, err := sup.client.Client()
