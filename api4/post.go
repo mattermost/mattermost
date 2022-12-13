@@ -80,12 +80,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if post.GetPriority() != nil {
-		licenseErr := minimumProfessionalLicense(c)
-		if licenseErr != nil {
-			c.Err = licenseErr
-			return
-		}
-
 		priorityErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 
 		if !c.App.IsPostPriorityEnabled() {
@@ -98,7 +92,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.GetPersistentNotification() != nil {
+		if post.GetRequestedAck() != nil && *post.GetRequestedAck() == true {
+			licenseErr := minimumProfessionalLicense(c)
+			if licenseErr != nil {
+				c.Err = licenseErr
+				return
+			}
+		}
+
+		if post.GetPersistentNotification() != nil && *post.GetPersistentNotification() == true {
+			licenseErr := requireEnterpriseLicense(c)
+			if licenseErr != nil {
+				c.Err = licenseErr
+				return
+			}
 			if !c.App.IsPersistentNotificationsEnabled() {
 				c.Err = priorityErr
 				return

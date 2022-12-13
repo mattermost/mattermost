@@ -217,6 +217,15 @@ func minimumProfessionalLicense(c *Context) *model.AppError {
 	return nil
 }
 
+func requireEnterpriseLicense(c *Context) *model.AppError {
+	lic := c.App.Srv().License()
+	if lic == nil || lic.SkuShortName != model.LicenseShortSkuEnterprise {
+		err := model.NewAppError("", model.NoTranslation, nil, "license is not enterprise", http.StatusNotImplemented)
+		return err
+	}
+	return nil
+}
+
 func rejectGuests(c *Context) *model.AppError {
 	if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
 		err := model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)

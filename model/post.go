@@ -814,6 +814,14 @@ func (o *Post) GetPersistentNotification() *bool {
 	return priority.PersistentNotifications
 }
 
+func (o *Post) GetRequestedAck() *bool {
+	priority := o.GetPriority()
+	if priority == nil {
+		return nil
+	}
+	return priority.RequestedAck
+}
+
 func (o *Post) IsUrgent() bool {
 	postPriority := o.GetPriority()
 	if postPriority == nil {
