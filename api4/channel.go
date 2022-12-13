@@ -76,6 +76,7 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelPreviewers.Handle("", api.APISessionRequired(addChannelPreviewer)).Methods("POST")
 	api.BaseRoutes.ChannelPreviewer.Handle("", api.APISessionRequired(removeChannelPreviewer)).Methods("DELETE")
+	api.BaseRoutes.ChannelPreviewer.Handle("/convert", api.APISessionRequired(convertChannelPreviewer)).Methods("POST")
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
@@ -1899,13 +1900,19 @@ func removeChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	cm, err := c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.Params.UserId)
+	if !cm.HasRole("channel_previewer") {
+		c.Err = model.NewAppError("removeChannelPreviewer", "api.channel.remove_channel_member.not_previewer.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("removeChannelPreviewer", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("channel_id", channel.Id)
 	auditRec.AddEventParameter("user_id", user.Id)
 
 	if !(channel.Type == model.ChannelTypeOpen) {
-		c.Err = model.NewAppError("removeChannelPreviewer", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("removeChannelPreviewer", "api.channel.remove_channel_member.channel_type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -1917,6 +1924,56 @@ func removeChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err = c.App.RemovePreviewerFromChannel(c.AppContext, c.Params.UserId, c.AppContext.Session().UserId, channel); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
+
+	ReturnStatusOK(w)
+}
+
+func convertChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	cm, err := c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.Params.UserId)
+	if !cm.HasRole("channel_previewer") {
+		c.Err = model.NewAppError("removeChannelPreviewer", "api.channel.convert_channel_member.not_previewer.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("convertChannelPreviewer", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("channel_id", channel.Id)
+	auditRec.AddEventParameter("user_id", user.Id)
+
+	if !(channel.Type == model.ChannelTypeOpen) {
+		c.Err = model.NewAppError("convertChannelPreviewer", "api.channel.convert_channel_member.channel_type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if c.Params.UserId != c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("convertChannelPreviewer", "api.channel.convert_channel_member.not_self_request.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if err = c.App.ConvertPreviewerToMember(c.AppContext, c.Params.UserId, channel); err != nil {
 		c.Err = err
 		return
 	}

@@ -1655,7 +1655,7 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 	newMember := &model.ChannelMember{
 		ChannelId:     channel.Id,
 		UserId:        user.Id,
-		ExplicitRoles: "channel_previewer",
+		ExplicitRoles: model.ChannelPreviewerRoleId,
 		NotifyProps:   model.GetIgnoreChannelNotifyProps(),
 		SchemeGuest:   false,
 		SchemeUser:    false,
@@ -1689,12 +1689,50 @@ func (a *App) RemovePreviewerFromChannel(c request.CTX, userIDToRemove string, r
 		return model.NewAppError("RemovePreviewerFromChannel", "app.channel.non_channel_member.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if !cm.HasRole("channel_previewer") {
+	if !cm.HasRole(model.ChannelPreviewerRoleId) {
 		return model.NewAppError("RemovePreviewerFromChannel", "app.channel.removing_non_previewer.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	if err := a.removeUserFromChannel(c, userIDToRemove, removerUserId, channel); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (a *App) ConvertPreviewerToMember(c request.CTX, userID string, channel *model.Channel) *model.AppError {
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	cm, err := a.GetChannelMember(c, channel.Id, userID)
+	if err != nil {
+		return model.NewAppError("ConvertPreviewerToMember", "app.channel.non_channel_member.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if !cm.HasRole(model.ChannelPreviewerRoleId) {
+		return model.NewAppError("ConvertPreviewerToMember", "app.channel.removing_non_previewer.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+	if _, err := a.UpdateChannelMemberNotifyProps(c, defaultNotifyProps, channel.Id, userID); err != nil {
+		return model.NewAppError("ConvertPreviewerToMember", "app.channel.update_notify_props.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// cm.ExplicitRoles = RemoveRoles([]string{model.ChannelPreviewerRoleId}, cm.ExplicitRoles)
+	if _, err := a.UpdateChannelMemberRoles(c, channel.Id, userID, ""); err != nil {
+		return model.NewAppError("ConvertPreviewerToMember", "app.channel.update_roles.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	shouldBeAdmin, err := a.UserIsInAdminRoleGroup(userID, channel.Id, model.GroupSyncableTypeChannel)
+	if err != nil {
+		return err
+	}
+
+	if _, err := a.UpdateChannelMemberSchemeRoles(c, channel.Id, userID, user.IsGuest(), !user.IsGuest(), shouldBeAdmin); err != nil {
+		return model.NewAppError("ConvertPreviewerToMember", "app.channel.update_scheme_roles.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil

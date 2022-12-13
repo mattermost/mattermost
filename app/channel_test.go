@@ -1590,6 +1590,33 @@ func TestRemoveChannelPreviewer(t *testing.T) {
 	// User should be able to remove themselves
 	err = th.App.RemovePreviewerFromChannel(th.Context, ruser.Id, ruser.Id, th.BasicChannel)
 	require.Nil(t, err)
+
+	// TODO: add more tests
+}
+
+func TestConvertPreviewerToMember(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ruser := th.CreateUser()
+
+	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
+
+	_, err := th.App.AddPreviewerToChannel(th.Context, ruser.Id, th.BasicChannel)
+	require.Nil(t, err)
+
+	// User should be able to convert from a previewer to a regular channel member
+	err = th.App.ConvertPreviewerToMember(th.Context, ruser.Id, th.BasicChannel)
+	require.Nil(t, err)
+
+	cm, err := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, ruser.Id)
+	require.Nil(t, err)
+	require.False(t, cm.SchemeAdmin)
+	require.True(t, cm.SchemeUser)
+	require.False(t, cm.SchemeGuest)
+	require.NotContains(t, cm.ExplicitRoles, "channel_previewer")
+
+	// TODO: add more tests
 }
 
 func TestRemoveUserFromChannel(t *testing.T) {

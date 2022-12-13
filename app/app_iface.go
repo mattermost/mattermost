@@ -56,6 +56,8 @@ type AppIface interface {
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	// AddPreviewerToChannel adds a user to a given channel with the previewer role.
 	AddPreviewerToChannel(c request.CTX, userID string, channel *model.Channel) (*model.ChannelMember, *model.AppError)
+	// ConvertPreviewerToMember removes the previewer role from a channel member and restores full notification settings.
+	ConvertPreviewerToMember(c request.CTX, userID string, channel *model.Channel) *model.AppError
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
