@@ -172,7 +172,7 @@ func (sup *supervisor) Implements(hookId int) bool {
 }
 
 func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
-	secureConfigHash := md5.New()
+	pathHash := md5.New()
 	file, err := os.Open(executablePath)
 
 	if err != nil {
@@ -181,10 +181,10 @@ func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
 
 	defer file.Close()
 
-	_, err = io.Copy(secureConfigHash, file)
+	_, err = io.Copy(pathHash, file)
 	if err != nil {
 		return nil, err
 	}
 
-	return secureConfigHash.Sum(nil), nil
+	return pathHash.Sum(nil), nil
 }
