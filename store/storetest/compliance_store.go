@@ -477,6 +477,11 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		messageExportMap[*v.PostId] = *v
 	}
 
+	// fetch time message export for one of the posts that user1 sent
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, startTime+5, 10)
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(messages))
+
 	// post1 was made by user1 in channel1 and team1
 	assert.Equal(t, post1.Id, *messageExportMap[post1.Id].PostId)
 	assert.Equal(t, post1.CreateAt, *messageExportMap[post1.Id].PostCreateAt)
@@ -580,6 +585,11 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	for _, v := range messages {
 		messageExportMap[*v.PostId] = *v
 	}
+
+	// fetch the message exports for one of the posts that user1 sent
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, startTime+5, 10)
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(messages))
 
 	// post1 was made by user1 in channel1 and team1
 	assert.Equal(t, post1.Id, *messageExportMap[post1.Id].PostId)
@@ -769,6 +779,10 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	for _, v := range messages {
 		messageExportMap[*v.PostId] = *v
 	}
+
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, model.GetMillis()+10, 10)
+	require.NoError(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// post is a DM between user1 and user2
 	// there is no channel display name for direct messages, so we sub in the string "Direct Message" instead
