@@ -4,7 +4,7 @@
 package plugin
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
@@ -80,7 +80,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		StartTimeout:    time.Second * 3,
 		SecureConfig: &plugin.SecureConfig{
 			Checksum: pluginChecksum,
-			Hash:     md5.New(),
+			Hash:     sha256.New(),
 		},
 	})
 
@@ -172,7 +172,7 @@ func (sup *supervisor) Implements(hookId int) bool {
 }
 
 func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
-	pathHash := md5.New()
+	pathHash := sha256.New()
 	file, err := os.Open(executablePath)
 
 	if err != nil {
