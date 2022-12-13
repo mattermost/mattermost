@@ -46,8 +46,16 @@ func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandRe
 	}
 }
 
+func getContentType(rawContentType string) string {
+	if strings.Contains(rawContentType, ";") {
+		typeWithoutCharset := strings.Split(rawContentType, ";")[0]
+		return strings.TrimSpace(typeWithoutCharset)
+	}
+	return strings.TrimSpace(rawContentType)
+}
+
 func ContentTypeIs(rawContentType string, expectedContentType string) bool {
-	givenContentType := strings.TrimSpace(strings.Split(rawContentType, ";")[0])
+	givenContentType := getContentType(rawContentType)
 	return givenContentType == expectedContentType
 }
 
