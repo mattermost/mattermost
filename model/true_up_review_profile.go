@@ -21,7 +21,6 @@ type TrueUpReviewProfile struct {
 }
 
 type TrueUpReviewPlugins struct {
-	TotalPlugins         int      `json:"total_plugins"`
 	TotalActivePlugins   int      `json:"total_active_plugins"`
 	TotalInactivePlugins int      `json:"total_inactive_plugins"`
 	ActivePluginNames    []string `json:"active_plugin_names"`
