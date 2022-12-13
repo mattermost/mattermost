@@ -181,6 +181,10 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("limit flag error")
 		}
 
+		if endTime > 0 && limit > 0 {
+			CommandPrettyPrintln("WARNING: Using both the --exportTo and --limit flags may lead to inconsistent exports.")
+		}
+
 		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
