@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
@@ -194,7 +195,8 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("upload_id", c.Params.UploadId)
 
-	us, err := c.App.GetUploadSession(c.Params.UploadId)
+	c.AppContext.SetContext(app.WithMaster(c.AppContext.Context()))
+	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)
 	if err != nil {
 		c.Err = err
 		return
