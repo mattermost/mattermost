@@ -239,7 +239,7 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://portal.test.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURL    = "http://a53ca2a3f0a6f4a1babcd65d4bb73f8c-1646013320.us-east-1.elb.amazonaws.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
 	OpenidSettingsDefaultScope    = "profile openid email"
 
