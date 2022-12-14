@@ -16751,6 +16751,28 @@ func (a *OpenTracingAppLayer) SwitchLdapToEmail(ldapPassword string, code string
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SwitchLdapToOAuth(w http.ResponseWriter, r *http.Request, ldapPassword string, email string, mfaCode string, service string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SwitchLdapToOAuth")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SwitchLdapToOAuth(w, r, ldapPassword, email, mfaCode, service)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SwitchOAuthToEmail(email string, password string, requesterId string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SwitchOAuthToEmail")

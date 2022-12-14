@@ -1100,6 +1100,7 @@ type AppIface interface {
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
+	SwitchLdapToOAuth(w http.ResponseWriter, r *http.Request, ldapPassword, email, mfaCode, service string) (string, *model.AppError)
 	SwitchOAuthToEmail(email, password, requesterId string) (string, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string

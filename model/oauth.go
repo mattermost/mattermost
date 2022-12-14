@@ -13,6 +13,7 @@ const (
 	OAuthActionSignup     = "signup"
 	OAuthActionLogin      = "login"
 	OAuthActionEmailToSSO = "email_to_sso"
+	OAuthActionLdapToSSO  = "ldap_to_sso"
 	OAuthActionSSOToEmail = "sso_to_email"
 	OAuthActionMobile     = "mobile"
 )

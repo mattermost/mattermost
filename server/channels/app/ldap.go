@@ -170,6 +170,45 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 	return "/login?extra=signin_change", nil
 }
 
+func (a *App) SwitchLdapToOAuth(w http.ResponseWriter, r *http.Request, ldapPassword, email, mfaCode, service string) (string, *model.AppError) {
+	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+		return "", model.NewAppError("SwitchLdapToOAuth", "api.user.ldap_to_oauth.not_available.app_error", nil, "", http.StatusForbidden)
+	}
+
+	user, err := a.GetUserByEmail(email)
+	if err != nil {
+		return "", err
+	}
+
+	if user.AuthService != model.UserAuthServiceLdap {
+		return "", model.NewAppError("SwitchLdapToOAuth", "api.user.ldap_to_oauth.not_ldap_account.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	ldap := a.Ldap()
+	if ldap == nil || user.AuthData == nil {
+		return "", model.NewAppError("SwitchLdapToOAuth", "api.user.ldap_to_oauth.not_available.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if err = ldap.CheckPasswordAuthData(*user.AuthData, ldapPassword); err != nil {
+		return "", err
+	}
+
+	if err = a.CheckUserMfa(user, mfaCode); err != nil {
+		return "", err
+	}
+
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAuthActionLdapToSSO
+	stateProps["email"] = email
+
+	authURL, err := a.GetAuthorizationCode(w, r, service, stateProps, "")
+	if err != nil {
+		return "", err
+	}
+
+	return authURL, nil
+}
+
 func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 	if ldapI := a.Ldap(); ldapI != nil {
 		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {

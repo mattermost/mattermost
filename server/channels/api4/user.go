@@ -2346,6 +2346,8 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
 	} else if switchRequest.LdapToEmail() {
 		link, err = c.App.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
+	} else if switchRequest.LdapToOAuth() {
+		link, err = c.App.SwitchLdapToOAuth(w, r, switchRequest.Password, switchRequest.Email, switchRequest.MfaCode, switchRequest.NewService)
 	} else {
 		c.SetInvalidParam("switch_request")
 		return

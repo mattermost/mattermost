@@ -4216,6 +4216,14 @@
     "translation": "This user account does not use AD/LDAP."
   },
   {
+    "id": "api.user.ldap_to_oauth.not_available.app_error",
+    "translation": "AD/LDAP not available on this server."
+  },
+  {
+    "id": "api.user.ldap_to_oauth.not_ldap_account.app_error",
+    "translation": "This user account does not use AD/LDAP."
+  },
+  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Password field must not be blank"
   },
