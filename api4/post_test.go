@@ -346,6 +346,42 @@ func TestCreatePostForPriority(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("should create priority post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewString("important"),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("should create acknowledge post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:     model.NewString(""),
+				RequestedAck: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("should create persistent notification post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("urgent"),
+				RequestedAck:            model.NewBool(false),
+				PersistentNotifications: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {
