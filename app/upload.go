@@ -48,12 +48,7 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 	return info, nil
 }
 
-func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil
-	}
-
+func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader) *model.AppError {
 	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
@@ -67,7 +62,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
@@ -127,11 +122,6 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 }
 
 func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
-	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
-			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
-	}
-
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)
@@ -164,8 +154,8 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 	return us, nil
 }
 
-func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store().UploadSession().Get(uploadId)
+func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
+	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -189,7 +179,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.ch.uploadLockMapMut.Lock()
@@ -212,7 +202,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	if storedSession, err := a.GetUploadSession(us.Id); err != nil {
+	c.SetContext(WithMaster(c.Context()))
+	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
