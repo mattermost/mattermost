@@ -176,7 +176,7 @@ func TestSendPersistentNotifications(t *testing.T) {
 	p1 := &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
-		Message:   "test" + "@" + th.BasicUser2.Username,
+		Message:   "test " + "@" + th.BasicUser2.Username,
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
 				Priority:                &s,
