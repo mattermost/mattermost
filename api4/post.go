@@ -92,7 +92,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.GetRequestedAck() != nil && *post.GetRequestedAck() {
+		if ack := post.GetRequestedAck(); ack != nil && *ack {
 			licenseErr := minimumProfessionalLicense(c)
 			if licenseErr != nil {
 				c.Err = licenseErr
@@ -100,8 +100,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if post.GetPersistentNotification() != nil && *post.GetPersistentNotification() {
-			licenseErr := requireEnterpriseLicense(c)
+		if notification := post.GetPersistentNotification(); notification != nil && *notification {
+			licenseErr := minimumProfessionalLicense(c)
 			if licenseErr != nil {
 				c.Err = licenseErr
 				return
