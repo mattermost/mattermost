@@ -4,6 +4,7 @@
 package export_process
 
 import (
+	"context"
 	"io"
 	"path/filepath"
 
@@ -19,6 +20,7 @@ const jobName = "ExportProcess"
 type AppIface interface {
 	configservice.ConfigService
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
+	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
@@ -43,7 +45,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		rd, wr := io.Pipe()
 
 		go func() {
-			_, appErr := app.WriteFile(rd, filepath.Join(outPath, exportFilename))
+			_, appErr := app.WriteFileContext(context.Background(), rd, filepath.Join(outPath, exportFilename))
 			if appErr != nil {
 				// we close the reader here to prevent a deadlock when the bulk exporter tries to
 				// write into the pipe while app.WriteFile has already returned. The error will be

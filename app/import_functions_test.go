@@ -65,7 +65,7 @@ func TestImportImportScheme(t *testing.T) {
 		Description: ptrStr("description"),
 	}
 
-	err := th.App.importScheme(&data, true)
+	err := th.App.importScheme(th.Context, &data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -74,7 +74,7 @@ func TestImportImportScheme(t *testing.T) {
 	// Try importing a valid scheme in dryRun mode.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importScheme(&data, true)
+	err = th.App.importScheme(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
 	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -83,7 +83,7 @@ func TestImportImportScheme(t *testing.T) {
 	// Try importing an invalid scheme.
 	data.DisplayName = nil
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -92,7 +92,7 @@ func TestImportImportScheme(t *testing.T) {
 	// Try importing a valid scheme with all params set.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	scheme, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -149,7 +149,7 @@ func TestImportImportScheme(t *testing.T) {
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("new description")
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
 
 	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -205,7 +205,7 @@ func TestImportImportScheme(t *testing.T) {
 	// Try changing the scope of the scheme and reimporting.
 	data.Scope = ptrStr("channel")
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -252,7 +252,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		Description: ptrStr("description"),
 	}
 
-	err := th.App.importScheme(&data, true)
+	err := th.App.importScheme(th.Context, &data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -261,7 +261,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	// Try importing a valid scheme in dryRun mode.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importScheme(&data, true)
+	err = th.App.importScheme(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
 	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -270,7 +270,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	// Try importing an invalid scheme.
 	data.DisplayName = nil
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -279,7 +279,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	// Try importing a valid scheme with all params set.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	scheme, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -336,7 +336,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("new description")
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
 
 	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -392,7 +392,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	// Try changing the scope of the scheme and reimporting.
 	data.Scope = ptrStr("channel")
 
-	err = th.App.importScheme(&data, false)
+	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
@@ -414,7 +414,7 @@ func TestImportImportRole(t *testing.T) {
 		Name: &rid1,
 	}
 
-	err := th.App.importRole(&data, true, false)
+	err := th.App.importRole(th.Context, &data, true, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -423,7 +423,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing the valid role in dryRun mode.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importRole(&data, true, false)
+	err = th.App.importRole(th.Context, &data, true, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -432,7 +432,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing an invalid role.
 	data.DisplayName = nil
 
-	err = th.App.importRole(&data, false, false)
+	err = th.App.importRole(th.Context, &data, false, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -443,7 +443,7 @@ func TestImportImportRole(t *testing.T) {
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
 
-	err = th.App.importRole(&data, false, false)
+	err = th.App.importRole(th.Context, &data, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	role, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -461,7 +461,7 @@ func TestImportImportRole(t *testing.T) {
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"use_slash_commands"}
 
-	err = th.App.importRole(&data, false, true)
+	err = th.App.importRole(th.Context, &data, false, true)
 	require.Nil(t, err, "Should have succeeded. %v", err)
 
 	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -480,7 +480,7 @@ func TestImportImportRole(t *testing.T) {
 		DisplayName: ptrStr("new display name again"),
 	}
 
-	err = th.App.importRole(&data2, false, false)
+	err = th.App.importRole(th.Context, &data2, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -1384,7 +1384,7 @@ func TestImportImportUser(t *testing.T) {
 		Description: ptrStr("description"),
 	}
 
-	appErr = th.App.importScheme(teamSchemeData, false)
+	appErr = th.App.importScheme(th.Context, teamSchemeData, false)
 	assert.Nil(t, appErr)
 
 	teamScheme, nErr := th.App.Srv().Store().Scheme().GetByName(*teamSchemeData.Name)
@@ -4151,7 +4151,7 @@ func TestImportImportEmoji(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 
 	data := imports.EmojiImportData{Name: ptrStr(model.NewId())}
-	appErr := th.App.importEmoji(&data, true)
+	appErr := th.App.importEmoji(th.Context, &data, true)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
 	emoji, nErr := th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
@@ -4159,35 +4159,35 @@ func TestImportImportEmoji(t *testing.T) {
 	assert.Error(t, nErr)
 
 	data.Image = ptrStr(testImage)
-	appErr = th.App.importEmoji(&data, true)
+	appErr = th.App.importEmoji(th.Context, &data, true)
 	assert.Nil(t, appErr, "Valid emoji should have passed dry run")
 
 	data = imports.EmojiImportData{Name: ptrStr(model.NewId())}
-	appErr = th.App.importEmoji(&data, false)
+	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed apply mode")
 
 	data.Image = ptrStr("non-existent-file")
-	appErr = th.App.importEmoji(&data, false)
+	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.NotNil(t, appErr, "Emoji with bad image file should have failed apply mode")
 
 	data.Image = ptrStr(testImage)
-	appErr = th.App.importEmoji(&data, false)
+	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
 	emoji, nErr = th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.NoError(t, nErr, "Emoji should have been imported without any error")
 
-	appErr = th.App.importEmoji(&data, false)
+	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Second run should have succeeded apply mode")
 
 	data = imports.EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
-	appErr = th.App.importEmoji(&data, false)
+	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "System emoji should not fail")
 
 	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
 	data = imports.EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
-	appErr = th.App.importEmoji(&data, false)
+	appErr = th.App.importEmoji(th.Context, &data, false)
 	require.NotNil(t, appErr)
 	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
 }
