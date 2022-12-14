@@ -4,14 +4,18 @@
 package app
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestServePluginPublicRequest(t *testing.T) {
@@ -20,7 +24,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-		req, err := http.NewRequest("GET", "/plugins", nil)
+		req, err := http.NewRequest("GET", "/plugins/plugin_id/public/file.txt", nil)
 		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
@@ -28,5 +32,87 @@ func TestServePluginPublicRequest(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusNotFound, rr.Code)
+	})
+
+	t.Run("resolves path for valid plugin", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+
+		path, _ := fileutils.FindDir("tests")
+		fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+		defer fileReader.Close()
+
+		_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
+		checkNoError(t, appErr)
+
+		appErr = th.App.SyncPlugins()
+		checkNoError(t, appErr)
+
+		env := th.App.GetPluginsEnvironment()
+		require.NotNil(t, env)
+
+		// Check if installed
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+		appErr = th.App.EnablePlugin("testplugin")
+		checkNoError(t, appErr)
+
+		req, err := http.NewRequest("GET", "/plugins/testplugin/public/file.txt", nil)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		th.App.ch.srv.Router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		body, err := io.ReadAll(rr.Body)
+		require.NoError(t, err)
+		require.Equal(t, "Hello World!", string(body))
+	})
+
+	t.Run("resolves path for valid plugin when subpath configured", func(t *testing.T) {
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065/subpath")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		th := Setup(t)
+		defer th.TearDown()
+
+		path, _ := fileutils.FindDir("tests")
+		fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+		defer fileReader.Close()
+
+		_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
+		checkNoError(t, appErr)
+
+		appErr = th.App.SyncPlugins()
+		checkNoError(t, appErr)
+
+		env := th.App.GetPluginsEnvironment()
+		require.NotNil(t, env)
+
+		// Check if installed
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+		appErr = th.App.EnablePlugin("testplugin")
+		checkNoError(t, appErr)
+
+		req, err := http.NewRequest("GET", "/subpath/plugins/testplugin/public/file.txt", nil)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		th.App.ch.srv.RootRouter.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		body, err := io.ReadAll(rr.Body)
+		require.NoError(t, err)
+		assert.Equal(t, "Hello World!", string(body))
 	})
 }
