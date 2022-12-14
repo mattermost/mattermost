@@ -239,7 +239,7 @@ func NewServer(options ...Option) (*Server, error) {
 	var _ product.UserService = (*App)(nil)
 
 	serviceMap := map[product.ServiceKey]any{
-		product.ServerKey:        s,
+		ServerKey:                s,
 		product.ChannelKey:       &channelsWrapper{srv: s},
 		product.ConfigKey:        s.platform,
 		product.LicenseKey:       s.licenseWrapper,

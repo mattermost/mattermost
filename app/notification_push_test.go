@@ -1451,7 +1451,7 @@ func TestPushNotificationRace(t *testing.T) {
 	s.SetStore(mockStore)
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{
-		product.ServerKey:    s,
+		ServerKey:            s,
 		product.ConfigKey:    s.platform,
 		product.LicenseKey:   &licenseWrapper{s},
 		product.FilestoreKey: s.FileBackend(),

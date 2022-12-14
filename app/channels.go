@@ -23,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
+const ServerKey product.ServiceKey = "server"
+
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
 type licenseSvc interface {
@@ -91,7 +93,7 @@ func init() {
 			return NewChannels(services)
 		},
 		Dependencies: map[product.ServiceKey]struct{}{
-			product.ServerKey:    {},
+			ServerKey:            {},
 			product.ConfigKey:    {},
 			product.LicenseKey:   {},
 			product.FilestoreKey: {},
@@ -100,7 +102,7 @@ func init() {
 }
 
 func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
-	s, ok := services[product.ServerKey].(*Server)
+	s, ok := services[ServerKey].(*Server)
 	if !ok {
 		return nil, errors.New("server not passed")
 	}

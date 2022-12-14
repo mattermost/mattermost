@@ -25,11 +25,4 @@ const (
 	StoreKey         ServiceKey = "storekey"
 	SystemKey        ServiceKey = "systemkey"
 	PreferencesKey   ServiceKey = "preferenceskey"
-
-	// The following are not services, but are used for the
-	// other type of entities that might need to be passed to the
-	// initializers.
-
-	// ServerKey is used to pass the app.Server to the initializers.
-	ServerKey ServiceKey = "server"
 )
