@@ -9179,10 +9179,6 @@
     "translation": "Je bent nu geüpgraded!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Bevestiging Mattermost upgrade"
   },

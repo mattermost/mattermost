@@ -82,6 +82,7 @@ const (
 	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     = "persistent_notification_triggered"
+	WebsocketEventHostedCustomerSignupProgressUpdated = "hosted_customer_signup_progress_updated"
 )
 
 type WebSocketMessage interface {
