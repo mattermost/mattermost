@@ -2273,7 +2273,7 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	_, appErr = a.CreatePost(c, &model.Post{
 		// TODO: Make this the System user, not the calling user.
 		UserId:    user.Id,
-		Type:      model.PostTypeSystemGeneric,
+		Type:      model.PostTypeWrangler,
 		RootId:    newRootPost.Id,
 		ChannelId: channelID,
 		Message:   "This thread was moved from another channel",
@@ -2318,7 +2318,7 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	_, appErr = a.CreatePost(c, &model.Post{
 		UserId:    user.Id,
-		Type:      model.PostTypeSystemGeneric,
+		Type:      model.PostTypeWrangler,
 		ChannelId: originalChannel.Id,
 		Message:   msg,
 	}, originalChannel, false, false)
