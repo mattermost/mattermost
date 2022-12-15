@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -19,6 +20,38 @@ import (
 )
 
 func TestServePluginPublicRequest(t *testing.T) {
+	installPlugin := func(t *testing.T, th *TestHelper, pluginID string) {
+		t.Helper()
+
+		path, _ := fileutils.FindDir("tests")
+		fileReader, err := os.Open(filepath.Join(path, fmt.Sprintf("%s.tar.gz", pluginID)))
+		require.NoError(t, err)
+		defer fileReader.Close()
+
+		_, appErr := th.App.WriteFile(fileReader, getBundleStorePath(pluginID))
+		checkNoError(t, appErr)
+
+		appErr = th.App.SyncPlugins()
+		checkNoError(t, appErr)
+
+		env := th.App.GetPluginsEnvironment()
+		require.NotNil(t, env)
+
+		// Check if installed
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		found := false
+		for _, pluginStatus := range pluginStatus {
+			if pluginStatus.PluginId == pluginID {
+				found = true
+			}
+		}
+		require.True(t, found, "failed to find plugin %s in plugin statuses", pluginID)
+
+		appErr = th.App.EnablePlugin(pluginID)
+		checkNoError(t, appErr)
+	}
+
 	t.Run("returns not found when plugins environment is nil", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -44,23 +77,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		require.NoError(t, err)
 		defer fileReader.Close()
 
-		_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
-		checkNoError(t, appErr)
-
-		appErr = th.App.SyncPlugins()
-		checkNoError(t, appErr)
-
-		env := th.App.GetPluginsEnvironment()
-		require.NotNil(t, env)
-
-		// Check if installed
-		pluginStatus, err := env.Statuses()
-		require.NoError(t, err)
-		require.Len(t, pluginStatus, 1)
-		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
-
-		appErr = th.App.EnablePlugin("testplugin")
-		checkNoError(t, appErr)
+		installPlugin(t, th, "testplugin")
 
 		req, err := http.NewRequest("GET", "/plugins/testplugin/public/file.txt", nil)
 		require.NoError(t, err)
@@ -81,28 +98,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		path, _ := fileutils.FindDir("tests")
-		fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
-		require.NoError(t, err)
-		defer fileReader.Close()
-
-		_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
-		checkNoError(t, appErr)
-
-		appErr = th.App.SyncPlugins()
-		checkNoError(t, appErr)
-
-		env := th.App.GetPluginsEnvironment()
-		require.NotNil(t, env)
-
-		// Check if installed
-		pluginStatus, err := env.Statuses()
-		require.NoError(t, err)
-		require.Len(t, pluginStatus, 1)
-		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
-
-		appErr = th.App.EnablePlugin("testplugin")
-		checkNoError(t, appErr)
+		installPlugin(t, th, "testplugin")
 
 		req, err := http.NewRequest("GET", "/subpath/plugins/testplugin/public/file.txt", nil)
 		require.NoError(t, err)
@@ -114,5 +110,39 @@ func TestServePluginPublicRequest(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		require.NoError(t, err)
 		assert.Equal(t, "Hello World!", string(body))
+	})
+
+	t.Run("fails for invalid plugin", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+
+		req, err := http.NewRequest("GET", "/plugins/invalidplugin/public/file.txt", nil)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		th.App.ch.srv.Router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusNotFound, rr.Code)
+	})
+
+	t.Run("fails attempting to break out of path", func(t *testing.T) {
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065/subpath")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		th := Setup(t)
+		defer th.TearDown()
+
+		installPlugin(t, th, "testplugin")
+		installPlugin(t, th, "testplugin2")
+
+		req, err := http.NewRequest("GET", "/subpath/plugins/testplugin/public/../../testplugin2/file.txt", nil)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		th.App.ch.srv.RootRouter.ServeHTTP(rr, req)
+
+		require.Equal(t, http.StatusMovedPermanently, rr.Code)
+		assert.Equal(t, "/subpath/plugins/testplugin2/file.txt", rr.Header()["Location"][0])
 	})
 }

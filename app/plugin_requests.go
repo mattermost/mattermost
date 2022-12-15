@@ -92,13 +92,9 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// Should be in the form of /(subpath/)?/plugins/{plugin_id}/public/* by the time we get here
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
-
-	// Should be in the form of /(subpath/)?/plugins/{plugin_id}/public/* by the time
-	// we get here. Trim everything up to the /public/*.
-	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID))
 
 	pluginsEnv := ch.GetPluginsEnvironment()
 
@@ -114,8 +110,13 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	subpath, err := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 	publicFilePath := path.Clean(r.URL.Path)
-	prefix := "/public/"
+	prefix := path.Join(subpath, "plugins", pluginID, "public")
 	if !strings.HasPrefix(publicFilePath, prefix) {
 		http.NotFound(w, r)
 		return
