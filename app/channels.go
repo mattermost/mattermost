@@ -317,6 +317,10 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
+func (a *App) HooksManager() *product.HooksManager {
+	return a.Srv().hooksManager
+}
+
 // Ensure hooksService implements `product.HooksService`
 var _ product.HooksService = (*hooksService)(nil)
 
