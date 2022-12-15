@@ -95,8 +95,8 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	// Should be in the form of /(subpath/)?/plugins/$PLUGIN_ID/public/{anything} by the time
-	// we get here. Trim everything up to the /public/{anything}.
+	// Should be in the form of /(subpath/)?/plugins/{plugin_id}/public/* by the time
+	// we get here. Trim everything up to the /public/*.
 	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID))
 
