@@ -82,6 +82,24 @@ func TestInviteProvider(t *testing.T) {
 		checkIsMember(channel2.Id, anotherUser.Id)
 	})
 
+	t.Run("adds multiple users even when some are invalid or already members", func(t *testing.T) {
+		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		userAlreadyInChannel := th.createUser()
+		th.linkUserToTeam(userAlreadyInChannel, th.BasicTeam)
+		th.addUserToChannel(userAlreadyInChannel, channel)
+		userInTeam := th.createUser()
+		th.linkUserToTeam(userInTeam, th.BasicTeam)
+		userNotInTeam := th.createUser()
+
+		msg := "@invalidUser123 @" + userAlreadyInChannel.Username + " @" + userInTeam.Username + " @" + userNotInTeam.Username + " ~" + channel.Name
+		expected := "api.command_invite.missing_user.app_error\n"
+		expected += "api.command_invite.user_already_in_channel.app_error\n"
+		expected += "api.command_invite.success\n"
+		expected += "api.command_invite.user_not_in_team.app_error"
+		runCmd(msg, expected)
+		checkIsMember(channel.Id, userInTeam.Id)
+	})
+
 	t.Run("try to add a user to a direct channel", func(t *testing.T) {
 		anotherUser := th.createUser()
 		th.linkUserToTeam(anotherUser, th.BasicTeam)
