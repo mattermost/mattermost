@@ -9549,10 +9549,10 @@ func (s *TimerLayerUploadSessionStore) Delete(id string) error {
 	return err
 }
 
-func (s *TimerLayerUploadSessionStore) Get(id string) (*model.UploadSession, error) {
+func (s *TimerLayerUploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
 	start := time.Now()
 
-	result, err := s.UploadSessionStore.Get(id)
+	result, err := s.UploadSessionStore.Get(ctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
