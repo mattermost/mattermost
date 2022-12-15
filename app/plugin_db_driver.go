@@ -46,7 +46,7 @@ func (d *DriverImpl) Conn(isMaster bool) (string, error) {
 	if !isMaster {
 		dbFunc = d.ps.Store.GetInternalReplicaDB
 	}
-	timeout := time.Duration(*d.s.Config().SqlSettings.QueryTimeout) * time.Second
+	timeout := time.Duration(*d.ps.Config().SqlSettings.QueryTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	conn, err := dbFunc().Conn(ctx)
