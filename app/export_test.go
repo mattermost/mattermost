@@ -185,7 +185,7 @@ func TestExportAllUsers(t *testing.T) {
 	defer th2.TearDown()
 	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
-	assert.Equal(t, 0, i)
+	assert.EqualValues(t, 0, i)
 
 	users1, err := th1.App.GetUsersFromProfiles(&model.UserGetOptions{
 		Page:    0,
@@ -323,7 +323,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	// import the exported channel
 	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
-	assert.Equal(t, 0, i)
+	assert.EqualValues(t, 0, i)
 
 	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.NoError(t, nErr)

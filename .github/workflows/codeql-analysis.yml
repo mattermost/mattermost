@@ -34,9 +34,10 @@ jobs:
         debug: false
         config-file: ./.github/codeql/codeql-config.yml              
     
-    # Autobuild attempts to build any compiled languages
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2    
+    - name: Build
+      run: |
+        make setup-go-work
+        make build-linux-amd64
 
     # Perform Analysis
     - name: Perform CodeQL Analysis
