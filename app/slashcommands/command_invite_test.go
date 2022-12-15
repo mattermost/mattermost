@@ -17,48 +17,7 @@ func TestInviteProvider(t *testing.T) {
 	th := setup(t).initBasic()
 	defer th.tearDown()
 
-	channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
-	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
-	dmChannel := th.createDmChannel(th.BasicUser2)
-	privateChannel2 := th.createChannelWithAnotherUser(th.BasicTeam, model.ChannelTypePrivate, th.BasicUser2.Id)
-	channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
-	channel3 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
-
-	basicUser3 := th.createUser()
-	th.linkUserToTeam(basicUser3, th.BasicTeam)
-	basicUser4 := th.createUser()
-	deactivatedUser := th.createUser()
-	th.App.UpdateActive(th.Context, deactivatedUser, false)
-
-	var err *model.AppError
-	bot1, err := th.App.CreateBot(th.Context, &model.Bot{
-		Username:    "bot1",
-		OwnerId:     basicUser3.Id,
-		Description: "a test bot",
-	})
-	require.Nil(t, err)
-
-	bot2, err := th.App.CreateBot(th.Context, &model.Bot{
-		Username:    "bot2",
-		OwnerId:     basicUser3.Id,
-		Description: "a test bot",
-	})
-	require.Nil(t, err)
-	_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
-	require.Nil(t, err)
-
-	bot3, err := th.App.CreateBot(th.Context, &model.Bot{
-		Username:    "bot3",
-		OwnerId:     basicUser3.Id,
-		Description: "a test bot",
-	})
-	require.Nil(t, err)
-	_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
-	require.Nil(t, err)
-	err = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
-	require.Nil(t, err)
-
-	InviteP := InviteProvider{}
+	inviteProvider := InviteProvider{}
 	args := &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
@@ -66,151 +25,170 @@ func TestInviteProvider(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	userAndWrongChannel := "@" + th.BasicUser2.Username + " wrongchannel1"
-	userAndChannel := "@" + th.BasicUser2.Username + " ~" + channel.Name + " "
-	multipleUsersAndChannels := "@" + th.BasicUser2.Username + " @" + basicUser3.Username + " ~" + channel2.Name + " ~" + channel3.Name
-	userAndDisplayChannel := "@" + th.BasicUser2.Username + " ~" + channel.DisplayName + " "
-	userAndPrivateChannel := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
-	userAndDMChannel := "@" + basicUser3.Username + " ~" + dmChannel.Name
-	userAndInvalidPrivate := "@" + basicUser3.Username + " ~" + privateChannel2.Name
-	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
-
-	groupChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
-	_, err = th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
-	require.Nil(t, err)
-	groupChannel.GroupConstrained = model.NewBool(true)
-	groupChannel, _ = th.App.UpdateChannel(th.Context, groupChannel)
-
-	groupChannelNonUser := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
-
-	type check struct {
-		userId    string
-		channelId string
+	runCmd := func(msg string, expected string) {
+		actual := inviteProvider.DoCommand(th.App, th.Context, args, msg).Text
+		assert.Equal(t, expected, actual)
 	}
 
-	tests := []struct {
-		desc        string
-		expected    string
-		msg         string
-		isMember    []check
-		isNotMember []check
-	}{
-		{
-			desc:     "missing user and channel in the command",
-			expected: "api.command_invite.missing_message.app_error",
-			msg:      "",
-		},
-		{
-			desc:     "user added in the current channel",
-			expected: "",
-			msg:      th.BasicUser2.Username,
-			isMember: []check{{th.BasicUser2.Id, th.BasicChannel.Id}},
-		},
-		{
-			desc:     "add user to another channel not the current",
-			expected: "api.command_invite.success",
-			msg:      userAndChannel,
-			isMember: []check{{th.BasicUser2.Id, channel.Id}},
-		},
-		{
-			desc:     "add multiple users to multiple channels",
-			expected: "api.command_invite.success\napi.command_invite.success\napi.command_invite.success\napi.command_invite.success",
-			msg:      multipleUsersAndChannels,
-			isMember: []check{
-				{th.BasicUser2.Id, channel2.Id},
-				{th.BasicUser2.Id, channel3.Id},
-				{basicUser3.Id, channel2.Id},
-				{basicUser3.Id, channel3.Id},
-			},
-		},
-		{
-			desc:     "try to add a user to a direct channel",
-			expected: "api.command_invite.directchannel.app_error",
-			msg:      userAndDMChannel,
-		},
-		{
-			desc:     "try to add a user to an invalid channel",
-			expected: "api.command_invite.channel.error",
-			msg:      userAndWrongChannel,
-		},
-		{
-			desc:     "try to add a user to a private channel",
-			expected: "api.command_invite.success",
-			msg:      userAndPrivateChannel,
-		},
-		{
-			desc:     "using display channel name which is different from channel name",
-			expected: "api.command_invite.channel.error",
-			msg:      userAndDisplayChannel,
-		},
-		{
-			desc:     "invalid user to current channel",
-			expected: "api.command_invite.missing_user.app_error",
-			msg:      "@invalidUser123",
-		},
-		{
-			desc:     "invalid user to current channel without @",
-			expected: "api.command_invite.missing_user.app_error",
-			msg:      "invalidUser321",
-		},
-		{
-			desc:     "try to add a user which is not part of the team",
-			expected: "api.command_invite.user_not_in_team.app_error",
-			msg:      basicUser4.Username,
-		},
-		{
-			desc:     "try to add a user not part of the group to a group channel",
-			expected: "api.command_invite.group_constrained_user_denied",
-			msg:      groupChannelNonUser,
-		},
-		{
-			desc:     "try to add a user to a private channel with no permission",
-			expected: "api.command_invite.private_channel.app_error",
-			msg:      userAndInvalidPrivate,
-		},
-		{
-			desc:     "try to add a deleted user to a public channel",
-			expected: "api.command_invite.missing_user.app_error",
-			msg:      deactivatedUserPublicChannel,
-		},
-		{
-			desc:        "try to add bot to a public channel",
-			expected:    "api.command_invite.user_not_in_team.app_error",
-			msg:         "@bot1",
-			isNotMember: []check{{bot1.UserId, th.BasicChannel.Id}},
-		},
-		{
-			desc:     "add bot to a public channel",
-			expected: "",
-			msg:      "@bot2",
-			isMember: []check{{bot2.UserId, th.BasicChannel.Id}},
-		},
-		{
-			desc:        "try to add bot removed from a team to a public channel",
-			expected:    "api.command_invite.user_not_in_team.app_error",
-			msg:         "@bot3",
-			isNotMember: []check{{bot3.UserId, th.BasicChannel.Id}},
-		},
+	checkIsMember := func(channelID, userID string) {
+		_, channelMemberErr := th.App.GetChannelMember(th.Context, channelID, userID)
+		require.Nil(t, channelMemberErr, "Failed to add user to channel")
 	}
 
-	for _, test := range tests {
-		t.Run(test.desc, func(t *testing.T) {
-			actual := InviteP.DoCommand(th.App, th.Context, args, test.msg).Text
-			assert.Equal(t, test.expected, actual)
-			if test.isMember != nil {
-				for _, c := range test.isMember {
-					_, channelMemberErr := th.App.GetChannelMember(th.Context, c.channelId, c.userId)
-					require.Nil(t, channelMemberErr, "Failed to add user to channel")
-				}
-			}
-			if test.isNotMember != nil {
-				for _, c := range test.isMember {
-					_, channelMemberErr := th.App.GetChannelMember(th.Context, c.channelId, c.userId)
-					require.NotNil(t, channelMemberErr, "Should not have added user to channel")
-				}
-			}
-		})
+	checkIsNotMember := func(channelID, userID string) {
+		_, channelMemberErr := th.App.GetChannelMember(th.Context, channelID, userID)
+		require.NotNil(t, channelMemberErr, "Failed to add user to channel")
 	}
+
+	t.Run("try to add missing user and channel in the command", func(t *testing.T) {
+		msg := ""
+		runCmd(msg, "api.command_invite.missing_message.app_error")
+	})
+
+	t.Run("user added in the current channel", func(t *testing.T) {
+		msg := th.BasicUser2.Username
+		runCmd(msg, "")
+		checkIsMember(th.BasicChannel.Id, th.BasicUser2.Id)
+	})
+
+	t.Run("add user to another channel not the current", func(t *testing.T) {
+		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+
+		msg := "@" + th.BasicUser2.Username + " ~" + channel.Name + " "
+		runCmd(msg, "api.command_invite.success")
+		checkIsMember(channel.Id, th.BasicUser2.Id)
+	})
+
+	t.Run("add a user to a private channel", func(t *testing.T) {
+		privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+
+		msg := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
+		runCmd(msg, "api.command_invite.success")
+		checkIsMember(privateChannel.Id, th.BasicUser2.Id)
+	})
+
+	t.Run("add multiple users to multiple channels", func(t *testing.T) {
+		anotherUser := th.createUser()
+		th.linkUserToTeam(anotherUser, th.BasicTeam)
+		channel1 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+
+		msg := "@" + th.BasicUser2.Username + " @" + anotherUser.Username + " ~" + channel1.Name + " ~" + channel2.Name
+		expected := "api.command_invite.success\napi.command_invite.success\napi.command_invite.success\napi.command_invite.success"
+		runCmd(msg, expected)
+		checkIsMember(channel1.Id, th.BasicUser2.Id)
+		checkIsMember(channel2.Id, th.BasicUser2.Id)
+		checkIsMember(channel1.Id, anotherUser.Id)
+		checkIsMember(channel2.Id, anotherUser.Id)
+	})
+
+	t.Run("try to add a user to a direct channel", func(t *testing.T) {
+		anotherUser := th.createUser()
+		th.linkUserToTeam(anotherUser, th.BasicTeam)
+		directChannel := th.createDmChannel(th.BasicUser2)
+
+		msg := "@" + anotherUser.Username + " ~" + directChannel.Name
+		runCmd(msg, "api.command_invite.directchannel.app_error")
+		checkIsNotMember(directChannel.Id, anotherUser.Id)
+	})
+
+	t.Run("try to add a user to an invalid channel", func(t *testing.T) {
+		msg := "@" + th.BasicUser2.Username + " wrongchannel1"
+		runCmd(msg, "api.command_invite.channel.error")
+	})
+
+	t.Run("try to add a user using channel's display name", func(t *testing.T) {
+		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+
+		msg := "@" + th.BasicUser2.Username + " ~" + channel.DisplayName
+		runCmd(msg, "api.command_invite.channel.error")
+		checkIsNotMember(channel.Id, th.BasicUser2.Id)
+	})
+
+	t.Run("try add invalid user to current channel", func(t *testing.T) {
+		msg := "@invalidUser123"
+		runCmd(msg, "api.command_invite.missing_user.app_error")
+	})
+
+	t.Run("invalid user to current channel without @", func(t *testing.T) {
+		msg := "invalidUser123"
+		runCmd(msg, "api.command_invite.missing_user.app_error")
+	})
+
+	t.Run("try to add a user which is not part of the team", func(t *testing.T) {
+		anotherUser := th.createUser()
+		// Do not add user to the team
+
+		msg := anotherUser.Username
+		runCmd(msg, "api.command_invite.user_not_in_team.app_error")
+	})
+
+	t.Run("try to add a user not part of the group to a group channel", func(t *testing.T) {
+		groupChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+		_, err := th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
+		require.Nil(t, err)
+		groupChannel.GroupConstrained = model.NewBool(true)
+		groupChannel, _ = th.App.UpdateChannel(th.Context, groupChannel)
+
+		msg := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
+		runCmd(msg, "api.command_invite.group_constrained_user_denied")
+		checkIsNotMember(groupChannel.Id, th.BasicUser2.Id)
+	})
+
+	t.Run("try to add a user to a private channel with no permission", func(t *testing.T) {
+		anotherUser := th.createUser()
+		th.linkUserToTeam(anotherUser, th.BasicTeam)
+		privateChannel := th.createChannelWithAnotherUser(th.BasicTeam, model.ChannelTypePrivate, th.BasicUser2.Id)
+
+		msg := "@" + anotherUser.Username + " ~" + privateChannel.Name
+		runCmd(msg, "api.command_invite.private_channel.app_error")
+		checkIsNotMember(privateChannel.Id, anotherUser.Id)
+	})
+
+	t.Run("try to add a deleted user to a public channel", func(t *testing.T) {
+		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		deactivatedUser := th.createUser()
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		msg := "@" + deactivatedUser.Username + " ~" + channel.Name
+		runCmd(msg, "api.command_invite.missing_user.app_error")
+		checkIsNotMember(channel.Id, deactivatedUser.Id)
+	})
+
+	t.Run("add bot to a public channel", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "bot_" + model.NewId(), OwnerId: th.BasicUser2.Id})
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot.UserId, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		msg := "@" + bot.Username
+		runCmd(msg, "")
+		checkIsMember(th.BasicChannel.Id, bot.UserId)
+	})
+
+	t.Run("try to add bot to a public channel without being a member", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "bot_" + model.NewId(), OwnerId: th.BasicUser2.Id})
+		require.Nil(t, appErr)
+		// Do not add to the team
+
+		msg := "@" + bot.Username
+		runCmd(msg, "api.command_invite.user_not_in_team.app_error")
+		checkIsNotMember(th.BasicChannel.Id, bot.UserId)
+	})
+
+	t.Run("try to add bot removed from a team to a public channel", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "bot_" + model.NewId(), OwnerId: th.BasicUser2.Id})
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot.UserId, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, bot.UserId, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		msg := "@" + bot.Username
+		runCmd(msg, "api.command_invite.user_not_in_team.app_error")
+		checkIsNotMember(th.BasicChannel.Id, bot.UserId)
+	})
 }
 
 func TestInviteGroup(t *testing.T) {
