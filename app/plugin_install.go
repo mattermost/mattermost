@@ -195,35 +195,38 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
-		if appErr != nil {
+		// The plugin might only be prepacked and not on the Marketplace.
+		if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
 			return nil, appErr
 		}
 
-		var prepackagedVersion semver.Version
-		if prepackagedPlugin != nil {
-			var err error
-			prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
-			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		if plugin != nil {
+			var prepackagedVersion semver.Version
+			if prepackagedPlugin != nil {
+				var err error
+				prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
+				if err != nil {
+					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 			}
-		}
 
-		marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
-		if err != nil {
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
+			marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
+			if err != nil {
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 
-		if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
-			downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
-			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+				downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
+				if err != nil {
+					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+				signature, err := plugin.DecodeSignature()
+				if err != nil {
+					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
+				}
+				pluginFile = bytes.NewReader(downloadedPluginBytes)
+				signatureFile = signature
 			}
-			signature, err := plugin.DecodeSignature()
-			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
-			}
-			pluginFile = bytes.NewReader(downloadedPluginBytes)
-			signatureFile = signature
 		}
 	}
 
