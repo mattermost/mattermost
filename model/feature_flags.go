@@ -33,16 +33,11 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable Calls plugin support in the mobile app
-	CallsMobile bool
-
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
-
-	CustomGroups bool
 
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
@@ -92,9 +87,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
-	f.CustomGroups = true
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
@@ -105,13 +98,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.SendWelcomePost = true
-	f.PostPriority = false
+	f.PostPriority = true
 	f.PeopleProduct = false
 	f.WorkTemplate = false
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
-	f.GlobalDrafts = false
+	f.GlobalDrafts = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

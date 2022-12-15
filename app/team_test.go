@@ -102,6 +102,7 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("block user by domain but allow bot", func(t *testing.T) {
+		t.Skip("MM-48973")
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
@@ -1109,6 +1110,45 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
 	require.Nil(t, err)
 	require.Equal(t, mockID, updatedTeam.SchemeId, "Wrong Team SchemeId")
+
+	// Test that a newly applied team scheme applies the new permissions to a team member
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	team2Scheme := th.SetupTeamScheme()
+	channelUser, err := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelUserRole)
+	require.Nil(t, err)
+	channelUser.Permissions = []string{}
+	_, err = th.App.UpdateRole(channelUser) // Remove all permissions from the team user role of the scheme
+	require.Nil(t, err)
+
+	channelAdmin, err := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelAdminRole)
+	require.Nil(t, err)
+	channelAdmin.Permissions = []string{}
+	_, err = th.App.UpdateRole(channelAdmin) // Remove all permissions from the team admin role of the scheme
+	require.Nil(t, err)
+
+	team2 := th.CreateTeam()
+	th.App.AddUserToTeam(th.Context, team2.Id, th.BasicUser.Id, "")
+	channel := th.CreateChannel(th.Context, team2)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, true)
+	session := model.Session{
+		Roles:  model.SystemUserRoleId,
+		UserId: th.BasicUser.Id,
+		TeamMembers: []*model.TeamMember{
+			{
+				UserId:     th.BasicUser.Id,
+				TeamId:     team2.Id,
+				SchemeUser: true,
+			},
+		},
+	}
+	// ensure user can update channel properties before applying the scheme
+	require.True(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
+	// apply the team scheme
+	team2.SchemeId = &team2Scheme.Id
+	_, err = th.App.UpdateTeamScheme(team2)
+	require.Nil(t, err)
+	require.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
 }
 
 func TestGetTeamMembers(t *testing.T) {

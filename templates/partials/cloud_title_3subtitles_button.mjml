@@ -16,7 +16,7 @@
       {{.Props.Button}}
     </mj-button>
     {{if .IncludeSecondaryActionButton}}
-    <mj-button color="#166DE0" align="center" padding-top="12px"  font-weight="600" href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal">
+    <mj-button color="#166DE0" align="center" padding-top="12px" padding-bottom="24px" font-weight="600" href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_pricing_modal">
         {{.Props.SecondaryActionButtonText}}
     </mj-button>
     {{end}}

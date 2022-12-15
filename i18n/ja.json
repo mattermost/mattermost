@@ -4741,7 +4741,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -6634,10 +6634,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}}の大きさ({{.Width}} x {{.Height}} ピクセル)が制限を超えています。"
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -9168,10 +9164,6 @@
     "translation": "アップグレードが完了しました!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "あなたの {{.WorkspaceName}} ワークスペースがアップグレードされました。{{.Date}}から課金されます"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermostアップグレードの確認"
   },
@@ -9190,10 +9182,6 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -9277,7 +9265,7 @@
   },
   {
     "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "クラウド製品を取得できませんでした"
+    "translation": "クラウドプロダクトを取得できませんでした"
   },
   {
     "id": "api.templates.delinquency_90.title",
@@ -9289,7 +9277,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Starterの制限により、あなたのデータがアーカイブされている可能性があります。"
+    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9309,15 +9297,15 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Starter にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
+    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです"
+    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです。"
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9337,7 +9325,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "直近のお支払いを処理できませんでした"
+    "translation": "直近のお支払いを処理できませんでした。"
   },
   {
     "id": "api.templates.delinquency_60.title",
@@ -9345,7 +9333,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9377,7 +9365,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "{{.DelinquencyDate}} 付の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
+    "translation": "{{.DelinquencyDate}} 以降の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9425,11 +9413,11 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Starterにダウングレードされる危険性があることを意味します。"
+    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Mattermost {{.Plan}} の支払いが遅れています。"
+    "translation": "Mattermost {{.Plan}} の支払いが遅れています"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -9550,5 +9538,141 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "ゲストアカウントは無効化されています"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type はすでに存在しています。"
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection typeはすでに存在しています。"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "不正なuser idです。"
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "更新日時は有効な時刻でなくてはなりません。"
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "不正なroot idです。"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "不正なpropsです。"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "不正なmessageです。"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "不正なfile idsです。"
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create atは有効な時刻でなくてはなりません。"
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "不正なchannel idです。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "不正なuser idです。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "不正なpost idです。"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "投稿に対する優先度を取得できませんでした"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "下書きを更新できませんでした。"
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "下書きを保存できませんでした。"
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "下書きに添付されたファイルを取得できませんでした。"
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "ユーザーの下書きを取得できませんでした。"
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "下書きを取得できませんでした。"
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "下書き機能は無効化されています。"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "下書きを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "投稿の優先度を取得できませんでした"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "指定された日付以降の緊急の投稿をカウントできませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "投稿への確認応答を保存できませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "投稿への確認応答を取得できませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "確認応答を取得できませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "確認応答を削除できませんでした。"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "LDAPユーザーではありません"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "ファイルをアップロードできませんでした。ファイルが大きすぎます。"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "下書き機能は無効化されています。"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "削除されたチャンネルの下書きは保存できません"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "group-teams と group-channels にユーザーを追加できませんでした"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "アーカイブされたチャンネルで確認応答をすることはできません。"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "5分以上経過した確認応答は削除できません。"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "アーカイブされたチャンネルでは、確認応答を削除することはできません。"
   }
 ]

@@ -4757,7 +4757,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -6750,10 +6750,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "Las dimensiones de {{.Filename}} son ({{.Width}} por {{.Height}} pixels) exceden el limite."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "No se pudo cargar el archivo. El archivo es muy grande."
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -8996,10 +8992,6 @@
     "translation": " "
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Error al actualizar la suscripción desde el webhook."
-  },
-  {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "No se pudo obtener el estado de finalización de inducción."
   },
@@ -9182,10 +9174,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "La característica Perspectivas está deshabilitada."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": " "
   },
   {
     "id": "api.insights.feature_disabled",
@@ -9566,5 +9554,17 @@
   {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "El tipo de colección ya existe."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "no es un usuario ldap"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "No es posible subir el archivo. El archivo es muy grande."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
   }
 ]

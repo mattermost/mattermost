@@ -123,6 +123,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
 		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
 		{"should omit basic user 2 by connection id", &model.WebsocketBroadcast{OmitConnectionId: user2ConnID}, true, false, true, true},
+		{"should omit basic user 2 by connection id while user is set", &model.WebsocketBroadcast{UserId: th.BasicUser2.Id, OmitConnectionId: user2ConnID}, false, false, false, false},
 		// needs more cases to get full coverage
 	}
 

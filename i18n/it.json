@@ -6804,10 +6804,6 @@
     "translation": "{{.Filename}}: le dimensioni ({{.Width}} per {{.Height}} pixel) superano i limiti."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Impossibile caricare il file. Il file è troppo grande."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Impossibile inviare ad un canale eliminato."
   },
@@ -8180,10 +8176,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": " "
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": " "
   },
@@ -8705,10 +8697,6 @@
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
     "translation": " "
   },
   {
