@@ -31,7 +31,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
           cd focalboard
-          git checkout $CIRCLE_BRANCH || git checkout rolling-stable
+          git checkout $CIRCLE_BRANCH || git checkout main
           echo $(git rev-parse HEAD)
           cd ../mattermost-server
           make setup-go-work
