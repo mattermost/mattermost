@@ -197,9 +197,10 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 
 func (o *PostPatch) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"is_pinned": o.IsPinned,
-		"props":     o.Props,
-		"file_ids":  o.FileIds,
+		"is_pinned":     o.IsPinned,
+		"props":         o.Props,
+		"file_ids":      o.FileIds,
+		"has_reactions": o.HasReactions,
 	}
 }
 
