@@ -421,22 +421,56 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 }
 
 func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	return s.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, model.ShowUsername)
+}
+
+func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := s.getQueryBuilder().
-		Select("u.*").
+	userQuery := s.getQueryBuilder().
+		Select(`u.*`).
 		From("GroupMembers").
 		Join("Users u ON u.Id = GroupMembers.UserId").
 		Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
 		Where(sq.Eq{"u.DeleteAt": 0}).
-		Where(sq.Eq{"GroupId": groupID}).
+		Where(sq.Eq{"GroupId": groupID})
+
+	userQuery = applyViewRestrictionsFilter(userQuery, viewRestrictions, true)
+	queryString, args, err := userQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	orderQuery := s.getQueryBuilder().
+		Select("u.*").
+		From("(" + queryString + ") AS u")
+
+	if teammateNameDisplay == model.ShowNicknameFullName {
+		orderQuery = orderQuery.OrderBy(`
+		CASE
+			WHEN u.Nickname != '' THEN u.Nickname
+			WHEN u.FirstName !=  '' AND u.LastName != '' THEN CONCAT(u.FirstName, ' ', u.LastName)
+			WHEN u.FirstName != '' THEN u.FirstName
+			WHEN u.LastName != '' THEN u.LastName
+			ELSE u.Username
+		END`)
+	} else if teammateNameDisplay == model.ShowFullName {
+		orderQuery = orderQuery.OrderBy(`
+		CASE
+			WHEN u.FirstName !=  '' AND u.LastName != '' THEN CONCAT(u.FirstName, ' ', u.LastName)
+			WHEN u.FirstName != '' THEN u.FirstName
+			WHEN u.LastName != '' THEN u.LastName
+			ELSE u.Username
+		END`)
+	} else {
+		orderQuery = orderQuery.OrderBy("u.Username")
+	}
+
+	orderQuery = orderQuery.
 		Limit(uint64(perPage)).
-		Offset(uint64(page * perPage)).
-		OrderBy("u.CreateAt DESC")
+		Offset(uint64(page * perPage))
 
-	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
-
-	queryString, args, err := query.ToSql()
+	queryString, _, err = orderQuery.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "")
 	}
@@ -463,7 +497,7 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 		Where("(GroupMembers.UserID IS NULL OR GroupMembers.DeleteAt != 0)").
 		Limit(uint64(perPage)).
 		Offset(uint64(page * perPage)).
-		OrderBy("u.CreateAt DESC")
+		OrderBy("u.Username ASC")
 
 	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
