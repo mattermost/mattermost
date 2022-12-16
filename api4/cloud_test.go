@@ -702,28 +702,6 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 		require.Nil(t, subscriptionExpandable)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "400 Bad Request")
 	})
-
-	t.Run("Admin users are ABLE to request licenses is expendable because id is provided", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
-
-		cloud := mocks.CloudInterface{}
-
-		cloud.Mock.On("GetLicenseExpandStats", mock.Anything, mock.Anything).Return(isExpandable, nil)
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
-		subscriptionExpandableResponse, r, err := th.Client.GetExpandStats(licenseId)
-		require.NoError(t, err)
-		require.Equal(t, subscriptionExpandableResponse, isExpandable)
-		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
-	})
 }
 
 func TestGetSelfHostedProducts(t *testing.T) {

@@ -421,22 +421,22 @@ func getLicenseExpandStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	licenseID := r.URL.Query().Get("licenseID")
-	if licenseID == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.request_error", nil, "", http.StatusBadRequest)
+	_, token, err := c.App.Srv().GenerateLicenseRenewalLink()
+
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	res, err := c.App.Cloud().GetLicenseExpandStats(c.AppContext.Session().UserId, licenseID)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	res, cloudErr := c.App.Cloud().GetLicenseExpandStats(c.AppContext.Session().UserId, token)
+	if cloudErr != nil {
+		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
 		return
 	}
 
-	json, err := json.Marshal(res)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	json, jsonErr := json.Marshal(res)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
