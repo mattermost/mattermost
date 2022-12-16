@@ -50,6 +50,11 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 		appErr = th.App.EnablePlugin(pluginID)
 		checkNoError(t, appErr)
+
+		t.Cleanup(func() {
+			appErr = th.App.ch.RemovePlugin(pluginID)
+			checkNoError(t, appErr)
+		})
 	}
 
 	t.Run("returns not found when plugins environment is nil", func(t *testing.T) {
