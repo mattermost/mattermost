@@ -591,7 +591,7 @@ func TestGetEmojiImage(t *testing.T) {
 
 	_, resp, err = client.GetEmojiImage("")
 	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestSearchEmoji(t *testing.T) {

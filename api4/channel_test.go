@@ -2252,7 +2252,7 @@ func TestGetChannelMembers(t *testing.T) {
 
 		_, resp, err = client.GetChannelMembers("", 0, 60, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 
 		_, _, err = client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 		require.NoError(t, err)

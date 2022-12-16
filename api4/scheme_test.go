@@ -381,7 +381,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	CheckNotFoundStatus(t, ri1)
 
 	_, ri2, _ := th.SystemAdminClient.GetTeamsForScheme("", 0, 100)
-	CheckBadRequestStatus(t, ri2)
+	CheckNotFoundStatus(t, ri2)
 
 	th.Client.Logout()
 	_, ri3, _ := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
@@ -476,7 +476,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	CheckNotFoundStatus(t, ri1)
 
 	_, ri2, _ := th.SystemAdminClient.GetChannelsForScheme("", 0, 100)
-	CheckBadRequestStatus(t, ri2)
+	CheckNotFoundStatus(t, ri2)
 
 	th.Client.Logout()
 	_, ri3, _ := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)

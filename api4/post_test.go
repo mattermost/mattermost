@@ -1170,7 +1170,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 		_, resp, err := c.GetPostsForChannel("", 0, 60, "", false, false)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 
 		_, resp, err = c.GetPostsForChannel("junk", 0, 60, "", false, false)
 		require.Error(t, err)

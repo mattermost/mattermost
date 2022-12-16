@@ -1379,7 +1379,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 	_, response, err = th.SystemAdminClient.GetGroupsByUserId("")
 	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
+	CheckNotFoundStatus(t, response)
 
 	_, response, err = th.SystemAdminClient.GetGroupsByUserId("notvaliduserid")
 	require.Error(t, err)
