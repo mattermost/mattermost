@@ -824,6 +824,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		_, aerr := t.writeFile(r, path)
 		if aerr != nil {
 			mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
+			r.CloseWithError(aerr) // always returns nil
 			return
 		}
 	}
