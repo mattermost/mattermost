@@ -186,6 +186,7 @@ const (
 	TeamSettingsDefaultTeamText = "default"
 
 	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
+	ElasticsearchSettingsDefaultAuthType                    = "password"
 	ElasticsearchSettingsDefaultUsername                    = "elastic"
 	ElasticsearchSettingsDefaultPassword                    = "changeme"
 	ElasticsearchSettingsDefaultPostIndexReplicas           = 1
@@ -2543,8 +2544,12 @@ func (s *NativeAppSettings) SetDefaults() {
 
 type ElasticsearchSettings struct {
 	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	AuthType                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCA                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2571,12 +2576,28 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.ConnectionURL = NewString(ElasticsearchSettingsDefaultConnectionURL)
 	}
 
+	if s.AuthType == nil {
+		s.AuthType = NewString(ElasticsearchSettingsDefaultAuthType)
+	}
+
 	if s.Username == nil {
 		s.Username = NewString(ElasticsearchSettingsDefaultUsername)
 	}
 
 	if s.Password == nil {
 		s.Password = NewString(ElasticsearchSettingsDefaultPassword)
+	}
+
+	if s.ClientCA == nil {
+		s.ClientCA = NewString("")
+	}
+
+	if s.ClientCert == nil {
+		s.ClientCert = NewString("")
+	}
+
+	if s.ClientKey == nil {
+		s.ClientKey = NewString("")
 	}
 
 	if s.EnableIndexing == nil {
@@ -3738,6 +3759,10 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		if *s.ConnectionURL == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
 		}
+	}
+
+	if *s.AuthType != "password" && *s.AuthType != "certificate" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.auth_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.EnableSearching && !*s.EnableIndexing {
