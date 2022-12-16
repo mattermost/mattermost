@@ -51,7 +51,7 @@ jobs:
       - run: |
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $CIRCLE_BRANCH || git checkout master
+          git checkout $CIRCLE_BRANCH || git checkout release-7.7
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           FILE_DIST=dist.tar.gz
