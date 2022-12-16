@@ -802,6 +802,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
+	auditRec.AddEventParameter("id", c.Params.PostId)
 	auditRec.AddEventParameter("patch", post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
