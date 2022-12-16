@@ -17,6 +17,9 @@ func (s *Server) initializeProducts(
 	// create a product map to consume
 	pmap := make(map[string]struct{})
 	for name := range productMap {
+		if !s.shouldStart(name) {
+			continue
+		}
 		pmap[name] = struct{}{}
 	}
 
@@ -63,4 +66,12 @@ func (s *Server) initializeProducts(
 	}
 
 	return nil
+}
+
+func (s *Server) shouldStart(product string) bool {
+	if !s.Config().FeatureFlags.BoardsProduct && product == "boards" {
+		return false
+	}
+
+	return true
 }
