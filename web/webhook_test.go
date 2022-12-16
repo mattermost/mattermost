@@ -26,7 +26,7 @@ func TestIncomingWebhook(t *testing.T) {
 		return
 	}
 
-	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, Enabled: true})
 	require.Nil(t, err)
 
 	url := apiClient.URL + "/hooks/" + hook.Id
@@ -209,7 +209,7 @@ func TestIncomingWebhook(t *testing.T) {
 		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.ChannelTypeOpen, CreatorId: th.BasicUser.Id}, true)
 		require.Nil(t, err)
 
-		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
+		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true, Enabled: true})
 		require.Nil(t, err)
 		require.NotNil(t, hook)
 
