@@ -44,26 +44,24 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		rd, wr := io.Pipe()
 
-		errCh := make(chan *model.AppError, 1)
 		go func() {
-			defer close(errCh)
-			// Try to write without a timeout
 			_, appErr := app.WriteFileContext(context.Background(), rd, filepath.Join(outPath, exportFilename))
-			errCh <- appErr
+			if appErr != nil {
+				// we close the reader here to prevent a deadlock when the bulk exporter tries to
+				// write into the pipe while app.WriteFile has already returned. The error will be
+				// returned by the writer part of the pipe when app.BulkExport tries to call
+				// wr.Write() on it.
+				rd.CloseWithError(appErr) // CloseWithError never returns an error
+			}
 		}()
 
 		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, opts)
-		if err := wr.Close(); err != nil {
-			mlog.Warn("Worker: error closing writer")
-		}
+		wr.Close() // Close never returns an error
 
 		if appErr != nil {
 			return appErr
 		}
 
-		if appErr := <-errCh; appErr != nil {
-			return appErr
-		}
 		return nil
 	}
 	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)

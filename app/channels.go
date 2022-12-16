@@ -317,6 +317,10 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
+func (a *App) HooksManager() *product.HooksManager {
+	return a.Srv().hooksManager
+}
+
 // Ensure hooksService implements `product.HooksService`
 var _ product.HooksService = (*hooksService)(nil)
 
@@ -325,10 +329,6 @@ type hooksService struct {
 }
 
 func (s *hooksService) RegisterHooks(productID string, hooks any) error {
-	if s.ch.pluginsEnvironment == nil {
-		return errors.New("could not find plugins environment")
-	}
-
 	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
 }
 
