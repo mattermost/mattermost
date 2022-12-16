@@ -81,7 +81,6 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			Seats:           0,
 			Status:          "",
 			DNS:             "",
-			IsPaidTier:      "",
 			LastInvoice:     &model.Invoice{},
 			DelinquentSince: subscription.DelinquentSince,
 		}

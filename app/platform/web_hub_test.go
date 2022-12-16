@@ -67,7 +67,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start(th.Suite)
+	th.Service.Start()
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -90,7 +90,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start(th.Suite)
+	th.Service.Start()
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
@@ -467,18 +467,13 @@ func TestHubIsRegistered(t *testing.T) {
 	require.NoError(t, err)
 
 	mockSuite := &platform_mocks.SuiteIFace{}
-	mockSuite.On("SetStatusOnline", th.BasicUser.Id, false).Return()
-	mockSuite.On("UpdateLastActivityAtIfNeeded", *session).Return()
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
-	mockSuite.On("IsUserAway", mock.Anything).Return(false)
-	mockSuite.On("SetStatusOffline", th.BasicUser.Id, false).Return()
-
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start(th.Suite)
+	th.Service.Start()
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -486,9 +481,7 @@ func TestHubIsRegistered(t *testing.T) {
 	defer wc2.Close()
 	defer wc3.Close()
 
-	session1 := wc1.session.Load().(*model.Session)
-
-	assert.True(t, th.Service.SessionIsRegistered(*session1))
+	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load().(*model.Session)))
 	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
 	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
 
@@ -551,7 +544,7 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Service.Start(th.Suite)
+	th.Service.Start()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

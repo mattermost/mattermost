@@ -124,7 +124,6 @@ func Test_GetSubscription(t *testing.T) {
 		Seats:           10,
 		IsFreeTrial:     "true",
 		DNS:             "some.dns.server",
-		IsPaidTier:      "false",
 		TrialEndAt:      2000000000,
 		LastInvoice:     &model.Invoice{},
 		DelinquentSince: &deliquencySince,
@@ -141,7 +140,6 @@ func Test_GetSubscription(t *testing.T) {
 		Seats:           0,
 		IsFreeTrial:     "true",
 		DNS:             "",
-		IsPaidTier:      "",
 		TrialEndAt:      2000000000,
 		LastInvoice:     &model.Invoice{},
 		DelinquentSince: &deliquencySince,
@@ -209,7 +207,6 @@ func Test_requestTrial(t *testing.T) {
 		CreateAt:   1000000000,
 		Seats:      10,
 		DNS:        "some.dns.server",
-		IsPaidTier: "false",
 	}
 
 	newValidBusinessEmail := model.StartCloudTrialRequest{Email: ""}

@@ -4501,6 +4501,24 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int
 	return result, err
 }
 
+func (s *OpenTracingLayerGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersSortedPage")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.GroupStore.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetNonMemberUsersPage")
@@ -10612,7 +10630,7 @@ func (s *OpenTracingLayerUploadSessionStore) Delete(id string) error {
 	return err
 }
 
-func (s *OpenTracingLayerUploadSessionStore) Get(id string) (*model.UploadSession, error) {
+func (s *OpenTracingLayerUploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UploadSessionStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -10621,7 +10639,7 @@ func (s *OpenTracingLayerUploadSessionStore) Get(id string) (*model.UploadSessio
 	}()
 
 	defer span.Finish()
-	result, err := s.UploadSessionStore.Get(id)
+	result, err := s.UploadSessionStore.Get(ctx, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
