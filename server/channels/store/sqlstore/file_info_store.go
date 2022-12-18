@@ -44,6 +44,16 @@ type fileInfoWithChannelID struct {
 	Archived        bool
 }
 
+// Find the end of the term and include the wildcard if it exists
+// because we will put a wildcard at the end of the term regardless of whether a wildcard exists or not
+var wildcardRegExpForFileSearch = regexp.MustCompile(`\*?$`)
+
+// Find all characters between quotes
+var exactPhraseRegExpForFileSearch = regexp.MustCompile(`"[^"]+"`)
+
+// In excludedTerms case, we don't put a wildcard after the term.
+var wildcardRegExpForPostgresExcludedTerms = regexp.MustCompile(`\*($| )`)
+
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
 	return &model.FileInfo{
 		Id:              fi.Id,
@@ -607,9 +617,6 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
-		wildcardRegExp := regexp.MustCompile(`\*?$`)
-		exactPhraseRegExp := regexp.MustCompile(`"[^"]+"`)
-
 		// these chars have special meaning and can be treated as spaces
 		for _, c := range fs.specialSearchChars() {
 			terms = strings.Replace(terms, c, " ", -1)
@@ -619,9 +626,8 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
-			// In excludedTerms case, we don't put a wildcard after the term.
-			wildcardRegExpForExcludedTerms := regexp.MustCompile(`\*($| )`)
-			excludedTerms = wildcardRegExpForExcludedTerms.ReplaceAllLiteralString(excludedTerms, ":* ")
+			// replace a term only if there is a wildcard at the end of the word
+			excludedTerms = wildcardRegExpForPostgresExcludedTerms.ReplaceAllLiteralString(excludedTerms, ":* ")
 
 			excludeClause := ""
 			if excludedTerms != "" {
@@ -630,17 +636,21 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			exactPhraseTerms := []string{}
 
-			for _, term := range exactPhraseRegExp.FindAllString(terms, -1) {
+			// Since we will put wildcard on the rest of the terms,
+			// we will get exactPhraseTerms first and then remove the matching terms
+			for _, term := range exactPhraseRegExpForFileSearch.FindAllString(terms, -1) {
 				quoteRemovedTerm := strings.Trim(term, "\"")
 				exactPhraseTerms = append(exactPhraseTerms, strings.Fields(quoteRemovedTerm)...)
 			}
 
-			terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
+			terms = exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(terms, "")
 
 			wildcardAddedTerms := strings.Fields(terms)
 
 			for index, term := range wildcardAddedTerms {
-				wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, ":*")
+				// A wildcard is attached to the end of every word
+				// regardless of whether or not a wildcard exists
+				wildcardAddedTerms[index] = wildcardRegExpForFileSearch.ReplaceAllLiteralString(term, ":*")
 			}
 
 			queryTerms := ""
@@ -668,13 +678,17 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			exactPhraseTerms := []string{}
 
-			exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(terms, -1)...)
-			terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
+			// Since we will put wildcard on the rest of the terms,
+			// we will get exactPhraseTerms first and then remove the matching terms
+			exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExpForFileSearch.FindAllString(terms, -1)...)
+			terms = exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(terms, "")
 
 			wildcardAddedTerms := strings.Fields(terms)
 
+			// A wildcard is attached to the end of every word
+			// regardless of whether or not a wildcard exists
 			for index, term := range wildcardAddedTerms {
-				wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
+				wildcardAddedTerms[index] = wildcardRegExpForFileSearch.ReplaceAllLiteralString(term, "*")
 			}
 
 			parsedTerms := append(wildcardAddedTerms, exactPhraseTerms...)

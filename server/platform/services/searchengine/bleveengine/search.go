@@ -18,6 +18,13 @@ import (
 const DeletePostsBatchSize = 500
 const DeleteFilesBatchSize = 500
 
+// Find the end of the term and include the wildcard if it exists
+// because we will put a wildcard at the end of the term regardless of whether a wildcard exists or not
+var wildcardRegExpForFileSearch = regexp.MustCompile(`\*?$`)
+
+// In excludedTerms case, we don't put a wildcard after the term.
+var exactPhraseRegExpForFileSearch = regexp.MustCompile(`"[^"]+"`)
+
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
@@ -707,20 +714,21 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 			}
 		}
 
-		wildcardRegExp := regexp.MustCompile(`\*?$`)
-		exactPhraseRegExp := regexp.MustCompile(`"[^"]+"`)
-
 		if params.Terms != "" {
 			terms := []string{}
 
-			exactPhraseTerms := exactPhraseRegExp.FindAllString(params.Terms, -1)
-			params.Terms = exactPhraseRegExp.ReplaceAllLiteralString(params.Terms, "")
+			// Since we will put wildcard on the rest of the terms,
+			// we will get exactPhraseTerms first and then remove the matching terms
+			exactPhraseTerms := exactPhraseRegExpForFileSearch.FindAllString(params.Terms, -1)
+			params.Terms = exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(params.Terms, "")
 
 			wildcardAddedTerms := strings.Fields(params.Terms)
 
+			// A wildcard is attached to the end of every word
+			// regardless of whether or not a wildcard exists
 			for index, term := range wildcardAddedTerms {
 				if !strings.HasPrefix(term, "*") {
-					wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
+					wildcardAddedTerms[index] = wildcardRegExpForFileSearch.ReplaceAllLiteralString(term, "*")
 				}
 			}
 
