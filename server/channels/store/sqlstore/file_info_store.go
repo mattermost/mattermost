@@ -632,7 +632,6 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			for _, term := range exactPhraseRegExp.FindAllString(terms, -1) {
 				quoteRemovedTerm := strings.Trim(term, "\"")
-
 				exactPhraseTerms = append(exactPhraseTerms, strings.Fields(quoteRemovedTerm)...)
 			}
 

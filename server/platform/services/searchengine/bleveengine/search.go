@@ -712,9 +712,8 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 
 		if params.Terms != "" {
 			terms := []string{}
-			exactPhraseTerms := []string{}
 
-			exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(params.Terms, -1)...)
+			exactPhraseTerms := exactPhraseRegExp.FindAllString(params.Terms, -1)
 			params.Terms = exactPhraseRegExp.ReplaceAllLiteralString(params.Terms, "")
 
 			wildcardAddedTerms := strings.Fields(params.Terms)
