@@ -56,6 +56,7 @@ type License struct {
 	SkuShortName string    `json:"sku_short_name"`
 	IsTrial      bool      `json:"is_trial"`
 	IsGovSku     bool      `json:"is_gov_sku"`
+	SignupJWT    *string   `json:"signup_jwt"`
 }
 
 type Customer struct {
@@ -77,18 +78,12 @@ type TrialLicenseRequest struct {
 }
 
 type Features struct {
-	Users      *int  `json:"users"`
-	LDAP       *bool `json:"ldap"`
-	LDAPGroups *bool `json:"ldap_groups"`
-	MFA        *bool `json:"mfa"`
-
-	// Deprecated: This feature will be removed from the license because it's available without a license.
-	GoogleOAuth *bool `json:"google_oauth"`
-
-	// Deprecated: This feature will be removed from the license because it's available without a license.
-	Office365OAuth *bool `json:"office365_oauth"`
-
-	// Deprecated: This feature will be removed from the license because it's available without a license.
+	Users                     *int  `json:"users"`
+	LDAP                      *bool `json:"ldap"`
+	LDAPGroups                *bool `json:"ldap_groups"`
+	MFA                       *bool `json:"mfa"`
+	GoogleOAuth               *bool `json:"google_oauth"`
+	Office365OAuth            *bool `json:"office365_oauth"`
 	OpenId                    *bool `json:"openid"`
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
@@ -170,15 +165,15 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.GoogleOAuth == nil {
-		f.GoogleOAuth = NewBool(true)
+		f.GoogleOAuth = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Office365OAuth == nil {
-		f.Office365OAuth = NewBool(true)
+		f.Office365OAuth = NewBool(*f.FutureFeatures)
 	}
 
 	if f.OpenId == nil {
-		f.OpenId = NewBool(true)
+		f.OpenId = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Compliance == nil {

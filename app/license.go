@@ -32,8 +32,8 @@ type licenseWrapper struct {
 	srv *Server
 }
 
-func (w *licenseWrapper) Name() ServiceKey {
-	return LicenseKey
+func (w *licenseWrapper) Name() product.ServiceKey {
+	return product.LicenseKey
 }
 
 func (w *licenseWrapper) GetLicense() *model.License {

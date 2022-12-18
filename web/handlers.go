@@ -236,7 +236,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cloudCSP := ""
-	if c.App.Channels().License().IsCloud() {
+	if c.App.Channels().License().IsCloud() || *c.App.Config().ServiceSettings.SelfHostedPurchase {
 		cloudCSP = " js.stripe.com/v3"
 	}
 
