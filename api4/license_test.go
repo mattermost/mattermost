@@ -364,7 +364,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 		}()
 
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
@@ -379,13 +379,13 @@ func TestRequestTrueUpReview(t *testing.T) {
 		}()
 
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
 		resp, err := th.Client.DoAPIPost("/license/review", "")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
