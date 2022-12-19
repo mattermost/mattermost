@@ -330,3 +330,38 @@ func TestRequestRenewalLink(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
+
+func TestRequestTrueUpReview(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	subscription := &model.Subscription{
+		ID:          "MySubscriptionID",
+		CustomerID:  "MyCustomer",
+		ProductID:   "SomeProductId",
+		AddOns:      []string{},
+		StartAt:     1000000000,
+		EndAt:       2000000000,
+		CreateAt:    1000000000,
+		Seats:       10,
+		IsFreeTrial: "true",
+		DNS:         "some.dns.server",
+		TrialEndAt:  2000000000,
+		LastInvoice: &model.Invoice{},
+	}
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	cloud := mocks.CloudInterface{}
+	cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+
+	cloudImpl := th.App.Srv().Cloud
+	th.App.Srv().Cloud = &cloud
+	defer func() {
+		th.App.Srv().Cloud = cloudImpl
+	}()
+
+	resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+	require.Nil(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
