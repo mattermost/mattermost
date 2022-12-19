@@ -37,22 +37,6 @@ func (*InviteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-type multiResponses struct {
-	responses []string
-}
-
-func (b *multiResponses) Push(response string) {
-	b.responses = append(b.responses, response)
-}
-
-func (b *multiResponses) Size() int {
-	return len(b.responses)
-}
-
-func (b *multiResponses) Join() string {
-	return strings.Join(b.responses, "\n")
-}
-
 func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         i.doCommand(a, c, args, message),
@@ -65,7 +49,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 		return args.T("api.command_invite.missing_message.app_error")
 	}
 
-	resps := &multiResponses{}
+	resps := &[]string{}
 
 	targetUsers, targetChannels, resp := i.parseMessage(a, c, args, resps, message)
 	if resp != "" {
@@ -78,11 +62,11 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	for _, targetUser := range targetUsers {
 		for _, targetChannel := range targetChannels {
 			if resp = i.addUserToChannel(a, c, args, targetUser, targetChannel); resp != "" {
-				resps.Push(resp)
+				*resps = append(*resps, resp)
 				continue
 			}
 			if args.ChannelId != targetChannel.Id {
-				resps.Push(args.T("api.command_invite.success", map[string]any{
+				*resps = append(*resps, args.T("api.command_invite.success", map[string]any{
 					"User":    targetUser.Username,
 					"Channel": targetChannel.Name,
 				}))
@@ -90,14 +74,14 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 		}
 	}
 
-	if resps.Size() > 0 {
-		return resps.Join()
+	if len(*resps) > 0 {
+		return strings.Join(*resps, "\n")
 	}
 
 	return ""
 }
 
-func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.CommandArgs, resps *multiResponses, message string) ([]*model.User, []*model.Channel, string) {
+func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, message string) ([]*model.User, []*model.Channel, string) {
 	splitMessage := strings.Split(message, " ")
 
 	targetUsers := make([]*model.User, 0, 1)
@@ -112,7 +96,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			targetUsername := strings.TrimPrefix(msg, "@")
 			userProfile := i.getUserProfile(a, targetUsername)
 			if userProfile == nil {
-				resps.Push(args.T("api.command_invite.missing_user.app_error", map[string]any{
+				*resps = append(*resps, args.T("api.command_invite.missing_user.app_error", map[string]any{
 					"User": targetUsername,
 				}))
 				continue
@@ -122,7 +106,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			targetChannelName := strings.TrimPrefix(msg, "~")
 			channelToJoin, err := a.GetChannelByName(c, targetChannelName, args.TeamId, false)
 			if err != nil {
-				resps.Push(args.T("api.command_invite.channel.error", map[string]any{
+				*resps = append(*resps, args.T("api.command_invite.channel.error", map[string]any{
 					"Channel": targetChannelName,
 				}))
 				continue
@@ -132,15 +116,15 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	}
 
 	if len(targetUsers) == 0 {
-		if resps.Size() != 0 {
-			return nil, nil, resps.Join()
+		if len(*resps) != 0 {
+			return nil, nil, strings.Join(*resps, "\n")
 		}
 		return nil, nil, args.T("api.command_invite.missing_message.app_error")
 	}
 
 	if len(targetChannels) == 0 {
-		if resps.Size() != 0 {
-			return nil, nil, resps.Join()
+		if len(*resps) != 0 {
+			return nil, nil, strings.Join(*resps, "\n")
 		}
 
 		channelToJoin, err := a.GetChannel(c, args.ChannelId)
@@ -166,14 +150,14 @@ func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User
 	return userProfile
 }
 
-func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *multiResponses, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
+func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
 	var err *model.AppError
 	validChannels := make([]*model.Channel, 0, len(targetChannels))
 	for _, targetChannel := range targetChannels {
 		switch targetChannel.Type {
 		case model.ChannelTypeOpen:
 			if !a.HasPermissionToChannel(c, args.UserId, targetChannel.Id, model.PermissionManagePublicChannelMembers) {
-				resps.Push(args.T("api.command_invite.permission.app_error", map[string]any{
+				*resps = append(*resps, args.T("api.command_invite.permission.app_error", map[string]any{
 					"User":    targetUser.Username,
 					"Channel": targetChannel.Name,
 				}))
@@ -183,20 +167,20 @@ func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model
 			if !a.HasPermissionToChannel(c, args.UserId, targetChannel.Id, model.PermissionManagePrivateChannelMembers) {
 				if _, err = a.GetChannelMember(c, targetChannel.Id, args.UserId); err == nil {
 					// User doing the inviting is a member of the channel.
-					resps.Push(args.T("api.command_invite.permission.app_error", map[string]any{
+					*resps = append(*resps, args.T("api.command_invite.permission.app_error", map[string]any{
 						"User":    targetUser.Username,
 						"Channel": targetChannel.Name,
 					}))
 					continue
 				}
 				// User doing the inviting is *not* a member of the channel.
-				resps.Push(args.T("api.command_invite.private_channel.app_error", map[string]any{
+				*resps = append(*resps, args.T("api.command_invite.private_channel.app_error", map[string]any{
 					"Channel": targetChannel.Name,
 				}))
 				continue
 			}
 		default:
-			resps.Push(args.T("api.command_invite.directchannel.app_error"))
+			*resps = append(*resps, args.T("api.command_invite.directchannel.app_error"))
 			continue
 		}
 		validChannels = append(validChannels, targetChannel)
