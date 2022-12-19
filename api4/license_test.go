@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -352,16 +353,39 @@ func TestRequestTrueUpReview(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	cloud := mocks.CloudInterface{}
-	cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 
-	cloudImpl := th.App.Srv().Cloud
-	th.App.Srv().Cloud = &cloud
-	defer func() {
-		th.App.Srv().Cloud = cloudImpl
-	}()
+		th.App.Srv().Cloud = &cloud
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
 
-	resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
-	require.Nil(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Nil(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 500 when data extraction fails", func(t *testing.T) {
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(nil, errors.New("Could not get subscription"))
+
+		th.App.Srv().Cloud = &cloud
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIPost("/license/review", "")
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
