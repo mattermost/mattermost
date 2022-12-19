@@ -2356,7 +2356,7 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 }
 
 func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
-
+	var appErr *model.AppError
 	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
 		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
