@@ -9729,5 +9729,9 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Fehler beim Abrufen von Rollen während der Validierung."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Das Portal ist für selbst gehostete Anmeldungen nicht verfügbar."
   }
 ]
