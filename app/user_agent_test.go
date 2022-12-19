@@ -33,6 +33,8 @@ var testUserAgents = []testUserAgent{
 	{"Safari 9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38"},
 	{"Safari 8", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/600.7.12 (KHTML, like Gecko) Version/8.0.7 Safari/600.7.12"},
 	{"Safari Mobile", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1"},
+	{"Mattermost Mobile v2", "Mattermost Mobile/2.0.0+ae3faea (Android; 11.0.0; Samsung S8)"},
+	{"MM App 5.3.0", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost Desktop/5.3.0 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"},
 }
 
 func TestGetPlatformName(t *testing.T) {
@@ -113,6 +115,8 @@ func TestGetBrowserName(t *testing.T) {
 		"Safari",
 		"Safari",
 		"Safari",
+		"Unknown",
+		"Desktop App",
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -143,6 +147,8 @@ func TestGetBrowserVersion(t *testing.T) {
 		"11.0",
 		"8.0.7",
 		"9.0",
+		"0.0",
+		"5.3.0",
 	}
 
 	for i, userAgent := range testUserAgents {
