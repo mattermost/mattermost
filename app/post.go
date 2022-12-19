@@ -2411,9 +2411,11 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
 
-	msg := fmt.Sprintf("A thread with %d messages has been moved to a Direct/Group Message\n", wpl.NumPosts())
+	T := i18n.GetUserTranslations(user.Locale)
+
+	msg := T("app.post.move_thread_command.direct_or_group.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts()})
 	if wpl.NumPosts() == 1 {
-		msg = "A message has been moved to a Direct/Group Message\n"
+		msg = T("app.post.move_thread_command.direct_or_group.one_message")
 	}
 
 	if targetChannel.TeamId != "" {
@@ -2423,9 +2425,9 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		}
 		targetName := targetTeam.Name
 		newPostLink := makePostLink(*a.Config().ServiceSettings.SiteURL, targetName, newRootPost.Id)
-		msg = fmt.Sprintf("A thread with %d messages has been moved: %s\n", wpl.NumPosts(), newPostLink)
+		msg = T("app.post.move_thread_command.channel.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts(), "Link": newPostLink})
 		if wpl.NumPosts() == 1 {
-			msg = fmt.Sprintf("A message has been moved: %s\n", newPostLink)
+			msg = T("app.post.move_thread_command.channel.one_message", model.StringInterface{"Link": newPostLink})
 		}
 	}
 
