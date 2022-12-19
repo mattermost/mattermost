@@ -66,7 +66,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	cmd := exec.Command(executable)
 
 	// This doesn't add more security than before
-	// but removes the SecureConfig is nil warning
+	// but removes the SecureConfig is nil warning.
 	// https://mattermost.atlassian.net/browse/MM-49167
 	pluginChecksum, err := getPluginExecutableChecksum(executable)
 	if err != nil {
