@@ -2381,11 +2381,6 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	targetTeam, appErr := a.GetTeam(targetChannel.TeamId)
-	if appErr != nil {
-		return appErr
-	}
-
 	// Begin creating the new thread.
 	c.Logger().Info("Wrangler is moving a thread", mlog.String("user_id", user.Id), mlog.String("original_post_id", wpl.RootPost().Id), mlog.String("original_channel_id", originalChannel.Id))
 
@@ -2416,7 +2411,23 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
 
-	newPostLink := makePostLink(*a.Config().ServiceSettings.SiteURL, targetTeam.Name, newRootPost.Id)
+	msg := fmt.Sprintf("A thread with %d messages has been moved to a Direct/Group Message\n", wpl.NumPosts())
+	if wpl.NumPosts() == 1 {
+		msg = "A message has been moved to a Direct/Group Message\n"
+	}
+
+	if targetChannel.TeamId != "" {
+		targetTeam, appErr := a.GetTeam(targetChannel.TeamId)
+		if appErr != nil {
+			return appErr
+		}
+		targetName := targetTeam.Name
+		newPostLink := makePostLink(*a.Config().ServiceSettings.SiteURL, targetName, newRootPost.Id)
+		msg = fmt.Sprintf("A thread with %d messages has been moved: %s\n", wpl.NumPosts(), newPostLink)
+		if wpl.NumPosts() == 1 {
+			msg = fmt.Sprintf("A message has been moved: %s\n", newPostLink)
+		}
+	}
 
 	// executor, execError := a.GetUser(user.Id)
 	// if execError != nil {
@@ -2436,11 +2447,6 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	// 	)
 	// }
 	// }
-
-	msg := fmt.Sprintf("A thread with %d messages has been moved: %s\n", wpl.NumPosts(), newPostLink)
-	if wpl.NumPosts() == 1 {
-		msg = fmt.Sprintf("A message has been moved: %s\n", newPostLink)
-	}
 
 	_, appErr = a.CreatePost(c, &model.Post{
 		UserId:    user.Id,
