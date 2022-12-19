@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -358,6 +360,65 @@ func TestStatic(t *testing.T) {
 	assert.Equalf(t, resp.StatusCode, http.StatusOK, "couldn't get static files %v", resp.StatusCode)
 }
 */
+
+func TestStaticFilesCaching(t *testing.T) {
+	th := Setup(t).InitPlugins()
+	defer th.TearDown()
+
+	wd, _ := os.Getwd()
+	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
+	fakeMainBundleName := "main.1234ab.js"
+	fakeRootHTML := `<html>
+<head>
+	<title>Mattermost</title>
+</head>
+</html>`
+	fakeMainBundle := `module.exports = 'main';`
+	fakeRemoteEntry := `module.exports = 'remote';`
+
+	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/remote_entry.js", []byte(fakeRemoteEntry), 0600)
+	require.NoError(t, err)
+
+	err = os.MkdirAll("./client/products/boards", 0777)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/products/boards/remote_entry.js", []byte(fakeRemoteEntry), 0600)
+	require.NoError(t, err)
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRootHTML, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/"+fakeMainBundleName, nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeMainBundle, res.Body.String())
+	require.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/remote_entry.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRemoteEntry, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/products/boards/remote_entry.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRemoteEntry, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+}
 
 func TestCheckClientCompatability(t *testing.T) {
 	//Browser Name, UA String, expected result (if the browser should fail the test false and if it should pass the true)

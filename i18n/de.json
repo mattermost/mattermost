@@ -9171,10 +9171,6 @@
     "translation": "Du bist jetzt upgegraded worden!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Dein {{.WorkspaceName}} wird ab {{.Date}} abgerechnet"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost Upgrade Bestätigung"
   },
@@ -9300,7 +9296,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Dies ist eine letzte Erinnerung, dass wir seit {{.DelinquencyDate}} keine Zahlung für deinen Mattermost Cloud-Arbeitsbereich erhalten haben"
+    "translation": "Dies ist eine letzte Erinnerung, dass wir seit {{.DelinquencyDate}} keine Zahlung für deinen Mattermost Cloud-Arbeitsbereich erhalten haben."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9324,7 +9320,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Wir konnten deine letzte Zahlung nicht bearbeiten"
+    "translation": "Wir konnten deine letzte Zahlung nicht bearbeiten."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9372,7 +9368,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Wir waren nicht in der Lage, ausstehende Rechnungen mit Datum {{.DelinquencyDate}} zu begleichen. Dein Arbeitsbereich ist in Gefahr heruntergestuft zu werden."
+    "translation": "Wir waren nicht in der Lage, ausstehende Rechnungen seit {{.DelinquencyDate}} zu begleichen. Dein Arbeitsbereich ist in Gefahr heruntergestuft zu werden."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9436,7 +9432,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Bezahlung ist überfällig für deinen Mattermost {{.Plan}}."
+    "translation": "Bezahlung ist überfällig für deinen Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9565,5 +9561,177 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Fehlschlag beim Hinzufügen des Benutzers zu Gruppen-Teams und -Kanälen"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Ungültige Benutzer-ID."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Aktualisiert am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Ungültige Root-ID."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Ungültige Eigenschaften."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Ungültige Nachricht."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Ungültige Datei-IDs."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Erstellt am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Ungültige Benutzer-ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Ungültige Nachrichten-ID."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Die Priorität der Nachricht kann nicht ermittelt werden"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Die Aktualisierung des Entwurfs ist nicht möglich."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Der Entwurf kann nicht gespeichert werden."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Es können keine Dateien für den Entwurf abgerufen werden."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Die Entwürfe des Benutzers können nicht abgerufen werden."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Der Entwurf kann nicht abgerufen werden."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Die Funktion Entwürfe ist deaktiviert."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Der Entwurf kann nicht gelöscht werden."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Die Priorität der Nachrichten kann nicht ermittelt werden"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Es ist nicht möglich, dringende Nachrichten seit dem angegebenen Datum zu zählen."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Die Bestätigung für die Nachricht kann nicht gespeichert werden."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Keine Bestätigung für den Beitrag erhalten."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Bestätigung nicht möglich."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Bestätigung kann nicht gelöscht werden."
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Die Funktion Entwürfe ist deaktiviert."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Entwurf kann nicht in einem gelöschten Kanal gespeichert werden"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kannst in einem archivierten Kanal nicht bestätigen."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kannst eine Bestätigung nach Ablauf von 5 Minuten nicht mehr löschen."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kannst eine Bestätigung in einem archivierten Kanal nicht entfernen."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chatten mit deinem Team in einem Feature-Release-Kanal, der sich problemlos mit deinen Boards, Playbooks und App-Bots verbinden lässt."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Verwende unsere Vorlage für die Besprechungsagenda für wiederkehrende Besprechungen wie z. B. Standup-Meetings und unsere Projektaufgabentafel, um den Fortschritt der Aufgaben zu verwalten."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Produkt-Teams"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Ungültige Priorität"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Arbeitsvorlagen können nicht abgerufen werden"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Arbeitsvorlagenkategorien können nicht abgerufen werden"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Erstelle transparente Arbeitsabläufe zwischen den Entwicklungsteams, um einen nahtlosen Entwicklungsprozess zu gewährleisten."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Steigere die Produktivität in deinem Kanal durch die Integration eines Jira-Bots und eines Github-Bots. Diese werden für dich heruntergeladen."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Deine Rechnung einsehen"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt hochgestuft."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt hochgestuft. Du wirst ab dem {{.Date}} abgerechnet"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Fehler beim Abrufen von Rollen während der Validierung."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Das Portal ist für selbst gehostete Anmeldungen nicht verfügbar."
   }
 ]
