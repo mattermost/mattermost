@@ -301,30 +301,30 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Only admins can request a true up review.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	if c.App.Cloud() == nil {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	license := c.App.Channels().License()
 	if license == nil {
 		http.Error(w, "A License is required to perform a true-up review", http.StatusBadRequest)
 		return
 	}
 
+	// Subscription Data
 	userId := c.AppContext.Session().UserId
 	subscription, err := c.App.Cloud().GetSubscription(userId)
-	if err != nil {
+	if err != nil || subscription == nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	reviewProfile := model.TrueUpReviewProfile{}
-
-	// Server Data
-	reviewProfile.ServerId = c.App.TelemetryId()
-	reviewProfile.ServerVersion = model.CurrentVersion
-	reviewProfile.ServerInstallationType = os.Getenv(telemetry.EnvVarInstallType)
-
-	// License Data
-	reviewProfile.LicenseId = license.Id
-	reviewProfile.LicensedSeats = subscription.Seats
-	reviewProfile.LicensePlan = license.SkuName
 
 	// Customer Info & Usage Analytics
 	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
@@ -332,9 +332,6 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	reviewProfile.CustomerName = license.Customer.Name
-	reviewProfile.ActiveUsers = activeUserCount
 
 	// Webhook, calls, boards, and playbook counts
 	incomingWebhookCount, err := c.App.Srv().Store().Webhook().GetIncomingTotal()
@@ -347,9 +344,6 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	reviewProfile.TotalIncomingWebhooks = incomingWebhookCount
-	reviewProfile.TotalOutgoingWebhooks = outgoingWebhookCount
 
 	// Plugin Data
 	trueUpReviewPlugins := model.TrueUpReviewPlugins{
@@ -368,9 +362,8 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 			trueUpReviewPlugins.TotalInactivePlugins += 1
 		}
 	}
-	reviewProfile.Plugins = trueUpReviewPlugins
 
-	// Authentication Data
+	// Authentication Features
 	mfaUsed := c.App.Config().ServiceSettings.EnforceMultifactorAuthentication
 	ldapUsed := c.App.Config().LdapSettings.Enable
 	samlUsed := c.App.Config().SamlSettings.Enable
@@ -385,11 +378,26 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.TrueUpReviewAuthFeatureGuestAccess: guessAccessAllowed,
 	}
 
-	reviewProfile.AuthenticationFeatures = []string{}
+	authFeatureList := []string{}
 	for feature, used := range authFeatures {
 		if used != nil && *used {
-			reviewProfile.AuthenticationFeatures = append(reviewProfile.AuthenticationFeatures, feature)
+			authFeatureList = append(authFeatureList, feature)
 		}
+	}
+
+	reviewProfile := model.TrueUpReviewProfile{
+		ServerId:               c.App.TelemetryId(),
+		ServerVersion:          model.CurrentVersion,
+		ServerInstallationType: os.Getenv(telemetry.EnvVarInstallType),
+		LicenseId:              license.Id,
+		LicensedSeats:          subscription.Seats,
+		LicensePlan:            license.SkuName,
+		CustomerName:           license.Customer.Name,
+		ActiveUsers:            activeUserCount,
+		TotalIncomingWebhooks:  incomingWebhookCount,
+		TotalOutgoingWebhooks:  outgoingWebhookCount,
+		Plugins:                trueUpReviewPlugins,
+		AuthenticationFeatures: authFeatureList,
 	}
 
 	// Convert true up review profile struct to map
