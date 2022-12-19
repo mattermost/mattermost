@@ -124,7 +124,7 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
-type SubscriptionExpandStats struct {
+type SubscriptionExpandStatus struct {
 	IsExpandable bool `json:"is_expandable"`
 }
 

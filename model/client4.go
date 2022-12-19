@@ -8213,14 +8213,14 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	return cloudCustomer, BuildResponse(r), nil
 }
 
-func (c *Client4) GetExpandStats(licenseId string) (*SubscriptionExpandStats, *Response, error) {
+func (c *Client4) GetExpandStats(licenseId string) (*SubscriptionExpandStatus, *Response, error) {
 	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/expand", licenseId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	var subscriptionExpandable *SubscriptionExpandStats
+	var subscriptionExpandable *SubscriptionExpandStatus
 	json.NewDecoder(r.Body).Decode(&subscriptionExpandable)
 
 	return subscriptionExpandable, BuildResponse(r), nil

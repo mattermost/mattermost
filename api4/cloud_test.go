@@ -650,7 +650,7 @@ func TestGetCloudProducts(t *testing.T) {
 }
 
 func Test_GetExpandStatsForSubscription(t *testing.T) {
-	isExpandable := &model.SubscriptionExpandStats{
+	isExpandable := &model.SubscriptionExpandStatus{
 		IsExpandable: true,
 	}
 
