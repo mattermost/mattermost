@@ -5070,6 +5070,27 @@ func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 
 }
 
+func (s *RetryLayerGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
@@ -12126,11 +12147,11 @@ func (s *RetryLayerUploadSessionStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerUploadSessionStore) Get(id string) (*model.UploadSession, error) {
+func (s *RetryLayerUploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
 
 	tries := 0
 	for {
-		result, err := s.UploadSessionStore.Get(id)
+		result, err := s.UploadSessionStore.Get(ctx, id)
 		if err == nil {
 			return result, nil
 		}
