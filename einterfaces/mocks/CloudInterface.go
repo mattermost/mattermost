@@ -325,8 +325,8 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	return r0, r1
 }
 
-// GetLicenseExpandStats provides a mock function with given fields: userID, token
-func (_m *CloudInterface) GetLicenseExpandStats(userID string, token string) (*model.SubscriptionExpandStatus, error) {
+// GetLicenseExpandStatus provides a mock function with given fields: userID, token
+func (_m *CloudInterface) GetLicenseExpandStatus(userID string, token string) (*model.SubscriptionExpandStatus, error) {
 	ret := _m.Called(userID, token)
 
 	var r0 *model.SubscriptionExpandStatus

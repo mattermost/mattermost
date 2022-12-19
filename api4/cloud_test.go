@@ -664,7 +664,7 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 
-		cloud.Mock.On("GetLicenseExpandStats", mock.Anything).Return(isExpandable, nil)
+		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -686,7 +686,7 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 
-		cloud.Mock.On("GetLicenseExpandStats", mock.Anything).Return(isExpandable, nil)
+		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
