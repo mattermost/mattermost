@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/telemetry/mocks"
@@ -118,7 +119,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 		pchan <- p
 	}))
 
-	service := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+	service := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 	service.TelemetryID = testTelemetryID
 	service.rudderClient = nil
 	service.initRudder(receiver.URL, RudderKey)
@@ -165,6 +166,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 		func(m *model.Manifest) plugin.API { return pluginsAPIMock },
 		nil,
 		pluginDir, webappPluginDir,
+		false,
 		logger,
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
@@ -188,6 +190,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
 	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
 	serverIfaceMock.On("HTTPService").Return(httpservice.MakeHTTPService(configService))
+	serverIfaceMock.On("HooksManager").Return(product.NewHooksManager(nil))
 
 	storeMock := &storeMocks.Store{}
 	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
@@ -294,7 +297,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 		assert.Equal(t, "test", telemetryService.TelemetryID)
 
 		telemetryService.ensureTelemetryID()
@@ -327,7 +330,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 		assert.Equal(t, generatedID, telemetryService.TelemetryID)
 	})
 
@@ -347,7 +350,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger, false)
 		assert.Equal(t, "", telemetryService.TelemetryID)
 	})
 }

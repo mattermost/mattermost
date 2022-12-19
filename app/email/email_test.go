@@ -258,7 +258,7 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 	emailTo := "testclouduser@example.com"
 	emailToUsername := strings.Split(emailTo, "@")[0]
 
-	t.Run("SendCloudUpgradedEmail", func(t *testing.T) {
+	t.Run("SendCloudMonthlyUpgradedEmail", func(t *testing.T) {
 		verifyMailbox := func(t *testing.T) {
 			t.Helper()
 
@@ -278,10 +278,44 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "You'll be billed from", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "Open Mattermost", "Wrong received message %s", resultsEmail.Body.Text)
 		}
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName")
+		// Send Update to Monthly Plan email
+		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false)
+		require.NoError(t, err)
+
+		verifyMailbox(t)
+	})
+
+	t.Run("SendCloudYearlyUpgradedEmail", func(t *testing.T) {
+		verifyMailbox := func(t *testing.T) {
+			t.Helper()
+
+			var resultsMailbox mail.JSONMessageHeaderInbucket
+			err2 := mail.RetryInbucket(5, func() error {
+				var err error
+				resultsMailbox, err = mail.GetMailBox(emailTo)
+				return err
+			})
+			if err2 != nil {
+				t.Skipf("No email was received, maybe due load on the server: %v", err2)
+			}
+
+			require.Len(t, resultsMailbox, 1)
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+			require.NoError(t, err, "Could not get message from mailbox")
+			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "View your invoice", "Wrong received message %s", resultsEmail.Body.Text)
+		}
+		mail.DeleteMailBox(emailTo)
+
+		// Send Update to Monthly Plan email
+		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", true)
 		require.NoError(t, err)
 
 		verifyMailbox(t)

@@ -118,13 +118,14 @@ type NewTeamMembersList struct {
 }
 
 type NewTeamMember struct {
-	Id        string `json:"id"`
-	Username  string `json:"username"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Position  string `json:"position"`
-	Nickname  string `json:"nickname"`
-	CreateAt  int64  `json:"create_at"`
+	Id                string `json:"id"`
+	Username          string `json:"username"`
+	FirstName         string `json:"first_name"`
+	LastName          string `json:"last_name"`
+	Position          string `json:"position"`
+	Nickname          string `json:"nickname"`
+	LastPictureUpdate int64  `json:"last_picture_update,omitempty"`
+	CreateAt          int64  `json:"create_at"`
 }
 
 type DurationPostCount struct {
@@ -247,6 +248,9 @@ func ToDailyPostCountViewModel(dpc []*DurationPostCount, startTime *time.Time, n
 	return viewModel
 }
 
+// Deprecated: This method doesn't perform error checking.
+// Use GetStartOfDayForTimeRange instead.
+//
 // StartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
 // Time range can be one of: "today", "7_day", or "28_day".
 func StartOfDayForTimeRange(timeRange string, location *time.Location) *time.Time {
