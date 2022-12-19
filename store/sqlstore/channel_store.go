@@ -3865,7 +3865,7 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 			LastUpdateAt,
 			SchemeUser,
 			SchemeAdmin,
-			SchemeGuest,
+			SchemeGuest
 		FROM
 			ChannelMembers
 		WHERE
@@ -3993,7 +3993,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 				LastUpdateAt,
 				SchemeUser,
 				SchemeAdmin,
-				SchemeGuest,
+				SchemeGuest
 			FROM
 				ChannelMembers
 			WHERE
