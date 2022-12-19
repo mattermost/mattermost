@@ -327,7 +327,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	reviewProfile.LicensePlan = license.SkuName
 
 	// Customer Info & Usage Analytics
-	activeUserCount, err := c.App.Srv().GetStore().Status().GetTotalActiveUsersCount()
+	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -337,7 +337,6 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	reviewProfile.ActiveUsers = activeUserCount
 
 	// Webhook, calls, boards, and playbook counts
-	var totalWebHookCount int64 = 0
 	incomingWebhookCount, err := c.App.Srv().Store().Webhook().GetIncomingTotal()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -349,13 +348,8 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	totalWebHookCount += incomingWebhookCount
-	totalWebHookCount += outgoingWebhookCount
-
-	reviewProfile.TotalWebhooks = totalWebHookCount
-	reviewProfile.TotalCalls = 0     // TODO: Maybe from plugin?
-	reviewProfile.TotalBoards = 0    // TODO: Maybe from plugin?
-	reviewProfile.TotalPlaybooks = 0 // TODO: Maybe from plugin?
+	reviewProfile.TotalIncomingWebhooks = incomingWebhookCount
+	reviewProfile.TotalOutgoingWebhooks = outgoingWebhookCount
 
 	// Plugin Data
 	trueUpReviewPlugins := model.TrueUpReviewPlugins{
@@ -400,17 +394,17 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Convert true up review profile struct to map
 	var telemetryProperties map[string]interface{}
-	marshalled, _ := json.Marshal(reviewProfile)
-	json.Unmarshal(marshalled, &telemetryProperties)
+	reviewProfileJson, err := json.Marshal(reviewProfile)
+	json.Unmarshal(reviewProfileJson, &telemetryProperties)
 
 	// Send telemetry data.
 	telemetryService := c.App.Srv().GetTelemetryService()
 	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
 
-	json, err := json.Marshal(reviewProfile)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Write(json)
+
+	ReturnStatusOK(w)
 }

@@ -14,10 +14,8 @@ type TrueUpReviewProfile struct {
 	ActiveUsers            int64               `json:"active_users"`
 	AuthenticationFeatures []string            `json:"authentication_features"`
 	Plugins                TrueUpReviewPlugins `json:"plugins"`
-	TotalWebhooks          int64               `json:"webhooks_count"`
-	TotalPlaybooks         int                 `json:"playbooks_count"`
-	TotalBoards            int                 `json:"boards_count"`
-	TotalCalls             int                 `json:"calls_count"`
+	TotalIncomingWebhooks  int64               `json:"incoming_webhooks_count"`
+	TotalOutgoingWebhooks  int64               `json:"outgoing_webhooks_count"`
 }
 
 type TrueUpReviewPlugins struct {
