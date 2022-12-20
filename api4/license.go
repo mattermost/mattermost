@@ -324,6 +324,11 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	seats := 0
+	if subscription != nil {
+		seats = subscription.Seats
+	}
+
 	// Customer Info & Usage Analytics
 	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
 	if err != nil {
@@ -383,10 +388,6 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	seats := 0
-	if subscription != nil {
-		seats = subscription.Seats
-	}
 	reviewProfile := model.TrueUpReviewProfile{
 		ServerId:               c.App.TelemetryId(),
 		ServerVersion:          model.CurrentVersion,
