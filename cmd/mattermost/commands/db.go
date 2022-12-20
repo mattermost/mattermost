@@ -163,7 +163,13 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	}
 	config := cfgStore.Get()
 
-	plan, err := sqlstore.GeneratePlan(config.SqlSettings, recoverFlag)
+	migrator, err := sqlstore.NewMigrator(config.SqlSettings, dryRun)
+	if err != nil {
+		return errors.Wrap(err, "failed to create migrator")
+	}
+	defer migrator.Close()
+
+	plan, err := migrator.GeneratePlan(recoverFlag)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate migration plan")
 	}
@@ -173,7 +179,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if savePlan {
+	if savePlan || recoverFlag {
 		backend, err2 := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(false, true))
 		if err2 != nil {
 			return fmt.Errorf("failed to initialize filebackend: %w", err2)
@@ -184,7 +190,12 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to marshal plan: %w", mErr)
 		}
 
-		_, err = backend.WriteFile(bytes.NewReader(b), "migration_plan.json")
+		fileName, err2 := migrator.GetFileName(plan)
+		if err2 != nil {
+			return fmt.Errorf("failed to generate plan file: %w", err2)
+		}
+
+		_, err = backend.WriteFile(bytes.NewReader(b), fileName+".json")
 		if err != nil {
 			return fmt.Errorf("failed to write migration plan: %w", err)
 		}
@@ -192,7 +203,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 		CommandPrettyPrintln("The migration plan has been saved.")
 	}
 
-	err = sqlstore.MigrateWithPlan(config.SqlSettings, plan, dryRun)
+	err = migrator.MigrateWithPlan(config.SqlSettings, plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -218,13 +229,19 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to initialize filebackend: %w", err2)
 	}
 
+	migrator, err := sqlstore.NewMigrator(config.SqlSettings, dryRun)
+	if err != nil {
+		return errors.Wrap(err, "failed to create migrator")
+	}
+	defer migrator.Close()
+
 	// check if the input is version numbers or a file
 	// if the input is given as a file, we assume it's a migration plan
 	versions := strings.Split(args[0], ",")
 	if _, sErr := strconv.Atoi(versions[0]); sErr == nil {
 		CommandPrettyPrintln("Database will be downgraded with the following versions: ", versions)
 
-		err = sqlstore.DowngradeMigrations(config.SqlSettings, dryRun, versions...)
+		err = migrator.DowngradeMigrations(config.SqlSettings, dryRun, versions...)
 		if err != nil {
 			return errors.Wrap(err, "failed to downgrade migrations")
 		}
@@ -247,7 +264,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	morph.SwapPlanDirection(&plan)
 	plan.Auto = recoverFlag
 
-	err = sqlstore.MigrateWithPlan(config.SqlSettings, &plan, dryRun)
+	err = migrator.MigrateWithPlan(config.SqlSettings, &plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate")
 	}

@@ -22,12 +22,76 @@ import (
 	mbindata "github.com/mattermost/morph/sources/embedded"
 )
 
-func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, func() error, error) {
+type Migrator struct {
+	engine *morph.Morph
+	store  *SqlStore
+}
+
+func NewMigrator(settings model.SqlSettings, dryRun bool) (*Migrator, error) {
+	ss := &SqlStore{
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
+	}
+
+	ss.initConnection()
+
+	ver, err := ss.GetDbVersion(true)
+	if err != nil {
+		return nil, fmt.Errorf("error while getting DB version: %w", err)
+	}
+
+	ok, err := ss.ensureMinimumDBVersion(ver)
+	if !ok {
+		return nil, fmt.Errorf("error while checking DB version: %w", err)
+	}
+
+	err = ss.ensureDatabaseCollation()
+	if err != nil {
+		return nil, fmt.Errorf("error while checking DB collation: %w", err)
+	}
+
+	engine, err := ss.initMorph(dryRun)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize morph: %w", err)
+	}
+
+	return &Migrator{
+		engine: engine,
+		store:  ss,
+	}, nil
+}
+
+func (m *Migrator) Close() error {
+	if err := m.engine.Close(); err != nil {
+		return fmt.Errorf("failed to close morph engine: %w", err)
+	}
+
+	m.store.Close()
+
+	return nil
+}
+
+func (m *Migrator) GetFileName(plan *models.Plan) (string, error) {
+	if len(plan.Migrations) == 0 {
+		return "", fmt.Errorf("plan is empty")
+	}
+
+	to := plan.Migrations[len(plan.Migrations)-1].Version
+	from, err := m.store.GetDBSchemaVersion()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("migration_plan_%d_%d", from, to), nil
+}
+
+func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 	assets := db.Assets()
 
 	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	assetNamesForDriver := make([]string, len(assetsList))
@@ -42,7 +106,7 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, func() error, error) {
 		},
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var driver drivers.Driver
@@ -51,11 +115,11 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, func() error, error) {
 		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
-			return nil, nil, rErr
+			return nil, rErr
 		}
 		dataSource, err = AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		db := setupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db)
@@ -66,7 +130,7 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, func() error, error) {
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	opts := []morph.EngineOption{
@@ -78,18 +142,18 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, func() error, error) {
 
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return engine, engine.Close, nil
+	return engine, nil
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection, dryRun bool) error {
-	engine, close, err := ss.initMorph(dryRun)
+	engine, err := ss.initMorph(dryRun)
 	if err != nil {
 		return err
 	}
-	defer close()
+	defer engine.Close()
 
 	switch direction {
 	case migrationsDirectionDown:
@@ -100,27 +164,13 @@ func (ss *SqlStore) migrate(direction migrationDirection, dryRun bool) error {
 	}
 }
 
-func GeneratePlan(settings model.SqlSettings, recover bool) (*models.Plan, error) {
-	ss := &SqlStore{
-		rrCounter: 0,
-		srCounter: 0,
-		settings:  &settings,
-	}
-	defer ss.Close()
-	ss.initConnection()
-
-	engine, close, err := ss.initMorph(false)
-	if err != nil {
-		return nil, err
-	}
-	defer close()
-
-	diff, err := engine.Diff(models.Up)
+func (m *Migrator) GeneratePlan(recover bool) (*models.Plan, error) {
+	diff, err := m.engine.Diff(models.Up)
 	if err != nil {
 		return nil, err
 	}
 
-	plan, err := engine.GeneratePlan(diff, recover)
+	plan, err := m.engine.GeneratePlan(diff, recover)
 	if err != nil {
 		return nil, err
 	}
@@ -129,65 +179,12 @@ func GeneratePlan(settings model.SqlSettings, recover bool) (*models.Plan, error
 }
 
 // MigrateWithPlan migrates the database to the latest version using the provided plan.
-func MigrateWithPlan(settings model.SqlSettings, plan *models.Plan, dryRun bool) error {
-	ss := &SqlStore{
-		rrCounter: 0,
-		srCounter: 0,
-		settings:  &settings,
-	}
-	defer ss.Close()
-	ss.initConnection()
-
-	ver, err := ss.GetDbVersion(true)
-	if err != nil {
-		mlog.Fatal("Error while getting DB version.", mlog.Err(err))
-	}
-
-	ok, err := ss.ensureMinimumDBVersion(ver)
-	if !ok {
-		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
-	}
-
-	err = ss.ensureDatabaseCollation()
-	if err != nil {
-		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
-	}
-
-	engine, close, err := ss.initMorph(dryRun)
-	if err != nil {
-		return err
-	}
-	defer close()
-
-	return engine.ApplyPlan(plan)
+func (m *Migrator) MigrateWithPlan(settings model.SqlSettings, plan *models.Plan, dryRun bool) error {
+	return m.engine.ApplyPlan(plan)
 }
 
-func DowngradeMigrations(settings model.SqlSettings, dryRun bool, versions ...string) error {
-	ss := &SqlStore{
-		rrCounter: 0,
-		srCounter: 0,
-		settings:  &settings,
-	}
-	defer ss.Close()
-	ss.initConnection()
-
-	ver, err := ss.GetDbVersion(true)
-	if err != nil {
-		mlog.Fatal("Error while getting DB version.", mlog.Err(err))
-	}
-
-	ok, err := ss.ensureMinimumDBVersion(ver)
-	if !ok {
-		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
-	}
-
-	engine, close, err := ss.initMorph(dryRun)
-	if err != nil {
-		return err
-	}
-	defer close()
-
-	migrations, err := engine.Diff(models.Down)
+func (m *Migrator) DowngradeMigrations(settings model.SqlSettings, dryRun bool, versions ...string) error {
+	migrations, err := m.engine.Diff(models.Down)
 	if err != nil {
 		return err
 	}
@@ -213,10 +210,10 @@ func DowngradeMigrations(settings model.SqlSettings, dryRun bool, versions ...st
 		mlog.Warn("could not match give migration versions, going to downgrade only the migrations those are available.")
 	}
 
-	plan, err := engine.GeneratePlan(migrationsToDowngrade, false)
+	plan, err := m.engine.GeneratePlan(migrationsToDowngrade, false)
 	if err != nil {
 		return err
 	}
 
-	return engine.ApplyPlan(plan)
+	return m.engine.ApplyPlan(plan)
 }
