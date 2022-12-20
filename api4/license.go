@@ -314,10 +314,11 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var subscription *model.Subscription
+	var err error
 	if c.App.Cloud() != nil {
 		// Subscription Data
 		userId := c.AppContext.Session().UserId
-		subscription, err := c.App.Cloud().GetSubscription(userId)
+		subscription, err = c.App.Cloud().GetSubscription(userId)
 		if err != nil || subscription == nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
