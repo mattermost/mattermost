@@ -59,7 +59,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("returns not found when plugins environment is nil", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		t.Cleanup(th.TearDown)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 		req, err := http.NewRequest("GET", "/plugins/plugin_id/public/file.txt", nil)
@@ -74,7 +74,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("resolves path for valid plugin", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		t.Cleanup(th.TearDown)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 		path, _ := fileutils.FindDir("tests")
@@ -101,7 +101,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		th := Setup(t)
-		defer th.TearDown()
+		t.Cleanup(th.TearDown)
 
 		installPlugin(t, th, "testplugin")
 
@@ -119,7 +119,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("fails for invalid plugin", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		t.Cleanup(th.TearDown)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 		req, err := http.NewRequest("GET", "/plugins/invalidplugin/public/file.txt", nil)
@@ -136,7 +136,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		th := Setup(t)
-		defer th.TearDown()
+		t.Cleanup(th.TearDown)
 
 		installPlugin(t, th, "testplugin")
 		installPlugin(t, th, "testplugin2")
