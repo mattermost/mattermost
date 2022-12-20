@@ -7316,6 +7316,10 @@
     "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
   {
+    "id": "ent.compliance.run_export.product_boards.appErr",
+    "translation": "Unable to fetch Boards product to run a CSV with Boards export."
+  },
+  {
     "id": "ent.compliance.run_export.product_exporter.appError",
     "translation": "Unable to get exporter from product."
   },
@@ -7794,6 +7798,10 @@
   {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Failed to select message export data."
+  },
+  {
+    "id": "ent.message_export.run_export.boards_product_error",
+    "translation": "Unable to fetch Boards product to run a CSV with Boards export."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -8533,7 +8541,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv' or 'globalrelay'."
+    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv', `csv-with-boards` or 'globalrelay'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",

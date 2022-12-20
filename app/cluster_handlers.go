@@ -44,7 +44,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	channels, ok := s.products["channels"].(*Channels)
+	channels, ok := s.Products["channels"].(*Channels)
 	if !ok {
 		return
 	}

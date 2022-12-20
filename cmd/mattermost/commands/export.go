@@ -40,6 +40,14 @@ var CsvExportCmd = &cobra.Command{
 	RunE:    buildExportCmdF("csv"),
 }
 
+var CsvWithBoardsExportCmd = &cobra.Command{
+	Use:     "csv-with-boards",
+	Short:   "Export data from Mattermost in CSV format (Include Boards information)",
+	Long:    "Export data from Mattermost in CSV format (Include Boards information)",
+	Example: "export csv-with-boards --exportFrom=12345",
+	RunE:    buildExportCmdF("csv-with-boards"),
+}
+
 var ActianceExportCmd = &cobra.Command{
 	Use:     "actiance",
 	Short:   "Export data from Mattermost in Actiance format",
@@ -72,6 +80,8 @@ func init() {
 
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	CsvExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
+	CsvWithBoardsExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	CsvWithBoardsExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
@@ -85,6 +95,7 @@ func init() {
 
 	ExportCmd.AddCommand(ScheduleExportCmd)
 	ExportCmd.AddCommand(CsvExportCmd)
+	ExportCmd.AddCommand(CsvWithBoardsExportCmd)
 	ExportCmd.AddCommand(ActianceExportCmd)
 	ExportCmd.AddCommand(GlobalRelayZipExportCmd)
 	ExportCmd.AddCommand(BulkExportCmd)
@@ -162,6 +173,12 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 
 		if pErr := a.Srv().StartProducts(); err != nil {
 			return pErr
+		}
+
+		if format == model.ComplianceExportTypeCsvWithBoards {
+			if _, ok := a.Srv().Products["boards"]; !ok {
+				return errors.New("boards product must be enabled to run a csv-with-boards export")
+			}
 		}
 
 		startTime, err := command.Flags().GetInt64("exportFrom")

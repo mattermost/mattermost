@@ -217,6 +217,7 @@ const (
 	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
 
 	ComplianceExportTypeCsv            = "csv"
+	ComplianceExportTypeCsvWithBoards  = "csv-with-boards"
 	ComplianceExportTypeActiance       = "actiance"
 	ComplianceExportTypeGlobalrelay    = "globalrelay"
 	ComplianceExportTypeGlobalrelayZip = "globalrelay-zip"
@@ -3832,7 +3833,7 @@ func (s *MessageExportSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		} else if s.BatchSize == nil || *s.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
-		} else if s.ExportFormat == nil || (*s.ExportFormat != ComplianceExportTypeActiance && *s.ExportFormat != ComplianceExportTypeGlobalrelay && *s.ExportFormat != ComplianceExportTypeCsv) {
+		} else if s.ExportFormat == nil || (*s.ExportFormat != ComplianceExportTypeActiance && *s.ExportFormat != ComplianceExportTypeGlobalrelay && *s.ExportFormat != ComplianceExportTypeCsv && *s.ExportFormat != ComplianceExportTypeCsvWithBoards) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
 		}
 
