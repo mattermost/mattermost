@@ -307,23 +307,21 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Cloud() == nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	license := c.App.Channels().License()
 	if license == nil {
 		http.Error(w, "A License is required to perform a true-up review", http.StatusBadRequest)
 		return
 	}
 
-	// Subscription Data
-	userId := c.AppContext.Session().UserId
-	subscription, err := c.App.Cloud().GetSubscription(userId)
-	if err != nil || subscription == nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	var subscription *model.Subscription
+	if c.App.Cloud() != nil {
+		// Subscription Data
+		userId := c.AppContext.Session().UserId
+		subscription, err := c.App.Cloud().GetSubscription(userId)
+		if err != nil || subscription == nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Customer Info & Usage Analytics
@@ -385,12 +383,16 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	seats := 0
+	if subscription != nil {
+		seats = subscription.Seats
+	}
 	reviewProfile := model.TrueUpReviewProfile{
 		ServerId:               c.App.TelemetryId(),
 		ServerVersion:          model.CurrentVersion,
 		ServerInstallationType: os.Getenv(telemetry.EnvVarInstallType),
 		LicenseId:              license.Id,
-		LicensedSeats:          subscription.Seats,
+		LicensedSeats:          seats,
 		LicensePlan:            license.SkuName,
 		CustomerName:           license.Customer.Name,
 		ActiveUsers:            activeUserCount,
