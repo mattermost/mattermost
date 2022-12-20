@@ -417,5 +417,5 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	telemetryService := c.App.Srv().GetTelemetryService()
 	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
 
-	ReturnStatusOK(w)
+	w.Write([]byte(reviewProfileJson))
 }
