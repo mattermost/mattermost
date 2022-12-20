@@ -6,10 +6,11 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/product"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -24,8 +25,8 @@ func newProductA(m map[product.ServiceKey]any) (product.Product, error) {
 	return &productA{}, nil
 }
 
-func (p *productA) Start() error { return nil }
-func (p *productA) Stop() error  { return nil }
+func (p *productA) Start(map[product.ServiceKey]any) error { return nil }
+func (p *productA) Stop() error                            { return nil }
 
 type productB struct{}
 
@@ -34,8 +35,8 @@ func newProductB(m map[product.ServiceKey]any) (product.Product, error) {
 	return &productB{}, nil
 }
 
-func (p *productB) Start() error { return nil }
-func (p *productB) Stop() error  { return nil }
+func (p *productB) Start(map[product.ServiceKey]any) error { return nil }
+func (p *productB) Stop() error                            { return nil }
 
 func TestInitializeProducts(t *testing.T) {
 	ps, err := platform.New(platform.ServiceConfig{ConfigStore: config.NewTestMemoryStore()})

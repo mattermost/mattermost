@@ -39,6 +39,7 @@ type Channels struct {
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
 	routerSvc  *routerService
+	boardsSvc  product.BoardsService
 
 	postActionCookieSecret []byte
 
@@ -92,12 +93,6 @@ func init() {
 		Initializer: func(services map[product.ServiceKey]any) (product.Product, error) {
 			return NewChannels(services)
 		},
-		Dependencies: map[product.ServiceKey]struct{}{
-			ServerKey:            {},
-			product.ConfigKey:    {},
-			product.LicenseKey:   {},
-			product.FilestoreKey: {},
-		},
 	})
 }
 
@@ -114,11 +109,14 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		topicTypes:      map[string]string{},
 	}
 
-	// To get another service:
-	// 1. Prepare the service interface
-	// 2. Add the field to *Channels
-	// 3. Add the service key to the slice.
-	// 4. Add a new case in the switch statement.
+	// Get all the built-in (suite) services we depend on. Error if any dependency is missing.
+	// This is done here, instead of `Start` because Channels initialization relies on some
+	// built-in services.
+	//     To get another service:
+	//     1. Prepare the service interface
+	//     2. Add the field to *Channels
+	//     3. Add the service key to the slice.
+	//     4. Add a new case in the switch statement.
 	requiredServices := []product.ServiceKey{
 		product.ConfigKey,
 		product.LicenseKey,
@@ -151,6 +149,7 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 			ch.licenseSvc = svc
 		}
 	}
+
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
 	// Otherwise, passing server would mean it has to call s.Channels(),
@@ -242,7 +241,27 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	return ch, nil
 }
 
-func (ch *Channels) Start() error {
+func (ch *Channels) Start(services map[product.ServiceKey]any) error {
+	// Get all the product services we depend on. Error if any dependency is missing.
+	requiredServices := []product.ServiceKey{
+		product.BoardsKey,
+	}
+	for _, svcKey := range requiredServices {
+		svc, ok := services[svcKey]
+		if !ok {
+			return fmt.Errorf("Service %s not passed", svcKey)
+		}
+		switch svcKey {
+		// Keep adding more services here
+		case product.BoardsKey:
+			svc, ok := svc.(product.BoardsService)
+			if !ok {
+				return errors.New("Boards service did not satisfy BoardsService interface")
+			}
+			ch.boardsSvc = svc
+		}
+	}
+
 	// Start plugins
 	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)

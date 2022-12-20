@@ -136,7 +136,8 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
-	products map[string]product.Product
+	products   map[string]product.Product
+	serviceMap map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
 }
@@ -238,7 +239,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
-	serviceMap := map[product.ServiceKey]any{
+	s.serviceMap = map[product.ServiceKey]any{
 		ServerKey:                s,
 		product.ChannelKey:       &channelsWrapper{srv: s},
 		product.ConfigKey:        s.platform,
@@ -256,7 +257,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Step 4: Initialize products.
 	// Depends on s.httpService.
-	err = s.initializeProducts(product.GetProducts(), serviceMap)
+	err = s.initializeProducts(product.GetProducts(), s.serviceMap)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
@@ -826,14 +827,14 @@ func (s *Server) Start() error {
 	// This needs to happen before because products are dependent on the HTTP server.
 
 	// make sure channels starts first
-	if err := s.products["channels"].Start(); err != nil {
+	if err := s.products["channels"].Start(s.serviceMap); err != nil {
 		return errors.Wrap(err, "Unable to start channels")
 	}
 	for name, product := range s.products {
 		if name == "channels" {
 			continue
 		}
-		if err := product.Start(); err != nil {
+		if err := product.Start(s.serviceMap); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}
 	}

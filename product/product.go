@@ -4,13 +4,12 @@
 package product
 
 type Product interface {
-	Start() error
+	Start(map[ServiceKey]any) error
 	Stop() error
 }
 
 type Manifest struct {
-	Initializer  func(map[ServiceKey]any) (Product, error)
-	Dependencies map[ServiceKey]struct{}
+	Initializer func(map[ServiceKey]any) (Product, error)
 }
 
 var products = make(map[string]Manifest)
