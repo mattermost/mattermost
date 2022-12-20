@@ -174,7 +174,7 @@ func getNextBillingDateString() string {
 	return fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
 }
 
-func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
+func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 	sysAdmins, e := a.getSysAdminsEmailRecipients()
 	if e != nil {
 		return e
@@ -200,7 +200,7 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 			name = admin.Username
 		}
 
-		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
+		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS(), isYearly)
 		if err != nil {
 			a.Log().Error("Error sending trial ended email to", mlog.String("email", admin.Email), mlog.Err(err))
 			countNotOks++

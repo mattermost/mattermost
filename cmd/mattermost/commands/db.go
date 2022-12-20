@@ -168,6 +168,11 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to generate migration plan")
 	}
 
+	if len(plan.Migrations) == 0 {
+		CommandPrettyPrintln("No migrations to apply.")
+		return nil
+	}
+
 	if savePlan {
 		backend, err2 := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(false, true))
 		if err2 != nil {
