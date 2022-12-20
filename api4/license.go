@@ -403,16 +403,15 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Convert true up review profile struct to map
 	var telemetryProperties map[string]interface{}
 	reviewProfileJson, err := json.Marshal(reviewProfile)
-	json.Unmarshal(reviewProfileJson, &telemetryProperties)
-
-	// Send telemetry data.
-	telemetryService := c.App.Srv().GetTelemetryService()
-	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Send telemetry data.
+	json.Unmarshal(reviewProfileJson, &telemetryProperties)
+	telemetryService := c.App.Srv().GetTelemetryService()
+	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
 
 	ReturnStatusOK(w)
 }
