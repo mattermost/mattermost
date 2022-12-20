@@ -561,7 +561,7 @@ func (a *App) CompleteOAuth(c *request.Context, service string, body io.ReadClos
 		return a.CreateOAuthUser(c, service, body, teamID, tokenUser)
 	case model.OAuthActionLogin:
 		return a.LoginByOAuth(c, service, body, teamID, tokenUser)
-	case model.OAuthActionEmailToSSO:
+	case model.OAuthActionEmailToSSO, model.OAuthActionLdapToSSO:
 		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
 	case model.OAuthActionSSOToEmail:
 		return a.LoginByOAuth(c, service, body, teamID, tokenUser)

@@ -240,6 +240,11 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	return cachedUsers, nil
 }
 
+func (s *LocalCacheUserStore) UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error) {
+	s.InvalidateProfileCacheForUser(userID)
+	return s.UserStore.UpdateAuthData(userID, service, authData, email, resetMfa)
+}
+
 func dedup(elements []string) []string {
 	if len(elements) == 0 {
 		return elements
