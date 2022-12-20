@@ -348,6 +348,7 @@ func init() {
 		PermissionCreateCustomGroup.Id,
 		PermissionEditCustomGroup.Id,
 		PermissionDeleteCustomGroup.Id,
+		PermissionRestoreCustomGroup.Id,
 		PermissionManageCustomGroupMembers.Id,
 	}
 
@@ -953,6 +954,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreateCustomGroup.Id,
 			PermissionEditCustomGroup.Id,
 			PermissionDeleteCustomGroup.Id,
+			PermissionRestoreCustomGroup.Id,
 			PermissionManageCustomGroupMembers.Id,
 		},
 		SchemeManaged: true,
