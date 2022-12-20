@@ -2272,6 +2272,23 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		query = query.Where(sq.Eq{"p.DeleteAt": 0})
 	}
 
+	if options.ExcludeSystemPosts {
+		query = query.Where("p.Type NOT LIKE 'system_%'")
+	}
+
+	if options.SinceUpdateAt > 0 {
+		subQuery := sq.Or{sq.Gt{"p.UpdateAt": options.SinceUpdateAt}}
+
+		if options.SincePostID != "" {
+			subQuery = append(subQuery, sq.And{
+				sq.Eq{"p.UpdateAt": options.SinceUpdateAt},
+				sq.Gt{"p.Id": options.SincePostID},
+			})
+		}
+
+		query = query.Where(subQuery)
+	}
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "post_tosql")
