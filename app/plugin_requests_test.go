@@ -20,8 +20,6 @@ import (
 )
 
 func TestServePluginPublicRequest(t *testing.T) {
-	t.Skip()
-
 	installPlugin := func(t *testing.T, th *TestHelper, pluginID string) {
 		t.Helper()
 
