@@ -254,6 +254,54 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableCustomGroups": "false",
 			},
 		},
+		{
+			"Shared channels other license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "false",
+			},
+		},
+		{
+			"Shared channels professional license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels enterprise license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
