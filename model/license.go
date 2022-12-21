@@ -40,10 +40,10 @@ var (
 )
 
 const (
-	TrueUpReviewTelemetryName          = "true-up-review-sent"
+	TrueUpReviewTelemetryName          = "true_up_review_sent"
 	TrueUpReviewAuthFeaturesMfa        = "multi_factor_authentication"
-	TueUpReviewAuthFeaturesAdLdap      = "ad_ldap_sign_in"
-	TrueUpReviewauthFeaturesSaml       = "saml_sign_in"
+	TrueUpReviewAuthFeaturesADLdap     = "ad_ldap_sign_in"
+	TrueUpReviewAuthFeaturesSaml       = "saml_sign_in"
 	TrueUpReviewAuthFeatureOpenId      = "openid_connect"
 	TrueUpReviewAuthFeatureGuestAccess = "guest_access"
 )
