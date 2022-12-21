@@ -1,0 +1,1 @@
+ALTER TABLE notifyadmin DROP COLUMN IF EXISTS sentat;
