@@ -569,7 +569,7 @@ type AppIface interface {
 	FillInChannelsProps(c request.CTX, channelList model.ChannelList) *model.AppError
 	FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError)
 	FindTeamByName(name string) bool
-	FinishSendAdminNotifyPost(trial bool, now int64)
+	FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedWorkTemplateData map[string][]*model.NotifyAdminData)
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket() []model.FileData

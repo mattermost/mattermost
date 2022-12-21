@@ -16,6 +16,7 @@ func TestNotifyAdminStore(t *testing.T, ss store.Store) {
 	t.Run("testGetDataByUserIdAndFeature", func(t *testing.T) { testGetDataByUserIdAndFeature(t, ss) })
 	t.Run("testGet", func(t *testing.T) { testGet(t, ss) })
 	t.Run("testDeleteBefore", func(t *testing.T) { testDeleteBefore(t, ss) })
+	t.Run("testUpdate", func(t *testing.T) { testUpdate(t, ss) })
 }
 
 func tearDown(t *testing.T, ss store.Store) {
@@ -141,6 +142,28 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, len(user1Request), 1)
 	require.Equal(t, user1Request[0].RequiredFeature, model.PaidFeatureAllProfessionalfeatures)
+
+	tearDown(t, ss)
+}
+
+func testUpdate(t *testing.T, ss store.Store) {
+	userId1 := model.NewId()
+	d1 := &model.NotifyAdminData{
+		UserId:          userId1,
+		RequiredPlan:    model.WorkTemplates,
+		RequiredFeature: model.PluginIdJenkins,
+	}
+	_, err := ss.NotifyAdmin().Save(d1)
+	require.NoError(t, err)
+
+	err = ss.NotifyAdmin().Update(d1.UserId, d1.RequiredPlan, d1.RequiredFeature, 100)
+	require.NoError(t, err)
+
+	userRequest, err := ss.NotifyAdmin().Get(false)
+	require.NoError(t, err)
+
+	require.Equal(t, len(userRequest), 1)
+	require.Equal(t, userRequest[0].SentAt, 100)
 
 	tearDown(t, ss)
 }

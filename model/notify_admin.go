@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type MattermostPaidFeature string
@@ -24,6 +25,8 @@ const (
 	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("mattermost.feature.all_enterprise")
 	UpgradeDowngradedWorkspace         = MattermostPaidFeature("mattermost.feature.upgrade_downgraded_workspace")
 )
+
+const WorkTemplates = "mattermost.plan.work_templates"
 
 var validSKUs map[string]struct{} = map[string]struct{}{
 	LicenseShortSkuProfessional: {},
@@ -58,9 +61,13 @@ type NotifyAdminData struct {
 	RequiredPlan    string                `json:"required_plan"`
 	RequiredFeature MattermostPaidFeature `json:"required_feature"`
 	Trial           bool                  `json:"trial"`
+	SentAt          int64                 `json:"sent_at"`
 }
 
 func (nad *NotifyAdminData) IsValid() *AppError {
+	if strings.HasPrefix(nad.RequiredPlan, WorkTemplates) {
+		return nil
+	}
 	if _, planOk := validSKUs[nad.RequiredPlan]; !planOk {
 		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid plan, %s provided", nad.RequiredPlan), nil, "", http.StatusBadRequest)
 	}

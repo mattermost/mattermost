@@ -10,4 +10,6 @@ const (
 	PluginIdCalls         = "com.mattermost.calls"
 	PluginIdNPS           = "com.mattermost.nps"
 	PluginIdChannelExport = "com.mattermost.plugin-channel-export"
+	PluginIdJenkins       = "jenkins"
+	PluginIdGithub        = "github"
 )

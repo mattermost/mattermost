@@ -4407,7 +4407,7 @@ func (a *OpenTracingAppLayer) FindTeamByName(name string) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64) {
+func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64, userBasedWorkTemplateData map[string][]*model.NotifyAdminData) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FinishSendAdminNotifyPost")
 
@@ -4419,7 +4419,7 @@ func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64) {
 	}()
 
 	defer span.Finish()
-	a.app.FinishSendAdminNotifyPost(trial, now)
+	a.app.FinishSendAdminNotifyPost(trial, now, userBasedWorkTemplateData)
 }
 
 func (a *OpenTracingAppLayer) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {

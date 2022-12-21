@@ -23,7 +23,7 @@ func newSqlNotifyAdminStore(sqlStore *SqlStore) store.NotifyAdminStore {
 }
 
 func (s SqlNotifyAdminStore) insert(data *model.NotifyAdminData) (sql.Result, error) {
-	query := `INSERT INTO NotifyAdmin (UserId, CreateAt, RequiredPlan, RequiredFeature, Trial) VALUES (:UserId, :CreateAt, :RequiredPlan, :RequiredFeature, :Trial)`
+	query := `INSERT INTO NotifyAdmin (UserId, CreateAt, RequiredPlan, RequiredFeature, Trial, SentAt) VALUES (:UserId, :CreateAt, :RequiredPlan, :RequiredFeature, :Trial, 0)`
 	return s.GetMasterX().NamedExec(query, data)
 }
 
@@ -50,7 +50,7 @@ func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mo
 		Where(sq.Eq{"UserId": userId, "RequiredFeature": feature}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data by user id and required feature")
+		return nil, errors.Wrap(err, "could not build sql query to get all notification data by user id and required feature")
 	}
 
 	if err := s.GetReplicaX().Select(&data, query, args...); err != nil {
@@ -62,12 +62,32 @@ func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mo
 	return data, nil
 }
 
+func (s SqlNotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) ([]*model.NotifyAdminData, error) {
+	data := []*model.NotifyAdminData{}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("NotifyAdmin").
+		Where(sq.Eq{"UserId": userId, "RequiredPlan": plan}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get all notification data by user id and required plan")
+	}
+
+	if err := s.GetReplicaX().Select(&data, query, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("NotifyAdmin", fmt.Sprintf("user id: %s and required plan: %s", userId, plan))
+		}
+		return nil, errors.Wrapf(err, "notifcation data by user id: %s and required plan: %s", userId, plan)
+	}
+	return data, nil
+}
+
 func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 	data := []*model.NotifyAdminData{}
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("NotifyAdmin").
-		Where(sq.Eq{"trial": trial}).
+		Where(sq.Eq{"Trial": trial, "SentAt": 0}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data")
@@ -80,8 +100,15 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 }
 
 func (s SqlNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE trial = ? AND createat < ?", trial, now); err != nil {
+	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE Trial = ? AND Createat < ? AND SentAt = 0", trial, now); err != nil {
 		return errors.Wrapf(err, "failed to remove all notification data with trial=%t", trial)
+	}
+	return nil
+}
+
+func (s SqlNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) error {
+	if _, err := s.GetMasterX().Exec("UPDATE NotifyAdmin SET SentAt = ? WHERE UserId = ? AND RequiredPlan = ? AND RequiredFeature = ?", now, userId, requiredPlan, requiredFeature); err != nil {
+		return errors.Wrapf(err, "failed to update SentAt for userId=%s and requiredPlan=%s", userId, requiredPlan)
 	}
 	return nil
 }
