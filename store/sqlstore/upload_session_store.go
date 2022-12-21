@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 
 	sq "github.com/mattermost/squirrel"
@@ -78,7 +79,7 @@ func (us SqlUploadSessionStore) Update(session *model.UploadSession) error {
 	return nil
 }
 
-func (us SqlUploadSessionStore) Get(id string) (*model.UploadSession, error) {
+func (us SqlUploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
 	if !model.IsValidId(id) {
 		return nil, errors.New("SqlUploadSessionStore.Get: id is not valid")
 	}
@@ -91,7 +92,7 @@ func (us SqlUploadSessionStore) Get(id string) (*model.UploadSession, error) {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.Get: failed to build query")
 	}
 	var session model.UploadSession
-	if err := us.GetReplicaX().Get(&session, query, args...); err != nil {
+	if err := us.DBXFromContext(ctx).Get(&session, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UploadSession", id)
 		}

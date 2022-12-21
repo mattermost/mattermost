@@ -1,7 +1,7 @@
 {{define "payment_failed_no_card_body"}}
 <html>
 <body>
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="auto"
     style="margin-top: 20px; line-height: 1.7; color: #555;font-family: Arial; font-style: normal; font-weight: bold;">
     <tr>
         <td>
@@ -18,23 +18,16 @@
                             </tr>
                         </table>
                         <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
-                            style="border-collapse: collapse; max-width: 443px">
-                            <tr style="width: 443px">
+                            style="border-collapse: collapse">
+                            <tr>
                                 <td>
                                     <table border="0" cellpadding="0" cellspacing="0"
-                                        style="padding: 20px 0 0; text-align: center; margin: 0 auto">
+                                        style="padding: 20px 0 0; text-align: center; margin: 0 auto; max-width: 443px">
                                         <tr>
-                                            <td style="padding: 0 0 64px;">
-                                                <table align="center" border="0" cellpadding="0" cellspacing="0"
-                                                    width="371px">
-                                                    <tr>
-                                                        <td>
-                                                            <h2
-                                                                style="margin-bottom: 0; text-align: center; color: #3D3C40; font-weight: bold; margin-top: 10px; line-height: 32px; font-size: 28px; font-family: Arial">
-                                                                {{ .Props.Title }}</h2>
-                                                        </td>
-                                                    </tr>
-                                                </table>
+                                            <td style="padding: 0 50px 64px;">
+                                                <h2
+                                                    style="margin-bottom: 0; text-align: center; color: #3D3C40; font-weight: bold; margin-top: 10px; line-height: 32px; font-size: 28px; font-family: Arial">
+                                                    {{ .Props.Title }}</h2>
                                                 <p
                                                     style="font-weight: normal; color: #3D3C40; font-size: 16px; line-height: 24px; font-family: Arial">
                                                     {{ .Props.Info1 }}</p>
@@ -50,7 +43,7 @@
                                 </td>
                             </tr>
                         </table>
-                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="612px">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" max-width="612px">
                             <tr>
                                 <td style="border-bottom: 1px solid #E5E5E5"></td>
                             </tr>
@@ -65,7 +58,7 @@
                                 </td>
                             </tr>
                         </table>
-                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="612px">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" max-width="612px">
                             <tr>
                                 <td style="border-bottom: 1px solid #E5E5E5"></td>
                             </tr>

@@ -9160,10 +9160,6 @@
     "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Az Ön {{.WorkspaceName}} munkaterülete mostantól a megemelt verziót használja. A számlázás {{.Date}} napon kezdődik"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "Ön mostantól a megemelt verziót használja!"
   },

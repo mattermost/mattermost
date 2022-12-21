@@ -75,30 +75,6 @@ import (
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
 
-type ServiceKey string
-
-const (
-	ChannelKey       ServiceKey = "channel"
-	ConfigKey        ServiceKey = "config"
-	LicenseKey       ServiceKey = "license"
-	FilestoreKey     ServiceKey = "filestore"
-	FileInfoStoreKey ServiceKey = "fileinfostore"
-	ClusterKey       ServiceKey = "cluster"
-	CloudKey         ServiceKey = "cloud"
-	PostKey          ServiceKey = "post"
-	TeamKey          ServiceKey = "team"
-	UserKey          ServiceKey = "user"
-	PermissionsKey   ServiceKey = "permissions"
-	RouterKey        ServiceKey = "router"
-	BotKey           ServiceKey = "bot"
-	LogKey           ServiceKey = "log"
-	HooksKey         ServiceKey = "hooks"
-	KVStoreKey       ServiceKey = "kvstore"
-	StoreKey         ServiceKey = "storekey"
-	SystemKey        ServiceKey = "systemkey"
-	PreferencesKey   ServiceKey = "preferenceskey"
-)
-
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -160,7 +136,7 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
-	products map[string]Product
+	products map[string]product.Product
 
 	hooksManager *product.HooksManager
 }
@@ -187,7 +163,7 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
-		products:    make(map[string]Product),
+		products:    make(map[string]product.Product),
 	}
 
 	for _, option := range options {
@@ -262,24 +238,25 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
-	serviceMap := map[ServiceKey]any{
-		ChannelKey:       &channelsWrapper{srv: s},
-		ConfigKey:        s.platform,
-		LicenseKey:       s.licenseWrapper,
-		FilestoreKey:     s.platform.FileBackend(),
-		FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		ClusterKey:       s.platform,
-		UserKey:          New(ServerConnector(s.Channels())),
-		LogKey:           s.platform.Log(),
-		CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		KVStoreKey:       s.platform,
-		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		SystemKey:        &systemServiceAdapter{server: s},
+	serviceMap := map[product.ServiceKey]any{
+		ServerKey:                s,
+		product.ChannelKey:       &channelsWrapper{srv: s},
+		product.ConfigKey:        s.platform,
+		product.LicenseKey:       s.licenseWrapper,
+		product.FilestoreKey:     s.platform.FileBackend(),
+		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
+		product.ClusterKey:       s.platform,
+		product.UserKey:          New(ServerConnector(s.Channels())),
+		product.LogKey:           s.platform.Log(),
+		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:       s.platform,
+		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:        &systemServiceAdapter{server: s},
 	}
 
 	// Step 4: Initialize products.
 	// Depends on s.httpService.
-	err = s.initializeProducts(products, serviceMap)
+	err = s.initializeProducts(product.GetProducts(), serviceMap)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
@@ -287,7 +264,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
-	s.platform.Start(New(ServerConnector(s.Channels())))
+	s.platform.Start()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -369,7 +346,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log())
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
