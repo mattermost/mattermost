@@ -2277,16 +2277,13 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 	}
 
 	if options.SinceUpdateAt > 0 {
-		subQuery := sq.Or{sq.Gt{"p.UpdateAt": options.SinceUpdateAt}}
-
-		if options.SincePostID != "" {
-			subQuery = append(subQuery, sq.And{
+		query = query.Where(sq.Or{
+			sq.Gt{"p.UpdateAt": options.SinceUpdateAt},
+			sq.And{
 				sq.Eq{"p.UpdateAt": options.SinceUpdateAt},
 				sq.Gt{"p.Id": options.SincePostID},
-			})
-		}
-
-		query = query.Where(subQuery)
+			},
+		})
 	}
 
 	queryString, args, err := query.ToSql()

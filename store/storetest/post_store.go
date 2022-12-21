@@ -2819,15 +2819,15 @@ func testPostCounts(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(6), c)
 
-	// since update at
+	// before update_at time
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, SinceUpdateAt: fifteenMinAgo})
 	require.NoError(t, err)
 	assert.Equal(t, int64(3), c)
 
-	// since update at
+	// equal to update_at time
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, SinceUpdateAt: tenMinAgo})
 	require.NoError(t, err)
-	assert.Equal(t, int64(0), c)
+	assert.Equal(t, int64(3), c)
 
 	// since update_at and since post id
 	tenMinAgoIDs := []string{p4.Id, p5.Id, p7.Id}
