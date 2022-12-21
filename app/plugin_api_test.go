@@ -92,7 +92,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 		return app.NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv().Platform()), pluginDir, webappPluginDir, false, app.Log(), nil)
 	require.NoError(t, err)
 
 	require.Equal(t, len(pluginCodes), len(pluginIDs))
@@ -119,7 +119,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 		})
 	}
 
-	app.ch.SetPluginsEnvironment(env)
+	app.PluginService().SetPluginsEnvironment(env)
 
 	return pluginDir
 }
@@ -849,7 +849,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server.Platform()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginIDs := []string{"pluginid1", "pluginid2", "pluginid3"}
@@ -866,7 +866,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		require.True(t, activated)
 		pluginManifests = append(pluginManifests, manifest)
 	}
-	th.App.ch.SetPluginsEnvironment(env)
+	th.App.PluginService().SetPluginsEnvironment(env)
 
 	// Deactivate the last one for testing
 	success := env.Deactivate(pluginIDs[len(pluginIDs)-1])
@@ -937,10 +937,10 @@ func TestInstallPlugin(t *testing.T) {
 			return app.NewPluginAPI(c, manifest)
 		}
 
-		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
+		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv().Platform()), pluginDir, webappPluginDir, false, app.Log(), nil)
 		require.NoError(t, err)
 
-		app.ch.SetPluginsEnvironment(env)
+		app.PluginService().SetPluginsEnvironment(env)
 
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, pluginCode, backend)
@@ -1632,10 +1632,10 @@ func TestAPIMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock)
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server.Platform()), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
-		th.App.ch.SetPluginsEnvironment(env)
+		th.App.PluginService().SetPluginsEnvironment(env)
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
@@ -2079,10 +2079,10 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 		return th.App.NewPluginAPI(th.Context, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.Server.Platform()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
 	require.NoError(t, err)
 
-	th.App.ch.SetPluginsEnvironment(env)
+	th.App.PluginService().SetPluginsEnvironment(env)
 
 	pluginID := "testplugin"
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
@@ -2179,10 +2179,10 @@ func TestPluginUploadsAPI(t *testing.T) {
 	newPluginAPI := func(manifest *model.Manifest) plugin.API {
 		return th.App.NewPluginAPI(th.Context, manifest)
 	}
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.Server.Platform()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
 	require.NoError(t, err)
 
-	th.App.ch.SetPluginsEnvironment(env)
+	th.App.PluginService().SetPluginsEnvironment(env)
 
 	pluginID := "testplugin"
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
