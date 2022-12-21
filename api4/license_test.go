@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -336,56 +335,38 @@ func TestRequestTrueUpReview(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	subscription := &model.Subscription{
-		ID:          "MySubscriptionID",
-		CustomerID:  "MyCustomer",
-		ProductID:   "SomeProductId",
-		AddOns:      []string{},
-		StartAt:     1000000000,
-		EndAt:       2000000000,
-		CreateAt:    1000000000,
-		Seats:       10,
-		IsFreeTrial: "true",
-		DNS:         "some.dns.server",
-		TrialEndAt:  2000000000,
-		LastInvoice: &model.Invoice{},
-	}
-
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
-		cloud := mocks.CloudInterface{}
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
-
-		th.App.Srv().Cloud = &cloud
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
-	t.Run("returns 500 when data extraction fails", func(t *testing.T) {
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
 		cloud := mocks.CloudInterface{}
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(nil, errors.New("Could not get subscription"))
-
-		th.App.Srv().Cloud = &cloud
 		cloudImpl := th.App.Srv().Cloud
+		th.App.Srv().Cloud = &cloud
 		defer func() {
 			th.App.Srv().Cloud = cloudImpl
 		}()
 
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
 		require.Error(t, err)
-		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
 		resp, err := th.Client.DoAPIPost("/license/review", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }

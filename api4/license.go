@@ -313,7 +313,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Cloud() == nil {
+	if c.App.Cloud() != nil {
 		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "app.job.true_up_review_not_allowd", nil, "", http.StatusNotImplemented)
 		return
 	}
