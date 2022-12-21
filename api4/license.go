@@ -313,21 +313,9 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var subscription *model.Subscription
-	var err error
-	if c.App.Cloud() != nil {
-		// Subscription Data
-		userId := c.AppContext.Session().UserId
-		subscription, err = c.App.Cloud().GetSubscription(userId)
-		if err != nil || subscription == nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	seats := 0
-	if subscription != nil {
-		seats = subscription.Seats
+	if c.App.Cloud() == nil {
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "app.job.true_up_review_not_allowd", nil, "", http.StatusNotImplemented)
+		return
 	}
 
 	// Customer Info & Usage Analytics
@@ -338,12 +326,12 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Webhook, calls, boards, and playbook counts
-	incomingWebhookCount, err := c.App.Srv().Store().Webhook().GetIncomingTotal()
+	incomingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsIncomingCount("")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().GetOutgoingTotal()
+	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsOutgoingCount("")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -395,7 +383,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		ServerVersion:          model.CurrentVersion,
 		ServerInstallationType: os.Getenv(telemetry.EnvVarInstallType),
 		LicenseId:              license.Id,
-		LicensedSeats:          seats,
+		LicensedSeats:          *license.Features.Users,
 		LicensePlan:            license.SkuName,
 		CustomerName:           license.Customer.Name,
 		ActiveUsers:            activeUserCount,
