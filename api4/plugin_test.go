@@ -94,7 +94,7 @@ func TestPlugin(t *testing.T) {
 			assert.Equal(t, "testplugin", manifest.Id)
 		})
 
-		th.App.PluginService().RemovePlugin(manifest.Id)
+		th.App.Channels().RemovePlugin(manifest.Id)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
