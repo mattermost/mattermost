@@ -7,7 +7,7 @@ type TrueUpReviewProfile struct {
 	ServerId               string              `json:"server_id"`
 	ServerVersion          string              `json:"server_version"`
 	ServerInstallationType string              `json:"server_installation_type"`
-	LicenseId              string              `json:"licnes_id"`
+	LicenseId              string              `json:"license_id"`
 	LicensedSeats          int                 `json:"licensed_seats"`
 	LicensePlan            string              `json:"license_plan"`
 	CustomerName           string              `json:"customer_name"`

@@ -368,16 +368,17 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authentication Features
-	mfaUsed := c.App.Config().ServiceSettings.EnforceMultifactorAuthentication
-	ldapUsed := c.App.Config().LdapSettings.Enable
-	samlUsed := c.App.Config().SamlSettings.Enable
-	openIdUsed := c.App.Config().OpenIdSettings.Enable
-	guessAccessAllowed := c.App.Config().GuestAccountsSettings.Enable
+	config := c.App.Config()
+	mfaUsed := config.ServiceSettings.EnforceMultifactorAuthentication
+	ldapUsed := config.LdapSettings.Enable
+	samlUsed := config.SamlSettings.Enable
+	openIdUsed := config.OpenIdSettings.Enable
+	guessAccessAllowed := config.GuestAccountsSettings.Enable
 
 	authFeatures := map[string]*bool{
 		model.TrueUpReviewAuthFeaturesMfa:        mfaUsed,
-		model.TueUpReviewAuthFeaturesAdLdap:      ldapUsed,
-		model.TrueUpReviewauthFeaturesSaml:       samlUsed,
+		model.TrueUpReviewAuthFeaturesADLdap:     ldapUsed,
+		model.TrueUpReviewAuthFeaturesSaml:       samlUsed,
 		model.TrueUpReviewAuthFeatureOpenId:      openIdUsed,
 		model.TrueUpReviewAuthFeatureGuestAccess: guessAccessAllowed,
 	}
