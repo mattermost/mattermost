@@ -400,39 +400,3 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 	}
 	return count, nil
 }
-
-func (s SqlWebhookStore) GetIncomingTotal() (int64, error) {
-	queryBuilder :=
-		s.getQueryBuilder().
-			Select("COUNT(*)").
-			From("IncomingWebhooks")
-
-	queryString, args, err := queryBuilder.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "incoming_webhook_tosql")
-	}
-
-	var count int64
-	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
-		return 0, errors.Wrap(err, "failed to count total IncomingWebooks")
-	}
-	return count, nil
-}
-
-func (s SqlWebhookStore) GetOutgoingTotal() (int64, error) {
-	queryBuilder :=
-		s.getQueryBuilder().
-			Select("COUNT(*)").
-			From("OutgoingWebhooks")
-
-	queryString, args, err := queryBuilder.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "outgoing_webhook_tosql")
-	}
-
-	var count int64
-	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
-		return 0, errors.Wrap(err, "failed to count total OutgoingWebhooks")
-	}
-	return count, nil
-}

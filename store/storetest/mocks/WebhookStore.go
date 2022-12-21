@@ -227,27 +227,6 @@ func (_m *WebhookStore) GetIncomingListByUser(userID string, offset int, limit i
 	return r0, r1
 }
 
-// GetIncomingTotal provides a mock function with given fields:
-func (_m *WebhookStore) GetIncomingTotal() (int64, error) {
-	ret := _m.Called()
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetOutgoing provides a mock function with given fields: id
 func (_m *WebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 	ret := _m.Called(id)
@@ -402,27 +381,6 @@ func (_m *WebhookStore) GetOutgoingListByUser(userID string, offset int, limit i
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userID, offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetOutgoingTotal provides a mock function with given fields:
-func (_m *WebhookStore) GetOutgoingTotal() (int64, error) {
-	ret := _m.Called()
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
