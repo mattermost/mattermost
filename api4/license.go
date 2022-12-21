@@ -403,6 +403,12 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Send telemetry data.
 	json.Unmarshal(reviewProfileJson, &telemetryProperties)
+	delete(telemetryProperties, "plugins")
+	plugins := reviewProfile.Plugins.ToMap()
+	for pluginName, pluginValue := range plugins {
+		telemetryProperties[pluginName] = pluginValue
+	}
+
 	telemetryService := c.App.Srv().GetTelemetryService()
 	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
 
