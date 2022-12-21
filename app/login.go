@@ -159,7 +159,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
 	var rejectionReason string
 	pluginContext := pluginContext(c)
-	a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		rejectionReason = hooks.UserWillLogIn(pluginContext, user)
 		return rejectionReason == ""
 	}, plugin.UserWillLogInID)
@@ -225,7 +225,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	a.Srv().Go(func() {
-		a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			hooks.UserHasLoggedIn(pluginContext, user)
 			return true
 		}, plugin.UserHasLoggedInID)
