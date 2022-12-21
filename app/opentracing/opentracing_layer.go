@@ -13125,6 +13125,23 @@ func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamID string) []*model.Comm
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) PluginService() *app.PluginService {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginService")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.PluginService()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfig, seqVal string) (*platform.WebConnConfig, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PopulateWebConnConfig")

@@ -15,7 +15,7 @@ func TestConnCreateTimeout(t *testing.T) {
 
 	*th.App.Config().SqlSettings.QueryTimeout = 0
 
-	d := NewDriverImpl(th.Server)
+	d := NewDriverImpl(th.Server.platform)
 	_, err := d.Conn(true)
 	require.Error(t, err)
 }
