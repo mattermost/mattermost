@@ -16,7 +16,7 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().installPluginFromData(data)
+	s.pluginService.installPluginFromData(data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
@@ -24,7 +24,7 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().removePluginFromData(data)
+	s.pluginService.removePluginFromData(data)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
@@ -44,12 +44,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	channels, ok := s.products["channels"].(*Channels)
-	if !ok {
-		return
-	}
-
-	hooks, err := channels.HooksForPluginOrProduct(pluginID)
+	hooks, err := s.HooksForPluginOrProduct(pluginID)
 	if err != nil {
 		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return
