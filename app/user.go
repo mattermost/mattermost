@@ -310,7 +310,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			hooks.UserHasBeenCreated(pluginContext, ruser)
 			return true
 		}, plugin.UserHasBeenCreatedID)
