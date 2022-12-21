@@ -824,6 +824,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		_, aerr := t.writeFile(r, path)
 		if aerr != nil {
 			mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
+			r.CloseWithError(aerr) // always returns nil
 			return
 		}
 	}
@@ -925,7 +926,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 		var newBytes bytes.Buffer
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 		if rejectionReason != "" {

@@ -9,7 +9,7 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -1047,7 +1047,7 @@ func (ss *SqlStore) hasLicense() bool {
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
-	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
 	if err != nil {
 		return err
 	}
@@ -1060,7 +1060,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
+			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {

@@ -853,7 +853,8 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	auditRec.AddEventParameter("patch", post)
+	auditRec.AddEventParameter("id", c.Params.PostId)
+	auditRec.AddEventParameter("patch", post.Auditable())
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

@@ -62,7 +62,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
@@ -93,6 +93,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
 			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
+		r.CloseWithError(err) // always returns nil
 		return err
 	}
 

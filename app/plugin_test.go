@@ -346,7 +346,7 @@ func TestServePluginRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.ServePluginRequest(w, r)
+	th.App.PluginService().ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
 
@@ -390,7 +390,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
 
-			th.App.ch.servePluginRequest(recorder, request, handler)
+			th.App.PluginService().servePluginRequest(recorder, request, handler)
 		})
 	}
 
@@ -413,7 +413,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	var assertions func(*http.Request)
 	router := mux.NewRouter()
 	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.ch.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		th.App.PluginService().servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
 			assertions(r)
 		})
 	})
@@ -625,7 +625,7 @@ func TestPluginSync(t *testing.T) {
 				appErr = th.App.DeletePublicKey("pub_key")
 				checkNoError(t, appErr)
 
-				appErr = th.App.ch.RemovePlugin("testplugin")
+				appErr = th.App.PluginService().RemovePlugin("testplugin")
 				checkNoError(t, appErr)
 			})
 		})
@@ -642,7 +642,7 @@ func TestChannelsPluginsInit(t *testing.T) {
 		path, _ := fileutils.FindDir("tests")
 
 		require.NotPanics(t, func() {
-			th.Server.Channels().initPlugins(ctx, path, path)
+			th.Server.pluginService.initPlugins(ctx, path, path)
 		})
 	}
 
@@ -763,7 +763,7 @@ func TestPluginPanicLogs(t *testing.T) {
 		th.TestLogger.Flush()
 
 		// We shutdown plugins first so that the read on the log buffer is race-free.
-		th.App.ch.ShutDownPlugins()
+		th.App.PluginService().ShutDownPlugins()
 		tearDown()
 
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "panic: some text from panic")
@@ -831,7 +831,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.PluginService().installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
@@ -848,7 +848,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.PluginService().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -858,7 +858,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 1)
 		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-		appErr = th.App.ch.RemovePlugin("testplugin")
+		appErr = th.App.PluginService().RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()
@@ -875,7 +875,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.PluginService().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -908,7 +908,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.PluginService().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -939,7 +939,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.PluginService().installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
@@ -957,7 +957,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.PluginService().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -969,7 +969,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 1)
 		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-		appErr = th.App.ch.RemovePlugin("testplugin")
+		appErr = th.App.PluginService().RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()
@@ -994,7 +994,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.PluginService().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -1071,14 +1071,14 @@ func TestGetPluginStateOverride(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no override", func(t *testing.T) {
-		overrides, value := th.App.ch.getPluginStateOverride("focalboard")
+		overrides, value := th.App.PluginService().getPluginStateOverride("focalboard")
 		require.False(t, overrides)
 		require.False(t, value)
 	})
 
 	t.Run("calls override", func(t *testing.T) {
 		t.Run("on-prem", func(t *testing.T) {
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
+			overrides, value := th.App.PluginService().getPluginStateOverride("com.mattermost.calls")
 			require.False(t, overrides)
 			require.False(t, value)
 		})
@@ -1086,7 +1086,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		t.Run("Cloud, without enabled flag", func(t *testing.T) {
 			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
+			overrides, value := th.App.PluginService().getPluginStateOverride("com.mattermost.calls")
 			require.False(t, overrides)
 			require.False(t, value)
 		})
@@ -1100,7 +1100,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := Setup(t)
 			defer th2.TearDown()
 
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			overrides, value := th2.App.PluginService().getPluginStateOverride("com.mattermost.calls")
 			require.False(t, overrides)
 			require.False(t, value)
 		})
@@ -1114,7 +1114,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := Setup(t)
 			defer th2.TearDown()
 
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			overrides, value := th2.App.PluginService().getPluginStateOverride("com.mattermost.calls")
 			require.True(t, overrides)
 			require.False(t, value)
 		})
@@ -1126,7 +1126,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := Setup(t)
 			defer th2.TearDown()
 
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			overrides, value := th2.App.PluginService().getPluginStateOverride("com.mattermost.calls")
 			require.True(t, overrides)
 			require.False(t, value)
 		})
@@ -1134,7 +1134,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 
 	t.Run("apps override", func(t *testing.T) {
 		t.Run("without enabled flag", func(t *testing.T) {
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			overrides, value := th.App.PluginService().getPluginStateOverride("com.mattermost.apps")
 			require.False(t, overrides)
 			require.False(t, value)
 		})
@@ -1146,7 +1146,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := Setup(t)
 			defer th2.TearDown()
 
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
+			overrides, value := th2.App.PluginService().getPluginStateOverride("com.mattermost.apps")
 			require.True(t, overrides)
 			require.False(t, value)
 		})

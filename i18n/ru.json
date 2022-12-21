@@ -9730,5 +9730,9 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Ошибка при получении ролей во время проверки."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Портал недоступен для самостоятельной регистрации."
   }
 ]
