@@ -92,6 +92,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
+	props["CWSURL"] = *c.CloudSettings.CWSURL
+
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"
@@ -123,7 +125,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionFileRetentionDays"] = "0"
 	props["DataRetentionEnableBoardsDeletion"] = "false"
 	props["DataRetentionBoardsRetentionDays"] = "0"
-	props["CWSURL"] = ""
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
@@ -193,10 +194,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 			props["DataRetentionEnableBoardsDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableBoardsDeletion)
 			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
-		}
-
-		if license.IsCloud() {
-			props["CWSURL"] = *c.CloudSettings.CWSURL
 		}
 
 		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {

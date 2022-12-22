@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
@@ -6437,6 +6438,28 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, 
 	return resultVar0, resultVar1, resultVar2
 }
 
+func (a *OpenTracingAppLayer) GetGroupMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, int, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberUsersSortedPage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1, resultVar2 := a.app.GetGroupMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1, resultVar2
+}
+
 func (a *OpenTracingAppLayer) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupSyncable")
@@ -11557,6 +11580,23 @@ func (a *OpenTracingAppLayer) HasSharedChannel(channelID string) (bool, error) {
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) HooksManager() *product.HooksManager {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HooksManager")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.HooksManager()
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) HubRegister(webConn *platform.WebConn) {
