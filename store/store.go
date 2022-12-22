@@ -87,6 +87,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	TrueUpReview() TrueUpReviewStore
 }
 
 type RetentionPolicyStore interface {
@@ -996,6 +997,11 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+}
+
+type TrueUpReviewStore interface {
+	GetTrueUpReviewStatus(dueDate string) (*model.TrueUpReviewStatus, error)
+	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

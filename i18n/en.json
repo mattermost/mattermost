@@ -2078,6 +2078,30 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
+    "id": "api.license.true_up_review.get.fail.app_error",
+    "translation": "Unable to get true up review records."
+  },
+  {
+    "id": "api.license.true_up_review.license.required",
+    "translation": "A license is required to request a true up review."
+  },
+  {
+    "id": "api.license.true_up_review.not.allowed.for.cloud",
+    "translation": "A true up review cannot be requested for cloud subscriptions."
+  },
+  {
+    "id": "api.license.true_up_review.user.count.fail",
+    "translation": "Unable to get user counts."
+  },
+  {
+    "id": "api.license.true_up_review.webhook.in.count.fail",
+    "translation": "Unable to get inbound webhook counts."
+  },
+  {
+    "id": "api.license.true_up_review.webhook.out.count.fail",
+    "translation": "Unable to get outbound webhook counts."
+  },
+  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },

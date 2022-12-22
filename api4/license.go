@@ -26,7 +26,8 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
 	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/license/review", api.APIHandler(requestTrueUpReview)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/license/review", api.APISessionRequired(requestTrueUpReview)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/license/review/status", api.APISessionRequired(trueUpReviewStatus)).Methods("GET")
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -309,19 +310,19 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license == nil {
-		http.Error(w, "A License is required to perform a true-up review", http.StatusBadRequest)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.license.required", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if c.App.Cloud() != nil {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "app.job.true_up_review_not_allowd", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.not.allowed.for.cloud", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	// Customer Info & Usage Analytics
 	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user.count.fail", nil, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -329,11 +330,12 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	incomingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsIncomingCount("")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook.in.count.fail", nil, "", http.StatusInternalServerError)
 		return
 	}
 	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsOutgoingCount("")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook.out.count.fail", nil, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -346,13 +348,13 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if pluginResponse, err := c.App.GetPlugins(); err == nil {
 		for _, plugin := range pluginResponse.Active {
 			trueUpReviewPlugins.ActivePluginNames = append(trueUpReviewPlugins.ActivePluginNames, plugin.Name)
-			trueUpReviewPlugins.TotalActivePlugins += 1
 		}
+		trueUpReviewPlugins.TotalActivePlugins = len(trueUpReviewPlugins.ActivePluginNames)
 
 		for _, plugin := range pluginResponse.Inactive {
 			trueUpReviewPlugins.InactivePluginNames = append(trueUpReviewPlugins.InactivePluginNames, plugin.Name)
-			trueUpReviewPlugins.TotalInactivePlugins += 1
 		}
+		trueUpReviewPlugins.TotalInactivePlugins = len(trueUpReviewPlugins.InactivePluginNames)
 	}
 
 	// Authentication Features
@@ -397,20 +399,64 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	var telemetryProperties map[string]interface{}
 	reviewProfileJson, err := json.Marshal(reviewProfile)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 
-	// Send telemetry data.
-	json.Unmarshal(reviewProfileJson, &telemetryProperties)
-	delete(telemetryProperties, "plugins")
-	plugins := reviewProfile.Plugins.ToMap()
-	for pluginName, pluginValue := range plugins {
-		telemetryProperties[pluginName] = pluginValue
+	dueDate := utils.GetNextTrueUpReviewDueDate()
+	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate)
+	if err != nil {
+		c.Err = model.NewAppError("trueUpReviewStatus", "api.license.true_up_review.get.fail.app_error", nil, "", http.StatusInternalServerError)
+		return
 	}
 
-	telemetryService := c.App.Srv().GetTelemetryService()
-	telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
+	// Do not send true-up review data if the user has already requested one for the quarter.
+	if !status.Completed {
+		// Send telemetry data.
+		json.Unmarshal(reviewProfileJson, &telemetryProperties)
+		delete(telemetryProperties, "plugins")
+		plugins := reviewProfile.Plugins.ToMap()
+		for pluginName, pluginValue := range plugins {
+			telemetryProperties[pluginName] = pluginValue
+		}
+
+		telemetryService := c.App.Srv().GetTelemetryService()
+		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
+	}
 
 	w.Write(reviewProfileJson)
+}
+
+func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Only admins can request a true up review.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	license := c.App.Channels().License()
+	if license == nil {
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license.required", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if c.App.Cloud() != nil {
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not.allowed.for.cloud", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	nextDueDate := utils.GetNextTrueUpReviewDueDate()
+	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate)
+	if err != nil {
+		c.Err = model.NewAppError("trueUpReviewStatus", "api.license.true_up_review.get.fail.app_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(status)
+	if err != nil {
+		c.Err = model.NewAppError("trueUpReviewStatus", "api.marshal_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
 }

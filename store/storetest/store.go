@@ -59,6 +59,7 @@ type Store struct {
 	NotifyAdminStore          mocks.NotifyAdminStore
 	PostPriorityStore         mocks.PostPriorityStore
 	PostAcknowledgementStore  mocks.PostAcknowledgementStore
+	TrueUpReviewStore         mocks.TrueUpReviewStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -99,6 +100,9 @@ func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.U
 func (s *Store) Draft() store.DraftStore                           { return &s.DraftStore }
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
+}
+func (s *Store) TrueUpReview() store.TrueUpReviewStore {
+	return &s.TrueUpReviewStore
 }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
