@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -403,7 +404,8 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dueDate := utils.GetNextTrueUpReviewDueDate()
+	now := time.Now().UTC()
+	dueDate := utils.GetNextTrueUpReviewDueDate(now)
 	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate)
 	if err != nil {
 		c.Err = model.NewAppError("trueUpReviewStatus", "api.license.true_up_review.get.fail.app_error", nil, "", http.StatusInternalServerError)
@@ -445,7 +447,8 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nextDueDate := utils.GetNextTrueUpReviewDueDate()
+	now := time.Now().UTC()
+	nextDueDate := utils.GetNextTrueUpReviewDueDate(now)
 	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate)
 	if err != nil {
 		c.Err = model.NewAppError("trueUpReviewStatus", "api.license.true_up_review.get.fail.app_error", nil, "", http.StatusInternalServerError)
