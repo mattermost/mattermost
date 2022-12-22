@@ -20,16 +20,16 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func (s *PluginService) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	if handler, ok := s.channels.routerSvc.getHandler(params["plugin_id"]); ok {
-		s.servePluginRequest(w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
+	if handler, ok := ch.routerSvc.getHandler(params["plugin_id"]); ok {
+		ch.servePluginRequest(w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
 			handler.ServeHTTP(w, r)
 		})
 		return
 	}
 
-	pluginsEnvironment := s.GetPluginsEnvironment()
+	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
 		mlog.Error(err.Error())
@@ -49,11 +49,11 @@ func (s *PluginService) ServePluginRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	s.servePluginRequest(w, r, hooks.ServeHTTP)
+	ch.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
-	pluginsEnvironment := a.ch.srv.pluginService.GetPluginsEnvironment()
+	pluginsEnvironment := a.ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
 		a.Log().Error(err.Error())
@@ -87,7 +87,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 
 // ServePluginPublicRequest serves public plugin files
 // at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
-func (s *PluginService) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
+func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, "/") {
 		http.NotFound(w, r)
 		return
@@ -97,7 +97,7 @@ func (s *PluginService) ServePluginPublicRequest(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	pluginsEnv := s.GetPluginsEnvironment()
+	pluginsEnv := ch.GetPluginsEnvironment()
 
 	// Check if someone has nullified the pluginsEnv in the meantime
 	if pluginsEnv == nil {
@@ -121,11 +121,11 @@ func (s *PluginService) ServePluginPublicRequest(w http.ResponseWriter, r *http.
 	http.ServeFile(w, r, publicFile)
 }
 
-func (s *PluginService) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
+func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IPAddress:      utils.GetIPAddress(r, s.platform.Config().ServiceSettings.TrustedProxyIPHeader),
+		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
@@ -148,8 +148,8 @@ func (s *PluginService) servePluginRequest(w http.ResponseWriter, r *http.Reques
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		session, err := New(ServerConnector(s.channels)).GetSession(token)
-		defer s.platform.ReturnSessionToPool(session)
+		session, err := New(ServerConnector(ch)).GetSession(token)
+		defer ch.srv.platform.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
 
@@ -190,7 +190,7 @@ func (s *PluginService) servePluginRequest(w http.ResponseWriter, r *http.Reques
 					mlog.String("user_id", userID),
 				}
 
-				if *s.platform.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+				if *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
 					mlog.Warn(csrfErrorMessage, fields...)
 				} else {
 					mlog.Debug(csrfErrorMessage, fields...)
@@ -219,7 +219,7 @@ func (s *PluginService) servePluginRequest(w http.ResponseWriter, r *http.Reques
 
 	params := mux.Vars(r)
 
-	subpath, _ := utils.GetSubpathFromConfig(s.platform.Config())
+	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
 
 	newQuery := r.URL.Query()
 	newQuery.Del("access_token")
