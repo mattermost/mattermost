@@ -14,7 +14,7 @@ import (
 func (api *API) InitWorkTemplate() {
 	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(needsWorkTemplateFeatureFlag(getWorkTemplateCategories))).Methods("GET")
 	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(needsWorkTemplateFeatureFlag(getWorkTemplates))).Methods("GET")
-	api.BaseRoutes.WorkTemplates.Handle("/dev", api.APIHandler(devStuff)).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/execute", api.APIHandler(executeWorkTemplate)).Methods("POST")
 }
 
 func needsWorkTemplateFeatureFlag(h handlerFunc) handlerFunc {
@@ -68,19 +68,26 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func devStuff(c *Context, w http.ResponseWriter, r *http.Request) {
-	wtcr := &app.WorkTemplateCreationRequest{}
-	err := json.Unmarshal(executeReq, wtcr)
+func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
+	wtcr := &app.WorkTemplateExecutionRequest{}
+	err := json.NewDecoder(r.Body).Decode(wtcr)
 	if err != nil {
 		c.Err = model.NewAppError("devStuff", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	appErr := c.App.ExecuteWorkTemplate(c.AppContext, wtcr)
+	res, appErr := c.App.ExecuteWorkTemplate(c.AppContext, wtcr)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	b, err := json.Marshal(res)
+	if err != nil {
+		c.Err = model.NewAppError("executeWorkTemplate", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(b)
 }
 
 var executeReq = []byte(`{

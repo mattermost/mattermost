@@ -36,7 +36,7 @@ content:
       channel: feature-release
       illustration: "https://via.placeholder.com/509x352.png?text=Board+project+task"
   - playbook:
-      template: "product release" # <-- playbooks templates don't have ids, have to rely on name
+      template: "Product Release" # <-- playbooks templates don't have ids, have to rely on name
       name: "Feature release"
       id: product-release-playbook
       illustration: "https://via.placeholder.com/509x352.png?text=Playbook+feature+release"

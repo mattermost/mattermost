@@ -4070,7 +4070,7 @@ func (a *OpenTracingAppLayer) ExecuteCommand(c request.CTX, args *model.CommandA
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ExecuteWorkTemplate(c *request.Context, wtcr *app.WorkTemplateCreationRequest) *model.AppError {
+func (a *OpenTracingAppLayer) ExecuteWorkTemplate(c *request.Context, wtcr *app.WorkTemplateExecutionRequest) (*app.WorkTemplateExecutionResult, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExecuteWorkTemplate")
 
@@ -4082,14 +4082,14 @@ func (a *OpenTracingAppLayer) ExecuteWorkTemplate(c *request.Context, wtcr *app.
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ExecuteWorkTemplate(c, wtcr)
+	resultVar0, resultVar1 := a.app.ExecuteWorkTemplate(c, wtcr)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) ExportPermissions(w io.Writer) error {

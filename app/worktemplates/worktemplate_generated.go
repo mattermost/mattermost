@@ -84,7 +84,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		},
 		{
 			Playbook: &Playbook{
-				Template:     "product release",
+				Template:     "Product Release",
 				Name:         "Feature release",
 				ID:           "product-release-playbook",
 				Illustration: "https://via.placeholder.com/509x352.png?text=Playbook&#43;feature&#43;release",
