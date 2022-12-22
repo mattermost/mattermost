@@ -1002,6 +1002,7 @@ type PostAcknowledgementStore interface {
 type TrueUpReviewStore interface {
 	GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error)
 	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
+	Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -61,3 +61,26 @@ func (_m *TrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.Tr
 
 	return r0, r1
 }
+
+// Update provides a mock function with given fields: reviewStatus
+func (_m *TrueUpReviewStore) Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
+	ret := _m.Called(reviewStatus)
+
+	var r0 *model.TrueUpReviewStatus
+	if rf, ok := ret.Get(0).(func(*model.TrueUpReviewStatus) *model.TrueUpReviewStatus); ok {
+		r0 = rf(reviewStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TrueUpReviewStatus)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.TrueUpReviewStatus) error); ok {
+		r1 = rf(reviewStatus)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

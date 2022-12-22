@@ -9591,6 +9591,22 @@ func (s *TimerLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (
 	return result, err
 }
 
+func (s *TimerLayerTrueUpReviewStore) Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
+	start := time.Now()
+
+	result, err := s.TrueUpReviewStore.Update(reviewStatus)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TrueUpReviewStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUploadSessionStore) Delete(id string) error {
 	start := time.Now()
 
