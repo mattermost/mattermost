@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 )
@@ -20,7 +19,7 @@ import (
 // a new entry tracked centrally in a map. Further requests operate on the
 // object ID.
 type DriverImpl struct {
-	ps      *platform.PlatformService
+	s       *Server
 	connMut sync.RWMutex
 	connMap map[string]*sql.Conn
 	txMut   sync.Mutex
@@ -31,9 +30,9 @@ type DriverImpl struct {
 	rowsMap map[string]driver.Rows
 }
 
-func NewDriverImpl(s *platform.PlatformService) *DriverImpl {
+func NewDriverImpl(s *Server) *DriverImpl {
 	return &DriverImpl{
-		ps:      s,
+		s:       s,
 		connMap: make(map[string]*sql.Conn),
 		txMap:   make(map[string]driver.Tx),
 		stMap:   make(map[string]driver.Stmt),
@@ -42,11 +41,11 @@ func NewDriverImpl(s *platform.PlatformService) *DriverImpl {
 }
 
 func (d *DriverImpl) Conn(isMaster bool) (string, error) {
-	dbFunc := d.ps.Store.GetInternalMasterDB
+	dbFunc := d.s.Platform().Store.GetInternalMasterDB
 	if !isMaster {
-		dbFunc = d.ps.Store.GetInternalReplicaDB
+		dbFunc = d.s.Platform().Store.GetInternalReplicaDB
 	}
-	timeout := time.Duration(*d.ps.Config().SqlSettings.QueryTimeout) * time.Second
+	timeout := time.Duration(*d.s.Config().SqlSettings.QueryTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	conn, err := dbFunc().Conn(ctx)
