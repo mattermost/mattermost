@@ -16,5 +16,5 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfi
 
 // NewWebConn returns a new WebConn instance.
 func (a *App) NewWebConn(cfg *platform.WebConnConfig) *platform.WebConn {
-	return a.Srv().Platform().NewWebConn(cfg, a, a.Srv())
+	return a.Srv().Platform().NewWebConn(cfg, a, a.ch)
 }
