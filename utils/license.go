@@ -229,8 +229,7 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	return sanitizedLicense
 }
 
-func GetNextTrueUpReviewDueDate() string {
-	now := time.Now().UTC()
+func GetNextTrueUpReviewDueDate(now time.Time) time.Time {
 	quaterEndMonths := []time.Month{time.March, time.June, time.September, time.December}
 
 	var nextQuaterEndMonth time.Month = time.March
@@ -244,5 +243,5 @@ func GetNextTrueUpReviewDueDate() string {
 		}
 	}
 
-	return time.Date(now.Year(), nextQuaterEndMonth, TrueUpReviewDueDay, 0, 0, 0, 0, now.Location()).Format("2006-01-02")
+	return time.Date(now.Year(), nextQuaterEndMonth, TrueUpReviewDueDay, 0, 0, 0, 0, now.Location())
 }

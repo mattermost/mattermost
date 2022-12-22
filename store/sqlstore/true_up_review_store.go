@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	sq "github.com/mattermost/squirrel"
@@ -27,11 +29,11 @@ func trueUpReviewStatusColumns() []string {
 	}
 }
 
-func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate string) (*model.TrueUpReviewStatus, error) {
+func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("TrueUpReviewHistory").
-		Where(sq.Eq{"DueDate": dueDate})
+		Where(sq.Eq{"DueDate": dueDate.Format("2006-01-02")})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -40,7 +42,7 @@ func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate string) (*model.Tru
 	var trueUpReviewStatus model.TrueUpReviewStatus
 	if err := s.GetReplicaX().Get(&trueUpReviewStatus, queryString, args...); err != nil {
 		trueUpReviewStatus.Completed = false
-		trueUpReviewStatus.DueDate = dueDate
+		trueUpReviewStatus.DueDate = dueDate.Format("2006-01-02")
 
 		// If no record is available, create one so there is a record trail.
 		return s.CreateTrueUpReviewStatusRecord(&trueUpReviewStatus)

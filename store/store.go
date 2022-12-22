@@ -1000,7 +1000,7 @@ type PostAcknowledgementStore interface {
 }
 
 type TrueUpReviewStore interface {
-	GetTrueUpReviewStatus(dueDate string) (*model.TrueUpReviewStatus, error)
+	GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error)
 	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 }
 

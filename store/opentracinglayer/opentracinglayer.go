@@ -10640,7 +10640,7 @@ func (s *OpenTracingLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(revie
 	return result, err
 }
 
-func (s *OpenTracingLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate string) (*model.TrueUpReviewStatus, error) {
+func (s *OpenTracingLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TrueUpReviewStore.GetTrueUpReviewStatus")
 	s.Root.Store.SetContext(newCtx)
