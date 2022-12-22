@@ -200,6 +200,8 @@ db/migrations/mysql/000099_create_drafts.down.sql
 db/migrations/mysql/000099_create_drafts.up.sql
 db/migrations/mysql/000100_add_draft_priority_column.down.sql
 db/migrations/mysql/000100_add_draft_priority_column.up.sql
+db/migrations/mysql/000101_create_true_up_review_history.down.sql
+db/migrations/mysql/000101_create_true_up_review_history.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
