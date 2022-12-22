@@ -208,4 +208,5 @@ type BoardsService interface {
 	CreateCard(card *fb_model.Card, boardID string, userID string) (*fb_model.Card, error)
 	PatchCard(cardPatch *fb_model.CardPatch, cardID string, userID string) (*fb_model.Card, error)
 	DeleteCard(cardID string, userID string) error
+	HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool
 }
