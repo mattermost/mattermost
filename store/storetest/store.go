@@ -101,9 +101,7 @@ func (s *Store) Draft() store.DraftStore                           { return &s.D
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) TrueUpReview() store.TrueUpReviewStore {
-	return &s.TrueUpReviewStore
-}
+func (s *Store) TrueUpReview() store.TrueUpReviewStore   { return &s.TrueUpReviewStore }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
