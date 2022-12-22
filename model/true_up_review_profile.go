@@ -33,3 +33,15 @@ func (t *TrueUpReviewPlugins) ToMap() map[string]any {
 		"inactive_plugin_names":  t.InactivePluginNames,
 	}
 }
+
+type TrueUpReviewStatus struct {
+	Completed bool   `json:"true_up_review_completed"`
+	DueDate   string `json:"true_up_review_due_date"`
+}
+
+func (t *TrueUpReviewStatus) ToSlice() []interface{} {
+	return []interface{}{
+		t.DueDate,
+		t.Completed,
+	}
+}

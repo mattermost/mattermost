@@ -400,3 +400,5 @@ db/migrations/postgres/000099_create_drafts.down.sql
 db/migrations/postgres/000099_create_drafts.up.sql
 db/migrations/postgres/000100_add_draft_priority_column.down.sql
 db/migrations/postgres/000100_add_draft_priority_column.up.sql
+db/migrations/postgres/000101_create_true_up_review_history.down.sql
+db/migrations/postgres/000101_create_true_up_review_history.up.sql

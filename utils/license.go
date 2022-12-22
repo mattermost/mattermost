@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -33,6 +34,9 @@ hwIDAQAB
 -----END PUBLIC KEY-----`)
 
 var LicenseValidator LicenseValidatorIface
+
+const TrueUpReviewDueDay = 15
+const BusinessQuaterStep = 3
 
 func init() {
 	if LicenseValidator == nil {
@@ -223,4 +227,22 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
+}
+
+func GetNextTrueUpReviewDueDate() string {
+	now := time.Now().UTC()
+	quaterEndMonths := []time.Month{time.March, time.June, time.September, time.December}
+
+	var nextQuaterEndMonth time.Month = time.March
+	for _, month := range quaterEndMonths {
+		if now.Month() <= month && now.Day() <= TrueUpReviewDueDay {
+			nextQuaterEndMonth = month
+			break
+		} else if now.Month() <= month && now.Day() > TrueUpReviewDueDay {
+			nextQuaterEndMonth = month + BusinessQuaterStep
+			break
+		}
+	}
+
+	return time.Date(now.Year(), nextQuaterEndMonth, TrueUpReviewDueDay, 0, 0, 0, 0, now.Location()).Format("2006-01-02")
 }
