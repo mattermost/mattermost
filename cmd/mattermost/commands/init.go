@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore, startMetrics bool) (*app.App, error) {
-	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), readOnlyConfigStore, startMetrics)
+func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool, options ...app.Option) (*app.App, error) {
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), readOnlyConfigStore, options...)
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
@@ -27,28 +27,15 @@ func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore, star
 	return a, nil
 }
 
-func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	return initDBCommandContextCobra(command, true, true)
+func InitDBCommandContextCobra(command *cobra.Command, options ...app.Option) (*app.App, error) {
+	return initDBCommandContextCobra(command, true, options...)
 }
 
-func InitDBCommandContextCobraReadWrite(command *cobra.Command) (*app.App, error) {
-	return initDBCommandContextCobra(command, false, true)
-}
-
-func InitDBCommandContextCobraWithoutMetrics(command *cobra.Command) (*app.App, error) {
-	return initDBCommandContextCobra(command, true, false)
-}
-
-func initDBCommandContext(configDSN string, readOnlyConfigStore, startMetrics bool) (*app.App, error) {
+func initDBCommandContext(configDSN string, readOnlyConfigStore bool, options ...app.Option) (*app.App, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
 	model.AppErrorInit(i18n.T)
-
-	options := []app.Option{}
-	if startMetrics {
-		options = append(options, app.StartMetrics)
-	}
 
 	// The option order is important as app.Config option reads app.StartMetrics option.
 	options = append(options, app.Config(configDSN, readOnlyConfigStore, nil))
