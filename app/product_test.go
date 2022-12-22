@@ -4,7 +4,6 @@
 package app
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,10 +16,7 @@ import (
 const (
 	testSrvKey1 = "test_1"
 	testSrvKey2 = "test_2"
-	testSrvKey3 = "test_3"
 )
-
-var errMissingDependency = errors.New("missing dependency")
 
 type productA struct{}
 
@@ -29,17 +25,8 @@ func newProductA(m map[product.ServiceKey]any) (product.Product, error) {
 	return &productA{}, nil
 }
 
-func (p *productA) Start(services map[product.ServiceKey]any) error {
-	dependencies := []product.ServiceKey{
-		product.ConfigKey,
-		product.LicenseKey,
-		product.FilestoreKey,
-		product.ClusterKey,
-		testSrvKey2,
-	}
-	return checkDependencies(dependencies, services)
-}
-func (p *productA) Stop() error { return nil }
+func (p *productA) Start(map[product.ServiceKey]any) error { return nil }
+func (p *productA) Stop() error                            { return nil }
 
 type productB struct{}
 
@@ -48,45 +35,14 @@ func newProductB(m map[product.ServiceKey]any) (product.Product, error) {
 	return &productB{}, nil
 }
 
-func (p *productB) Start(services map[product.ServiceKey]any) error {
-	dependencies := []product.ServiceKey{
-		product.ConfigKey,
-		product.LicenseKey,
-		product.FilestoreKey,
-		product.ClusterKey,
-		testSrvKey1,
-	}
-	return checkDependencies(dependencies, services)
-}
-func (p *productB) Stop() error { return nil }
-
-type productC struct{}
-
-func newProductC(m map[product.ServiceKey]any) (product.Product, error) {
-	m[testSrvKey3] = nil
-	return &productC{}, nil
-}
-
-func (p *productC) Start(services map[product.ServiceKey]any) error {
-	dependencies := []product.ServiceKey{}
-	return checkDependencies(dependencies, services)
-}
-func (p *productC) Stop() error { return nil }
-
-func checkDependencies(deps []product.ServiceKey, services map[product.ServiceKey]any) error {
-	for _, key := range deps {
-		if _, ok := services[key]; !ok {
-			return errMissingDependency
-		}
-	}
-	return nil
-}
+func (p *productB) Start(map[product.ServiceKey]any) error { return nil }
+func (p *productB) Stop() error                            { return nil }
 
 func TestInitializeProducts(t *testing.T) {
 	ps, err := platform.New(platform.ServiceConfig{ConfigStore: config.NewTestMemoryStore()})
 	require.NoError(t, err)
 
-	t.Run("2 products and circular dependency", func(t *testing.T) {
+	t.Run("2 products and no circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
 			product.ConfigKey:    nil,
 			product.LicenseKey:   nil,
@@ -97,9 +53,21 @@ func TestInitializeProducts(t *testing.T) {
 		products := map[string]product.Manifest{
 			"productA": {
 				Initializer: newProductA,
+				Dependencies: map[product.ServiceKey]struct{}{
+					product.ConfigKey:    {},
+					product.LicenseKey:   {},
+					product.FilestoreKey: {},
+					product.ClusterKey:   {},
+				},
 			},
 			"productB": {
 				Initializer: newProductB,
+				Dependencies: map[product.ServiceKey]struct{}{
+					product.ConfigKey:    {},
+					testSrvKey1:          {},
+					product.FilestoreKey: {},
+					product.ClusterKey:   {},
+				},
 			},
 		}
 
@@ -113,6 +81,44 @@ func TestInitializeProducts(t *testing.T) {
 		require.Len(t, server.products, 2)
 	})
 
+	t.Run("2 products and circular dependency", func(t *testing.T) {
+		serviceMap := map[product.ServiceKey]any{
+			product.ConfigKey:    nil,
+			product.LicenseKey:   nil,
+			product.FilestoreKey: nil,
+			product.ClusterKey:   nil,
+		}
+
+		products := map[string]product.Manifest{
+			"productA": {
+				Initializer: newProductA,
+				Dependencies: map[product.ServiceKey]struct{}{
+					product.ConfigKey:    {},
+					product.LicenseKey:   {},
+					product.FilestoreKey: {},
+					product.ClusterKey:   {},
+					testSrvKey2:          {},
+				},
+			},
+			"productB": {
+				Initializer: newProductB,
+				Dependencies: map[product.ServiceKey]struct{}{
+					product.ConfigKey:    {},
+					testSrvKey1:          {},
+					product.FilestoreKey: {},
+					product.ClusterKey:   {},
+				},
+			},
+		}
+		server := &Server{
+			products: make(map[string]product.Product),
+			platform: ps,
+		}
+
+		err := server.initializeProducts(products, serviceMap)
+		require.Error(t, err)
+	})
+
 	t.Run("2 products and one w/o any dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
 			product.ConfigKey:    nil,
@@ -124,9 +130,13 @@ func TestInitializeProducts(t *testing.T) {
 		products := map[string]product.Manifest{
 			"productA": {
 				Initializer: newProductA,
+				Dependencies: map[product.ServiceKey]struct{}{
+					product.ConfigKey:  {},
+					product.LicenseKey: {},
+				},
 			},
-			"productC": {
-				Initializer: newProductC,
+			"productB": {
+				Initializer: newProductB,
 			},
 		}
 		server := &Server{
