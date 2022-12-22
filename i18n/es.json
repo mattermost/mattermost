@@ -9176,10 +9176,6 @@
     "translation": "La característica Perspectivas está deshabilitada."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": " "
-  },
-  {
     "id": "api.insights.feature_disabled",
     "translation": "Las Perspectivas están detrás de una bandera de ajuste que no está habilitada."
   },

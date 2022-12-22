@@ -130,7 +130,7 @@ type ConfigService interface {
 }
 
 // HooksService is the API for adding exiting plugin hooks to the server so that they can be called as
-// they were. This Service is required to be used after the products start. Otherwise it will return an error.
+// they were. This Service is required to be accessed after the channels product initialized.
 //
 // The service shall be registered via app.HooksKey service key.
 type HooksService interface {
