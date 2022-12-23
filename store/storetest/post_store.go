@@ -2789,7 +2789,7 @@ func testPostCounts(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(p7)
 	require.NoError(t, nErr)
 
-	// total across teams
+	// total across all teams
 	c, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, c, int64(7))
