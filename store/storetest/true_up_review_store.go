@@ -25,7 +25,7 @@ func testCreateTrueUpReviewStatus(t *testing.T, ss store.Store) {
 
 	reviewStatus := model.TrueUpReviewStatus{
 		Completed: true,
-		DueDate:   utils.GetNextTrueUpReviewDueDate(now).Format("2006-01-02"),
+		DueDate:   utils.GetNextTrueUpReviewDueDate(now).UnixMilli(),
 	}
 
 	t.Run("create true up review status", func(t *testing.T) {
@@ -40,11 +40,11 @@ func testCreateTrueUpReviewStatus(t *testing.T, ss store.Store) {
 func testGetTrueUpReviewStatus(t *testing.T, ss store.Store) {
 
 	now := time.Date(time.Now().Year(), time.August, 1, 0, 0, 0, 0, time.Local)
-	dueDate := utils.GetNextTrueUpReviewDueDate(now)
+	dueDate := utils.GetNextTrueUpReviewDueDate(now).UnixMilli()
 
 	reviewStatus := model.TrueUpReviewStatus{
 		Completed: true,
-		DueDate:   dueDate.Format("2006-01-02"),
+		DueDate:   dueDate,
 	}
 
 	_, err := ss.TrueUpReview().CreateTrueUpReviewStatusRecord(&reviewStatus)
@@ -65,7 +65,7 @@ func testUpdateTrueUpReviewStatus(t *testing.T, ss store.Store) {
 
 	reviewStatus := model.TrueUpReviewStatus{
 		Completed: false,
-		DueDate:   utils.GetNextTrueUpReviewDueDate(now).Format("2006-01-02"),
+		DueDate:   utils.GetNextTrueUpReviewDueDate(now).UnixMilli(),
 	}
 
 	_, err := ss.TrueUpReview().CreateTrueUpReviewStatusRecord(&reviewStatus)
