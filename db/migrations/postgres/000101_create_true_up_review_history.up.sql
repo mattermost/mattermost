@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS trueupreviewhistory (
-	duedate VARCHAR(10),
+	duedate bigint,
 	completed boolean,
     PRIMARY KEY (duedate)
 );

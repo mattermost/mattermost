@@ -35,8 +35,8 @@ func (t *TrueUpReviewPlugins) ToMap() map[string]any {
 }
 
 type TrueUpReviewStatus struct {
-	Completed bool   `json:"true_up_review_completed"`
-	DueDate   string `json:"true_up_review_due_date"`
+	Completed bool  `json:"complete"`
+	DueDate   int64 `json:"due_date"`
 }
 
 func (t *TrueUpReviewStatus) ToSlice() []interface{} {

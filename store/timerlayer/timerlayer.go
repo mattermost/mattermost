@@ -9575,7 +9575,7 @@ func (s *TimerLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatu
 	return result, err
 }
 
-func (s *TimerLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error) {
+func (s *TimerLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error) {
 	start := time.Now()
 
 	result, err := s.TrueUpReviewStore.GetTrueUpReviewStatus(dueDate)

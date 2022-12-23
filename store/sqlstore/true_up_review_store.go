@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"time"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	sq "github.com/mattermost/squirrel"
@@ -29,11 +27,11 @@ func trueUpReviewStatusColumns() []string {
 	}
 }
 
-func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error) {
+func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("TrueUpReviewHistory").
-		Where(sq.Eq{"DueDate": dueDate.Format("2006-01-02")})
+		Where(sq.Eq{"DueDate": dueDate})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -42,7 +40,7 @@ func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.
 	var trueUpReviewStatus model.TrueUpReviewStatus
 	if err := s.GetReplicaX().Get(&trueUpReviewStatus, queryString, args...); err != nil {
 		trueUpReviewStatus.Completed = false
-		trueUpReviewStatus.DueDate = dueDate.Format("2006-01-02")
+		trueUpReviewStatus.DueDate = dueDate
 		return &trueUpReviewStatus, err
 	}
 
@@ -70,7 +68,7 @@ func (s *SqlTrueUpReviewStore) Update(reviewStatus *model.TrueUpReviewStatus) (*
 		Where(sq.Eq{"DueDate": reviewStatus.DueDate})
 
 	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
-		return nil, errors.Wrapf(err, "failed to update true up review status with DueDate=%s", reviewStatus.DueDate)
+		return nil, errors.Wrapf(err, "failed to update true up review status with DueDate=%d", reviewStatus.DueDate)
 	}
 
 	return reviewStatus, nil

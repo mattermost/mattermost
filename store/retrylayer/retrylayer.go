@@ -12157,7 +12157,7 @@ func (s *RetryLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatu
 
 }
 
-func (s *RetryLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.TrueUpReviewStatus, error) {
+func (s *RetryLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error) {
 
 	tries := 0
 	for {
