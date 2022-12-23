@@ -437,10 +437,10 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Only admins can request a true up review.
-	// if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-	// 	c.SetPermissionError(model.PermissionManageLicenseInformation)
-	// 	return
-	// }
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
 
 	license := c.App.Channels().License()
 	if license == nil {
@@ -448,10 +448,10 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if c.App.Cloud() != nil {
-	// 	c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not.allowed.for.cloud", nil, "", http.StatusNotImplemented)
-	// 	return
-	// }
+	if c.App.Cloud() != nil {
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not.allowed.for.cloud", nil, "", http.StatusNotImplemented)
+		return
+	}
 
 	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
 	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
