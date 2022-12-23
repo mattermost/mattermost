@@ -2078,12 +2078,12 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
-    "id": "api.license.true_up_review.get.fail.app_error",
-    "translation": "Unable to get true up review records."
-  },
-  {
     "id": "api.license.true_up_review.create.fail.app_error",
     "translation": "Unable to create a true up review record."
+  },
+  {
+    "id": "api.license.true_up_review.get.fail.app_error",
+    "translation": "Unable to get true up review records."
   },
   {
     "id": "api.license.true_up_review.license.required",
