@@ -408,8 +408,12 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	dueDate := utils.GetNextTrueUpReviewDueDate(now)
 	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate)
 	if err != nil {
-		c.Err = model.NewAppError("trueUpReviewStatus", "api.license.true_up_review.get.fail.app_error", nil, "", http.StatusInternalServerError)
-		return
+		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
+
+		if err != nil {
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create.fail.app_error", nil, "", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Do not send true-up review data if the user has already requested one for the quarter.

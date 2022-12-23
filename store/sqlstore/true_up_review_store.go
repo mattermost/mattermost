@@ -43,9 +43,7 @@ func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate time.Time) (*model.
 	if err := s.GetReplicaX().Get(&trueUpReviewStatus, queryString, args...); err != nil {
 		trueUpReviewStatus.Completed = false
 		trueUpReviewStatus.DueDate = dueDate.Format("2006-01-02")
-
-		// If no record is available, create one so there is a record trail.
-		return s.CreateTrueUpReviewStatusRecord(&trueUpReviewStatus)
+		return &trueUpReviewStatus, err
 	}
 
 	return &trueUpReviewStatus, nil
