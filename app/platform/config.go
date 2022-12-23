@@ -75,12 +75,6 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if ps.startMetrics && *ps.Config().MetricsSettings.Enable {
-		ps.RestartMetrics()
-	} else {
-		ps.ShutdownMetrics()
-	}
-
 	if ps.clusterIFace != nil {
 		err := ps.clusterIFace.ConfigChanged(ps.configStore.RemoveEnvironmentOverrides(oldCfg),
 			ps.configStore.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)

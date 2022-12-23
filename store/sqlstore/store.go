@@ -9,7 +9,7 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -108,7 +108,10 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	draft                store.DraftStore
 	notifyAdmin          store.NotifyAdminStore
+	postPriority         store.PostPriorityStore
+	postAcknowledgement  store.PostAcknowledgementStore
 }
 
 type SqlStore struct {
@@ -213,7 +216,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.draft = newSqlDraftStore(store, metrics)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
+	store.stores.postPriority = newSqlPostPriorityStore(store)
+	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -333,6 +339,28 @@ func (ss *SqlStore) initConnection() {
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// specialSearchChars have special meaning and can be treated as spaces
+func (ss *SqlStore) specialSearchChars() []string {
+	chars := []string{
+		"<",
+		">",
+		"+",
+		"-",
+		"(",
+		")",
+		"~",
+		":",
+	}
+
+	// Postgres can handle "@" without any errors
+	// Also helps postgres in enabling search for EmailAddresses
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		chars = append(chars, "@")
+	}
+
+	return chars
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters
@@ -933,6 +961,18 @@ func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
 }
 
+func (ss *SqlStore) PostPriority() store.PostPriorityStore {
+	return ss.stores.postPriority
+}
+
+func (ss *SqlStore) Draft() store.DraftStore {
+	return ss.stores.draft
+}
+
+func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
+	return ss.stores.postAcknowledgement
+}
+
 func (ss *SqlStore) DropAllTables() {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
@@ -1001,7 +1041,7 @@ func (ss *SqlStore) hasLicense() bool {
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
-	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
 	if err != nil {
 		return err
 	}
@@ -1014,7 +1054,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
+			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {
@@ -1034,18 +1074,10 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 			return err
 		}
 		db := setupConnection("master", dataSource, ss.settings)
-		driver, err = ms.WithInstance(db, &ms.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
@@ -1056,6 +1088,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
+		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {

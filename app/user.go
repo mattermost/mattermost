@@ -308,15 +308,25 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasBeenCreated(pluginContext, ruser)
-				return true
-			}, plugin.UserHasBeenCreatedID)
-		})
-	}
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasBeenCreated(pluginContext, ruser)
+			return true
+		}, plugin.UserHasBeenCreatedID)
+	})
+
+	// For cloud yearly subscriptions, if the current user count of the workspace exceeds the number of seats initially purchased
+	// (plus the “threshold” of 10%), then a subscriptionHistoryEvent object would need to be created and added to the subscriptionHistory
+	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
+	// workspace is currently on a monthly plan, then this function will not do anything.
+
+	go func() {
+		_, err := a.SendSubscriptionHistoryEvent(ruser.Id)
+		if err != nil {
+			c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
+		}
+	}()
 
 	return ruser, nil
 }
@@ -2391,6 +2401,10 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
+	postPriorityIsEnabled := a.isPostPriorityEnabled()
+	if postPriorityIsEnabled {
+		options.IncludeIsUrgent = true
+	}
 
 	if !options.ThreadsOnly {
 		eg.Go(func() error {
@@ -2427,6 +2441,18 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 			return nil
 		})
+
+		if postPriorityIsEnabled {
+			eg.Go(func() error {
+				totalUnreadUrgentMentions, err := a.Srv().Store().Thread().GetTotalUnreadUrgentMentions(userID, teamID, options)
+				if err != nil {
+					return errors.Wrapf(err, "failed to count urgent mentioned threads for user id=%s", userID)
+				}
+				result.TotalUnreadUrgentMentions = totalUnreadUrgentMentions
+
+				return nil
+			})
+		}
 	}
 
 	if !options.TotalsOnly {
@@ -2469,7 +2495,7 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 }
 
 func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended)
+	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.isPostPriorityEnabled())
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2551,7 +2577,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
-	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true)
+	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.isPostPriorityEnabled())
 
 	if err != nil {
 		var errNotFound *store.ErrNotFound

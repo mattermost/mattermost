@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "与えられた役割はスキームによって管理されているため、チャンネルメンバーへ直接適用することはできません。"
+    "translation": "与えられたロールはスキームによって管理されているため、チャンネルメンバーへ直接適用することはできません。"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "与えられた役割はスキームによって管理されているため、チームメンバーへ直接適用することはできません。"
+    "translation": "与えられたロールはスキームによって管理されているため、チームメンバーへ直接適用することはできません。"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -2657,19 +2657,19 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "役割の説明が不正です。"
+    "translation": "ロールの説明が不正です。"
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "役割の表示名が不正です。"
+    "translation": "ロールの表示名が不正です。"
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "権限もしくは役割が不正です。"
+    "translation": "ロールもしくは役割が不正です。"
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "役割の名前が不正です。"
+    "translation": "ロールの名前が不正です。"
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
@@ -2693,7 +2693,7 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "このスコープのスキームに誤った役割が与えられました。"
+    "translation": "このスコープのスキームに誤ったロールが与えられました。"
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2753,7 +2753,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "ユーザーのチャネルメンバーシップの役割が不正です。"
+    "translation": "ユーザーのチャネルメンバーシップのロールが不正です。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -2825,7 +2825,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "ユーザーの役割が正しくありません。"
+    "translation": "ユーザーのロールが正しくありません。"
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -2837,7 +2837,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "ユーザーのチームメンバーシップの役割が不正です。"
+    "translation": "ユーザーのチームメンバーシップのロールが不正です。"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -2933,7 +2933,7 @@
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
-    "translation": "指定された役割は存在しません"
+    "translation": "指定されたロールは存在しません"
   },
   {
     "id": "app.save_config.app_error",
@@ -4741,7 +4741,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5709,7 +5709,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "不正なチームメンバ更新: 手動でゲストの役割を追加/削除することはできません。"
+    "translation": "不正なチームメンバ更新: 手動でゲストのロールを追加/削除することはできません。"
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
@@ -5721,7 +5721,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "不正なチャンネルメンバー更新: 手動でゲストの役割を追加/削除することはできません。"
+    "translation": "不正なチャンネルメンバー更新: 手動でゲストのロールを追加/削除することはできません。"
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
@@ -6437,27 +6437,27 @@
   },
   {
     "id": "app.role.save.invalid_role.app_error",
-    "translation": "役割が不正です。"
+    "translation": "ロールが不正です。"
   },
   {
     "id": "app.role.save.insert.app_error",
-    "translation": "新しい役割を保存できませんでした。"
+    "translation": "新しいロールを保存できませんでした。"
   },
   {
     "id": "app.role.permanent_delete_all.app_error",
-    "translation": "すべての役割を完全に削除できませんでした。"
+    "translation": "すべてのロールを完全に削除できませんでした。"
   },
   {
     "id": "app.role.get_by_names.app_error",
-    "translation": "役割を取得できませんでした。"
+    "translation": "ロールを取得できませんでした。"
   },
   {
     "id": "app.role.get_by_name.app_error",
-    "translation": "役割を取得できませんでした。"
+    "translation": "ロールを取得できませんでした。"
   },
   {
     "id": "app.role.get.app_error",
-    "translation": "役割を取得できませんでした。"
+    "translation": "ロールを取得できませんでした。"
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -6634,10 +6634,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}}の大きさ({{.Width}} x {{.Height}} ピクセル)が制限を超えています。"
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -7185,7 +7181,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどのロールの人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
@@ -7193,7 +7189,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどのロールの人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -8889,11 +8885,11 @@
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}}文字以上の不正なユーザーの役割です。"
+    "translation": "{{.Limit}}文字以上の不正なユーザーのロールです。"
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}} 文字より長い不正なチームメンバーの役割です。"
+    "translation": "{{.Limit}} 文字より長い不正なチームメンバーのロールです。"
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
@@ -8901,7 +8897,7 @@
   },
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーの役割です。"
+    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーのロールです。"
   },
   {
     "id": "model.session.is_valid.roles_limit.app_error",
@@ -8941,7 +8937,7 @@
   },
   {
     "id": "app.role.get_all.app_error",
-    "translation": "全ての役割を取得できませんでした。"
+    "translation": "全てのロールを取得できませんでした。"
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
@@ -9168,10 +9164,6 @@
     "translation": "アップグレードが完了しました!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "あなたの {{.WorkspaceName}} ワークスペースがアップグレードされました。{{.Date}}から課金されます"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermostアップグレードの確認"
   },
@@ -9190,14 +9182,6 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -9281,7 +9265,7 @@
   },
   {
     "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "クラウド製品を取得できませんでした"
+    "translation": "クラウドプロダクトを取得できませんでした"
   },
   {
     "id": "api.templates.delinquency_90.title",
@@ -9293,7 +9277,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Starterの制限により、あなたのデータがアーカイブされている可能性があります。"
+    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9313,15 +9297,15 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Starter にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
+    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです"
+    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです。"
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9341,7 +9325,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "直近のお支払いを処理できませんでした"
+    "translation": "直近のお支払いを処理できませんでした。"
   },
   {
     "id": "api.templates.delinquency_60.title",
@@ -9349,7 +9333,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9381,7 +9365,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "{{.DelinquencyDate}} 付の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
+    "translation": "{{.DelinquencyDate}} 以降の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9429,11 +9413,11 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Starterにダウングレードされる危険性があることを意味します。"
+    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Mattermost {{.Plan}} の支払いが遅れています。"
+    "translation": "Mattermost {{.Plan}} の支払いが遅れています"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -9554,5 +9538,193 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "ゲストアカウントは無効化されています"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type はすでに存在しています。"
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection typeはすでに存在しています。"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "不正なuser idです。"
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "更新日時は有効な時刻でなくてはなりません。"
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "不正なroot idです。"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "不正なpropsです。"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "不正なmessageです。"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "不正なfile idsです。"
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create atは有効な時刻でなくてはなりません。"
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "不正なchannel idです。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "不正なuser idです。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "不正なpost idです。"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "投稿に対する優先度を取得できませんでした"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "下書きを更新できませんでした。"
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "下書きを保存できませんでした。"
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "下書きに添付されたファイルを取得できませんでした。"
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "ユーザーの下書きを取得できませんでした。"
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "下書きを取得できませんでした。"
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "下書き機能は無効化されています。"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "下書きを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "投稿の優先度を取得できませんでした"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "指定された日付以降の緊急の投稿をカウントできませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "投稿への確認応答を保存できませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "投稿への確認応答を取得できませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "確認応答を取得できませんでした。"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "確認応答を削除できませんでした。"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "LDAPユーザーではありません"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "ファイルをアップロードできませんでした。ファイルが大きすぎます。"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "下書き機能は無効化されています。"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "削除されたチャンネルの下書きは保存できません"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "group-teams と group-channels にユーザーを追加できませんでした"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "アーカイブされたチャンネルで確認応答をすることはできません。"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "5分以上経過した確認応答は削除できません。"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "アーカイブされたチャンネルでは、確認応答を削除することはできません。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "開発チーム間で透明性の高いワークフローを作成し、機能開発プロセスをシームレスにすることができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Jira BotやGitHub Botと統合し、生産性を高めましょう。これらはあなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Boards、Playbooks、Botと簡単に接続できる Feature Release チャンネルでチームとチャットできます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda ボードテンプレート、タスクの進捗管理には Project Task ボードをご利用ください。"
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "製品チーム"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "不正な優先度"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "作業テンプレートを取得できませんでした"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "作業テンプレートのカテゴリを取得できませんでした"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "検証中のロール取得時にエラーが発生しました。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "請求書を見る"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。{{.Date}} から課金されます"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "セルフホスティングの利用登録では、ポータルは利用できません。"
   }
 ]

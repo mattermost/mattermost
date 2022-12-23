@@ -4116,10 +4116,6 @@
     "translation": "Nem sikerült lekérni a feltöltést."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Nem sikerült feltölteni a fájlt. A fájl túl nagy."
-  },
-  {
     "id": "app.upload.create.save.app_error",
     "translation": "Nem sikerült elmenteni a feltöltést."
   },
@@ -9164,10 +9160,6 @@
     "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Az Ön {{.WorkspaceName}} munkaterülete mostantól a megemelt verziót használja. A számlázás {{.Date}} napon kezdődik"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "Ön mostantól a megemelt verziót használja!"
   },
@@ -9184,10 +9176,6 @@
     "translation": "Ezt az egyszeri e-mailt azért kapta, mert a Mattermost szervere több mint {{.Hours}} órán keresztül inaktív volt. Ezt az e-mailt a Mattermost szervere automatikusan generálta."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "HIba történt a webhorogról az előfizetés frissítése közben."
-  },
-  {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
@@ -9202,10 +9190,6 @@
   {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Nem kérdezhető le a csapatok száma"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Elérte az engedélyezett integrációk maximális számát {{.NumIntegrations}}. Korlátlan számú integráció telepítéséhez frissítsen valamelyik fizetős csomagunkra."
   },
   {
     "id": "app.post.analytics_teams_count.app_error",
