@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -93,7 +94,7 @@ func init() {
 }
 
 func scheduleExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
 	if err != nil {
 		return err
 	}
@@ -153,7 +154,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
-		a, err := InitDBCommandContextCobra(command)
+		a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
 		license := a.Srv().License()
 		if err != nil {
 			return err
@@ -201,7 +202,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 }
 
 func bulkExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
 	if err != nil {
 		return err
 	}
