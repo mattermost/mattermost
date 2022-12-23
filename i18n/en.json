@@ -2082,10 +2082,6 @@
     "translation": "Unable to create a true up review record."
   },
   {
-    "id": "api.license.true_up_review.get.fail.app_error",
-    "translation": "Unable to get true up review records."
-  },
-  {
     "id": "api.license.true_up_review.license.required",
     "translation": "A license is required to request a true up review."
   },
