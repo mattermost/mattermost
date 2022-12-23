@@ -21,12 +21,6 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	licenseErr := minimumProfessionalLicense(c)
-	if licenseErr != nil {
-		c.Err = licenseErr
-		return
-	}
-
 	// make sure remote cluster service is enabled.
 	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
 		c.Err = appErr
@@ -66,12 +60,6 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireRemoteId()
 	if c.Err != nil {
-		return
-	}
-
-	licenseErr := minimumProfessionalLicense(c)
-	if licenseErr != nil {
-		c.Err = licenseErr
 		return
 	}
 

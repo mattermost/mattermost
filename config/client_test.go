@@ -263,11 +263,31 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			"",
 			&model.License{
-				Features:     &model.Features{},
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
 				SkuShortName: "other",
 			},
 			map[string]string{
 				"ExperimentalSharedChannels": "false",
+			},
+		},
+		{
+			"licensed for shared channels",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
 			},
 		},
 		{
@@ -279,7 +299,9 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			"",
 			&model.License{
-				Features:     &model.Features{},
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
 				SkuShortName: model.LicenseShortSkuProfessional,
 			},
 			map[string]string{
@@ -295,7 +317,9 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			"",
 			&model.License{
-				Features:     &model.Features{},
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
 				SkuShortName: model.LicenseShortSkuEnterprise,
 			},
 			map[string]string{
