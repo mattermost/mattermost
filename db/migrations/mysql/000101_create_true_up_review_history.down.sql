@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS trueupreviewhistory;
+DROP TABLE IF EXISTS TrueUpReviewHistory;
