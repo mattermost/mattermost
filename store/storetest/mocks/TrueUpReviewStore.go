@@ -37,13 +37,13 @@ func (_m *TrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatus *model.
 	return r0, r1
 }
 
-// GetTrueUpReviewStatus provides a mock function with given fields: _a0
-func (_m *TrueUpReviewStore) GetTrueUpReviewStatus(_a0 int64) (*model.TrueUpReviewStatus, error) {
-	ret := _m.Called(_a0)
+// GetTrueUpReviewStatus provides a mock function with given fields: dueDate
+func (_m *TrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error) {
+	ret := _m.Called(dueDate)
 
 	var r0 *model.TrueUpReviewStatus
 	if rf, ok := ret.Get(0).(func(int64) *model.TrueUpReviewStatus); ok {
-		r0 = rf(_a0)
+		r0 = rf(dueDate)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TrueUpReviewStatus)
@@ -52,7 +52,7 @@ func (_m *TrueUpReviewStore) GetTrueUpReviewStatus(_a0 int64) (*model.TrueUpRevi
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(_a0)
+		r1 = rf(dueDate)
 	} else {
 		r1 = ret.Error(1)
 	}
