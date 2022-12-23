@@ -121,7 +121,7 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 		if err != nil {
 			return nil, err
 		}
-		db := setupConnection("master", dataSource, ss.settings)
+		db := SetupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:

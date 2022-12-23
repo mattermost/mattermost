@@ -217,7 +217,9 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	return store
 }
 
-func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
+// SetupConnection sets up the connection to the database and pings it to make sure it's alive.
+// It also applies any database configuration settings that are required.
+func SetupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Fatal("Failed to open SQL connection to err.", mlog.Err(err))
@@ -283,7 +285,7 @@ func (ss *SqlStore) initConnection() {
 		}
 	}
 
-	handle := setupConnection("master", dataSource, ss.settings)
+	handle := SetupConnection("master", dataSource, ss.settings)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
@@ -294,7 +296,7 @@ func (ss *SqlStore) initConnection() {
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			handle := SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -307,7 +309,7 @@ func (ss *SqlStore) initConnection() {
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			handle := SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -323,7 +325,7 @@ func (ss *SqlStore) initConnection() {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i] = setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
 		}
 	}
 }
