@@ -231,3 +231,25 @@ type BoardsService interface {
 	DeleteCard(cardID string, userID string) error
 	HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool
 }
+
+// SessionService is the API for accessing the session.
+//
+// The service shall be registered via app.SessionKey service key.
+type SessionService interface {
+	GetSessionById(sessionID string) (*model.Session, *model.AppError)
+}
+
+// FrontendService is the API for interacting with front end.
+//
+// The service shall be registered via app.FrontendKey service key.
+type FrontendService interface {
+	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
+}
+
+// CommandService is the API for interacting with front end.
+//
+// The service shall be registered via app.CommandKey service key.
+type CommandService interface {
+	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	RegisterPluginCommand(pluginID string, command *model.Command) error
+}
