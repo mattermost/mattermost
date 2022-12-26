@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+
+	fb_model "github.com/mattermost/focalboard/server/model"
 )
 
 // RouterService enables registering the product router to the server. After registering the
@@ -209,4 +211,23 @@ type PreferencesService interface {
 	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
 	UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
 	DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+}
+
+// BoardsService is the API for accessing Boards service APIs.
+//
+// The service shall be registered via app.BoardsKey service key.
+type BoardsService interface {
+	GetTemplates(teamID string, userID string) ([]*fb_model.Board, error)
+	GetBoard(boardID string) (*fb_model.Board, error)
+	CreateBoard(board *fb_model.Board, userID string, addmember bool) (*fb_model.Board, error)
+	PatchBoard(boardPatch *fb_model.BoardPatch, boardID string, userID string) (*fb_model.Board, error)
+	DeleteBoard(boardID string, userID string) error
+	SearchBoards(searchTerm string, searchField fb_model.BoardSearchField, userID string, includePublicBoards bool) ([]*fb_model.Board, error)
+	LinkBoardToChannel(boardID string, channelID string, userID string) (*fb_model.Board, error)
+	GetCards(boardID string) ([]*fb_model.Card, error)
+	GetCard(cardID string) (*fb_model.Card, error)
+	CreateCard(card *fb_model.Card, boardID string, userID string) (*fb_model.Card, error)
+	PatchCard(cardPatch *fb_model.CardPatch, cardID string, userID string) (*fb_model.Card, error)
+	DeleteCard(cardID string, userID string) error
+	HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool
 }
