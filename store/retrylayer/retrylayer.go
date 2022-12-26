@@ -3567,11 +3567,11 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 
 }
 
-func (s *RetryLayerComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s *RetryLayerComplianceStore) MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ComplianceStore.MessageExport(cursor, limit)
+		result, resultVar1, err := s.ComplianceStore.MessageExport(ctx, cursor, limit)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -5054,6 +5054,27 @@ func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 	tries := 0
 	for {
 		result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
 		if err == nil {
 			return result, nil
 		}
