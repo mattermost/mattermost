@@ -253,6 +253,8 @@ func NewServer(options ...Option) (*Server, error) {
 		product.KVStoreKey:       s.platform,
 		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		product.SystemKey:        &systemServiceAdapter{server: s},
+		product.SessionKey:       app,
+		product.FrontendKey:      app,
 	}
 
 	// Step 4: Initialize products.
