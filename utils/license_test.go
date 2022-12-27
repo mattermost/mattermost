@@ -146,4 +146,11 @@ func TestGetNextTrueUpReviewDueDate(t *testing.T) {
 		due = GetNextTrueUpReviewDueDate(now)
 		assert.Equal(t, time.December, due.Month())
 	})
+
+	t.Run("Due date will be in the next year if the next quarter is not within the current year", func(t *testing.T) {
+		now := time.Date(2022, time.December, 18, 0, 0, 0, 0, time.Local)
+		due := GetNextTrueUpReviewDueDate(now)
+		assert.Equal(t, time.March, due.Month())
+		assert.Equal(t, 2023, due.Year())
+	})
 }
