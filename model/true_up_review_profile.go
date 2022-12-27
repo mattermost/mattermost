@@ -25,8 +25,8 @@ type TrueUpReviewPlugins struct {
 	InactivePluginNames  []string `json:"inactive_plugin_names"`
 }
 
-func (t *TrueUpReviewPlugins) ToMap() map[string]any {
-	return map[string]any{
+func (t *TrueUpReviewPlugins) ToMap() map[string]interface{} {
+	return map[string]interface{}{
 		"total_active_plugins":   t.TotalActivePlugins,
 		"total_inactive_plugins": t.TotalInactivePlugins,
 		"active_plugin_names":    t.ActivePluginNames,

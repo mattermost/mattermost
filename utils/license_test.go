@@ -111,7 +111,7 @@ func TestGetNextTrueUpReviewDueDate(t *testing.T) {
 		assert.Equal(t, due.Day(), TrueUpReviewDueDay)
 	})
 
-	t.Run("Due date will always be in next quater if the current date is past the 15th", func(t *testing.T) {
+	t.Run("Due date will always be in next quarter if the current date is past the 15th", func(t *testing.T) {
 		now := time.Date(2022, time.March, 16, 0, 0, 0, 0, time.Local)
 		due := GetNextTrueUpReviewDueDate(now)
 		assert.Equal(t, time.June, due.Month())
@@ -129,7 +129,7 @@ func TestGetNextTrueUpReviewDueDate(t *testing.T) {
 		assert.Equal(t, time.March, due.Month())
 	})
 
-	t.Run("Due date will always be in the current quater if the current date is before or on the 15th", func(t *testing.T) {
+	t.Run("Due date will always be in the current quarter if the current date is before or on the 15th", func(t *testing.T) {
 		now := time.Date(2022, time.March, 15, 0, 0, 0, 0, time.Local)
 		due := GetNextTrueUpReviewDueDate(now)
 		assert.Equal(t, time.March, due.Month())
