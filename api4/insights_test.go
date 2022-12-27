@@ -1112,7 +1112,8 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
 		require.NoError(t, topDmsErr)
 		require.Len(t, topDMs.Items, 1)
-		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		// deactivation posts another message in the channel
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
 	})
 }
 
