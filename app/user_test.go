@@ -358,6 +358,87 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	th.App.UpdateActive(th.Context, th.BasicUser, true)
 }
 
+func TestUpdateUserActiveDirectMessageChannelStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableUserDeactivation = true
+	})
+	firstUser := th.BasicUser
+	secondUser := th.BasicUser2
+	thirdUser := th.CreateUser()
+	// create DM channels between basicUser, basicUser2, thirdUser
+	ch1, nErr := th.App.createDirectChannel(th.Context, firstUser.Id, thirdUser.Id)
+	require.Nil(t, nErr)
+	ch2, nErr := th.App.createDirectChannel(th.Context, secondUser.Id, thirdUser.Id)
+	require.Nil(t, nErr)
+	ch3, nErr := th.App.createDirectChannel(th.Context, secondUser.Id, firstUser.Id)
+	require.Nil(t, nErr)
+	// deactivate second user
+	err := th.App.UpdateUserActive(th.Context, secondUser.Id, false)
+	assert.Nil(t, err)
+
+	// ensure that ch2, ch3 are deleted, and ch1 is not
+	ch1New, nErr := th.App.GetChannelByName(th.Context, ch1.Name, "", true)
+	require.Nil(t, nErr)
+	require.Equal(t, ch1New.DeleteAt, int64(0))
+	ch2New, nErr := th.App.GetChannelByName(th.Context, ch2.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch2New.DeleteAt, int64(0))
+	ch3New, nErr := th.App.GetChannelByName(th.Context, ch3.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch3New.DeleteAt, int64(0))
+
+	// deactivate third user
+	err = th.App.UpdateUserActive(th.Context, thirdUser.Id, false)
+	assert.Nil(t, err)
+
+	// ensure that ch1, ch2, ch3 are deleted
+	ch1New, nErr = th.App.GetChannelByName(th.Context, ch1.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch1New.DeleteAt, int64(0))
+	ch2New, nErr = th.App.GetChannelByName(th.Context, ch2.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch2New.DeleteAt, int64(0))
+	ch3New, nErr = th.App.GetChannelByName(th.Context, ch3.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch3New.DeleteAt, int64(0))
+
+	// reactivate secondUser and make sure that channels ch2, ch1 are deleted and ch3 is restored
+	err = th.App.UpdateUserActive(th.Context, secondUser.Id, true)
+	assert.Nil(t, err)
+
+	ch1New, nErr = th.App.GetChannelByName(th.Context, ch1.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch1New.DeleteAt, int64(0))
+	ch2New, nErr = th.App.GetChannelByName(th.Context, ch2.Name, "", true)
+	require.Nil(t, nErr)
+	require.NotEqual(t, ch2New.DeleteAt, int64(0))
+	ch3New, nErr = th.App.GetChannelByName(th.Context, ch3.Name, "", true)
+	require.Nil(t, nErr)
+	require.Equal(t, ch3New.DeleteAt, int64(0))
+
+	// reactivate third user and make sure that channels ch2, ch1, ch3 are restored
+	err = th.App.UpdateUserActive(th.Context, thirdUser.Id, true)
+	assert.Nil(t, err)
+
+	ch1New, nErr = th.App.GetChannelByName(th.Context, ch1.Name, "", true)
+	require.Nil(t, nErr)
+	require.Equal(t, ch1New.DeleteAt, int64(0))
+	ch2New, nErr = th.App.GetChannelByName(th.Context, ch2.Name, "", true)
+	require.Nil(t, nErr)
+	require.Equal(t, ch2New.DeleteAt, int64(0))
+	ch3New, nErr = th.App.GetChannelByName(th.Context, ch3.Name, "", true)
+	require.Nil(t, nErr)
+	require.Equal(t, ch3New.DeleteAt, int64(0))
+}
+
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

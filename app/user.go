@@ -981,6 +981,51 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 
+	dmChannels := []*model.Channel{}
+	channelsInTeam, aErr := a.GetChannelsForTeamForUser(c, "", user.Id, &model.ChannelSearchOpts{
+		IncludeDeleted: true,
+		LastDeleteAt:   0,
+	})
+	// soft errors here on since user is updated
+	if aErr != nil {
+		c.Logger().Error("Failed to get channels for user", mlog.String("user_id", user.Id), mlog.Err(err))
+	}
+
+	if channelsInTeam != nil {
+		for _, channel := range channelsInTeam {
+			if channel.Type == model.ChannelTypeDirect {
+				dmChannels = append(dmChannels, channel)
+			}
+		}
+		// channelMembers, err := a.GetChannelMembersForUser()
+		if active {
+			// undelete direct message channels
+			for _, channel := range dmChannels {
+				// not using app.GetChannelMembersCount because it computes from cache
+				channelMemberCount, err := a.Srv().Store().Channel().GetMemberCount(channel.Id, false)
+				if err != nil {
+					c.Logger().Error("Failed to get channel members count for channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+				}
+				if channelMemberCount == 2 && channel.DeleteAt != 0 {
+					_, aErr := a.RestoreChannel(c, channel, user.Id)
+					if aErr != nil {
+						c.Logger().Error("Failed to restore channels for user", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(aErr))
+					}
+				}
+			}
+		} else {
+			// delete direct message channels
+			for _, channel := range dmChannels {
+				if channel.DeleteAt == 0 {
+					aErr := a.DeleteChannel(c, channel, user.Id)
+					if aErr != nil {
+						c.Logger().Error("Failed to delete channels for user", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(aErr))
+					}
+				}
+			}
+		}
+	}
+
 	a.invalidateUserChannelMembersCaches(c, user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
