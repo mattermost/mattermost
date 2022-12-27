@@ -2078,16 +2078,12 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
-    "id": "api.license.true_up_review.create.fail.app_error",
-    "translation": "Unable to create a true up review record."
-  },
-  {
     "id": "api.license.true_up_review.create_error",
-    "translation": ""
+    "translation": "Could not create true up status record"
   },
   {
     "id": "api.license.true_up_review.get_status_error",
-    "translation": ""
+    "translation": "Could not get true up status records"
   },
   {
     "id": "api.license.true_up_review.license.required",
@@ -2095,27 +2091,27 @@
   },
   {
     "id": "api.license.true_up_review.license_required",
-    "translation": ""
+    "translation": "True up review requires a license"
   },
   {
     "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": ""
+    "translation": "True up review is not allowed for cloud instances"
   },
   {
     "id": "api.license.true_up_review.status_not_found",
-    "translation": ""
+    "translation": "Could not find any true up status records"
   },
   {
     "id": "api.license.true_up_review.user_count_fail",
-    "translation": ""
+    "translation": "Could not get the total active users count"
   },
   {
     "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": ""
+    "translation": "Could not get the total incoming webhook count"
   },
   {
     "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": ""
+    "translation": "Could not get the total outgoing webhook count"
   },
   {
     "id": "api.license.upgrade_needed.app_error",

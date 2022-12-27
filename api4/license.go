@@ -326,7 +326,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Customer Info & Usage Analytics
 	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
 	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total active users count", http.StatusInternalServerError)
 		return
 	}
 
@@ -334,12 +334,12 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	incomingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsIncomingCount("")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_in_count_fail", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_in_count_fail", nil, "Could not get the total incoming webhook count", http.StatusInternalServerError)
 		return
 	}
 	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsOutgoingCount("")
 	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_out_count_fail", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_out_count_fail", nil, "Could not get the total outgoing webhook count", http.StatusInternalServerError)
 		return
 	}
 
@@ -413,15 +413,15 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "", http.StatusNotFound).Wrap(err)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "Could not find any true up status records", http.StatusNotFound).Wrap(err)
 		default:
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
 		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
 		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create.fail.app_error", nil, "", http.StatusInternalServerError)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -458,12 +458,12 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license == nil {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license_required", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license_required", nil, "True up review requires a license", http.StatusNotImplemented)
 		return
 	}
 
 	if license.IsCloud() {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not_allowed_for_cloud", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not_allowed_for_cloud", nil, "True up review is not allowed for cloud instances", http.StatusNotImplemented)
 		return
 	}
 
@@ -473,16 +473,16 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "", http.StatusNotFound).Wrap(err)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "Could not find any true up status records", http.StatusNotFound).Wrap(err)
 		default:
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
 		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
 
 		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "", http.StatusInternalServerError)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
 			return
 		}
 	}
