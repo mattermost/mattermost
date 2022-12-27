@@ -6344,14 +6344,6 @@
     "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Impossible d'interpréter le paramètre ExportFromTimestamp de la tâche d'exportation de messages."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Le nœud d'API cluster est introuvable."
   },
