@@ -7572,14 +7572,6 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
-  },
-  {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
