@@ -1920,14 +1920,6 @@
     "translation": "مهلت زمانی هماهنگ سازی AD/LDAP رسیده است."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "تجزیه و تحلیل کار صادرات پیام ExportFromTimestamp امکان پذیر نیست."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "تجزیه و تحلیل کار صادرات پیام صادرات از مهر زمان انجام نمی شود.."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "مجوز شما از ID Loaded Push Notifications پشتیبانی نمی کند."
   },

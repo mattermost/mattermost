@@ -6604,14 +6604,6 @@
     "translation": "Time-out voor synchronisatie van AD/LDAP werd bereikt."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Fout bij het verwerken van bericht export taak ExportFromTimeStamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Fout bij ontleden van bericht exporttaak BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint niet gevonden."
   },
