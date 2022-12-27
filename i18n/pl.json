@@ -6352,14 +6352,6 @@
     "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Nie można przeanalizować zadania eksportowania komunikatu ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
   },
