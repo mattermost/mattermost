@@ -6,14 +6,17 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -315,15 +318,15 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Cloud() != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.not.allowed.for.cloud", nil, "", http.StatusNotImplemented)
+	if license.IsCloud() {
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.not_allowed_for_cloud", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	// Customer Info & Usage Analytics
 	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
 	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user.count.fail", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -331,12 +334,12 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	incomingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsIncomingCount("")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook.in.count.fail", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_in_count_fail", nil, "", http.StatusInternalServerError)
 		return
 	}
 	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsOutgoingCount("")
 	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook.out.count.fail", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_out_count_fail", nil, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -407,8 +410,16 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	dueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
 	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate.UnixMilli())
 	if err != nil {
-		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
 
+		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
 		if err != nil {
 			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create.fail.app_error", nil, "", http.StatusInternalServerError)
 			return
@@ -422,8 +433,11 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		delete(telemetryProperties, "plugins")
 		plugins := reviewProfile.Plugins.ToMap()
 		for pluginName, pluginValue := range plugins {
-			telemetryProperties[pluginName] = pluginValue
+			telemetryProperties["plugin_"+pluginName] = pluginValue
 		}
+
+		delete(telemetryProperties, "authentication_features")
+		telemetryProperties["authentication_features"] = strings.Join(reviewProfile.AuthenticationFeatures, ",")
 
 		telemetryService := c.App.Srv().GetTelemetryService()
 		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
@@ -444,22 +458,31 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license == nil {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license.required", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license_required", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if c.App.Cloud() != nil {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not.allowed.for.cloud", nil, "", http.StatusNotImplemented)
+	if license.IsCloud() {
+		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not_allowed_for_cloud", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
 	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
 	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
 		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
 
 		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create.fail.app_error", nil, "", http.StatusInternalServerError)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "", http.StatusInternalServerError)
 			return
 		}
 	}
