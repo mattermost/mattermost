@@ -9730,5 +9730,9 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
     "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal niedostępny dla samodzielnej rejestracji."
   }
 ]

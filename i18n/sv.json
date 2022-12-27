@@ -9725,5 +9725,9 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
     "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Ogiltiga attribut."
   }
 ]
