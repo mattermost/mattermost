@@ -3167,6 +3167,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	u4 := th.CreateUser()
 	// user direct messages
 	chUser1, nErr := th.App.createDirectChannel(th.Context, u1.Id, user.Id)
+	fmt.Println(chUser1, nErr)
 	require.Nil(t, nErr)
 	chUser2, nErr := th.App.createDirectChannel(th.Context, u2.Id, user.Id)
 	require.Nil(t, nErr)
@@ -3231,6 +3232,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 3)
 		// check order, magnitude of items
+		// fmt.Println(topDMs.Items[0].MessageCount, topDMs.Items[1].MessageCount, topDMs.Items[2].MessageCount)
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
