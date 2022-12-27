@@ -2082,24 +2082,40 @@
     "translation": "Unable to create a true up review record."
   },
   {
+    "id": "api.license.true_up_review.create_error",
+    "translation": ""
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": ""
+  },
+  {
     "id": "api.license.true_up_review.license.required",
     "translation": "A license is required to request a true up review."
   },
   {
-    "id": "api.license.true_up_review.not.allowed.for.cloud",
-    "translation": "A true up review cannot be requested for cloud subscriptions."
+    "id": "api.license.true_up_review.license_required",
+    "translation": ""
   },
   {
-    "id": "api.license.true_up_review.user.count.fail",
-    "translation": "Unable to get user counts."
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": ""
   },
   {
-    "id": "api.license.true_up_review.webhook.in.count.fail",
-    "translation": "Unable to get inbound webhook counts."
+    "id": "api.license.true_up_review.status_not_found",
+    "translation": ""
   },
   {
-    "id": "api.license.true_up_review.webhook.out.count.fail",
-    "translation": "Unable to get outbound webhook counts."
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": ""
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": ""
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": ""
   },
   {
     "id": "api.license.upgrade_needed.app_error",
