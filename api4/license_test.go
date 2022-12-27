@@ -344,16 +344,13 @@ func TestRequestTrueUpReview(t *testing.T) {
 	})
 
 	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
-		cloud := mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		th.App.Srv().Cloud = &cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
@@ -384,16 +381,13 @@ func TestTrueUpReviewStatus(t *testing.T) {
 	})
 
 	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
-		cloud := mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		th.App.Srv().Cloud = &cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {

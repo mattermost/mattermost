@@ -3,6 +3,8 @@
 
 package model
 
+import "strings"
+
 type TrueUpReviewProfile struct {
 	ServerId               string              `json:"server_id"`
 	ServerVersion          string              `json:"server_version"`
@@ -29,8 +31,8 @@ func (t *TrueUpReviewPlugins) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"total_active_plugins":   t.TotalActivePlugins,
 		"total_inactive_plugins": t.TotalInactivePlugins,
-		"active_plugin_names":    t.ActivePluginNames,
-		"inactive_plugin_names":  t.InactivePluginNames,
+		"active_plugin_names":    strings.Join(t.ActivePluginNames, ","),
+		"inactive_plugin_names":  strings.Join(t.InactivePluginNames, ","),
 	}
 }
 
