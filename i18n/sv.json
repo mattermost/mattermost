@@ -9729,5 +9729,9 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Ogiltiga attribut."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portalen är inte tillgänglig för egen-hostad registrering."
   }
 ]
