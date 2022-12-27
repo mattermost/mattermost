@@ -1874,7 +1874,6 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		CreateAt:   1000000000,
 		Seats:      10,
 		DNS:        "some.dns.server",
-		IsPaidTier: "false",
 	}
 
 	subscriptionHistory := &model.SubscriptionHistory{
