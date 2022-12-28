@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"database/sql"
+	"strconv"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	sq "github.com/mattermost/squirrel"
@@ -39,9 +42,9 @@ func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.True
 	}
 	var trueUpReviewStatus model.TrueUpReviewStatus
 	if err := s.GetReplicaX().Get(&trueUpReviewStatus, queryString, args...); err != nil {
-		trueUpReviewStatus.Completed = false
-		trueUpReviewStatus.DueDate = dueDate
-		return &trueUpReviewStatus, err
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("TrueUpReviewStatus", strconv.FormatInt(dueDate, 10))
+		}
 	}
 
 	return &trueUpReviewStatus, nil

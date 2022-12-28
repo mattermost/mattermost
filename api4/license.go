@@ -407,18 +407,21 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
-	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate.UnixMilli())
+	dueDate := utils.GetNextTrueUpReviewDueDate(time.Now()).UnixMilli()
+	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate)
 	if err != nil {
+		// Check error. Continue if the status was just not found.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "Could not find any true up status records", http.StatusNotFound).Wrap(err)
+			c.Logger.Warn("Could not find true up review status")
 		default:
 			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
+		// No status was found, so create a new one.
+		status = &model.TrueUpReviewStatus{DueDate: dueDate, Completed: false}
 		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
 		if err != nil {
 			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
@@ -428,7 +431,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not send true-up review data if the user has already requested one for the quarter.
 	if !status.Completed {
-		// Send telemetry data.
+		// "Flatten" telemetry data.
 		json.Unmarshal(reviewProfileJson, &telemetryProperties)
 		delete(telemetryProperties, "plugins")
 		plugins := reviewProfile.Plugins.ToMap()
@@ -439,9 +442,11 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		delete(telemetryProperties, "authentication_features")
 		telemetryProperties["authentication_features"] = strings.Join(reviewProfile.AuthenticationFeatures, ",")
 
+		// Send telemetry data
 		telemetryService := c.App.Srv().GetTelemetryService()
 		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
 
+		// Update the review status to reflect the completion.
 		status.Completed = true
 		c.App.Srv().Store().TrueUpReview().Update(status)
 	}
@@ -473,14 +478,14 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.status_not_found", nil, "Could not find any true up status records", http.StatusNotFound).Wrap(err)
+			c.Logger.Warn("Could not find true up review status")
 		default:
 			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
+		status = &model.TrueUpReviewStatus{DueDate: nextDueDate.UnixMilli(), Completed: false}
 		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
-
 		if err != nil {
 			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
 			return
