@@ -367,7 +367,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapUsed := config.LdapSettings.Enable
 	samlUsed := config.SamlSettings.Enable
 	openIdUsed := config.OpenIdSettings.Enable
-	guessAccessAllowed := config.GuestAccountsSettings.Enable
+	guestAccessAllowed := config.GuestAccountsSettings.Enable
 
 	authFeatures := map[string]*bool{
 		model.TrueUpReviewAuthFeaturesMfa:        mfaUsed,
