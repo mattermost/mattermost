@@ -2098,10 +2098,6 @@
     "translation": "True up review is not allowed for cloud instances"
   },
   {
-    "id": "api.license.true_up_review.status_not_found",
-    "translation": "Could not find any true up status records"
-  },
-  {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "Could not get the total active users count"
   },
