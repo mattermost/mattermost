@@ -6356,14 +6356,6 @@
     "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Konnte ExportFromTimestamp des Nachrichten-Export-Jobs nicht verarbeiten."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster-API-Endpunkt nicht gefunden."
   },
