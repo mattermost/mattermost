@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -270,7 +271,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	return append(channelPosts, directMessagePosts...), cursor, nil
 }
 
-func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s SqlComplianceStore) MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 	var args []any
 	args = append(args, model.ChannelTypeDirect, model.ChannelTypeGroup, cursor.LastPostUpdateAt, cursor.LastPostUpdateAt, cursor.LastPostId, limit)
 	query :=
@@ -317,7 +318,7 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 		LIMIT ?`
 
 	cposts := []*model.MessageExport{}
-	if err := s.GetReplicaX().Select(&cposts, query, args...); err != nil {
+	if err := s.GetReplicaX().SelectCtx(ctx, &cposts, query, args...); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
 	if len(cposts) > 0 {

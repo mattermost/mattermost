@@ -6480,14 +6480,6 @@
     "translation": "AD/LDAP 同步任务超时。"
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "无法解析 BatchSize 导出任务消息。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "未找到机群 API 接口。"
   },
@@ -6634,10 +6626,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "获取上传失败。"
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "无法上传文件。文件过大。"
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",
@@ -9064,10 +9052,6 @@
     "translation": "您已经完成升级更新！"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "您的“ {{.WorkspaceName}}”工作空间现在已经升级。您将从{{.TrialEnd}}开始收到账单通知"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "确认升级Mattermost"
   },
@@ -9204,10 +9188,6 @@
     "translation": "无法创建团队，因为已达到团队限制"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "从 webhook 更新订阅时出错。"
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "已通知管理员"
   },
@@ -9230,10 +9210,6 @@
   {
     "id": "app.post_reminder_dm",
     "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
   },
   {
     "id": "app.usage.get_storage_usage.app_error",

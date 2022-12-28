@@ -56,7 +56,7 @@ func getGraphQLUser(ctx context.Context, id string) (*user, error) {
 		}
 	}
 
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
 	return &user{*usr}, nil
 }

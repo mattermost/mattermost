@@ -826,6 +826,29 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int, 
 	return r0, r1
 }
 
+// GetMemberUsersSortedPage provides a mock function with given fields: groupID, page, perPage, viewRestrictions, teammateNameDisplay
+func (_m *GroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
+	ret := _m.Called(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions, string) []*model.User); ok {
+		r0 = rf(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions, string) error); ok {
+		r1 = rf(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNonMemberUsersPage provides a mock function with given fields: groupID, page, perPage, viewRestrictions
 func (_m *GroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(groupID, page, perPage, viewRestrictions)
@@ -1005,6 +1028,29 @@ func (_m *GroupStore) PermittedSyncableAdmins(syncableID string, syncableType mo
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) error); ok {
 		r1 = rf(syncableID, syncableType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Restore provides a mock function with given fields: groupID
+func (_m *GroupStore) Restore(groupID string) (*model.Group, error) {
+	ret := _m.Called(groupID)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(groupID)
 	} else {
 		r1 = ret.Error(1)
 	}

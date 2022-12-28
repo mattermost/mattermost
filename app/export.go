@@ -7,11 +7,13 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -157,9 +159,17 @@ func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.
 
 func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	version := 1
+
+	info := &imports.VersionInfoImportData{
+		Generator: "mattermost-server",
+		Version:   fmt.Sprintf("%s (%s, enterprise: %s)", model.CurrentVersion, model.BuildHash, model.BuildEnterpriseReady),
+		Created:   time.Now().Format(time.RFC3339Nano),
+	}
+
 	versionLine := &imports.LineImportData{
 		Type:    "version",
 		Version: &version,
+		Info:    info,
 	}
 
 	return a.exportWriteLine(writer, versionLine)
@@ -388,8 +398,15 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
+	var postProcessCount uint64
+	logCheckpoint := time.Now()
 
 	for {
+		if time.Since(logCheckpoint) > 5*time.Minute {
+			ctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d posts", postProcessCount))
+			logCheckpoint = time.Now()
+		}
+
 		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -401,6 +418,7 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 
 		for _, post := range posts {
 			afterId = post.Id
+			postProcessCount++
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
@@ -667,7 +685,15 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
+	var postProcessCount uint64
+	logCheckpoint := time.Now()
+
 	for {
+		if time.Since(logCheckpoint) > 5*time.Minute {
+			ctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d direct posts", postProcessCount))
+			logCheckpoint = time.Now()
+		}
+
 		posts, err := a.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, afterId)
 		if err != nil {
 			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -679,6 +705,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttach
 
 		for _, post := range posts {
 			afterId = post.Id
+			postProcessCount++
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
