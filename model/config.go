@@ -2549,7 +2549,7 @@ type ElasticsearchSettings struct {
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientCA                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2588,8 +2588,8 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.Password = NewString(ElasticsearchSettingsDefaultPassword)
 	}
 
-	if s.ClientCA == nil {
-		s.ClientCA = NewString("")
+	if s.CA == nil {
+		s.CA = NewString("")
 	}
 
 	if s.ClientCert == nil {
