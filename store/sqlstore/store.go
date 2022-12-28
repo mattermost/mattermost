@@ -327,6 +327,7 @@ func (ss *SqlStore) initConnection() {
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
 			}
+			ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
 		}
 	}
 
