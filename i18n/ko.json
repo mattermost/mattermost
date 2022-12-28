@@ -6520,14 +6520,6 @@
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -7929,7 +7921,7 @@
   },
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "연체 이메일을 보내기 위한 필수 항목이 누락되었습니다."
+    "translation": "연체 알림 전자우편을 보내기 위한 필수 항목이 누락되었습니다."
   },
   {
     "id": "api.error_set_first_admin_complete_setup",
@@ -7958,5 +7950,89 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "{{.Remote}} 원격 사이트가 오프라인이기 때문에 하나 또는 그 이상의 포스트가 전송되지 않았습니다. 포스트는 해당 사이트가 온라인일 때 전송될 것입니다."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}}님이 글타래에 답장을 남겼습니다"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 지켜보는 중인 글타래에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 {{.ChannelName}} 채널에 있는 지켜보는 중인 글타래에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 그룹 글타래에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 당신이 직접 보낸 메시지에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "언급된 사용자의 글타래 권한을 갱신하지 못했습니다"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser의 Before와 After 매개변수는 상호 배타적입니다"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "getThreadsForUser의 OnlyThreads와 OnlyTotals 매개변수는 상호 배타적입니다"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "팀의 상위 글타래를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "사용자의 상위 글타래를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "사용자의 글타래 개수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "사용자 글타래 권한을 가져올 수 없습니다"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "사용자 글타래 권한이 없습니다"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "사용자 글타래들을 가져올 수 없습니다"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "사용자 글타래가 존재하지 않거나 지켜보고 있지 않습니다"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "글타래의 지켜보기 상태를 갱신할 수 없습니다"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "글타래의 읽음 상태를 갱신할 수 없습니다"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "유효하지 않은 post_id"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "CollapsedThreads 설정은 disabled, default_on 혹은 default_off 중 하나여야만 합니다"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "CollapsedThreads 기능을 활성화하려면 ThreadAutoFollow 기능이 활성화되어야 합니다"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "모든 사용자 글타래들을 읽음 상태로 변경할 수 없습니다"
   }
 ]
