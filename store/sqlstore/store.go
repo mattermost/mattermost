@@ -301,7 +301,9 @@ func (ss *SqlStore) initConnection() {
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
-	ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+	if ss.metrics != nil {
+		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
@@ -313,7 +315,9 @@ func (ss *SqlStore) initConnection() {
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
 			}
-			ss.metrics.RegisterDBCollector(ss.ReplicaXs[i].DB.DB, "replica-"+strconv.Itoa(i))
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.ReplicaXs[i].DB.DB, "replica-"+strconv.Itoa(i))
+			}
 		}
 	}
 
@@ -327,7 +331,9 @@ func (ss *SqlStore) initConnection() {
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
 			}
-			ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
+			}
 		}
 	}
 
