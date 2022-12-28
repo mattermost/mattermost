@@ -45,6 +45,8 @@ func (s *SqlTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.True
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TrueUpReviewStatus", strconv.FormatInt(dueDate, 10))
 		}
+
+		return nil, err
 	}
 
 	return &trueUpReviewStatus, nil

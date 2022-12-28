@@ -374,7 +374,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.TrueUpReviewAuthFeaturesADLdap:     ldapUsed,
 		model.TrueUpReviewAuthFeaturesSaml:       samlUsed,
 		model.TrueUpReviewAuthFeatureOpenId:      openIdUsed,
-		model.TrueUpReviewAuthFeatureGuestAccess: guessAccessAllowed,
+		model.TrueUpReviewAuthFeatureGuestAccess: guestAccessAllowed,
 	}
 
 	authFeatureList := []string{}
