@@ -16,6 +16,10 @@ then
         txt="${txt}use ../focalboard/server\nuse ../focalboard/mattermost-plugin\n"
     fi
     
-    txt="${txt}use ../mattermost-plugin-playbooks\n"
+    if [ "$BUILD_PLAYBOOKS" == "true" ]
+    then
+        txt="${txt}use ../mattermost-plugin-playbooks\n"
+    fi
+
     printf "$txt" > "go.work"
-fi 
+fi
