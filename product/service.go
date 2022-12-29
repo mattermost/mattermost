@@ -29,4 +29,5 @@ const (
 	SessionKey       ServiceKey = "sessionkey"
 	FrontendKey      ServiceKey = "frontendkey"
 	CommandKey       ServiceKey = "commandkey"
+	ThreadsKey       ServiceKey = "threadskey"
 )

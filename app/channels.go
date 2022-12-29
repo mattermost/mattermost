@@ -241,6 +241,8 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 
 	services[product.CommandKey] = &App{ch: ch}
 
+	services[product.ThreadsKey] = &App{ch: ch}
+
 	return ch, nil
 }
 

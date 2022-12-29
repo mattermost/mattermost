@@ -254,3 +254,10 @@ type CommandService interface {
 	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 }
+
+// ThreadsService is the API for interacting with threads anywhere.
+//
+// The service shall be registered via app.ThreadsKey service key.
+type ThreadsService interface {
+	RegisterCollectionAndTopic(productID string, collectionType, topicType string) error
+}
