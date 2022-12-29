@@ -2498,13 +2498,17 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 }
 
 func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.isPostPriorityEnabled())
-	if err != nil {
-		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.isPostPriorityEnabled())
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "thread not found/followed", http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
-	if thread == nil {
-		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "thread not found/followed", http.StatusNotFound)
-	}
+
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
 	return thread, nil
