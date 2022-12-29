@@ -200,7 +200,7 @@ endif
 
 # Playbooks
 BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
-BUILD_PLAYBOOKS ?= true
+BUILD_PLAYBOOKS ?= false
 
 ifeq ($(BUILD_PLAYBOOKS),true)
 IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
@@ -431,6 +431,7 @@ endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
+setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
