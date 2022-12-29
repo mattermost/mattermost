@@ -2484,12 +2484,15 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
-	threadMembership, err := a.Srv().Store().Thread().GetMembershipForUser(userId, threadId)
-	if err != nil {
-		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if threadMembership == nil {
-		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.not_found", nil, "thread membership not found/followed", http.StatusNotFound)
+	threadMembership, nErr := a.Srv().Store().Thread().GetMembershipForUser(userId, threadId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.not_found", nil, "", http.StatusNotFound).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
 	return threadMembership, nil
 }
