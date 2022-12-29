@@ -60,13 +60,13 @@ func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID strin
 	return r0, r1
 }
 
-// CheckCWSConnection provides a mock function with given fields:
-func (_m *CloudInterface) CheckCWSConnection() error {
-	ret := _m.Called()
+// CheckCWSConnection provides a mock function with given fields: userId
+func (_m *CloudInterface) CheckCWSConnection(userId string) error {
+	ret := _m.Called(userId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
 	} else {
 		r0 = ret.Error(0)
 	}
