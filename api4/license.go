@@ -10,11 +10,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -305,6 +302,29 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJSON(clientLicense)))
 }
 
+func getOrCreateTrueUpReviewStatus(c *Context) (*model.TrueUpReviewStatus, bool) {
+	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
+	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			c.Logger.Warn("Could not find true up review status")
+		default:
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
+			return nil, false
+		}
+
+		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(&model.TrueUpReviewStatus{DueDate: nextDueDate.UnixMilli(), Completed: false})
+		if err != nil {
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
+			return nil, false
+		}
+	}
+
+	return status, true
+}
+
 func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Only admins can request a true up review.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -323,135 +343,30 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Customer Info & Usage Analytics
-	activeUserCount, err := c.App.Srv().Store().Status().GetTotalActiveUsersCount()
+	profileMap, err := c.App.GetTrueUpProfile()
+	profileMapJson, err := json.Marshal(profileMap)
 	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total active users count", http.StatusInternalServerError)
+		c.SetJSONEncodingError(err)
 		return
 	}
 
-	// Webhook, calls, boards, and playbook counts
-	incomingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsIncomingCount("")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_in_count_fail", nil, "Could not get the total incoming webhook count", http.StatusInternalServerError)
+	status, ok := getOrCreateTrueUpReviewStatus(c)
+	if !ok {
 		return
-	}
-	outgoingWebhookCount, err := c.App.Srv().Store().Webhook().AnalyticsOutgoingCount("")
-	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_out_count_fail", nil, "Could not get the total outgoing webhook count", http.StatusInternalServerError)
-		return
-	}
-
-	// Plugin Data
-	trueUpReviewPlugins := model.TrueUpReviewPlugins{
-		ActivePluginNames:   []string{},
-		InactivePluginNames: []string{},
-	}
-
-	if pluginResponse, err := c.App.GetPlugins(); err == nil {
-		for _, plugin := range pluginResponse.Active {
-			trueUpReviewPlugins.ActivePluginNames = append(trueUpReviewPlugins.ActivePluginNames, plugin.Name)
-		}
-		trueUpReviewPlugins.TotalActivePlugins = len(trueUpReviewPlugins.ActivePluginNames)
-
-		for _, plugin := range pluginResponse.Inactive {
-			trueUpReviewPlugins.InactivePluginNames = append(trueUpReviewPlugins.InactivePluginNames, plugin.Name)
-		}
-		trueUpReviewPlugins.TotalInactivePlugins = len(trueUpReviewPlugins.InactivePluginNames)
-	}
-
-	// Authentication Features
-	config := c.App.Config()
-	mfaUsed := config.ServiceSettings.EnforceMultifactorAuthentication
-	ldapUsed := config.LdapSettings.Enable
-	samlUsed := config.SamlSettings.Enable
-	openIdUsed := config.OpenIdSettings.Enable
-	guestAccessAllowed := config.GuestAccountsSettings.Enable
-
-	authFeatures := map[string]*bool{
-		model.TrueUpReviewAuthFeaturesMfa:        mfaUsed,
-		model.TrueUpReviewAuthFeaturesADLdap:     ldapUsed,
-		model.TrueUpReviewAuthFeaturesSaml:       samlUsed,
-		model.TrueUpReviewAuthFeatureOpenId:      openIdUsed,
-		model.TrueUpReviewAuthFeatureGuestAccess: guestAccessAllowed,
-	}
-
-	authFeatureList := []string{}
-	for feature, used := range authFeatures {
-		if used != nil && *used {
-			authFeatureList = append(authFeatureList, feature)
-		}
-	}
-
-	reviewProfile := model.TrueUpReviewProfile{
-		ServerId:               c.App.TelemetryId(),
-		ServerVersion:          model.CurrentVersion,
-		ServerInstallationType: os.Getenv(telemetry.EnvVarInstallType),
-		LicenseId:              license.Id,
-		LicensedSeats:          *license.Features.Users,
-		LicensePlan:            license.SkuName,
-		CustomerName:           license.Customer.Name,
-		ActiveUsers:            activeUserCount,
-		TotalIncomingWebhooks:  incomingWebhookCount,
-		TotalOutgoingWebhooks:  outgoingWebhookCount,
-		Plugins:                trueUpReviewPlugins,
-		AuthenticationFeatures: authFeatureList,
-	}
-
-	// Convert true up review profile struct to map
-	var telemetryProperties map[string]interface{}
-	reviewProfileJson, err := json.Marshal(reviewProfile)
-	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-
-	dueDate := utils.GetNextTrueUpReviewDueDate(time.Now()).UnixMilli()
-	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(dueDate)
-	if err != nil {
-		// Check error. Continue if the status was just not found.
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			c.Logger.Warn("Could not find true up review status")
-		default:
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		// No status was found, so create a new one.
-		status = &model.TrueUpReviewStatus{DueDate: dueDate, Completed: false}
-		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
-		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
-			return
-		}
 	}
 
 	// Do not send true-up review data if the user has already requested one for the quarter.
 	if !status.Completed {
-		// "Flatten" telemetry data.
-		json.Unmarshal(reviewProfileJson, &telemetryProperties)
-		delete(telemetryProperties, "plugins")
-		plugins := reviewProfile.Plugins.ToMap()
-		for pluginName, pluginValue := range plugins {
-			telemetryProperties["plugin_"+pluginName] = pluginValue
-		}
-
-		delete(telemetryProperties, "authentication_features")
-		telemetryProperties["authentication_features"] = strings.Join(reviewProfile.AuthenticationFeatures, ",")
-
 		// Send telemetry data
 		telemetryService := c.App.Srv().GetTelemetryService()
-		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, telemetryProperties)
+		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
 
 		// Update the review status to reflect the completion.
 		status.Completed = true
 		c.App.Srv().Store().TrueUpReview().Update(status)
 	}
 
-	w.Write(reviewProfileJson)
+	w.Write(profileMapJson)
 }
 
 func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -472,24 +387,9 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
-	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			c.Logger.Warn("Could not find true up review status")
-		default:
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		status = &model.TrueUpReviewStatus{DueDate: nextDueDate.UnixMilli(), Completed: false}
-		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(status)
-		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
-			return
-		}
+	status, ok := getOrCreateTrueUpReviewStatus(c)
+	if !ok {
+		return
 	}
 
 	json, err := json.Marshal(status)
