@@ -208,12 +208,15 @@ func tfuncFromLocalizer(localizer *i18n.Localizer) TranslateFunc {
 			}
 		}
 
-		translated, _ := localizer.Localize(&i18n.LocalizeConfig{
+		if translated, err := localizer.Localize(&i18n.LocalizeConfig{
 			MessageID:    translationID,
 			TemplateData: templateData,
 			PluralCount:  pluralCount,
-		})
-		return translated
+		}); err == nil {
+			return translated
+		}
+
+		return translationID
 	}
 }
 
