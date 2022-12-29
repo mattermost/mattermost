@@ -344,6 +344,11 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	profileMap, err := c.App.GetTrueUpProfile()
+	if err != nil {
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
 	profileMapJson, err := json.Marshal(profileMap)
 	if err != nil {
 		c.SetJSONEncodingError(err)
