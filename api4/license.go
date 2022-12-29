@@ -381,6 +381,7 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check for license
 	license := c.App.Channels().License()
 	if license == nil {
 		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license_required", nil, "True up review requires a license", http.StatusNotImplemented)
