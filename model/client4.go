@@ -8700,6 +8700,17 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) CheckCWSConnection() (*Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // Worktemplates sections
 
 func (c *Client4) worktemplatesRoute() string {

@@ -60,6 +60,20 @@ func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID strin
 	return r0, r1
 }
 
+// CheckCWSConnection provides a mock function with given fields:
+func (_m *CloudInterface) CheckCWSConnection() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ConfirmCustomerPayment provides a mock function with given fields: userID, confirmRequest
 func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
 	ret := _m.Called(userID, confirmRequest)
