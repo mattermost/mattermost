@@ -8700,7 +8700,7 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CheckCWSConnection() (*Response, error) {
+func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
 
 	if err != nil {

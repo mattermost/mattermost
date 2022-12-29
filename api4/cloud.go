@@ -751,7 +751,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	if err := c.App.Cloud().CheckCWSConnection(); err != nil {
+	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
 		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
 		return
 	}

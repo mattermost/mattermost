@@ -46,5 +46,5 @@ type CloudInterface interface {
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
 
-	CheckCWSConnection() error
+	CheckCWSConnection(userId string) error
 }
