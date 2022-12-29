@@ -50,7 +50,10 @@ func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, e
 	channels := []*model.Channel{}
 	defaultChannelNames := ts.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
-		displayName := i18n.TDefault(displayNames[name], name)
+		displayName := displayNames[name]
+		if displayName == "" {
+			displayName = name
+		}
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
 		// We should use the channel service here (coming soon). Ideally, we should just emit an event
 		// and let the subscribers do the job, in this case it would be the channels service.
