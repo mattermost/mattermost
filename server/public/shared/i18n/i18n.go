@@ -30,9 +30,6 @@ type TranslationFuncByLocal func(locale string) TranslateFunc
 // T is the translate function using the default server language as fallback language
 var T TranslateFunc
 
-// TDefault is the translate function using english as fallback language
-var TDefault TranslateFunc
-
 var bundle *i18n.Bundle
 var locales = make(map[string]string)
 
@@ -78,7 +75,6 @@ func TranslationsPreInit(translationsDir string) error {
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = tfuncWithFallback(defaultLocale)
-	TDefault = tfuncWithFallback(defaultLocale)
 
 	return initTranslationsWithDir(bundle, translationsDir)
 }
