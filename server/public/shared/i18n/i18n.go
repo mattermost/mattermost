@@ -4,6 +4,7 @@
 package i18n
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -12,10 +13,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/go-i18n/i18n/bundle"
-
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 const defaultLocale = "en"
@@ -32,6 +33,7 @@ var T TranslateFunc
 // TDefault is the translate function using english as fallback language
 var TDefault TranslateFunc
 
+var bundle *i18n.Bundle
 var locales = make(map[string]string)
 
 // supportedLocales is a hard-coded list of locales considered ready for production use. It must
@@ -70,12 +72,15 @@ func TranslationsPreInit(translationsDir string) error {
 		return nil
 	}
 
+	bundle = i18n.NewBundle(language.MustParse(defaultLocale))
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = tfuncWithFallback(defaultLocale)
 	TDefault = tfuncWithFallback(defaultLocale)
 
-	return initTranslationsWithDir(translationsDir)
+	return initTranslationsWithDir(bundle, translationsDir)
 }
 
 // InitTranslations set the defaults configured in the server and initialize
@@ -89,22 +94,24 @@ func InitTranslations(serverLocale, clientLocale string) error {
 	return err
 }
 
-func initTranslationsWithDir(dir string) error {
+func initTranslationsWithDir(bundle *i18n.Bundle, dir string) error {
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
-		if filepath.Ext(f.Name()) == ".json" {
-			filename := f.Name()
+		filename := f.Name()
 
-			locale := strings.Split(filename, ".")[0]
-			if !isSupportedLocale(locale) {
-				continue
-			}
+		if filepath.Ext(filename) != ".json" {
+			continue
+		}
 
-			locales[locale] = filepath.Join(dir, filename)
+		locale := strings.Split(filename, ".")[0]
+		if !isSupportedLocale(locale) {
+			continue
+		}
 
-			if err := i18n.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
-				return err
-			}
+		locales[locale] = filepath.Join(dir, filename)
+
+		if _, err := bundle.LoadMessageFile(filepath.Join(dir, filename)); err != nil {
+			return err
 		}
 	}
 
@@ -114,40 +121,16 @@ func initTranslationsWithDir(dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	var availableLocals = make(map[string]string)
-	bundle := bundle.New()
-	files, _ := os.ReadDir(dir)
-	for _, f := range files {
-		if filepath.Ext(f.Name()) != ".json" {
-			continue
-		}
+	bundle := i18n.NewBundle(language.MustParse(defaultLocale))
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
-		locale := strings.Split(f.Name(), ".")[0]
-		if !isSupportedLocale(locale) {
-			continue
-		}
-
-		filename := f.Name()
-		availableLocals[locale] = filepath.Join(dir, filename)
-		if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
-			return nil, err
-		}
+	if err := initTranslationsWithDir(bundle, dir); err != nil {
+		return nil, err
 	}
 
 	return func(locale string) TranslateFunc {
-		if _, ok := availableLocals[locale]; !ok {
-			locale = defaultLocale
-		}
-
-		t, _ := bundle.Tfunc(locale)
-		return func(translationID string, args ...any) string {
-			if translated := t(translationID, args...); translated != translationID {
-				return translated
-			}
-
-			t, _ := bundle.Tfunc(defaultLocale)
-			return t(translationID, args...)
-		}
+		localizer := i18n.NewLocalizer(bundle, locale)
+		return tfuncFromLocalizer(localizer)
 	}, nil
 }
 
@@ -212,16 +195,35 @@ func GetSupportedLocales() map[string]string {
 	return locales
 }
 
-func tfuncWithFallback(pref string) TranslateFunc {
-	t, _ := i18n.Tfunc(pref)
-	return func(translationID string, args ...any) string {
-		if translated := t(translationID, args...); translated != translationID {
-			return translated
+func tfuncFromLocalizer(localizer *i18n.Localizer) TranslateFunc {
+	return func(translationID string, args ...interface{}) string {
+		var templateData interface{}
+		var pluralCount interface{}
+
+		if argc := len(args); argc > 0 {
+			switch args[0].(type) {
+			case int, int8, int16, int32, int64, string:
+				pluralCount = args[0]
+				if argc > 1 {
+					templateData = args[1]
+				}
+			default:
+				templateData = args[0]
+			}
 		}
 
-		t, _ := i18n.Tfunc(defaultLocale)
-		return t(translationID, args...)
+		translated, _ := localizer.Localize(&i18n.LocalizeConfig{
+			MessageID:    translationID,
+			TemplateData: templateData,
+			PluralCount:  pluralCount,
+		})
+		return translated
 	}
+}
+
+func tfuncWithFallback(pref string) TranslateFunc {
+	localizer := i18n.NewLocalizer(bundle, pref)
+	return tfuncFromLocalizer(localizer)
 }
 
 // TranslateAsHTML translates the translationID provided and return a

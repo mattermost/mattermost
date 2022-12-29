@@ -9,27 +9,24 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/go-i18n/i18n/bundle"
-	"github.com/mattermost/go-i18n/i18n/language"
-	"github.com/mattermost/go-i18n/i18n/translation"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/language"
 )
 
-var htmlTestTranslationBundle *bundle.Bundle
-
 func init() {
-	htmlTestTranslationBundle = bundle.New()
-	fooBold, _ := translation.NewTranslation(map[string]any{
-		"id":          "foo.bold",
-		"translation": "<p>[[{{ .Foo }}]]</p>",
-	})
-	htmlTestTranslationBundle.AddTranslation(&language.Language{Tag: "en"}, fooBold)
+	bundle = i18n.NewBundle(language.English)
+	messages := []*i18n.Message{{
+		ID:    "foo.bold",
+		Other: "<p>[[{{.Foo}}]]</p>",
+	}}
+	bundle.AddMessages(language.English, messages...)
 }
 
 func TestTranslateAsHTML(t *testing.T) {
-	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]any{
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(tfuncWithFallback("en"), "foo.bold", map[string]any{
 		"Foo": "<i>foo</i>",
 	}))
 }
