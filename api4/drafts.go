@@ -124,7 +124,6 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		switch {
 		case err.StatusCode == http.StatusNotFound:
 			// If the draft doesn't exist in the server, we don't need to delete.
-			mlog.Debug("Unable to find the draft", mlog.Err(err))
 			ReturnStatusOK(w)
 		default:
 			c.Err = err
