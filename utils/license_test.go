@@ -154,3 +154,52 @@ func TestGetNextTrueUpReviewDueDate(t *testing.T) {
 		assert.Equal(t, 2023, due.Year())
 	})
 }
+
+func TestIsTrueUpReviewDueDateWithinTheNextTwoWeeks(t *testing.T) {
+	t.Run("Ensure a date within two weeks before the due date returns true", func(t *testing.T) {
+		// 1 Day before the due date
+		now := time.Date(2022, time.December, 14, 0, 0, 0, 0, time.Local)
+		// Due date is December 15th, 2022
+		due := GetNextTrueUpReviewDueDate(now)
+
+		res := IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now, due)
+		assert.True(t, res)
+	})
+
+	t.Run("Ensure a date that is more than two weeks before the due date returns false", func(t *testing.T) {
+		// 15 Days before the due date
+		now := time.Date(2022, time.November, 30, 0, 0, 0, 0, time.Local)
+		// Due date is December 15th, 2022
+		due := GetNextTrueUpReviewDueDate(now)
+
+		res := IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now, due)
+		assert.False(t, res)
+	})
+
+	t.Run("Ensure a date that past the due date returns false", func(t *testing.T) {
+		now := time.Date(2022, time.December, 16, 0, 0, 0, 0, time.Local)
+
+		// Due date is December 15th, 2022
+		dueNow := time.Date(2022, time.December, 15, 0, 0, 0, 0, time.Local)
+		due := GetNextTrueUpReviewDueDate(dueNow)
+
+		res := IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now, due)
+		assert.False(t, res)
+	})
+
+	t.Run("Ensure a date that is on the due date returns true", func(t *testing.T) {
+		now := time.Date(2022, time.December, 15, 0, 0, 0, 0, time.Local)
+		due := GetNextTrueUpReviewDueDate(now)
+
+		res := IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now, due)
+		assert.True(t, res)
+	})
+
+	t.Run("Ensure a date that is on the first day of the due date window returns true", func(t *testing.T) {
+		now := time.Date(2022, time.December, 1, 0, 0, 0, 0, time.Local)
+		due := GetNextTrueUpReviewDueDate(now)
+
+		res := IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now, due)
+		assert.True(t, res)
+	})
+}
