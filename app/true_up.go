@@ -5,12 +5,16 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/telemetry"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
@@ -116,4 +120,27 @@ func (a *App) GetTrueUpProfile() (map[string]any, error) {
 	telemetryProperties["authentication_features"] = strings.Join(profile.AuthenticationFeatures, ",")
 
 	return telemetryProperties, nil
+}
+
+func (a *App) GetOrCreateTrueUpReviewStatus() (*model.TrueUpReviewStatus, *model.AppError) {
+	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
+	status, err := a.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			a.Log().Warn("Could not find true up review status")
+		default:
+			return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
+		}
+
+		status, err = a.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(&model.TrueUpReviewStatus{DueDate: nextDueDate.UnixMilli(), Completed: false})
+		if err != nil {
+			return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
+		}
+	}
+
+	telemetryService := a.Srv().GetTelemetryService()
+	status.TelemetryEnabled = telemetryService.TelemetryEnabled()
+	return status, nil
 }

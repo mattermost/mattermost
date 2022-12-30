@@ -37,6 +37,8 @@ var LicenseValidator LicenseValidatorIface
 
 const trueUpReviewDueDay = 15
 const businessQuarterStep = 3
+const day = time.Hour * 24
+const week = day * 7
 
 func init() {
 	if LicenseValidator == nil {
@@ -244,4 +246,14 @@ func GetNextTrueUpReviewDueDate(now time.Time) time.Time {
 	}
 
 	return time.Date(now.Year(), nextQuarterEndMonth, trueUpReviewDueDay, 0, 0, 0, 0, now.Location())
+}
+
+func IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now time.Time, dueDate time.Time) bool {
+	dueDateWindow := dueDate.Add(-(week * 2))
+
+	if now.Before(dueDateWindow) || now.After(dueDate) {
+		return false
+	}
+
+	return true
 }

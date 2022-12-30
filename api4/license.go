@@ -7,14 +7,11 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -303,31 +300,6 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJSON(clientLicense)))
 }
 
-func getOrCreateTrueUpReviewStatus(c *Context) (*model.TrueUpReviewStatus, bool) {
-	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
-	status, err := c.App.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			c.Logger.Warn("Could not find true up review status")
-		default:
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
-			return nil, false
-		}
-
-		status, err = c.App.Srv().Store().TrueUpReview().CreateTrueUpReviewStatusRecord(&model.TrueUpReviewStatus{DueDate: nextDueDate.UnixMilli(), Completed: false})
-		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.create_error", nil, "Could not create true up status record", http.StatusInternalServerError)
-			return nil, false
-		}
-	}
-
-	telemetryService := c.App.Srv().GetTelemetryService()
-	status.TelemetryEnabled = telemetryService.TelemetryEnabled()
-	return status, true
-}
-
 func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Only admins can request a true up review.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -358,8 +330,9 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, ok := getOrCreateTrueUpReviewStatus(c)
-	if !ok {
+	status, appErr := c.App.GetOrCreateTrueUpReviewStatus()
+	if err != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -404,9 +377,9 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, ok := getOrCreateTrueUpReviewStatus(c)
-	if !ok {
-		return
+	status, appErr := c.App.GetOrCreateTrueUpReviewStatus()
+	if appErr != nil {
+		c.Err = appErr
 	}
 
 	json, err := json.Marshal(status)
