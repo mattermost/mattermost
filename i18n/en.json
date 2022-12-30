@@ -2086,10 +2086,6 @@
     "translation": "Could not get true up status records"
   },
   {
-    "id": "api.license.true_up_review.license.required",
-    "translation": "A license is required to request a true up review."
-  },
-  {
     "id": "api.license.true_up_review.license_required",
     "translation": "True up review requires a license"
   },

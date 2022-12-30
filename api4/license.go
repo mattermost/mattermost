@@ -309,7 +309,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license == nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.license.required", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.license_required", nil, "", http.StatusNotImplemented)
 		return
 	}
 
