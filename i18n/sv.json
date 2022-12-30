@@ -3040,14 +3040,6 @@
     "translation": "Nådde timeout för AD/LDAP-synkronisering."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Kunde inte tolka värdet ExportFromTimestamp i export job."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Kunde inte tolka värdet BatchSize i export job."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Din licens tillåter inte pushnotifiering via meddelande-ID."
   },
@@ -9729,5 +9721,9 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Ogiltiga attribut."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portalen är inte tillgänglig för egen-hostad registrering."
   }
 ]
