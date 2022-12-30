@@ -43,7 +43,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		return []string{}, nil
 	}
 
-	isCRTAllowed := a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
+	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
