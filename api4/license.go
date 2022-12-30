@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -322,6 +323,8 @@ func getOrCreateTrueUpReviewStatus(c *Context) (*model.TrueUpReviewStatus, bool)
 		}
 	}
 
+	telemetryService := c.App.Srv().GetTelemetryService()
+	status.TelemetryEnabled = telemetryService.TelemetryEnabled()
 	return status, true
 }
 
@@ -361,9 +364,10 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do not send true-up review data if the user has already requested one for the quarter.
-	if !status.Completed {
+	// And only send a true-up review via as a one-time telemetry request if telemetry is disabled.
+	telemetryService := c.App.Srv().GetTelemetryService()
+	if !status.Completed && !telemetryService.TelemetryEnabled() {
 		// Send telemetry data
-		telemetryService := c.App.Srv().GetTelemetryService()
 		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
 
 		// Update the review status to reflect the completion.
@@ -371,7 +375,14 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.Srv().Store().TrueUpReview().Update(status)
 	}
 
-	w.Write(profileMapJson)
+	// Encode to string rather than byte[] otherwise json.Marshal will encode it further.
+	encodedData := b64.StdEncoding.EncodeToString(profileMapJson)
+	responseContent := struct {
+		Content string `json:"content"`
+	}{Content: encodedData}
+	response, _ := json.Marshal(responseContent)
+
+	w.Write(response)
 }
 
 func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -149,13 +149,13 @@ func (ts *TelemetryService) getRudderConfig() RudderConfig {
 	}
 }
 
-func (ts *TelemetryService) telemetryEnabled() bool {
+func (ts *TelemetryService) TelemetryEnabled() bool {
 	return *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader()
 }
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 	config := ts.getRudderConfig()
-	if ts.telemetryEnabled() && ((config.DataplaneURL != "" && config.RudderKey != "") || override) {
+	if ts.TelemetryEnabled() && ((config.DataplaneURL != "" && config.RudderKey != "") || override) {
 		ts.initRudder(config.DataplaneURL, config.RudderKey)
 		ts.trackActivity()
 		ts.trackConfig()
