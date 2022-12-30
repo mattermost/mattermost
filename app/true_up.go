@@ -20,6 +20,10 @@ import (
 func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 
 	license := a.Channels().License()
+	if license == nil {
+		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.license_required", nil, "Could not get the total active users count", http.StatusInternalServerError)
+	}
+
 	// Customer Info & Usage Analytics
 	activeUserCount, err := a.Srv().Store().Status().GetTotalActiveUsersCount()
 	if err != nil {
