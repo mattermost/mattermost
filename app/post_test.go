@@ -2410,6 +2410,11 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	for _, p := range thread.Participants {
 		require.True(t, p.Id == sysadmin.Id || p.Id == user.Id)
 	}
+
+	threadMembership.PostId = "notfound"
+	_, err = th.App.GetThreadForUser(threadMembership, false)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 }
 
 func TestAutofollowBasedOnRootPost(t *testing.T) {
