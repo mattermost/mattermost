@@ -61,7 +61,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	wc := c.App.Srv().Platform().NewWebConn(cfg, c.App, c.App.Srv())
+	wc := c.App.Srv().Platform().NewWebConn(cfg, c.App, c.App.Srv().Channels())
 	if c.AppContext.Session().UserId != "" {
 		c.App.Srv().Platform().HubRegister(wc)
 	}

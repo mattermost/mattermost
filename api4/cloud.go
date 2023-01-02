@@ -40,6 +40,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/expand", api.APISessionRequired(GetLicenseExpandStatus)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// GET /api/v4/cloud/request-trial
@@ -407,6 +408,34 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(customer)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(json)
+}
+
+func GetLicenseExpandStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	_, token, err := c.App.Srv().GenerateLicenseRenewalLink()
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	res, cloudErr := c.App.Cloud().GetLicenseExpandStatus(c.AppContext.Session().UserId, token)
+	if cloudErr != nil {
+		c.Err = model.NewAppError("Api4.GetLicenseExpandStatusForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
+		return
+	}
+
+	json, jsonErr := json.Marshal(res)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.GetLicenseExpandStatusForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
