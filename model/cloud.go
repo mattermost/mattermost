@@ -124,6 +124,10 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+type SubscriptionExpandStatus struct {
+	IsExpandable bool `json:"is_expandable"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name                  string `json:"name"`
@@ -290,17 +294,14 @@ type ProductLimits struct {
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
 
-type BootstrapSelfHostedSignupRequest struct {
-	Email string `json:"email"`
-}
-
-type BootstrapSelfHostedSignupResponse struct {
-	Progress string `json:"progress"`
-}
-
-type BootstrapSelfHostedSignupResponseInternal struct {
-	Progress string `json:"progress"`
-	License  string `json:"license"`
+// CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+type CreateSubscriptionRequest struct {
+	ProductID             string   `json:"product_id"`
+	AddOns                []string `json:"add_ons"`
+	Seats                 int      `json:"seats"`
+	Total                 float64  `json:"total"`
+	InternalPurchaseOrder string   `json:"internal_purchase_order"`
+	DiscountID            string   `json:"discount_id"`
 }
 
 func (p *Product) IsYearly() bool {

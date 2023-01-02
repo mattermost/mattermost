@@ -2837,6 +2837,64 @@ func TestGetUsersInGroup(t *testing.T) {
 
 }
 
+func TestGetUsersInGroupByDisplayName(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "aaa", Password: "test-password-1", Username: "zzz", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
+	user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Password: "test-password-2", Username: "bbb", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+	assert.Nil(t, err)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PrivacySettings.ShowFullName = true
+	})
+
+	preference := model.Preference{
+		UserId:   th.SystemAdminUser.Id,
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameNameFormat,
+		Value:    model.ShowUsername,
+	}
+
+	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group in right order for username", func(t *testing.T) {
+		users, _, err := th.SystemAdminClient.GetUsersInGroupByDisplayName(group.Id, 0, 1, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user2.Id)
+	})
+
+	preference.Value = model.ShowNicknameFullName
+	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group in right order for nickname", func(t *testing.T) {
+		users, _, err := th.SystemAdminClient.GetUsersInGroupByDisplayName(group.Id, 0, 1, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+}
+
 func TestUpdateUserMfa(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5736,8 +5794,6 @@ func TestUpdatePassword(t *testing.T) {
 func TestGetThreadsForUser(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -6093,8 +6149,6 @@ func TestGetThreadsForUser(t *testing.T) {
 func TestThreadSocketEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
@@ -6475,8 +6529,6 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6532,8 +6584,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 func TestThreadCounts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6575,8 +6626,6 @@ func TestThreadCounts(t *testing.T) {
 func TestSingleThreadGet(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -6646,8 +6695,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
 	client := th.Client
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6710,8 +6758,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 func TestReadThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6814,8 +6861,7 @@ func TestReadThreads(t *testing.T) {
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn

@@ -2544,6 +2544,10 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal unavailable for self-hosted signup."
+  },
+  {
     "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": "Failed to generate the license renewal link"
   },
@@ -7566,14 +7570,6 @@
   {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Your license does not support ID Loaded Push Notifications."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",

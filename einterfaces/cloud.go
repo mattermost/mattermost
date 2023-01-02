@@ -17,6 +17,7 @@ type CloudInterface interface {
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
 
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
+	GetLicenseExpandStatus(userID string, token string) (*model.SubscriptionExpandStatus, error)
 	UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error)
 	UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error)
 
@@ -33,7 +34,15 @@ type CloudInterface interface {
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
 
+	// hosted customer methods
+	SelfHostedSignupAvailable() error
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
+	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm, requesterEmail string) (*model.SelfHostedSignupCustomerResponse, error)
+	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
+	ConfirmSelfHostedSignupLicenseApplication() error
+	GetSelfHostedInvoices() ([]*model.Invoice, error)
+	GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error)
+
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
 }
