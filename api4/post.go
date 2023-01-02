@@ -103,7 +103,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.SetStatusOnline(c.AppContext.Session().UserId, false)
 	}
 
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	w.WriteHeader(http.StatusCreated)
@@ -802,7 +802,8 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	auditRec.AddEventParameter("patch", post)
+	auditRec.AddEventParameter("id", c.Params.PostId)
+	auditRec.AddEventParameter("patch", post.Auditable())
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

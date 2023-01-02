@@ -39,7 +39,8 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/expand", api.APISessionRequired(GetLicenseExpandStatus)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// GET /api/v4/cloud/request-trial
@@ -80,7 +81,6 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			Seats:           0,
 			Status:          "",
 			DNS:             "",
-			IsPaidTier:      "",
 			LastInvoice:     &model.Invoice{},
 			DelinquentSince: subscription.DelinquentSince,
 		}
@@ -96,6 +96,8 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	userId := c.AppContext.Session().UserId
+
 	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
 		return
@@ -118,13 +120,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(userId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 
-	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
+	changedSub, err := c.App.Cloud().ChangeSubscription(userId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -139,6 +141,11 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	product, err := c.App.Cloud().GetCloudProduct(c.AppContext.Session().UserId, subscriptionChange.ProductID)
 	if err != nil || product == nil {
 		c.Logger.Error("Error finding the new cloud product", mlog.Err(err))
+	}
+
+	if product.SKU == string(model.SkuCloudStarter) {
+		w.Write(json)
+		return
 	}
 
 	isYearly := product.IsYearly()
@@ -401,6 +408,34 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(customer)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(json)
+}
+
+func GetLicenseExpandStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	_, token, err := c.App.Srv().GenerateLicenseRenewalLink()
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	res, cloudErr := c.App.Cloud().GetLicenseExpandStatus(c.AppContext.Session().UserId, token)
+	if cloudErr != nil {
+		c.Err = model.NewAppError("Api4.GetLicenseExpandStatusForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
+		return
+	}
+
+	json, jsonErr := json.Marshal(res)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.GetLicenseExpandStatusForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 

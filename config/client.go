@@ -92,6 +92,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
+	props["CWSURL"] = *c.CloudSettings.CWSURL
+
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"
@@ -123,7 +125,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionFileRetentionDays"] = "0"
 	props["DataRetentionEnableBoardsDeletion"] = "false"
 	props["DataRetentionBoardsRetentionDays"] = "0"
-	props["CWSURL"] = ""
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
@@ -193,10 +194,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 			props["DataRetentionEnableBoardsDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableBoardsDeletion)
 			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
-		}
-
-		if license.IsCloud() {
-			props["CWSURL"] = *c.CloudSettings.CWSURL
 		}
 
 		if *license.Features.SharedChannels {
@@ -303,11 +300,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["SamlLoginButtonColor"] = ""
 	props["SamlLoginButtonBorderColor"] = ""
 	props["SamlLoginButtonTextColor"] = ""
-	props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
-	props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
-	props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
-	props["EnableSignUpWithGoogle"] = strconv.FormatBool(*c.GoogleSettings.Enable)
-	props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
+	props["EnableSignUpWithGoogle"] = "false"
+	props["EnableSignUpWithOffice365"] = "false"
+	props["EnableSignUpWithOpenId"] = "false"
+	props["OpenIdButtonText"] = ""
+	props["OpenIdButtonColor"] = ""
 	props["CWSURL"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
@@ -341,6 +338,27 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 		if *license.Features.MFA {
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
+		}
+
+		if license.IsCloud() {
+			// MM-48727: enable SSO options for free cloud - not in self hosted
+			*license.Features.GoogleOAuth = true
+			*license.Features.Office365OAuth = true
+			*license.Features.OpenId = true
+		}
+
+		if *license.Features.GoogleOAuth {
+			props["EnableSignUpWithGoogle"] = strconv.FormatBool(*c.GoogleSettings.Enable)
+		}
+
+		if *license.Features.Office365OAuth {
+			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
+		}
+
+		if *license.Features.OpenId {
+			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
+			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
+			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
 		}
 	}
 

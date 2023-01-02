@@ -6588,14 +6588,6 @@
     "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Impossibile analizzare il messaggio del lavoro di esportazione ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API non trovate."
   },
@@ -8173,10 +8165,6 @@
   },
   {
     "id": "app.insights.feature_disabled",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
     "translation": " "
   },
   {

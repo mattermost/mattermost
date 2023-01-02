@@ -165,8 +165,8 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runner HookRunner) *WebConn {
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
-			suite.SetStatusOnline(cfg.Session.UserId, false)
-			suite.UpdateLastActivityAtIfNeeded(cfg.Session)
+			ps.SetStatusOnline(cfg.Session.UserId, false)
+			ps.UpdateLastActivityAtIfNeeded(cfg.Session)
 		})
 	}
 
@@ -344,7 +344,7 @@ func (wc *WebConn) readPump() {
 		}
 		if wc.IsAuthenticated() {
 			wc.Platform.Go(func() {
-				wc.Suite.SetStatusAwayIfNeeded(wc.UserId, false)
+				wc.Platform.SetStatusAwayIfNeeded(wc.UserId, false)
 			})
 		}
 		return nil
