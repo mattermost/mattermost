@@ -2357,8 +2357,6 @@ func TestThreadMembership(t *testing.T) {
 func TestFollowThreadSkipsParticipants(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2420,8 +2418,6 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2450,8 +2446,6 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2533,12 +2527,6 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 
 	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.CollapsedThreads = true
-		})
-
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
@@ -2770,8 +2758,6 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2839,8 +2825,6 @@ func TestGetPostIfAuthorized(t *testing.T) {
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
