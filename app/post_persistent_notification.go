@@ -49,7 +49,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 
 	isUserMentioned := !checkMentionedUser
 	if checkMentionedUser {
-		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
+		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, nil, func(_ *model.Post, _ *model.PostPersistentNotifications, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
 			if mentions.isUserMentioned(mentionedUserID) {
 				isUserMentioned = true
 			}
@@ -99,9 +99,11 @@ func (a *App) SendPersistentNotifications() error {
 		pagination.FromID = notificationPosts[len(notificationPosts)-1].PostId
 		pagination.FromCreateAt = notificationPosts[len(notificationPosts)-1].CreateAt
 
+		notificationPostsMap := make(map[string]*model.PostPersistentNotifications, len(notificationPosts))
 		postIds := make([]string, 0, len(notificationPosts))
 		for _, p := range notificationPosts {
 			postIds = append(postIds, p.PostId)
+			notificationPostsMap[p.PostId] = p
 		}
 		posts, err := a.Srv().Store().Post().GetPostsByIds(postIds)
 		if err != nil {
@@ -129,7 +131,7 @@ func (a *App) SendPersistentNotifications() error {
 		}
 
 		// Send notifications to validPosts
-		if err := a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
+		if err := a.forEachPersistentNotificationPost(validPosts, notificationPostsMap, a.sendPersistentNotifications); err != nil {
 			return err
 		}
 
@@ -150,7 +152,9 @@ func (a *App) SendPersistentNotifications() error {
 	return nil
 }
 
-func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
+// forEachPersistentNotificationPost requires notificationPosts param only if,
+// notificationPost value is expected in the callback func.
+func (a *App) forEachPersistentNotificationPost(posts []*model.Post, notificationPosts map[string]*model.PostPersistentNotifications, fn func(post *model.Post, notificationPost *model.PostPersistentNotifications, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
 	channelIds := make(model.StringSet)
 	for _, p := range posts {
 		channelIds.Add(p.ChannelId)
@@ -239,7 +243,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			}
 		}
 
-		if err := fn(post, channel, team, mentions, profileMap); err != nil {
+		if err := fn(post, notificationPosts[post.Id], channel, team, mentions, profileMap); err != nil {
 			return err
 		}
 	}
@@ -247,7 +251,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	return nil
 }
 
-func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error {
+func (a *App) sendPersistentNotifications(post *model.Post, notificationPost *model.PostPersistentNotifications, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error {
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
@@ -261,7 +265,8 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		Sender:     sender,
 	}
 
-	if *a.Config().EmailSettings.SendEmailNotifications {
+	// Send Email notification only once
+	if notificationPost.LastSentAt == 0 && *a.Config().EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
 			user := profileMap[id]
 			if user == nil {
