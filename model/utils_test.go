@@ -81,6 +81,11 @@ func TestAppError(t *testing.T) {
 	t.Log(appErr.Error())
 }
 
+func TestAppErrorNoTranslation(t *testing.T) {
+	appErr := NewAppError("TestAppError", NoTranslation, nil, "test error", http.StatusBadRequest)
+	require.Equal(t, "TestAppError: test error", appErr.Error())
+}
+
 func TestAppErrorJunk(t *testing.T) {
 	rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
