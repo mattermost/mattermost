@@ -5,6 +5,17 @@ package model
 
 import "strings"
 
+var DisallowedPropertyWhenTelemetryIsDisabled = []string{
+	"server_id",
+	"server_installation_type",
+	"incoming_webhooks_count",
+	"outgoing_webhooks_count",
+	"plugins",
+	"total_plugins",
+	"plugin_names",
+	"authentication_features",
+}
+
 type TrueUpReviewProfile struct {
 	ServerId               string              `json:"server_id"`
 	ServerVersion          string              `json:"server_version"`

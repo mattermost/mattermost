@@ -137,11 +137,17 @@ func (a *App) GetTrueUpProfile() (map[string]any, error) {
 	delete(telemetryProperties, "plugins")
 	plugins := profile.Plugins.ToMap()
 	for pluginName, pluginValue := range plugins {
-		telemetryProperties["plugin_"+pluginName] = pluginValue
+		telemetryProperties[pluginName] = pluginValue
 	}
 
 	delete(telemetryProperties, "authentication_features")
 	telemetryProperties["authentication_features"] = strings.Join(profile.AuthenticationFeatures, ",")
+
+	if !a.Srv().telemetryService.TelemetryEnabled() {
+		for _, property := range model.DisallowedPropertyWhenTelemetryIsDisabled {
+			delete(telemetryProperties, property)
+		}
+	}
 
 	return telemetryProperties, nil
 }
