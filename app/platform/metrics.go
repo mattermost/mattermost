@@ -111,7 +111,7 @@ func (pm *platformMetrics) startMetricsServer() error {
 	go func() {
 		close(notify)
 		if err := pm.server.Serve(l); err != nil && err != http.ErrServerClosed {
-			pm.logger.Critical(err.Error())
+			pm.logger.Fatal(err.Error())
 		}
 	}()
 
