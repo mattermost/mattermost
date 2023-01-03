@@ -338,10 +338,10 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not send true-up review data if the user has already requested one for the quarter.
 	// And only send a true-up review via as a one-time telemetry request if telemetry is disabled.
-	telemetryService := c.App.Srv().GetTelemetryService()
-	if !status.Completed && !telemetryService.TelemetryEnabled() {
+	telemetryEnabled := c.App.Config().LogSettings.EnableDiagnostics
+	if !status.Completed && telemetryEnabled != nil && !*telemetryEnabled {
 		// Send telemetry data
-		telemetryService.SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
+		c.App.Srv().GetTelemetryService().SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
 
 		// Update the review status to reflect the completion.
 		status.Completed = true

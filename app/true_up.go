@@ -164,7 +164,5 @@ func (a *App) GetOrCreateTrueUpReviewStatus() (*model.TrueUpReviewStatus, *model
 		}
 	}
 
-	telemetryService := a.Srv().GetTelemetryService()
-	status.TelemetryEnabled = telemetryService.TelemetryEnabled()
 	return status, nil
 }
