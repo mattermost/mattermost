@@ -21,18 +21,14 @@ type TrueUpReviewProfile struct {
 }
 
 type TrueUpReviewPlugins struct {
-	TotalActivePlugins   int      `json:"total_active_plugins"`
-	TotalInactivePlugins int      `json:"total_inactive_plugins"`
-	ActivePluginNames    []string `json:"active_plugin_names"`
-	InactivePluginNames  []string `json:"inactive_plugin_names"`
+	TotalPlugins int      `json:"total_plugins"`
+	PluginNames  []string `json:"plugin_names"`
 }
 
 func (t *TrueUpReviewPlugins) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"total_active_plugins":   t.TotalActivePlugins,
-		"total_inactive_plugins": t.TotalInactivePlugins,
-		"active_plugin_names":    strings.Join(t.ActivePluginNames, ","),
-		"inactive_plugin_names":  strings.Join(t.InactivePluginNames, ","),
+		"total_plugins": t.TotalPlugins,
+		"plugin_names":  strings.Join(t.PluginNames, ","),
 	}
 }
 
