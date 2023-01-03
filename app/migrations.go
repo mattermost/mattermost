@@ -46,7 +46,7 @@ func (s *Server) doAdvancedPermissionsMigration() {
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
 		fetchedRole, err := s.Store().Role().GetByName(context.Background(), role.Name)
 		if err != nil {
-			mlog.Critical("Failed to migrate role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to migrate role to database.", mlog.Err(err))
 			allSucceeded = false
 			continue
 		}
@@ -59,7 +59,7 @@ func (s *Server) doAdvancedPermissionsMigration() {
 			role.Id = fetchedRole.Id
 			if _, err = s.Store().Role().Save(role); err != nil {
 				// Role is not the same, but failed to update.
-				mlog.Critical("Failed to migrate role to database.", mlog.Err(err))
+				mlog.Fatal("Failed to migrate role to database.", mlog.Err(err))
 				allSucceeded = false
 			}
 		}
@@ -81,7 +81,7 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark advanced permissions migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark advanced permissions migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -114,21 +114,21 @@ func (s *Server) doEmojisPermissionsMigration() {
 	// Emoji creation is set to all by default
 	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
 	if err != nil {
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
+		mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return
 	}
 
 	if role != nil {
 		role.Permissions = append(role.Permissions, model.PermissionCreateEmojis.Id, model.PermissionDeleteEmojis.Id)
 		if _, nErr := s.Store().Role().Save(role); nErr != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(nErr))
+			mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(nErr))
 			return
 		}
 	}
 
 	systemAdminRole, err = s.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	if err != nil {
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
+		mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return
 	}
 
@@ -138,7 +138,7 @@ func (s *Server) doEmojisPermissionsMigration() {
 		model.PermissionDeleteOthersEmojis.Id,
 	)
 	if _, err := s.Store().Role().Save(systemAdminRole); err != nil {
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
+		mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return
 	}
 
@@ -148,7 +148,7 @@ func (s *Server) doEmojisPermissionsMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark emojis permissions migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark emojis permissions migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -167,26 +167,26 @@ func (s *Server) doGuestRolesCreationMigration() {
 	allSucceeded := true
 	if _, err := s.Store().Role().GetByName(context.Background(), model.ChannelGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.ChannelGuestRoleId]); err != nil {
-			mlog.Critical("Failed to create new guest role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new guest role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.TeamGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.TeamGuestRoleId]); err != nil {
-			mlog.Critical("Failed to create new guest role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new guest role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemGuestRoleId]); err != nil {
-			mlog.Critical("Failed to create new guest role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new guest role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 
 	schemes, err := s.Store().Scheme().GetAllPage("", 0, 1000000)
 	if err != nil {
-		mlog.Critical("Failed to get all schemes.", mlog.Err(err))
+		mlog.Fatal("Failed to get all schemes.", mlog.Err(err))
 		allSucceeded = false
 	}
 	for _, scheme := range schemes {
@@ -201,7 +201,7 @@ func (s *Server) doGuestRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(teamGuestRole); err != nil {
-					mlog.Critical("Failed to create new guest role for custom scheme.", mlog.Err(err))
+					mlog.Fatal("Failed to create new guest role for custom scheme.", mlog.Err(err))
 					allSucceeded = false
 				} else {
 					scheme.DefaultTeamGuestRole = savedRole.Name
@@ -217,7 +217,7 @@ func (s *Server) doGuestRolesCreationMigration() {
 			}
 
 			if savedRole, err := s.Store().Role().Save(channelGuestRole); err != nil {
-				mlog.Critical("Failed to create new guest role for custom scheme.", mlog.Err(err))
+				mlog.Fatal("Failed to create new guest role for custom scheme.", mlog.Err(err))
 				allSucceeded = false
 			} else {
 				scheme.DefaultChannelGuestRole = savedRole.Name
@@ -225,7 +225,7 @@ func (s *Server) doGuestRolesCreationMigration() {
 
 			_, err := s.Store().Scheme().Save(scheme)
 			if err != nil {
-				mlog.Critical("Failed to update custom scheme.", mlog.Err(err))
+				mlog.Fatal("Failed to update custom scheme.", mlog.Err(err))
 				allSucceeded = false
 			}
 		}
@@ -241,7 +241,7 @@ func (s *Server) doGuestRolesCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark guest roles creation migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark guest roles creation migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -260,19 +260,19 @@ func (s *Server) doSystemConsoleRolesCreationMigration() {
 	allSucceeded := true
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemManagerRoleId]); err != nil {
-			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemManagerRoleId))
+			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemManagerRoleId))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemReadOnlyAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemReadOnlyAdminRoleId]); err != nil {
-			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemReadOnlyAdminRoleId))
+			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemReadOnlyAdminRoleId))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemUserManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemUserManagerRoleId]); err != nil {
-			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemUserManagerRoleId))
+			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemUserManagerRoleId))
 			allSucceeded = false
 		}
 	}
@@ -287,7 +287,7 @@ func (s *Server) doSystemConsoleRolesCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark system console roles creation migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark system console roles creation migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -302,7 +302,7 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() {
 	allSucceeded := true
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemCustomGroupAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemCustomGroupAdminRoleId]); err != nil {
-			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemCustomGroupAdminRoleId))
+			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemCustomGroupAdminRoleId))
 			allSucceeded = false
 		}
 	}
@@ -317,7 +317,7 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark custom group admin role creation migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark custom group admin role creation migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -337,7 +337,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark content extraction config migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark content extraction config migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -352,31 +352,31 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 	allSucceeded := true
 	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookAdminRoleId]); err != nil {
-			mlog.Critical("Failed to create new playbook admin role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new playbook admin role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookMemberRoleId]); err != nil {
-			mlog.Critical("Failed to create new playbook member role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new playbook member role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.RunAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunAdminRoleId]); err != nil {
-			mlog.Critical("Failed to create new run admin role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new run admin role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.RunMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunMemberRoleId]); err != nil {
-			mlog.Critical("Failed to create new run member role to database.", mlog.Err(err))
+			mlog.Fatal("Failed to create new run member role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
 	schemes, err := s.Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1000000)
 	if err != nil {
-		mlog.Critical("Failed to get all schemes.", mlog.Err(err))
+		mlog.Fatal("Failed to get all schemes.", mlog.Err(err))
 		allSucceeded = false
 	}
 
@@ -391,7 +391,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(playbookAdminRole); err != nil {
-					mlog.Critical("Failed to create new playbook admin role for existing custom scheme.", mlog.Err(err))
+					mlog.Fatal("Failed to create new playbook admin role for existing custom scheme.", mlog.Err(err))
 					allSucceeded = false
 				} else {
 					scheme.DefaultPlaybookAdminRole = savedRole.Name
@@ -406,7 +406,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(playbookMember); err != nil {
-					mlog.Critical("Failed to create new playbook member role for existing custom scheme.", mlog.Err(err))
+					mlog.Fatal("Failed to create new playbook member role for existing custom scheme.", mlog.Err(err))
 					allSucceeded = false
 				} else {
 					scheme.DefaultPlaybookMemberRole = savedRole.Name
@@ -422,7 +422,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(runAdminRole); err != nil {
-					mlog.Critical("Failed to create new run admin role for existing custom scheme.", mlog.Err(err))
+					mlog.Fatal("Failed to create new run admin role for existing custom scheme.", mlog.Err(err))
 					allSucceeded = false
 				} else {
 					scheme.DefaultRunAdminRole = savedRole.Name
@@ -438,7 +438,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(runMemberRole); err != nil {
-					mlog.Critical("Failed to create new run member role for existing custom scheme.", mlog.Err(err))
+					mlog.Fatal("Failed to create new run member role for existing custom scheme.", mlog.Err(err))
 					allSucceeded = false
 				} else {
 					scheme.DefaultRunMemberRole = savedRole.Name
@@ -446,7 +446,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 			}
 			_, err := s.Store().Scheme().Save(scheme)
 			if err != nil {
-				mlog.Critical("Failed to update custom scheme.", mlog.Err(err))
+				mlog.Fatal("Failed to update custom scheme.", mlog.Err(err))
 				allSucceeded = false
 			}
 		}
@@ -462,7 +462,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
 	}
 
 }
@@ -507,7 +507,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark first admin setup migration as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark first admin setup migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -534,7 +534,7 @@ func (s *Server) doRemainingSchemaMigrations() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark the remaining schema migrations as completed.", mlog.Err(err))
+		mlog.Fatal("Failed to mark the remaining schema migrations as completed.", mlog.Err(err))
 	}
 }
 
@@ -552,7 +552,7 @@ func (s *Server) doAppMigrations() {
 	// migrations. For example, it needs the guest roles migration.
 	err := s.doPermissionsMigrations()
 	if err != nil {
-		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
+		mlog.Fatal("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
 	s.doContentExtractionConfigDefaultTrueMigration()
 	s.doPlaybooksRolesCreationMigration()
