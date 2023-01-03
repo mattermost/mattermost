@@ -17,6 +17,34 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string) bool {
+	state, ok := pluginStates[pluginId]
+	if !ok {
+		return false
+	}
+	return state.Enable
+}
+
+func (a *App) getMarketplacePlugins() ([]string, error) {
+	ts := a.Srv().telemetryService
+	config := a.Srv().Config()
+
+	marketplacePlugins, err := ts.GetAllMarketplacePlugins(model.PluginSettingsDefaultMarketplaceURL)
+	if err != nil {
+		return nil, err
+	}
+
+	activePlugins := []string{}
+	for _, p := range marketplacePlugins {
+		id := p.Manifest.Id
+		if pluginActivated(config.PluginSettings.PluginStates, id) {
+			activePlugins = append(activePlugins, id)
+		}
+	}
+
+	return activePlugins, nil
+}
+
 func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 
 	license := a.Channels().License()
@@ -42,20 +70,12 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 
 	// Plugin Data
 	trueUpReviewPlugins := model.TrueUpReviewPlugins{
-		ActivePluginNames:   []string{},
-		InactivePluginNames: []string{},
+		PluginNames: []string{},
 	}
 
-	if pluginResponse, err := a.GetPlugins(); err == nil {
-		for _, plugin := range pluginResponse.Active {
-			trueUpReviewPlugins.ActivePluginNames = append(trueUpReviewPlugins.ActivePluginNames, plugin.Name)
-		}
-		trueUpReviewPlugins.TotalActivePlugins = len(trueUpReviewPlugins.ActivePluginNames)
-
-		for _, plugin := range pluginResponse.Inactive {
-			trueUpReviewPlugins.InactivePluginNames = append(trueUpReviewPlugins.InactivePluginNames, plugin.Name)
-		}
-		trueUpReviewPlugins.TotalInactivePlugins = len(trueUpReviewPlugins.InactivePluginNames)
+	if plugins, err := a.getMarketplacePlugins(); err == nil {
+		trueUpReviewPlugins.PluginNames = plugins
+		trueUpReviewPlugins.TotalPlugins = len(plugins)
 	}
 
 	// Authentication Features
