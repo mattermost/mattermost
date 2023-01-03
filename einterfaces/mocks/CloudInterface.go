@@ -325,6 +325,29 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	return r0, r1
 }
 
+// GetLicenseExpandStatus provides a mock function with given fields: userID, token
+func (_m *CloudInterface) GetLicenseExpandStatus(userID string, token string) (*model.SubscriptionExpandStatus, error) {
+	ret := _m.Called(userID, token)
+
+	var r0 *model.SubscriptionExpandStatus
+	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionExpandStatus); ok {
+		r0 = rf(userID, token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SubscriptionExpandStatus)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetLicenseRenewalStatus provides a mock function with given fields: userID, token
 func (_m *CloudInterface) GetLicenseRenewalStatus(userID string, token string) error {
 	ret := _m.Called(userID, token)

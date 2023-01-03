@@ -10,6 +10,8 @@ type BootstrapSelfHostedSignupRequest struct {
 
 type BootstrapSelfHostedSignupResponse struct {
 	Progress string `json:"progress"`
+	// email listed on the JWT claim
+	Email string `json:"email"`
 }
 
 type BootstrapSelfHostedSignupResponseInternal struct {

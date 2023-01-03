@@ -113,13 +113,10 @@ func Error(msg string, fields ...Field) {
 
 // Convenience method equivalent to calling `Log` with the `Critical` level.
 // DEPRECATED: Either use Error or Fatal.
+// Critical level isn't added in mlog/levels.go:StdAll so calling this doesn't
+// really work. For now we just call Fatal to atleast print something.
 func Critical(msg string, fields ...Field) {
-	logger := getGlobalLogger()
-	if logger == nil {
-		defaultLog(LvlCritical, msg, fields...)
-		return
-	}
-	logger.Critical(msg, fields...)
+	Fatal(msg, fields...)
 }
 
 func Fatal(msg string, fields ...Field) {

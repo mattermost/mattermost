@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/wsapi"
@@ -46,7 +47,7 @@ func init() {
 }
 
 func webClientTestsCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.StartMetrics)
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 }
 
 func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.StartMetrics)
 	if err != nil {
 		return err
 	}
