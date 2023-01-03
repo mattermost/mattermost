@@ -6480,14 +6480,6 @@
     "translation": "AD/LDAP 同步任务超时。"
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "无法解析 BatchSize 导出任务消息。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "未找到机群 API 接口。"
   },

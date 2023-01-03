@@ -39,4 +39,5 @@ const (
 	MigrationKeyAddCustomUserGroupsPermissions         = "custom_groups_permissions"
 	MigrationKeyAddPlayboosksManageRolesPermissions    = "playbooks_manage_roles"
 	MigrationKeyAddProductsBoardsPermissions           = "products_boards"
+	MigrationKeyAddCustomUserGroupsPermissionRestore   = "custom_groups_permission_restore"
 )

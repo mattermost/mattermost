@@ -3252,14 +3252,6 @@
     "translation": "Reached AD/LDAP synchronisation job timeout."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Your licence does not support ID Loaded Push Notifications."
   },
@@ -9693,5 +9685,9 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal unavailable for self-hosted signup."
   }
 ]
