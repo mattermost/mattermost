@@ -1888,14 +1888,6 @@
     "translation": "Изтече времето на AD/LDAP задачата за синхронизация."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не може да се анализира заданието за износ на съобщения ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Не може да се анализира заданието за износ на съобщения BatchSize."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Лицензът ви не поддържа ID заредени изскачащи известия."
   },

@@ -649,6 +649,58 @@ func TestGetCloudProducts(t *testing.T) {
 	})
 }
 
+func Test_GetExpandStatsForSubscription(t *testing.T) {
+	isExpandable := &model.SubscriptionExpandStatus{
+		IsExpandable: true,
+	}
+
+	licenseId := "licenseID"
+
+	t.Run("NON Admin users are UNABLE to request expand stats for the subscription", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandable, r, err := th.Client.GetExpandStats(licenseId)
+		require.Error(t, err)
+		require.Nil(t, subscriptionExpandable)
+		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")
+	})
+
+	t.Run("Admin users are UNABLE to request licenses is expendable due missing the id", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandable, r, err := th.Client.GetExpandStats("")
+		require.Error(t, err)
+		require.Nil(t, subscriptionExpandable)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "400 Bad Request")
+	})
+}
+
 func TestGetSelfHostedProducts(t *testing.T) {
 	products := []*model.Product{
 		{
