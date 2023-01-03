@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,7 +66,7 @@ var exportablePreferences = map[imports.ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
@@ -78,46 +79,50 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 		}
 	}
 
+	if job != nil && job.Data == nil {
+		job.Data = make(model.StringMap)
+	}
+
 	ctx.Logger().Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, err := a.exportAllTeams(writer)
+	teamNames, err := a.exportAllTeams(ctx, job, writer)
 	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(writer, teamNames); err != nil {
+	if err = a.exportAllChannels(ctx, job, writer, teamNames); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	if err = a.exportAllUsers(writer); err != nil {
+	if err = a.exportAllUsers(ctx, job, writer); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, writer, opts.IncludeAttachments)
+	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(ctx, writer, outPath, "exported_emoji", !opts.CreateArchive)
+	emojiPaths, err := a.exportCustomEmoji(ctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if err = a.exportAllDirectChannels(writer); err != nil {
+	if err = a.exportAllDirectChannels(ctx, job, writer); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(ctx, writer, opts.IncludeAttachments)
+	directAttachments, err := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
@@ -137,6 +142,13 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 		for _, emojiPath := range emojiPaths {
 			if err := a.exportFile(outPath, emojiPath, zipWr); err != nil {
 				return err
+			}
+		}
+
+		if job != nil {
+			job.Data["attachments_exported"] = strconv.Itoa(len(attachments) + len(directAttachments) + len(emojiPaths))
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
 			}
 		}
 	}
@@ -175,9 +187,10 @@ func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	return a.exportWriteLine(writer, versionLine)
 }
 
-func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError) {
+func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) (map[string]bool, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	teamNames := make(map[string]bool)
+	cnt := 0
 	for {
 		teams, err := a.Srv().Store().Team().GetAllForExportAfter(1000, afterId)
 		if err != nil {
@@ -186,6 +199,13 @@ func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError
 
 		if len(teams) == 0 {
 			break
+		}
+		cnt += len(teams)
+		if job != nil {
+			job.Data["teams_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		for _, team := range teams {
@@ -207,8 +227,9 @@ func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError
 	return teamNames, nil
 }
 
-func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *model.AppError {
+func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
+	cnt := 0
 	for {
 		channels, err := a.Srv().Store().Channel().GetAllChannelsForExportAfter(1000, afterId)
 
@@ -218,6 +239,13 @@ func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *mo
 
 		if len(channels) == 0 {
 			break
+		}
+		cnt += len(channels)
+		if job != nil {
+			job.Data["channels_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		for _, channel := range channels {
@@ -242,8 +270,9 @@ func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *mo
 	return nil
 }
 
-func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
+func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
+	cnt := 0
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
 
@@ -253,6 +282,13 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 
 		if len(users) == 0 {
 			break
+		}
+		cnt += len(users)
+		if job != nil {
+			job.Data["users_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		for _, user := range users {
@@ -395,12 +431,13 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
 	logCheckpoint := time.Now()
 
+	cnt := 0
 	for {
 		if time.Since(logCheckpoint) > 5*time.Minute {
 			ctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d posts", postProcessCount))
@@ -414,6 +451,13 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 
 		if len(posts) == 0 {
 			return attachments, nil
+		}
+		cnt += len(posts)
+		if job != nil {
+			job.Data["posts_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		for _, post := range posts {
@@ -538,9 +582,10 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(c request.CTX, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
+	cnt := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
 
@@ -550,6 +595,13 @@ func (a *App) exportCustomEmoji(c request.CTX, writer io.Writer, outPath, export
 
 		if len(customEmojiList) == 0 {
 			break
+		}
+		cnt += len(customEmojiList)
+		if job != nil {
+			job.Data["emojis_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				c.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		pageNumber++
@@ -619,8 +671,9 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	return nil
 }
 
-func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
+func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
+	cnt := 0
 	for {
 		channels, err := a.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
 		if err != nil {
@@ -629,6 +682,13 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 
 		if len(channels) == 0 {
 			break
+		}
+		cnt += len(channels)
+		if job != nil {
+			job.Data["direct_channels_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		for _, channel := range channels {
@@ -682,12 +742,13 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 	return userIDs, nil
 }
 
-func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
 	logCheckpoint := time.Now()
 
+	cnt := 0
 	for {
 		if time.Since(logCheckpoint) > 5*time.Minute {
 			ctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d direct posts", postProcessCount))
@@ -701,6 +762,13 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttach
 
 		if len(posts) == 0 {
 			break
+		}
+		cnt += len(posts)
+		if job != nil {
+			job.Data["direct_posts_exported"] = strconv.Itoa(cnt)
+			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
+			}
 		}
 
 		for _, post := range posts {
