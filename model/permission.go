@@ -366,6 +366,7 @@ var PermissionCreateCustomGroup *Permission
 var PermissionManageCustomGroupMembers *Permission
 var PermissionEditCustomGroup *Permission
 var PermissionDeleteCustomGroup *Permission
+var PermissionRestoreCustomGroup *Permission
 
 var AllPermissions []*Permission
 var DeprecatedPermissions []*Permission
@@ -1960,6 +1961,13 @@ func initializePermissions() {
 		PermissionScopeGroup,
 	}
 
+	PermissionRestoreCustomGroup = &Permission{
+		"restore_custom_group",
+		"authentication.permissions.restore_custom_group.name",
+		"authentication.permissions.restore_custom_group.description",
+		PermissionScopeGroup,
+	}
+
 	// Playbooks
 	PermissionPublicPlaybookCreate = &Permission{
 		"playbook_public_create",
@@ -2340,6 +2348,7 @@ func initializePermissions() {
 		PermissionManageCustomGroupMembers,
 		PermissionEditCustomGroup,
 		PermissionDeleteCustomGroup,
+		PermissionRestoreCustomGroup,
 	}
 
 	DeprecatedPermissions = []*Permission{
