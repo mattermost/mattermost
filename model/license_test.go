@@ -343,3 +343,53 @@ func TestLicense_IsSanctionedTrial(t *testing.T) {
 		assert.True(t, license.IsSanctionedTrial())
 	})
 }
+
+func TestLicenseHasSharedChannels(t *testing.T) {
+
+	testCases := []struct {
+		description   string
+		license       License
+		expectedValue bool
+	}{
+		{
+			"licensed for shared channels",
+			License{
+				Features: &Features{
+					SharedChannels: NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			true,
+		},
+		{
+			"not licensed for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: "other",
+			},
+			false,
+		},
+		{
+			"professional license for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			true,
+		},
+		{
+			"enterprise license for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, testCase.license.HasSharedChannels())
+		})
+	}
+}
