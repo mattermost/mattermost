@@ -45,7 +45,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
-	"github.com/mattermost/mattermost-server/v6/jobs/license_true_up"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
 	"github.com/mattermost/mattermost-server/v6/jobs/notify_admin"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
@@ -1528,12 +1527,6 @@ func (s *Server) initJobs() {
 		model.JobTypeTrialNotifyAdmin,
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeLicenseTrueUpReview,
-		license_true_up.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels())), s.telemetryService),
-		license_true_up.MakeScheduler(s.Jobs, s.License(), s.telemetryService),
 	)
 
 	s.platform.Jobs = s.Jobs
