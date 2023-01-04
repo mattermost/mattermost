@@ -14,7 +14,6 @@ import (
 	"image/draw"
 	"image/gif"
 	_ "image/jpeg"
-	"image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
