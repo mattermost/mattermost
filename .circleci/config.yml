@@ -136,7 +136,7 @@ jobs:
           command: |
             cd mattermost-server
             make modules-tidy
-            if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; exit 1; fi
+            if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   check-store-layers:
     docker:
       - image: cimg/go:1.18
