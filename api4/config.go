@@ -10,9 +10,11 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -190,6 +192,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddEventPriorState(&diffs)
+
+	if err = updateTranslations(c.App, diffs); err != nil {
+		return
+	}
 
 	newCfg.Sanitize()
 
@@ -430,4 +436,15 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		// with manage_system, default to allow, otherwise default not-allow
 		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	}
+}
+
+func updateTranslations(a app.AppIface, diffs config.ConfigDiffs) error {
+	for _, diff := range diffs {
+		if diff.Path != "LocalizationSettings.DefaultServerLocale" {
+			continue
+		}
+		s := a.Config().LocalizationSettings
+		return i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale)
+	}
+	return nil
 }
