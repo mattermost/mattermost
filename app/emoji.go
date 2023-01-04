@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	MaxEmojiFileSize       = 1 << 20 // 1 MB
+	MaxEmojiFileSize       = 1 << 19 // 512 KiB
 	MaxEmojiWidth          = 128
 	MaxEmojiHeight         = 128
 	MaxEmojiOriginalWidth  = 1028
@@ -155,8 +155,8 @@ func (a *App) UploadEmojiImage(c request.CTX, id string, imageData *multipart.Fi
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			resized_image := resizeEmoji(img, config.Width, config.Height)
-			if err := png.Encode(newbuf, resized_image); err != nil {
+			resizedImg := resizeEmoji(img, config.Width, config.Height)
+			if err := a.ch.imgEncoder.EncodePNG(newbuf, resizedImg); err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			buf = newbuf

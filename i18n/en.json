@@ -1719,7 +1719,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 1 MB in size."
+    "translation": "Unable to create emoji. Image must be less than 512 KiB in size."
   },
   {
     "id": "api.emoji.disabled.app_error",
