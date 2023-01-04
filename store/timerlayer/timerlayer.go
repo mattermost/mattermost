@@ -6202,10 +6202,10 @@ func (s *TimerLayerPostPersistentNotificationStore) Get(params model.GetPersiste
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerPostPersistentNotificationStore) UpdateLastSentAt(postIds []string) error {
+func (s *TimerLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
 	start := time.Now()
 
-	err := s.PostPersistentNotificationStore.UpdateLastSentAt(postIds)
+	err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6213,7 +6213,7 @@ func (s *TimerLayerPostPersistentNotificationStore) UpdateLastSentAt(postIds []s
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.UpdateLastSentAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.UpdateLastActivity", success, elapsed)
 	}
 	return err
 }

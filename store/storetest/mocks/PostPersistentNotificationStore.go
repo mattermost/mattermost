@@ -86,8 +86,8 @@ func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotific
 	return r0, r1, r2
 }
 
-// UpdateLastSentAt provides a mock function with given fields: postIds
-func (_m *PostPersistentNotificationStore) UpdateLastSentAt(postIds []string) error {
+// UpdateLastActivity provides a mock function with given fields: postIds
+func (_m *PostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
 	ret := _m.Called(postIds)
 
 	var r0 error

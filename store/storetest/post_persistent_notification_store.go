@@ -451,7 +451,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 	// Update from 0 value
 	now := model.GetTimeForMillis(model.GetMillis())
 	delta := 2 * time.Second
-	err = ss.PostPersistentNotification().UpdateLastSentAt([]string{p1.Id})
+	err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
 	require.NoError(t, err)
 
 	pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
@@ -471,7 +471,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 	// Update from non-zero value
 	now = model.GetTimeForMillis(model.GetMillis())
 	delta = 2 * time.Second
-	err = ss.PostPersistentNotification().UpdateLastSentAt([]string{p1.Id})
+	err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
 	require.NoError(t, err)
 
 	pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{

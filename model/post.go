@@ -176,6 +176,7 @@ type PostPersistentNotifications struct {
 	CreateAt   int64
 	LastSentAt int64
 	DeleteAt   int64
+	SentCount  int16
 }
 
 type GetPersistentNotificationsPostsParams struct {

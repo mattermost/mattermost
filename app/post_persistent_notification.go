@@ -70,8 +70,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 
 func (a *App) SendPersistentNotifications() error {
 	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationInterval) * time.Minute
-	notificationMaxCount := int64(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
-	notificationMaxDuration := time.Duration(notificationInterval.Nanoseconds() * notificationMaxCount).Milliseconds()
+	notificationMaxCount := int16(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 
 	// fetch posts for which first notificationInterval duration has passed
 	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
@@ -99,9 +98,11 @@ func (a *App) SendPersistentNotifications() error {
 		pagination.FromID = notificationPosts[len(notificationPosts)-1].PostId
 		pagination.FromCreateAt = notificationPosts[len(notificationPosts)-1].CreateAt
 
+		notificationPostsMap := make(map[string]*model.PostPersistentNotifications, len(notificationPosts))
 		postIds := make([]string, 0, len(notificationPosts))
 		for _, p := range notificationPosts {
 			postIds = append(postIds, p.PostId)
+			notificationPostsMap[p.PostId] = p
 		}
 		posts, err := a.Srv().Store().Post().GetPostsByIds(postIds)
 		if err != nil {
@@ -111,8 +112,7 @@ func (a *App) SendPersistentNotifications() error {
 		var expiredPosts []*model.Post
 		var validPosts []*model.Post
 		for _, p := range posts {
-			expireAt := p.CreateAt + notificationMaxDuration
-			if model.GetMillis() > expireAt {
+			if notificationPostsMap[p.Id].SentCount >= notificationMaxCount {
 				expiredPosts = append(expiredPosts, p)
 			} else {
 				validPosts = append(validPosts, p)
@@ -133,12 +133,12 @@ func (a *App) SendPersistentNotifications() error {
 			return err
 		}
 
-		// Update lastSentAt for valid notifications posts
+		// Update last activity for valid notifications posts
 		validPostsIds := make([]string, 0, len(validPosts))
 		for _, p := range validPosts {
 			validPostsIds = append(validPostsIds, p.Id)
 		}
-		if err := a.Srv().Store().PostPersistentNotification().UpdateLastSentAt(validPostsIds); err != nil {
+		if err := a.Srv().Store().PostPersistentNotification().UpdateLastActivity(validPostsIds); err != nil {
 			return errors.Wrapf(err, "failed to update lastSentAt for valid notifications: %v", validPostsIds)
 		}
 

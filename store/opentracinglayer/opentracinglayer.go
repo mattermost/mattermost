@@ -6857,16 +6857,16 @@ func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPe
 	return result, resultVar1, err
 }
 
-func (s *OpenTracingLayerPostPersistentNotificationStore) UpdateLastSentAt(postIds []string) error {
+func (s *OpenTracingLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.UpdateLastSentAt")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.UpdateLastActivity")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.PostPersistentNotificationStore.UpdateLastSentAt(postIds)
+	err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

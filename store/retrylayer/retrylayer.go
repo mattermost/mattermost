@@ -7771,11 +7771,11 @@ func (s *RetryLayerPostPersistentNotificationStore) Get(params model.GetPersiste
 
 }
 
-func (s *RetryLayerPostPersistentNotificationStore) UpdateLastSentAt(postIds []string) error {
+func (s *RetryLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
 
 	tries := 0
 	for {
-		err := s.PostPersistentNotificationStore.UpdateLastSentAt(postIds)
+		err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
 		if err == nil {
 			return nil
 		}

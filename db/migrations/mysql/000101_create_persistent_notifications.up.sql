@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS PersistentNotifications (
     CreateAt bigint(20) DEFAULT NULL,
     LastSentAt bigint(20) DEFAULT NULL,
     DeleteAt bigint(20) DEFAULT NULL,
+    SentCount smallint DEFAULT NULL,
     PRIMARY KEY (PostId)
 );
 
