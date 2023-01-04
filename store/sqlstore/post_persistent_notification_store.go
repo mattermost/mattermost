@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -105,7 +104,7 @@ func (s *SqlPostPersistentNotificationStore) UpdateLastActivity(postIds []string
 		builder := s.getQueryBuilder().
 			Update("PersistentNotifications").
 			Set("LastSentAt", lastSentAt).
-			Set("SentCount", squirrel.Expr("SentCount+1")).
+			Set("SentCount", sq.Expr("SentCount+1")).
 			Where(sq.Eq{"PostId": postIds[i:j]})
 
 		_, err := s.GetMasterX().ExecBuilder(builder)
