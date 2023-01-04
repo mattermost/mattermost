@@ -201,7 +201,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
 		}
 
-		if *license.Features.SharedChannels {
+		if license.HasSharedChannels() {
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
 		}

@@ -9362,5 +9362,9 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "csoport név létezik mint lefoglalt név"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Nem lehet eltávolítani egy archivált csatornában lévő jóváhagyást."
   }
 ]
