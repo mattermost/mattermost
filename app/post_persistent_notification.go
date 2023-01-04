@@ -261,31 +261,6 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		Sender:     sender,
 	}
 
-	if *a.Config().EmailSettings.SendEmailNotifications {
-		for _, id := range mentionedUsersList {
-			user := profileMap[id]
-			if user == nil {
-				continue
-			}
-
-			//If email verification is required and user email is not verified don't send email.
-			if *a.Config().EmailSettings.RequireEmailVerification && !user.EmailVerified {
-				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", user.Email), mlog.String("user_id", id))
-				continue
-			}
-
-			if user.NotifyProps[model.EmailNotifyProp] != "false" && a.persistentNotificationsAllowedForStatus(id) {
-				senderProfileImage, _, err := a.GetProfileImage(sender)
-				if err != nil {
-					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
-				}
-				if err := a.sendNotificationEmail(request.EmptyContext(a.Log()), notification, user, team, senderProfileImage); err != nil {
-					mlog.Warn("Unable to send notification email.", mlog.Err(err))
-				}
-			}
-		}
-	}
-
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(mentionedUsersList)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		return errors.Errorf("mentioned users: %d are more than allowed users: %d", len(mentionedUsersList), *a.Config().TeamSettings.MaxNotificationsPerChannel)
