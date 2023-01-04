@@ -145,12 +145,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 			}
 		}
 
-		if job != nil {
-			job.Data["attachments_exported"] = strconv.Itoa(len(attachments) + len(directAttachments) + len(emojiPaths))
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
 	}
 
 	return nil
@@ -201,12 +196,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 			break
 		}
 		cnt += len(teams)
-		if job != nil {
-			job.Data["teams_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "teams_exported", cnt)
 
 		for _, team := range teams {
 			afterId = team.Id
@@ -241,12 +231,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 			break
 		}
 		cnt += len(channels)
-		if job != nil {
-			job.Data["channels_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "channels_exported", cnt)
 
 		for _, channel := range channels {
 			afterId = channel.Id
@@ -284,12 +269,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 			break
 		}
 		cnt += len(users)
-		if job != nil {
-			job.Data["users_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "users_exported", cnt)
 
 		for _, user := range users {
 			afterId = user.Id
@@ -453,12 +433,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			return attachments, nil
 		}
 		cnt += len(posts)
-		if job != nil {
-			job.Data["posts_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "posts_exported", cnt)
 
 		for _, post := range posts {
 			afterId = post.Id
@@ -597,12 +572,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 			break
 		}
 		cnt += len(customEmojiList)
-		if job != nil {
-			job.Data["emojis_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				c.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(c.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
 
 		pageNumber++
 
@@ -684,12 +654,7 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 			break
 		}
 		cnt += len(channels)
-		if job != nil {
-			job.Data["direct_channels_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_channels_exported", cnt)
 
 		for _, channel := range channels {
 			afterId = channel.Id
@@ -764,12 +729,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			break
 		}
 		cnt += len(posts)
-		if job != nil {
-			job.Data["direct_posts_exported"] = strconv.Itoa(cnt)
-			if _, err2 := a.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
-				ctx.Logger().Warn("Failed to update job status", mlog.Err(err2))
-			}
-		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
 
 		for _, post := range posts {
 			afterId = post.Id
@@ -882,4 +842,13 @@ func (a *App) DeleteExport(name string) *model.AppError {
 	}
 
 	return a.RemoveFile(filePath)
+}
+
+func updateJobProgress(logger mlog.LoggerIFace, store store.Store, job *model.Job, key string, value int) {
+	if job != nil {
+		job.Data[key] = strconv.Itoa(value)
+		if _, err2 := store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err2 != nil {
+			logger.Warn("Failed to update job status", mlog.Err(err2))
+		}
+	}
 }
