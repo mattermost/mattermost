@@ -1369,11 +1369,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " 당신의 게시글에 답글이 달렸습니다."
+    "translation": " 당신의 게시글에 댓글이 달렸습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " 당신이 참여한 글타래에 답글이 달렸습니다."
+    "translation": " 당신이 참여한 글타래에 댓글이 달렸습니다."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -4565,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab 서비스 약관이 업데이트되었습니다. {{.URL}}으로 이동하여 수락한 다음 Mattermost에 다시 로그인해주세요."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4741,7 +4741,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14 이상"
+    "translation": "macOS 11 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "44버전 이상"
+    "translation": "95 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "100 버전 이상"
+    "translation": "106 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7241,11 +7241,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " 지켜보는 중인 글타래에 답글을 남겼습니다."
+    "translation": " 지켜보는 글타래에 댓글을 남겼습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": " 글타래에 답글을 남겼습니다."
+    "translation": " 글타래에 댓글을 남겼습니다."
   },
   {
     "id": "api.command_remote.missing_command",
@@ -8034,5 +8034,9 @@
   {
     "id": "app.user.update_threads_read_for_user.app_error",
     "translation": "모든 사용자 글타래들을 읽음 상태로 변경할 수 없습니다"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
   }
 ]
