@@ -1535,6 +1535,10 @@
     "translation": "Failed to merge given config."
   },
   {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Failed to update server translations."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },

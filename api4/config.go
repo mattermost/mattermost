@@ -194,6 +194,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(&diffs)
 
 	if err = updateTranslations(c.App, diffs); err != nil {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
