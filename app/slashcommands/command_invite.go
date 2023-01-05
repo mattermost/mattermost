@@ -138,24 +138,22 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 }
 
 func (i *InviteProvider) getUsersFromMention(a *app.App, username string) []*model.User {
-	users := make([]*model.User, 0, 1)
-
 	userProfile, err := a.Srv().Store().User().GetByUsername(username)
 	if err == nil && userProfile.DeleteAt == 0 {
-		users = append(users, userProfile)
+		return []*model.User{userProfile}
 	}
 
 	group, appErr := a.GetGroupByName(username, model.GroupSearchOpts{})
 	if appErr != nil || group == nil {
-		return users
+		return nil
 	}
 
 	members, appErr := a.GetGroupMemberUsers(group.Id)
 	if appErr != nil {
-		return users
+		return nil
 	}
 
-	return append(users, members...)
+	return members
 }
 
 func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
