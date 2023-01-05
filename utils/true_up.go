@@ -10,7 +10,6 @@ import (
 
 const trueUpReviewDueDay = 15
 const day = time.Hour * 24
-const week = day * 7
 
 type DueDateWindow struct {
 	Start time.Time
