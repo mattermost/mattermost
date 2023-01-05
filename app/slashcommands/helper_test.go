@@ -325,6 +325,21 @@ func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *
 	return channel
 }
 
+func (th *TestHelper) createGroup() *model.Group {
+	id := model.NewId()
+	g, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	if appErr != nil {
+		panic(appErr)
+	}
+	return g
+}
+
 func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 	id := model.NewId()
 
@@ -353,6 +368,14 @@ func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel)
 	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 	if err != nil {
 		panic(err)
+	}
+	return member
+}
+
+func (th *TestHelper) addUserToGroup(user *model.User, group *model.Group) *model.GroupMember {
+	member, appErr := th.App.UpsertGroupMember(group.Id, user.Id)
+	if appErr != nil {
+		panic(appErr)
 	}
 	return member
 }

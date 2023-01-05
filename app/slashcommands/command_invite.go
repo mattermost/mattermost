@@ -94,14 +94,14 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 
 		if msg[0] == '@' || (msg[0] != '~' && j == 0) {
 			targetUsername := strings.TrimPrefix(msg, "@")
-			userProfile := i.getUserProfile(a, targetUsername)
-			if userProfile == nil {
+			users := i.getUsersFromMention(a, targetUsername)
+			if len(users) == 0 {
 				*resps = append(*resps, args.T("api.command_invite.missing_user.app_error", map[string]any{
 					"User": targetUsername,
 				}))
 				continue
 			}
-			targetUsers = append(targetUsers, userProfile)
+			targetUsers = append(targetUsers, users...)
 		} else {
 			targetChannelName := strings.TrimPrefix(msg, "~")
 			channelToJoin, err := a.GetChannelByName(c, targetChannelName, args.TeamId, false)
@@ -137,17 +137,25 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	return targetUsers, targetChannels, ""
 }
 
-func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User {
-	userProfile, nErr := a.Srv().Store().User().GetByUsername(username)
-	if nErr != nil {
-		return nil
+func (i *InviteProvider) getUsersFromMention(a *app.App, username string) []*model.User {
+	users := make([]*model.User, 0, 1)
+
+	userProfile, err := a.Srv().Store().User().GetByUsername(username)
+	if err == nil && userProfile.DeleteAt == 0 {
+		users = append(users, userProfile)
 	}
 
-	if userProfile.DeleteAt != 0 {
-		return nil
+	group, appErr := a.GetGroupByName(username, model.GroupSearchOpts{})
+	if appErr != nil || group == nil {
+		return users
 	}
 
-	return userProfile
+	members, appErr := a.GetGroupMemberUsers(group.Id)
+	if appErr != nil {
+		return users
+	}
+
+	return append(users, members...)
 }
 
 func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {

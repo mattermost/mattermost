@@ -207,6 +207,45 @@ func TestInviteProvider(t *testing.T) {
 		runCmd(msg, "api.command_invite.user_not_in_team.app_error")
 		checkIsNotMember(th.BasicChannel.Id, bot.UserId)
 	})
+
+	t.Run("add users using a group in the current channel", func(t *testing.T) {
+		group := th.createGroup()
+		user1 := th.createUser()
+		user2 := th.createUser()
+		user3 := th.createUser()
+		th.linkUserToTeam(user1, th.BasicTeam)
+		th.linkUserToTeam(user2, th.BasicTeam)
+		th.linkUserToTeam(user3, th.BasicTeam)
+		th.addUserToGroup(user1, group)
+		th.addUserToGroup(user2, group)
+		th.addUserToGroup(user3, group)
+
+		msg := "@" + *group.Name
+		runCmd(msg, "")
+		checkIsMember(th.BasicChannel.Id, user1.Id)
+		checkIsMember(th.BasicChannel.Id, user2.Id)
+		checkIsMember(th.BasicChannel.Id, user3.Id)
+	})
+
+	t.Run("add users using a group in the another channel", func(t *testing.T) {
+		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		group := th.createGroup()
+		user1 := th.createUser()
+		user2 := th.createUser()
+		user3 := th.createUser()
+		th.linkUserToTeam(user1, th.BasicTeam)
+		th.linkUserToTeam(user2, th.BasicTeam)
+		th.linkUserToTeam(user3, th.BasicTeam)
+		th.addUserToGroup(user1, group)
+		th.addUserToGroup(user2, group)
+		th.addUserToGroup(user3, group)
+
+		msg := "@" + *group.Name + " ~" + channel.Name
+		runCmd(msg, "api.command_invite.success\napi.command_invite.success\napi.command_invite.success")
+		checkIsMember(channel.Id, user1.Id)
+		checkIsMember(channel.Id, user2.Id)
+		checkIsMember(channel.Id, user3.Id)
+	})
 }
 
 func TestInviteGroup(t *testing.T) {
