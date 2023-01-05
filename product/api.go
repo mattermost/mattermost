@@ -209,4 +209,5 @@ type BoardsService interface {
 	PatchCard(cardPatch *fb_model.CardPatch, cardID string, userID string) (*fb_model.Card, error)
 	DeleteCard(cardID string, userID string) error
 	HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool
+	DuplicateBoard(boardID string, userID string, toTeam string, asTemplate bool) (*fb_model.BoardsAndBlocks, []*fb_model.BoardMember, error)
 }
