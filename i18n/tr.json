@@ -6604,14 +6604,6 @@
     "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "İleti dışa aktarma görevinde BatchSize değeri çözümlenemedi."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Küme API uç noktası bulunamadı."
   },
