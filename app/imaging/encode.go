@@ -45,7 +45,9 @@ func NewEncoder(opts EncoderOptions) (*Encoder, error) {
 		e.sem = make(chan struct{}, opts.ConcurrencyLevel)
 	}
 	e.opts = opts
-	e.pngEncoder = &png.Encoder{}
+	e.pngEncoder = &png.Encoder{
+		CompressionLevel: png.BestCompression,
+	}
 	return &e, nil
 }
 
