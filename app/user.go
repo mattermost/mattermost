@@ -981,16 +981,14 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 
-	channelsInTeam, aErr := a.GetChannelsForTeamForUser(c, "", user.Id, &model.ChannelSearchOpts{
-		IncludeDeleted: true,
-		LastDeleteAt:   0,
-	})
-	// soft errors henceforth since user is already updated
-	if aErr != nil {
-		c.Logger().Error("Failed to get channels for user", mlog.String("user_id", user.Id), mlog.Err(err))
-	}
-
 	if active {
+		channelsInTeam, aErr := a.GetChannelsForTeamForUser(c, "", user.Id, &model.ChannelSearchOpts{
+			Deleted: true,
+		})
+		// soft errors henceforth since user is already updated
+		if aErr != nil {
+			c.Logger().Error("Failed to get channels for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		}
 		// undelete direct message channels
 		for _, channel := range channelsInTeam {
 			if channel.Type != model.ChannelTypeDirect {
@@ -1001,7 +999,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			if err != nil {
 				c.Logger().Error("Failed to get channel members count for channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			}
-			if channelMemberCount == 2 && channel.DeleteAt != 0 {
+			if channelMemberCount == 2 {
 				_, aErr := a.RestoreChannel(c, channel, user.Id)
 				if aErr != nil {
 					c.Logger().Error("Failed to restore channels for user", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(aErr))
@@ -1009,16 +1007,21 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			}
 		}
 	} else {
+		channelsInTeam, aErr := a.GetChannelsForTeamForUser(c, "", user.Id, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+		})
+		// soft errors henceforth since user is already updated
+		if aErr != nil {
+			c.Logger().Error("Failed to get channels for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		}
 		// delete direct message channels
 		for _, channel := range channelsInTeam {
 			if channel.Type != model.ChannelTypeDirect {
 				continue
 			}
-			if channel.DeleteAt == 0 {
-				aErr := a.DeleteChannel(c, channel, user.Id)
-				if aErr != nil {
-					c.Logger().Error("Failed to delete channels for user", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(aErr))
-				}
+			aErr := a.DeleteChannel(c, channel, user.Id)
+			if aErr != nil {
+				c.Logger().Error("Failed to delete channels for user", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(aErr))
 			}
 		}
 	}

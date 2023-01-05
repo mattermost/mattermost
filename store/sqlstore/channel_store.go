@@ -1041,19 +1041,23 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 			sq.Eq{"ch.TeamId": ""},
 		})
 	}
-
-	if opts.IncludeDeleted {
-		if opts.LastDeleteAt != 0 {
-			// We filter by non-archived, and archived >= a timestamp.
-			query = query.Where(sq.Or{
-				sq.Eq{"ch.DeleteAt": 0},
-				sq.GtOrEq{"ch.DeleteAt": opts.LastDeleteAt},
-			})
-		}
-		// If opts.LastDeleteAt is not set, we include everything. That means no filter is needed.
+	if opts.Deleted {
+		// this will be false unless specified
+		query = query.Where(sq.NotEq{"ch.DeleteAt": 0})
 	} else {
-		// Don't include archived channels.
-		query = query.Where(sq.Eq{"ch.DeleteAt": 0})
+		if opts.IncludeDeleted {
+			if opts.LastDeleteAt != 0 {
+				// We filter by non-archived, and archived >= a timestamp.
+				query = query.Where(sq.Or{
+					sq.Eq{"ch.DeleteAt": 0},
+					sq.GtOrEq{"ch.DeleteAt": opts.LastDeleteAt},
+				})
+			}
+			// If opts.LastDeleteAt is not set, we include everything. That means no filter is needed.
+		} else {
+			// Don't include archived channels.
+			query = query.Where(sq.Eq{"ch.DeleteAt": 0})
+		}
 	}
 
 	if opts.LastUpdateAt > 0 {
