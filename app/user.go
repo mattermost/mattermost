@@ -995,9 +995,9 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 				continue
 			}
 			// not using app.GetChannelMembersCount because it computes from cache
-			channelMemberCount, err := a.Srv().Store().Channel().GetMemberCount(channel.Id, false)
-			if err != nil {
-				c.Logger().Error("Failed to get channel members count for channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+			channelMemberCount, aErr := a.Srv().Store().Channel().GetMemberCount(channel.Id, false)
+			if aErr != nil {
+				c.Logger().Error("Failed to get channel members count for channel", mlog.String("channel_id", channel.Id), mlog.Err(aErr))
 			}
 			if channelMemberCount == 2 {
 				_, aErr := a.RestoreChannel(c, channel, user.Id)
