@@ -5794,8 +5794,6 @@ func TestUpdatePassword(t *testing.T) {
 func TestGetThreadsForUser(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -6151,8 +6149,6 @@ func TestGetThreadsForUser(t *testing.T) {
 func TestThreadSocketEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
@@ -6533,8 +6529,6 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6590,8 +6584,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 func TestThreadCounts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6633,8 +6626,6 @@ func TestThreadCounts(t *testing.T) {
 func TestSingleThreadGet(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -6704,8 +6695,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
 	client := th.Client
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6768,8 +6758,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 func TestReadThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6872,8 +6861,7 @@ func TestReadThreads(t *testing.T) {
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn

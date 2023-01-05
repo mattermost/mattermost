@@ -900,15 +900,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Missing Username and/or Channel."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
+    "translation": "We couldn't find the user {{.User}}. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -920,7 +920,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.success",
