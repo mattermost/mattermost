@@ -16,7 +16,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -34,11 +33,6 @@ hwIDAQAB
 -----END PUBLIC KEY-----`)
 
 var LicenseValidator LicenseValidatorIface
-
-const trueUpReviewDueDay = 15
-const businessQuarterStep = 3
-const day = time.Hour * 24
-const week = day * 7
 
 func init() {
 	if LicenseValidator == nil {
@@ -229,31 +223,4 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
-}
-
-func GetNextTrueUpReviewDueDate(now time.Time) time.Time {
-	quaterEndMonths := []time.Month{time.March, time.June, time.September, time.December}
-
-	var nextQuarterEndMonth time.Month = time.March
-	for _, month := range quaterEndMonths {
-		if now.Month() <= month && now.Day() <= trueUpReviewDueDay {
-			nextQuarterEndMonth = month
-			break
-		} else if now.Month() <= month && now.Day() > trueUpReviewDueDay {
-			nextQuarterEndMonth = month + businessQuarterStep
-			break
-		}
-	}
-
-	return time.Date(now.Year(), nextQuarterEndMonth, trueUpReviewDueDay, 0, 0, 0, 0, now.Location())
-}
-
-func IsTrueUpReviewDueDateWithinTheNextTwoWeeks(now time.Time, dueDate time.Time) bool {
-	dueDateWindow := dueDate.Add(-(week * 2))
-
-	if now.Before(dueDateWindow) || now.After(dueDate) {
-		return false
-	}
-
-	return true
 }
