@@ -93,11 +93,11 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 		}
 
 		if msg[0] == '@' || (msg[0] != '~' && j == 0) {
-			targetUsername := strings.TrimPrefix(msg, "@")
-			users := i.getUsersFromMention(a, targetUsername)
+			targetMentionName := strings.TrimPrefix(msg, "@")
+			users := i.getUsersFromMentionName(a, targetMentionName)
 			if len(users) == 0 {
 				*resps = append(*resps, args.T("api.command_invite.missing_user.app_error", map[string]any{
-					"User": targetUsername,
+					"User": targetMentionName,
 				}))
 				continue
 			}
@@ -137,13 +137,13 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	return targetUsers, targetChannels, ""
 }
 
-func (i *InviteProvider) getUsersFromMention(a *app.App, username string) []*model.User {
-	userProfile, err := a.Srv().Store().User().GetByUsername(username)
+func (i *InviteProvider) getUsersFromMentionName(a *app.App, mentionName string) []*model.User {
+	userProfile, err := a.Srv().Store().User().GetByUsername(mentionName)
 	if err == nil && userProfile.DeleteAt == 0 {
 		return []*model.User{userProfile}
 	}
 
-	group, appErr := a.GetGroupByName(username, model.GroupSearchOpts{})
+	group, appErr := a.GetGroupByName(mentionName, model.GroupSearchOpts{})
 	if appErr != nil || group == nil {
 		return nil
 	}
