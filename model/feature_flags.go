@@ -92,7 +92,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
+	f.BoardsProduct = true
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
