@@ -4,11 +4,12 @@
 package model
 
 type ChannelStats struct {
-	ChannelId       string `json:"channel_id"`
-	MemberCount     int64  `json:"member_count"`
-	GuestCount      int64  `json:"guest_count"`
-	PinnedPostCount int64  `json:"pinnedpost_count"`
-	FilesCount      int64  `json:"files_count"`
+	ChannelId         string `json:"channel_id"`
+	MemberCount       int64  `json:"member_count"`
+	GuestCount        int64  `json:"guest_count"`
+	PinnedPostCount   int64  `json:"pinnedpost_count"`
+	HasNewPinnedPosts bool   `json:"has_new_pinned_posts"`
+	FilesCount        int64  `json:"files_count"`
 }
 
 func (o *ChannelStats) MemberCount_() float64 {

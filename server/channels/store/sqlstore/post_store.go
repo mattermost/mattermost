@@ -56,6 +56,7 @@ func postSliceColumnsWithTypes() []struct {
 		{"EditAt", reflect.Int64},
 		{"DeleteAt", reflect.Int64},
 		{"IsPinned", reflect.Bool},
+		{"PinAt", reflect.Int64},
 		{"UserId", reflect.String},
 		{"ChannelId", reflect.String},
 		{"RootId", reflect.String},
@@ -79,6 +80,7 @@ func postToSlice(post *model.Post) []any {
 		post.EditAt,
 		post.DeleteAt,
 		post.IsPinned,
+		post.PinAt,
 		post.UserId,
 		post.ChannelId,
 		post.RootId,
@@ -349,6 +351,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 			EditAt=:EditAt,
 			DeleteAt=:DeleteAt,
 			IsPinned=:IsPinned,
+			PinAt=:PinAt,
 			UserId=:UserId,
 			ChannelId=:ChannelId,
 			RootId=:RootId,
@@ -3211,6 +3214,33 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 		return nil, err
 	}
 	return model.GetTopDMListWithPagination(topDMs, limit), nil
+}
+
+func (s *SqlPostStore) GetNewPinnedPosts(channelID string, userID string) ([]*model.Post, error) {
+	sql, args, err := s.getQueryBuilder().
+		Select("p.*").
+		From("Posts AS p").
+		InnerJoin("Channels AS c ON c.Id = p.ChannelId").
+		InnerJoin("ChannelMembers AS cm On cm.ChannelId = c.Id").
+		InnerJoin("Users AS u ON u.Id = cm.UserId").
+		Where(
+			sq.And{
+				sq.Eq{"u.Id": userID},
+				sq.Expr("cm.LastViewedPinnedPostAt < p.PinAt"),
+			},
+		).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetNewPinnedPosts_ToSql")
+	}
+
+	posts := make([]*model.Post, 0)
+	err = s.GetReplicaX().Select(&posts, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to find new pinned posts for channel-id:%s and user-id:%s", channelID, userID)
+	}
+
+	return posts, nil
 }
 
 func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, since int64) ([]*model.TopDM, error) {

@@ -59,20 +59,21 @@ type channelMember struct {
 
 func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 	return map[string]any{
-		"ChannelId":          cm.ChannelId,
-		"UserId":             cm.UserId,
-		"Roles":              cm.ExplicitRoles,
-		"LastViewedAt":       cm.LastViewedAt,
-		"MsgCount":           cm.MsgCount,
-		"MentionCount":       cm.MentionCount,
-		"MentionCountRoot":   cm.MentionCountRoot,
-		"UrgentMentionCount": cm.UrgentMentionCount,
-		"MsgCountRoot":       cm.MsgCountRoot,
-		"NotifyProps":        cm.NotifyProps,
-		"LastUpdateAt":       cm.LastUpdateAt,
-		"SchemeGuest":        sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
-		"SchemeUser":         sql.NullBool{Valid: true, Bool: cm.SchemeUser},
-		"SchemeAdmin":        sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
+		"ChannelId":              cm.ChannelId,
+		"UserId":                 cm.UserId,
+		"Roles":                  cm.ExplicitRoles,
+		"LastViewedAt":           cm.LastViewedAt,
+		"MsgCount":               cm.MsgCount,
+		"MentionCount":           cm.MentionCount,
+		"MentionCountRoot":       cm.MentionCountRoot,
+		"UrgentMentionCount":     cm.UrgentMentionCount,
+		"MsgCountRoot":           cm.MsgCountRoot,
+		"NotifyProps":            cm.NotifyProps,
+		"LastUpdateAt":           cm.LastUpdateAt,
+		"SchemeGuest":            sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
+		"SchemeUser":             sql.NullBool{Valid: true, Bool: cm.SchemeUser},
+		"SchemeAdmin":            sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
+		"LastViewedPinnedPostAt": cm.LastViewedPinnedPostAt,
 	}
 }
 

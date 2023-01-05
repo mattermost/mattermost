@@ -1387,6 +1387,18 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	return member, nil
 }
 
+func (a *App) UpdateChannelMemberLastViewedPinnedPostAt(c request.CTX, channelID string, userID string, lastViewedPinnedPostAt int64) (*model.ChannelMember, *model.AppError) {
+	var member *model.ChannelMember
+	var err *model.AppError
+	if member, err = a.GetChannelMember(c, channelID, userID); err != nil {
+		return nil, err
+	}
+
+	member.LastViewedPinnedPostAt = lastViewedPinnedPostAt
+
+	return a.updateChannelMember(c, member)
+}
+
 func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member, err := a.Srv().Store().Channel().UpdateMember(member)
 	if err != nil {
@@ -2203,6 +2215,14 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 		channelUnread.MsgCountRoot = 0
 	}
 	return channelUnread, nil
+}
+
+func (a *App) GetChannelNewPinnedPosts(c request.CTX, channelID string, userID string) ([]*model.Post, *model.AppError) {
+	newPinnedPosts, err := a.Srv().Store().Post().GetNewPinnedPosts(channelID, userID)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelNewPinnedPosts", "app.channel.get_new_pinned_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return newPinnedPosts, nil
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {

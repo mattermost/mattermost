@@ -3576,6 +3576,16 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 	return BuildResponse(r), nil
 }
 
+// UpdateChannelMemberLastViewedPinnedPostAt will update lastviewedpinnedpostat on a channel for a user.
+func (c *Client4) UpdateChannelMemberLastViewedPinnedPostAt(channelId, userId string) (*Response, error) {
+	r, err := c.DoAPIPut(c.channelMemberRoute(channelId, userId)+"/last_viewed_pinned_post_at", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId}

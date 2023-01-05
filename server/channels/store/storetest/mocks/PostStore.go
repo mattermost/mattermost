@@ -321,6 +321,29 @@ func (_m *PostStore) GetMaxPostSize() int {
 	return r0
 }
 
+// GetNewPinnedPosts provides a mock function with given fields: channelID, userID
+func (_m *PostStore) GetNewPinnedPosts(channelID string, userID string) ([]*model.Post, error) {
+	ret := _m.Called(channelID, userID)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Post); ok {
+		r0 = rf(channelID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNthRecentPostTime provides a mock function with given fields: n
 func (_m *PostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	ret := _m.Called(n)

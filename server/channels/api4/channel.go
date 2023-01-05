@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
@@ -73,6 +74,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("/roles", api.APISessionRequired(updateChannelMemberRoles)).Methods("PUT")
 	api.BaseRoutes.ChannelMember.Handle("/schemeRoles", api.APISessionRequired(updateChannelMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.APISessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
+	api.BaseRoutes.ChannelMember.Handle("/last_viewed_pinned_post_at", api.APISessionRequired(updateChannelMemberLastViewedPinnedPostAt)).Methods("PUT")
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
@@ -660,6 +662,12 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newPinnedPosts, err := c.App.GetChannelNewPinnedPosts(c.AppContext, c.Params.ChannelId, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	filesCount := int64(-1)
 	if !excludeFilesCountBool {
 		filesCount, err = c.App.GetChannelFileCount(c.AppContext, c.Params.ChannelId)
@@ -670,11 +678,12 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats := model.ChannelStats{
-		ChannelId:       c.Params.ChannelId,
-		MemberCount:     memberCount,
-		GuestCount:      guestCount,
-		PinnedPostCount: pinnedPostCount,
-		FilesCount:      filesCount,
+		ChannelId:         c.Params.ChannelId,
+		MemberCount:       memberCount,
+		GuestCount:        guestCount,
+		PinnedPostCount:   pinnedPostCount,
+		HasNewPinnedPosts: len(newPinnedPosts) != 0,
+		FilesCount:        filesCount,
 	}
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1608,6 +1617,21 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func updateChannelMemberLastViewedPinnedPostAt(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	_, err := c.App.UpdateChannelMemberLastViewedPinnedPostAt(c.AppContext, c.Params.ChannelId, c.Params.UserId, time.Now().Unix())
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	ReturnStatusOK(w)
 }

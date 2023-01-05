@@ -2569,6 +2569,7 @@ func TestGetChannelStats(t *testing.T) {
 	stats, _, err = client.GetChannelStats(channel.Id, "", false)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
+	require.Equal(t, true, stats.HasNewPinnedPosts, "should have returned true means there are new pinned posts")
 
 	// create a post with a file
 	sent, err := testutils.ReadTestFile("test.png")
@@ -2898,6 +2899,21 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 
 	_, err = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
 	require.NoError(t, err)
+}
+
+func TestUpdateChannelMemberLastViewedPinnedPostAt(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+	th.LoginBasic()
+
+	channel := th.CreateChannelWithClient(th.Client, model.ChannelTypePrivate)
+	th.AddUserToChannel(user, channel)
+
+	resp, err := th.Client.UpdateChannelMemberLastViewedPinnedPostAt(channel.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 }
 
 func TestAddChannelMember(t *testing.T) {
