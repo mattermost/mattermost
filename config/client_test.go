@@ -254,6 +254,78 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableCustomGroups": "false",
 			},
 		},
+		{
+			"Shared channels other license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "false",
+			},
+		},
+		{
+			"licensed for shared channels",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels professional license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels enterprise license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
