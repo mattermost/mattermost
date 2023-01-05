@@ -247,7 +247,7 @@ func NewServer(options ...Option) (*Server, error) {
 		product.FilestoreKey:     s.platform.FileBackend(),
 		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		product.ClusterKey:       s.platform,
-		product.UserKey:          New(ServerConnector(s.Channels())),
+		product.UserKey:          app,
 		product.LogKey:           s.platform.Log(),
 		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		product.KVStoreKey:       s.platform,

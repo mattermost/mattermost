@@ -101,6 +101,10 @@ func (s *channelsWrapper) AddChannelMember(channelID, userID string) (*model.Cha
 	})
 }
 
+func (s *channelsWrapper) GetDirectChannelOrCreate(userID1, userID2 string) (*model.Channel, *model.AppError) {
+	return s.app.GetOrCreateDirectChannel(request.EmptyContext(s.srv.Log()), userID1, userID2)
+}
+
 // Ensure the wrapper implements the product service.
 var _ product.ChannelService = (*channelsWrapper)(nil)
 
