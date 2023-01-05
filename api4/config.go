@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -186,17 +185,21 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If the config for default server locale has changed, reinitialize the server's translations.
+	if oldCfg.LocalizationSettings.DefaultServerLocale != newCfg.LocalizationSettings.DefaultServerLocale {
+		s := newCfg.LocalizationSettings
+		if err = i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale); err != nil {
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+	}
+
 	diffs, err := config.Diff(oldCfg, newCfg)
 	if err != nil {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	auditRec.AddEventPriorState(&diffs)
-
-	if err = updateTranslations(c.App, diffs); err != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
 
 	newCfg.Sanitize()
 
@@ -437,15 +440,4 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		// with manage_system, default to allow, otherwise default not-allow
 		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	}
-}
-
-func updateTranslations(a app.AppIface, diffs config.ConfigDiffs) error {
-	for _, diff := range diffs {
-		if diff.Path != "LocalizationSettings.DefaultServerLocale" {
-			continue
-		}
-		s := a.Config().LocalizationSettings
-		return i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale)
-	}
-	return nil
 }
