@@ -318,6 +318,18 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	status, appErr := c.App.GetOrCreateTrueUpReviewStatus()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// If a true up review has already been submitted for the current due date, complete the request
+	// with no errors.
+	if status.Completed {
+		ReturnStatusOK(w)
+	}
+
 	profileMap, err := c.App.GetTrueUpProfile()
 	if err != nil {
 		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError)
@@ -330,16 +342,10 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetOrCreateTrueUpReviewStatus()
-	if err != nil {
-		c.Err = appErr
-		return
-	}
-
 	// Do not send true-up review data if the user has already requested one for the quarter.
 	// And only send a true-up review via as a one-time telemetry request if telemetry is disabled.
 	telemetryEnabled := c.App.Config().LogSettings.EnableDiagnostics
-	if !status.Completed && telemetryEnabled != nil && !*telemetryEnabled {
+	if telemetryEnabled != nil && !*telemetryEnabled {
 		// Send telemetry data
 		c.App.Srv().GetTelemetryService().SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
 
