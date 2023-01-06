@@ -4,7 +4,6 @@
 package utils
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -51,7 +50,6 @@ func GetNextTrueUpReviewDueDate(now time.Time) time.Time {
 			withinWindow = (nowMonth != time.January && nowMonth >= window.Start.Month()) || nowMonth == window.End.Month()
 		} else {
 			withinWindow = nowMonth >= window.Start.Month() && nowMonth <= window.End.Month()
-			fmt.Printf("now month: %s, window start month: %s, window end month: %s\n", now.Format("Jan"), window.Start.Format("Jan"), window.End.Format("Jan"))
 		}
 
 		// Only check the days if the current month is equal to the start or end months.
