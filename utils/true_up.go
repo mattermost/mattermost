@@ -45,7 +45,7 @@ func GetNextTrueUpReviewDueDate(now time.Time) time.Time {
 
 	for _, window := range trueUpSubmissionWindows {
 		withinWindow := false
-		// Our due dates "wrap" around, so we'll need to check the months different. Since January = 1 and December = 12, the checks
+		// Our due dates "wrap" around (i.e. can go into the next year), so we'll need to check the months different. Since January = 1 and December = 12, the checks
 		// for the current month being greater or equal to the start month and less than or equal to the end month will not work.
 		if window.End.Month() == time.January {
 			withinWindow = (nowMonth != time.January && nowMonth >= window.Start.Month()) || nowMonth == window.End.Month()
