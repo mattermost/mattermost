@@ -136,8 +136,8 @@ func (a *App) GetTrueUpProfile() (map[string]any, error) {
 	json.Unmarshal(profileJson, &telemetryProperties)
 	delete(telemetryProperties, "plugins")
 	plugins := profile.Plugins.ToMap()
-	for pluginName, pluginValue := range plugins {
-		telemetryProperties["plugin_"+pluginName] = pluginValue
+	for key, pluginValue := range plugins {
+		telemetryProperties[key] = pluginValue
 	}
 
 	delete(telemetryProperties, "authentication_features")
