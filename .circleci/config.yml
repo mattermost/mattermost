@@ -21,6 +21,10 @@ executors:
 
 jobs:
   setup-multi-product-repositories:
+    parameters:
+      target-branch:
+        type: string
+        default: '$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" $(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//") | jq ".base.ref" | tr -d "\042" )'
     working_directory: /mnt/ramdisk/mattermost-server
     docker:
       - image: cimg/go:1.18
@@ -31,7 +35,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
           cd focalboard
-          git checkout $CIRCLE_BRANCH || git checkout rolling-stable
+          git checkout $CIRCLE_BRANCH || git checkout <<parameters.target-branch>> || git checkout rolling-stable
           echo $(git rev-parse HEAD)
           cd ../mattermost-server
           make setup-go-work
@@ -487,6 +491,8 @@ workflows:
   untagged-build:
     jobs:
       - setup-multi-product-repositories:
+          context:
+            - matterbuild-github-token
           filters:
             branches:
               ignore:
@@ -652,6 +658,8 @@ workflows:
   release-build:
     jobs:
       - setup-multi-product-repositories:
+          context:
+            - matterbuild-github-token
           filters:
             branches:
               only:
