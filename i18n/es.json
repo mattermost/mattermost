@@ -6572,14 +6572,6 @@
     "translation": "El tiempo de espera del trabajo de sincronización AD/LDAP fue alcanzado."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "No se pudo interpretar la fecha y hora de inicio de la exportación de mensajes."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "No se pudo interpretar el tamaño de bloque de datos de la exportación de mensajes."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "No se encontró el endpoint del API para el agrupamiento de servidores."
   },

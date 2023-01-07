@@ -25,4 +25,5 @@ const (
 	StoreKey         ServiceKey = "storekey"
 	SystemKey        ServiceKey = "systemkey"
 	PreferencesKey   ServiceKey = "preferenceskey"
+	BoardsKey        ServiceKey = "boards"
 )

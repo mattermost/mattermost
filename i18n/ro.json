@@ -6620,14 +6620,6 @@
     "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Ar putea analiza mesaj export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Ar putea analiza mesaj export job BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Clustering API final nu a fost găsit."
   },
