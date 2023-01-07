@@ -550,7 +550,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -715,7 +715,7 @@ type FileInfoStore interface {
 type UploadSessionStore interface {
 	Save(session *model.UploadSession) (*model.UploadSession, error)
 	Update(session *model.UploadSession) error
-	Get(id string) (*model.UploadSession, error)
+	Get(ctx context.Context, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
 }
@@ -843,6 +843,7 @@ type GroupStore interface {
 
 	GetMemberUsers(groupID string) ([]*model.User, error)
 	GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
+	GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error)
 	GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error)
 	GetMemberCount(groupID string) (int64, error)
 

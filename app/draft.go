@@ -25,7 +25,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetDraft", "app.draft.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetDraft", "app.draft.get.app_error", nil, err.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetDraft", "app.draft.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}

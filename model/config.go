@@ -383,7 +383,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
-	SelfHostedFirstTimePurchase                       *bool   `access:"write_restrictable,cloud_restrictable"`
+	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
@@ -854,8 +854,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
 
-	if s.SelfHostedFirstTimePurchase == nil {
-		s.SelfHostedFirstTimePurchase = NewBool(false)
+	if s.SelfHostedPurchase == nil {
+		s.SelfHostedPurchase = NewBool(true)
 	}
 }
 
@@ -968,6 +968,7 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
+	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1001,6 +1002,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
+	}
+
+	if s.PatchPluginsReactDOM == nil {
+		s.PatchPluginsReactDOM = NewBool(false)
 	}
 }
 
@@ -1230,6 +1235,7 @@ type LogSettings struct {
 	FileLocation           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
@@ -1271,6 +1277,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.VerboseDiagnostics == nil {
+		s.VerboseDiagnostics = NewBool(false)
 	}
 
 	if s.EnableSentry == nil {

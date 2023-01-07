@@ -16,9 +16,6 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off support for Collapsed Threads
-	CollapsedThreads bool
-
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
@@ -81,7 +78,6 @@ type FeatureFlags struct {
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
 	f.PluginApps = ""
@@ -98,13 +94,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.SendWelcomePost = true
-	f.PostPriority = false
+	f.PostPriority = true
 	f.PeopleProduct = false
 	f.WorkTemplate = false
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
-	f.GlobalDrafts = false
+	f.GlobalDrafts = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
