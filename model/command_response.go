@@ -33,17 +33,23 @@ type CommandResponse struct {
 }
 
 func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {
-	if bodyRaw, err := io.ReadAll(body); err != nil {
+	bodyRaw, err := io.ReadAll(body)
+	if err != nil {
 		return nil, nil
-	} else if commandResponse, err := CommandResponseFromJSON(bodyRaw); err == nil {
-		return commandResponse, nil
-	} else if ContentTypeIs(contentType, "application/json") {
-		return nil, err
-	} else {
-		return &CommandResponse{
-			Text: string(bodyRaw),
-		}, nil
 	}
+
+	commandResponse, err := CommandResponseFromJSON(bodyRaw)
+	if err == nil {
+		return commandResponse, nil
+	}
+
+	if ContentTypeIs(contentType, "application/json") {
+		return nil, err
+	}
+
+	return &CommandResponse{
+		Text: string(bodyRaw),
+	}, nil
 }
 
 func getContentType(rawContentType string) string {
