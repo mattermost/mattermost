@@ -402,6 +402,8 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 		manifest = updatedManifest
 	}
 
+	mlog.Debug("Installing plugin", mlog.String("plugin_id", manifest.Id), mlog.String("version", manifest.Version))
+
 	return manifest, nil
 }
 
