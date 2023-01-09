@@ -986,6 +986,10 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			Deleted: true,
 		})
 		if aErr != nil {
+			// this refers to no channels matching search
+			if aErr.Id == "app.channel.get_channels.not_found.app_error" {
+				return ruser, nil
+			}
 			return nil, aErr
 		}
 		// undelete direct message channels
@@ -1010,6 +1014,10 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			IncludeDeleted: false,
 		})
 		if aErr != nil {
+			// this refers to no channels matching search
+			if aErr.Id == "app.channel.get_channels.not_found.app_error" {
+				return ruser, nil
+			}
 			return nil, aErr
 		}
 		// delete direct message channels
