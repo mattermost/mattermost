@@ -330,6 +330,8 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("unable to start plugin: must at least have a web app or server component")
 	}
 
+	mlog.Debug("Plugin activated", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
+
 	return pluginInfo.Manifest, true, nil
 }
 

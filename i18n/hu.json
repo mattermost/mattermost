@@ -3292,14 +3292,6 @@
     "translation": "Érvénytelen érték a Id -nak"
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Nem sikerült feldolgozni az üzenet export munka ExportFromTimestamp értékét."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Nem sikerült feldolgozni az üzenet export BatchSize értékét."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Az Ön licensze nem támogatja az azonosítóval betöltött push értesítéseket."
   },
@@ -9370,5 +9362,9 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "csoport név létezik mint lefoglalt név"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Nem lehet eltávolítani egy archivált csatornában lévő jóváhagyást."
   }
 ]
