@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -242,7 +241,6 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
-		t.Skip("MM-48416")
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewInt(nUsers)
@@ -268,9 +266,9 @@ func TestRequestTrialLicense(t *testing.T) {
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 		defer func(requestTrialURL string) {
-			app.RequestTrialURL = requestTrialURL
-		}(app.RequestTrialURL)
-		app.RequestTrialURL = testServer.URL
+			platform.RequestTrialURL = requestTrialURL
+		}(platform.RequestTrialURL)
+		platform.RequestTrialURL = testServer.URL
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
