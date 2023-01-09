@@ -69,7 +69,7 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
-	wtcr := &worktemplates.WorkTemplateExecutionRequest{}
+	wtcr := &worktemplates.ExecutionRequest{}
 	err := json.NewDecoder(r.Body).Decode(wtcr)
 	if err != nil {
 		c.Err = model.NewAppError("executeWorkTemplate", "api.unmarshal_error", nil, err.Error(), http.StatusBadRequest)
@@ -105,7 +105,7 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 	canCreatePublicPlaybook := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionPublicPlaybookCreate)
 	canCreatePrivatePlaybook := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionPrivatePlaybookCreate)
 	canCreateRun := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionRunCreate)
-	canExecuteWorkTemplate, err := wtcr.CanBeExecuted(worktemplates.WorkTemplatPermissionSet{
+	canExecuteWorkTemplate, err := wtcr.CanBeExecuted(worktemplates.PermissionSet{
 		CanCreatePublicChannel:   canCreatePublicChannel,
 		CanCreatePrivateChannel:  canCreatePrivateChannel,
 		CanCreatePublicBoard:     canCreatePublicBoard,

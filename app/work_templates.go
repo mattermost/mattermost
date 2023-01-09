@@ -52,14 +52,14 @@ func (a *App) GetWorkTemplates(category string, featureFlags map[string]string, 
 	return enabledTemplates, nil
 }
 
-func (a *App) ExecuteWorkTemplate(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest) (*WorkTemplateExecutionResult, *model.AppError) {
+func (a *App) ExecuteWorkTemplate(c *request.Context, wtcr *worktemplates.ExecutionRequest) (*WorkTemplateExecutionResult, *model.AppError) {
 	e := &appWorkTemplateExecutor{app: a}
 	return a.executeWorkTemplate(c, wtcr, e)
 }
 
 func (a *App) executeWorkTemplate(
 	c *request.Context,
-	wtcr *worktemplates.WorkTemplateExecutionRequest,
+	wtcr *worktemplates.ExecutionRequest,
 	e WorkTemplateExecutor,
 ) (*WorkTemplateExecutionResult, *model.AppError) {
 	res := &WorkTemplateExecutionResult{

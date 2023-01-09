@@ -10,17 +10,17 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-type WorkTemplateExecutionRequest struct {
-	TeamID            string             `json:"team_id"`
-	Name              string             `json:"name"`
-	Visibility        string             `json:"visibility"`
-	WorkTemplate      model.WorkTemplate `json:"work_template"`
-	PlaybookTemplates []PlaybookTemplate `json:"playbook_templates"`
+type ExecutionRequest struct {
+	TeamID            string              `json:"team_id"`
+	Name              string              `json:"name"`
+	Visibility        string              `json:"visibility"`
+	WorkTemplate      model.WorkTemplate  `json:"work_template"`
+	PlaybookTemplates []*PlaybookTemplate `json:"playbook_templates"`
 
 	foundPlaybookTemplates map[string]*pbclient.PlaybookCreateOptions
 }
 
-type WorkTemplatPermissionSet struct {
+type PermissionSet struct {
 	// channels
 	CanCreatePublicChannel  bool
 	CanCreatePrivateChannel bool
@@ -33,7 +33,7 @@ type WorkTemplatPermissionSet struct {
 	CanCreatePrivateBoard bool
 }
 
-func (r *WorkTemplateExecutionRequest) CanBeExecuted(p WorkTemplatPermissionSet) (*bool, error) {
+func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) (*bool, error) {
 	truePtr := model.NewBool(true)
 	falsePtr := model.NewBool(false)
 	public := r.Visibility == model.WorkTemplateVisibilityPublic
@@ -89,7 +89,7 @@ func (r *WorkTemplateExecutionRequest) CanBeExecuted(p WorkTemplatPermissionSet)
 
 // FindPlaybookTemplate returns the playbook template with the given title.
 // it also feed a cache to avoid looking for the same template twice.
-func (r *WorkTemplateExecutionRequest) FindPlaybookTemplate(templateTitle string) (*pbclient.PlaybookCreateOptions, error) {
+func (r *ExecutionRequest) FindPlaybookTemplate(templateTitle string) (*pbclient.PlaybookCreateOptions, error) {
 	if r.foundPlaybookTemplates == nil {
 		r.foundPlaybookTemplates = make(map[string]*pbclient.PlaybookCreateOptions)
 		return nil, errors.New("playbook template not found")

@@ -137,7 +137,7 @@ func TestExecuteWorkTemplate(t *testing.T) {
 	c := request.EmptyContext(th.App.Log())
 	c.SetSession(&model.Session{UserId: model.NewId()})
 
-	req := &worktemplates.WorkTemplateExecutionRequest{
+	req := &worktemplates.ExecutionRequest{
 		TeamID: "team-1",
 		Name:   "test",
 		WorkTemplate: model.WorkTemplate{

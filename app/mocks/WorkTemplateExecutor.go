@@ -18,18 +18,18 @@ type WorkTemplateExecutor struct {
 }
 
 // CreateBoard provides a mock function with given fields: c, wtcr, cBoard, linkToChannelID
-func (_m *WorkTemplateExecutor) CreateBoard(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError) {
+func (_m *WorkTemplateExecutor) CreateBoard(c *request.Context, wtcr *worktemplates.ExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError) {
 	ret := _m.Called(c, wtcr, cBoard, linkToChannelID)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplateBoard, string) string); ok {
+	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplateBoard, string) string); ok {
 		r0 = rf(c, wtcr, cBoard, linkToChannelID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplateBoard, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplateBoard, string) *model.AppError); ok {
 		r1 = rf(c, wtcr, cBoard, linkToChannelID)
 	} else {
 		if ret.Get(1) != nil {
@@ -41,18 +41,18 @@ func (_m *WorkTemplateExecutor) CreateBoard(c *request.Context, wtcr *worktempla
 }
 
 // CreateChannel provides a mock function with given fields: c, wtcr, cChannel
-func (_m *WorkTemplateExecutor) CreateChannel(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError) {
+func (_m *WorkTemplateExecutor) CreateChannel(c *request.Context, wtcr *worktemplates.ExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError) {
 	ret := _m.Called(c, wtcr, cChannel)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplateChannel) string); ok {
+	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplateChannel) string); ok {
 		r0 = rf(c, wtcr, cChannel)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplateChannel) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplateChannel) *model.AppError); ok {
 		r1 = rf(c, wtcr, cChannel)
 	} else {
 		if ret.Get(1) != nil {
@@ -64,18 +64,18 @@ func (_m *WorkTemplateExecutor) CreateChannel(c *request.Context, wtcr *worktemp
 }
 
 // CreatePlaybook provides a mock function with given fields: c, wtcr, playbook, channel
-func (_m *WorkTemplateExecutor) CreatePlaybook(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, *model.AppError) {
+func (_m *WorkTemplateExecutor) CreatePlaybook(c *request.Context, wtcr *worktemplates.ExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, *model.AppError) {
 	ret := _m.Called(c, wtcr, playbook, channel)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplatePlaybook, model.WorkTemplateChannel) string); ok {
+	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplatePlaybook, model.WorkTemplateChannel) string); ok {
 		r0 = rf(c, wtcr, playbook, channel)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplatePlaybook, model.WorkTemplateChannel) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplatePlaybook, model.WorkTemplateChannel) *model.AppError); ok {
 		r1 = rf(c, wtcr, playbook, channel)
 	} else {
 		if ret.Get(1) != nil {
@@ -87,11 +87,11 @@ func (_m *WorkTemplateExecutor) CreatePlaybook(c *request.Context, wtcr *worktem
 }
 
 // InstallPlugin provides a mock function with given fields: c, wtcr, cIntegration, sendToChannelID
-func (_m *WorkTemplateExecutor) InstallPlugin(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError {
+func (_m *WorkTemplateExecutor) InstallPlugin(c *request.Context, wtcr *worktemplates.ExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError {
 	ret := _m.Called(c, wtcr, cIntegration, sendToChannelID)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.WorkTemplateExecutionRequest, *model.WorkTemplateIntegration, string) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(*request.Context, *worktemplates.ExecutionRequest, *model.WorkTemplateIntegration, string) *model.AppError); ok {
 		r0 = rf(c, wtcr, cIntegration, sendToChannelID)
 	} else {
 		if ret.Get(0) != nil {

@@ -21,10 +21,10 @@ import (
 )
 
 type WorkTemplateExecutor interface {
-	CreatePlaybook(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, *model.AppError)
-	CreateChannel(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError)
-	CreateBoard(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError)
-	InstallPlugin(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError
+	CreatePlaybook(c *request.Context, wtcr *worktemplates.ExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, *model.AppError)
+	CreateChannel(c *request.Context, wtcr *worktemplates.ExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError)
+	CreateBoard(c *request.Context, wtcr *worktemplates.ExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError)
+	InstallPlugin(c *request.Context, wtcr *worktemplates.ExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError
 }
 
 type appWorkTemplateExecutor struct {
@@ -33,7 +33,7 @@ type appWorkTemplateExecutor struct {
 
 func (e *appWorkTemplateExecutor) CreatePlaybook(
 	c *request.Context,
-	wtcr *worktemplates.WorkTemplateExecutionRequest,
+	wtcr *worktemplates.ExecutionRequest,
 	playbook *model.WorkTemplatePlaybook,
 	channel model.WorkTemplateChannel) (string, *model.AppError) {
 	// determine playbook name
@@ -112,7 +112,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 
 func (e *appWorkTemplateExecutor) CreateChannel(
 	c *request.Context,
-	wtcr *worktemplates.WorkTemplateExecutionRequest,
+	wtcr *worktemplates.ExecutionRequest,
 	cChannel *model.WorkTemplateChannel,
 ) (string, *model.AppError) {
 	channelID := ""
@@ -165,7 +165,7 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 
 func (e *appWorkTemplateExecutor) CreateBoard(
 	c *request.Context,
-	wtcr *worktemplates.WorkTemplateExecutionRequest,
+	wtcr *worktemplates.ExecutionRequest,
 	cBoard *model.WorkTemplateBoard,
 	linkToChannelID string,
 ) (string, *model.AppError) {
@@ -215,7 +215,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 
 func (e *appWorkTemplateExecutor) InstallPlugin(
 	c *request.Context,
-	wtcr *worktemplates.WorkTemplateExecutionRequest,
+	wtcr *worktemplates.ExecutionRequest,
 	cIntegration *model.WorkTemplateIntegration,
 	sendToChannelID string,
 ) *model.AppError {
