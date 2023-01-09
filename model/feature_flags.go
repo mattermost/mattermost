@@ -104,6 +104,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
+	f.GlobalDrafts = true
+	f.WysiwygEditor = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
