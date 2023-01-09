@@ -7,19 +7,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 
+	fb_model "github.com/mattermost/focalboard/server/model"
 	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-type workTemplateExecutor interface {
-	CreatePlaybook(c *request.Context, wtcr *WorkTemplateExecutionRequest, playbook *model.WorkTemplatePlaybook, channelsInRequest []model.WorkTemplateContent) (string, *model.AppError)
-	CreateChannel(c *request.Context, wtcr *WorkTemplateExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError)
-	CreateBoard(c *request.Context, wtcr *WorkTemplateExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError)
-	InstallPlugin(c *request.Context, wtcr *WorkTemplateExecutionRequest, cChannel *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError
+type WorkTemplateExecutor interface {
+	CreatePlaybook(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, *model.AppError)
+	CreateChannel(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError)
+	CreateBoard(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError)
+	InstallPlugin(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError
 }
 
 type appWorkTemplateExecutor struct {
@@ -28,9 +33,9 @@ type appWorkTemplateExecutor struct {
 
 func (e *appWorkTemplateExecutor) CreatePlaybook(
 	c *request.Context,
-	wtcr *WorkTemplateExecutionRequest,
+	wtcr *worktemplates.WorkTemplateExecutionRequest,
 	playbook *model.WorkTemplatePlaybook,
-	channelsInRequest []model.WorkTemplateContent) (string, *model.AppError) {
+	channel model.WorkTemplateChannel) (string, *model.AppError) {
 	// determine playbook name
 	name := playbook.Name
 	if wtcr.Name != "" {
@@ -39,18 +44,14 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 
 	// get the correct playbook pbTemplate
 	var pbTemplate *pbclient.PlaybookCreateOptions = nil
-	for i := range wtcr.PlaybookTemplates {
-		if wtcr.PlaybookTemplates[i].Title == playbook.Template {
-			pbTemplate = &wtcr.PlaybookTemplates[i].Template
-			break
-		}
-	}
-	if pbTemplate == nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, "", http.StatusInternalServerError)
+	pbTemplate, err := wtcr.FindPlaybookTemplate(playbook.Template)
+	if err != nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	pbTemplate.TeamID = wtcr.TeamID
 	pbTemplate.Title = name
+	pbTemplate.Public = wtcr.Visibility == model.WorkTemplateVisibilityPublic
 	data, err := json.Marshal(pbTemplate)
 	if err != nil {
 		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -68,15 +69,9 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	runName := name
-	for _, channelContent := range channelsInRequest {
-		if channelContent.Channel.Playbook == playbook.ID {
-			runName = channelContent.Channel.Name
-			if wtcr.Name != "" {
-				runName = fmt.Sprintf("%s: %s", wtcr.Name, channelContent.Channel.Name)
-			}
-			break
-		}
+	runName := channel.Name
+	if wtcr.Name != "" {
+		runName = fmt.Sprintf("%s: %s", wtcr.Name, channel.Name)
 	}
 	data, err = json.Marshal(pbclient.PlaybookRunCreateOptions{
 		Name:        runName,
@@ -98,12 +93,26 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// using pbrResp.ChannelID, update the channel to add metadata
+	dbChannel, err := e.app.Srv().Store().Channel().Get(pbrResp.ChannelID, false)
+	if err != nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if dbChannel == nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "channel not found", http.StatusInternalServerError)
+	}
+	dbChannel.AddProp(model.WorkTemplateIDChannelProp, wtcr.WorkTemplate.ID)
+	_, err = e.app.Srv().Store().Channel().Update(dbChannel)
+	if err != nil {
+		e.app.Srv().Log().Error("Failed to update playbook channel metadata", mlog.Err(err))
+	}
+
 	return pbrResp.ChannelID, nil
 }
 
 func (e *appWorkTemplateExecutor) CreateChannel(
 	c *request.Context,
-	wtcr *WorkTemplateExecutionRequest,
+	wtcr *worktemplates.WorkTemplateExecutionRequest,
 	cChannel *model.WorkTemplateChannel,
 ) (string, *model.AppError) {
 	channelID := ""
@@ -126,6 +135,9 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 			DisplayName: channelDisplayName,
 			Type:        model.ChannelTypeOpen,
 			Purpose:     cChannel.Purpose,
+			Props: map[string]any{
+				model.WorkTemplateIDChannelProp: wtcr.WorkTemplate.ID,
+			},
 		}, c.Session().UserId)
 		if channelCreationAppErr != nil {
 			if channelCreationAppErr.Id == store.ChannelExistsError {
@@ -153,18 +165,57 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 
 func (e *appWorkTemplateExecutor) CreateBoard(
 	c *request.Context,
-	wtcr *WorkTemplateExecutionRequest,
+	wtcr *worktemplates.WorkTemplateExecutionRequest,
 	cBoard *model.WorkTemplateBoard,
 	linkToChannelID string,
 ) (string, *model.AppError) {
-	// @TODO
-	e.app.Log().Debug("Skipping board as the product is not ready yet", mlog.String("board_name", wtcr.Name))
-	return "", nil
+	boardService := e.app.Srv().services[product.BoardsKey].(product.BoardsService)
+	templates, err := boardService.GetTemplates("0", c.Session().UserId)
+	if err != nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var template *fb_model.Board = nil
+	for _, t := range templates {
+		v, ok := t.Properties["trackingTemplateId"]
+		if ok && v == cBoard.Template {
+			template = t
+			break
+		}
+	}
+	if template == nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "template not found", http.StatusInternalServerError)
+	}
+
+	title := cBoard.Name
+	if wtcr.Name != "" {
+		title = fmt.Sprintf("%s: %s", wtcr.Name, cBoard.Name)
+	}
+
+	// Duplicate board From template
+	boardsAndBlocks, _, err := boardService.DuplicateBoard(template.ID, c.Session().UserId, wtcr.TeamID, false)
+	if err != nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if len(boardsAndBlocks.Boards) != 1 {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "template not found", http.StatusInternalServerError)
+	}
+
+	// Apply patch for the title and linked channel
+	_, err = boardService.PatchBoard(&fb_model.BoardPatch{
+		Title:     &title,
+		ChannelID: &linkToChannelID,
+	}, boardsAndBlocks.Boards[0].ID, c.Session().UserId)
+	if err != nil {
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return boardsAndBlocks.Boards[0].ID, nil
 }
 
 func (e *appWorkTemplateExecutor) InstallPlugin(
 	c *request.Context,
-	wtcr *WorkTemplateExecutionRequest,
+	wtcr *worktemplates.WorkTemplateExecutionRequest,
 	cIntegration *model.WorkTemplateIntegration,
 	sendToChannelID string,
 ) *model.AppError {
@@ -199,4 +250,30 @@ func (e *appWorkTemplateExecutor) InstallPlugin(
 		return model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
+}
+
+type playbookCreateResponse struct {
+	ID string `json:"id"`
+}
+
+type playbookRunCreateResponse struct {
+	ID        string `json:"id"`
+	ChannelID string `json:"channel_id"`
+}
+
+var allNonSpaceNonWordRegex = regexp.MustCompile(`[^\w\s]`)
+
+func cleanChannelName(channelName string) string {
+	// Lower case only
+	channelName = strings.ToLower(channelName)
+	// Trim spaces
+	channelName = strings.TrimSpace(channelName)
+	// Change all dashes to whitespace, remove everything that's not a word or whitespace, all space becomes dashes
+	channelName = strings.ReplaceAll(channelName, "-", " ")
+	channelName = allNonSpaceNonWordRegex.ReplaceAllString(channelName, "")
+	channelName = strings.ReplaceAll(channelName, " ", "-")
+	// Remove all leading and trailing dashes
+	channelName = strings.Trim(channelName, "-")
+
+	return channelName
 }

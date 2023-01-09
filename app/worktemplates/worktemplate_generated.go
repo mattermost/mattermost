@@ -67,7 +67,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		{
 			Board: &Board{
 				ID:           "board-meeting-agenda",
-				Template:     "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o",
+				Template:     "54fcf9c610f0ac5e4c522c0657c90602",
 				Name:         "Meeting Agenda",
 				Channel:      "feature-release",
 				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;meeting&#43;agenda",
@@ -76,7 +76,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		{
 			Board: &Board{
 				ID:           "board-project-task",
-				Template:     "project task|bmttiziw35irgtmztewd9upyqdy",
+				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "project task board",
 				Channel:      "feature-release",
 				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;project&#43;task",

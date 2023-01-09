@@ -5,10 +5,7 @@ package app
 
 import (
 	"net/http"
-	"regexp"
-	"strings"
 
-	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -55,19 +52,15 @@ func (a *App) GetWorkTemplates(category string, featureFlags map[string]string, 
 	return enabledTemplates, nil
 }
 
-func (a *App) ExecuteWorkTemplate(c *request.Context, wtcr *WorkTemplateExecutionRequest) (*WorkTemplateExecutionResult, *model.AppError) {
+func (a *App) ExecuteWorkTemplate(c *request.Context, wtcr *worktemplates.WorkTemplateExecutionRequest) (*WorkTemplateExecutionResult, *model.AppError) {
 	e := &appWorkTemplateExecutor{app: a}
-	return a.executeWorkTemplate(
-		c,
-		wtcr,
-		e,
-	)
+	return a.executeWorkTemplate(c, wtcr, e)
 }
 
 func (a *App) executeWorkTemplate(
 	c *request.Context,
-	wtcr *WorkTemplateExecutionRequest,
-	e workTemplateExecutor,
+	wtcr *worktemplates.WorkTemplateExecutionRequest,
+	e WorkTemplateExecutor,
 ) (*WorkTemplateExecutionResult, *model.AppError) {
 	res := &WorkTemplateExecutionResult{
 		ChannelWithPlaybookIDs: []string{},
@@ -96,9 +89,23 @@ func (a *App) executeWorkTemplate(
 	}
 
 	firstChannelId := ""
+	channelIDByWorkTemplateID := map[string]string{}
 	for _, pbContent := range contentByType["playbook"] {
 		cPlaybook := pbContent.Playbook
-		channelID, appErr := e.CreatePlaybook(c, wtcr, cPlaybook, contentByType["channel"])
+
+		// find associated channel
+		var associatedChannel *model.WorkTemplateChannel
+		for _, channelContent := range contentByType["channel"] {
+			if channelContent.Channel.Playbook == cPlaybook.ID {
+				associatedChannel = channelContent.Channel
+				break
+			}
+		}
+		if associatedChannel == nil {
+			return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.app_error", nil, "no associated channel found for playbook", http.StatusInternalServerError)
+		}
+
+		channelID, appErr := e.CreatePlaybook(c, wtcr, cPlaybook, *associatedChannel)
 		if appErr != nil {
 			return res, appErr
 		}
@@ -107,6 +114,7 @@ func (a *App) executeWorkTemplate(
 			firstChannelId = channelID
 		}
 		res.ChannelWithPlaybookIDs = append(res.ChannelWithPlaybookIDs, channelID)
+		channelIDByWorkTemplateID[associatedChannel.ID] = channelID
 	}
 
 	// loop through all channels
@@ -123,12 +131,22 @@ func (a *App) executeWorkTemplate(
 				firstChannelId = chanID
 			}
 			res.ChannelIDs = append(res.ChannelIDs, chanID)
+			channelIDByWorkTemplateID[cChannel.ID] = chanID
 		}
 	}
 
 	for _, boardContent := range contentByType["board"] {
 		cBoard := boardContent.Board
-		_, appErr := e.CreateBoard(c, wtcr, cBoard, "TODO")
+		channelID := ""
+		if cBoard.Channel != "" {
+			channel, ok := channelIDByWorkTemplateID[cBoard.Channel]
+			if !ok {
+				return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.app_error", nil, "no associated channel found for board", http.StatusInternalServerError)
+			}
+			channelID = channel
+		}
+
+		_, appErr := e.CreateBoard(c, wtcr, cBoard, channelID)
 		if appErr != nil {
 			return res, appErr
 		}
@@ -159,43 +177,4 @@ func (a *App) executeWorkTemplate(
 type WorkTemplateExecutionResult struct {
 	ChannelWithPlaybookIDs []string `json:"channel_with_playbook_ids"`
 	ChannelIDs             []string `json:"channel_ids"`
-}
-
-type WorkTemplateExecutionRequest struct {
-	TeamID            string             `json:"team_id"`
-	Name              string             `json:"name"`
-	Visibility        string             `json:"visibility"`
-	WorkTemplate      model.WorkTemplate `json:"work_template"`
-	PlaybookTemplates []playbookTemplate `json:"playbook_templates"`
-}
-
-type playbookTemplate struct {
-	Title    string                         `json:"title"`
-	Template pbclient.PlaybookCreateOptions `json:"template"`
-}
-
-type playbookCreateResponse struct {
-	ID string `json:"id"`
-}
-
-type playbookRunCreateResponse struct {
-	ID        string `json:"id"`
-	ChannelID string `json:"channel_id"`
-}
-
-var allNonSpaceNonWordRegex = regexp.MustCompile(`[^\w\s]`)
-
-func cleanChannelName(channelName string) string {
-	// Lower case only
-	channelName = strings.ToLower(channelName)
-	// Trim spaces
-	channelName = strings.TrimSpace(channelName)
-	// Change all dashes to whitespace, remove everything that's not a word or whitespace, all space becomes dashes
-	channelName = strings.ReplaceAll(channelName, "-", " ")
-	channelName = allNonSpaceNonWordRegex.ReplaceAllString(channelName, "")
-	channelName = strings.ReplaceAll(channelName, " ", "-")
-	// Remove all leading and trailing dashes
-	channelName = strings.Trim(channelName, "-")
-
-	return channelName
 }

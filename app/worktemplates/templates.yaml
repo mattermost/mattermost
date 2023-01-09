@@ -25,13 +25,13 @@ content:
       illustration: "https://via.placeholder.com/509x352.png?text=Channel+feature+release"
   - board:
       id: "board-meeting-agenda"
-      template: "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o" # <-- have to find a way to target the board template... could hardcode the ids but need to verify that they don't change?
+      template: "54fcf9c610f0ac5e4c522c0657c90602" # <-- have to find a way to target the board template... could hardcode the ids but need to verify that they don't change?
       name: Meeting Agenda
       channel: feature-release # <-- optional. we use the channel "id" from above
       illustration: "https://via.placeholder.com/509x352.png?text=Board+meeting+agenda"
   - board:
       id: "board-project-task"
-      template: "project task|bmttiziw35irgtmztewd9upyqdy"
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
       name: project task board
       channel: feature-release
       illustration: "https://via.placeholder.com/509x352.png?text=Board+project+task"

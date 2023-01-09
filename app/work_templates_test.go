@@ -6,9 +6,15 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/mocks"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
+	"github.com/mattermost/mattermost-server/v6/model"
+
+	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
 )
 
 func TestGetWorkTemplateCategories(t *testing.T) {
@@ -122,4 +128,78 @@ func wtGetCategories() []*worktemplates.WorkTemplateCategory {
 			Name: "test.2",
 		},
 	}
+}
+
+func TestExecuteWorkTemplate(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	c := request.EmptyContext(th.App.Log())
+	c.SetSession(&model.Session{UserId: model.NewId()})
+
+	req := &worktemplates.WorkTemplateExecutionRequest{
+		TeamID: "team-1",
+		Name:   "test",
+		WorkTemplate: model.WorkTemplate{
+			ID: "test-template",
+			Content: []model.WorkTemplateContent{
+				{
+					Playbook: &model.WorkTemplatePlaybook{
+						Name:     "test playbook",
+						Template: "test template pb",
+						ID:       "test-playbook",
+					},
+				},
+				{
+					Channel: &model.WorkTemplateChannel{
+						// this will not create a channel directly
+						// playbooks will do it
+						Name:     "test channel",
+						Playbook: "test-playbook",
+					},
+				},
+				{
+					Channel: &model.WorkTemplateChannel{
+						Name: "test channel 2 that will be created",
+						ID:   "channel-2",
+					},
+				},
+				{
+					Board: &model.WorkTemplateBoard{
+						Name:     "test board",
+						Template: "test template board",
+						Channel:  "channel-2",
+					},
+				},
+				{
+					Board: &model.WorkTemplateBoard{
+						Name:     "test board with no channel linked",
+						Template: "test template board",
+					},
+				},
+			},
+		},
+		PlaybookTemplates: []worktemplates.PlaybookTemplate{
+			{
+				Title: "test template pb",
+				Template: pbclient.PlaybookCreateOptions{
+					Title: "test playbook",
+				},
+			},
+		},
+	}
+
+	// WorkTemplateExecutor mock
+	executorMock := &mocks.WorkTemplateExecutor{}
+	executorMock.On("CreatePlaybook", c, req, req.WorkTemplate.Content[0].Playbook, *req.WorkTemplate.Content[1].Channel).Return("channel-1", nil)
+	executorMock.On("CreateChannel", c, req, req.WorkTemplate.Content[2].Channel).Return("channel-2", nil)
+	executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[3].Board, "channel-2").Return("", nil)
+	executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[4].Board, "").Return("", nil)
+
+	res, appErr := th.App.executeWorkTemplate(c, req, executorMock)
+	assert.Nil(t, appErr)
+	assert.Equal(t, "channel-1", res.ChannelWithPlaybookIDs[0])
+	assert.Equal(t, "channel-2", res.ChannelIDs[0])
+
+	executorMock.AssertExpectations(t)
 }

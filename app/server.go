@@ -137,6 +137,7 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]product.Product
+	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
 }
@@ -164,6 +165,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
 		products:    make(map[string]product.Product),
+		services:    make(map[product.ServiceKey]any),
 	}
 
 	for _, option := range options {
@@ -260,6 +262,8 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
+
+	s.services = serviceMap
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.

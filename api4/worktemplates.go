@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -69,10 +69,56 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
-	wtcr := &app.WorkTemplateExecutionRequest{}
+	wtcr := &worktemplates.WorkTemplateExecutionRequest{}
 	err := json.NewDecoder(r.Body).Decode(wtcr)
 	if err != nil {
-		c.Err = model.NewAppError("devStuff", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("executeWorkTemplate", "api.unmarshal_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// we have to make sure that playbooks plugin is enabled and board is a product
+	pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
+	if err != nil {
+		c.Err = model.NewAppError("executeWorkTemplate", "api.plugin_active_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !pbActive {
+		c.Err = model.NewAppError("executeWorkTemplate", "api.plugin_not_active", nil, model.PluginIdPlaybooks, http.StatusBadRequest)
+		return
+	}
+
+	hasBoard, err := c.App.HasBoardProduct()
+	if err != nil {
+		c.Err = model.NewAppError("executeWorkTemplate", "api.has_board_product_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !hasBoard {
+		c.Err = model.NewAppError("executeWorkTemplate", "api.board_not_active", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	canCreatePublicChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionCreatePublicChannel)
+	canCreatePrivateChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionCreatePrivateChannel)
+	// focalboard uses channel permissions for board creation
+	canCreatePublicBoard := canCreatePublicChannel
+	canCreatePrivateBoard := canCreatePrivateChannel
+	canCreatePublicPlaybook := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionPublicPlaybookCreate)
+	canCreatePrivatePlaybook := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionPrivatePlaybookCreate)
+	canCreateRun := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionRunCreate)
+	canExecuteWorkTemplate, err := wtcr.CanBeExecuted(worktemplates.WorkTemplatPermissionSet{
+		CanCreatePublicChannel:   canCreatePublicChannel,
+		CanCreatePrivateChannel:  canCreatePrivateChannel,
+		CanCreatePublicBoard:     canCreatePublicBoard,
+		CanCreatePrivateBoard:    canCreatePrivateBoard,
+		CanCreatePublicPlaybook:  canCreatePublicPlaybook,
+		CanCreatePrivatePlaybook: canCreatePrivatePlaybook,
+		CanCreatePlaybookRun:     canCreateRun,
+	})
+	if err != nil {
+		if canExecuteWorkTemplate == nil {
+			c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusForbidden)
+		}
+		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
