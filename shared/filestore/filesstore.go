@@ -96,7 +96,7 @@ func TryWriteFileContext(fb FileBackend, ctx context.Context, fr io.Reader, path
 
 	if cw, ok := fb.(ContextWriter); ok {
 		return cw.WriteFileContext(ctx, fr, path)
-	} else {
-		return fb.WriteFile(fr, path)
 	}
+
+	return fb.WriteFile(fr, path)
 }
