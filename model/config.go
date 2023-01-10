@@ -2588,6 +2588,9 @@ type ElasticsearchSettings struct {
 	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
@@ -2602,6 +2605,18 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Password == nil {
 		s.Password = NewString(ElasticsearchSettingsDefaultPassword)
+	}
+
+	if s.CA == nil {
+		s.CA = NewString("")
+	}
+
+	if s.ClientCert == nil {
+		s.ClientCert = NewString("")
+	}
+
+	if s.ClientKey == nil {
+		s.ClientKey = NewString("")
 	}
 
 	if s.EnableIndexing == nil {
@@ -2877,8 +2892,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Enable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
+		// Disable the focalboard plugin by default
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: false}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {
