@@ -4,7 +4,6 @@
 package post_persistent_notifications
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/jobs"
@@ -18,7 +17,7 @@ type Scheduler struct {
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	nextTime := now.Add((time.Duration(*cfg.ServiceSettings.PersistentNotificationInterval) * time.Minute) / 2)
-	mlog.Info(fmt.Sprintf("Scheduler post_persistent_notifications now: %v, nextTime: %v", now, nextTime))
+	mlog.Info("Scheduler post_persistent_notifications time", mlog.Time("now", now), mlog.Time("nextTime", nextTime))
 	return &nextTime
 }
 
@@ -32,7 +31,7 @@ func MakeScheduler(jobServer *jobs.JobServer, license *model.License, config *mo
 		}
 		e := license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise)
 
-		mlog.Info(fmt.Sprintf("Scheduler post_persistent_notifications shortSKU: %v, SKU: %v, enabled: %v", l, ls, e))
+		mlog.Info("Scheduler post_persistent_notifications", mlog.String("shortSKU", l), mlog.String("SKU", ls), mlog.Bool("enabled", e))
 		return license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise)
 	}
 	return &Scheduler{PeriodicScheduler: jobs.NewPeriodicScheduler(jobServer, model.JobTypePostPersistentNotifications, 0, isEnabled)}

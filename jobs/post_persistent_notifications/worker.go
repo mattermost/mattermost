@@ -4,8 +4,6 @@
 package post_persistent_notifications
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -30,7 +28,7 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 		}
 		e := license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise)
 
-		mlog.Info(fmt.Sprintf("Worker post_persistent_notifications shortSKU: %v, SKU: %v, enabled: %v", l, ls, e))
+		mlog.Info("Worker post_persistent_notifications", mlog.String("shortSKU", l), mlog.String("SKU", ls), mlog.Bool("enabled", e))
 		return license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && app.IsPersistentNotificationsEnabled()
 	}
 	execute := func(job *model.Job) error {
