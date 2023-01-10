@@ -6832,6 +6832,10 @@
     "translation": "We encountered an error finding the account."
   },
   {
+    "id": "app.user.update.undelete_channels.app_error",
+    "translation": "Failed to fetch channel member count for user DM channel."
+  },
+  {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
     "translation": "Unable to deactivate guests."
   },
