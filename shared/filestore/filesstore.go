@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"context"
 	"io"
 	"time"
 
@@ -83,4 +84,19 @@ func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
 		}, nil
 	}
 	return nil, errors.New("no valid filestorage driver found")
+}
+
+// TryWriteFileContext checks if the file backend supports context writes and passes the context in that case.
+// Should the file backend not support contexts, it just calls WriteFile instead. This can be used to disable
+// the timeouts for long writes (like exports).
+func TryWriteFileContext(fb FileBackend, ctx context.Context, fr io.Reader, path string) (int64, error) {
+	type ContextWriter interface {
+		WriteFileContext(context.Context, io.Reader, string) (int64, error)
+	}
+
+	if cw, ok := fb.(ContextWriter); ok {
+		return cw.WriteFileContext(ctx, fr, path)
+	} else {
+		return fb.WriteFile(fr, path)
+	}
 }
