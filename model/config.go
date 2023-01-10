@@ -176,6 +176,8 @@ const (
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
+	ExperimentalSettingsDefaultInteractiveDialogTriggerTimeoutMilliseconds = 5000
+
 	AnalyticsSettingsDefaultMaxUsersForStatistics = 2500
 
 	AnnouncementSettingsDefaultBannerColor                  = "#f2a93b"
@@ -960,15 +962,16 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
-	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	EnableSharedChannels            *bool   `access:"experimental_features"`
-	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	EnableAppBar                    *bool   `access:"experimental_features"`
-	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
+	ClientSideCertEnable                        *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck                         *string `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds             *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin                         *bool   `access:"experimental_features,write_restrictable"`
+	UseNewSAMLLibrary                           *bool   `access:"experimental_features,cloud_restrictable"`
+	EnableSharedChannels                        *bool   `access:"experimental_features"`
+	EnableRemoteClusterService                  *bool   `access:"experimental_features"`
+	EnableAppBar                                *bool   `access:"experimental_features"`
+	PatchPluginsReactDOM                        *bool   `access:"experimental_features"`
+	InteractiveDialogTriggerTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1006,6 +1009,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.PatchPluginsReactDOM == nil {
 		s.PatchPluginsReactDOM = NewBool(false)
+	}
+
+	if s.InteractiveDialogTriggerTimeoutMilliseconds == nil {
+		s.InteractiveDialogTriggerTimeoutMilliseconds = NewInt64(ExperimentalSettingsDefaultInteractiveDialogTriggerTimeoutMilliseconds)
 	}
 }
 
