@@ -223,6 +223,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHash"] = model.BuildHash
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+	props["BuildHashBoards"] = model.BuildHashBoards
+	props["BuildBoards"] = model.BuildBoards
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
