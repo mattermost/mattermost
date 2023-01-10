@@ -1158,6 +1158,7 @@ type AppIface interface {
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool
+	UserAlreadyNotifiedOnRequiredPlan(user string, plan string) bool
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	UserIsFirstAdmin(user *model.User) bool
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError

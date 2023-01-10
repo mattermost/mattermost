@@ -4770,6 +4770,22 @@ func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, fe
 	return result, err
 }
 
+func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) ([]*model.NotifyAdminData, error) {
+	start := time.Now()
+
+	result, err := s.NotifyAdminStore.GetDataByUserIdAndPlan(userId, plan)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.GetDataByUserIdAndPlan", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
 	start := time.Now()
 
@@ -4784,6 +4800,22 @@ func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.N
 		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Save", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) error {
+	start := time.Now()
+
+	err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Update", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerOAuthStore) DeleteApp(id string) error {

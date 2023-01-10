@@ -74,7 +74,7 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mod
 	return r0, r1
 }
 
-// GetDataByUserIdAndPlan provides a mock function with given fields: userId, feature
+// GetDataByUserIdAndPlan provides a mock function with given fields: userId, plan
 func (_m *NotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) ([]*model.NotifyAdminData, error) {
 	ret := _m.Called(userId, plan)
 
@@ -96,7 +96,6 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) (
 
 	return r0, r1
 }
-
 
 // Save provides a mock function with given fields: data
 func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
@@ -121,13 +120,16 @@ func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdmi
 	return r0, r1
 }
 
-func (_m *NotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) (error) {
+// Update provides a mock function with given fields: userId, requiredPlan, requiredFeature, now
+func (_m *NotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) error {
 	ret := _m.Called(userId, requiredPlan, requiredFeature, now)
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, model.MattermostPaidFeature, int64) error); ok {
 		r0 = rf(userId, requiredPlan, requiredFeature, now)
 	} else {
 		r0 = ret.Error(0)
 	}
+
 	return r0
 }
