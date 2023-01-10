@@ -4,6 +4,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -229,7 +230,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Activate the plugin
-	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(context.Background(), pluginID)
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
@@ -324,7 +325,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	htmlFileErr = os.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
 	assert.NoError(t, htmlFileErr)
 
-	manifest, activated, reterr := env.Activate(pluginID)
+	manifest, activated, reterr := env.Activate(context.Background(), pluginID)
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)

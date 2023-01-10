@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -16,7 +17,8 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().installPluginFromData(data)
+	// TODO: we need to create a nex context from the master context
+	s.Channels().installPluginFromData(context.TODO(), data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {

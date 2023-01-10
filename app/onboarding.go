@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -41,7 +42,8 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,
 			}
-			_, appErr := a.Channels().InstallMarketplacePlugin(installRequest)
+			// TODO: we need to create a nex context from the master context
+			_, appErr := a.Channels().InstallMarketplacePlugin(context.TODO(), installRequest)
 			if appErr != nil {
 				mlog.Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return

@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -54,7 +55,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
 	defer log.Shutdown()
 
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	supervisor, err := newSupervisor(context.Background(), bundle, nil, nil, log, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
@@ -97,7 +98,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
 	defer log.Shutdown()
 
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	supervisor, err := newSupervisor(context.Background(), bundle, nil, nil, log, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()

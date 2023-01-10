@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"strings"
@@ -85,6 +86,8 @@ type Channels struct {
 	// topicTypes maps from topic types to collection types
 	topicTypes                 map[string]string
 	collectionAndTopicTypesMut sync.Mutex
+
+	pluginsContextCancelFn func()
 }
 
 func init() {
@@ -245,6 +248,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 func (ch *Channels) Start() error {
 	// Start plugins
 	ctx := request.EmptyContext(ch.srv.Log())
+	cCtx, cancel := context.WithCancel(ctx.Context())
+	ch.pluginsContextCancelFn = cancel
+	ctx.SetContext(cCtx)
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
@@ -270,7 +276,7 @@ func (ch *Channels) Start() error {
 			if *cfg.PluginSettings.Enable {
 				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 			} else {
-				ch.ShutDownPlugins()
+				ch.ShutDownPlugins(ctx.Context())
 			}
 		}
 
@@ -289,7 +295,12 @@ func (ch *Channels) Start() error {
 }
 
 func (ch *Channels) Stop() error {
-	ch.ShutDownPlugins()
+	if ch.pluginsContextCancelFn != nil {
+		defer ch.pluginsContextCancelFn()
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch.ShutDownPlugins(ctx)
 
 	ch.dndTaskMut.Lock()
 	if ch.dndTask != nil {

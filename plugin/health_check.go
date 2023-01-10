@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -27,7 +28,7 @@ type PluginHealthCheckJob struct {
 }
 
 // run continuously performs health checks on all active plugins, on a timer.
-func (job *PluginHealthCheckJob) run() {
+func (job *PluginHealthCheckJob) run(ctx context.Context) {
 	mlog.Debug("Plugin health check job starting.")
 	defer close(job.cancelled)
 
@@ -39,7 +40,7 @@ func (job *PluginHealthCheckJob) run() {
 		case <-ticker.C:
 			activePlugins := job.env.Active()
 			for _, plugin := range activePlugins {
-				job.CheckPlugin(plugin.Manifest.Id)
+				job.CheckPlugin(ctx, plugin.Manifest.Id)
 			}
 		case <-job.cancel:
 			return
@@ -50,7 +51,7 @@ func (job *PluginHealthCheckJob) run() {
 // CheckPlugin determines the plugin's health status, then handles the error or success case.
 // If the plugin passes the health check, do nothing.
 // If the plugin fails the health check, the function either restarts or deactivates the plugin, based on the quantity and frequency of its failures.
-func (job *PluginHealthCheckJob) CheckPlugin(id string) {
+func (job *PluginHealthCheckJob) CheckPlugin(ctx context.Context, id string) {
 	err := job.env.PerformHealthCheck(id)
 	if err == nil {
 		return
@@ -70,7 +71,7 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 		job.env.setPluginState(id, model.PluginStateFailedToStayRunning)
 	} else {
 		mlog.Debug("Restarting plugin due to failed health check", mlog.String("id", id))
-		if err := job.env.RestartPlugin(id); err != nil {
+		if err := job.env.RestartPlugin(ctx, id); err != nil {
 			mlog.Error("Failed to restart plugin", mlog.String("id", id), mlog.Err(err))
 		}
 

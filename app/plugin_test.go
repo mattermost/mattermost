@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
@@ -534,7 +535,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.SyncPlugins()
+				appErr = th.App.SyncPlugins(context.Background())
 				checkNoError(t, appErr)
 
 				// Check if installed
@@ -552,7 +553,7 @@ func TestPluginSync(t *testing.T) {
 				appErr := th.App.RemoveFile(getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.SyncPlugins()
+				appErr = th.App.SyncPlugins(context.Background())
 				checkNoError(t, appErr)
 
 				// Check if removed
@@ -572,7 +573,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr := th.App.WriteFile(pluginFileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.SyncPlugins()
+				appErr = th.App.SyncPlugins(context.Background())
 				checkNoError(t, appErr)
 				pluginStatus, err := env.Statuses()
 				require.NoError(t, err)
@@ -590,7 +591,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr := th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.SyncPlugins()
+				appErr = th.App.SyncPlugins(context.Background())
 				checkNoError(t, appErr)
 
 				pluginStatus, err := env.Statuses()
@@ -614,7 +615,7 @@ func TestPluginSync(t *testing.T) {
 				_, appErr = th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
-				appErr = th.App.SyncPlugins()
+				appErr = th.App.SyncPlugins(context.Background())
 				checkNoError(t, appErr)
 
 				pluginStatus, err := env.Statuses()
@@ -687,7 +688,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	checkNoError(t, appErr)
 
 	// Sync with file store so the plugin environment has access to this plugin.
-	appErr = th.App.SyncPlugins()
+	appErr = th.App.SyncPlugins(context.Background())
 	checkNoError(t, appErr)
 
 	// Verify the plugin was installed and set to deactivated.
@@ -763,7 +764,7 @@ func TestPluginPanicLogs(t *testing.T) {
 		th.TestLogger.Flush()
 
 		// We shutdown plugins first so that the read on the log buffer is race-free.
-		th.App.ch.ShutDownPlugins()
+		th.App.ch.ShutDownPlugins(context.Background())
 		tearDown()
 
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "panic: some text from panic")
@@ -831,13 +832,13 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.ch.installPluginLocally(context.Background(), bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
 		env := th.App.GetPluginsEnvironment()
 
-		activatedManifest, activated, err := env.Activate(manifest.Id)
+		activatedManifest, activated, err := env.Activate(context.Background(), manifest.Id)
 		require.NoError(t, err)
 		require.True(t, activated)
 		require.Equal(t, manifest, activatedManifest)
@@ -848,7 +849,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.ch.processPrepackagedPlugins(context.Background(), prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -875,7 +876,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.ch.processPrepackagedPlugins(context.Background(), prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -908,7 +909,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.ch.processPrepackagedPlugins(context.Background(), prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -939,11 +940,11 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.ch.installPluginLocally(context.Background(), bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
-		activatedManifest, activated, err := env.Activate(manifest.Id)
+		activatedManifest, activated, err := env.Activate(context.Background(), manifest.Id)
 		require.NoError(t, err)
 		require.True(t, activated)
 		require.Equal(t, manifest, activatedManifest)
@@ -957,7 +958,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.ch.processPrepackagedPlugins(context.Background(), prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -994,7 +995,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.ch.processPrepackagedPlugins(context.Background(), prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -1051,7 +1052,7 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 	_, appErr = th.App.WriteFile(fileReader, getBundleStorePath("testplugin2"))
 	checkNoError(t, appErr)
 
-	appErr = th.App.SyncPlugins()
+	appErr = th.App.SyncPlugins(context.Background())
 	checkNoError(t, appErr)
 
 	appErr = th.App.EnablePlugin("testplugin")

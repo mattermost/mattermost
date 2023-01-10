@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -36,7 +37,7 @@ func testSupervisorInvalidExecutablePath(t *testing.T) {
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
 	defer log.Shutdown()
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	supervisor, err := newSupervisor(context.Background(), bundle, nil, nil, log, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
 }
@@ -51,7 +52,7 @@ func testSupervisorNonExistentExecutablePath(t *testing.T) {
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
 	defer log.Shutdown()
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	supervisor, err := newSupervisor(context.Background(), bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }
@@ -77,7 +78,7 @@ func testSupervisorStartTimeout(t *testing.T) {
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
 	defer log.Shutdown()
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	supervisor, err := newSupervisor(context.Background(), bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }

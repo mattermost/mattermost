@@ -7,6 +7,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -155,7 +156,8 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	// https://mattermost.atlassian.net/browse/MM-41981
 	pluginRequest.Version = ""
 
-	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(pluginRequest)
+	// TODO: We need to create a new context from the master context
+	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(context.TODO(), pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -396,7 +398,8 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
-	manifest, appErr := c.App.InstallPlugin(plugin, force)
+	// TODO: We need to create a new context from the master context
+	manifest, appErr := c.App.InstallPlugin(context.TODO(), plugin, force)
 	if appErr != nil {
 		c.Err = appErr
 		return

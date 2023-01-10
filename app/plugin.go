@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -96,7 +97,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	ch.srv.Platform().SetPluginsEnvironment(ch)
 }
 
-func (ch *Channels) syncPluginsActiveState() {
+func (ch *Channels) syncPluginsActiveState(ctx context.Context) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
@@ -178,7 +179,7 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				pluginID := plugin.Manifest.Id
-				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginID)
+				updatedManifest, activated, err := pluginsEnvironment.Activate(ctx, pluginID)
 				if err != nil {
 					plugin.WrapLogger(ch.srv.Log()).Error("Unable to activate plugin", mlog.Err(err))
 					return
@@ -194,7 +195,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		}
 		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
-		pluginsEnvironment.Shutdown()
+		pluginsEnvironment.Shutdown(ctx)
 	}
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
@@ -220,9 +221,9 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	pluginsEnvironment := ch.pluginsEnvironment
 	ch.pluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*ch.cfgSvc.Config().PluginSettings.Enable {
-		ch.syncPluginsActiveState()
+		ch.syncPluginsActiveState(c.Context())
 		if pluginsEnvironment != nil {
-			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
+			pluginsEnvironment.TogglePluginHealthCheckJob(c.Context(), *ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
 		}
 		return
 	}
@@ -260,13 +261,13 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsEnvironment = env
 	ch.pluginsLock.Unlock()
 
-	ch.pluginsEnvironment.TogglePluginHealthCheckJob(*ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
+	ch.pluginsEnvironment.TogglePluginHealthCheckJob(c.Context(), *ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
 
-	if err := ch.syncPlugins(); err != nil {
+	if err := ch.syncPlugins(c.Context()); err != nil {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
 
-	plugins := ch.processPrepackagedPlugins(prepackagedPluginsDir)
+	plugins := ch.processPrepackagedPlugins(c.Context(), prepackagedPluginsDir)
 	pluginsEnvironment = ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		mlog.Info("Plugins environment not found, server is likely shutting down")
@@ -274,7 +275,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
-	ch.installFeatureFlagPlugins()
+	ch.installFeatureFlagPlugins(c.Context())
 
 	// Sync plugin active state when config changes. Also notify plugins.
 	ch.pluginsLock.Lock()
@@ -283,8 +284,8 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		// If plugin status remains unchanged, only then run this.
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
-			ch.installFeatureFlagPlugins()
-			ch.syncPluginsActiveState()
+			ch.installFeatureFlagPlugins(c.Context())
+			ch.syncPluginsActiveState(c.Context())
 		}
 
 		ch.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -296,18 +297,18 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	})
 	ch.pluginsLock.Unlock()
 
-	ch.syncPluginsActiveState()
+	ch.syncPluginsActiveState(c.Context())
 }
 
 // SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
-func (a *App) SyncPlugins() *model.AppError {
-	return a.ch.syncPlugins()
+func (a *App) SyncPlugins(ctx context.Context) *model.AppError {
+	return a.ch.syncPlugins(ctx)
 }
 
 // SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
-func (ch *Channels) syncPlugins() *model.AppError {
+func (ch *Channels) syncPlugins(ctx context.Context) *model.AppError {
 	mlog.Info("Syncing plugins from the file store")
 
 	pluginsEnvironment := ch.GetPluginsEnvironment()
@@ -369,7 +370,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			}
 
 			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+			if _, err := ch.installPluginLocally(ctx, reader, signature, installPluginLocallyAlways); err != nil {
 				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 			}
 		}(plugin)
@@ -379,7 +380,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 	return nil
 }
 
-func (ch *Channels) ShutDownPlugins() {
+func (ch *Channels) ShutDownPlugins(ctx context.Context) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
@@ -390,7 +391,7 @@ func (ch *Channels) ShutDownPlugins() {
 
 	mlog.Info("Shutting down plugins")
 
-	pluginsEnvironment.Shutdown()
+	pluginsEnvironment.Shutdown(ctx)
 
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
 	ch.pluginConfigListenerID = ""
@@ -944,7 +945,7 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 	return pluginSignaturePathMap
 }
 
-func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
+func (ch *Channels) processPrepackagedPlugins(ctx context.Context, pluginsDir string) []*plugin.PrepackagedPlugin {
 	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
 	if !found {
 		return nil
@@ -969,7 +970,7 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 		wg.Add(1)
 		go func(psPath *pluginSignaturePath) {
 			defer wg.Done()
-			p, err := ch.processPrepackagedPlugin(psPath)
+			p, err := ch.processPrepackagedPlugin(ctx, psPath)
 			if err != nil {
 				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", psPath.path), mlog.Err(err))
 				return
@@ -990,7 +991,7 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
-func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
+func (ch *Channels) processPrepackagedPlugin(ctx context.Context, pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
 	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
 	fileReader, err := os.Open(pluginPath.path)
@@ -1022,7 +1023,7 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
-	if _, err := ch.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
+	if _, err := ch.installExtractedPlugin(ctx, plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
 		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
 	}
 
@@ -1030,7 +1031,7 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 }
 
 // installFeatureFlagPlugins handles the automatic installation/upgrade of plugins from feature flags
-func (ch *Channels) installFeatureFlagPlugins() {
+func (ch *Channels) installFeatureFlagPlugins(ctx context.Context) {
 	ffControledPlugins := ch.cfgSvc.Config().FeatureFlags.Plugins()
 
 	// Respect the automatic prepackaged disable setting
@@ -1075,7 +1076,7 @@ func (ch *Channels) installFeatureFlagPlugins() {
 				}
 			}
 
-			_, err := ch.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
+			_, err := ch.InstallMarketplacePlugin(ctx, &model.InstallMarketplacePluginRequest{
 				Id:      pluginID,
 				Version: version,
 			})

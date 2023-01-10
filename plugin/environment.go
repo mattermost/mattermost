@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"hash/fnv"
 	"os"
@@ -237,7 +238,7 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	return nil, ErrNotFound
 }
 
-func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
+func (env *Environment) Activate(ctx context.Context, id string) (manifest *model.Manifest, activated bool, reterr error) {
 	defer func() {
 		if reterr != nil {
 			env.SetPluginError(id, reterr.Error())
@@ -302,7 +303,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics)
+		sup, err := newSupervisor(ctx, pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
@@ -368,15 +369,15 @@ func (env *Environment) Deactivate(id string) bool {
 }
 
 // RestartPlugin deactivates, then activates the plugin with the given id.
-func (env *Environment) RestartPlugin(id string) error {
+func (env *Environment) RestartPlugin(ctx context.Context, id string) error {
 	env.Deactivate(id)
-	_, _, err := env.Activate(id)
+	_, _, err := env.Activate(ctx, id)
 	return err
 }
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
-func (env *Environment) Shutdown() {
-	env.TogglePluginHealthCheckJob(false)
+func (env *Environment) Shutdown(ctx context.Context) {
+	env.TogglePluginHealthCheckJob(ctx, false)
 
 	var wg sync.WaitGroup
 	env.registeredPlugins.Range(func(key, value any) bool {
@@ -607,14 +608,14 @@ func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 }
 
 // TogglePluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
-func (env *Environment) TogglePluginHealthCheckJob(enable bool) {
+func (env *Environment) TogglePluginHealthCheckJob(ctx context.Context, enable bool) {
 	// Config is set to enable. No job exists, start a new job.
 	if enable && env.pluginHealthCheckJob == nil {
 		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HealthCheckInterval))
 
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job
-		go job.run()
+		go job.run(ctx)
 	}
 
 	// Config is set to disable. Job exists, kill existing job.

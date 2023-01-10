@@ -37,6 +37,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -58,7 +59,7 @@ const managedPluginFileName = ".filestore"
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
 
-func (ch *Channels) installPluginFromData(data model.PluginEventData) {
+func (ch *Channels) installPluginFromData(ctx context.Context, data model.PluginEventData) {
 	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	pluginSignaturePathMap, appErr := ch.getPluginsFromFolder()
@@ -89,7 +90,7 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 		defer signature.Close()
 	}
 
-	manifest, appErr := ch.installPluginLocally(reader, signature, installPluginLocallyAlways)
+	manifest, appErr := ch.installPluginLocally(ctx, reader, signature, installPluginLocallyAlways)
 	if appErr != nil {
 		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
@@ -117,26 +118,26 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (ch *Channels) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
-	return ch.installPlugin(pluginFile, signature, installPluginLocallyAlways)
+func (ch *Channels) installPluginWithSignature(ctx context.Context, pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+	return ch.installPlugin(ctx, pluginFile, signature, installPluginLocallyAlways)
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPlugin(ctx context.Context, pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
 	if replace {
 		installationStrategy = installPluginLocallyAlways
 	}
 
-	return a.installPlugin(pluginFile, nil, installationStrategy)
+	return a.installPlugin(ctx, pluginFile, nil, installationStrategy)
 }
 
-func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	return a.ch.installPlugin(pluginFile, signature, installationStrategy)
+func (a *App) installPlugin(ctx context.Context, pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+	return a.ch.installPlugin(ctx, pluginFile, signature, installationStrategy)
 }
 
-func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	manifest, appErr := ch.installPluginLocally(pluginFile, signature, installationStrategy)
+func (ch *Channels) installPlugin(ctx context.Context, pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+	manifest, appErr := ch.installPluginLocally(ctx, pluginFile, signature, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -174,7 +175,7 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 // from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
-func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
+func (ch *Channels) InstallMarketplacePlugin(ctx context.Context, request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
 	var pluginFile, signatureFile io.ReadSeeker
 
 	prepackagedPlugin, appErr := ch.getPrepackagedPlugin(request.Id, request.Version)
@@ -234,7 +235,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	manifest, appErr := ch.installPluginWithSignature(pluginFile, signatureFile)
+	manifest, appErr := ch.installPluginWithSignature(ctx, pluginFile, signatureFile)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -253,7 +254,7 @@ const (
 	installPluginLocallyAlways
 )
 
-func (ch *Channels) installPluginLocally(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Channels) installPluginLocally(ctx context.Context, pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -277,7 +278,7 @@ func (ch *Channels) installPluginLocally(pluginFile, signature io.ReadSeeker, in
 		return nil, appErr
 	}
 
-	manifest, appErr = ch.installExtractedPlugin(manifest, pluginDir, installationStrategy)
+	manifest, appErr = ch.installExtractedPlugin(ctx, manifest, pluginDir, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -312,7 +313,7 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 	return manifest, extractDir, nil
 }
 
-func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginDir string, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Channels) installExtractedPlugin(ctx context.Context, manifest *model.Manifest, fromPluginDir string, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -393,7 +394,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 			return manifest, nil
 		}
 
-		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)
+		updatedManifest, _, err := pluginsEnvironment.Activate(ctx, manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		} else if updatedManifest == nil {

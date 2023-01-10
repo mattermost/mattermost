@@ -11700,7 +11700,7 @@ func (a *OpenTracingAppLayer) InitPlugins(c *request.Context, pluginDir string, 
 	a.app.InitPlugins(c, pluginDir, webappPluginDir)
 }
 
-func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *OpenTracingAppLayer) InstallPlugin(ctx context.Context, pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPlugin")
 
@@ -11712,7 +11712,7 @@ func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.InstallPlugin(pluginFile, replace)
+	resultVar0, resultVar1 := a.app.InstallPlugin(ctx, pluginFile, replace)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16589,7 +16589,7 @@ func (a *OpenTracingAppLayer) SyncLdap(includeRemovedMembers bool) {
 	a.app.SyncLdap(includeRemovedMembers)
 }
 
-func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
+func (a *OpenTracingAppLayer) SyncPlugins(ctx context.Context) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncPlugins")
 
@@ -16601,7 +16601,7 @@ func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SyncPlugins()
+	resultVar0 := a.app.SyncPlugins(ctx)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

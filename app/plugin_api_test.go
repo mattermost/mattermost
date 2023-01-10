@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -107,7 +108,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 		}
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifests[i]), 0600)
-		manifest, activated, reterr := env.Activate(pluginID)
+		manifest, activated, reterr := env.Activate(context.Background(), pluginID)
 		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
@@ -859,7 +860,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		utils.CompileGo(t, pluginCode, backend)
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
-		manifest, activated, reterr := env.Activate(pluginID)
+		manifest, activated, reterr := env.Activate(context.Background(), pluginID)
 
 		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
@@ -946,7 +947,7 @@ func TestInstallPlugin(t *testing.T) {
 		utils.CompileGo(t, pluginCode, backend)
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
-		manifest, activated, reterr := env.Activate(pluginID)
+		manifest, activated, reterr := env.Activate(context.Background(), pluginID)
 		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
@@ -1672,7 +1673,7 @@ func TestAPIMetrics(t *testing.T) {
 		// Setup mocks
 		metricsMock.On("ObservePluginAPIDuration", pluginID, "UpdateUser", true, mock.Anything).Return()
 
-		_, _, activationErr := env.Activate(pluginID)
+		_, _, activationErr := env.Activate(context.Background(), pluginID)
 		require.NoError(t, activationErr)
 
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
@@ -2090,7 +2091,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 	utils.CompileGo(t, pluginCode, backend)
 
 	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
-	manifest, activated, reterr := env.Activate(pluginID)
+	manifest, activated, reterr := env.Activate(context.Background(), pluginID)
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
@@ -2190,7 +2191,7 @@ func TestPluginUploadsAPI(t *testing.T) {
 	utils.CompileGo(t, pluginCode, backend)
 
 	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
-	manifest, activated, reterr := env.Activate(pluginID)
+	manifest, activated, reterr := env.Activate(context.Background(), pluginID)
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)

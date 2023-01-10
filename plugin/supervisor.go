@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -28,7 +29,7 @@ type supervisor struct {
 	hooksClient *hooksRPCClient
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(ctx context.Context, pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -60,7 +61,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	}
 	executable = filepath.Join(pluginInfo.Path, executable)
 
-	cmd := exec.Command(executable)
+	cmd := exec.CommandContext(ctx, executable)
 
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,

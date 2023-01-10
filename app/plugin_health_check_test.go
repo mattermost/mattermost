@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -52,7 +53,7 @@ func TestHealthCheckJob(t *testing.T) {
 	hooks, err := env.HooksForPlugin(id)
 	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
-	job.CheckPlugin(id)
+	job.CheckPlugin(context.Background(), id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
 	require.Equal(t, id, bundles[0].Manifest.Id)
@@ -62,7 +63,7 @@ func TestHealthCheckJob(t *testing.T) {
 	hooks, err = env.HooksForPlugin(id)
 	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
-	job.CheckPlugin(id)
+	job.CheckPlugin(context.Background(), id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
 	require.Equal(t, id, bundles[0].Manifest.Id)
@@ -72,14 +73,14 @@ func TestHealthCheckJob(t *testing.T) {
 	hooks, err = env.HooksForPlugin(id)
 	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
-	job.CheckPlugin(id)
+	job.CheckPlugin(context.Background(), id)
 	bundles = env.Active()
 	require.Equal(t, 0, len(bundles))
 	require.Equal(t, model.PluginStateFailedToStayRunning, env.GetPluginState(id))
 
 	// Activated manually, plugin should stay active
-	env.Activate(id)
-	job.CheckPlugin(id)
+	env.Activate(context.Background(), id)
+	job.CheckPlugin(context.Background(), id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
 	require.Equal(t, model.PluginStateRunning, env.GetPluginState(id))

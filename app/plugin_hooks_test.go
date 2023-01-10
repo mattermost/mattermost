@@ -45,7 +45,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		utils.CompileGo(t, code, backend)
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
-		_, _, activationErr := env.Activate(pluginID)
+		_, _, activationErr := env.Activate(context.Background(), pluginID)
 		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
 
@@ -1082,7 +1082,7 @@ func TestHookMetrics(t *testing.T) {
 		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 
-		_, _, activationErr := env.Activate(pluginID)
+		_, _, activationErr := env.Activate(context.Background(), pluginID)
 		require.NoError(t, activationErr)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {

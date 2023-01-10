@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -903,7 +904,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace)
+	return api.app.InstallPlugin(context.Background(), bytes.NewReader(fileBuffer), replace)
 }
 
 // KV Store Section
