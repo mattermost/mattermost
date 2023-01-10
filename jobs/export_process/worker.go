@@ -21,7 +21,7 @@ type AppIface interface {
 	configservice.ConfigService
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
-	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
 
@@ -44,26 +44,25 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		rd, wr := io.Pipe()
 
-		errCh := make(chan *model.AppError, 1)
 		go func() {
-			defer close(errCh)
-			// Try to write without a timeout
 			_, appErr := app.WriteFileContext(context.Background(), rd, filepath.Join(outPath, exportFilename))
-			errCh <- appErr
+			if appErr != nil {
+				// we close the reader here to prevent a deadlock when the bulk exporter tries to
+				// write into the pipe while app.WriteFile has already returned. The error will be
+				// returned by the writer part of the pipe when app.BulkExport tries to call
+				// wr.Write() on it.
+				rd.CloseWithError(appErr) // CloseWithError never returns an error
+			}
 		}()
 
-		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, opts)
-		if err := wr.Close(); err != nil {
-			mlog.Warn("Worker: error closing writer")
-		}
+		logger := app.Log().With(mlog.String("job_id", job.Id))
+		appErr := app.BulkExport(request.EmptyContext(logger), wr, outPath, job, opts)
+		wr.Close() // Close never returns an error
 
 		if appErr != nil {
 			return appErr
 		}
 
-		if appErr := <-errCh; appErr != nil {
-			return appErr
-		}
 		return nil
 	}
 	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)

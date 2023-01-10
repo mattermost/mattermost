@@ -6616,14 +6616,6 @@
     "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не удалось разобрать задание экспорта сообщения ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Не найдена конечная точка API кластера."
   },
@@ -9730,5 +9722,9 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Ошибка при получении ролей во время проверки."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Портал недоступен для самостоятельной регистрации."
   }
 ]

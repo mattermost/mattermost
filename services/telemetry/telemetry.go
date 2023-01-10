@@ -777,6 +777,9 @@ func (ts *TelemetryService) trackConfig() {
 		"bulk_indexing_batch_size": *cfg.ElasticsearchSettings.BatchSize,
 		"request_timeout_seconds":  *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
 		"skip_tls_verification":    *cfg.ElasticsearchSettings.SkipTLSVerification,
+		"isdefault_ca":             isDefault(*cfg.ElasticsearchSettings.CA, ""),
+		"isdefault_client_cert":    isDefault(*cfg.ElasticsearchSettings.ClientCert, ""),
+		"isdefault_client_key":     isDefault(*cfg.ElasticsearchSettings.ClientKey, ""),
 		"trace":                    *cfg.ElasticsearchSettings.Trace,
 	})
 

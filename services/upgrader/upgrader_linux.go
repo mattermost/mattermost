@@ -333,7 +333,7 @@ func extractBinary(executablePath string, filename string) error {
 			if err != nil {
 				err2 := os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
+					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 				return err
@@ -342,13 +342,13 @@ func extractBinary(executablePath string, filename string) error {
 			if _, err = io.Copy(outFile, tarReader); err != nil {
 				err2 := os.Remove(executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
+					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 
 				err2 = os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
+					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 				return err
