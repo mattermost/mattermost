@@ -240,7 +240,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	var opts model.BulkExportOpts
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
-	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), opts); err != nil {
+	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}
