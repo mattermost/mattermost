@@ -988,6 +988,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		if aErr != nil {
 			// this refers to no channels matching search
 			if aErr.Id == "app.channel.get_channels.not_found.app_error" {
+				a.postUserUpdateActive(c, ruser)
 				return ruser, nil
 			}
 			return nil, aErr
@@ -1016,6 +1017,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		if aErr != nil {
 			// this refers to no channels matching search
 			if aErr.Id == "app.channel.get_channels.not_found.app_error" {
+				a.postUserUpdateActive(c, ruser)
 				return ruser, nil
 			}
 			return nil, aErr
@@ -1032,14 +1034,14 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(c, user.Id)
-	a.InvalidateCacheForUser(user.Id)
-
-	a.sendUpdatedUserEvent(*ruser)
-
+	a.postUserUpdateActive(c, ruser)
 	return ruser, nil
 }
-
+func (a *App) postUserUpdateActive(c request.CTX, ruser *model.User) {
+	a.invalidateUserChannelMembersCaches(c, ruser.Id)
+	a.InvalidateCacheForUser(ruser.Id)
+	a.sendUpdatedUserEvent(*ruser)
+}
 func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
