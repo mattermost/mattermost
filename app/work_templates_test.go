@@ -5,6 +5,7 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -177,9 +178,14 @@ func TestExecuteWorkTemplate(t *testing.T) {
 						Template: "test template board",
 					},
 				},
+				{
+					Integration: &model.WorkTemplateIntegration{
+						ID: "test-plugin",
+					},
+				},
 			},
 		},
-		PlaybookTemplates: []worktemplates.PlaybookTemplate{
+		PlaybookTemplates: []*worktemplates.PlaybookTemplate{
 			{
 				Title: "test template pb",
 				Template: pbclient.PlaybookCreateOptions{
@@ -188,18 +194,38 @@ func TestExecuteWorkTemplate(t *testing.T) {
 			},
 		},
 	}
+	t.Run("with install plugin enabled", func(t *testing.T) {
+		executorMock := &mocks.WorkTemplateExecutor{}
+		executorMock.On("CreatePlaybook", c, req, req.WorkTemplate.Content[0].Playbook, *req.WorkTemplate.Content[1].Channel).Return("channel-1", nil)
+		executorMock.On("CreateChannel", c, req, req.WorkTemplate.Content[2].Channel).Return("channel-2", nil)
+		executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[3].Board, "channel-2").Return("", nil)
+		executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[4].Board, "").Return("", nil)
+		executorMock.On("InstallPlugin", c, req, req.WorkTemplate.Content[5].Integration, "channel-1").Return(nil)
 
-	// WorkTemplateExecutor mock
-	executorMock := &mocks.WorkTemplateExecutor{}
-	executorMock.On("CreatePlaybook", c, req, req.WorkTemplate.Content[0].Playbook, *req.WorkTemplate.Content[1].Channel).Return("channel-1", nil)
-	executorMock.On("CreateChannel", c, req, req.WorkTemplate.Content[2].Channel).Return("channel-2", nil)
-	executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[3].Board, "channel-2").Return("", nil)
-	executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[4].Board, "").Return("", nil)
+		res, appErr := th.App.executeWorkTemplate(c, req, executorMock, true)
+		assert.Nil(t, appErr)
+		assert.Equal(t, "channel-1", res.ChannelWithPlaybookIDs[0])
+		assert.Equal(t, "channel-2", res.ChannelIDs[0])
+		// give some time as plugin are called in a gorouting
+		time.Sleep(100 * time.Millisecond)
 
-	res, appErr := th.App.executeWorkTemplate(c, req, executorMock)
-	assert.Nil(t, appErr)
-	assert.Equal(t, "channel-1", res.ChannelWithPlaybookIDs[0])
-	assert.Equal(t, "channel-2", res.ChannelIDs[0])
+		executorMock.AssertExpectations(t)
+	})
+	t.Run("with install plugin disabled", func(t *testing.T) {
+		executorMock := &mocks.WorkTemplateExecutor{}
+		executorMock.On("CreatePlaybook", c, req, req.WorkTemplate.Content[0].Playbook, *req.WorkTemplate.Content[1].Channel).Return("channel-1", nil)
+		executorMock.On("CreateChannel", c, req, req.WorkTemplate.Content[2].Channel).Return("channel-2", nil)
+		executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[3].Board, "channel-2").Return("", nil)
+		executorMock.On("CreateBoard", c, req, req.WorkTemplate.Content[4].Board, "").Return("", nil)
+		// the lack of call to InstallPlugin is the difference with the previous test
 
-	executorMock.AssertExpectations(t)
+		res, appErr := th.App.executeWorkTemplate(c, req, executorMock, false)
+		assert.Nil(t, appErr)
+		assert.Equal(t, "channel-1", res.ChannelWithPlaybookIDs[0])
+		assert.Equal(t, "channel-2", res.ChannelIDs[0])
+		// give some time as plugin are called in a gorouting
+		time.Sleep(100 * time.Millisecond)
+
+		executorMock.AssertExpectations(t)
+	})
 }

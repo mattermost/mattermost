@@ -12,14 +12,40 @@ import (
 )
 
 func (api *API) InitWorkTemplate() {
-	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(needsWorkTemplateFeatureFlag(getWorkTemplateCategories))).Methods("GET")
-	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(needsWorkTemplateFeatureFlag(getWorkTemplates))).Methods("GET")
-	api.BaseRoutes.WorkTemplates.Handle("/execute", api.APIHandler(executeWorkTemplate)).Methods("POST")
+	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(areWorkTemplatesEnabled(getWorkTemplateCategories))).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(areWorkTemplatesEnabled(getWorkTemplates))).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/execute", api.APIHandler(areWorkTemplatesEnabled(executeWorkTemplate))).Methods("POST")
 }
 
-func needsWorkTemplateFeatureFlag(h handlerFunc) handlerFunc {
+func areWorkTemplatesEnabled(h handlerFunc) handlerFunc {
 	return func(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.App.Config().FeatureFlags.WorkTemplate {
+			c.App.Log().Warn("trying to access work templates api while feature flag is disabled")
+			http.NotFound(w, r)
+			return
+		}
+
+		// we have to make sure that playbooks plugin is enabled and board is a product
+		pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
+		if err != nil {
+			c.App.Log().Warn("trying to access work templates api but can't know if playbooks plugin is active")
+			http.NotFound(w, r)
+			return
+		}
+		if !pbActive {
+			c.App.Log().Warn("trying to access work templates api while playbooks plugin is not active")
+			http.NotFound(w, r)
+			return
+		}
+
+		hasBoard, err := c.App.HasBoardProduct()
+		if err != nil {
+			c.App.Log().Warn("trying to access work templates api but can't know if boards runs as a product")
+			http.NotFound(w, r)
+			return
+		}
+		if !hasBoard {
+			c.App.Log().Warn("trying to access work templates api while while board product is not installed")
 			http.NotFound(w, r)
 			return
 		}
@@ -76,27 +102,6 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// we have to make sure that playbooks plugin is enabled and board is a product
-	pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
-	if err != nil {
-		c.Err = model.NewAppError("executeWorkTemplate", "api.plugin_active_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if !pbActive {
-		c.Err = model.NewAppError("executeWorkTemplate", "api.plugin_not_active", nil, model.PluginIdPlaybooks, http.StatusBadRequest)
-		return
-	}
-
-	hasBoard, err := c.App.HasBoardProduct()
-	if err != nil {
-		c.Err = model.NewAppError("executeWorkTemplate", "api.has_board_product_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if !hasBoard {
-		c.Err = model.NewAppError("executeWorkTemplate", "api.board_not_active", nil, "", http.StatusBadRequest)
-		return
-	}
-
 	canCreatePublicChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionCreatePublicChannel)
 	canCreatePrivateChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionCreatePrivateChannel)
 	// focalboard uses channel permissions for board creation
@@ -118,20 +123,24 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 		if canExecuteWorkTemplate == nil {
 			c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusForbidden)
 		}
-		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	res, appErr := c.App.ExecuteWorkTemplate(c.AppContext, wtcr)
+	canInstallPlugin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins)
+	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableMarketplace {
+		canInstallPlugin = false
+	}
+
+	res, appErr := c.App.ExecuteWorkTemplate(c.AppContext, wtcr, canInstallPlugin)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	b, err := json.Marshal(res)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		c.Err = model.NewAppError("executeWorkTemplate", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Write(b)
 }

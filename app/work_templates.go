@@ -52,15 +52,16 @@ func (a *App) GetWorkTemplates(category string, featureFlags map[string]string, 
 	return enabledTemplates, nil
 }
 
-func (a *App) ExecuteWorkTemplate(c *request.Context, wtcr *worktemplates.ExecutionRequest) (*WorkTemplateExecutionResult, *model.AppError) {
+func (a *App) ExecuteWorkTemplate(c *request.Context, wtcr *worktemplates.ExecutionRequest, installPlugins bool) (*WorkTemplateExecutionResult, *model.AppError) {
 	e := &appWorkTemplateExecutor{app: a}
-	return a.executeWorkTemplate(c, wtcr, e)
+	return a.executeWorkTemplate(c, wtcr, e, installPlugins)
 }
 
 func (a *App) executeWorkTemplate(
 	c *request.Context,
 	wtcr *worktemplates.ExecutionRequest,
 	e WorkTemplateExecutor,
+	installPlugins bool,
 ) (*WorkTemplateExecutionResult, *model.AppError) {
 	res := &WorkTemplateExecutionResult{
 		ChannelWithPlaybookIDs: []string{},
@@ -152,10 +153,12 @@ func (a *App) executeWorkTemplate(
 		}
 	}
 
-	for _, integrationContent := range contentByType["integration"] {
-		cIntegration := integrationContent.Integration
-		// this can take a long time so we just start those as background tasks
-		go e.InstallPlugin(c, wtcr, cIntegration, firstChannelId)
+	if installPlugins {
+		for _, integrationContent := range contentByType["integration"] {
+			cIntegration := integrationContent.Integration
+			// this can take a long time so we just start those as background tasks
+			go e.InstallPlugin(c, wtcr, cIntegration, firstChannelId)
+		}
 	}
 
 	for _, ch := range res.ChannelWithPlaybookIDs {

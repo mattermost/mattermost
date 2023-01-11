@@ -81,6 +81,7 @@ func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) (*bool, error) {
 			if !tmpl.CreatePublicPlaybookRun && !p.CanCreatePrivateChannel {
 				return falsePtr, errors.New("cannot create private run")
 			}
+			continue
 		}
 
 	}
@@ -92,14 +93,12 @@ func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) (*bool, error) {
 func (r *ExecutionRequest) FindPlaybookTemplate(templateTitle string) (*pbclient.PlaybookCreateOptions, error) {
 	if r.foundPlaybookTemplates == nil {
 		r.foundPlaybookTemplates = make(map[string]*pbclient.PlaybookCreateOptions)
-		return nil, errors.New("playbook template not found")
 	}
 
 	if pt, ok := r.foundPlaybookTemplates[templateTitle]; ok {
 		if pt == nil {
 			return nil, errors.New("playbook template not found")
 		}
-
 		return pt, nil
 	}
 
