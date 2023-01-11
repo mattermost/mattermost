@@ -25,7 +25,7 @@ require (
 	github.com/gorilla/schema v1.2.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/graph-gophers/dataloader/v6 v6.0.0
-	github.com/graph-gophers/graphql-go v1.5.0
+	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hashicorp/go-hclog v1.4.0
 	github.com/hashicorp/go-plugin v1.4.8
