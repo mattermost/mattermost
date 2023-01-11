@@ -1,0 +1,19 @@
+name: golangci-lint
+on:
+  push:
+    tags:
+      - v*
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Run go-vet
+      run: |
+        echo "Running go-vet"
+        make check-style
