@@ -159,11 +159,11 @@ func testUpdate(t *testing.T, ss store.Store) {
 	err = ss.NotifyAdmin().Update(d1.UserId, d1.RequiredPlan, d1.RequiredFeature, 100)
 	require.NoError(t, err)
 
-	userRequest, err := ss.NotifyAdmin().Get(false)
+	userRequest, err := ss.NotifyAdmin().GetDataByUserIdAndPlan(d1.UserId, d1.RequiredPlan)
 	require.NoError(t, err)
 
 	require.Equal(t, len(userRequest), 1)
-	require.Equal(t, userRequest[0].SentAt, 100)
+	require.Equal(t, userRequest[0].SentAt, int64(100))
 
 	tearDown(t, ss)
 }
