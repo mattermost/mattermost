@@ -19,9 +19,10 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, _ b
 	return &nextTime
 }
 
-func MakeScheduler(jobServer *jobs.JobServer, license *model.License, config *model.Config) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, license func() *model.License) model.Scheduler {
 	isEnabled := func(_ *model.Config) bool {
-		return license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise)
+		l := license()
+		return l != nil && (l.SkuShortName == model.LicenseShortSkuProfessional || l.SkuShortName == model.LicenseShortSkuEnterprise)
 	}
 	return &Scheduler{jobs.NewPeriodicScheduler(jobServer, model.JobTypePostPersistentNotifications, 0, isEnabled)}
 }
