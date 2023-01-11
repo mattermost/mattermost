@@ -3247,4 +3247,19 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
 	})
+
+	t.Run("topDMs will not consider deleted second user", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, err := th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
+		require.Nil(t, err)
+		// len of topDMs.Items should be 1
+		require.Len(t, topDMs.Items, 1)
+		// delete user3
+		err = th.App.PermanentDeleteUser(th.Context, u3)
+		require.Nil(t, err)
+		topDMs, err = th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
+		require.Nil(t, err)
+		// len of topDMs.Items should be 0 since u3 is deleted
+		require.Len(t, topDMs.Items, 0)
+	})
 }
