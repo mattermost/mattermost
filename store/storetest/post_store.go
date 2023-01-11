@@ -4952,6 +4952,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		err = ss.Post().Delete(u3u4Post1.Id, 200, u3.Id)
 		require.NoError(t, err)
 		err = ss.Post().Delete(u3u4Post2.Id, 200, u3.Id)
+		require.NoError(t, err)
 		// delete channel memberships
 		err = ss.Channel().PermanentDeleteMembersByUser(u3.Id)
 		require.NoError(t, err)
