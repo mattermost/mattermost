@@ -6564,14 +6564,6 @@
     "translation": "AD/LDAP同期処理がタイムアウトしました。"
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "メッセージエクスポートジョブのExportFromTimestampを解析できませんでした。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
   },
