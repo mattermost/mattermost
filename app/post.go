@@ -43,7 +43,7 @@ type postServiceWrapper struct {
 }
 
 func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
-	return s.app.CreatePostMissingChannel(ctx, post, true)
+	return s.app.CreatePostMissingChannel(ctx, post, true, true)
 }
 
 func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
@@ -95,7 +95,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	return rp, nil
 }
 
-func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -107,7 +107,7 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 		}
 	}
 
-	return a.CreatePost(c, post, channel, triggerWebhooks, true)
+	return a.CreatePost(c, post, channel, triggerWebhooks, setOnline)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
