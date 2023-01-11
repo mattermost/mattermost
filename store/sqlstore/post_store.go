@@ -3123,10 +3123,14 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 			},
 		}).GroupBy("vch.id")
 
-	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
+	// following where clause filters out all archived DMs with "deleted" users, that has only 1 user-id in Participants column.
+	archivedDMsFilter := s.getQueryBuilder().Select("MessageCount", "Participants", "ChannelId").FromSelect(topDMsBuilder, "top_dms").
+		Where(sq.Expr("POSITION(',' IN Participants) > 0"))
+
+	archivedDMsFilter = archivedDMsFilter.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
 
 	topDMs := make([]*model.TopDM, 0)
-	sql, args, err := topDMsBuilder.ToSql()
+	sql, args, err := archivedDMsFilter.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "GetTopDMsForUserSince_ToSql")
 	}
