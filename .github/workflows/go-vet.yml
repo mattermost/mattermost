@@ -1,14 +1,11 @@
-name: golangci-lint
+name: mattermost-govet
 on:
-  push:
-    tags:
-      - v*
-  pull_request:
+  push
 permissions:
   contents: read
 jobs:
-  golangci:
-    name: lint
+  go-vet:
+    name: Mattermost go-vet check
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
