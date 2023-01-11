@@ -265,17 +265,8 @@ type SubscriptionChange struct {
 	Seats     int    `json:"seats"`
 }
 
-type BoardsLimits struct {
-	Cards *int `json:"cards"`
-	Views *int `json:"views"`
-}
-
 type FilesLimits struct {
 	TotalStorage *int64 `json:"total_storage"`
-}
-
-type IntegrationsLimits struct {
-	Enabled *int `json:"enabled"`
 }
 
 type MessagesLimits struct {
@@ -287,11 +278,9 @@ type TeamsLimits struct {
 }
 
 type ProductLimits struct {
-	Boards       *BoardsLimits       `json:"boards,omitempty"`
-	Files        *FilesLimits        `json:"files,omitempty"`
-	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
-	Messages     *MessagesLimits     `json:"messages,omitempty"`
-	Teams        *TeamsLimits        `json:"teams,omitempty"`
+	Files    *FilesLimits    `json:"files,omitempty"`
+	Messages *MessagesLimits `json:"messages,omitempty"`
+	Teams    *TeamsLimits    `json:"teams,omitempty"`
 }
 
 // CreateSubscriptionRequest is the parameters for the API request to create a subscription.
