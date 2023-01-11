@@ -43,7 +43,6 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	}
 
 	// get the correct playbook pbTemplate
-	var pbTemplate *pbclient.PlaybookCreateOptions = nil
 	pbTemplate, err := wtcr.FindPlaybookTemplate(playbook.Template)
 	if err != nil {
 		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -139,6 +138,7 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 				model.WorkTemplateIDChannelProp: wtcr.WorkTemplate.ID,
 			},
 		}, c.Session().UserId)
+		channelID = newChan.Id
 		if channelCreationAppErr != nil {
 			if channelCreationAppErr.Id == store.ChannelExistsError {
 				// compute a new unique name
@@ -152,11 +152,6 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 			}
 
 			return "", channelCreationAppErr
-		} else {
-			// the loop will break because the channelCreationAppErr is nil
-			// se we can set our return value.
-			// go compiler do not let us return directly from here
-			channelID = newChan.Id
 		}
 	}
 
