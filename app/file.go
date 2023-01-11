@@ -178,22 +178,8 @@ func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
 }
 
 func (s *Server) writeFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
-	type ContextWriter interface {
-		WriteFileContext(context.Context, io.Reader, string) (int64, error)
-	}
-
-	var (
-		fileBackend = s.FileBackend()
-		written     int64
-		err         error
-	)
-
 	// Check if we can provide a custom context, otherwise just use the default method.
-	if cw, ok := fileBackend.(ContextWriter); ok {
-		written, err = cw.WriteFileContext(ctx, fr, path)
-	} else {
-		written, err = fileBackend.WriteFile(fr, path)
-	}
+	written, err := filestore.TryWriteFileContext(s.FileBackend(), ctx, fr, path)
 	if err != nil {
 		return written, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
