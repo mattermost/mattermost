@@ -322,12 +322,12 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	// workspace is currently on a monthly plan, then this function will not do anything.
 
 	if a.Channels().License().IsCloud() {
-		go func() {
-			_, err := a.SendSubscriptionHistoryEvent(ruser.Id)
+		go func(userId string) {
+			_, err := a.SendSubscriptionHistoryEvent(userId)
 			if err != nil {
 				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
 			}
-		}()
+		}(ruser.Id)
 	}
 
 	return ruser, nil
