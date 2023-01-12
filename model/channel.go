@@ -160,7 +160,7 @@ type ChannelModeratedRolesPatch struct {
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup     string
 	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool
+	IncludeDeleted           bool // If true, deleted channels will be included in the results.
 	Deleted                  bool
 	ExcludeChannelNames      []string
 	TeamIds                  []string
@@ -174,7 +174,7 @@ type ChannelSearchOpts struct {
 	Private                  bool
 	Page                     *int
 	PerPage                  *int
-	LastDeleteAt             int
+	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
 	LastUpdateAt             int
 }
 
