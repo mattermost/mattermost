@@ -21,10 +21,10 @@ import (
 )
 
 type WorkTemplateExecutor interface {
-	CreatePlaybook(c *request.Context, wtcr *worktemplates.ExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, *model.AppError)
-	CreateChannel(c *request.Context, wtcr *worktemplates.ExecutionRequest, cChannel *model.WorkTemplateChannel) (string, *model.AppError)
-	CreateBoard(c *request.Context, wtcr *worktemplates.ExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, *model.AppError)
-	InstallPlugin(c *request.Context, wtcr *worktemplates.ExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) *model.AppError
+	CreatePlaybook(c *request.Context, wtcr *worktemplates.ExecutionRequest, playbook *model.WorkTemplatePlaybook, channel model.WorkTemplateChannel) (string, error)
+	CreateChannel(c *request.Context, wtcr *worktemplates.ExecutionRequest, cChannel *model.WorkTemplateChannel) (string, error)
+	CreateBoard(c *request.Context, wtcr *worktemplates.ExecutionRequest, cBoard *model.WorkTemplateBoard, linkToChannelID string) (string, error)
+	InstallPlugin(c *request.Context, wtcr *worktemplates.ExecutionRequest, cIntegration *model.WorkTemplateIntegration, sendToChannelID string) error
 }
 
 type appWorkTemplateExecutor struct {
@@ -35,7 +35,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	c *request.Context,
 	wtcr *worktemplates.ExecutionRequest,
 	playbook *model.WorkTemplatePlaybook,
-	channel model.WorkTemplateChannel) (string, *model.AppError) {
+	channel model.WorkTemplateChannel) (string, error) {
 	// determine playbook name
 	name := playbook.Name
 	if wtcr.Name != "" {
@@ -45,7 +45,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	// get the correct playbook pbTemplate
 	pbTemplate, err := wtcr.FindPlaybookTemplate(playbook.Template)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to find playbook template: %w", err)
 	}
 
 	pbTemplate.TeamID = wtcr.TeamID
@@ -53,19 +53,19 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	pbTemplate.Public = wtcr.Visibility == model.WorkTemplateVisibilityPublic
 	data, err := json.Marshal(pbTemplate)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to marshal playbook template: %w", err)
 	}
 
 	resp, appErr := e.app.doPluginRequest(c, http.MethodPost, "/plugins/playbooks/api/v0/playbooks", nil, data)
 	if appErr != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return "", fmt.Errorf("unable to create playbook: %w", appErr)
 	}
 	defer resp.Body.Close()
 
 	pbcResp := playbookCreateResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&pbcResp)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to decode playbook create response: %w", err)
 	}
 
 	runName := channel.Name
@@ -79,26 +79,26 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 		PlaybookID:  pbcResp.ID,
 	})
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to marshal playbook run create request: %w", err)
 	}
 	resp, appErr = e.app.doPluginRequest(c, http.MethodPost, "/plugins/playbooks/api/v0/runs", nil, data)
 	if appErr != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to create playbook run: %w", appErr)
 	}
 	defer resp.Body.Close()
 	pbrResp := playbookRunCreateResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&pbrResp)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to decode playbook run create response: %w", err)
 	}
 
 	// using pbrResp.ChannelID, update the channel to add metadata
 	dbChannel, err := e.app.Srv().Store().Channel().Get(pbrResp.ChannelID, false)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to find channel: %w", err)
 	}
 	if dbChannel == nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "channel not found", http.StatusInternalServerError)
+		return "", fmt.Errorf("channel not found")
 	}
 	dbChannel.AddProp(model.WorkTemplateIDChannelProp, wtcr.WorkTemplate.ID)
 	_, err = e.app.Srv().Store().Channel().Update(dbChannel)
@@ -113,7 +113,7 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 	c *request.Context,
 	wtcr *worktemplates.ExecutionRequest,
 	cChannel *model.WorkTemplateChannel,
-) (string, *model.AppError) {
+) (string, error) {
 	channelID := ""
 	channelDisplayName := cChannel.Name
 	if wtcr.Name != "" {
@@ -151,7 +151,7 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 				continue
 			}
 
-			return "", channelCreationAppErr
+			return "", fmt.Errorf("error while creating channel: %w", channelCreationAppErr)
 		}
 	}
 
@@ -163,11 +163,11 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 	wtcr *worktemplates.ExecutionRequest,
 	cBoard *model.WorkTemplateBoard,
 	linkToChannelID string,
-) (string, *model.AppError) {
+) (string, error) {
 	boardService := e.app.Srv().services[product.BoardsKey].(product.BoardsService)
 	templates, err := boardService.GetTemplates("0", c.Session().UserId)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("error while getting templates: %w", err)
 	}
 
 	var template *fb_model.Board = nil
@@ -179,7 +179,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 		}
 	}
 	if template == nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "template not found", http.StatusInternalServerError)
+		return "", fmt.Errorf("template not found")
 	}
 
 	title := cBoard.Name
@@ -190,10 +190,10 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 	// Duplicate board From template
 	boardsAndBlocks, _, err := boardService.DuplicateBoard(template.ID, c.Session().UserId, wtcr.TeamID, false)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("failed to create new board from template: %w", err)
 	}
 	if len(boardsAndBlocks.Boards) != 1 {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "template not found", http.StatusInternalServerError)
+		return "", fmt.Errorf("only one board was expected, found %d", len(boardsAndBlocks.Boards))
 	}
 
 	// Apply patch for the title and linked channel
@@ -202,7 +202,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 		ChannelID: &linkToChannelID,
 	}, boardsAndBlocks.Boards[0].ID, c.Session().UserId)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("failed to patch board: %w", err)
 	}
 
 	return boardsAndBlocks.Boards[0].ID, nil
@@ -213,7 +213,7 @@ func (e *appWorkTemplateExecutor) InstallPlugin(
 	wtcr *worktemplates.ExecutionRequest,
 	cIntegration *model.WorkTemplateIntegration,
 	sendToChannelID string,
-) *model.AppError {
+) error {
 	// check if this plugin is already installed
 	pluginID := cIntegration.ID
 	_, appErr := e.app.GetPluginStatus(pluginID)
@@ -225,10 +225,9 @@ func (e *appWorkTemplateExecutor) InstallPlugin(
 				Version: "",
 			})
 			if installAppErr != nil {
-				return installAppErr
+				return fmt.Errorf("unable to install plugin: %w", installAppErr)
 			}
 			if sendToChannelID != "" {
-				// @TODO change message and make it translatable
 				e.app.SendEphemeralPost(c, c.Session().UserId, &model.Post{
 					ChannelId: sendToChannelID,
 					Message:   fmt.Sprintf("plugin %s has been installed", manifest.Name),
@@ -236,13 +235,13 @@ func (e *appWorkTemplateExecutor) InstallPlugin(
 				})
 			}
 		} else {
-			return model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+			return fmt.Errorf("unable to get plugin status: %w", appErr)
 		}
 	}
 
 	// get plugin state
 	if err := e.app.EnablePlugin(pluginID); err != nil {
-		return model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to enable plugin: %w", err)
 	}
 	return nil
 }

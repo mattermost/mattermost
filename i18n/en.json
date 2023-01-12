@@ -7016,20 +7016,24 @@
     "translation": "Unable to update the webhook."
   },
   {
-    "id": "app.worktemplates.create.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.worktemplates.create_playbook_run.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.worktemplates.create_playbook_template_not_found.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": ""
+    "translation": "Error while executing a work template."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Error while creating a board."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Error while creating a channel."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Error while creating a playbook."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Unable to find channel associated with a playbook."
   },
   {
     "id": "app.worktemplates.get_categories.app_error",

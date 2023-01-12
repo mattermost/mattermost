@@ -103,12 +103,12 @@ func (a *App) executeWorkTemplate(
 			}
 		}
 		if associatedChannel == nil {
-			return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.app_error", nil, "no associated channel found for playbook", http.StatusInternalServerError)
+			return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.playbooks.find_channel_error", nil, "no associated channel found for playbook", http.StatusInternalServerError)
 		}
 
-		channelID, appErr := e.CreatePlaybook(c, wtcr, cPlaybook, *associatedChannel)
-		if appErr != nil {
-			return res, appErr
+		channelID, err := e.CreatePlaybook(c, wtcr, cPlaybook, *associatedChannel)
+		if err != nil {
+			return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.playbooks.create_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if firstChannelId == "" {
@@ -123,9 +123,9 @@ func (a *App) executeWorkTemplate(
 		cChannel := channelContent.Channel
 		// we only need to create a channel if there's no playbook
 		if cChannel.Playbook == "" {
-			chanID, appErr := e.CreateChannel(c, wtcr, cChannel)
-			if appErr != nil {
-				return res, appErr
+			chanID, err := e.CreateChannel(c, wtcr, cChannel)
+			if err != nil {
+				return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			if firstChannelId == "" {
@@ -147,9 +147,9 @@ func (a *App) executeWorkTemplate(
 			channelID = channel
 		}
 
-		_, appErr := e.CreateBoard(c, wtcr, cBoard, channelID)
-		if appErr != nil {
-			return res, appErr
+		_, err := e.CreateBoard(c, wtcr, cBoard, channelID)
+		if err != nil {
+			return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.boards.create_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
