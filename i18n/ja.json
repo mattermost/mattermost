@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "与えられた役割はスキームによって管理されているため、チャンネルメンバーへ直接適用することはできません。"
+    "translation": "与えられたロールはスキームによって管理されているため、チャンネルメンバーへ直接適用することはできません。"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "与えられた役割はスキームによって管理されているため、チームメンバーへ直接適用することはできません。"
+    "translation": "与えられたロールはスキームによって管理されているため、チームメンバーへ直接適用することはできません。"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -2657,19 +2657,19 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "役割の説明が不正です。"
+    "translation": "ロールの説明が不正です。"
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "役割の表示名が不正です。"
+    "translation": "ロールの表示名が不正です。"
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "権限もしくは役割が不正です。"
+    "translation": "ロールもしくは役割が不正です。"
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "役割の名前が不正です。"
+    "translation": "ロールの名前が不正です。"
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
@@ -2693,7 +2693,7 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "このスコープのスキームに誤った役割が与えられました。"
+    "translation": "このスコープのスキームに誤ったロールが与えられました。"
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2753,7 +2753,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "ユーザーのチャネルメンバーシップの役割が不正です。"
+    "translation": "ユーザーのチャネルメンバーシップのロールが不正です。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -2825,7 +2825,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "ユーザーの役割が正しくありません。"
+    "translation": "ユーザーのロールが正しくありません。"
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -2837,7 +2837,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "ユーザーのチームメンバーシップの役割が不正です。"
+    "translation": "ユーザーのチームメンバーシップのロールが不正です。"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -2933,7 +2933,7 @@
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
-    "translation": "指定された役割は存在しません"
+    "translation": "指定されたロールは存在しません"
   },
   {
     "id": "app.save_config.app_error",
@@ -5709,7 +5709,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "不正なチームメンバ更新: 手動でゲストの役割を追加/削除することはできません。"
+    "translation": "不正なチームメンバ更新: 手動でゲストのロールを追加/削除することはできません。"
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
@@ -5721,7 +5721,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "不正なチャンネルメンバー更新: 手動でゲストの役割を追加/削除することはできません。"
+    "translation": "不正なチャンネルメンバー更新: 手動でゲストのロールを追加/削除することはできません。"
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
@@ -6437,27 +6437,27 @@
   },
   {
     "id": "app.role.save.invalid_role.app_error",
-    "translation": "役割が不正です。"
+    "translation": "ロールが不正です。"
   },
   {
     "id": "app.role.save.insert.app_error",
-    "translation": "新しい役割を保存できませんでした。"
+    "translation": "新しいロールを保存できませんでした。"
   },
   {
     "id": "app.role.permanent_delete_all.app_error",
-    "translation": "すべての役割を完全に削除できませんでした。"
+    "translation": "すべてのロールを完全に削除できませんでした。"
   },
   {
     "id": "app.role.get_by_names.app_error",
-    "translation": "役割を取得できませんでした。"
+    "translation": "ロールを取得できませんでした。"
   },
   {
     "id": "app.role.get_by_name.app_error",
-    "translation": "役割を取得できませんでした。"
+    "translation": "ロールを取得できませんでした。"
   },
   {
     "id": "app.role.get.app_error",
-    "translation": "役割を取得できませんでした。"
+    "translation": "ロールを取得できませんでした。"
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -6562,14 +6562,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "AD/LDAP同期処理がタイムアウトしました。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "メッセージエクスポートジョブのExportFromTimestampを解析できませんでした。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7181,7 +7173,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどのロールの人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
@@ -7189,7 +7181,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどのロールの人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -8885,11 +8877,11 @@
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}}文字以上の不正なユーザーの役割です。"
+    "translation": "{{.Limit}}文字以上の不正なユーザーのロールです。"
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}} 文字より長い不正なチームメンバーの役割です。"
+    "translation": "{{.Limit}} 文字より長い不正なチームメンバーのロールです。"
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
@@ -8897,7 +8889,7 @@
   },
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーの役割です。"
+    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーのロールです。"
   },
   {
     "id": "model.session.is_valid.roles_limit.app_error",
@@ -8937,7 +8929,7 @@
   },
   {
     "id": "app.role.get_all.app_error",
-    "translation": "全ての役割を取得できませんでした。"
+    "translation": "全てのロールを取得できませんでした。"
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
@@ -9674,5 +9666,57 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "アーカイブされたチャンネルでは、確認応答を削除することはできません。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "開発チーム間で透明性の高いワークフローを作成し、機能開発プロセスをシームレスにすることができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Jira BotやGitHub Botと統合し、生産性を高めましょう。これらはあなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Boards、Playbooks、Botと簡単に接続できる Feature Release チャンネルでチームとチャットできます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda ボードテンプレート、タスクの進捗管理には Project Task ボードをご利用ください。"
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "製品チーム"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "不正な優先度"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "作業テンプレートを取得できませんでした"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "作業テンプレートのカテゴリを取得できませんでした"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "検証中のロール取得時にエラーが発生しました。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "請求書を見る"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。{{.Date}} から課金されます"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "セルフホスティングの利用登録では、ポータルは利用できません。"
   }
 ]

@@ -3197,7 +3197,7 @@ func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.C
 	return result, err
 }
 
-func (s *OpenTracingLayerComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s *OpenTracingLayerComplianceStore) MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.MessageExport")
 	s.Root.Store.SetContext(newCtx)
@@ -3206,7 +3206,7 @@ func (s *OpenTracingLayerComplianceStore) MessageExport(cursor model.MessageExpo
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.ComplianceStore.MessageExport(cursor, limit)
+	result, resultVar1, err := s.ComplianceStore.MessageExport(ctx, cursor, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4493,6 +4493,24 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int
 
 	defer span.Finish()
 	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersSortedPage")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.GroupStore.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6901,7 +6919,7 @@ func (s *OpenTracingLayerPreferenceStore) Get(userID string, category string, na
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) GetAll(userID string) (model.Preferences, error) {
+func (s *OpenTracingLayerPreferenceStore) GetAll(userID string, limit int) (model.Preferences, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -6910,7 +6928,7 @@ func (s *OpenTracingLayerPreferenceStore) GetAll(userID string) (model.Preferenc
 	}()
 
 	defer span.Finish()
-	result, err := s.PreferenceStore.GetAll(userID)
+	result, err := s.PreferenceStore.GetAll(userID, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -6540,14 +6540,6 @@
     "translation": "AD/LDAP 同步工作逾時。"
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "無法解析訊息匯出工作 ExportFromTimestamp。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "無法解析訊息匯出工作 BatchSize。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "找不到叢集 API 端點。"
   },

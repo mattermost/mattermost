@@ -312,6 +312,16 @@ func (l *License) HasEnterpriseMarketplacePlugins() bool {
 		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
+func (l *License) HasSharedChannels() bool {
+	if l == nil {
+		return false
+	}
+
+	return (l.Features != nil && l.Features.SharedChannels != nil && *l.Features.SharedChannels) ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
