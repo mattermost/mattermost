@@ -15,7 +15,7 @@ import (
 func (a *App) GetWorkTemplateCategories(t i18n.TranslateFunc) ([]*model.WorkTemplateCategory, *model.AppError) {
 	categories, err := worktemplates.ListCategories()
 	if err != nil {
-		return nil, model.NewAppError("GetWorkTemplateCategories", "app.worktemplates.get_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetWorkTemplateCategories", "app.worktemplates.get_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	modelCategories := make([]*model.WorkTemplateCategory, len(categories))
@@ -32,7 +32,7 @@ func (a *App) GetWorkTemplateCategories(t i18n.TranslateFunc) ([]*model.WorkTemp
 func (a *App) GetWorkTemplates(category string, featureFlags map[string]string, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
 	templates, err := worktemplates.ListByCategory(category)
 	if err != nil {
-		return nil, model.NewAppError("GetWorkTemplates", "app.worktemplates.get_templates.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetWorkTemplates", "app.worktemplates.get_templates.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// filter out templates that are not enabled by feature Flag

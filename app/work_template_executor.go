@@ -45,7 +45,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	// get the correct playbook pbTemplate
 	pbTemplate, err := wtcr.FindPlaybookTemplate(playbook.Template)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	pbTemplate.TeamID = wtcr.TeamID
@@ -53,7 +53,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	pbTemplate.Public = wtcr.Visibility == model.WorkTemplateVisibilityPublic
 	data, err := json.Marshal(pbTemplate)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_template_not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	resp, appErr := e.app.doPluginRequest(c, http.MethodPost, "/plugins/playbooks/api/v0/playbooks", nil, data)
@@ -65,7 +65,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	pbcResp := playbookCreateResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&pbcResp)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	runName := channel.Name
@@ -79,23 +79,23 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 		PlaybookID:  pbcResp.ID,
 	})
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_run.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create_playbook_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	resp, appErr = e.app.doPluginRequest(c, http.MethodPost, "/plugins/playbooks/api/v0/runs", nil, data)
 	if appErr != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer resp.Body.Close()
 	pbrResp := playbookRunCreateResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&pbrResp)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// using pbrResp.ChannelID, update the channel to add metadata
 	dbChannel, err := e.app.Srv().Store().Channel().Get(pbrResp.ChannelID, false)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if dbChannel == nil {
 		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "channel not found", http.StatusInternalServerError)
@@ -167,7 +167,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 	boardService := e.app.Srv().services[product.BoardsKey].(product.BoardsService)
 	templates, err := boardService.GetTemplates("0", c.Session().UserId)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var template *fb_model.Board = nil
@@ -190,7 +190,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 	// Duplicate board From template
 	boardsAndBlocks, _, err := boardService.DuplicateBoard(template.ID, c.Session().UserId, wtcr.TeamID, false)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(boardsAndBlocks.Boards) != 1 {
 		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "template not found", http.StatusInternalServerError)
@@ -202,7 +202,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 		ChannelID: &linkToChannelID,
 	}, boardsAndBlocks.Boards[0].ID, c.Session().UserId)
 	if err != nil {
-		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return boardsAndBlocks.Boards[0].ID, nil
@@ -242,7 +242,7 @@ func (e *appWorkTemplateExecutor) InstallPlugin(
 
 	// get plugin state
 	if err := e.app.EnablePlugin(pluginID); err != nil {
-		return model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }

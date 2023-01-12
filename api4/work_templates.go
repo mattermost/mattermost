@@ -65,7 +65,7 @@ func getWorkTemplateCategories(c *Context, w http.ResponseWriter, r *http.Reques
 
 	b, err := json.Marshal(categories)
 	if err != nil {
-		c.Err = model.NewAppError("getWorkTemplateCategories", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getWorkTemplateCategories", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(workTemplates)
 	if err != nil {
-		c.Err = model.NewAppError("getWorkTemplates", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getWorkTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -98,7 +98,7 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 	wtcr := &worktemplates.ExecutionRequest{}
 	err := json.NewDecoder(r.Body).Decode(wtcr)
 	if err != nil {
-		c.Err = model.NewAppError("executeWorkTemplate", "api.unmarshal_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("executeWorkTemplate", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -121,9 +121,9 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if canExecuteWorkTemplate == nil {
-			c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusForbidden)
+			c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, "", http.StatusForbidden).Wrap(err)
 		}
-		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 
@@ -140,7 +140,7 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
-		c.Err = model.NewAppError("executeWorkTemplate", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("executeWorkTemplate", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 }
