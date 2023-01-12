@@ -414,8 +414,8 @@ func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
 
-	message := model.NewWebSocketEvent(event, team.Id, "", "", nil, "")
-	teamJSON, jsonErr := json.Marshal(team)
+	message := model.NewWebSocketEvent(event, sanitizedTeam.Id, "", "", nil, "")
+	teamJSON, jsonErr := json.Marshal(sanitizedTeam)
 	if jsonErr != nil {
 		return model.NewAppError("sendTeamEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
