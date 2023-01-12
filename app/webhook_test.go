@@ -373,7 +373,6 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "")
 		require.Nil(t, appErr)
 
-
 		msgs := testCluster.GetMessages()
 		// The first message is ClusterEventInvalidateCacheForChannelByName so we skip it
 		ev, err1 := model.WebSocketEventFromJSON(bytes.NewReader(msgs[1].Data))
