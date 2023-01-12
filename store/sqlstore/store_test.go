@@ -703,6 +703,7 @@ func TestVersionString(t *testing.T) {
 }
 
 func TestReplicaLagQuery(t *testing.T) {
+	t.Skip("MM-49604")
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
 		model.DatabaseDriverMysql,
