@@ -3567,11 +3567,11 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 
 }
 
-func (s *RetryLayerComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s *RetryLayerComplianceStore) MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ComplianceStore.MessageExport(cursor, limit)
+		result, resultVar1, err := s.ComplianceStore.MessageExport(ctx, cursor, limit)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -7845,11 +7845,11 @@ func (s *RetryLayerPreferenceStore) Get(userID string, category string, name str
 
 }
 
-func (s *RetryLayerPreferenceStore) GetAll(userID string) (model.Preferences, error) {
+func (s *RetryLayerPreferenceStore) GetAll(userID string, limit int) (model.Preferences, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.GetAll(userID)
+		result, err := s.PreferenceStore.GetAll(userID, limit)
 		if err == nil {
 			return result, nil
 		}

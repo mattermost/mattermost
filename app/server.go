@@ -290,8 +290,9 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
-				TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
-					return sentry.SampledFalse
+				EnableTracing: false,
+				TracesSampler: sentry.TracesSampler(func(ctx sentry.SamplingContext) float64 {
+					return 0.0
 				}),
 			}); err2 != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
@@ -595,7 +596,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	// Shared Channels service
 
 	// License check
-	if !*license.Features.SharedChannels {
+	if !license.HasSharedChannels() {
 		mlog.Debug("License does not have shared channels enabled")
 		return nil
 	}
@@ -1059,7 +1060,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting server", mlog.Err(err))
+			mlog.Fatal("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -1068,7 +1069,7 @@ func (s *Server) Start() error {
 
 	if *s.platform.Config().ServiceSettings.EnableLocalMode {
 		if err := s.startLocalModeServer(); err != nil {
-			mlog.Critical(err.Error())
+			mlog.Fatal(err.Error())
 		}
 	}
 
@@ -1100,7 +1101,7 @@ func (s *Server) startLocalModeServer() error {
 	go func() {
 		err = s.localModeServer.Serve(unixListener)
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting unix socket server", mlog.Err(err))
+			mlog.Fatal("Error starting unix socket server", mlog.Err(err))
 		}
 	}()
 	return nil

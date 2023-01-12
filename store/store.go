@@ -549,7 +549,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -641,7 +641,7 @@ type PreferenceStore interface {
 	GetCategory(userID string, category string) (model.Preferences, error)
 	GetCategoryAndName(category string, nane string) (model.Preferences, error)
 	Get(userID string, category string, name string) (*model.Preference, error)
-	GetAll(userID string) (model.Preferences, error)
+	GetAll(userID string, limit int) (model.Preferences, error)
 	Delete(userID, category, name string) error
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error

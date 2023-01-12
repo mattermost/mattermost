@@ -3040,14 +3040,6 @@
     "translation": "Nådde timeout för AD/LDAP-synkronisering."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Kunde inte tolka värdet ExportFromTimestamp i export job."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Kunde inte tolka värdet BatchSize i export job."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Din licens tillåter inte pushnotifiering via meddelande-ID."
   },
@@ -6337,7 +6329,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Det gick inte att skapa emoji. Bildfilen måste vara mindre än 1 MB i storlek."
+    "translation": "Det gick inte att skapa emoji. Bildfilen måste vara mindre än 512 KiB i storlek."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -6724,7 +6716,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Kunde inte hitta kanalen {{.Channel}}. Använd Channel handle för att identifiera kanaler."
+    "translation": "Kunde inte hitta kanalen {{.Channel}}. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -6736,15 +6728,15 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kunde inte hitta användaren. Kan ha blivit avstängd av Systemadministratören."
+    "translation": "Kunde inte hitta användaren {{.User}}. Kan ha blivit avstängd av Systemadministratören."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Saknar Användarnamn och Kanal."
+    "translation": "Saknar Användarnamn och/eller Kanal."
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[användarnamn] ~[kanal]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -8780,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Licensnyckeln för testperioden av Mattermost Enterprise Edition är inte längre giltig. [Kontakta Sales team] (https://mattermost.com/contact-us/) om du vill utöka testperionden."
+    "translation": "Misslyckades med att installera ny testlicens. Du har tidigare använt en testlicens på denna Mattermost-instans. [Kontakta försäljningsteamet] (https://mattermost.com/contact-us/) om du vill utöka testperioden."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9729,5 +9721,9 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Ogiltiga attribut."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portalen är inte tillgänglig för egen-hostad registrering."
   }
 ]
