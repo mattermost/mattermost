@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/searchtest"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -713,6 +714,7 @@ func TestReplicaLagQuery(t *testing.T) {
 		defer mockMetrics.AssertExpectations(t)
 		mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
 		mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
+		mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
 		store := &SqlStore{
 			rrCounter: 0,
