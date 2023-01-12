@@ -7887,11 +7887,11 @@ func (s *RetryLayerPreferenceStore) Get(userID string, category string, name str
 
 }
 
-func (s *RetryLayerPreferenceStore) GetAll(userID string) (model.Preferences, error) {
+func (s *RetryLayerPreferenceStore) GetAll(userID string, limit int) (model.Preferences, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.GetAll(userID)
+		result, err := s.PreferenceStore.GetAll(userID, limit)
 		if err == nil {
 			return result, nil
 		}

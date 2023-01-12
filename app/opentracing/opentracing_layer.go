@@ -974,7 +974,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -986,7 +986,7 @@ func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, outP
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BulkExport(ctx, writer, outPath, opts)
+	resultVar0 := a.app.BulkExport(ctx, writer, outPath, job, opts)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
