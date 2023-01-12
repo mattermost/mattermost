@@ -641,7 +641,7 @@ type PreferenceStore interface {
 	GetCategory(userID string, category string) (model.Preferences, error)
 	GetCategoryAndName(category string, nane string) (model.Preferences, error)
 	Get(userID string, category string, name string) (*model.Preference, error)
-	GetAll(userID string) (model.Preferences, error)
+	GetAll(userID string, limit int) (model.Preferences, error)
 	Delete(userID, category, name string) error
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error
