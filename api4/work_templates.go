@@ -129,7 +129,7 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	canInstallPlugin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins)
-	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableMarketplace {
+	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableMarketplace || *c.App.Config().PluginSettings.MarketplaceURL != model.PluginSettingsDefaultMarketplaceURL {
 		canInstallPlugin = false
 	}
 
