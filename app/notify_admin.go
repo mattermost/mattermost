@@ -152,7 +152,7 @@ func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map
 	post := &model.Post{
 		UserId:    systemBot.UserId,
 		ChannelId: channel.Id,
-		Type:      fmt.Sprintf("%spi_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
+		Type:      fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
 	}
 
 	props["requested_plugins_by_plugin_ids"] = pluginBasedWorkTemplateData

@@ -185,7 +185,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		//_, ok := post.GetProp("requested_plugins_by_plugin_ids").(map[string][]*model.NotifyAdminData)
 		//require.True(t, ok)
 
-		require.Equal(t, fmt.Sprintf("%spi_notification", model.PostCustomTypePrefix), post.Type)
+		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
 	})
 
@@ -230,7 +230,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		post := postList.Posts[postList.Order[0]]
 
-		require.Equal(t, fmt.Sprintf("%spi_notification", model.PostCustomTypePrefix), post.Type)
+		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
 
 		data, err := th.App.Srv().Store().NotifyAdmin().GetDataByUserIdAndPlan(th.BasicUser.Id, model.WorkTemplates)
@@ -438,7 +438,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.NoError(t, err)
 
 		installPluginPost := postList.Posts[postList.Order[0]]
-		require.Equal(t, fmt.Sprintf("%spi_notification", model.PostCustomTypePrefix), installPluginPost.Type)
+		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), installPluginPost.Type)
 		require.Equal(t, bot.UserId, installPluginPost.UserId)
 
 		upgradePost := postList.Posts[postList.Order[1]]
