@@ -78,7 +78,7 @@ func (s *Server) shouldStart(product string) bool {
 }
 
 func (s *Server) HasBoardProduct() (bool, error) {
-	prod, exists := s.products[string(product.BoardsKey)]
+	prod, exists := s.services[product.BoardsKey]
 	if !exists {
 		return false, nil
 	}
