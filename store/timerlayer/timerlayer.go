@@ -6346,10 +6346,10 @@ func (s *TimerLayerPreferenceStore) Get(userID string, category string, name str
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) GetAll(userID string) (model.Preferences, error) {
+func (s *TimerLayerPreferenceStore) GetAll(userID string, limit int) (model.Preferences, error) {
 	start := time.Now()
 
-	result, err := s.PreferenceStore.GetAll(userID)
+	result, err := s.PreferenceStore.GetAll(userID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

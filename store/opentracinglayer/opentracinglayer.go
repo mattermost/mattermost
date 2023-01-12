@@ -7019,7 +7019,7 @@ func (s *OpenTracingLayerPreferenceStore) Get(userID string, category string, na
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) GetAll(userID string) (model.Preferences, error) {
+func (s *OpenTracingLayerPreferenceStore) GetAll(userID string, limit int) (model.Preferences, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -7028,7 +7028,7 @@ func (s *OpenTracingLayerPreferenceStore) GetAll(userID string) (model.Preferenc
 	}()
 
 	defer span.Finish()
-	result, err := s.PreferenceStore.GetAll(userID)
+	result, err := s.PreferenceStore.GetAll(userID, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
