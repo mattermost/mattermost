@@ -20,7 +20,7 @@ func (api *API) InitWorkTemplate() {
 func areWorkTemplatesEnabled(h handlerFunc) handlerFunc {
 	return func(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.App.Config().FeatureFlags.WorkTemplate {
-			c.App.Log().Warn("trying to access work templates api while feature flag is disabled")
+			c.Logger.Warn("trying to access work templates api while feature flag is disabled")
 			http.NotFound(w, r)
 			return
 		}
@@ -28,24 +28,24 @@ func areWorkTemplatesEnabled(h handlerFunc) handlerFunc {
 		// we have to make sure that playbooks plugin is enabled and board is a product
 		pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
 		if err != nil {
-			c.App.Log().Warn("trying to access work templates api but can't know if playbooks plugin is active")
+			c.Logger.Warn("trying to access work templates api but can't know if playbooks plugin is active")
 			http.NotFound(w, r)
 			return
 		}
 		if !pbActive {
-			c.App.Log().Warn("trying to access work templates api while playbooks plugin is not active")
+			c.Logger.Warn("trying to access work templates api while playbooks plugin is not active")
 			http.NotFound(w, r)
 			return
 		}
 
 		hasBoard, err := c.App.HasBoardProduct()
 		if err != nil {
-			c.App.Log().Warn("trying to access work templates api but can't know if boards runs as a product")
+			c.Logger.Warn("trying to access work templates api but can't know if boards runs as a product")
 			http.NotFound(w, r)
 			return
 		}
 		if !hasBoard {
-			c.App.Log().Warn("trying to access work templates api while while board product is not installed")
+			c.Logger.Warn("trying to access work templates api while while board product is not installed")
 			http.NotFound(w, r)
 			return
 		}
