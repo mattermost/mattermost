@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitWorkTemplate() {
@@ -28,7 +29,7 @@ func areWorkTemplatesEnabled(h handlerFunc) handlerFunc {
 		// we have to make sure that playbooks plugin is enabled and board is a product
 		pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
 		if err != nil {
-			c.Logger.Warn("trying to access work templates api but can't know if playbooks plugin is active")
+			c.Logger.Warn("trying to access work templates api but can't know if playbooks plugin is active", mlog.Err(err))
 			http.NotFound(w, r)
 			return
 		}
@@ -40,7 +41,7 @@ func areWorkTemplatesEnabled(h handlerFunc) handlerFunc {
 
 		hasBoard, err := c.App.HasBoardProduct()
 		if err != nil {
-			c.Logger.Warn("trying to access work templates api but can't know if boards runs as a product")
+			c.Logger.Warn("trying to access work templates api but can't know if boards runs as a product", mlog.Err(err))
 			http.NotFound(w, r)
 			return
 		}
