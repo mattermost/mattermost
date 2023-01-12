@@ -1782,6 +1782,14 @@
     "translation": "Error trying to save the first admin visit marketplace status in the store."
   },
   {
+    "id": "api.execute_work_template.error",
+    "translation": "An error occurred while trying to verify your permissions."
+  },
+  {
+    "id": "api.execute_work_template.permission_error",
+    "translation": "You are missing some permission to execute this action."
+  },
+  {
     "id": "api.export.export_not_found.app_error",
     "translation": "Unable to find export file."
   },
@@ -7006,6 +7014,22 @@
   {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook."
+  },
+  {
+    "id": "app.worktemplates.create.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.worktemplates.create_playbook_run.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.worktemplates.create_playbook_template_not_found.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": ""
   },
   {
     "id": "app.worktemplates.get_categories.app_error",

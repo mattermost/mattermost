@@ -122,9 +122,9 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if canExecuteWorkTemplate == nil {
-			c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, "", http.StatusForbidden).Wrap(err)
+			c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template.permission_error", nil, "", http.StatusForbidden).Wrap(err)
 		}
-		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template_error", nil, "", http.StatusForbidden).Wrap(err)
+		c.Err = model.NewAppError("executeWorkTemplate", "api.execute_work_template.error", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 
