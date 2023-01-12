@@ -365,22 +365,20 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	assert.Equal(t, expectedText, post.Message)
 
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
-		sharedChannelService := NewMockSharedChannelService(nil)
-		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 		defer th.Server.Platform().SetCluster(nil)
 
+		testCluster.ClearMessages()
 		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "")
 		require.Nil(t, appErr)
 
-		clusterMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
-			ev, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
-			return err == nil && ev.EventType() == model.WebsocketEventPosted
-		})
-		require.Len(t, clusterMessages, 1)
-		ev, err := model.WebSocketEventFromJSON(bytes.NewReader(clusterMessages[0].Data))
-		require.NoError(t, err)
+
+		msgs := testCluster.GetMessages()
+		// The first message is ClusterEventInvalidateCacheForChannelByName so we skip it
+		ev, err1 := model.WebSocketEventFromJSON(bytes.NewReader(msgs[1].Data))
+		require.NoError(t, err1)
+		require.Equal(t, model.WebsocketEventPosted, ev.EventType())
 		assert.Equal(t, false, ev.GetData()["set_online"])
 	})
 }
