@@ -503,7 +503,7 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 
 func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
-		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
 	}
 
 	unreadRepliesQuery := sq.

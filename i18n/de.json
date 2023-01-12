@@ -648,15 +648,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[Benutzername] ~[Kanal]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Benutzername und Kanal fehlen."
+    "translation": "Benutzername und/oder Kanal fehlen."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Der Benutzer konnte nicht gefunden werden. Er/sie wurde eventuell vom Systemadministrator deaktiviert."
+    "translation": "Benutzer {{.User}} konnte nicht gefunden werden. Er/sie wurde eventuell vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.command_invite.name",
@@ -668,7 +668,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte verwende den Kanal-Handle, um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte den [Kanal Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) verwenden, um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_invite.success",
@@ -999,7 +999,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild muss kleiner als 1 MB sein."
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild muss kleiner als 512 KiB sein."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -7237,7 +7237,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Dieser Test-Lizenzschlüssel für Mattermost Enterprise Edition ist abgelaufen und nicht mehr gültig. Wenn du deine Testphase verlängern willst, kontaktiere bitte [unser Vertriebsteam](https://mattermost.com/contact-us/)."
+    "translation": "Neue Testlizenz konnte nicht angewendet werden. Du hast bereits eine Testlizenz auf diese Mattermost-Instanz angewendet... Wenn du deine Testphase verlängern willst, kontaktiere bitte [unser Vertriebsteam](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9725,5 +9725,25 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Das Portal ist für selbst gehostete Anmeldungen nicht verfügbar."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Die Client-Schlüsseldatei für Elasticsearch konnte nicht geöffnet werden"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Die Client-Zertifikatsdatei für Elasticsearch konnte nicht geöffnet werden"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Dekodierung des Client-Zertifikats für Elasticsearch fehlgeschlagen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Die CA-Datei für Elasticsearch konnte nicht geöffnet werden"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Dekodierung der CA für Elasticsearch fehlgeschlagen"
   }
 ]

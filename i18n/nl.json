@@ -648,15 +648,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[gebruikersnaam] ~[kanaal]"
+    "translation": "@[gebruikersnaam]... ~[kanaal]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Ontbrekende gebruikersnaam en kanaal."
+    "translation": "Ontbrekende gebruikersnaam en/of kanaal."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "We kunnen de gebruiker niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
+    "translation": "We kunnen de gebruiker {{.User}} niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
   },
   {
     "id": "api.command_invite.name",
@@ -668,7 +668,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Kan het kanaal{{.Channel}} niet vinden. Gebruik de kanaalaanduiding om kanalen te identificeren."
+    "translation": "Kan het kanaal{{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_invite.success",
@@ -999,7 +999,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 1MB groot zijn."
+    "translation": "Kon emoji niet aanmaken. Afbeelding moet minder dan 512KiB groot zijn."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -8772,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Deze proeflicentiesleutel voor Mattermost Enterprise Edition is verlopen en is niet langer geldig. Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
+    "translation": "Fout bij het toevoegen van de nieuwe proeflicentie. Je hebt eerder al een proeflicentie toegepast op deze Mattermost instance.Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9725,5 +9725,25 @@
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Kan concept niet bewaren in een verwijderd kanaal"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Kon het client-keybestand voor Elasticsearch niet openen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Kon het client-certificaatbestand voor Elasticsearch niet openen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Het decoderen van het client-certificaat voor Elasticsearch is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Decodering van de CA voor Elasticsearch is mislukt"
   }
 ]
