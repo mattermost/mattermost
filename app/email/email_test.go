@@ -319,8 +319,7 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
 		// Send Update to Monthly Plan email
-		embeddedFiles := make(map[string]io.Reader)
-		embeddedFiles = map[string]io.Reader{
+		var embeddedFiles = map[string]io.Reader{
 			"filename": bytes.NewReader([]byte("Test")),
 		}
 		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", true, embeddedFiles)
