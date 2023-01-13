@@ -132,6 +132,10 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if subscriptionChange.DowngradeFeedback != nil {
+		c.App.Srv().GetTelemetryService().SendTelemetry("downgrade_feedback", subscriptionChange.DowngradeFeedback.ToMap())
+	}
+
 	json, err := json.Marshal(changedSub)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
