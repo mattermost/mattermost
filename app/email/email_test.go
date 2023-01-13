@@ -4,6 +4,8 @@
 package email
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -280,11 +282,12 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, "You'll be billed from", "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, "Open Mattermost", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Len(t, resultsEmail.Attachments, 0)
 		}
 		mail.DeleteMailBox(emailTo)
 
 		// Send Update to Monthly Plan email
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false)
+		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false, make(map[string]io.Reader))
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -311,11 +314,16 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, "View your invoice", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Len(t, resultsEmail.Attachments, 1)
 		}
 		mail.DeleteMailBox(emailTo)
 
 		// Send Update to Monthly Plan email
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", true)
+		embeddedFiles := make(map[string]io.Reader)
+		embeddedFiles = map[string]io.Reader{
+			"filename": bytes.NewReader([]byte("Test")),
+		}
+		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", true, embeddedFiles)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
