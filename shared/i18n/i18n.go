@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n/bundle"
 
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -21,6 +22,9 @@ const defaultLocale = "en"
 
 // TranslateFunc is the type of the translate functions
 type TranslateFunc func(translationID string, args ...any) string
+
+// TranslationFuncByLocal is the type of function that takes local as a string and returns the translation function
+type TranslationFuncByLocal func(locale string) TranslateFunc
 
 // T is the translate function using the default server language as fallback language
 var T TranslateFunc
@@ -72,6 +76,40 @@ func initTranslationsWithDir(dir string) error {
 	}
 
 	return nil
+}
+
+// GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
+// It returns a function to access loaded translations.
+func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
+	var locales map[string]string = make(map[string]string)
+	bundle := bundle.New()
+	files, _ := os.ReadDir(dir)
+	for _, f := range files {
+		if filepath.Ext(f.Name()) == ".json" {
+			filename := f.Name()
+			locales[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+
+			if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return func(locale string) TranslateFunc {
+		if _, ok := locales[locale]; !ok {
+			locale = defaultLocale
+		}
+
+		t, _ := bundle.Tfunc(locale)
+		return func(translationID string, args ...any) string {
+			if translated := t(translationID, args...); translated != translationID {
+				return translated
+			}
+
+			t, _ := bundle.Tfunc(defaultLocale)
+			return t(translationID, args...)
+		}
+	}, nil
 }
 
 func getTranslationsBySystemLocale() (TranslateFunc, error) {
