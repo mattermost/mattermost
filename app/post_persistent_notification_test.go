@@ -40,7 +40,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
 	})
 
-	t.Run("should delete without checking mentions", func(t *testing.T) {
+	t.Run("should delete without checking mentions when checkMentionedUser is false", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
 
@@ -80,10 +80,11 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		defer th.TearDown()
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
-		profileMap := map[string]*model.User{user1.Id: user1}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
 		team := &model.Team{Id: "tid"}
 		channel := &model.Channel{Id: "chid", TeamId: team.Id, Type: model.ChannelTypeOpen}
-		post := &model.Post{Id: "pid", ChannelId: channel.Id, Message: "tagging @user-1", UserId: user1.Id}
+		post := &model.Post{Id: "pid", ChannelId: channel.Id, Message: "tagging @" + user1.Username, UserId: user2.Id}
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 
@@ -113,9 +114,42 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
 
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, "uid1", true)
+		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user1.Id, true)
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertCalled(t, "Delete", mock.Anything)
+	})
+
+	t.Run("should not delete for mentioned post owner", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		post := &model.Post{Id: "test id", UserId: user1.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+		mockPostPersistentNotification.On("Get", mock.Anything).Return([]*model.PostPersistentNotifications{{PostId: post.Id}}, false, nil)
+		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{}, nil)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
+
+		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user1.Id, true)
+		require.Nil(t, err)
+
+		mockChannel.AssertNotCalled(t, "GetChannelsByIds", mock.Anything, mock.Anything)
+		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
 	})
 
 	t.Run("should not delete for non-mentioned user", func(t *testing.T) {
@@ -126,10 +160,11 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		defer th.TearDown()
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
-		profileMap := map[string]*model.User{user1.Id: user1}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
 		team := &model.Team{Id: "tid"}
 		channel := &model.Channel{Id: "chid", TeamId: team.Id, Type: model.ChannelTypeOpen}
-		post := &model.Post{Id: "pid", ChannelId: channel.Id, Message: "tagging @user-1", UserId: user1.Id}
+		post := &model.Post{Id: "pid", ChannelId: channel.Id, Message: "tagging @" + user1.Username, UserId: user2.Id}
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 
@@ -159,7 +194,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
 
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, "uid2", true)
+		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user2.Id, true)
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
 	})

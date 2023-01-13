@@ -15,8 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
-// Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
+// DeletePersistentNotificationsPost stops persistent notifications, if mentioned user(except post owner) reacts, reply or ack on the post.
+// Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false" and "mentionedUserID" can be empty.
 func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
 	if !a.IsPersistentNotificationsEnabled() {
 		c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled.")
@@ -47,8 +47,11 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		}
 	}
 
+	// if checkMentionedUser is "false" that would mean user is already authorized to delete the persistent-notification.
 	isUserMentioned := !checkMentionedUser
-	if checkMentionedUser {
+
+	// post owner is not allowed to stop the persistent notifications via ack, reply or reaction.
+	if checkMentionedUser && mentionedUserID != post.UserId {
 		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
 			if mentions.isUserMentioned(mentionedUserID) {
 				isUserMentioned = true
