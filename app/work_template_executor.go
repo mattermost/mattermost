@@ -138,7 +138,6 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 				model.WorkTemplateIDChannelProp: wtcr.WorkTemplate.ID,
 			},
 		}, c.Session().UserId)
-		channelID = newChan.Id
 		if channelCreationAppErr != nil {
 			if channelCreationAppErr.Id == store.ChannelExistsError {
 				// compute a new unique name
@@ -153,6 +152,7 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 
 			return "", fmt.Errorf("error while creating channel: %w", channelCreationAppErr)
 		}
+		channelID = newChan.Id
 	}
 
 	return channelID, nil
