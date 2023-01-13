@@ -126,6 +126,9 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 	if len(channelName) > model.ChannelNameMaxLength {
 		channelName = channelName[:model.ChannelNameMaxLength]
 	}
+
+	// Mostly because of the "quick use" feature, we might try to create channel that have the exact same "Name"
+	// This loop ensures that if the original name is taken, we try again by adding a suffix to the Name
 	for channelCreationAppErr != nil {
 		// create channel
 		newChan, channelCreationAppErr := e.app.CreateChannelWithUser(c, &model.Channel{
@@ -255,6 +258,7 @@ type playbookRunCreateResponse struct {
 	ChannelID string `json:"channel_id"`
 }
 
+// cleaning channel name code bellow comes from the playbook repository.
 var allNonSpaceNonWordRegex = regexp.MustCompile(`[^\w\s]`)
 
 func cleanChannelName(channelName string) string {
