@@ -4989,7 +4989,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ungültiger Kanalname. Benutzerkennungen sind in Kanalnamen für Kanäle, die keine Direktnachrichtenkanäle sind, nicht erlaubt."
+    "translation": "Kanalnamen können nicht im hexadezimalen Format angegeben werden. Bitte gib einen anderen Kanalnamen ein."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
