@@ -9269,7 +9269,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Starterの制限により、あなたのデータがアーカイブされている可能性があります。"
+    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9289,11 +9289,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Starter にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
+    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9304,8 +9304,8 @@
     "translation": "あなたのMattermostワークスペースは15日後にダウングレードされます"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Cloud Starterへダウングレード"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Freeへダウングレード"
   },
   {
     "id": "api.templates.delinquency_7.title",
@@ -9325,7 +9325,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9340,8 +9340,8 @@
     "translation": "対応が必要です: ワークスペースは30日後にダウングレードされます"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Cloud Starterへのダウングレード"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Cloud Freeへのダウングレード"
   },
   {
     "id": "api.templates.delinquency_45.title",
@@ -9397,7 +9397,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Starterにダウングレードされる危険性があることを意味します。"
+    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
   },
   {
     "id": "api.templates.delinquency_14.subject",

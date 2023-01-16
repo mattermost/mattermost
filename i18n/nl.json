@@ -9304,7 +9304,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Starter hieronder."
+    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Free hieronder."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9319,8 +9319,8 @@
     "translation": "Actie vereist: Werkruimte zal binnen 30 dagen gedowngraded worden"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Downgraden naar Cloud Starter"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9388,7 +9388,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Starter."
+    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subject",
@@ -9408,11 +9408,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Starter."
+    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Starter. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
+    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Free. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9423,8 +9423,8 @@
     "translation": "Jouw Mattermost {{.Plan}} zal over 15 dagen worden gedowngraded"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Downgraden naar Cloud Starter"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9436,7 +9436,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Starter."
+    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
