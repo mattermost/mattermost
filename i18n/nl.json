@@ -4969,7 +4969,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ongeldige kanaalnaam. Gebruikersindentifiers zijn niet toegestaan in een kanaalnaam voor niet directe -berichtenkanalen."
+    "translation": "Kanaalnamen kunnen niet hexadecimaal zijn. Voer een andere kanaalnaam in."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
