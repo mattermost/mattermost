@@ -81,13 +81,13 @@ func initTranslationsWithDir(dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	var locales map[string]string = make(map[string]string)
+	var availableLocals map[string]string = make(map[string]string)
 	bundle := bundle.New()
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
-			locales[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+			availableLocals[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
 
 			if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
 				return nil, err
@@ -96,7 +96,7 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 	}
 
 	return func(locale string) TranslateFunc {
-		if _, ok := locales[locale]; !ok {
+		if _, ok := availableLocals[locale]; !ok {
 			locale = defaultLocale
 		}
 
