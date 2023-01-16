@@ -52,7 +52,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 
 	// post owner is not allowed to stop the persistent notifications via ack, reply or reaction.
 	if checkMentionedUser && mentionedUserID != post.UserId {
-		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
+		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			if mentions.isUserMentioned(mentionedUserID) {
 				isUserMentioned = true
 			}
@@ -153,7 +153,7 @@ func (a *App) SendPersistentNotifications() error {
 	return nil
 }
 
-func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
+func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
 	channelIds := make(model.StringSet)
 	for _, p := range posts {
 		channelIds.Add(p.ChannelId)
@@ -188,16 +188,22 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	channelGroupMap := make(map[string]map[string]*model.Group, len(channelsMap))
 	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
 	channelKeywords := make(map[string]map[string][]string, len(channelsMap))
+	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
 	for _, c := range channelsMap {
 		if c.Type != model.ChannelTypeDirect {
-			groups, appErr := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
-			if appErr != nil {
+			groups, err := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
+			if err != nil {
 				return errors.Wrap(err, "failed to get groups for channels")
 			}
 			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
 			for k, v := range groups {
 				channelGroupMap[c.Id][k] = v
 			}
+			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
+			if err != nil {
+				return errors.Wrap(err, "failed to get channel notify props")
+			}
+			channelNotifyProps[c.Id] = props
 		}
 
 		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
@@ -242,7 +248,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			}
 		}
 
-		if err := fn(post, channel, team, mentions, profileMap); err != nil {
+		if err := fn(post, channel, team, mentions, profileMap, channelNotifyProps); err != nil {
 			return err
 		}
 	}
@@ -250,10 +256,13 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	return nil
 }
 
-func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error {
+func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error {
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	for id := range mentions.Mentions {
-		mentionedUsersList = append(mentionedUsersList, id)
+		// Don't send notification to post owner
+		if id != post.UserId {
+			mentionedUsersList = append(mentionedUsersList, id)
+		}
 	}
 
 	sender := profileMap[post.UserId]
@@ -270,13 +279,19 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	if a.canSendPushNotifications() {
-		for _, id := range mentionedUsersList {
-			user := profileMap[id]
+		for _, userID := range mentionedUsersList {
+			user := profileMap[userID]
 			if user == nil {
 				continue
 			}
 
-			if user.NotifyProps[model.PushNotifyProp] != model.UserNotifyNone && a.persistentNotificationsAllowedForStatus(id) {
+			status, err := a.GetStatus(userID)
+			if err != nil {
+				mlog.Warn("Unable to fetch online status", mlog.String("user_id", userID), mlog.Err(err))
+				status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+			}
+
+			if ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post) {
 				a.sendPushNotification(
 					notification,
 					user,
@@ -289,7 +304,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 				a.NotificationsLog().Debug("Persistent Notification not sent",
 					mlog.String("ackId", ""),
 					mlog.String("type", model.PushTypeMessage),
-					mlog.String("userId", id),
+					mlog.String("userId", userID),
 					mlog.String("postId", post.Id),
 					mlog.String("status", model.PushNotSent),
 				)
