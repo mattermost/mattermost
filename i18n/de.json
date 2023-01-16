@@ -9280,7 +9280,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Free."
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Starter."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
@@ -9452,7 +9452,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Free archiviert wurden."
+    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Starter archiviert wurden."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
