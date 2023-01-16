@@ -9292,7 +9292,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "ek olarak, Cloud Starter tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
+    "translation": "ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9316,11 +9316,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Starter alt tarifesine geçebilirsiniz."
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Free alt tarifesine geçebilirsiniz."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Çalışma alanınız Cloud Starter alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
+    "translation": "Çalışma alanınız Cloud Free alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9335,8 +9335,8 @@
     "translation": "Mattermost {{.Plan}} tarifeniz 15 gün sonra alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Cloud Starter alt tarifesine geç"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9360,7 +9360,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Starter alt tarifesine geçebilirsiniz."
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Free alt tarifesine geçebilirsiniz."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9388,7 +9388,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Starter alt tarifesine geçirilme riski var."
+    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Free alt tarifesine geçirilme riski var."
   },
   {
     "id": "api.templates.delinquency_60.subtitle1",
@@ -9399,8 +9399,8 @@
     "translation": "İşlem yapılması gerekli: Çalışma alanı 30 gün sonra alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Cloud Starter alt tarifesine geç"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
   },
   {
     "id": "api.templates.delinquency_60.button",
