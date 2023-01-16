@@ -4949,7 +4949,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Nazwy kanałów nie mogą być w formacie szesnastkowym. Proszę wprowadzić inną nazwę kanału."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
