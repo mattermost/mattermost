@@ -9284,7 +9284,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deine {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
+    "translation": "Dein Arbeitsbereich wird auf Cloud Starter herabgestuft. Deine {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9295,7 +9295,7 @@
     "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
     "translation": "Herunterstufen zu Cloud Starter"
   },
   {
@@ -9324,7 +9324,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Free."
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Starter."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9339,7 +9339,7 @@
     "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
     "translation": "Herabstufen zu Cloud Starter"
   },
   {
@@ -9353,10 +9353,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Aktualisiere jetzt deine Kreditkarteninformationen."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe, Integrationen und andere geschäftskritische Aktivitäten in deinem Arbeitsbereich auswirken."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9395,20 +9391,12 @@
     "translation": "Bezahlart aktualisieren"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktive Plugins und Integrationen"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Nachrichtenverlauf"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Dateien"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Karten von deinen Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9420,7 +9408,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Free zurückgestuft zu werden."
+    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Starter zurückgestuft zu werden."
   },
   {
     "id": "api.templates.delinquency_14.subject",

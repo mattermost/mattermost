@@ -9344,10 +9344,6 @@
     "translation": "Fizetés frissítése"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktív bővítmények és integrációk"
-  },
-  {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "Hiányzó kötelező mezők a késedelmes e-mail küldéséhez."
   },

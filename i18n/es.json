@@ -9265,7 +9265,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Free."
+    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Starter."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9289,11 +9289,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Free."
+    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Starter."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Tu espacio de trabajo será degradado a Cloud Free. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu espacio de trabajo podrían ser archivados hasta que liquides completamente tu saldo pendiente."
+    "translation": "Tu espacio de trabajo será degradado a Cloud Starter. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu espacio de trabajo podrían ser archivados hasta que liquides completamente tu saldo pendiente."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9304,7 +9304,7 @@
     "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9333,7 +9333,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Free abajo."
+    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Starter abajo."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9348,7 +9348,7 @@
     "translation": "Acción requerida: El workspace será degradado en 30 días"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9362,10 +9362,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Actualiza la información de tu tarjeta de crédito ahora."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Un workspace degradado podría afectar negativamente los flujos de trabajo críticos, integraciones y otras actividades críticas de negocio realizadas en tu workspace."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9404,20 +9400,12 @@
     "translation": "Actualizar pago"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Plugins e integraciones activas"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Historial de mensajes"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Archivos"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Tarjetas de tus Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9429,7 +9417,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu espacio de trabajo está en riesgo de ser degradado a Cloud Free."
+    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu espacio de trabajo está en riesgo de ser degradado a Cloud Starter."
   },
   {
     "id": "api.templates.delinquency_14.subject",
