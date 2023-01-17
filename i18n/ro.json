@@ -5588,14 +5588,6 @@
     "translation": "Canalele invitației trebuie să facă parte din echipa invitației."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Licența dvs. nu acceptă conturile de invitați"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Conturile oaspeților sunt dezactivate"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Eroare la invalidarea invitațiilor de e-mail."
   },
@@ -6628,14 +6620,6 @@
     "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Ar putea analiza mesaj export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Ar putea analiza mesaj export job BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Clustering API final nu a fost găsit."
   },
@@ -6706,10 +6690,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensiuni ({{.Width}} de {{.Height}} pixeli) depășesc limitele."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Imposibil de încărcat fișierul. Fișierul este prea mare."
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",

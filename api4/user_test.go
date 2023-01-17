@@ -25,7 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 
-	_ "github.com/mattermost/mattermost-server/v6/model/gitlab"
+	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -1027,8 +1027,9 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+// This test can flake if two calls to model.NewId can return the same value.
+// Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
-	t.Skip("MM-46450")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1211,6 +1212,47 @@ func TestSearchUsers(t *testing.T) {
 
 	t.Run("Returns user in group user found in group", func(t *testing.T) {
 		users, _, err = th.SystemAdminClient.SearchUsers(search)
+		require.NoError(t, err)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
+
+	id = model.NewId()
+	group, appErr = th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
+
+	search = &model.UserSearch{Term: th.BasicUser.Username, NotInGroupId: group.Id}
+	t.Run("Returns users not in group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
+
+	_, appErr = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, appErr)
+
+	t.Run("Returns empty list for not in group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		assert.Len(t, users, 0)
+	})
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{th.BasicUser.Id},
+	}
+
+	_, _, delErr := th.Client.DeleteGroupMembers(group.Id, members)
+	require.NoError(t, delErr)
+
+	t.Run("Returns user not in group after they were deleted from group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
 		require.NoError(t, err)
 		require.Equal(t, users[0].Id, th.BasicUser.Id)
 	})
@@ -2368,6 +2410,20 @@ func TestGetUsers(t *testing.T) {
 		// Check default params for page and per_page
 		_, err = client.DoAPIGet("/users", "")
 		require.NoError(t, err)
+
+		// Check role params validity
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "in_channel=random_channel_id&channel_roles=random_role_doesnt_exist", "")
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing channelRoles in request body.")
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "in_team=random_channel_id&team_roles=random_role_doesnt_exist", "")
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing teamRoles in request body.")
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "roles=random_role_doesnt_exist%2Csystem_user", "")
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing roles in request body.")
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "role=random_role_doesnt_exist", "")
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing role in request body.")
 	})
 
 	th.Client.Logout()
@@ -2717,13 +2773,26 @@ func TestGetUsersInGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	cid := model.NewId()
+	customGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + cid,
+		Name:        model.NewString("name" + cid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + cid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
 	t.Run("Requires ldap license", func(t *testing.T) {
 		_, response, err := th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2732,8 +2801,6 @@ func TestGetUsersInGroup(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
 
@@ -2748,6 +2815,84 @@ func TestGetUsersInGroup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, users)
 	})
+
+	_, err = th.App.UpsertGroupMember(customGroup.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns users in custom group when called by regular user", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+	t.Run("Returns no users in custom group when called by guest user", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		th.App.DemoteUserToGuest(th.Context, th.BasicUser)
+
+		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
+		require.NoError(t, err)
+		assert.Equal(t, len(users), 0)
+	})
+
+}
+
+func TestGetUsersInGroupByDisplayName(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "aaa", Password: "test-password-1", Username: "zzz", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
+	user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Password: "test-password-2", Username: "bbb", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+	assert.Nil(t, err)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PrivacySettings.ShowFullName = true
+	})
+
+	preference := model.Preference{
+		UserId:   th.SystemAdminUser.Id,
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameNameFormat,
+		Value:    model.ShowUsername,
+	}
+
+	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group in right order for username", func(t *testing.T) {
+		users, _, err := th.SystemAdminClient.GetUsersInGroupByDisplayName(group.Id, 0, 1, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user2.Id)
+	})
+
+	preference.Value = model.ShowNicknameFullName
+	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group in right order for nickname", func(t *testing.T) {
+		users, _, err := th.SystemAdminClient.GetUsersInGroupByDisplayName(group.Id, 0, 1, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
 }
 
 func TestUpdateUserMfa(t *testing.T) {
@@ -5647,10 +5792,10 @@ func TestUpdatePassword(t *testing.T) {
 }
 
 func TestGetThreadsForUser(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -5747,7 +5892,49 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, uss.Threads, 1)
 		require.Greater(t, uss.Threads[0].Post.DeleteAt, int64(0))
+	})
 
+	t.Run("isUrgent, 1 thread", func(t *testing.T) {
+		testCases := []struct {
+			featureEnabled bool
+			expected       bool
+		}{
+			{featureEnabled: true, expected: true},
+			{featureEnabled: false, expected: false},
+		}
+
+		for _, tc := range testCases {
+			func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.PostPriority = tc.featureEnabled
+					cfg.FeatureFlags.PostPriority = true
+				})
+
+				client := th.Client
+
+				rpost, resp, err := client.CreatePost(&model.Post{
+					ChannelId: th.BasicChannel.Id,
+					Message:   "testMsg",
+					Metadata: &model.PostMetadata{
+						Priority: &model.PostPriority{
+							Priority: model.NewString(model.PostPriorityUrgent),
+						},
+					},
+				})
+				require.NoError(t, err)
+				CheckCreatedStatus(t, resp)
+				_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+				require.NoError(t, err)
+				CheckCreatedStatus(t, resp)
+
+				defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+				uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+				require.NoError(t, err)
+				require.Len(t, uss.Threads, 1)
+				require.Equal(t, uss.Threads[0].IsUrgent, tc.expected)
+			}()
+		}
 	})
 
 	t.Run("paged, 30 threads", func(t *testing.T) {
@@ -5962,8 +6149,6 @@ func TestGetThreadsForUser(t *testing.T) {
 func TestThreadSocketEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
@@ -6344,8 +6529,6 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6401,8 +6584,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 func TestThreadCounts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6442,13 +6624,18 @@ func TestThreadCounts(t *testing.T) {
 }
 
 func TestSingleThreadGet(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.PostPriority = false
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		*cfg.ServiceSettings.PostPriority = true
+		cfg.FeatureFlags.PostPriority = true
 	})
 
 	client := th.Client
@@ -6461,7 +6648,15 @@ func TestSingleThreadGet(t *testing.T) {
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
 	// create another thread to check that we are not returning it by mistake
-	rpost2, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testMsg2"})
+	rpost2, _ := postAndCheck(t, client, &model.Post{
+		ChannelId: th.BasicChannel2.Id,
+		Message:   "testMsg2",
+		Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewString(model.PostPriorityUrgent),
+			},
+		},
+	})
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply", RootId: rpost2.Id})
 
 	// regular user should have two threads with 3 replies total
@@ -6473,9 +6668,23 @@ func TestSingleThreadGet(t *testing.T) {
 	require.Equal(t, threads.Threads[0].PostId, tr.PostId)
 	require.Empty(t, tr.Participants[0].Username)
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = false
+	})
+
 	tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
 	require.NoError(t, err)
 	require.NotEmpty(t, tr.Participants[0].Username)
+	require.Equal(t, false, tr.IsUrgent)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+		cfg.FeatureFlags.PostPriority = true
+	})
+
+	tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
+	require.NoError(t, err)
+	require.Equal(t, true, tr.IsUrgent)
 }
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
@@ -6486,8 +6695,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
 	client := th.Client
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6550,8 +6758,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 func TestReadThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6654,8 +6861,7 @@ func TestReadThreads(t *testing.T) {
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn

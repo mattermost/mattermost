@@ -39,20 +39,6 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
-// IsUserAway provides a mock function with given fields: lastActivityAt
-func (_m *SuiteIFace) IsUserAway(lastActivityAt int64) bool {
-	ret := _m.Called(lastActivityAt)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(int64) bool); ok {
-		r0 = rf(lastActivityAt)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
 // RolesGrantPermission provides a mock function with given fields: roleNames, permissionId
 func (_m *SuiteIFace) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	ret := _m.Called(roleNames, permissionId)
@@ -65,31 +51,6 @@ func (_m *SuiteIFace) RolesGrantPermission(roleNames []string, permissionId stri
 	}
 
 	return r0
-}
-
-// SetStatusAwayIfNeeded provides a mock function with given fields: userID, manual
-func (_m *SuiteIFace) SetStatusAwayIfNeeded(userID string, manual bool) {
-	_m.Called(userID, manual)
-}
-
-// SetStatusLastActivityAt provides a mock function with given fields: userID, activityAt
-func (_m *SuiteIFace) SetStatusLastActivityAt(userID string, activityAt int64) {
-	_m.Called(userID, activityAt)
-}
-
-// SetStatusOffline provides a mock function with given fields: userID, manual, updateLastActivityAt
-func (_m *SuiteIFace) SetStatusOffline(userID string, manual bool, updateLastActivityAt bool) {
-	_m.Called(userID, manual, updateLastActivityAt)
-}
-
-// SetStatusOnline provides a mock function with given fields: userID, manual
-func (_m *SuiteIFace) SetStatusOnline(userID string, manual bool) {
-	_m.Called(userID, manual)
-}
-
-// UpdateLastActivityAtIfNeeded provides a mock function with given fields: session
-func (_m *SuiteIFace) UpdateLastActivityAtIfNeeded(session model.Session) {
-	_m.Called(session)
 }
 
 // UserCanSeeOtherUser provides a mock function with given fields: userID, otherUserId

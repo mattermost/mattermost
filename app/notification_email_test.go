@@ -339,6 +339,103 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	require.Contains(t, body, "14:30", fmt.Sprintf("Expected email text '14:30'. Got %s", body))
 }
 
+func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+
+	messageAttachments := []*model.SlackAttachment{
+		{
+			Color:      "#FF0000",
+			Pretext:    "message attachment 1 pretext",
+			AuthorName: "author name",
+			AuthorLink: "https://example.com/slack_attachment_1/author_link",
+			AuthorIcon: "https://example.com/slack_attachment_1/author_icon",
+			Title:      "message attachment 1 title",
+			TitleLink:  "https://example.com/slack_attachment_1/title_link",
+			Text:       "message attachment 1 text",
+			ImageURL:   "https://example.com/slack_attachment_1/image",
+			ThumbURL:   "https://example.com/slack_attachment_1/thumb",
+			Fields: []*model.SlackAttachmentField{
+				{
+					Short: true,
+					Title: "message attachment 1 field 1 title",
+					Value: "message attachment 1 field 1 value",
+				},
+				{
+					Short: false,
+					Title: "message attachment 1 field 2 title",
+					Value: "message attachment 1 field 2 value",
+				},
+				{
+					Short: true,
+					Title: "message attachment 1 field 3 title",
+					Value: "message attachment 1 field 3 value",
+				},
+				{
+					Short: true,
+					Title: "message attachment 1 field 4 title",
+					Value: "message attachment 1 field 4 value",
+				},
+			},
+		},
+		{
+			Color:      "#FF0000",
+			Pretext:    "message attachment 2 pretext",
+			AuthorName: "author name 2",
+			Text:       "message attachment 2 text",
+		},
+	}
+
+	model.ParseSlackAttachment(post, messageAttachments)
+
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+
+	channelName := "ChannelName"
+	senderName := "sender"
+	teamName := "testteam"
+	teamURL := "http://localhost:8065/testteam"
+	emailNotificationContentsType := model.EmailNotificationContentsFull
+	translateFunc := i18n.GetUserTranslations("en")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
+	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
+
+	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	require.NoError(t, err)
+	require.Contains(t, body, "#FF0000")
+	require.Contains(t, body, "message attachment 1 pretext")
+	require.Contains(t, body, "author name")
+	require.Contains(t, body, "https://example.com/slack_attachment_1/author_link")
+	require.Contains(t, body, "https://example.com/slack_attachment_1/author_icon")
+	require.Contains(t, body, "message attachment 1 title")
+	require.Contains(t, body, "https://example.com/slack_attachment_1/title_link")
+	require.Contains(t, body, "message attachment 1 text")
+	require.Contains(t, body, "https://example.com/slack_attachment_1/image")
+	require.Contains(t, body, "https://example.com/slack_attachment_1/thumb")
+	require.Contains(t, body, "message attachment 1 field 1 title")
+	require.Contains(t, body, "message attachment 1 field 1 value")
+	require.Contains(t, body, "message attachment 1 field 2 title")
+	require.Contains(t, body, "message attachment 1 field 2 value")
+	require.Contains(t, body, "message attachment 1 field 3 title")
+	require.Contains(t, body, "message attachment 1 field 3 value")
+	require.Contains(t, body, "message attachment 1 field 4 title")
+	require.Contains(t, body, "message attachment 1 field 4 value")
+	require.Contains(t, body, "https://example.com/slack_attachment_1/thumb")
+	require.Contains(t, body, "message attachment 2 pretext")
+	require.Contains(t, body, "author name 2")
+	require.Contains(t, body, "message attachment 2 text")
+}
+
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
 	th := SetupWithStoreMock(t)

@@ -138,7 +138,7 @@ func (c *Context) SessionRequired() {
 }
 
 func (c *Context) CloudKeyRequired() {
-	if license := c.App.Channels().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
+	if license := c.App.Channels().License(); license == nil || !license.IsCloud() || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
@@ -743,7 +743,7 @@ func (c *Context) RequireInvoiceId() *Context {
 		return c
 	}
 
-	if len(c.Params.InvoiceId) != 27 {
+	if len(c.Params.InvoiceId) != 27 && c.Params.InvoiceId != model.UpcomingInvoice {
 		c.SetInvalidURLParam("invoice_id")
 	}
 

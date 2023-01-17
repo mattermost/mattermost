@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -2124,10 +2124,6 @@
     "translation": "Kunde inte ta fram den uppladdade flen."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Kunde inte ladda upp. Filen är för stor."
-  },
-  {
     "id": "app.upload.create.save.app_error",
     "translation": "Misslyckades att spara det uppladdade."
   },
@@ -3042,14 +3038,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Nådde timeout för AD/LDAP-synkronisering."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Kunde inte tolka värdet ExportFromTimestamp i export job."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Kunde inte tolka värdet BatchSize i export job."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5276,14 +5264,6 @@
     "translation": "De kanaler som ingår i inbjudan måste tillhöra de team som inbjudan gäller för."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Din licens tillåter inte gäståtkomst"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gäståtkomst har inaktiverats"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Fel vid ogiltiggörande av e-postinbjudan."
   },
@@ -6349,7 +6329,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Det gick inte att skapa emoji. Bildfilen måste vara mindre än 1 MB i storlek."
+    "translation": "Det gick inte att skapa emoji. Bildfilen måste vara mindre än 512 KiB i storlek."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -6736,7 +6716,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Kunde inte hitta kanalen {{.Channel}}. Använd Channel handle för att identifiera kanaler."
+    "translation": "Kunde inte hitta kanalen {{.Channel}}. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -6748,15 +6728,15 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kunde inte hitta användaren. Kan ha blivit avstängd av Systemadministratören."
+    "translation": "Kunde inte hitta användaren {{.User}}. Kan ha blivit avstängd av Systemadministratören."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Saknar Användarnamn och Kanal."
+    "translation": "Saknar Användarnamn och/eller Kanal."
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[användarnamn] ~[kanal]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -8792,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Licensnyckeln för testperioden av Mattermost Enterprise Edition är inte längre giltig. [Kontakta Sales team] (https://mattermost.com/contact-us/) om du vill utöka testperionden."
+    "translation": "Misslyckades med att installera ny testlicens. Du har tidigare använt en testlicens på denna Mattermost-instans. [Kontakta försäljningsteamet] (https://mattermost.com/contact-us/) om du vill utöka testperioden."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9147,10 +9127,6 @@
     "translation": "Du är nu uppgraderad!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Din {{.WorkspaceName}}-arbetsyta har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Bekräftelse av uppgradering av Mattermost"
   },
@@ -9199,20 +9175,12 @@
     "translation": "Elasticsearch-inställningarna har odefinierade värden."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fel vid uppdatering av prenumeration från webhook."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Fel när senaste sökningar skulle hämtas"
   },
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -9324,7 +9292,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Vi har inte kunnat få betalt för utestående fakturor med datum {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
+    "translation": "Vi har inte kunnat få betalt för utestående fakturor sedan {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9340,7 +9308,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
+    "translation": "Om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
@@ -9372,11 +9340,11 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Starter."
+    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad."
+    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9436,7 +9404,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Starter."
+    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9460,22 +9428,22 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Starter."
+    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Starter. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
+    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Free. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}"
+    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
     "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9492,7 +9460,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Vi kunde inte behandla din senaste betalning"
+    "translation": "Vi kunde inte behandla din senaste betalning."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9504,7 +9472,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Starter nedan."
+    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Free nedan."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9519,7 +9487,7 @@
     "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9541,5 +9509,221 @@
   {
     "id": "app.job.error",
     "translation": "Fel under utförandet av jobbet."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "gruppnamnet finns redan som ett reserverat namn"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fel vid hämtning av den senast tillgängliga filen"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta filen."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Din licens tillåter inte gäståtkomst"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gäståtkomst har inaktiverats"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ogiltigt tidsintervall."
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kan inte aktiveras i produktionsläge."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Samlingstypen finns redan."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Ämnestypen finns redan."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Kunde inte att radera utkastet."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Det går inte att få en bekräftelse för publiceringen."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Det går inte att få en bekräftelse."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Det går inte att radera bekräftelsen."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "inte en ldap-användare"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Kunde inte ladda upp fil. Filen är för stor."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Funktionen Utkast är inaktiverad."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Kan inte spara utkast i en borttagen kanal"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "misslyckades med att lägga till användaren i gruppens team och gruppens kanaler"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan inte bekräfta i en arkiverad kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan inte radera en bekräftelse efter att 5 minuter har gått."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan inte ta bort en bekräftelse i en arkiverad kanal."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Skapa transparenta arbetsflöden mellan utvecklingsteamen för att säkerställa att utvecklingsprocessen för funktioner är smidig."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Öka produktiviteten i kanalen genom att integrera en Jira-bot och en Github-bot. Dessa kommer att laddas ner åt dig."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chatta med ditt team i kanalen för Kommande leveranser som enkelt kan anslutas till dina boards, playbooks och app-bottar."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Använd vår mall för mötesagenda för återkommande möten exempelvis standup och vår Projekt-board för projektuppgifter och att hantera uppgifternas framskridande."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Produkt-team"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Ogiltigt användarid."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "\"Update at\" måste vara en giltig tid."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Ogiltigt root-id."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Ogiltig prioritet"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Ogiltigt meddelande."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Ogiltiga fil-ID:n."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Skapad vid måste vara en giltig tid."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Ogiltigt kanal-id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Ogiltigt användarid."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Ogiltigt meddelande-id."
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Det går inte att få fram arbetsmallar"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Det går inte att få fram kategorier för arbetsmallar"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Det går inte att få fram inläggets prioritet"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Kunde inte uppdatera utkastet."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Kunde inte spara utkastet."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Det går inte att hämta utkastets filer."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Kunde inte hämta användarens utkast."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Kunde inte hämta utkastet."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Funktionen utkast är inaktiverad."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Det går inte att få fram inläggets prioritet"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Kunde inte räkna brådskande meddelanden från angivet datum."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Det går inte att spara bekräftelsen för inlägget."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Fel vid hämtning av roller vid valideringen."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Visa fakturan"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Ogiltiga attribut."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portalen är inte tillgänglig för egen-hostad registrering."
   }
 ]

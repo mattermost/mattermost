@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -130,6 +131,35 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
+
+		// A/B Test on the welcome post
+		if a.Config().FeatureFlags.SendWelcomePost && channelName == model.DefaultChannelName {
+			nbTeams, err := a.Srv().Store().Team().AnalyticsTeamCount(&model.TeamSearch{
+				IncludeDeleted: model.NewBool(true),
+			})
+			if err != nil {
+				c.Logger().Warn("unable to get number of teams", logr.Err(err))
+				return nil
+			}
+
+			if nbTeams == 1 && a.IsFirstAdmin(user) {
+				// Post the welcome message
+				if _, err := a.CreatePost(c, &model.Post{
+					ChannelId: channel.Id,
+					Type:      model.PostTypeWelcomePost,
+					UserId:    user.Id,
+				}, channel, false, false); err != nil {
+					c.Logger().Warn("unable to post welcome message", logr.Err(err))
+					return nil
+				}
+				ts := a.Srv().GetTelemetryService()
+				if ts != nil {
+					ts.SendTelemetry("welcome-message-sent", map[string]any{
+						"category": "growth",
+					})
+				}
+			}
+		}
 	}
 
 	if nErr != nil {
@@ -313,15 +343,13 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 		a.InvalidateCacheForUser(channel.CreatorId)
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ChannelHasBeenCreated(pluginContext, sc)
-				return true
-			}, plugin.ChannelHasBeenCreatedID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, sc)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
 
 	return sc, nil
 }
@@ -399,15 +427,13 @@ func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, cha
 	a.InvalidateCacheForUser(userID)
 	a.InvalidateCacheForUser(otherUserID)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ChannelHasBeenCreated(pluginContext, channel)
-				return true
-			}, plugin.ChannelHasBeenCreatedID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, channel)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", channel.Id, "", nil, "")
 	message.Add("creator_id", userID)
@@ -584,7 +610,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 	for _, user := range users {
 		cm := &model.ChannelMember{
 			UserId:      user.Id,
-			ChannelId:   group.Id,
+			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: user.IsGuest(),
 			SchemeUser:  !user.IsGuest(),
@@ -1390,13 +1416,10 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
-		a.Srv().Go(func() {
-			systemBot, err := a.GetSystemBot()
-			if err != nil {
-				c.Logger().Error("Failed to post archive message", mlog.Err(err))
-				return
-			}
-
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
+		} else {
 			post := &model.Post{
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
@@ -1408,9 +1431,9 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			}
 
 			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-				c.Logger().Error("Failed to post archive message", mlog.Err(err))
+				c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 			}
-		})
+		}
 	}
 
 	now := model.GetMillis()
@@ -1572,15 +1595,13 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 		return nil, err
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
-				return true
-			}, plugin.UserHasJoinedChannelID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
+			return true
+		}, plugin.UserHasJoinedChannelID)
+	})
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
@@ -1846,15 +1867,8 @@ func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID str
 func (a *App) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store().Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
 	return list, nil
 }
 
@@ -2157,15 +2171,13 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		return err
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
-				return true
-			}, plugin.UserHasJoinedChannelID)
-		})
-	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasJoinedChannel(pluginContext, cm, nil)
+			return true
+		}, plugin.UserHasJoinedChannelID)
+	})
 
 	if err := a.postJoinChannelMessage(c, user, channel); err != nil {
 		return err
@@ -2464,20 +2476,18 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	a.InvalidateCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var actorUser *model.User
-		if removerUserId != "" {
-			actorUser, _ = a.GetUser(removerUserId)
-		}
-
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
-				return true
-			}, plugin.UserHasLeftChannelID)
-		})
+	var actorUser *model.User
+	if removerUserId != "" {
+		actorUser, _ = a.GetUser(removerUserId)
 	}
+
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
+			return true
+		}, plugin.UserHasLeftChannelID)
+	})
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
 	message.Add("user_id", userIDToRemove)
@@ -2589,12 +2599,12 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 		return nil, err
 	}
 
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(c, user, post)
+	unreadMentions, unreadMentionsRoot, urgentMentions, err := a.countMentionsFromPost(c, user, post)
 	if err != nil {
 		return nil, err
 	}
 
-	channelUnread, nErr := a.Srv().Store().Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
+	channelUnread, nErr := a.Srv().Store().Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, urgentMentions, true)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -2621,7 +2631,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		threadId = post.Id
 	}
 
-	unreadMentions, unreadMentionsRoot, appErr := a.countMentionsFromPost(c, user, post)
+	unreadMentions, unreadMentionsRoot, urgentMentions, appErr := a.countMentionsFromPost(c, user, post)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2630,7 +2640,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	// In CRT Supported Client: badge on channel only sums mentions in root posts including and below the post that was marked.
 	// In CRT Unsupported Client: badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
 	if post.RootId == "" {
-		channelUnread, nErr := a.Srv().Store().Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
+		channelUnread, nErr := a.Srv().Store().Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, urgentMentions, true)
 		if nErr != nil {
 			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -2686,7 +2696,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
@@ -2704,7 +2714,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		}
 	}
 
-	channelUnread, nErr := a.Srv().Store().Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false)
+	channelUnread, nErr := a.Srv().Store().Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, 0, false)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -2721,6 +2731,7 @@ func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.C
 	}
 	message.Add("mention_count", channelUnread.MentionCount)
 	message.Add("mention_count_root", channelUnread.MentionCountRoot)
+	message.Add("urgent_mention_count", channelUnread.UrgentMentionCount)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)

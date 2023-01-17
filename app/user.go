@@ -209,6 +209,19 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
+func (a *App) IsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
+	if err != nil {
+		return false
+	}
+
+	return adminID == user.Id
+}
+
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -295,14 +308,26 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasBeenCreated(pluginContext, ruser)
-				return true
-			}, plugin.UserHasBeenCreatedID)
-		})
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasBeenCreated(pluginContext, ruser)
+			return true
+		}, plugin.UserHasBeenCreatedID)
+	})
+
+	// For cloud yearly subscriptions, if the current user count of the workspace exceeds the number of seats initially purchased
+	// (plus the “threshold” of 10%), then a subscriptionHistoryEvent object would need to be created and added to the subscriptionHistory
+	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
+	// workspace is currently on a monthly plan, then this function will not do anything.
+
+	if a.Channels().License().IsCloud() {
+		go func(userId string) {
+			_, err := a.SendSubscriptionHistoryEvent(userId)
+			if err != nil {
+				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
+			}
+		}(ruser.Id)
 	}
 
 	return ruser, nil
@@ -2378,6 +2403,10 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
+	postPriorityIsEnabled := a.isPostPriorityEnabled()
+	if postPriorityIsEnabled {
+		options.IncludeIsUrgent = true
+	}
 
 	if !options.ThreadsOnly {
 		eg.Go(func() error {
@@ -2414,6 +2443,18 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 			return nil
 		})
+
+		if postPriorityIsEnabled {
+			eg.Go(func() error {
+				totalUnreadUrgentMentions, err := a.Srv().Store().Thread().GetTotalUnreadUrgentMentions(userID, teamID, options)
+				if err != nil {
+					return errors.Wrapf(err, "failed to count urgent mentioned threads for user id=%s", userID)
+				}
+				result.TotalUnreadUrgentMentions = totalUnreadUrgentMentions
+
+				return nil
+			})
+		}
 	}
 
 	if !options.TotalsOnly {
@@ -2445,24 +2486,31 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
-	threadMembership, err := a.Srv().Store().Thread().GetMembershipForUser(userId, threadId)
-	if err != nil {
-		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if threadMembership == nil {
-		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.not_found", nil, "thread membership not found/followed", http.StatusNotFound)
+	threadMembership, nErr := a.Srv().Store().Thread().GetMembershipForUser(userId, threadId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.not_found", nil, "", http.StatusNotFound).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
 	return threadMembership, nil
 }
 
-func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store().Thread().GetThreadForUser(teamID, threadMembership, extended)
-	if err != nil {
-		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.isPostPriorityEnabled())
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "thread not found/followed", http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
-	if thread == nil {
-		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "thread not found/followed", http.StatusNotFound)
-	}
+
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
 	return thread, nil
@@ -2538,7 +2586,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
-	userThread, err := a.Srv().Store().Thread().GetThreadForUser(teamID, tm, true)
+	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.isPostPriorityEnabled())
 
 	if err != nil {
 		var errNotFound *store.ErrNotFound
@@ -2620,7 +2668,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	thread, err := a.GetThreadForUser(teamID, membership, false)
+	thread, err := a.GetThreadForUser(membership, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2657,4 +2705,26 @@ func getProfileImagePath(userID string) string {
 
 func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
+}
+
+func (a *App) UserIsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	systemAdminUsers, errServer := a.Srv().Store().User().GetSystemAdminProfiles()
+	if errServer != nil {
+		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
+		return false
+	}
+
+	for _, systemAdminUser := range systemAdminUsers {
+		systemAdminUser := systemAdminUser
+
+		if systemAdminUser.CreateAt < user.CreateAt {
+			return false
+		}
+	}
+
+	return true
 }

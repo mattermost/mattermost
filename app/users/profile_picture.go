@@ -160,7 +160,10 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 
 	buf := new(bytes.Buffer)
 
-	if imgErr := png.Encode(buf, dstImg); imgErr != nil {
+	enc := png.Encoder{
+		CompressionLevel: png.BestCompression,
+	}
+	if imgErr := enc.Encode(buf, dstImg); imgErr != nil {
 		return nil, ImageEncodingError
 	}
 
