@@ -60,14 +60,14 @@ func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18
 	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
 }
 
-func ProcessMessageAttachments(post *model.Post) []*EmailMessageAttachment {
+func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessageAttachment {
 	emailMessageAttachments := []*EmailMessageAttachment{}
 
 	for _, messageAttachment := range post.Attachments() {
 		emailMessageAttachment := &EmailMessageAttachment{
 			SlackAttachment: *messageAttachment,
-			Pretext:         prepareTextForEmail(messageAttachment.Pretext),
-			Text:            prepareTextForEmail(messageAttachment.Text),
+			Pretext:         prepareTextForEmail(messageAttachment.Pretext, siteURL),
+			Text:            prepareTextForEmail(messageAttachment.Text, siteURL),
 		}
 
 		stripedTitle, err := utils.StripMarkdown(emailMessageAttachment.Title)
@@ -92,7 +92,7 @@ func ProcessMessageAttachments(post *model.Post) []*EmailMessageAttachment {
 			}
 
 			if stringValue, ok := field.Value.(string); ok {
-				field.Value = prepareTextForEmail(stringValue)
+				field.Value = prepareTextForEmail(stringValue, siteURL)
 			}
 
 			if !field.Short {
@@ -124,9 +124,9 @@ func ProcessMessageAttachments(post *model.Post) []*EmailMessageAttachment {
 	return emailMessageAttachments
 }
 
-func prepareTextForEmail(text string) template.HTML {
+func prepareTextForEmail(text, siteURL string) template.HTML {
 	escapedText := html.EscapeString(text)
-	markdownText, err := utils.MarkdownToHTML(escapedText)
+	markdownText, err := utils.MarkdownToHTML(escapedText, siteURL)
 	if err != nil {
 		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(err))
 		return template.HTML(text)
