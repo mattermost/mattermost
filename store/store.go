@@ -88,6 +88,7 @@ type Store interface {
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
 	PostPersistentNotification() PostPersistentNotificationStore
+	TrueUpReview() TrueUpReviewStore
 }
 
 type RetentionPolicyStore interface {
@@ -642,7 +643,7 @@ type PreferenceStore interface {
 	GetCategory(userID string, category string) (model.Preferences, error)
 	GetCategoryAndName(category string, nane string) (model.Preferences, error)
 	Get(userID string, category string, name string) (*model.Preference, error)
-	GetAll(userID string, limit int) (model.Preferences, error)
+	GetAll(userID string) (model.Preferences, error)
 	Delete(userID, category, name string) error
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error
@@ -1005,6 +1006,12 @@ type PostPersistentNotificationStore interface {
 	UpdateLastActivity(postIds []string) error
 	DeleteByChannel(channelIds []string) error
 	DeleteByTeam(teamIds []string) error
+}
+
+type TrueUpReviewStore interface {
+	GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error)
+	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
+	Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

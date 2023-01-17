@@ -465,7 +465,6 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
-		"experimental_max_user_preferences":                       *cfg.ServiceSettings.ExperimentalMaxUserPreferences,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -1427,7 +1426,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"focalboard",
 	}
 
-	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
+	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
 
@@ -1465,7 +1464,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 
-func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
+func (ts *TelemetryService) GetAllMarketplacePlugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
 		ts.srv.HTTPService(),

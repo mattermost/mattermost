@@ -328,3 +328,77 @@ func TestRequestRenewalLink(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
+
+func TestRequestTrueUpReview(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+}
+
+func TestTrueUpReviewStatus(t *testing.T) {
+	th := Setup(t)
+
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	t.Run("returns 200 when status retrieved", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+}

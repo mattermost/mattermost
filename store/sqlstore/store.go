@@ -113,6 +113,7 @@ type SqlStoreStores struct {
 	postPriority               store.PostPriorityStore
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
+	trueUpReview               store.TrueUpReviewStore
 }
 
 type SqlStore struct {
@@ -222,6 +223,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
+	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -988,6 +990,10 @@ func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
 
 func (ss *SqlStore) PostPersistentNotification() store.PostPersistentNotificationStore {
 	return ss.stores.postPersistentNotification
+}
+
+func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
+	return ss.stores.trueUpReview
 }
 
 func (ss *SqlStore) DropAllTables() {

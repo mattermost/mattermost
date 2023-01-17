@@ -184,7 +184,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 	err := ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	result, err := ss.Preference().GetAll(userId, 0)
+	result, err := ss.Preference().GetAll(userId)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(result), "got the wrong number of preferences")
 
@@ -243,13 +243,13 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 	err := ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, err)
 
-	preferences, err := ss.Preference().GetAll(preference.UserId, 0)
+	preferences, err := ss.Preference().GetAll(preference.UserId)
 	require.NoError(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	err = ss.Preference().Delete(preference.UserId, preference.Category, preference.Name)
 	require.NoError(t, err)
-	preferences, err = ss.Preference().GetAll(preference.UserId, 0)
+	preferences, err = ss.Preference().GetAll(preference.UserId)
 	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
@@ -275,14 +275,14 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 	err := ss.Preference().Save(model.Preferences{preference1, preference2})
 	require.NoError(t, err)
 
-	preferences, err := ss.Preference().GetAll(userId, 0)
+	preferences, err := ss.Preference().GetAll(userId)
 	require.NoError(t, err)
 	assert.Len(t, preferences, 2, "should've returned 2 preferences")
 
 	err = ss.Preference().DeleteCategory(userId, category)
 	require.NoError(t, err)
 
-	preferences, err = ss.Preference().GetAll(userId, 0)
+	preferences, err = ss.Preference().GetAll(userId)
 	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
@@ -310,22 +310,22 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 	err := ss.Preference().Save(model.Preferences{preference1, preference2})
 	require.NoError(t, err)
 
-	preferences, err := ss.Preference().GetAll(userId, 0)
+	preferences, err := ss.Preference().GetAll(userId)
 	require.NoError(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
-	preferences, err = ss.Preference().GetAll(userId2, 0)
+	preferences, err = ss.Preference().GetAll(userId2)
 	require.NoError(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	err = ss.Preference().DeleteCategoryAndName(category, name)
 	require.NoError(t, err)
 
-	preferences, err = ss.Preference().GetAll(userId, 0)
+	preferences, err = ss.Preference().GetAll(userId)
 	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preference")
 
-	preferences, err = ss.Preference().GetAll(userId2, 0)
+	preferences, err = ss.Preference().GetAll(userId2)
 	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preference")
 }
