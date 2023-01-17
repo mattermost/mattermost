@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 )
 
@@ -124,6 +125,10 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+type SubscriptionExpandStatus struct {
+	IsExpandable bool `json:"is_expandable"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name                  string `json:"name"`
@@ -166,7 +171,6 @@ type Subscription struct {
 	Seats                   int      `json:"seats"`
 	Status                  string   `json:"status"`
 	DNS                     string   `json:"dns"`
-	IsPaidTier              string   `json:"is_paid_tier"`
 	LastInvoice             *Invoice `json:"last_invoice"`
 	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
@@ -257,9 +261,11 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
+
 type SubscriptionChange struct {
-	ProductID string `json:"product_id"`
-	Seats     int    `json:"seats"`
+	ProductID         string             `json:"product_id"`
+	Seats             int                `json:"seats"`
+	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
 }
 
 type BoardsLimits struct {
@@ -291,17 +297,19 @@ type ProductLimits struct {
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
 
-type BootstrapSelfHostedSignupRequest struct {
-	Email string `json:"email"`
+// CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+type CreateSubscriptionRequest struct {
+	ProductID             string   `json:"product_id"`
+	AddOns                []string `json:"add_ons"`
+	Seats                 int      `json:"seats"`
+	Total                 float64  `json:"total"`
+	InternalPurchaseOrder string   `json:"internal_purchase_order"`
+	DiscountID            string   `json:"discount_id"`
 }
 
-type BootstrapSelfHostedSignupResponse struct {
-	Progress string `json:"progress"`
-}
-
-type BootstrapSelfHostedSignupResponseInternal struct {
-	Progress string `json:"progress"`
-	License  string `json:"license"`
+type DowngradeFeedback struct {
+	Reason   string `json:"reason"`
+	Comments string `json:"comments"`
 }
 
 func (p *Product) IsYearly() bool {
@@ -310,4 +318,19 @@ func (p *Product) IsYearly() bool {
 
 func (p *Product) IsMonthly() bool {
 	return p.RecurringInterval == RecurringIntervalMonthly
+}
+
+func (df *DowngradeFeedback) ToMap() map[string]any {
+	var res map[string]any
+	feedback, err := json.Marshal(df)
+	if err != nil {
+		return res
+	}
+
+	err = json.Unmarshal(feedback, &res)
+	if err != nil {
+		return res
+	}
+
+	return res
 }

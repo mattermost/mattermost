@@ -1258,6 +1258,24 @@ func (c *Client4) GetUsersInGroup(groupID string, page int, perPage int, etag st
 	return list, BuildResponse(r), nil
 }
 
+// GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
+func (c *Client4) GetUsersInGroupByDisplayName(groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
+	query := fmt.Sprintf("?sort=display_name&in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
+	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersInGroupByDisplayName", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetUsersByIds returns a list of users based on the provided user ids.
 func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response, error) {
 	r, err := c.DoAPIPost(c.usersRoute()+"/ids", ArrayToJSON(userIds))
@@ -8195,6 +8213,19 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	return cloudCustomer, BuildResponse(r), nil
 }
 
+func (c *Client4) GetExpandStats(licenseId string) (*SubscriptionExpandStatus, *Response, error) {
+	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/expand", licenseId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var subscriptionExpandable *SubscriptionExpandStatus
+	json.NewDecoder(r.Body).Decode(&subscriptionExpandable)
+
+	return subscriptionExpandable, BuildResponse(r), nil
+}
+
 func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription", "")
 	if err != nil {
@@ -8558,6 +8589,72 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	return newTeamMembersList, BuildResponse(r), nil
 }
 
+func (c *Client4) SelfHostedSignupAvailable() (*Response, error) {
+	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/signup_available", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) SelfHostedSignupCustomer(form *SelfHostedCustomerForm) (*Response, *SelfHostedSignupCustomerResponse, error) {
+	payloadBytes, err := json.Marshal(form)
+	if err != nil {
+		return nil, nil, NewAppError("SelfHostedSignupCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/customer", string(payloadBytes))
+
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	defer closeBody(r)
+
+	response := SelfHostedSignupCustomerResponse{}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	return BuildResponse(r), &response, nil
+}
+
+func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRequest) (*Response, *SelfHostedSignupConfirmClientResponse, error) {
+	payloadBytes, err := json.Marshal(form)
+	if err != nil {
+		return nil, nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
+
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	defer closeBody(r)
+
+	response := SelfHostedSignupConfirmClientResponse{}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	defer closeBody(r)
+
+	return BuildResponse(r), &response, nil
+}
+
 func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
 	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
 	if err != nil {
@@ -8600,6 +8697,17 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 		return BuildResponse(r), err
 	}
 	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
 	return BuildResponse(r), nil
 }
 

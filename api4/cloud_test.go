@@ -124,7 +124,6 @@ func Test_GetSubscription(t *testing.T) {
 		Seats:           10,
 		IsFreeTrial:     "true",
 		DNS:             "some.dns.server",
-		IsPaidTier:      "false",
 		TrialEndAt:      2000000000,
 		LastInvoice:     &model.Invoice{},
 		DelinquentSince: &deliquencySince,
@@ -141,7 +140,6 @@ func Test_GetSubscription(t *testing.T) {
 		Seats:           0,
 		IsFreeTrial:     "true",
 		DNS:             "",
-		IsPaidTier:      "",
 		TrialEndAt:      2000000000,
 		LastInvoice:     &model.Invoice{},
 		DelinquentSince: &deliquencySince,
@@ -209,7 +207,6 @@ func Test_requestTrial(t *testing.T) {
 		CreateAt:   1000000000,
 		Seats:      10,
 		DNS:        "some.dns.server",
-		IsPaidTier: "false",
 	}
 
 	newValidBusinessEmail := model.StartCloudTrialRequest{Email: ""}
@@ -649,6 +646,58 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[2].RecurringInterval, model.RecurringInterval("yearly"))
 		require.Equal(t, returnedProducts[2].BillingScheme, model.BillingScheme(""))
 		require.Equal(t, returnedProducts[2].CrossSellsTo, "prod_test2")
+	})
+}
+
+func Test_GetExpandStatsForSubscription(t *testing.T) {
+	isExpandable := &model.SubscriptionExpandStatus{
+		IsExpandable: true,
+	}
+
+	licenseId := "licenseID"
+
+	t.Run("NON Admin users are UNABLE to request expand stats for the subscription", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandable, r, err := th.Client.GetExpandStats(licenseId)
+		require.Error(t, err)
+		require.Nil(t, subscriptionExpandable)
+		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")
+	})
+
+	t.Run("Admin users are UNABLE to request licenses is expendable due missing the id", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandable, r, err := th.Client.GetExpandStats("")
+		require.Error(t, err)
+		require.Nil(t, subscriptionExpandable)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "400 Bad Request")
 	})
 }
 
