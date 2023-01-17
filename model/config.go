@@ -3775,6 +3775,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.PersistentNotificationInterval < 2 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
