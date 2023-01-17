@@ -27,7 +27,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valFalse })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valFalse })
 		th.App.ReloadConfig()
 
 		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
@@ -45,7 +45,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valTrue })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valTrue })
 		th.App.ReloadConfig()
 
 		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
@@ -62,7 +62,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valTrue })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valTrue })
 		th.App.ReloadConfig()
 
 		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
@@ -79,7 +79,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valTrue })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valTrue })
 		th.App.ReloadConfig()
 		cloud := mocks.CloudInterface{}
 

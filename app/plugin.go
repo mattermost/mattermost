@@ -93,7 +93,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	defer ch.pluginsLock.Unlock()
 
 	ch.pluginsEnvironment = pluginsEnvironment
-	ch.srv.Platform().SetPluginsEnvironment(pluginsEnvironment)
+	ch.srv.Platform().SetPluginsEnvironment(ch)
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -130,23 +130,6 @@ func (ch *Channels) syncPluginsActiveState() {
 			}
 
 			if pluginEnabled {
-				// Disable focalboard in product mode.
-				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
-					msg := "Plugin cannot run in product mode. Disabling."
-					mlog.Warn(msg, mlog.String("plugin_id", model.PluginIdFocalboard))
-
-					// This is a mini-version of ch.disablePlugin.
-					// We don't call that directly, because that will recursively call
-					// this method.
-					ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
-						cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{Enable: false}
-					})
-					pluginsEnvironment.SetPluginError(pluginID, msg)
-					ch.unregisterPluginCommands(pluginID)
-					disabledPlugins = append(disabledPlugins, plugin)
-					continue
-				}
-
 				enabledPlugins = append(enabledPlugins, plugin)
 			} else {
 				disabledPlugins = append(disabledPlugins, plugin)
@@ -213,7 +196,7 @@ func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
-		ch.srv.Platform().SetPluginsEnvironment(ch.pluginsEnvironment)
+		ch.srv.Platform().SetPluginsEnvironment(ch)
 	}()
 
 	ch.pluginsLock.RLock()
@@ -243,7 +226,15 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		return New(ServerConnector(ch)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(ch.srv), pluginDir, webappPluginDir, ch.srv.Log(), ch.srv.GetMetrics())
+	env, err := plugin.NewEnvironment(
+		newAPIFunc,
+		NewDriverImpl(ch.srv),
+		pluginDir,
+		webappPluginDir,
+		*ch.cfgSvc.Config().ExperimentalSettings.PatchPluginsReactDOM,
+		ch.srv.Log(),
+		ch.srv.GetMetrics(),
+	)
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -278,14 +269,13 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 			ch.installFeatureFlagPlugins()
 			ch.syncPluginsActiveState()
 		}
-		if pluginsEnvironment := ch.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				if err := hooks.OnConfigurationChange(); err != nil {
-					ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
-				}
-				return true
-			}, plugin.OnConfigurationChangeID)
-		}
+
+		ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			if err := hooks.OnConfigurationChange(); err != nil {
+				ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+			}
+			return true
+		}, plugin.OnConfigurationChangeID)
 	})
 	ch.pluginsLock.Unlock()
 
@@ -315,6 +305,16 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
+		// Disable focalboard in product mode.
+		if plugin.Manifest.Id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+			mlog.Info("Plugin cannot run in product mode, disabling.", mlog.String("plugin_id", model.PluginIdFocalboard))
+			appErr := ch.disablePlugin(model.PluginIdFocalboard)
+			if appErr != nil {
+				mlog.Error("Error disabling plugin", mlog.Err(err))
+			}
+			continue
+		}
+
 		wg.Add(1)
 		go func(pluginID string) {
 			defer wg.Done()

@@ -649,15 +649,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[użytkownik] ~[kanał]"
+    "translation": "@[nazwa użytkownika]... ~[kanał]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Brak nazwy użytkownika oraz kanału."
+    "translation": "Brak nazwy użytkownika i/lub kanału."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nie możemy odnaleźć użytkownika. Mógł on zostać dezaktywowany przez administratora systemu."
+    "translation": "Nie mogliśmy znaleźć użytkownika {{.User}}. Być może został on dezaktywowany przez Administratora systemu."
   },
   {
     "id": "api.command_invite.name",
@@ -669,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj uchwytu kanału, aby zidentyfikować kanały."
+    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
     "id": "api.command_invite.success",
@@ -1001,7 +1001,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Nie można utworzyć emoji. Obraz musi być mniejszy niż 1 MB."
+    "translation": "Nie można utworzyć emoji. Obraz musi być mniejszy niż 512 KiB."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -4949,7 +4949,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Nazwy kanałów nie mogą być w formacie szesnastkowym. Proszę wprowadzić inną nazwę kanału."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -6352,14 +6352,6 @@
     "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Nie można przeanalizować zadania eksportowania komunikatu ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
   },
@@ -7333,7 +7325,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Ten klucz licencji próbnej dla Mattermost Enterprise Edition wygasł i nie jest już ważny. Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
+    "translation": "Nie udało się zastosować nowej licencji próbnej. Zastosowano już wcześniej licencję próbną do tej instancji Mattermost... Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9172,10 +9164,6 @@
     "translation": "Zostałeś uaktualniony!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Potwierdzenie Aktualizacji Mattermost"
   },
@@ -9313,7 +9301,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Zaległa płatność za Twój Mattermost {{.Plan}}."
+    "translation": "Zaległa płatność za Twój Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9329,7 +9317,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Jest to ostateczne przypomnienie, że nie otrzymaliśmy płatności za obszar roboczy Mattermost Cloud od {{.DelinquencyDate}}"
+    "translation": "Jest to ostateczne przypomnienie, że nie otrzymaliśmy płatności za obszar roboczy Mattermost Cloud od {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9353,7 +9341,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Nie mogliśmy przetworzyć Twojej ostatniej płatności"
+    "translation": "Nie mogliśmy przetworzyć Twojej ostatniej płatności."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9401,7 +9389,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Nie udało nam się zebrać płatności za zaległe faktury z datą {{.DelinquencyDate}}. Twój obszar roboczy jest zagrożony zdegradowaniem."
+    "translation": "Od {{.DelinquencyDate}} nie udało nam się zebrać płatności za zaległe faktury. Twój obszar roboczy jest zagrożony obniżeniem poziomu."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9417,7 +9405,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "jeśli nie zostaną podjęte żadne działania, Twój obszar roboczy zostanie zdegradowany, a następujące dane mogą zostać zarchiwizowane:"
+    "translation": "Jeśli nie zostaną podjęte żadne działania, Twój obszar roboczy zostanie zdegradowany, a następujące dane mogą zostać zarchiwizowane:"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
@@ -9570,5 +9558,193 @@
   {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "Nie można przesłać pliku. Plik jest zbyt duży."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Nieprawidłowe id użytkownika."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Aktualizacja w musi zawierać prawidłowy czas."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Nieprawidłowy root id."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Nieprawidłowa wartość."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Nieprawidłowa wiadomość."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Niepoprawne identyfikatory plików."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Data utworzenia musi zawierać prawidłowy czas."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Nieprawidłowe id użytkownika."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Nieprawidłowy identyfikator posta."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Nie można uzyskać priorytetu dla posta"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Nie można zaktualizować szkicu."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Nie można zapisać Szkicu."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Nie można uzyskać plików dla Szkiców."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Nie można uzyskać szkiców użytkownika."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Nie mogę pobrać szablonu."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Funkcja szkiców jest wyłączona."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Nie można usunąć projektu."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Nie można uzyskać priorytetu dla postów"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Nie można zliczyć pilnych postów od podanej daty."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Nie można zapisać potwierdzenia dla posta."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Nie można uzyskać potwierdzenia dla posta."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Nie można uzyskać potwierdzenia."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Nie można usunąć potwierdzenia."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Funkcja szkiców jest wyłączona."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Nie można zapisać wersji roboczej do usuniętego kanału"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Nie można potwierdzić w zarchiwizowanym kanale."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Nie można usunąć potwierdzenia po upływie 5 minut."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Nie można usunąć potwierdzenia w zarchiwizowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Twórz przejrzyste przepływy pracy pomiędzy zespołami programistów, aby zapewnić płynny proces rozwoju funkcji."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Zwiększ wydajność na swoim kanale, integrując bota Jira i bota Github. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Czatuj ze swoim zespołem na kanale Feature Release, który łatwo łączy się z tablicami, playbookami i botami aplikacji."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Użyj naszego szablonu tablicy Meeting Agenda do powtarzających się spotkań, takich jak standup, oraz naszej tablicy Project Tasks do zarządzania postępem zadań w trakcie."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Zespoły Produkcyjne"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Nieprawidłowy priorytet"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Nie można uzyskać szablonów roboczych"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Nie można uzyskać kategorii szablonów roboczych"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Błąd pobierania ról podczas sprawdzania poprawności."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Zobacz swoją fakturę"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Twoja przestrzeń robocza {{.WorkspaceName}} została zaktualizowana."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal niedostępny dla samodzielnej rejestracji."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Nie można otworzyć pliku klucza klienta dla Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Nie można otworzyć pliku z certyfikatem klienta dla Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Dekodowanie certyfikatu klienta dla Elasticsearch nie powiodło się"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Nie można otworzyć pliku CA dla Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Dekodowanie CA dla Elasticsearch nie powiodło się"
   }
 ]

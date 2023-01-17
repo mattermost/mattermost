@@ -4573,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Les conditions d'utilisation de GitLab ont été mises à jour. Veuillez vous rendre sur gitlab.com pour les accepter et réessayez de vous connecter à Mattermost."
+    "translation": "Les conditions d'utilisation de GitLab ont été mises à jour. Veuillez vous rendre sur {{.URL}} pour les accepter et réessayez de vous connecter à Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -6342,14 +6342,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Impossible d'interpréter le paramètre ExportFromTimestamp de la tâche d'exportation de messages."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -8802,10 +8794,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "Vous avez été mis à niveau !"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Votre espace de travail {{.WorkspaceName}} a été mis à niveau. Vous serez facturé le {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",

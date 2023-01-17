@@ -1185,8 +1185,8 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
-		c.SetPermissionError(model.PermissionDeleteCustomGroup)
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionRestoreCustomGroup) {
+		c.SetPermissionError(model.PermissionRestoreCustomGroup)
 		return
 	}
 

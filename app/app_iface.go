@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
@@ -434,7 +435,7 @@ type AppIface interface {
 	BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError)
 	BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
-	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
 	BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
 	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CanNotifyAdmin(trial bool) bool
@@ -651,6 +652,7 @@ type AppIface interface {
 	GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
 	GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError)
+	GetGroupMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, int, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 	GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
@@ -712,6 +714,7 @@ type AppIface interface {
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)
+	GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError)
 	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -808,7 +811,7 @@ type AppIface interface {
 	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
 	GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
-	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
+	GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
 	GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError)
@@ -867,6 +870,7 @@ type AppIface interface {
 	HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userID string) bool
 	HasSharedChannel(channelID string) (bool, error)
+	HooksManager() *product.HooksManager
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
@@ -885,7 +889,6 @@ type AppIface interface {
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
 	IsPhase2MigrationCompleted() *model.AppError
-	IsUserAway(lastActivityAt int64) bool
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
@@ -916,6 +919,7 @@ type AppIface interface {
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
 	NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError
+	NotifySelfHostedSignupProgress(progress string, userId string)
 	NotifySharedChannelUserUpdate(user *model.User)
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
@@ -1037,7 +1041,7 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendTestPushNotification(deviceID string) string
-	SendUpgradeConfirmationEmail() *model.AppError
+	SendUpgradeConfirmationEmail(isYearly bool) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
@@ -1112,7 +1116,6 @@ type AppIface interface {
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	UpdateLastActivityAtIfNeeded(session model.Session)
 	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
@@ -1148,7 +1151,7 @@ type AppIface interface {
 	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
+	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(c request.CTX, id string, imageData *multipart.FileHeader) *model.AppError
 	UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
@@ -1161,4 +1164,5 @@ type AppIface interface {
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
+	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 }

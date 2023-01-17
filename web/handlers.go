@@ -241,7 +241,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Referrer-Policy", "no-referrer")
 
 	cloudCSP := ""
-	if c.App.Channels().License().IsCloud() || *c.App.Config().ServiceSettings.SelfHostedFirstTimePurchase {
+	if c.App.Channels().License().IsCloud() || *c.App.Config().ServiceSettings.SelfHostedPurchase {
 		cloudCSP = " js.stripe.com/v3"
 	}
 
@@ -365,9 +365,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.AppContext.T)
 		c.Err.RequestId = c.AppContext.RequestId()
 		c.LogErrorByCode(c.Err)
+		// The locale translation needs to happen after we have logged it.
+		// We don't want the server logs to be translated as per user locale.
+		c.Err.Translate(c.AppContext.T)
 
 		c.Err.Where = r.URL.Path
 

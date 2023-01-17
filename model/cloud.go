@@ -16,6 +16,8 @@ const (
 	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
+const UpcomingInvoice = "upcoming"
+
 var MockCWS string
 
 type BillingScheme string
@@ -38,6 +40,20 @@ type SubscriptionFamily string
 const (
 	SubscriptionFamilyCloud  = SubscriptionFamily("cloud")
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
+)
+
+type ProductSku string
+
+const (
+	SkuStarterGov        = ProductSku("starter-gov")
+	SkuProfessionalGov   = ProductSku("professional-gov")
+	SkuEnterpriseGov     = ProductSku("enterprise-gov")
+	SkuStarter           = ProductSku("starter")
+	SkuProfessional      = ProductSku("professional")
+	SkuEnterprise        = ProductSku("enterprise")
+	SkuCloudStarter      = ProductSku("cloud-starter")
+	SkuCloudProfessional = ProductSku("cloud-professional")
+	SkuCloudEnterprise   = ProductSku("cloud-enterprise")
 )
 
 // Product model represents a product on the cloud system.
@@ -108,6 +124,10 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+type SubscriptionExpandStatus struct {
+	IsExpandable bool `json:"is_expandable"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name                  string `json:"name"`
@@ -150,8 +170,8 @@ type Subscription struct {
 	Seats                   int      `json:"seats"`
 	Status                  string   `json:"status"`
 	DNS                     string   `json:"dns"`
-	IsPaidTier              string   `json:"is_paid_tier"`
 	LastInvoice             *Invoice `json:"last_invoice"`
+	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
 	DelinquentSince         *int64   `json:"delinquent_since"`
@@ -274,17 +294,14 @@ type ProductLimits struct {
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
 
-type BootstrapSelfHostedSignupRequest struct {
-	Email string `json:"email"`
-}
-
-type BootstrapSelfHostedSignupResponse struct {
-	Progress string `json:"progress"`
-}
-
-type BootstrapSelfHostedSignupResponseInternal struct {
-	Progress string `json:"progress"`
-	License  string `json:"license"`
+// CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+type CreateSubscriptionRequest struct {
+	ProductID             string   `json:"product_id"`
+	AddOns                []string `json:"add_ons"`
+	Seats                 int      `json:"seats"`
+	Total                 float64  `json:"total"`
+	InternalPurchaseOrder string   `json:"internal_purchase_order"`
+	DiscountID            string   `json:"discount_id"`
 }
 
 func (p *Product) IsYearly() bool {
