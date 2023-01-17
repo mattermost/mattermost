@@ -8596,6 +8596,10 @@
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
   },
   {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Invalid persistent notifications interval. Must be at least two minutes."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Invalid memory store size for rate limit settings. Must be a positive number."
   },
