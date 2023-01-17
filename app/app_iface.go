@@ -119,8 +119,8 @@ type AppIface interface {
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 	// groups of all group-constrained teams and channels.
 	DeleteGroupConstrainedMemberships(c *request.Context) error
-	// DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
-	// Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
+	// DeletePersistentNotificationsPost stops persistent notifications, if mentioned user(except post owner) reacts, reply or ack on the post.
+	// Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false" and "mentionedUserID" can be empty.
 	DeletePersistentNotificationsPost(c request.CTX, post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError
 	// DeletePublicKey will delete plugin public key from the config.
 	DeletePublicKey(name string) *model.AppError
