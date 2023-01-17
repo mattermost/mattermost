@@ -59,6 +59,37 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	}
 }
 
+func handlerForServeDefaultSecurityHeaders(c *Context, w http.ResponseWriter, r *http.Request) {
+}
+
+func TestHandlerServeDefaultSecurityHeaders(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	web := New(th.Server)
+	handler := web.NewHandler(handlerForServeDefaultSecurityHeaders)
+
+	request := httptest.NewRequest("GET", "/api/v4/test", nil)
+
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	// header.Get returns a "" also if the header doesn't exist so we check that there is at least
+	// one Permissions-Policy header and their value is "". We check with .Values() as it canonicalizes
+	// the key.
+	permissionsPolicyHeader := response.Header().Get("Permissions-Policy")
+	permissionsPolicyHeaderValues := response.Header().Values("Permissions-Policy")
+
+	contentTypeOptionsHeader := response.Header().Get("X-Content-Type-Options")
+	referrerPolicyHeader := response.Header().Get("Referrer-Policy")
+
+	assert.NotEqualf(t, 0, len(permissionsPolicyHeaderValues), "Permissions-Policy header doesn't exist")
+	assert.Equal(t, "", permissionsPolicyHeader, "Permissions-Policy is not empty")
+	assert.Equal(t, "nosniff", contentTypeOptionsHeader)
+	assert.Equal(t, "no-referrer", referrerPolicyHeader)
+
+}
+
 func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
