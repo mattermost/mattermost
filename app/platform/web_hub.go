@@ -433,7 +433,7 @@ func (h *Hub) Start() {
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
 					h.platform.Go(func() {
-						h.platform.SetStatusOffline(webConn.UserId, false)
+						h.platform.SetStatusOffline(webConn.UserId, false, true)
 					})
 					continue
 				}
