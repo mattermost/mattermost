@@ -324,11 +324,8 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 	if err != nil {
 		return false
 	}
-	if count <= 0 {
-		return true
-	}
 
-	return false
+	return count <= 0
 }
 
 func (ps *PlatformService) MaxPostSize() int {
