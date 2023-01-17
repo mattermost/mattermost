@@ -46,7 +46,7 @@ func MarkdownToHTML(markdown, siteURL string) (string, error) {
 
 	// Unescape any blockquote text to be parsed by the markdown parser.
 	re := regexp.MustCompile(`^|\n(&gt;)`)
-	markdownClean := re.ReplaceAllFunc([]byte(absLinkMarkdown), func(s []byte) []byte {
+	markdownClean := re.ReplaceAllFunc(absLinkMarkdown, func(s []byte) []byte {
 		out := html.UnescapeString(string(s))
 		return []byte(out)
 	})
