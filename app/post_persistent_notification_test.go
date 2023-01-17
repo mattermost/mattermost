@@ -96,6 +96,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		mockChannel := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannel)
 		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{channel}, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
 
 		mockTeam := storemocks.TeamStore{}
 		mockStore.On("Team").Return(&mockTeam)
@@ -119,7 +120,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		mockPostPersistentNotification.AssertCalled(t, "Delete", mock.Anything)
 	})
 
-	t.Run("should not delete for mentioned post owner", func(t *testing.T) {
+	t.Run("should not delete for post owner when checkMentionedUser is true", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
 
@@ -161,7 +162,8 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
 		user2 := &model.User{Id: "uid2", Username: "user-2"}
-		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
+		user3 := &model.User{Id: "uid3", Username: "user-3"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2, user3.Id: user3}
 		team := &model.Team{Id: "tid"}
 		channel := &model.Channel{Id: "chid", TeamId: team.Id, Type: model.ChannelTypeOpen}
 		post := &model.Post{Id: "pid", ChannelId: channel.Id, Message: "tagging @" + user1.Username, UserId: user2.Id}
@@ -176,6 +178,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		mockChannel := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannel)
 		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{channel}, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
 
 		mockTeam := storemocks.TeamStore{}
 		mockStore.On("Team").Return(&mockTeam)
@@ -194,7 +197,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
 
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user2.Id, true)
+		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user3.Id, true)
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
 	})
