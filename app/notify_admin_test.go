@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const PluginIdGithub = "github"
+
 func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
@@ -148,8 +150,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
-			RequiredPlan:    model.WorkTemplates,
-			RequiredFeature: model.PluginIdGithub,
+			RequiredPlan:    PluginIdGithub,
+			RequiredFeature: model.PluginFeature,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
@@ -181,9 +183,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
-
-		//_, ok := post.GetProp("requested_plugins_by_plugin_ids").(map[string][]*model.NotifyAdminData)
-		//require.True(t, ok)
 
 		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
@@ -196,8 +195,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
-			RequiredPlan:    model.WorkTemplates,
-			RequiredFeature: model.PluginIdGithub,
+			RequiredPlan:    PluginIdGithub,
+			RequiredFeature: model.PluginFeature,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
@@ -233,7 +232,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
 
-		data, err := th.App.Srv().Store().NotifyAdmin().GetDataByUserIdAndPlan(th.BasicUser.Id, model.WorkTemplates)
+		data, err := th.App.Srv().Store().NotifyAdmin().GetDataByUserIdAndFeature(th.BasicUser.Id, model.PluginFeature)
 		require.NoError(t, err)
 		require.Equal(t, len(data), 1)
 	})
@@ -243,16 +242,16 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		defer th.TearDown()
 
 		err := th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:      model.WorkTemplates,
-			RequiredFeature:   model.PluginIdGithub,
+			RequiredPlan:      PluginIdGithub,
+			RequiredFeature:   model.PluginFeature,
 			TrialNotification: false,
 		})
 
 		require.Nil(t, err)
 
 		err = th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:      model.WorkTemplates,
-			RequiredFeature:   model.PluginIdGithub,
+			RequiredPlan:      PluginIdGithub,
+			RequiredFeature:   model.PluginFeature,
 			TrialNotification: false,
 		})
 
@@ -407,8 +406,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// some notifications
 		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
-			RequiredPlan:    model.WorkTemplates,
-			RequiredFeature: model.PluginIdGithub,
+			RequiredPlan:    PluginIdGithub,
+			RequiredFeature: model.PluginFeature,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)

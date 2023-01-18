@@ -5239,7 +5239,7 @@ func (s *OpenTracingLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdmin
 	return result, err
 }
 
-func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.GetDataByUserIdAndFeature")
 	s.Root.Store.SetContext(newCtx)
@@ -5249,24 +5249,6 @@ func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId stri
 
 	defer span.Finish()
 	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) ([]*model.NotifyAdminData, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.GetDataByUserIdAndPlan")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.NotifyAdminStore.GetDataByUserIdAndPlan(userId, plan)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5293,7 +5275,7 @@ func (s *OpenTracingLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*m
 	return result, err
 }
 
-func (s *OpenTracingLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) error {
+func (s *OpenTracingLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.Update")
 	s.Root.Store.SetContext(newCtx)

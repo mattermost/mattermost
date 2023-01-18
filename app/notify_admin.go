@@ -27,11 +27,9 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	requiredPlan := notifyData.RequiredPlan
 	trial := notifyData.TrialNotification
 
-	isInstallPluginNotification := strings.HasPrefix(requiredPlan, model.WorkTemplates)
-	isUserAlreadyNotifiedForUpgrade := !isInstallPluginNotification && a.UserAlreadyNotifiedOnRequiredFeature(userId, requiredFeature)
-	isUserAlreadyNotifiedForPluginInstall := isInstallPluginNotification && a.UserAlreadyNotifiedOnRequiredPlan(userId, requiredPlan)
+	isUserAlreadyNotified := a.UserAlreadyNotifiedOnRequiredFeature(userId, requiredFeature)
 
-	if isUserAlreadyNotifiedForUpgrade || isUserAlreadyNotifiedForPluginInstall {
+	if isUserAlreadyNotified {
 		return model.NewAppError("app.SaveAdminNotification", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 	}
 
@@ -120,27 +118,25 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 		return nil
 	}
 
-	userBasedData := a.groupNotifyAdminByUser(data)
-	featureBasedData := a.groupNotifyAdminByFeature(data)
-
-	userBasedWorkTemplateData := a.groupNotifyAdminByWorkTemplateUser(data)
-	pluginBasedWorkTemplateData := a.groupNotifyAdminByWorkTemplatePlugin(data)
+	userBasedPaidFeatureData, userBasedPluginData := a.groupNotifyAdminByUser(data)
+	featureBasedData := a.groupNotifyAdminByPaidFeature(data)
+	pluginBasedData := a.groupNotifyAdminByPlugin(data)
 
 	for _, admin := range sysadmins {
-		if len(userBasedData) > 0 && len(featureBasedData) > 0 {
-			a.upgradePlanAdminNotifyPost(c, workspaceName, userBasedData, featureBasedData, systemBot, admin, trial)
+		if len(userBasedPaidFeatureData) > 0 && len(featureBasedData) > 0 {
+			a.upgradePlanAdminNotifyPost(c, workspaceName, userBasedPaidFeatureData, featureBasedData, systemBot, admin, trial)
 		}
 
-		if len(pluginBasedWorkTemplateData) > 0 {
-			a.pluginInstallAdminNotifyPost(c, userBasedWorkTemplateData, pluginBasedWorkTemplateData, systemBot, admin)
+		if len(userBasedPluginData) > 0 {
+			a.pluginInstallAdminNotifyPost(c, userBasedPluginData, pluginBasedData, systemBot, admin)
 		}
 	}
 
-	a.FinishSendAdminNotifyPost(trial, now, pluginBasedWorkTemplateData)
+	a.FinishSendAdminNotifyPost(trial, now, pluginBasedData)
 	return nil
 }
 
-func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map[string][]*model.NotifyAdminData, pluginBasedWorkTemplateData map[string][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User) {
+func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map[string][]*model.NotifyAdminData, pluginBasedPluginData map[string][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User) {
 	props := make(model.StringInterface)
 
 	channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
@@ -155,7 +151,7 @@ func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map
 		Type:      fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
 	}
 
-	props["requested_plugins_by_plugin_ids"] = pluginBasedWorkTemplateData
+	props["requested_plugins_by_plugin_ids"] = pluginBasedPluginData
 	props["requested_plugins_by_user_ids"] = userBasedData
 	post.SetProps(props)
 
@@ -165,7 +161,7 @@ func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map
 	}
 }
 
-func (a *App) upgradePlanAdminNotifyPost(c *request.Context, workspaceName string, userBasedData map[string][]*model.NotifyAdminData, featureBasedData map[model.MattermostPaidFeature][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User, trial bool) {
+func (a *App) upgradePlanAdminNotifyPost(c *request.Context, workspaceName string, userBasedData map[string][]*model.NotifyAdminData, featureBasedData map[model.MattermostFeature][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User, trial bool) {
 	props := make(model.StringInterface)
 	T := i18n.GetUserTranslations(admin.Locale)
 
@@ -205,20 +201,8 @@ func (a *App) upgradePlanAdminNotifyPost(c *request.Context, workspaceName strin
 	}
 }
 
-func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
+func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostFeature) bool {
 	data, err := a.Srv().Store().NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
-	if err != nil {
-		return false
-	}
-	if len(data) > 0 {
-		return true // if we find data, it means this user already notified on the need for this feature
-	}
-
-	return false
-}
-
-func (a *App) UserAlreadyNotifiedOnRequiredPlan(user string, plan string) bool {
-	data, err := a.Srv().Store().NotifyAdmin().GetDataByUserIdAndPlan(user, plan)
 	if err != nil {
 		return false
 	}
@@ -261,7 +245,7 @@ func (a *App) CanNotifyAdmin(trial bool) bool {
 	return timeDiff >= int64(daysToMillis)
 }
 
-func (a *App) FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedWorkTemplateData map[string][]*model.NotifyAdminData) {
+func (a *App) FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedData map[string][]*model.NotifyAdminData) {
 	systemVarName := lastUpgradeNotificationTimeStamp
 	if trial {
 		systemVarName = lastTrialNotificationTimeStamp
@@ -273,11 +257,11 @@ func (a *App) FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedWorkTe
 		a.Log().Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
 
-	// all the requested features notifications are now sent in a post and can safely be removed except
-	// the plugin notify admin. we keep it as we do not want the same user to send the notification for the same plugin
-	// from the work template feature. We update the NotifyAdmin sentAt to keep track of it.
-	for pluginId := range pluginBasedWorkTemplateData {
-		notifications := pluginBasedWorkTemplateData[pluginId]
+	// All the requested features notifications are now sent in a post and can safely be removed except
+	// the plugin notify admin. We keep it as we do not want the same user to send the notification for the same plugin.
+	// We update the NotifyAdmin SentAt to keep track of it.
+	for pluginId := range pluginBasedData {
+		notifications := pluginBasedData[pluginId]
 		for _, notification := range notifications {
 			requiredFeature := notification.RequiredFeature
 			requiredPlan := notification.RequiredPlan
@@ -294,44 +278,35 @@ func (a *App) FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedWorkTe
 
 }
 
-func (a *App) groupNotifyAdminByUser(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
-	myMap := make(map[string][]*model.NotifyAdminData)
+func (a *App) groupNotifyAdminByUser(data []*model.NotifyAdminData) (map[string][]*model.NotifyAdminData, map[string][]*model.NotifyAdminData) {
+	userBasedPaidFeatureData := make(map[string][]*model.NotifyAdminData)
+	userBasedPluginData := make(map[string][]*model.NotifyAdminData)
 	for _, d := range data {
-		if strings.HasPrefix(d.RequiredPlan, model.WorkTemplates) {
-			continue
+		if strings.HasPrefix(string(d.RequiredFeature), string(model.PluginFeature)) {
+			userBasedPluginData[d.UserId] = append(userBasedPluginData[d.UserId], d)
+		} else {
+			userBasedPaidFeatureData[d.UserId] = append(userBasedPaidFeatureData[d.UserId], d)
 		}
-		myMap[d.UserId] = append(myMap[d.UserId], d)
 	}
-	return myMap
+	return userBasedPaidFeatureData, userBasedPluginData
 }
 
-func (a *App) groupNotifyAdminByFeature(data []*model.NotifyAdminData) map[model.MattermostPaidFeature][]*model.NotifyAdminData {
-	myMap := make(map[model.MattermostPaidFeature][]*model.NotifyAdminData)
+func (a *App) groupNotifyAdminByPaidFeature(data []*model.NotifyAdminData) map[model.MattermostFeature][]*model.NotifyAdminData {
+	myMap := make(map[model.MattermostFeature][]*model.NotifyAdminData)
 	for _, d := range data {
-		if strings.HasPrefix(d.RequiredPlan, model.WorkTemplates) {
+		if strings.HasPrefix(string(d.RequiredFeature), string(model.PluginFeature)) {
 			continue
 		}
 		myMap[d.RequiredFeature] = append(myMap[d.RequiredFeature], d)
 	}
-
 	return myMap
 }
 
-func (a *App) groupNotifyAdminByWorkTemplateUser(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
+func (a *App) groupNotifyAdminByPlugin(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
 	myMap := make(map[string][]*model.NotifyAdminData)
 	for _, d := range data {
-		if strings.HasPrefix(d.RequiredPlan, model.WorkTemplates) {
-			myMap[d.UserId] = append(myMap[d.UserId], d)
-		}
-	}
-	return myMap
-}
-
-func (a *App) groupNotifyAdminByWorkTemplatePlugin(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
-	myMap := make(map[string][]*model.NotifyAdminData)
-	for _, d := range data {
-		if strings.HasPrefix(d.RequiredPlan, model.WorkTemplates) {
-			plugins := strings.Split(string(d.RequiredFeature), ",")
+		if strings.HasPrefix(string(d.RequiredFeature), string(model.PluginFeature)) {
+			plugins := strings.Split(d.RequiredPlan, ",")
 			for _, plugin := range plugins {
 				myMap[plugin] = append(myMap[plugin], d)
 			}

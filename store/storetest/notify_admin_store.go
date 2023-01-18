@@ -11,6 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const PluginIdJenkins       = "jenkins"
+const PluginIdGithub        = "github"
+
 func TestNotifyAdminStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testNotifyAdminStoreSave(t, ss) })
 	t.Run("testGetDataByUserIdAndFeature", func(t *testing.T) { testGetDataByUserIdAndFeature(t, ss) })
@@ -150,8 +153,8 @@ func testUpdate(t *testing.T, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    model.WorkTemplates,
-		RequiredFeature: model.PluginIdJenkins,
+		RequiredPlan:    PluginIdJenkins,
+		RequiredFeature: model.PluginFeature,
 	}
 	_, err := ss.NotifyAdmin().Save(d1)
 	require.NoError(t, err)
@@ -159,7 +162,7 @@ func testUpdate(t *testing.T, ss store.Store) {
 	err = ss.NotifyAdmin().Update(d1.UserId, d1.RequiredPlan, d1.RequiredFeature, 100)
 	require.NoError(t, err)
 
-	userRequest, err := ss.NotifyAdmin().GetDataByUserIdAndPlan(d1.UserId, d1.RequiredPlan)
+	userRequest, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(d1.UserId, d1.RequiredFeature)
 	require.NoError(t, err)
 
 	require.Equal(t, len(userRequest), 1)

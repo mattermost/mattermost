@@ -52,11 +52,11 @@ func (_m *NotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 }
 
 // GetDataByUserIdAndFeature provides a mock function with given fields: userId, feature
-func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	ret := _m.Called(userId, feature)
 
 	var r0 []*model.NotifyAdminData
-	if rf, ok := ret.Get(0).(func(string, model.MattermostPaidFeature) []*model.NotifyAdminData); ok {
+	if rf, ok := ret.Get(0).(func(string, model.MattermostFeature) []*model.NotifyAdminData); ok {
 		r0 = rf(userId, feature)
 	} else {
 		if ret.Get(0) != nil {
@@ -65,31 +65,8 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, model.MattermostPaidFeature) error); ok {
+	if rf, ok := ret.Get(1).(func(string, model.MattermostFeature) error); ok {
 		r1 = rf(userId, feature)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetDataByUserIdAndPlan provides a mock function with given fields: userId, plan
-func (_m *NotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) ([]*model.NotifyAdminData, error) {
-	ret := _m.Called(userId, plan)
-
-	var r0 []*model.NotifyAdminData
-	if rf, ok := ret.Get(0).(func(string, string) []*model.NotifyAdminData); ok {
-		r0 = rf(userId, plan)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.NotifyAdminData)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, plan)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -121,11 +98,11 @@ func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdmi
 }
 
 // Update provides a mock function with given fields: userId, requiredPlan, requiredFeature, now
-func (_m *NotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) error {
+func (_m *NotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
 	ret := _m.Called(userId, requiredPlan, requiredFeature, now)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, model.MattermostPaidFeature, int64) error); ok {
+	if rf, ok := ret.Get(0).(func(string, string, model.MattermostFeature, int64) error); ok {
 		r0 = rf(userId, requiredPlan, requiredFeature, now)
 	} else {
 		r0 = ret.Error(0)

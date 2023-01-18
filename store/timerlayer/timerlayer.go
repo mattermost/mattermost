@@ -4754,7 +4754,7 @@ func (s *TimerLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 	return result, err
 }
 
-func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	start := time.Now()
 
 	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
@@ -4766,22 +4766,6 @@ func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, fe
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.GetDataByUserIdAndFeature", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndPlan(userId string, plan string) ([]*model.NotifyAdminData, error) {
-	start := time.Now()
-
-	result, err := s.NotifyAdminStore.GetDataByUserIdAndPlan(userId, plan)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.GetDataByUserIdAndPlan", success, elapsed)
 	}
 	return result, err
 }
@@ -4802,7 +4786,7 @@ func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.N
 	return result, err
 }
 
-func (s *TimerLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostPaidFeature, now int64) error {
+func (s *TimerLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
 	start := time.Now()
 
 	err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)

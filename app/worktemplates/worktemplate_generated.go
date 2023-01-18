@@ -97,7 +97,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "github",
+				ID: "jenkins",
 			},
 		},
 	},
