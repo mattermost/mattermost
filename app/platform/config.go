@@ -320,21 +320,12 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 }
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
-	cachedSessions, err := ps.sessionCache.Len()
+	count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		return false
 	}
-	if cachedSessions == 0 {
-		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-		if err != nil {
-			return false
-		}
-		if count <= 0 {
-			return true
-		}
-	}
 
-	return false
+	return count <= 0
 }
 
 func (ps *PlatformService) MaxPostSize() int {

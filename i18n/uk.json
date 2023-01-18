@@ -6850,5 +6850,41 @@
   {
     "id": "Channels",
     "translation": "Канали"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Подія Webhook не оброблена. Або вона відсутня, або недійсна."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Неможливо створити прямий канал між цими користувачами, оскільки вони не мають спільної команди."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "не вдалося додати користувача до group-teams та group-channels"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Не вдалося скинути поле AuthData в Email."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Підтвердження в архівному каналі неможливо."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Ви не можете видалити підтвердження після закінчення 5 хвилин."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Ви не можете видалити підтвердження в заархівованому каналі."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Сценарії"
+  },
+  {
+    "id": "Boards",
+    "translation": "Дошки"
   }
 ]
