@@ -39,7 +39,7 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeSto
 			return err
 		}
 
-		if now.After(time.Unix(screenTime, 0).Add(waitForScreeningDuration)) {
+		if now.After(time.UnixMilli(screenTime).Add(waitForScreeningDuration)) {
 			screenTimeStore.PermanentDeleteByName(model.SystemHostedPurchaseNeedsScreening)
 		}
 		return nil
