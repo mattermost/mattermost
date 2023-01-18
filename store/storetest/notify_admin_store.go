@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const PluginIdJenkins       = "jenkins"
-const PluginIdGithub        = "github"
+const PluginIdJenkins = "jenkins"
 
 func TestNotifyAdminStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testNotifyAdminStoreSave(t, ss) })
