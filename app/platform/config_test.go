@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	smocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestConfigListener(t *testing.T) {
@@ -96,5 +98,86 @@ func TestConfigSave(t *testing.T) {
 		cfg.MetricsSettings.Enable = model.NewBool(true)
 		th.Service.SaveConfig(cfg, false)
 		metricsMock.AssertNumberOfCalls(t, "Register", 1)
+	})
+}
+
+func TestIsFirstUserAccount(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+	storeMock := th.Service.Store.(*smocks.Store)
+	userStoreMock := &smocks.UserStore{}
+	storeMock.On("User").Return(userStoreMock)
+
+	t.Run("success no users", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(0), nil)
+		require.True(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("success one user", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(1), nil)
+		require.False(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("success multiple users", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(42), nil)
+		require.False(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("success negative users", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(-100), nil)
+		require.True(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("failed request", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(0), errors.New("error"))
+		require.False(t, th.Service.IsFirstUserAccount())
+	})
+
+	// create a session, this should not affect IsFirstUserAccount
+	th.Service.sessionCache.Set("mock_session", 1)
+
+	t.Run("success no users with session", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(0), nil)
+		require.True(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("success one user with session", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(1), nil)
+		require.False(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("success multiple users with session", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(42), nil)
+		require.False(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("success negative users with session", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(-100), nil)
+		require.True(t, th.Service.IsFirstUserAccount())
+	})
+
+	t.Run("failed request with session", func(t *testing.T) {
+		*userStoreMock = smocks.UserStore{}
+
+		userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(int64(0), errors.New("error"))
+		require.False(t, th.Service.IsFirstUserAccount())
 	})
 }
