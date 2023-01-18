@@ -9324,7 +9324,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Downgrade to Cloud Starter"
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9364,7 +9364,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Downgrade to Cloud Starter"
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9380,7 +9380,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "A downgraded workspace might negatively affect critical workflows, integrations and other business critical activities carried out in your workspace."
+    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried out in your workspace."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9419,20 +9419,12 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Active plugins and integrations"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Message history"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Files"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Cards from your Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",

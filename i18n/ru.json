@@ -9476,10 +9476,6 @@
     "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle1",
     "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
   },
@@ -9516,20 +9512,12 @@
     "translation": "Обновить платёж"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Активные плагины и интеграции"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "История сообщений"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Файлы"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Карточки с Ваших Boards"
   },
   {
     "id": "app.collection.add_topic.exists.app_error",

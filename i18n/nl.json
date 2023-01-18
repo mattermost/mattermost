@@ -9320,7 +9320,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Downgraden naar Cloud Starter"
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9333,10 +9333,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Werk nu jouw creditcardgegevens bij."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Een gedowngradede workspace kan een negatieve invloed hebben op kritische workflows, integraties en andere bedrijfskritische activiteiten die in jouw workspace worden uitgevoerd."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9375,20 +9371,12 @@
     "translation": "Betalingsgegevens bijwerken"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Actieve plugins en integraties"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Berichtengeschiedenis"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Bestanden"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Kaarten van jouw Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9436,7 +9424,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Downgraden naar Cloud Starter"
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
