@@ -35,18 +35,19 @@ func StripMarkdown(markdown string) (string, error) {
 	return strings.TrimSpace(buf.String()), nil
 }
 
+var relLinkReg = regexp.MustCompile(`\[(.*)]\((/.*)\)`)
+var blockquoteReg = regexp.MustCompile(`^|\n(&gt;)`)
+
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown, siteURL string) (string, error) {
 	// Turn relative links into absolute links
-	relLinkRe := regexp.MustCompile(`\[(.*)]\((/.*)\)`)
-	absLinkMarkdown := relLinkRe.ReplaceAllFunc([]byte(markdown), func(s []byte) []byte {
-		out := relLinkRe.ReplaceAllString(string(s), "[$1]("+siteURL+"$2)")
+	absLinkMarkdown := relLinkReg.ReplaceAllFunc([]byte(markdown), func(s []byte) []byte {
+		out := relLinkReg.ReplaceAllString(string(s), "[$1]("+siteURL+"$2)")
 		return []byte(out)
 	})
 
 	// Unescape any blockquote text to be parsed by the markdown parser.
-	re := regexp.MustCompile(`^|\n(&gt;)`)
-	markdownClean := re.ReplaceAllFunc(absLinkMarkdown, func(s []byte) []byte {
+	markdownClean := blockquoteReg.ReplaceAllFunc(absLinkMarkdown, func(s []byte) []byte {
 		out := html.UnescapeString(string(s))
 		return []byte(out)
 	})
