@@ -200,7 +200,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 	}
 
 	// Apply patch for the title and linked channel
-	_, err = boardService.PatchBoard(&fb_model.BoardPatch{
+	patchedBoard, err := boardService.PatchBoard(&fb_model.BoardPatch{
 		Title:     &title,
 		ChannelID: &linkToChannelID,
 	}, boardsAndBlocks.Boards[0].ID, c.Session().UserId)
@@ -208,7 +208,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 		return "", fmt.Errorf("failed to patch board: %w", err)
 	}
 
-	return boardsAndBlocks.Boards[0].ID, nil
+	return patchedBoard.ID, nil
 }
 
 func (e *appWorkTemplateExecutor) InstallPlugin(
