@@ -4504,6 +4504,10 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "api.work_templates.disabled",
+    "translation": "Work templates are disabled."
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
   },
