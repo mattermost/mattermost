@@ -9,53 +9,46 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitWorkTemplate() {
-	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(areWorkTemplatesEnabled(getWorkTemplateCategories))).Methods("GET")
-	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(areWorkTemplatesEnabled(getWorkTemplates))).Methods("GET")
-	api.BaseRoutes.WorkTemplates.Handle("/execute", api.APIHandler(areWorkTemplatesEnabled(executeWorkTemplate))).Methods("POST")
+	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(getWorkTemplateCategories)).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(getWorkTemplates)).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/execute", api.APIHandler(executeWorkTemplate)).Methods("POST")
 }
 
-func areWorkTemplatesEnabled(h handlerFunc) handlerFunc {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		if !c.App.Config().FeatureFlags.WorkTemplate {
-			c.Logger.Warn("trying to access work templates api while feature flag is disabled")
-			http.NotFound(w, r)
-			return
-		}
-
-		// we have to make sure that playbooks plugin is enabled and board is a product
-		pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
-		if err != nil {
-			c.Logger.Warn("trying to access work templates api but can't know if playbooks plugin is active", mlog.Err(err))
-			http.NotFound(w, r)
-			return
-		}
-		if !pbActive {
-			c.Logger.Warn("trying to access work templates api while playbooks plugin is not active")
-			http.NotFound(w, r)
-			return
-		}
-
-		hasBoard, err := c.App.HasBoardProduct()
-		if err != nil {
-			c.Logger.Warn("trying to access work templates api but can't know if boards runs as a product", mlog.Err(err))
-			http.NotFound(w, r)
-			return
-		}
-		if !hasBoard {
-			c.Logger.Warn("trying to access work templates api while while board product is not installed")
-			http.NotFound(w, r)
-			return
-		}
-
-		h(c, w, r)
+func areWorkTemplatesEnabled(c *Context) *model.AppError {
+	if !c.App.Config().FeatureFlags.WorkTemplate {
+		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "feature flag is off", http.StatusNotFound)
 	}
+
+	// we have to make sure that playbooks plugin is enabled and board is a product
+	pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
+	if err != nil {
+		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if !pbActive {
+		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "playbook plugin not active", http.StatusNotFound)
+	}
+
+	hasBoard, err := c.App.HasBoardProduct()
+	if err != nil {
+		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if !hasBoard {
+		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "board product not found", http.StatusNotFound)
+	}
+
+	return nil
 }
 
 func getWorkTemplateCategories(c *Context, w http.ResponseWriter, r *http.Request) {
+	appErr := areWorkTemplatesEnabled(c)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	t := c.AppContext.GetT()
 
 	categories, appErr := c.App.GetWorkTemplateCategories(t)
@@ -74,6 +67,12 @@ func getWorkTemplateCategories(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
+	appErr := areWorkTemplatesEnabled(c)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	c.RequireCategory()
 	if c.Err != nil {
 		return
@@ -96,6 +95,12 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
+	appErr := areWorkTemplatesEnabled(c)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	wtcr := &worktemplates.ExecutionRequest{}
 	err := json.NewDecoder(r.Body).Decode(wtcr)
 	if err != nil {
