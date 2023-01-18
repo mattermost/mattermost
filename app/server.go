@@ -1533,7 +1533,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeHostedPurchaseScreening,
-		hosted_purchase_screening.MakeWorker(s.Jobs, s.License())),
+		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
