@@ -175,22 +175,17 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 
 }
 
-func (s SqlPreferenceStore) GetAll(userId string, limit int) (model.Preferences, error) {
-	query := s.getQueryBuilder().
+func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
+	var preferences model.Preferences
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("Preferences").
-		Where(sq.Eq{"UserId": userId})
-	if limit > 0 {
-		query = query.Limit(uint64(limit))
-	}
-
-	queryString, args, err := query.ToSql()
+		Where(sq.Eq{"UserId": userId}).
+		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not build sql query to get preference")
 	}
-
-	var preferences model.Preferences
-	if err = s.GetReplicaX().Select(&preferences, queryString, args...); err != nil {
+	if err = s.GetReplicaX().Select(&preferences, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s", userId)
 	}
 	return preferences, nil
