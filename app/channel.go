@@ -2879,6 +2879,7 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
+	prevViewedAt := make(map[string]int64, len(channelIDs))
 	if a.canSendPushNotifications() {
 		for _, channelID := range channelIDs {
 			channel, errCh := a.Srv().Store().Channel().Get(channelID, true)
@@ -2892,6 +2893,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 				c.Logger().Warn("Failed to get membership", mlog.Err(err))
 				continue
 			}
+			prevViewedAt[channelID] = member.LastViewedAt
 
 			notify := member.NotifyProps[model.PushNotifyProp]
 			if notify == model.ChannelNotifyDefault {
@@ -2942,6 +2944,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 		for _, channelID := range channelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil, "")
 			message.Add("channel_id", channelID)
+			message.Add("prev_viewed_at", prevViewedAt[channelID])
 			a.Publish(message)
 		}
 	}
