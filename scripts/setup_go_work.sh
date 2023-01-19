@@ -4,7 +4,7 @@ if [[ $1 != "true" ]] ;
 then
     echo "Creating a go.work file"
 
-    txt="go 1.18\n\nuse ./\n"
+    txt="go 1.19\n\nuse ./\n"
     
     if [ "$BUILD_ENTERPRISE_READY" == "true" ] 
     then
@@ -17,4 +17,4 @@ then
     fi
     
     printf "$txt" > "go.work"
-fi 
+fi
