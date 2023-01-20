@@ -1782,14 +1782,6 @@
     "translation": "Error trying to save the first admin visit marketplace status in the store."
   },
   {
-    "id": "api.execute_work_template.error",
-    "translation": "An error occurred while trying to verify your permissions."
-  },
-  {
-    "id": "api.execute_work_template.permission_error",
-    "translation": "You are missing some permission to execute this action."
-  },
-  {
     "id": "api.export.export_not_found.app_error",
     "translation": "Unable to find export file."
   },
@@ -7018,6 +7010,46 @@
   {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_playbook_run",
+    "translation": "You don't have permissions to create a playbook run."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "You don't have permissions to create a private board."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "You don't have permissions to create a private channel."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "You don't have permissions to create a private playbook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_run",
+    "translation": "You don't have permissions to create a private channel for the playbook run."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "You don't have permissions to create a public board."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "You don't have permissions to create a public channel."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "You don't have permissions to create a public playbook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_run",
+    "translation": "You don't have permissions to create a public channel for the playbook run."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
+    "translation": "Unable to find playbook template associated with this work template."
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",

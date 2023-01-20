@@ -4,7 +4,7 @@ package worktemplates
 
 import (
 	"errors"
-	"fmt"
+	"net/http"
 
 	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -33,59 +33,57 @@ type PermissionSet struct {
 	CanCreatePrivateBoard bool
 }
 
-func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) (*bool, error) {
-	truePtr := model.NewBool(true)
-	falsePtr := model.NewBool(false)
+func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) *model.AppError {
 	public := r.Visibility == model.WorkTemplateVisibilityPublic
 	for _, c := range r.WorkTemplate.Content {
 		if c.Channel != nil {
 			if public && !p.CanCreatePublicChannel {
-				return falsePtr, errors.New("cannot create public channel")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_public_channel", nil, "", http.StatusForbidden)
 			}
 			if !public && !p.CanCreatePrivateChannel {
-				return falsePtr, errors.New("cannot create private channel")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_channel", nil, "", http.StatusForbidden)
 			}
 			continue
 		}
 
 		if c.Board != nil {
 			if public && !p.CanCreatePublicBoard {
-				return falsePtr, errors.New("cannot create public board")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_public_board", nil, "", http.StatusForbidden)
 			}
 			if !public && !p.CanCreatePrivateBoard {
-				return falsePtr, errors.New("cannot create private board")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_board", nil, "", http.StatusForbidden)
 			}
 			continue
 		}
 
 		if c.Playbook != nil {
 			if !p.CanCreatePlaybookRun {
-				return falsePtr, errors.New("cannot create playbook run")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_playbook_run", nil, "", http.StatusForbidden)
 			}
 			if public && !p.CanCreatePublicPlaybook {
-				return falsePtr, errors.New("cannot create public playbook")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_public_playbook", nil, "", http.StatusForbidden)
 			}
 			if !public && !p.CanCreatePrivatePlaybook {
-				return falsePtr, errors.New("cannot create private playbook")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_playbook", nil, "", http.StatusForbidden)
 			}
 
 			// we need to check what's the template default run execution mode
 			// to determine how the channel is created
 			tmpl, err := r.FindPlaybookTemplate(c.Playbook.Template)
 			if err != nil {
-				return nil, fmt.Errorf("unable to find playbook template %s: %w", c.Playbook.Template, err)
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_find_playbook_template", nil, err.Error(), http.StatusInternalServerError)
 			}
 			if tmpl.CreatePublicPlaybookRun && !p.CanCreatePublicChannel {
-				return falsePtr, errors.New("cannot create public run")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_public_run", nil, "", http.StatusForbidden)
 			}
 			if !tmpl.CreatePublicPlaybookRun && !p.CanCreatePrivateChannel {
-				return falsePtr, errors.New("cannot create private run")
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_run", nil, "", http.StatusForbidden)
 			}
 			continue
 		}
 
 	}
-	return truePtr, nil
+	return nil
 }
 
 // FindPlaybookTemplate returns the playbook template with the given title.

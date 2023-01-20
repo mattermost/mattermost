@@ -50,38 +50,35 @@ func TestCanBeExecuted(t *testing.T) {
 	}
 
 	t.Run("can run when all permissions are good", func(t *testing.T) {
-		res, err := wtcr.CanBeExecuted(PermissionSet{
+		appErr := wtcr.CanBeExecuted(PermissionSet{
 			CanCreatePublicChannel:  true,
 			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
 			CanCreatePlaybookRun:    true,
 		})
-		assert.NoError(t, err)
-		assert.True(t, *res)
+		assert.Nil(t, appErr)
 	})
 
 	t.Run("fails when something is not allowed", func(t *testing.T) {
-		res, err := wtcr.CanBeExecuted(PermissionSet{
+		appErr := wtcr.CanBeExecuted(PermissionSet{
 			CanCreatePublicChannel:  true,
 			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
 			CanCreatePlaybookRun:    false,
 		})
-		require.Error(t, err)
-		require.False(t, *res)
+		require.Error(t, appErr)
 	})
 
 	t.Run("returns an error and no res when playbook template is not found", func(t *testing.T) {
 		wtcrMod := *wtcr
 		wtcrMod.foundPlaybookTemplates = map[string]*pbclient.PlaybookCreateOptions{}
 		wtcrMod.PlaybookTemplates = []*PlaybookTemplate{}
-		res, err := wtcrMod.CanBeExecuted(PermissionSet{
+		appErr := wtcrMod.CanBeExecuted(PermissionSet{
 			CanCreatePublicChannel:  true,
 			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
 			CanCreatePlaybookRun:    true,
 		})
-		require.Error(t, err)
-		require.Nil(t, res)
+		require.Error(t, appErr)
 	})
 }
