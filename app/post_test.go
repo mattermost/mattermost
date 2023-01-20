@@ -1598,7 +1598,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1637,7 +1637,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1676,7 +1676,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post3 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1713,7 +1713,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1755,7 +1755,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1809,7 +1809,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1863,7 +1863,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post5 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1912,7 +1912,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// should be mentioned by post2 and post3
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1942,12 +1942,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
 
-		count, _, err = th.App.countMentionsFromPost(th.Context, user1, post1)
+		count, _, _, err = th.App.countMentionsFromPost(th.Context, user1, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1984,7 +1984,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user, but we only count post3
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post2)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post2)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2015,7 +2015,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2062,7 +2062,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post4 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post3)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post3)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2102,7 +2102,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post3 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2138,10 +2138,69 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// Every post should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, numPosts, count)
+	})
+
+	t.Run("should count urgent mentions", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			cfg.FeatureFlags.PostPriority = true
+		})
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+
+		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
+
+		post1, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf("@%s", user2.Username),
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf("@%s", user2.Username),
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "apple",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// all posts mention the user but only post1, post3 are urgent
+
+		_, _, count, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 2, count)
 	})
 }
 
@@ -2298,8 +2357,6 @@ func TestThreadMembership(t *testing.T) {
 func TestFollowThreadSkipsParticipants(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2327,7 +2384,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, err := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, err)
-	thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
+	thread, err := th.App.GetThreadForUser(threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
 
@@ -2336,7 +2393,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, err)
-	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
+	thread, err = th.App.GetThreadForUser(threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
@@ -2345,19 +2402,29 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
-	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
+	thread, err = th.App.GetThreadForUser(threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 2) // length should be 2, since follow shouldn't update participant list, only user1 and sysadmin are participants
 	for _, p := range thread.Participants {
 		require.True(t, p.Id == sysadmin.Id || p.Id == user.Id)
 	}
+
+	oldID := threadMembership.PostId
+	threadMembership.PostId = "notfound"
+	_, err = th.App.GetThreadForUser(threadMembership, false)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+
+	threadMembership.Following = false
+	threadMembership.PostId = oldID
+	_, err = th.App.GetThreadForUser(threadMembership, false)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 }
 
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2386,8 +2453,6 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2469,12 +2534,6 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 
 	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.CollapsedThreads = true
-		})
-
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
@@ -2706,8 +2765,6 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2775,8 +2832,6 @@ func TestGetPostIfAuthorized(t *testing.T) {
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2857,32 +2912,60 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 }
 
 func TestComputeLastAccessiblePostTime(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
 
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-	cloud := &eMocks.CloudInterface{}
-	th.App.Srv().Cloud = cloud
+		cloud := &eMocks.CloudInterface{}
+		th.App.Srv().Cloud = cloud
 
-	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-		Messages: &model.MessagesLimits{
-			History: model.NewInt(1),
-		},
-	}, nil)
+		// cloud-starter, limit is applicable
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Messages: &model.MessagesLimits{
+				History: model.NewInt(1),
+			},
+		}, nil)
 
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
-	mockSystemStore := storemocks.SystemStore{}
-	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("System").Return(&mockSystemStore)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
 
-	err := th.App.ComputeLastAccessiblePostTime()
-	assert.NoError(t, err)
+		err := th.App.ComputeLastAccessiblePostTime()
+		assert.NoError(t, err)
 
-	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("Remove the time if cloud limit is NOT applicable", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &eMocks.CloudInterface{}
+		th.App.Srv().Cloud = cloud
+
+		// enterprise, limit is NOT applicable
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
+		mockSystemStore.On("PermanentDeleteByName", mock.Anything).Return(nil, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+
+		err := th.App.ComputeLastAccessiblePostTime()
+		assert.NoError(t, err)
+
+		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
+		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", mock.Anything)
+	})
 }
 
 func TestGetTopThreadsForTeamSince(t *testing.T) {

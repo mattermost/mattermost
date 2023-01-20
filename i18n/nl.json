@@ -648,15 +648,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[gebruikersnaam] ~[kanaal]"
+    "translation": "@[gebruikersnaam]... ~[kanaal]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Ontbrekende gebruikersnaam en kanaal."
+    "translation": "Ontbrekende gebruikersnaam en/of kanaal."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "We kunnen de gebruiker niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
+    "translation": "We kunnen de gebruiker {{.User}} niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
   },
   {
     "id": "api.command_invite.name",
@@ -668,7 +668,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Kan het kanaal{{.Channel}} niet vinden. Gebruik de kanaalaanduiding om kanalen te identificeren."
+    "translation": "Kan het kanaal{{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_invite.success",
@@ -999,7 +999,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 1MB groot zijn."
+    "translation": "Kon emoji niet aanmaken. Afbeelding moet minder dan 512KiB groot zijn."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -4333,11 +4333,11 @@
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Ongeldige bestandsnaamen"
+    "translation": "Ongeldige bestandsnaamen."
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Ongeldige hashtags"
+    "translation": "Ongeldige hashtags."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -4769,7 +4769,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4969,7 +4969,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ongeldige kanaalnaam. Gebruikersindentifiers zijn niet toegestaan in een kanaalnaam voor niet directe -berichtenkanalen."
+    "translation": "Kanaalnamen kunnen niet hexadecimaal zijn. Voer een andere kanaalnaam in."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -6604,14 +6604,6 @@
     "translation": "Time-out voor synchronisatie van AD/LDAP werd bereikt."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Fout bij het verwerken van bericht export taak ExportFromTimeStamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Fout bij ontleden van bericht exporttaak BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint niet gevonden."
   },
@@ -7202,10 +7194,6 @@
   {
     "id": "app.upload.get_for_user.app_error",
     "translation": "Fout bij het ophalen van de uploads van de gebruiker."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Fout bij het uploaden van bestanden. Bestand is te groot."
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",
@@ -8784,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Deze proeflicentiesleutel voor Mattermost Enterprise Edition is verlopen en is niet langer geldig. Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
+    "translation": "Fout bij het toevoegen van de nieuwe proeflicentie. Je hebt eerder al een proeflicentie toegepast op deze Mattermost instance.Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9183,16 +9171,8 @@
     "translation": "Je bent nu geüpgraded!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Bevestiging Mattermost upgrade"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fout met bijwerken inschrijving vanuit webhook."
   },
   {
     "id": "app.recent_searches.app_error",
@@ -9217,10 +9197,6 @@
   {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Niet gelukt om het aan aantal teams op te halen"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Je bereikte de maximumlimiet van {{.NumIntegrations}} ingeschakelde integraties. Om onbeperkte integraties te installeren, upgrade naar een van onze betaalde plannen."
   },
   {
     "id": "api.cloud.teams_limit_reached.restore",
@@ -9280,7 +9256,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Betaling is overtijd voor jouw Mattermost {{.Plan}}."
+    "translation": "Betaling is laattijdig voor jouw Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9316,7 +9292,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "We konden jouw laatste betaling niet verwerken"
+    "translation": "We konden jouw laatste betaling niet verwerken."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9328,7 +9304,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Starter hieronder."
+    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Free hieronder."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9343,8 +9319,8 @@
     "translation": "Actie vereist: Werkruimte zal binnen 30 dagen gedowngraded worden"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Downgraden naar Cloud Starter"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9359,12 +9335,8 @@
     "translation": "Werk nu jouw creditcardgegevens bij."
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Een gedowngradede workspace kan een negatieve invloed hebben op kritische workflows, integraties en andere bedrijfskritische activiteiten die in jouw workspace worden uitgevoerd."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "We hebben geen betaling kunnen innen voor openstaande facturen van {{.DelinquencyDate}}. Jouw werkruimte loopt het risico om gedowngraded te worden."
+    "translation": "We hebben geen betaling kunnen innen voor openstaande facturen vanaf {{.DelinquencyDate}}. Jouw werkruimte loopt het risico om gedowngraded te worden."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9380,7 +9352,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "als geen actie wordt ondernomen, zal jouw werkruimte worden gedowngraded en kunnen de volgende gegevens worden gearchiveerd:"
+    "translation": "Als er geen actie wordt ondernomen, zal jouw werkruimte worden gedowngraded en kunnen de volgende gegevens worden gearchiveerd:"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
@@ -9399,20 +9371,12 @@
     "translation": "Betalingsgegevens bijwerken"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Actieve plugins en integraties"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Berichtengeschiedenis"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Bestanden"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Kaarten van jouw Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9424,7 +9388,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Starter."
+    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subject",
@@ -9444,11 +9408,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Starter."
+    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Starter. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
+    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Free. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9459,8 +9423,8 @@
     "translation": "Jouw Mattermost {{.Plan}} zal over 15 dagen worden gedowngraded"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Downgraden naar Cloud Starter"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9472,7 +9436,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Starter."
+    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9557,5 +9521,217 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Gastaccounts zijn uitgeschakeld"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ongeldig tijdsbereik."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topictype bestaat al."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collectietype bestaat al."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "geen ldap-gebruiker"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "kon gebruiker niet toevoegen aan groep-teams en groep-kanalen"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Je kan niet bevestigen in een gearchiveerd kanaal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Je kan een bevestiging niet wissen nadat 5min verstreken zijn."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Je kan een bevestiging in een gearchiveerd kanaal niet verwijderen."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Creëer transparante workflows tussen ontwikkelingsteams om ervoor te zorgen dat jouw ontwikkelingsproces naadloos verloopt."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Verhoog de productiviteit in je kanaal door een Jira bot en Github bot te integreren. Deze worden voor jou gedownload."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat met je team in een Feature Release-kanaal dat gemakkelijk verbinding maakt met je boards, playbooks en app bots."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Gebruik ons vergaderagenda-bord voor terugkerende vergaderingen zoals stand-up en ons Projecttakenbord om de voortgang van taken onderweg te beheren."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Productteams"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Ongeldig gebruikers-id."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Het veld 'update at' moet een geldige tijd zijn."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Ongeldig root id."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Ongeldige eigenschappen."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Ongeldige prioriteit"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Ongeldig bericht."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Ongeldige bestandids."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create at moet een geldige tijd zijn."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Ongeldig gebruikersid."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaalid."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Ongeldig bericht-id."
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Kon geen werksjablonen ophalen"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Kan geen werksjablooncategorieën ophalen"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Kon geen berichtprioriteit ophalen voor bericht"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Kan het concept niet bijwerken."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Kan het concept niet opslaan."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Kan geen bestanden ophalen voor concept."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Kon de Concepten van de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Kon het concept niet ophalen."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "De Conceptfunctie is uitgeschakeld."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Kan het concept niet verwijderen."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Fout bij het ophalen van de prioriteiten voor berichten"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Fout bij het tellen van de dringende berichten sinds de opgegeven datum."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Fout hij het bewaren van de bevestiging voor het bericht."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Fout hij het ophalen van de bevestiging voor bericht."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Fout hij het ophalen van de bevestiging."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Kan bevestiging niet verwijderen."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Fout bij het ophalen van rollen tijdens de validatie."
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Kan bestand niet uploaden. Bestand is te groot."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Bekijk jouw factuur"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu opgewaardeerd."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.Date}}"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portaal niet beschikbaar voor self-hosted signup."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "De Conceptfunctie is uitgeschakeld."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Kan concept niet bewaren in een verwijderd kanaal"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Kon het client-keybestand voor Elasticsearch niet openen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Kon het client-certificaatbestand voor Elasticsearch niet openen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Het decoderen van het client-certificaat voor Elasticsearch is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Decodering van de CA voor Elasticsearch is mislukt"
   }
 ]

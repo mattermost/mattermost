@@ -84,6 +84,10 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(deleteGroup)).Methods("DELETE")
 
+	// GET /api/v4/groups/:group_id
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/restore",
+		api.APISessionRequired(restoreGroup)).Methods("POST")
+
 	// POST /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
 		api.APISessionRequired(addGroupMembers)).Methods("POST")
@@ -105,9 +109,15 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
-	})
+	}, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -206,7 +216,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -321,7 +331,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -657,7 +667,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -675,7 +685,13 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -718,7 +734,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupID := c.Params.GroupId
-	count, appErr := c.App.GetGroupMemberCount(groupID)
+	count, appErr := c.App.GetGroupMemberCount(groupID, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -934,12 +950,13 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	var teamID, NotAssociatedToChannelID, ChannelIDForMemberCount string
+
 	permissionErr := requireLicense(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
 	}
-	var teamID, channelID string
 
 	source := c.Params.GroupSource
 
@@ -948,7 +965,11 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if id := c.Params.NotAssociatedToChannel; model.IsValidId(id) {
-		channelID = id
+		NotAssociatedToChannelID = id
+	}
+
+	if id := c.Params.IncludeChannelMemberCount; model.IsValidId(id) {
+		ChannelIDForMemberCount = id
 	}
 
 	// If they specify the group_source as custom when the feature is disabled, throw an error
@@ -959,9 +980,11 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
-	if !c.App.Config().FeatureFlags.CustomGroups || !*c.App.Config().ServiceSettings.EnableCustomGroups {
+	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
 		source = model.GroupSourceLdap
 	}
+
+	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
@@ -970,6 +993,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
 		FilterHasMember:           c.Params.FilterHasMember,
+		IncludeTimezones:          includeTimezones,
 	}
 
 	if teamID != "" {
@@ -982,8 +1006,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	if channelID != "" {
-		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+	if NotAssociatedToChannelID != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, NotAssociatedToChannelID)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -994,11 +1018,30 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, permission) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission) {
 			c.SetPermissionError(permission)
 			return
 		}
-		opts.NotAssociatedToChannel = channelID
+		opts.NotAssociatedToChannel = NotAssociatedToChannelID
+	}
+
+	if ChannelIDForMemberCount != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, ChannelIDForMemberCount)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		var permission *model.Permission
+		if channel.Type == model.ChannelTypePrivate {
+			permission = model.PermissionManagePrivateChannelMembers
+		} else {
+			permission = model.PermissionManagePublicChannelMembers
+		}
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission) {
+			c.SetPermissionError(permission)
+			return
+		}
+		opts.IncludeChannelMemberCount = ChannelIDForMemberCount
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -1011,10 +1054,31 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	groups, appErr := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	var (
+		groups      = []*model.Group{}
+		canSee bool = true
+	)
+
+	if opts.FilterHasMember != "" {
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if canSee {
+		groups, appErr = c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts, restrictions)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	var (
@@ -1055,7 +1119,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -1092,6 +1156,55 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
+func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if group.Source != model.GroupSourceCustom {
+		c.Err = model.NewAppError("Api4.restoreGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); lcErr != nil {
+		lcErr.Where = "Api4.restoreGroup"
+		c.Err = lcErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionRestoreCustomGroup) {
+		c.SetPermissionError(model.PermissionRestoreCustomGroup)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("restoreGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+
+	_, err = c.App.RestoreGroup(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissionErr := requireLicense(c)
 	if permissionErr != nil {
@@ -1103,7 +1216,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1162,7 +1275,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1215,8 +1328,6 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 //
 //	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
 //	err.Where = "Api4.getGroup"
-//
-// Temporarily, this function also checks for the CustomGroups feature flag.
 func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
 	lic := app.Srv().License()
 
@@ -1232,7 +1343,7 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 
-	if source == model.GroupSourceCustom && (!app.Config().FeatureFlags.CustomGroups || !*app.Config().ServiceSettings.EnableCustomGroups) {
+	if source == model.GroupSourceCustom && !*app.Config().ServiceSettings.EnableCustomGroups {
 		return model.NewAppError("", "api.custom_groups.feature_disabled", nil, "", http.StatusBadRequest)
 	}
 

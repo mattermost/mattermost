@@ -256,11 +256,15 @@ func (er *AppError) Error() string {
 	// render the error information
 	sb.WriteString(er.Where)
 	sb.WriteString(": ")
-	sb.WriteString(er.Message)
+	if er.Message != NoTranslation {
+		sb.WriteString(er.Message)
+	}
 
 	// only render the detailed error when it's present
 	if er.DetailedError != "" {
-		sb.WriteString(", ")
+		if er.Message != NoTranslation {
+			sb.WriteString(", ")
+		}
 		sb.WriteString(er.DetailedError)
 	}
 

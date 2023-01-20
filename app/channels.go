@@ -23,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
+const ServerKey product.ServiceKey = "server"
+
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
 type licenseSvc interface {
@@ -77,26 +79,39 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
+
+	// collectionTypes maps from collection types to the registering plugin id
+	collectionTypes map[string]string
+	// topicTypes maps from topic types to collection types
+	topicTypes                 map[string]string
+	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
-	RegisterProduct("channels", ProductManifest{
-		Initializer: func(s *Server, services map[ServiceKey]any) (Product, error) {
-			return NewChannels(s, services)
+	product.RegisterProduct("channels", product.Manifest{
+		Initializer: func(services map[product.ServiceKey]any) (product.Product, error) {
+			return NewChannels(services)
 		},
-		Dependencies: map[ServiceKey]struct{}{
-			ConfigKey:    {},
-			LicenseKey:   {},
-			FilestoreKey: {},
+		Dependencies: map[product.ServiceKey]struct{}{
+			ServerKey:            {},
+			product.ConfigKey:    {},
+			product.LicenseKey:   {},
+			product.FilestoreKey: {},
 		},
 	})
 }
 
-func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
+func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
+	s, ok := services[ServerKey].(*Server)
+	if !ok {
+		return nil, errors.New("server not passed")
+	}
 	ch := &Channels{
-		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap: map[string]bool{},
+		srv:             s,
+		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:   map[string]bool{},
+		collectionTypes: map[string]string{},
+		topicTypes:      map[string]string{},
 	}
 
 	// To get another service:
@@ -104,10 +119,10 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	// 2. Add the field to *Channels
 	// 3. Add the service key to the slice.
 	// 4. Add a new case in the switch statement.
-	requiredServices := []ServiceKey{
-		ConfigKey,
-		LicenseKey,
-		FilestoreKey,
+	requiredServices := []product.ServiceKey{
+		product.ConfigKey,
+		product.LicenseKey,
+		product.FilestoreKey,
 	}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
@@ -116,19 +131,19 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 		}
 		switch svcKey {
 		// Keep adding more services here
-		case ConfigKey:
+		case product.ConfigKey:
 			cfgSvc, ok := svc.(product.ConfigService)
 			if !ok {
 				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
 			}
 			ch.cfgSvc = cfgSvc
-		case FilestoreKey:
+		case product.FilestoreKey:
 			filestore, ok := svc.(filestore.FileBackend)
 			if !ok {
 				return nil, errors.New("Filestore service did not satisfy FileBackend interface")
 			}
 			ch.filestore = filestore
-		case LicenseKey:
+		case product.LicenseKey:
 			svc, ok := svc.(licenseSvc)
 			if !ok {
 				return nil, errors.New("License service did not satisfy licenseSvc interface")
@@ -190,7 +205,7 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	}
 
 	ch.routerSvc = newRouterService()
-	services[RouterKey] = ch.routerSvc
+	services[product.RouterKey] = ch.routerSvc
 
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
@@ -198,29 +213,34 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
-	services[PostKey] = &postServiceWrapper{
+	services[product.ChannelKey] = &channelsWrapper{
+		srv: s,
 		app: &App{ch: ch},
 	}
 
-	services[PermissionsKey] = &permissionsServiceWrapper{
+	services[product.PostKey] = &postServiceWrapper{
 		app: &App{ch: ch},
 	}
 
-	services[TeamKey] = &teamServiceWrapper{
+	services[product.PermissionsKey] = &permissionsServiceWrapper{
 		app: &App{ch: ch},
 	}
 
-	services[BotKey] = &botServiceWrapper{
+	services[product.TeamKey] = &teamServiceWrapper{
 		app: &App{ch: ch},
 	}
 
-	services[HooksKey] = &hooksService{
+	services[product.BotKey] = &botServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[product.HooksKey] = &hooksService{
 		ch: ch,
 	}
 
-	services[UserKey] = &App{ch: ch}
+	services[product.UserKey] = &App{ch: ch}
 
-	services[PreferencesKey] = &preferencesServiceWrapper{
+	services[product.PreferencesKey] = &preferencesServiceWrapper{
 		app: &App{ch: ch},
 	}
 
@@ -302,6 +322,10 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
+func (a *App) HooksManager() *product.HooksManager {
+	return a.Srv().hooksManager
+}
+
 // Ensure hooksService implements `product.HooksService`
 var _ product.HooksService = (*hooksService)(nil)
 
@@ -310,9 +334,33 @@ type hooksService struct {
 }
 
 func (s *hooksService) RegisterHooks(productID string, hooks any) error {
-	if s.ch.pluginsEnvironment == nil {
-		return errors.New("could not find plugins environment")
+	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
+}
+
+func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
 
-	return s.ch.pluginsEnvironment.AddProduct(productID, hooks)
+	// run hook for the products
+	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
+}
+
+func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
+	var hooks plugin.Hooks
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		// we intentionally ignore the error here, because the id can be a product id
+		// we are going to check if we have the hooks or not
+		hooks, _ = env.HooksForPlugin(id)
+		if hooks != nil {
+			return hooks, nil
+		}
+	}
+
+	hooks = ch.srv.hooksManager.HooksForProduct(id)
+	if hooks != nil {
+		return hooks, nil
+	}
+
+	return nil, fmt.Errorf("could not find hooks for id %s", id)
 }

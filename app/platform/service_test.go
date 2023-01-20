@@ -4,10 +4,13 @@
 package platform
 
 import (
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
@@ -102,10 +105,9 @@ func TestMetrics(t *testing.T) {
 
 		// there is no config listener for the metrics
 		// we handle it on config save step
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.MetricsSettings.Enable = model.NewBool(true)
-		})
-		th.Service.SaveConfig(th.Service.Config(), false)
+		cfg := th.Service.Config().Clone()
+		cfg.MetricsSettings.Enable = model.NewBool(true)
+		th.Service.SaveConfig(cfg, false)
 
 		require.NotNil(t, th.Service.metrics)
 		metricsAddr := strings.Replace(th.Service.metrics.listenAddr, "[::]", "http://localhost", 1)
@@ -114,10 +116,8 @@ func TestMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.MetricsSettings.Enable = model.NewBool(false)
-		})
-		th.Service.SaveConfig(th.Service.Config(), false)
+		cfg.MetricsSettings.Enable = model.NewBool(false)
+		th.Service.SaveConfig(cfg, false)
 
 		_, err = http.Get(metricsAddr)
 		require.Error(t, err)
@@ -141,6 +141,7 @@ func TestMetrics(t *testing.T) {
 		mockMetricsImpl := &mocks.MetricsInterface{}
 		mockMetricsImpl.On("Register").Return()
 		mockMetricsImpl.On("ObserveStoreMethodDuration", mock.Anything, mock.Anything, mock.Anything).Return()
+		mockMetricsImpl.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
 		th := Setup(t, StartMetrics(), func(ps *PlatformService) error {
 			ps.metricsIFace = mockMetricsImpl
@@ -151,5 +152,26 @@ func TestMetrics(t *testing.T) {
 		_ = th.CreateUserOrGuest(false)
 
 		mockMetricsImpl.AssertExpectations(t)
+	})
+}
+
+func TestShutdown(t *testing.T) {
+	t.Run("should shutdown gracefully", func(t *testing.T) {
+		th := Setup(t)
+		rand.Seed(time.Now().UnixNano())
+
+		// we create plenty of go routines to make sure we wait for all of them
+		// to finish before shutting down
+		for i := 0; i < 1000; i++ {
+			th.Service.Go(func() {
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(20)))
+			})
+		}
+
+		err := th.Service.Shutdown()
+		require.NoError(t, err)
+
+		// assert that there are no more go routines running
+		require.Zero(t, atomic.LoadInt32(&th.Service.goroutineCount))
 	})
 }
