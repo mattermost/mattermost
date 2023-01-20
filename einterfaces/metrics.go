@@ -4,12 +4,15 @@
 package einterfaces
 
 import (
+	"database/sql"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type MetricsInterface interface {
 	Register()
+	RegisterDBCollector(db *sql.DB, name string)
 
 	IncrementPostCreate()
 	IncrementWebhookPost()

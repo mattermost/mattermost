@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mattermost/logr/v2"
+
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -27,6 +28,7 @@ import (
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
 type channelsWrapper struct {
 	srv *Server
+	app *App
 }
 
 func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
@@ -45,6 +47,10 @@ func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*mo
 
 func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
 	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.Log()), teamID, userID, opts)
+}
+
+func (s *channelsWrapper) GetDirectChannelOrCreate(userID1, userID2 string) (*model.Channel, *model.AppError) {
+	return s.app.GetOrCreateDirectChannel(request.EmptyContext(s.srv.Log()), userID1, userID2)
 }
 
 // Ensure the wrapper implements the product service.
@@ -1121,6 +1127,15 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 
 	cErr := a.forEachChannelMember(c, channel.Id, func(channelMember model.ChannelMember) error {
 		a.Srv().Store().Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
+
+		evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil, "")
+		memberJSON, jsonErr := json.Marshal(channelMember)
+		if jsonErr != nil {
+			return jsonErr
+		}
+		evt.Add("channelMember", string(memberJSON))
+		a.Publish(evt)
+
 		return nil
 	})
 	if cErr != nil {
