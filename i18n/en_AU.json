@@ -2737,7 +2737,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User IDs are not permitted in channel name for non-direct message channels."
+    "translation": "Channel names can't be in a hexadecimal format. Please enter a different channel name."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
@@ -6461,7 +6461,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 1 MB in size."
+    "translation": "Unable to create emoji. Image must be less than 512 KiB in size."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -7055,7 +7055,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -7067,15 +7067,15 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Couldn't find a matching user. They may have been deactivated by the System Administrator."
+    "translation": "Couldn't find a matching user {{.User}}. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Missing Username and/or Channel."
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -8772,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "This trial licence key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial licence. You have previously applied a trial license to this Mattermost instance. If you would like to extend your trial period please [contact the sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9324,7 +9324,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Downgrade to Cloud Starter"
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9364,7 +9364,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Downgrade to Cloud Starter"
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9380,7 +9380,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "A downgraded workspace might negatively affect critical workflows, integrations and other business critical activities carried out in your workspace."
+    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried out in your workspace."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9419,20 +9419,12 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Active plugins and integrations"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Message history"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Files"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Cards from your Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9689,5 +9681,25 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Could not open the client key file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Could not open the client certificate file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Decoding of the client certificate for Elasticsearch failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Could not open the CA file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Decoding of the CA for Elasticsearch failed"
   }
 ]

@@ -649,15 +649,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[użytkownik] ~[kanał]"
+    "translation": "@[nazwa użytkownika]... ~[kanał]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Brak nazwy użytkownika oraz kanału."
+    "translation": "Brak nazwy użytkownika i/lub kanału."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nie możemy odnaleźć użytkownika. Mógł on zostać dezaktywowany przez administratora systemu."
+    "translation": "Nie mogliśmy znaleźć użytkownika {{.User}}. Być może został on dezaktywowany przez Administratora systemu."
   },
   {
     "id": "api.command_invite.name",
@@ -669,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj uchwytu kanału, aby zidentyfikować kanały."
+    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
     "id": "api.command_invite.success",
@@ -1001,7 +1001,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Nie można utworzyć emoji. Obraz musi być mniejszy niż 1 MB."
+    "translation": "Nie można utworzyć emoji. Obraz musi być mniejszy niż 512 KiB."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -4949,7 +4949,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Nazwy kanałów nie mogą być w formacie szesnastkowym. Proszę wprowadzić inną nazwę kanału."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -7325,7 +7325,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Ten klucz licencji próbnej dla Mattermost Enterprise Edition wygasł i nie jest już ważny. Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
+    "translation": "Nie udało się zastosować nowej licencji próbnej. Zastosowano już wcześniej licencję próbną do tej instancji Mattermost... Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9272,20 +9272,12 @@
     "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktywne wtyczki i integracje"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Historia wiadomości"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Pliki"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Karty z twoich tablic"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9325,7 +9317,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Obniż na Cloud Starter"
+    "translation": "Obniż na Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9369,7 +9361,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Obniż na Cloud Starter"
+    "translation": "Obniż na Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9382,10 +9374,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Zaktualizuj teraz informacje o swojej karcie kredytowej."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Zmniejszona przestrzeń robocza może negatywnie wpłynąć na krytyczne przepływy pracy, integracje i inne krytyczne dla biznesu działania prowadzone w przestrzeni roboczej."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9726,5 +9714,25 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal niedostępny dla samodzielnej rejestracji."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Nie można otworzyć pliku klucza klienta dla Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Nie można otworzyć pliku z certyfikatem klienta dla Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Dekodowanie certyfikatu klienta dla Elasticsearch nie powiodło się"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Nie można otworzyć pliku CA dla Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Dekodowanie CA dla Elasticsearch nie powiodło się"
   }
 ]
