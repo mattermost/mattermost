@@ -241,7 +241,6 @@ func NewServer(options ...Option) (*Server, error) {
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:                s,
-		product.ChannelKey:       &channelsWrapper{srv: s, app: app},
 		product.ConfigKey:        s.platform,
 		product.LicenseKey:       s.licenseWrapper,
 		product.FilestoreKey:     s.platform.FileBackend(),
