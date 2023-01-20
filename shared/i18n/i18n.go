@@ -85,13 +85,14 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 	bundle := bundle.New()
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
-		if filepath.Ext(f.Name()) == ".json" {
-			filename := f.Name()
-			availableLocals[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+		if filepath.Ext(f.Name()) != ".json" {
+			continue
+		}
 
-			if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
-				return nil, err
-			}
+		filename := f.Name()
+		availableLocals[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+		if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
+			return nil, err
 		}
 	}
 
