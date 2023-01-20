@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 )
 
@@ -260,9 +261,11 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
+
 type SubscriptionChange struct {
-	ProductID string `json:"product_id"`
-	Seats     int    `json:"seats"`
+	ProductID         string             `json:"product_id"`
+	Seats             int                `json:"seats"`
+	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
 }
 
 type BoardsLimits struct {
@@ -304,10 +307,30 @@ type CreateSubscriptionRequest struct {
 	DiscountID            string   `json:"discount_id"`
 }
 
+type DowngradeFeedback struct {
+	Reason   string `json:"reason"`
+	Comments string `json:"comments"`
+}
+
 func (p *Product) IsYearly() bool {
 	return p.RecurringInterval == RecurringIntervalYearly
 }
 
 func (p *Product) IsMonthly() bool {
 	return p.RecurringInterval == RecurringIntervalMonthly
+}
+
+func (df *DowngradeFeedback) ToMap() map[string]any {
+	var res map[string]any
+	feedback, err := json.Marshal(df)
+	if err != nil {
+		return res
+	}
+
+	err = json.Unmarshal(feedback, &res)
+	if err != nil {
+		return res
+	}
+
+	return res
 }

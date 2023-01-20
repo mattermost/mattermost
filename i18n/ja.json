@@ -647,15 +647,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[ユーザー名] ~[チャンネル]"
+    "translation": "@[ユーザー名]... ~[チャンネル]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "ユーザー名とチャンネルが存在しません。"
+    "translation": "ユーザー名もしくはチャンネルが存在しません。"
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "ユーザーが見付かりませんでした。システム管理者によって無効化されている可能性があります。"
+    "translation": "ユーザー {{.User}} が見付かりませんでした。システム管理者によって無効化されている可能性があります。"
   },
   {
     "id": "api.command_invite.name",
@@ -667,7 +667,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定にはチャンネルのハンドル名を使用してください。"
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)を使用してください。"
   },
   {
     "id": "api.command_invite.success",
@@ -997,7 +997,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "絵文字を作成できません。画像サイズは1MB未満でなければなりません。"
+    "translation": "絵文字を作成できません。画像サイズは 512 KiB 未満でなければなりません。"
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -4941,7 +4941,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "不正なチャンネル名です。ユーザーIDはダイレクトメッセージチャンネル以外でチャンネル名に使用することはできません。"
+    "translation": "チャンネル名を16進数にすることはできません。別のチャンネル名を入力してください。"
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -8769,7 +8769,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
+    "translation": "新しいトライアルライセンスを適用できませんでした。あなたは、以前このMattermostインスタンスにトライアルライセンスを適用したことがあります。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9305,7 +9305,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Cloud Starterへダウングレード"
+    "translation": "Cloud Freeへダウングレード"
   },
   {
     "id": "api.templates.delinquency_7.title",
@@ -9341,7 +9341,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Cloud Starterへのダウングレード"
+    "translation": "Cloud Freeへのダウングレード"
   },
   {
     "id": "api.templates.delinquency_45.title",
@@ -9350,10 +9350,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "今すぐクレジットカード情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "ワークスペースがダウングレードされると、ワークスペースで実行されている重要なワークフロー、統合機能、その他のビジネス上の重要な活動に悪影響を与える可能性があります。"
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9382,10 +9378,6 @@
   {
     "id": "api.templates.delinquency_30.limits_documentation",
     "translation": "すべての制限事項に関する説明文書を確認する。"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "有効なプラグインと統合機能"
   },
   {
     "id": "api.templates.delinquency_30.bullet.message_history",
@@ -9450,10 +9442,6 @@
   {
     "id": "api.templates.delinquency_30.button",
     "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Boardsのカード数"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9718,5 +9706,25 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "セルフホスティングの利用登録では、ポータルは利用できません。"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Elasticsearch用のクライアントキーファイルを開くことができませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Elasticsearchのクライアント証明書ファイルを開くことができませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Elasticsearchのクライアント証明書のデコードに失敗しました"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "ElasticsearchのCAファイルを開くことができませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Elasticsearch用CAのデコードに失敗しました"
   }
 ]

@@ -9305,7 +9305,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Degradar a Cloud Starter"
+    "translation": "Degradar a Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9349,7 +9349,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Degradar a Cloud Starter"
+    "translation": "Degradar a Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9362,10 +9362,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Actualiza la información de tu tarjeta de crédito ahora."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Un workspace degradado podría afectar negativamente los flujos de trabajo críticos, integraciones y otras actividades críticas de negocio realizadas en tu workspace."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9404,20 +9400,12 @@
     "translation": "Actualizar pago"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Plugins e integraciones activas"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Historial de mensajes"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Archivos"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Tarjetas de tus Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",

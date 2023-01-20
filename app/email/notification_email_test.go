@@ -63,10 +63,10 @@ func TestProcessMessageAttachments(t *testing.T) {
 
 	model.ParseSlackAttachment(post, messageAttachments)
 
-	processedAttachcmentsPost := ProcessMessageAttachments(post)
-	require.NotNil(t, processedAttachcmentsPost)
-	require.Len(t, processedAttachcmentsPost, 2)
-	require.Equal(t, processedAttachcmentsPost[0].Color, "#FF0000")
-	require.Equal(t, processedAttachcmentsPost[0].FieldRows[0].Cells[0].Title, "message attachment 1 field 1 title")
-	require.Equal(t, processedAttachcmentsPost[1].Color, "#FF0000")
+	processedAttachmentsPost := ProcessMessageAttachments(post, "https://example.com")
+	require.NotNil(t, processedAttachmentsPost)
+	require.Len(t, processedAttachmentsPost, 2)
+	require.Equal(t, processedAttachmentsPost[0].Color, "#FF0000")
+	require.Equal(t, processedAttachmentsPost[0].FieldRows[0].Cells[0].Title, "message attachment 1 field 1 title")
+	require.Equal(t, processedAttachmentsPost[1].Color, "#FF0000")
 }
