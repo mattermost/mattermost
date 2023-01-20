@@ -62,6 +62,7 @@ type ClusterService interface {
 // The service shall be registered via app.ChannelKey service key.
 type ChannelService interface {
 	GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError)
+	GetDirectChannelOrCreate(userID1, userID2 string) (*model.Channel, *model.AppError)
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
