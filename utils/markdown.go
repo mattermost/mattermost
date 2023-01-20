@@ -41,15 +41,13 @@ var blockquoteReg = regexp.MustCompile(`^|\n(&gt;)`)
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown, siteURL string) (string, error) {
 	// Turn relative links into absolute links
-	absLinkMarkdown := relLinkReg.ReplaceAllFunc([]byte(markdown), func(s []byte) []byte {
-		out := relLinkReg.ReplaceAllString(string(s), "[$1]("+siteURL+"$2)")
-		return []byte(out)
+	absLinkMarkdown := relLinkReg.ReplaceAllStringFunc(markdown, func(s string) string {
+		return relLinkReg.ReplaceAllString(s, "[$1]("+siteURL+"$2)")
 	})
 
 	// Unescape any blockquote text to be parsed by the markdown parser.
-	markdownClean := blockquoteReg.ReplaceAllFunc(absLinkMarkdown, func(s []byte) []byte {
-		out := html.UnescapeString(string(s))
-		return []byte(out)
+	markdownClean := blockquoteReg.ReplaceAllStringFunc(absLinkMarkdown, func(s string) string {
+		return html.UnescapeString(s)
 	})
 
 	md := goldmark.New(
@@ -58,7 +56,7 @@ func MarkdownToHTML(markdown, siteURL string) (string, error) {
 
 	var b strings.Builder
 
-	err := md.Convert(markdownClean, &b)
+	err := md.Convert([]byte(markdownClean), &b)
 	if err != nil {
 		return "", err
 	}
