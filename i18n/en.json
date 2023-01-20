@@ -900,15 +900,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Missing Username and/or Channel."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
+    "translation": "We couldn't find the user {{.User}}. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -920,7 +920,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.success",
@@ -1719,7 +1719,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 1 MB in size."
+    "translation": "Unable to create emoji. Image must be less than 512 KiB in size."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -2055,7 +2055,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "This trial license key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_renewal_link.app_error",
@@ -2076,6 +2076,34 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Could not create true up status record"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Could not get true up status records"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up review requires a license"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True up review is not allowed for cloud instances"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Could not get the total active users count"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Could not get the total incoming webhook count"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Could not get the total outgoing webhook count"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -2542,6 +2570,10 @@
   {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "Your license does not support update permissions schemes"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server is not available."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -3292,20 +3324,12 @@
     "translation": "Payment not received"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Cards from your Boards"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Files"
   },
   {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Message history"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Active plugins and integrations"
   },
   {
     "id": "api.templates.delinquency_30.button",
@@ -3345,7 +3369,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "A downgraded workspace might negatively affect critical workflows, integrations and other business critical activities carried at your workspace."
+    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried at your workspace."
   },
   {
     "id": "api.templates.delinquency_45.subtitle3",
@@ -7352,6 +7376,26 @@
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Decoding of the CA for Elasticsearch failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Could not open the CA file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Decoding of the client certificate for Elasticsearch failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Could not open the client certificate file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Could not open the client key file for Elasticsearch"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up Elasticsearch Client Failed"
   },
@@ -8101,7 +8145,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Channel names can't be in a hexadecimal format. Please enter a different channel name."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
