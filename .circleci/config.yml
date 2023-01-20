@@ -212,7 +212,7 @@ jobs:
   check-golangci-lint:
     docker:
       # Keep the version in sync with the command in Makefile
-      - image: golangci/golangci-lint:v1.46.2
+      - image: golangci/golangci-lint:v1.50.1
     resource_class: xlarge
     working_directory: /mnt/ramdisk
     steps:
