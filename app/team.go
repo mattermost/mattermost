@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strings"
 
+	fb_model "github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -160,6 +161,98 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	return nil
 }
 
+func shouldCreateOnboardingLinkedBoard(a *App, c request.CTX, teamId string) bool {
+	ffEnabled := a.Config().FeatureFlags.OnboardingAutoShowLinkedBoard
+	if !ffEnabled {
+		return false
+	}
+
+	const preferenceName = "linked_board_created"
+	data, sysValErr := a.Srv().Store().System().GetByName(model.PreferenceOnboarding + "_" + preferenceName)
+	if sysValErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(sysValErr, &nfErr) { // if no board has been registered, it can create one for this team
+			return true
+		}
+		mlog.Error("Cannot get the system values", mlog.Err(sysValErr))
+		return false
+	}
+
+	// get the team list and check if the team value has been already stored, if so, no need to create a board in town square in that team
+	teamsList := strings.Split(data.Value, ",")
+	for _, team := range teamsList {
+		if team == teamId {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_model.Board, *model.AppError) {
+	const defaultChannelName = "town-square"
+	const defaultTemplatesTeam = "0"
+	const defaultTemplateTitle = "Welcome to Boards!"
+	const preferenceName = "linked_board_created"
+	userId := c.Session().UserId
+
+	boardService := a.Srv().services[product.BoardsKey].(product.BoardsService)
+	templates, err := boardService.GetTemplates(defaultTemplatesTeam, userId)
+
+	if err != nil {
+		return nil, model.NewAppError("CreateBoard", "get templates", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	channel, err := a.GetChannelByName(c, defaultChannelName, teamId, false)
+
+	var template *fb_model.Board = nil
+	for _, t := range templates {
+		v := t.Title
+		if v == defaultTemplateTitle {
+			template = t
+			break
+		}
+	}
+	if template == nil && len(templates) > 0 {
+		template = templates[0]
+	}
+
+	// Duplicate board From template
+	boardsAndBlocks, _, err := boardService.DuplicateBoard(template.ID, userId, teamId, false)
+	if err != nil {
+		return nil, model.NewAppError("CreateBoard", "duplicate board", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	if len(boardsAndBlocks.Boards) != 1 {
+		return nil, model.NewAppError("CreateBoard", "duplicate board 2", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// link the board with the channel
+	patchedBoard, err := boardService.PatchBoard(&fb_model.BoardPatch{
+		ChannelID: &channel.Id,
+	}, boardsAndBlocks.Boards[0].ID, userId)
+	if err != nil && patchedBoard == nil {
+		return nil, model.NewAppError("CreateBoard", "patch board", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Save in the system preferences that the board was already created once per team
+	data, sysValErr := a.Srv().Store().System().GetByName(model.PreferenceOnboarding + "_" + preferenceName)
+	if sysValErr != nil {
+		mlog.Error("Cannot get the system preferences", mlog.Err(sysValErr))
+	}
+
+	// teamsList contains the list of teams where the A/B test has alredy created a channel for town square
+	teamsList := data.Value
+
+	if err := a.Srv().Store().System().SaveOrUpdate(&model.System{
+		Name:  model.PreferenceOnboarding + "_" + preferenceName,
+		Value: teamsList + "," + teamId,
+	}); err != nil {
+		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
+	}
+
+	return patchedBoard, nil
+}
+
 func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
@@ -188,6 +281,19 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 			return nil, appErr
 		default:
 			return nil, model.NewAppError("CreateTeam", "app.team.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// MM-48246 A/B test show linked boards. Create a welcome to boards linked board per user
+	if shouldCreateOnboardingLinkedBoard(a, c, team.Id) {
+		board, err2 := a.createOnboardingLinkedBoard(c, team.Id)
+
+		if err2 != nil {
+			mlog.Warn("Error creating the linked board", mlog.Err(err))
+		}
+
+		if board.ID != "" {
+			mlog.Info(fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id), mlog.Err(err))
 		}
 	}
 
