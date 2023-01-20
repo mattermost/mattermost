@@ -77,7 +77,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 			Board: &Board{
 				ID:           "board-project-task",
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
-				Name:         "project task board",
+				Name:         "Project Task",
 				Channel:      "feature-release",
 				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;project&#43;task",
 			},
