@@ -23,7 +23,7 @@ func newSqlNotifyAdminStore(sqlStore *SqlStore) store.NotifyAdminStore {
 }
 
 func (s SqlNotifyAdminStore) insert(data *model.NotifyAdminData) (sql.Result, error) {
-	query := `INSERT INTO NotifyAdmin (UserId, CreateAt, RequiredPlan, RequiredFeature, Trial, SentAt) VALUES (:UserId, :CreateAt, :RequiredPlan, :RequiredFeature, :Trial, 0)`
+	query := `INSERT INTO NotifyAdmin (UserId, CreateAt, RequiredPlan, RequiredFeature, Trial) VALUES (:UserId, :CreateAt, :RequiredPlan, :RequiredFeature, :Trial)`
 	return s.GetMasterX().NamedExec(query, data)
 }
 
@@ -67,7 +67,8 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("NotifyAdmin").
-		Where(sq.Eq{"Trial": trial, "SentAt": 0}).
+		Where(sq.Eq{"Trial": trial}).
+		Where("(SentAt IS NULL)").
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data")
@@ -80,7 +81,7 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 }
 
 func (s SqlNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE Trial = ? AND Createat < ? AND SentAt = 0", trial, now); err != nil {
+	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE Trial = ? AND CreateAt < ? AND SentAt IS NULL", trial, now); err != nil {
 		return errors.Wrapf(err, "failed to remove all notification data with trial=%t", trial)
 	}
 	return nil

@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'SentAt'
     ),
-    'ALTER TABLE NotifyAdmin ADD COLUMN SentAt bigint;',
+    'ALTER TABLE NotifyAdmin ADD COLUMN SentAt bigint DEFAULT NULL;',
     'SELECT 1;'
 ));
 
