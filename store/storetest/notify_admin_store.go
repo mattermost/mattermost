@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -165,7 +166,7 @@ func testUpdate(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	require.Equal(t, len(userRequest), 1)
-	require.Equal(t, userRequest[0].SentAt, int64(100))
+	require.Equal(t, userRequest[0].SentAt, sql.NullInt64{Int64:100, Valid:true})
 
 	tearDown(t, ss)
 }

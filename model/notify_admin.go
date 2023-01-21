@@ -4,6 +4,7 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
@@ -56,7 +57,7 @@ type NotifyAdminData struct {
 	RequiredPlan    string            `json:"required_plan"`
 	RequiredFeature MattermostFeature `json:"required_feature"`
 	Trial           bool              `json:"trial"`
-	SentAt          int64             `json:"sent_at"`
+	SentAt          sql.NullInt64     `json:"sent_at"`
 }
 
 func (nad *NotifyAdminData) IsValid() *AppError {
