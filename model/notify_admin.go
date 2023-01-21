@@ -19,8 +19,6 @@ const (
 	PaidFeaturePlaybooksRetrospective  = MattermostFeature("mattermost.feature.playbooks_retro")
 	PaidFeatureUnlimitedMessages       = MattermostFeature("mattermost.feature.unlimited_messages")
 	PaidFeatureUnlimitedFileStorage    = MattermostFeature("mattermost.feature.unlimited_file_storage")
-	PaidFeatureUnlimitedIntegrations   = MattermostFeature("mattermost.feature.unlimited_integrations")
-	PaidFeatureUnlimitedBoardcards     = MattermostFeature("mattermost.feature.unlimited_board_cards")
 	PaidFeatureAllProfessionalfeatures = MattermostFeature("mattermost.feature.all_professional")
 	PaidFeatureAllEnterprisefeatures   = MattermostFeature("mattermost.feature.all_enterprise")
 	UpgradeDowngradedWorkspace         = MattermostFeature("mattermost.feature.upgrade_downgraded_workspace")
@@ -41,8 +39,6 @@ var paidFeatures map[MattermostFeature]struct{} = map[MattermostFeature]struct{}
 	PaidFeaturePlaybooksRetrospective:  {},
 	PaidFeatureUnlimitedMessages:       {},
 	PaidFeatureUnlimitedFileStorage:    {},
-	PaidFeatureUnlimitedIntegrations:   {},
-	PaidFeatureUnlimitedBoardcards:     {},
 	PaidFeatureAllProfessionalfeatures: {},
 	PaidFeatureAllEnterprisefeatures:   {},
 	UpgradeDowngradedWorkspace:         {},
