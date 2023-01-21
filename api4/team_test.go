@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -3130,6 +3132,71 @@ func TestImportTeam(t *testing.T) {
 		_, resp, err := th.Client.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestValidateUserPermissionsOnChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// define emails list
+	guest1 := th.GenerateTestEmail()
+	guest2 := th.GenerateTestEmail()
+	emailList := []string{guest1, guest2}
+
+	// define user session and context
+	session := &model.Session{}
+	session.CreateAt = model.GetMillis()
+	session.UserId = th.BasicUser.Id
+	session.Token = model.NewId()
+	session.Roles = model.SystemUserRoleId
+	th.App.SetSessionExpireInHours(session, 24)
+
+	var err *model.AppError
+	session, err = th.App.CreateSession(session)
+	require.Nil(t, err)
+
+	newContext := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), *session, nil)
+
+	c := &Context{
+		App:        th.App,
+		AppContext: newContext,
+	}
+
+	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
+		th.LoginBasic()
+		channelsList := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
+
+		memberInvite := &model.MemberInvite{
+			Emails:     emailList,
+			ChannelIds: channelsList,
+		}
+
+		require.Len(t, memberInvite.ChannelIds, 2)
+
+		validateUserPermissionsOnChannels(c, memberInvite)
+
+		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
+		require.Len(t, memberInvite.ChannelIds, 2)
+	})
+
+	t.Run("User WITHOUT permissions on private channel CAN NOT invite members to it", func(t *testing.T) {
+		th.LoginBasic()
+
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelsList := []string{th.BasicChannel.Id, channelIdWithoutPermissions}
+
+		memberInvite := &model.MemberInvite{
+			Emails:     emailList,
+			ChannelIds: channelsList,
+		}
+
+		require.Len(t, memberInvite.ChannelIds, 2)
+
+		validateUserPermissionsOnChannels(c, memberInvite)
+
+		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
+		require.Len(t, memberInvite.ChannelIds, 1)
 	})
 }
 

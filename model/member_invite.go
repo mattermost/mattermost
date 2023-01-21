@@ -14,6 +14,14 @@ type MemberInvite struct {
 	Message    string   `json:"message"`
 }
 
+func (i *MemberInvite) GetChannels() []string {
+	return i.ChannelIds
+}
+
+func (i *MemberInvite) SetChannels(channels []string) {
+	i.ChannelIds = channels
+}
+
 // IsValid validates that the invitation info is loaded correctly and with the correct structure
 func (i *MemberInvite) IsValid() *AppError {
 	if len(i.Emails) == 0 {
