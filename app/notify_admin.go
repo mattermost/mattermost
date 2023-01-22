@@ -20,7 +20,7 @@ import (
 
 const lastTrialNotificationTimeStamp = "LAST_TRIAL_NOTIFICATION_TIMESTAMP"
 const lastUpgradeNotificationTimeStamp = "LAST_UPGRADE_NOTIFICATION_TIMESTAMP"
-const defaultNotifyAdminCoolOffDays = 14
+const defaultNotifyAdminCoolOffDays = 0.0104166667 // this is a temp change
 
 func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
 	requiredFeature := notifyData.RequiredFeature
