@@ -166,7 +166,7 @@ func testUpdate(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	require.Equal(t, len(userRequest), 1)
-	require.Equal(t, userRequest[0].SentAt, sql.NullInt64{Int64:100, Valid:true})
+	require.Equal(t, userRequest[0].SentAt, sql.NullInt64{Int64: 100, Valid: true})
 
 	tearDown(t, ss)
 }
