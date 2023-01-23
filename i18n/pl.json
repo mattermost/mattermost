@@ -4949,7 +4949,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Nazwy kanałów nie mogą być w formacie szesnastkowym. Proszę wprowadzić inną nazwę kanału."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -9272,20 +9272,12 @@
     "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktywne wtyczki i integracje"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Historia wiadomości"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Pliki"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Karty z twoich tablic"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9325,7 +9317,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Obniż na Cloud Starter"
+    "translation": "Obniż na Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9369,7 +9361,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Obniż na Cloud Starter"
+    "translation": "Obniż na Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9382,10 +9374,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Zaktualizuj teraz informacje o swojej karcie kredytowej."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Zmniejszona przestrzeń robocza może negatywnie wpłynąć na krytyczne przepływy pracy, integracje i inne krytyczne dla biznesu działania prowadzone w przestrzeni roboczej."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",

@@ -33,8 +33,7 @@ func (w *preferencesServiceWrapper) DeletePreferencesForUser(userID string, pref
 }
 
 func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
-	limit := *a.Config().ServiceSettings.ExperimentalMaxUserPreferences
-	preferences, err := a.Srv().Store().Preference().GetAll(userID, limit)
+	preferences, err := a.Srv().Store().Preference().GetAll(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferencesForUser", "app.preference.get_all.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

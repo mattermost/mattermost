@@ -240,15 +240,16 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
+	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:                s,
-		product.ChannelKey:       &channelsWrapper{srv: s},
+		product.ChannelKey:       &channelsWrapper{srv: s, app: app},
 		product.ConfigKey:        s.platform,
 		product.LicenseKey:       s.licenseWrapper,
 		product.FilestoreKey:     s.platform.FileBackend(),
 		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		product.ClusterKey:       s.platform,
-		product.UserKey:          New(ServerConnector(s.Channels())),
+		product.UserKey:          app,
 		product.LogKey:           s.platform.Log(),
 		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		product.KVStoreKey:       s.platform,

@@ -843,6 +843,22 @@ func (_m *Store) TotalSearchDbConnections() int {
 	return r0
 }
 
+// TrueUpReview provides a mock function with given fields:
+func (_m *Store) TrueUpReview() store.TrueUpReviewStore {
+	ret := _m.Called()
+
+	var r0 store.TrueUpReviewStore
+	if rf, ok := ret.Get(0).(func() store.TrueUpReviewStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TrueUpReviewStore)
+		}
+	}
+
+	return r0
+}
+
 // UnlockFromMaster provides a mock function with given fields:
 func (_m *Store) UnlockFromMaster() {
 	_m.Called()

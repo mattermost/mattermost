@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	smocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestConfigListener(t *testing.T) {
@@ -97,4 +99,48 @@ func TestConfigSave(t *testing.T) {
 		th.Service.SaveConfig(cfg, false)
 		metricsMock.AssertNumberOfCalls(t, "Register", 1)
 	})
+}
+
+func TestIsFirstUserAccount(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+	storeMock := th.Service.Store.(*smocks.Store)
+	userStoreMock := &smocks.UserStore{}
+	storeMock.On("User").Return(userStoreMock)
+
+	type test struct {
+		name   string
+		count  int64
+		err    error
+		result bool
+	}
+
+	tests := []test{
+		{"success no users", 0, nil, true},
+		{"success one user", 1, nil, false},
+		{"success multiple users", 42, nil, false},
+		{"success negative users", -100, nil, true},
+		{"failed request", 0, errors.New("error"), false},
+	}
+
+	for _, te := range tests {
+		t.Run(te.name, func(t *testing.T) {
+			*userStoreMock = smocks.UserStore{}
+
+			userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err)
+			require.Equal(t, te.result, th.Service.IsFirstUserAccount())
+		})
+	}
+
+	// create a session, this should not affect IsFirstUserAccount
+	th.Service.sessionCache.Set("mock_session", 1)
+
+	for _, te := range tests {
+		t.Run(te.name+" with session", func(t *testing.T) {
+			*userStoreMock = smocks.UserStore{}
+
+			userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err)
+			require.Equal(t, te.result, th.Service.IsFirstUserAccount())
+		})
+	}
 }

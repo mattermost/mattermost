@@ -112,6 +112,7 @@ type SqlStoreStores struct {
 	notifyAdmin          store.NotifyAdminStore
 	postPriority         store.PostPriorityStore
 	postAcknowledgement  store.PostAcknowledgementStore
+	trueUpReview         store.TrueUpReviewStore
 }
 
 type SqlStore struct {
@@ -220,6 +221,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
+	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -982,6 +984,10 @@ func (ss *SqlStore) Draft() store.DraftStore {
 
 func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
 	return ss.stores.postAcknowledgement
+}
+
+func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
+	return ss.stores.trueUpReview
 }
 
 func (ss *SqlStore) DropAllTables() {
