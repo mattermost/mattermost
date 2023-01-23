@@ -54,7 +54,6 @@ func TestCanBeExecuted(t *testing.T) {
 			CanCreatePublicChannel:  true,
 			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
-			CanCreatePlaybookRun:    true,
 		})
 		assert.Nil(t, appErr)
 	})
@@ -62,9 +61,8 @@ func TestCanBeExecuted(t *testing.T) {
 	t.Run("fails when something is not allowed", func(t *testing.T) {
 		appErr := wtcr.CanBeExecuted(PermissionSet{
 			CanCreatePublicChannel:  true,
-			CanCreatePublicPlaybook: true,
+			CanCreatePublicPlaybook: false,
 			CanCreatePublicBoard:    true,
-			CanCreatePlaybookRun:    false,
 		})
 		require.Error(t, appErr)
 	})
@@ -77,7 +75,6 @@ func TestCanBeExecuted(t *testing.T) {
 			CanCreatePublicChannel:  true,
 			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
-			CanCreatePlaybookRun:    true,
 		})
 		require.Error(t, appErr)
 	})

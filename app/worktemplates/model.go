@@ -27,7 +27,6 @@ type PermissionSet struct {
 	// playbooks
 	CanCreatePublicPlaybook  bool
 	CanCreatePrivatePlaybook bool
-	CanCreatePlaybookRun     bool
 	// boards
 	CanCreatePublicBoard  bool
 	CanCreatePrivateBoard bool
@@ -57,9 +56,6 @@ func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) *model.AppError {
 		}
 
 		if c.Playbook != nil {
-			if !p.CanCreatePlaybookRun {
-				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_playbook_run", nil, "", http.StatusForbidden)
-			}
 			if public && !p.CanCreatePublicPlaybook {
 				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_public_playbook", nil, "", http.StatusForbidden)
 			}

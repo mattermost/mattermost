@@ -7012,10 +7012,6 @@
     "translation": "Unable to update the webhook."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_playbook_run",
-    "translation": "You don't have permissions to create a playbook run."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_board",
     "translation": "You don't have permissions to create a private board."
   },

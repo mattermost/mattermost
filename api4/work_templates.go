@@ -115,7 +115,6 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 	canCreatePrivateBoard := canCreatePrivateChannel
 	canCreatePublicPlaybook := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionPublicPlaybookCreate)
 	canCreatePrivatePlaybook := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionPrivatePlaybookCreate)
-	canCreateRun := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wtcr.TeamID, model.PermissionRunCreate)
 	appErr = wtcr.CanBeExecuted(worktemplates.PermissionSet{
 		CanCreatePublicChannel:   canCreatePublicChannel,
 		CanCreatePrivateChannel:  canCreatePrivateChannel,
@@ -123,7 +122,6 @@ func executeWorkTemplate(c *Context, w http.ResponseWriter, r *http.Request) {
 		CanCreatePrivateBoard:    canCreatePrivateBoard,
 		CanCreatePublicPlaybook:  canCreatePublicPlaybook,
 		CanCreatePrivatePlaybook: canCreatePrivatePlaybook,
-		CanCreatePlaybookRun:     canCreateRun,
 	})
 	if appErr != nil {
 		c.Err = appErr
