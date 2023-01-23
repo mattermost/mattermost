@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mattermost/logr/v2"
+
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -1178,6 +1179,15 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 
 	cErr := a.forEachChannelMember(c, channel.Id, func(channelMember model.ChannelMember) error {
 		a.Srv().Store().Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
+
+		evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil, "")
+		memberJSON, jsonErr := json.Marshal(channelMember)
+		if jsonErr != nil {
+			return jsonErr
+		}
+		evt.Add("channelMember", string(memberJSON))
+		a.Publish(evt)
+
 		return nil
 	})
 	if cErr != nil {

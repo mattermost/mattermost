@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -67,5 +69,41 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th.Service.SharedChannelSyncHandler(websocketEvent)
 		require.Len(t, mockService.channelNotifications, 1)
 		assert.Equal(t, channel.Id, mockService.channelNotifications[0])
+	})
+
+	t.Run("sync service doesn't panic when no RemoteId", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.Service.Store.(*mocks.Store)
+
+		mockChannelStore := &mocks.ChannelStore{}
+		mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{
+			Id:     "channelID",
+			Shared: model.NewBool(true),
+		}, nil)
+
+		mockUserStore := &mocks.UserStore{}
+		mockUserStore.On("Get", mock.Anything, "creator").Return(&model.User{}, nil)
+		// Not setting RemoteId here causes the panic.
+		mockUserStore.On("Get", mock.Anything, "teammate").Return(&model.User{}, nil)
+
+		mockRemoteClusterStore := &mocks.RemoteClusterStore{}
+		mockRemoteClusterStore.On("Get", mock.Anything).Return(&model.RemoteCluster{}, nil)
+
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockStore.On("User").Return(mockUserStore)
+		mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
+
+		mockService := NewMockSharedChannelService(nil)
+		mockService.active = true
+		th.Service.SetSharedChannelService(mockService)
+
+		require.NotPanics(t, func() {
+			websocketEvent := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "teamID", "channelID", "userID", nil, "")
+			websocketEvent = websocketEvent.SetData(map[string]any{"creator_id": "creator", "teammate_id": "teammate"})
+			th.Service.SharedChannelSyncHandler(websocketEvent)
+			assert.Empty(t, mockService.channelNotifications)
+		})
 	})
 }
