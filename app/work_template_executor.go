@@ -131,7 +131,8 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 	// This loop ensures that if the original name is taken, we try again by adding a suffix to the Name
 	for channelCreationAppErr != nil {
 		// create channel
-		newChan, channelCreationAppErr := e.app.CreateChannelWithUser(c, &model.Channel{
+		var newChan *model.Channel
+		newChan, channelCreationAppErr = e.app.CreateChannelWithUser(c, &model.Channel{
 			TeamId:      wtcr.TeamID,
 			Name:        channelName,
 			DisplayName: channelDisplayName,
