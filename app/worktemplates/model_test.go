@@ -64,7 +64,7 @@ func TestCanBeExecuted(t *testing.T) {
 			CanCreatePublicPlaybook: false,
 			CanCreatePublicBoard:    true,
 		})
-		require.Error(t, appErr)
+		require.NotNil(t, appErr)
 	})
 
 	t.Run("returns an error and no res when playbook template is not found", func(t *testing.T) {
@@ -76,6 +76,6 @@ func TestCanBeExecuted(t *testing.T) {
 			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
 		})
-		require.Error(t, appErr)
+		require.NotNil(t, appErr)
 	})
 }
