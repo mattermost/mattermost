@@ -5405,7 +5405,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Kanal adı geçersiz. Doğrudan olmayan ileti kanallarında, kanal adı içinde kullanıcı kodları kullanılamaz."
+    "translation": "Kanal adları onaltılık biçimde olamaz. Lütfen başka bir kanal adı yazın."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -9713,5 +9713,61 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Elasticsearch için istemci anahtar dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Elasticsearch için istemci sertifika dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Elasticsearch için istemci sertifikasının kodu çözülemedi"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Elasticsearch için CA dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Elasticsearch için CA kodu çözülemedi"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS sunucusu kullanılamıyor."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Toplam giden web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Toplam gelen web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Toplam etkin kullanıcı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Bulut kopyalarında lisans artırımı değerlendirmesi yapılamaz"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Lisans artırımı değerlendirmesi için bir lisans gereklidir"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Lisans artırımı durumu kayıtları alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Lisans artırımı durumu kaydı oluşturulamadı"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
   }
 ]
