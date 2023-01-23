@@ -9726,5 +9726,25 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Elasticsearch用CAのデコードに失敗しました"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "ワークスペースがダウングレードされると、ワークスペースで実行されている重要なワークフロー、その他のビジネス上の重要な活動に悪影響を与える可能性があります。"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWSサーバーは使用できません。"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "外向きのウェブフックの総数を取得できませんでした"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "内向きのウェブフックの総数を取得できませんでした"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "総アクティブユーザー数を取得できませんでした"
   }
 ]
