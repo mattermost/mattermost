@@ -201,12 +201,26 @@ endif
 # Playbooks
 BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
 BUILD_PLAYBOOKS ?= false
+BUILD_HASH_PLAYBOOKS = none
+
+ifneq ($(wildcard $(BUILD_PLAYBOOKS_DIR)/.),)
+  ifeq ($(BUILD_PLAYBOOKS),true)
+    BUILD_PLAYBOOKS = true
+    BUILD_HASH_PLAYBOOKS = $(shell cd $(BUILD_PLAYBOOKS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_PLAYBOOKS = false
+  endif
+else
+    BUILD_PLAYBOOKS = false
+endif
 
 ifeq ($(BUILD_PLAYBOOKS),true)
 IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
 else
 	IGNORE:=$(shell rm -f imports/playbooks_imports.go)
 endif
+
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashPlaybooks=$(BUILD_HASH_PLAYBOOKS)"
 
 all: run ## Alias for 'run'.
 
