@@ -263,6 +263,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
 
+	// After channel is initialized set it to the App object
+	channelsWrapper, ok := serviceMap[product.ChannelKey].(*channelsWrapper)
+	if !ok {
+		return nil, errors.Wrap(err, "channels product is not initialized")
+	}
+	app.ch = channelsWrapper.app.ch
+
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
