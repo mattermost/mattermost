@@ -238,15 +238,16 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
+	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:                s,
-		product.ChannelKey:       &channelsWrapper{srv: s},
+		product.ChannelKey:       &channelsWrapper{srv: s, app: app},
 		product.ConfigKey:        s.platform,
 		product.LicenseKey:       s.licenseWrapper,
 		product.FilestoreKey:     s.platform.FileBackend(),
 		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		product.ClusterKey:       s.platform,
-		product.UserKey:          New(ServerConnector(s.Channels())),
+		product.UserKey:          app,
 		product.LogKey:           s.platform.Log(),
 		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		product.KVStoreKey:       s.platform,
@@ -290,8 +291,9 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
-				TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
-					return sentry.SampledFalse
+				EnableTracing: false,
+				TracesSampler: sentry.TracesSampler(func(ctx sentry.SamplingContext) float64 {
+					return 0.0
 				}),
 			}); err2 != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))

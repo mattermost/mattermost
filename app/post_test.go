@@ -2409,7 +2409,14 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 		require.True(t, p.Id == sysadmin.Id || p.Id == user.Id)
 	}
 
+	oldID := threadMembership.PostId
 	threadMembership.PostId = "notfound"
+	_, err = th.App.GetThreadForUser(threadMembership, false)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+
+	threadMembership.Following = false
+	threadMembership.PostId = oldID
 	_, err = th.App.GetThreadForUser(threadMembership, false)
 	require.NotNil(t, err)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)

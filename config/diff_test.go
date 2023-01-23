@@ -808,7 +808,7 @@ func TestDiff(t *testing.T) {
 							Enable: !defaultConfigGen().PluginSettings.PluginStates["com.mattermost.nps"].Enable,
 						},
 						"focalboard": {
-							Enable: true,
+							Enable: false,
 						},
 						"playbooks": {
 							Enable: true,
@@ -846,7 +846,7 @@ func TestDiff(t *testing.T) {
 							Enable: true,
 						},
 						"focalboard": {
-							Enable: true,
+							Enable: false,
 						},
 						"playbooks": {
 							Enable: true,
@@ -876,7 +876,7 @@ func TestDiff(t *testing.T) {
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
 					ActualVal: map[string]*model.PluginState{
 						"focalboard": {
-							Enable: true,
+							Enable: false,
 						},
 						"playbooks": {
 							Enable: true,

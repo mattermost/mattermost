@@ -149,12 +149,12 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.11.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.12.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.5.2
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.35.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
@@ -163,8 +163,8 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.5.4
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
+PLUGIN_PACKAGES += focalboard-v7.7.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -312,7 +312,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
