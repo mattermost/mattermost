@@ -9744,14 +9744,30 @@
   },
   {
     "id": "api.license.true_up_review.get_status_error",
-    "translation": "Kon geen waarheidsgetrouwe statusrecords krijgen"
+    "translation": "Kon geen true up statusrecords krijgen"
   },
   {
     "id": "api.license.true_up_review.create_error",
-    "translation": "Kon geen waarheidsgetrouw statusrecord aanmaken"
+    "translation": "Kon geen true up statusrecord aanmaken"
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
     "translation": "Een gedowngrade workspace kan een negatieve invloed hebben op kritische workflows en andere activiteiten die op je workspace worden verricht."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server is niet beschikbaar."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Fout bij het ophalen van het totaal aantal uitgaande webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Fout bij het ophalen van het totaal aantal inkomende webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Fout bij het ophalen van het totaal aantal actieve gebruikers"
   }
 ]
