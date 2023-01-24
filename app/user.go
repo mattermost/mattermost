@@ -70,7 +70,38 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 		}
 	}
 
-	channels, nErr := a.Srv().Store().Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
+	// find the sender id and grab the channels in order to validate
+	// the sender id still belongs to team and to private channels
+	senderId := tokenData["senderId"]
+	channelIds := strings.Split(tokenData["channels"], " ")
+
+	emailInvite := model.MemberInvite{
+		ChannelIds: channelIds,
+	}
+
+	senderUser, uErr := a.GetUser(senderId)
+	if uErr != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_user_by_id.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	teamMember, tErr := a.GetTeamMember(team.Id, senderId)
+	if tErr != nil && tErr.StatusCode != http.StatusNotFound {
+		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_teammember_by_id.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	teamMembers := []*model.TeamMember{}
+	teamMembers = append(teamMembers, teamMember)
+	senderUserSession := &model.Session{
+		UserId:      senderUser.Id,
+		Roles:       senderUser.GetRawRoles(),
+		Local:       false,
+		TeamMembers: teamMembers,
+	}
+
+	// filter the channels the original inviter has still permissions over
+	a.ValidateUserPermissionsOnChannels(c, *senderUserSession, &emailInvite)
+
+	channels, nErr := a.Srv().Store().Channel().GetChannelsByIds(emailInvite.ChannelIds, false)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}

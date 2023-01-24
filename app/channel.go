@@ -2651,6 +2651,28 @@ func (a *App) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 	return threadsEnabled
 }
 
+func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, session model.Session, e model.EmailInvite) {
+	var allowedChannelIds []string
+	channels := e.GetChannels()
+
+	for _, channelId := range channels {
+		channel, err := a.GetChannel(c, channelId)
+		if err != nil {
+			mlog.Info("Invite users to team - couldn't get channel " + channelId)
+			continue
+		}
+
+		if channel.Type == model.ChannelTypePrivate && a.SessionHasPermissionToChannel(c, session, channelId, model.PermissionManagePrivateChannelMembers) {
+			allowedChannelIds = append(allowedChannelIds, channelId)
+		} else if channel.Type == model.ChannelTypeOpen && a.SessionHasPermissionToChannel(c, session, channelId, model.PermissionManagePublicChannelMembers) {
+			allowedChannelIds = append(allowedChannelIds, channelId)
+		} else {
+			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + c.Session().UserId)
+		}
+	}
+	e.SetChannels(allowedChannelIds)
+}
+
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID) {

@@ -3174,7 +3174,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 
 		require.Len(t, memberInvite.ChannelIds, 2)
 
-		validateUserPermissionsOnChannels(c, memberInvite)
+		th.App.ValidateUserPermissionsOnChannels(c.AppContext, *session, memberInvite)
 
 		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
 		require.Len(t, memberInvite.ChannelIds, 2)
@@ -3193,7 +3193,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 
 		require.Len(t, memberInvite.ChannelIds, 2)
 
-		validateUserPermissionsOnChannels(c, memberInvite)
+		th.App.ValidateUserPermissionsOnChannels(c.AppContext, *session, memberInvite)
 
 		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
 		require.Len(t, memberInvite.ChannelIds, 1)

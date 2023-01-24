@@ -1357,29 +1357,6 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJSON(data)))
 }
 
-func validateUserPermissionsOnChannels(c *Context, e model.EmailInvite) {
-	var allowedChannelIds []string
-	channels := e.GetChannels()
-
-	for _, channelId := range channels {
-		channel, err := c.App.GetChannel(c.AppContext, channelId)
-		if err != nil {
-			mlog.Info("Invite users to team - couldn't get channel " + channelId)
-			continue
-		}
-		canManagePrivateChannels := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionManagePrivateChannelMembers)
-		canManagePublicChannels := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionManagePublicChannelMembers)
-		if channel.Type == model.ChannelTypePrivate && canManagePrivateChannels {
-			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else if channel.Type == model.ChannelTypeOpen && canManagePublicChannels {
-			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else {
-			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + c.AppContext.Session().UserId)
-		}
-	}
-	e.SetChannels(allowedChannelIds)
-}
-
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
 
@@ -1429,7 +1406,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(memberInvite.ChannelIds) > 0 {
 		// Check if the user sending the invitation has access to the channels where the invitation is being sent
-		validateUserPermissionsOnChannels(c, memberInvite)
+		c.App.ValidateUserPermissionsOnChannels(c.AppContext, *c.AppContext.Session(), memberInvite)
 
 		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
 		auditRec.AddMeta("channels", memberInvite.ChannelIds)
@@ -1548,7 +1525,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	// Check if the user sending the invitation has access to the channels where the invitation is being sent
-	validateUserPermissionsOnChannels(c, &guestsInvite)
+	c.App.ValidateUserPermissionsOnChannels(c.AppContext, *c.AppContext.Session(), &guestsInvite)
 
 	if graceful {
 		var invitesWithError []*model.EmailInviteWithError

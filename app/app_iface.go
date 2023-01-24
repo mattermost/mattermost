@@ -1163,6 +1163,7 @@ type AppIface interface {
 	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	UserIsFirstAdmin(user *model.User) bool
+	ValidateUserPermissionsOnChannels(c request.CTX, session model.Session, e model.EmailInvite)
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
