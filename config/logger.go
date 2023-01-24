@@ -204,13 +204,13 @@ func makeJSONFormatOptions() json.RawMessage {
 }
 
 func makePlainFormatOptions(enableColor bool) json.RawMessage {
-	str := fmt.Sprintf(`{"delim": "%s", "min_level_len": %d, "min_msg_len": %d, "enable_color": %t, "enable_caller": %t}`,
+	str := fmt.Sprintf(`{"delim": %q, "min_level_len": %d, "min_msg_len": %d, "enable_color": %t, "enable_caller": %t}`,
 		LogDelim, LogMinLevelLen, LogMinMsgLen, enableColor, LogEnableCaller)
 	return json.RawMessage(str)
 }
 
 func makeFileOptions(filename string) json.RawMessage {
-	str := fmt.Sprintf(`{"filename": "%s", "max_size": %d, "max_age": %d, "max_backups": %d, "compress": %t}`,
+	str := fmt.Sprintf(`{"filename": %q, "max_size": %d, "max_age": %d, "max_backups": %d, "compress": %t}`,
 		filename, LogRotateSizeMB, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
 	return json.RawMessage(str)
 }

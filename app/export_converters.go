@@ -158,6 +158,7 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 		MentionCountRoot: &member.MentionCountRoot,
 		MsgCount:         &member.MsgCount,
 		MsgCountRoot:     &member.MsgCountRoot,
+		LastViewedAt:     &member.LastViewedAt,
 	}
 }
 

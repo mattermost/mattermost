@@ -1033,6 +1033,9 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 			member.MsgCount = *cdata.MsgCount
 			member.MsgCountRoot = *cdata.MsgCountRoot
 		}
+		if cdata.LastViewedAt != nil {
+			member.LastViewedAt = *cdata.LastViewedAt
+		}
 
 		if cdata.NotifyProps != nil {
 			if cdata.NotifyProps.Desktop != nil {

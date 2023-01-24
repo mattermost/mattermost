@@ -118,7 +118,6 @@ type UserChannelImportData struct {
 	MsgCount           *int64                            `json:"msg_count,omitempty"`
 	MsgCountRoot       *int64                            `json:"msg_count_root,omitempty"`
 	LastViewedAt       *int64                            `json:"last_viewed_at,omitempty"`
-	LastUpdatedAt      *int64                            `json:"last_updated_at,omitempty"`
 }
 
 type UserChannelNotifyPropsImportData struct {
