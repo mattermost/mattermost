@@ -1126,7 +1126,7 @@ func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName strin
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_30.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["BulletListItems"] = []string{T("api.templates.delinquency_30.bullet.message_history"), T("api.templates.delinquency_30.bullet.files"), T("api.templates.delinquency_30.bullet.cards"), T("api.templates.delinquency_30.bullet.plugins")}
+	data.Props["BulletListItems"] = []string{T("api.templates.delinquency_30.bullet.message_history"), T("api.templates.delinquency_30.bullet.files")}
 	data.Props["LimitsDocs"] = T("api.templates.delinquency_30.limits_documentation")
 	data.Props["Footer"] = T("api.templates.copyright")
 

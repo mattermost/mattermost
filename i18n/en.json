@@ -2078,6 +2078,34 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Could not create true up status record"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Could not get true up status records"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up review requires a license"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True up review is not allowed for cloud instances"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Could not get the total active users count"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Could not get the total incoming webhook count"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Could not get the total outgoing webhook count"
+  },
+  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },
@@ -2542,6 +2570,10 @@
   {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "Your license does not support update permissions schemes"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server is not available."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -3292,20 +3324,12 @@
     "translation": "Payment not received"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Cards from your Boards"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Files"
   },
   {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Message history"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Active plugins and integrations"
   },
   {
     "id": "api.templates.delinquency_30.button",
@@ -3345,7 +3369,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "A downgraded workspace might negatively affect critical workflows, integrations and other business critical activities carried at your workspace."
+    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried at your workspace."
   },
   {
     "id": "api.templates.delinquency_45.subtitle3",
@@ -5138,6 +5162,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "user with username \"{{.Username}}\" already exists."
   },
   {
     "id": "app.import.attachment.bad_file.error",
