@@ -25,7 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 
-	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
+	_ "github.com/mattermost/mattermost-server/v6/model/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {

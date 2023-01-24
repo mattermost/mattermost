@@ -10,11 +10,7 @@ import (
 	// Import and register app layer slash commands
 	_ "github.com/mattermost/mattermost-server/v6/app/slashcommands"
 	// Plugins
-	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
-	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/google"
-	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/office365"
-	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/openid"
-
+	_ "github.com/mattermost/mattermost-server/v6/model/gitlab"
 	// Enterprise Imports
 	_ "github.com/mattermost/mattermost-server/v6/imports"
 )
