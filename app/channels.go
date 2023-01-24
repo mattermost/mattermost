@@ -214,7 +214,6 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
 	services[product.ChannelKey] = &channelsWrapper{
-		srv: s,
 		app: &App{ch: ch},
 	}
 
@@ -243,6 +242,10 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	services[product.PreferencesKey] = &preferencesServiceWrapper{
 		app: &App{ch: ch},
 	}
+
+	services[product.CommandKey] = &App{ch: ch}
+
+	services[product.ThreadsKey] = &App{ch: ch}
 
 	return ch, nil
 }

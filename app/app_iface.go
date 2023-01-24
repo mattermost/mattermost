@@ -960,6 +960,7 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
+	RegisterCollectionAndTopic(pluginID, collectionType, topicType string) error
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError
