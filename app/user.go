@@ -73,8 +73,7 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 	// find the sender id and grab the channels in order to validate
 	// the sender id still belongs to team and to private channels
 	senderId := tokenData["senderId"]
-	//channelIds := strings.Split(tokenData["channels"], " ")
-	channelIds := []string{"dqk9kya3mtb8pgrfbu9o9urkwc", "bo8dxsecwbbxdrc747pfybx7ah", "jpm4crcwg7bgup3pkjijfapf1w", "sxj1ngzkm7ffxbs9frdw16pbia"}
+	channelIds := strings.Split(tokenData["channels"], " ")
 
 	// filter the channels the original inviter has still permissions over
 	channelIds = a.ValidateUserPermissionsOnChannels(c, senderId, channelIds)
