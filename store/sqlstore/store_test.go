@@ -703,7 +703,6 @@ func TestVersionString(t *testing.T) {
 }
 
 func TestReplicaLagQuery(t *testing.T) {
-	t.Skip("MM-49604")
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
 		model.DatabaseDriverMysql,
@@ -730,7 +729,6 @@ func TestReplicaLagQuery(t *testing.T) {
 		}}
 
 		mockMetrics := &mocks.MetricsInterface{}
-		defer mockMetrics.AssertExpectations(t)
 		mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
 		mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
 		mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
@@ -753,6 +751,7 @@ func TestReplicaLagQuery(t *testing.T) {
 		require.NoError(t, err)
 		err = store.ReplicaLagTime()
 		require.NoError(t, err)
+		mockMetrics.AssertExpectations(t)
 	}
 }
 
