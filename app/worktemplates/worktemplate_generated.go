@@ -29,7 +29,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 	ID:           "product_teams/feature_release:v1",
 	Category:     "product_teams",
 	UseCase:      "Feature Release",
-	Illustration: "https://via.placeholder.com/204x123.png",
+	Illustration: "/static/worktemplates/product_teams/feature_release/feature_release.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -51,7 +51,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.integration",
 			DefaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you.",
-			Illustration:   "https://via.placeholder.com/509x352.png?text=Integrations",
+			Illustration:   "/static/worktemplates/product_teams/feature_release/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -61,7 +61,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Name:         "Feature Release",
 				Purpose:      "",
 				Playbook:     "product-release-playbook",
-				Illustration: "https://via.placeholder.com/509x352.png?text=Channel&#43;feature&#43;release",
+				Illustration: "/static/worktemplates/product_teams/feature_release/channel.png",
 			},
 		},
 		{
@@ -70,7 +70,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "54fcf9c610f0ac5e4c522c0657c90602",
 				Name:         "Meeting Agenda",
 				Channel:      "feature-release",
-				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;meeting&#43;agenda",
+				Illustration: "/static/worktemplates/product_teams/feature_release/board-ma.png",
 			},
 		},
 		{
@@ -79,7 +79,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "Project Task",
 				Channel:      "feature-release",
-				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;project&#43;task",
+				Illustration: "/static/worktemplates/product_teams/feature_release/board-pt.png",
 			},
 		},
 		{
@@ -87,7 +87,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "Product Release",
 				Name:         "Feature release",
 				ID:           "product-release-playbook",
-				Illustration: "https://via.placeholder.com/509x352.png?text=Playbook&#43;feature&#43;release",
+				Illustration: "/static/worktemplates/product_teams/feature_release/playbook.png",
 			},
 		},
 		{
