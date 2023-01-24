@@ -18510,7 +18510,7 @@ func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ValidateUserPermissionsOnChannels(c request.CTX, session model.Session, e model.EmailInvite) {
+func (a *OpenTracingAppLayer) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateUserPermissionsOnChannels")
 
@@ -18522,7 +18522,9 @@ func (a *OpenTracingAppLayer) ValidateUserPermissionsOnChannels(c request.CTX, s
 	}()
 
 	defer span.Finish()
-	a.app.ValidateUserPermissionsOnChannels(c, session, e)
+	resultVar0 := a.app.ValidateUserPermissionsOnChannels(c, userId, channelIds)
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError {

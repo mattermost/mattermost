@@ -4772,16 +4772,8 @@
     "translation": "Unable to get public channels."
   },
   {
-    "id": "app.channel.get_teammember_by_id.app_error",
-    "translation": "Unable to get the team member by id."
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
-  },
-  {
-    "id": "app.channel.get_user_by_id.app_error",
-    "translation": "Unable to get the user by id."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",

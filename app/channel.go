@@ -2651,26 +2651,25 @@ func (a *App) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 	return threadsEnabled
 }
 
-func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, session model.Session, e model.EmailInvite) {
+func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
 	var allowedChannelIds []string
-	channels := e.GetChannels()
 
-	for _, channelId := range channels {
+	for _, channelId := range channelIds {
 		channel, err := a.GetChannel(c, channelId)
 		if err != nil {
 			mlog.Info("Invite users to team - couldn't get channel " + channelId)
 			continue
 		}
 
-		if channel.Type == model.ChannelTypePrivate && a.SessionHasPermissionToChannel(c, session, channelId, model.PermissionManagePrivateChannelMembers) {
+		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers) {
 			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else if channel.Type == model.ChannelTypeOpen && a.SessionHasPermissionToChannel(c, session, channelId, model.PermissionManagePublicChannelMembers) {
+		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
-			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + c.Session().UserId)
+			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId)
 		}
 	}
-	e.SetChannels(allowedChannelIds)
+	return allowedChannelIds
 }
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.

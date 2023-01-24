@@ -3139,64 +3139,30 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// define emails list
-	guest1 := th.GenerateTestEmail()
-	guest2 := th.GenerateTestEmail()
-	emailList := []string{guest1, guest2}
-
 	// define user session and context
-	session := &model.Session{}
-	session.CreateAt = model.GetMillis()
-	session.UserId = th.BasicUser.Id
-	session.Token = model.NewId()
-	session.Roles = model.SystemUserRoleId
-	th.App.SetSessionExpireInHours(session, 24)
-
-	var err *model.AppError
-	session, err = th.App.CreateSession(session)
-	require.Nil(t, err)
-
-	newContext := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), *session, nil)
-
-	c := &Context{
-		App:        th.App,
-		AppContext: newContext,
-	}
+	context := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 
 	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
-		th.LoginBasic()
-		channelsList := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
+		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
 
-		memberInvite := &model.MemberInvite{
-			Emails:     emailList,
-			ChannelIds: channelsList,
-		}
+		require.Len(t, channelIds, 2)
 
-		require.Len(t, memberInvite.ChannelIds, 2)
-
-		th.App.ValidateUserPermissionsOnChannels(c.AppContext, *session, memberInvite)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
 
 		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
-		require.Len(t, memberInvite.ChannelIds, 2)
+		require.Len(t, channelIds, 2)
 	})
 
 	t.Run("User WITHOUT permissions on private channel CAN NOT invite members to it", func(t *testing.T) {
-		th.LoginBasic()
-
 		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
-		channelsList := []string{th.BasicChannel.Id, channelIdWithoutPermissions}
+		channelIds := []string{th.BasicChannel.Id, channelIdWithoutPermissions}
 
-		memberInvite := &model.MemberInvite{
-			Emails:     emailList,
-			ChannelIds: channelsList,
-		}
+		require.Len(t, channelIds, 2)
 
-		require.Len(t, memberInvite.ChannelIds, 2)
-
-		th.App.ValidateUserPermissionsOnChannels(c.AppContext, *session, memberInvite)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
 
 		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
-		require.Len(t, memberInvite.ChannelIds, 1)
+		require.Len(t, channelIds, 1)
 	})
 }
 

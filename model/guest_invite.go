@@ -13,19 +13,6 @@ type GuestsInvite struct {
 	Message  string   `json:"message"`
 }
 
-type EmailInvite interface {
-	GetChannels() []string
-	SetChannels(channels []string)
-}
-
-func (i *GuestsInvite) GetChannels() []string {
-	return i.Channels
-}
-
-func (i *GuestsInvite) SetChannels(channels []string) {
-	i.Channels = channels
-}
-
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (i *GuestsInvite) IsValid() *AppError {
