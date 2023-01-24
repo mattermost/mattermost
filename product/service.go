@@ -26,4 +26,8 @@ const (
 	SystemKey        ServiceKey = "systemkey"
 	PreferencesKey   ServiceKey = "preferenceskey"
 	BoardsKey        ServiceKey = "boards"
+	SessionKey       ServiceKey = "sessionkey"
+	FrontendKey      ServiceKey = "frontendkey"
+	CommandKey       ServiceKey = "commandkey"
+	ThreadsKey       ServiceKey = "threadskey"
 )
