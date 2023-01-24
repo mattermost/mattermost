@@ -76,6 +76,9 @@ type FeatureFlags struct {
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
+
+	// A/B test on invite team members button
+	ShowInviteTeamMembersButton bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -98,13 +101,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsProduct = true
 	f.SendWelcomePost = true
 	f.PostPriority = true
-	f.PeopleProduct = false
+	f.PeopleProduct = true
 	f.WorkTemplate = false
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
+	f.ShowInviteTeamMembersButton = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
