@@ -280,3 +280,37 @@ func TestStripMarkdown(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownToHTML(t *testing.T) {
+	siteURL := "https://example.com"
+	tests := []struct {
+		name     string
+		markdown string
+		want     string
+	}{
+		{
+			name:     "absolute url not changed",
+			markdown: "[Link](https://example.com)",
+			want:     "<p><a href=\"https://example.com\">Link</a></p>\n",
+		},
+		{
+			name:     "relative url changed to absolute url",
+			markdown: "[Link](/foo)",
+			want:     "<p><a href=\"https://example.com/foo\">Link</a></p>\n",
+		},
+		{
+			name:     "relative url with query params changed to absolute url",
+			markdown: "[Link](/foo?bar=true)",
+			want:     "<p><a href=\"https://example.com/foo?bar=true\">Link</a></p>\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := MarkdownToHTML(tt.markdown, siteURL)
+			if err != nil {
+				t.Fatalf("error: %v", err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

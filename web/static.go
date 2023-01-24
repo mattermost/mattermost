@@ -105,6 +105,11 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 			w.Header().Set("Cache-Control", "max-age=31556926, public")
 		}
 
+		// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
+		w.Header().Set("Permissions-Policy", "")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return

@@ -21,7 +21,7 @@ type AppIface interface {
 	configservice.ConfigService
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
-	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
 
@@ -56,7 +56,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}()
 
 		logger := app.Log().With(mlog.String("job_id", job.Id))
-		appErr := app.BulkExport(request.EmptyContext(logger), wr, outPath, opts)
+		appErr := app.BulkExport(request.EmptyContext(logger), wr, outPath, job, opts)
 		wr.Close() // Close never returns an error
 
 		if appErr != nil {
