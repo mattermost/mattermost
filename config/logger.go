@@ -158,7 +158,7 @@ func makeSimpleFileTarget(filename string, level string, json bool) (mlog.Target
 
 	fileOpts, err := makeFileOptions(filename)
 	if err != nil {
-		return mlog.TargetCfg{}, fmt.Errorf("cannot encode file options: %w")
+		return mlog.TargetCfg{}, fmt.Errorf("cannot encode file options: %w", err)
 	}
 
 	target := mlog.TargetCfg{
