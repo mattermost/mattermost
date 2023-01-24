@@ -156,10 +156,15 @@ func makeSimpleFileTarget(filename string, level string, json bool) (mlog.Target
 		return mlog.TargetCfg{}, err
 	}
 
+	fileOpts, err := makeFileOptions(filename)
+	if err != nil {
+		return mlog.TargetCfg{}, fmt.Errorf("cannot encode file options: %w")
+	}
+
 	target := mlog.TargetCfg{
 		Type:         "file",
 		Levels:       levels,
-		Options:      makeFileOptions(filename),
+		Options:      fileOpts,
 		MaxQueueSize: 1000,
 	}
 
@@ -209,8 +214,25 @@ func makePlainFormatOptions(enableColor bool) json.RawMessage {
 	return json.RawMessage(str)
 }
 
-func makeFileOptions(filename string) json.RawMessage {
-	str := fmt.Sprintf(`{"filename": "%s", "max_size": %d, "max_age": %d, "max_backups": %d, "compress": %t}`,
-		filename, LogRotateSizeMB, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
-	return json.RawMessage(str)
+func makeFileOptions(filename string) (json.RawMessage, error) {
+	opts := struct {
+		Filename    string `json:"filename"`
+		Max_size    int    `json:"max_size"`
+		Max_age     int    `json:"max_age"`
+		Max_backups int    `json:"max_backups"`
+		Compress    bool   `json:"compress"`
+	}{
+		Filename:    filename,
+		Max_size:    LogRotateSizeMB,
+		Max_age:     LogRotateMaxAge,
+		Max_backups: LogRotateMaxBackups,
+		Compress:    LogCompress,
+	}
+
+	b, err := json.Marshal(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.RawMessage(b), nil
 }
