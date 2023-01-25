@@ -1029,6 +1029,9 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 			member.MentionCount = *cdata.MentionCount
 			member.MentionCountRoot = *cdata.MentionCountRoot
 		}
+		if cdata.UrgentMentionCount != nil {
+			member.UrgentMentionCount = *cdata.UrgentMentionCount
+		}
 		if cdata.MsgCount != nil && cdata.MsgCountRoot != nil {
 			member.MsgCount = *cdata.MsgCount
 			member.MsgCountRoot = *cdata.MsgCountRoot
