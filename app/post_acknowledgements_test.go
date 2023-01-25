@@ -36,21 +36,41 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 		require.Equal(t, post.Id, acknowledgment.PostId)
 		require.Equal(t, th.BasicUser.Id, acknowledgment.UserId)
 	})
+
+	t.Run("saving acknowledgment should update the post's update_at", func(t *testing.T) {
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+		}, "", true)
+
+		require.Nil(t, err)
+
+		oldUpdateAt := post.UpdateAt
+
+		_, err = th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		post, err = th.App.GetSinglePost(post.Id, false)
+		require.Nil(t, err)
+
+		require.Greater(t, post.UpdateAt, oldUpdateAt)
+	})
 }
 
 func testDeleteAcknowledgementForPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+	post, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		CreateAt:  model.GetMillis(),
 		Message:   "message",
 	}, "", true)
-	require.Nil(t, err)
+	require.Nil(t, err1)
 
 	t.Run("delete acknowledgment for post should delete acknowledgement", func(t *testing.T) {
-		_, err = th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		_, err := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		acknowledgments, err := th.App.GetAcknowledgementsForPost(post.Id)
@@ -64,6 +84,24 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 		acknowledgments, err = th.App.GetAcknowledgementsForPost(post.Id)
 		require.Nil(t, err)
 		require.Empty(t, acknowledgments)
+	})
+
+	t.Run("deleting acknowledgment should update the post's update_at", func(t *testing.T) {
+		_, err := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		post, err = th.App.GetSinglePost(post.Id, false)
+		require.Nil(t, err)
+
+		oldUpdateAt := post.UpdateAt
+
+		err = th.App.DeleteAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		post, err = th.App.GetSinglePost(post.Id, false)
+		require.Nil(t, err)
+
+		require.Greater(t, post.UpdateAt, oldUpdateAt)
 	})
 
 	t.Run("delete acknowledgment for post after 5 min after acknowledged should not delete", func(t *testing.T) {
