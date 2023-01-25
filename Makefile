@@ -93,6 +93,22 @@ else
     BUILD_BOARDS = false
 endif
 
+# Playbooks
+BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
+BUILD_PLAYBOOKS ?= false
+BUILD_HASH_PLAYBOOKS = none
+
+ifneq ($(wildcard $(BUILD_PLAYBOOKS_DIR)/.),)
+  ifeq ($(BUILD_PLAYBOOKS),true)
+    BUILD_PLAYBOOKS = true
+    BUILD_HASH_PLAYBOOKS = $(shell cd $(BUILD_PLAYBOOKS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_PLAYBOOKS = false
+  endif
+else
+    BUILD_PLAYBOOKS = false
+endif
+
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
 # and docker will add '/', so we need to set the go-build cache location or we'll get
@@ -116,6 +132,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterpr
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashPlaybooks=$(BUILD_HASH_PLAYBOOKS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -198,6 +215,12 @@ ifeq ($(BUILD_BOARDS),true)
 	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
 else
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
+endif
+
+ifeq ($(BUILD_PLAYBOOKS),true)
+IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/playbooks_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -314,7 +337,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -423,6 +446,7 @@ endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
+setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 

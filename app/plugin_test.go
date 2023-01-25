@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,11 +18,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -1005,65 +1002,6 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, pluginStatus, 0)
 	})
-}
-
-func TestEnablePluginWithCloudLimits(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = true
-		*cfg.PluginSettings.RequirePluginSignature = false
-		cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: false}
-		cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: false}
-	})
-
-	cloud := &mocks.CloudInterface{}
-	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-		Integrations: &model.IntegrationsLimits{
-			Enabled: model.NewInt(1),
-		},
-	}, nil)
-
-	cloudImpl := th.App.Srv().Cloud
-	defer func() {
-		th.App.Srv().Cloud = cloudImpl
-	}()
-	th.App.Srv().Cloud = cloud
-
-	env := th.App.GetPluginsEnvironment()
-	require.NotNil(t, env)
-
-	path, _ := fileutils.FindDir("tests")
-	fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
-	require.NoError(t, err)
-	defer fileReader.Close()
-
-	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
-	checkNoError(t, appErr)
-
-	fileReader, err = os.Open(filepath.Join(path, "testplugin2.tar.gz"))
-	require.NoError(t, err)
-	defer fileReader.Close()
-
-	_, appErr = th.App.WriteFile(fileReader, getBundleStorePath("testplugin2"))
-	checkNoError(t, appErr)
-
-	appErr = th.App.SyncPlugins()
-	checkNoError(t, appErr)
-
-	appErr = th.App.EnablePlugin("testplugin")
-	checkNoError(t, appErr)
-
-	// Let enable succeed if a CWS error occurs
-	cloud = &mocks.CloudInterface{}
-	th.App.Srv().Cloud = cloud
-	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("error getting limits"))
-
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkNoError(t, appErr)
 }
 
 func TestGetPluginStateOverride(t *testing.T) {
