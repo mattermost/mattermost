@@ -81,12 +81,12 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 	}
 
 	err = updatePost(transaction, acknowledgement.PostId)
-
 	if err != nil {
 		return nil, err
 	}
 
-	if err := transaction.Commit(); err != nil {
+	err = transaction.Commit()
+	if err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
@@ -98,8 +98,8 @@ func (s *SqlPostAcknowledgementStore) Delete(ack *model.PostAcknowledgement) err
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-
 	defer finalizeTransactionX(transaction, &err)
+	
 	query := s.getQueryBuilder().
 		Update("PostAcknowledgements").
 		Set("AcknowledgedAt", 0).
@@ -114,12 +114,12 @@ func (s *SqlPostAcknowledgementStore) Delete(ack *model.PostAcknowledgement) err
 	}
 
 	err = updatePost(transaction, ack.PostId)
-
 	if err != nil {
 		return err
 	}
 
-	if err := transaction.Commit(); err != nil {
+	err = transaction.Commit()
+	if err != nil {
 		return errors.Wrap(err, "commit_transaction")
 	}
 
