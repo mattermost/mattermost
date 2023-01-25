@@ -393,6 +393,8 @@ type AppIface interface {
 	// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
 	// admins in the given syncable.
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
+	// ValidateUserPermissionsOnChannels filters channelIds based on whether userId is authorized to manage channel members. Unauthorized channels are removed from the returned list.
+	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
 	AccountMigration() einterfaces.AccountMigrationInterface
@@ -1163,7 +1165,6 @@ type AppIface interface {
 	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	UserIsFirstAdmin(user *model.User) bool
-	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
