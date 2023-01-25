@@ -101,7 +101,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsProduct = true
 	f.SendWelcomePost = true
 	f.PostPriority = true
-	f.PeopleProduct = true
+	f.PeopleProduct = false
 	f.WorkTemplate = false
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
