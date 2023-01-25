@@ -5188,6 +5188,10 @@
     "translation": "group member already exists"
   },
   {
+    "id": "app.group.username_conflict",
+    "translation": "user with username \"{{.Username}}\" already exists."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },

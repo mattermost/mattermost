@@ -9734,5 +9734,41 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Dekodowanie CA dla Elasticsearch nie powiodło się"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "Serwer CWS nie jest dostępny."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Nie można uzyskać całkowitej liczby wychodzących webhooków"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Nie można uzyskać całkowitej liczby przychodzących webhooków"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Nie można uzyskać całkowitej liczby aktywnych użytkowników"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Przegląd True up nie jest dozwolony dla instancji w chmurze"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Prawdziwy przegląd wymaga licencji"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Nie można uzyskać prawdziwych zapisów statusu"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Nie można utworzyć rekordu statusu true up"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Zdegradowane miejsce pracy może mieć negatywny wpływ na krytyczne przepływy pracy i inne krytyczne działania biznesowe wykonywane w miejscu pracy."
   }
 ]
