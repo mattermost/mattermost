@@ -9701,5 +9701,69 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Decoding of the CA for Elasticsearch failed"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Unable to retrieve work templates"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Unable to retrieve categories for work templates"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Unable to enumerate urgent posts since the given date."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Unable to save post acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Unable to retrieve post acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Unable to retrieve acknowledgement."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "The CWS Server is unavailable."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Could not retrieve the total number of outgoing webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Could not retrieve the total number of incoming webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Could not retrieve the total number of active users"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True up review is not allowed for cloud instances"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up review requires a licence"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Could not retrieve true up status records"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Could not create true up status record"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Cannot save a draft to a deleted channel"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
   }
 ]
