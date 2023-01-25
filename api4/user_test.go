@@ -382,6 +382,44 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after be used")
 	})
+
+	t.Run("Validate inviter user has permissions on channels he is inviting", func(t *testing.T) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := th.BasicChannel.Id + " " + channelIdWithoutPermissions
+		token := model.NewToken(
+			app.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email, "senderId": th.BasicUser.Id, "channels": channelIds}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err, "The token must be deleted after being used")
+
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, teams, "The user must have teams")
+		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
+
+		// Now we get all the channels for the just created user
+		channelList, err := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
+		require.Nil(t, err)
+
+		// basicUser has no permissions on BasicPrivateChannel2 so the new invited user should be able to only access
+		// one channel from the two he was invited (plus the two default channels)
+		require.Len(t, channelList, 3)
+	})
 }
 
 func TestCreateUserWebSocketEvent(t *testing.T) {

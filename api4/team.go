@@ -1406,7 +1406,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(memberInvite.ChannelIds) > 0 {
 		// Check if the user sending the invitation has access to the channels where the invitation is being sent
-		memberInvite.ChannelIds = c.App.ValidateUserPermissionsOnChannels(c.AppContext, *&c.AppContext.Session().UserId, memberInvite.ChannelIds)
+		memberInvite.ChannelIds = c.App.ValidateUserPermissionsOnChannels(c.AppContext, c.AppContext.Session().UserId, memberInvite.ChannelIds)
 
 		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
 		auditRec.AddMeta("channels", memberInvite.ChannelIds)
