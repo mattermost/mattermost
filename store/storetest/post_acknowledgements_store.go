@@ -31,22 +31,32 @@ func testPostAcknowledgementsStoreSave(t *testing.T, ss store.Store) {
 			PersistentNotifications: model.NewBool(false),
 		},
 	}
-	_, err := ss.Post().Save(&p1)
+	post, err := ss.Post().Save(&p1)
 	require.NoError(t, err)
 
 	t.Run("consecutive saves should just update the acknowledged at", func(t *testing.T) {
-		_, err := ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
+		_, err := ss.PostAcknowledgement().Save(post.Id, userId1, 0)
 		require.NoError(t, err)
 
-		_, err = ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
+		_, err = ss.PostAcknowledgement().Save(post.Id, userId1, 0)
 		require.NoError(t, err)
 
-		ack1, err := ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
+		ack1, err := ss.PostAcknowledgement().Save(post.Id, userId1, 0)
 		require.NoError(t, err)
 
-		acknowledgements, err := ss.PostAcknowledgement().GetForPost(p1.Id)
+		acknowledgements, err := ss.PostAcknowledgement().GetForPost(post.Id)
 		require.NoError(t, err)
 		require.ElementsMatch(t, acknowledgements, []*model.PostAcknowledgement{ack1})
+	})
+
+	t.Run("saving should update the update at of the post", func(t *testing.T) {
+		oldUpdateAt := post.UpdateAt
+		_, err := ss.PostAcknowledgement().Save(post.Id, userId1, 0)
+		require.NoError(t, err)
+
+		post, err = ss.Post().GetSingle(post.Id, false)
+		require.NoError(t, err)
+		require.Greater(t, post.UpdateAt, oldUpdateAt)
 	})
 }
 
