@@ -709,49 +709,51 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 
 	for _, driver := range testDrivers {
-		settings := makeSqlSettings(driver)
-		var query string
-		var tableName string
-		// Just any random query which returns a row in (string, int) format.
-		switch driver {
-		case model.DatabaseDriverPostgres:
-			query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
-			tableName = "posts"
-		case model.DatabaseDriverMysql:
-			query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
-			tableName = "Posts"
-		}
+		t.Run(driver, func(t *testing.T) {
+			settings := makeSqlSettings(driver)
+			var query string
+			var tableName string
+			// Just any random query which returns a row in (string, int) format.
+			switch driver {
+			case model.DatabaseDriverPostgres:
+				query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
+				tableName = "posts"
+			case model.DatabaseDriverMysql:
+				query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
+				tableName = "Posts"
+			}
 
-		settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-			DataSource:       model.NewString(*settings.DataSource),
-			QueryAbsoluteLag: model.NewString(query),
-			QueryTimeLag:     model.NewString(query),
-		}}
+			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
+				DataSource:       model.NewString(*settings.DataSource),
+				QueryAbsoluteLag: model.NewString(query),
+				QueryTimeLag:     model.NewString(query),
+			}}
 
-		mockMetrics := &mocks.MetricsInterface{}
-		mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
-		mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
-		mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
+			mockMetrics := &mocks.MetricsInterface{}
+			mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
+			mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
+			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
-		store := &SqlStore{
-			rrCounter: 0,
-			srCounter: 0,
-			settings:  settings,
-			metrics:   mockMetrics,
-		}
+			store := &SqlStore{
+				rrCounter: 0,
+				srCounter: 0,
+				settings:  settings,
+				metrics:   mockMetrics,
+			}
 
-		store.initConnection()
-		store.stores.post = newSqlPostStore(store, mockMetrics)
-		err := store.migrate(migrationsDirectionUp)
-		require.NoError(t, err)
+			store.initConnection()
+			store.stores.post = newSqlPostStore(store, mockMetrics)
+			err := store.migrate(migrationsDirectionUp)
+			require.NoError(t, err)
 
-		defer store.Close()
+			defer store.Close()
 
-		err = store.ReplicaLagAbs()
-		require.NoError(t, err)
-		err = store.ReplicaLagTime()
-		require.NoError(t, err)
-		mockMetrics.AssertExpectations(t)
+			err = store.ReplicaLagAbs()
+			require.NoError(t, err)
+			err = store.ReplicaLagTime()
+			require.NoError(t, err)
+			mockMetrics.AssertExpectations(t)
+		})
 	}
 }
 
