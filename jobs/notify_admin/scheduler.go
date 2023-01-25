@@ -4,12 +4,13 @@
 package notify_admin
 
 import (
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+
+	"github.com/mattermost/mattermost-server/v6/jobs"
 )
 
 const schedFreq = 1 * time.Minute
