@@ -93,19 +93,19 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 	return acknowledgement, nil
 }
 
-func (s *SqlPostAcknowledgementStore) Delete(ack *model.PostAcknowledgement) error {
+func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
-	
+
 	query := s.getQueryBuilder().
 		Update("PostAcknowledgements").
 		Set("AcknowledgedAt", 0).
 		Where(sq.And{
-			sq.Eq{"PostId": ack.PostId},
-			sq.Eq{"UserId": ack.UserId},
+			sq.Eq{"PostId": acknowledgement.PostId},
+			sq.Eq{"UserId": acknowledgement.UserId},
 		})
 
 	_, err = transaction.ExecBuilder(query)
@@ -113,7 +113,7 @@ func (s *SqlPostAcknowledgementStore) Delete(ack *model.PostAcknowledgement) err
 		return err
 	}
 
-	err = updatePost(transaction, ack.PostId)
+	err = updatePost(transaction, acknowledgement.PostId)
 	if err != nil {
 		return err
 	}
