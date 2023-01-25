@@ -2651,6 +2651,7 @@ func (a *App) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 	return threadsEnabled
 }
 
+// ValidateUserPermissionsOnChannels filters channelIds based on whether userId is authorized to manage channel members. Unauthorized channels are removed from the returned list.
 func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
 	var allowedChannelIds []string
 
