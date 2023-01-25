@@ -1148,3 +1148,16 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 
 	return false, false
 }
+
+func (a *App) IsPluginActive(pluginName string) (bool, error) {
+	return a.Channels().IsPluginActive(pluginName)
+}
+
+func (ch *Channels) IsPluginActive(pluginName string) (bool, error) {
+	pluginStatus, err := ch.GetPluginStatus(pluginName)
+	if err != nil {
+		return false, err
+	}
+
+	return pluginStatus.State == model.PluginStateRunning, nil
+}

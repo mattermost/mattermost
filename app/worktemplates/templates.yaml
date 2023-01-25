@@ -1,7 +1,7 @@
 id: "product_teams/feature_release:v1"
 category: product_teams
 useCase: Feature Release
-illustration: https://via.placeholder.com/204x123.png
+illustration: /static/worktemplates/product_teams/feature_release/feature_release.png
 visibility: public
 description:
     channel:
@@ -16,30 +16,30 @@ description:
     integration:
         id: "worktemplate.product_teams.feature_release.description.integration"
         defaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
-        illustration: "https://via.placeholder.com/509x352.png?text=Integrations"
+        illustration: "/static/worktemplates/product_teams/feature_release/integrations.png"
 content:
   - channel:
       id: feature-release
       name: Feature Release
-      playbook: product-release-playbook # playbook id. if set the channel will be created by the playbook run.
-      illustration: "https://via.placeholder.com/509x352.png?text=Channel+feature+release"
+      playbook: product-release-playbook
+      illustration: "/static/worktemplates/product_teams/feature_release/channel.png"
   - board:
       id: "board-meeting-agenda"
-      template: "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o" # <-- have to find a way to target the board template... could hardcode the ids but need to verify that they don't change?
+      template: "54fcf9c610f0ac5e4c522c0657c90602"
       name: Meeting Agenda
-      channel: feature-release # <-- optional. we use the channel "id" from above
-      illustration: "https://via.placeholder.com/509x352.png?text=Board+meeting+agenda"
+      channel: feature-release
+      illustration: "/static/worktemplates/product_teams/feature_release/board-ma.png"
   - board:
       id: "board-project-task"
-      template: "project task|bmttiziw35irgtmztewd9upyqdy"
-      name: project task board
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
+      name: Project Task
       channel: feature-release
-      illustration: "https://via.placeholder.com/509x352.png?text=Board+project+task"
+      illustration: "/static/worktemplates/product_teams/feature_release/board-pt.png"
   - playbook:
-      template: "product release" # <-- playbooks templates don't have ids, have to rely on name
+      template: "Product Release"
       name: "Feature release"
       id: product-release-playbook
-      illustration: "https://via.placeholder.com/509x352.png?text=Playbook+feature+release"
+      illustration: "/static/worktemplates/product_teams/feature_release/playbook.png"
   - integration:
       id: jira
   - integration:
