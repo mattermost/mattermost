@@ -127,7 +127,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		user1 := &model.User{Id: "uid1"}
 		post := &model.Post{Id: "test id", UserId: user1.Id}
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
