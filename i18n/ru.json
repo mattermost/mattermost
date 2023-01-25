@@ -649,15 +649,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[имя пользователя] ~[канал]"
+    "translation": "@[имя пользователя]... ~[канал]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Отсутствует имя пользователя и канал."
+    "translation": "Отсутствует имя пользователя и/или канал."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Мы не смогли найти пользователя. Вероятно он заблокирован Системным администратором."
+    "translation": "Мы не смогли найти пользователя {{.User}}. Вероятно он заблокирован Системным администратором."
   },
   {
     "id": "api.command_invite.name",
@@ -669,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Невозможно найти канал {{.Channel}}. Пожалуйста, используйте управление каналом для идентификации."
+    "translation": "Невозможно найти канал {{.Channel}}. Пожалуйста, используйте [управление каналом](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации."
   },
   {
     "id": "api.command_invite.success",
@@ -1001,7 +1001,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Невозможно создать смайлик. Изображение должно быть не более 1 MB."
+    "translation": "Невозможно создать смайлик. Изображение должно быть не более 512 КБ."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -5493,7 +5493,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Некорректное имя канала. Запрещено использовать идентификаторы пользователей в качестве имени канала (кроме каналов личных сообщений)."
+    "translation": "Имена каналов не могут быть в шестнадцатеричном формате. Пожалуйста, введите другое имя канала."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -6614,14 +6614,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не удалось разобрать задание экспорта сообщения ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -8721,7 +8713,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Срок действия этого пробного лицензионного ключа для Mattermost Enterprise Edition истек и больше не действует. Если вы хотите продлить пробный период, пожалуйста, [свяжитесь с нашим отделом продаж] (https://mattermost.com/contact-us/)."
+    "translation": "Не удалось применить новую пробную лицензию. Вы уже применяли пробную лицензию к этому экземпляру Mattermost. Если вы хотите продлить пробный период, пожалуйста, [свяжитесь с нашим отделом продаж] (https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9484,10 +9476,6 @@
     "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle1",
     "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
   },
@@ -9524,20 +9512,12 @@
     "translation": "Обновить платёж"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Активные плагины и интеграции"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "История сообщений"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Файлы"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Карточки с Ваших Boards"
   },
   {
     "id": "app.collection.add_topic.exists.app_error",
@@ -9734,5 +9714,61 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Портал недоступен для самостоятельной регистрации."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Не удалось открыть файл клиентского ключа для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Не удалось открыть файл сертификата клиента для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Не удалось декодировать сертификат клиента для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Не удалось открыть файл CA для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Расшифровка CA для Elasticsearch не удалась"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "Сервер CWS не доступен."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Не удалось получить общее количество исходящих вебхуков"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Не удалось получить общее количество входящих вебхуков"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Не удалось получить общее количество активных пользователей"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Для облачных экземпляров не допускается пересмотр в сторону увеличения"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Для проверки достоверности требуется лицензия"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Не удалось получить запись истинного состояния"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Не удалось создать запись истинного состояния"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
   }
 ]

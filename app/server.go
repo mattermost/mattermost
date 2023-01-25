@@ -137,6 +137,7 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]product.Product
+	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
 }
@@ -164,6 +165,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
 		products:    make(map[string]product.Product),
+		services:    make(map[product.ServiceKey]any),
 	}
 
 	for _, option := range options {
@@ -238,20 +240,22 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
+	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:                s,
-		product.ChannelKey:       &channelsWrapper{srv: s},
 		product.ConfigKey:        s.platform,
 		product.LicenseKey:       s.licenseWrapper,
 		product.FilestoreKey:     s.platform.FileBackend(),
 		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		product.ClusterKey:       s.platform,
-		product.UserKey:          New(ServerConnector(s.Channels())),
+		product.UserKey:          app,
 		product.LogKey:           s.platform.Log(),
 		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		product.KVStoreKey:       s.platform,
 		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		product.SystemKey:        &systemServiceAdapter{server: s},
+		product.SessionKey:       app,
+		product.FrontendKey:      app,
 	}
 
 	// Step 4: Initialize products.
@@ -260,6 +264,14 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
+	s.services = serviceMap
+
+	// After channel is initialized set it to the App object
+	channelsWrapper, ok := serviceMap[product.ChannelKey].(*channelsWrapper)
+	if !ok {
+		return nil, errors.Wrap(err, "channels product is not initialized")
+	}
+	app.ch = channelsWrapper.app.ch
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -290,8 +302,9 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
-				TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
-					return sentry.SampledFalse
+				EnableTracing: false,
+				TracesSampler: sentry.TracesSampler(func(ctx sentry.SamplingContext) float64 {
+					return 0.0
 				}),
 			}); err2 != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
@@ -595,7 +608,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	// Shared Channels service
 
 	// License check
-	if !*license.Features.SharedChannels {
+	if !license.HasSharedChannels() {
 		mlog.Debug("License does not have shared channels enabled")
 		return nil
 	}
@@ -1059,7 +1072,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting server", mlog.Err(err))
+			mlog.Fatal("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -1068,7 +1081,7 @@ func (s *Server) Start() error {
 
 	if *s.platform.Config().ServiceSettings.EnableLocalMode {
 		if err := s.startLocalModeServer(); err != nil {
-			mlog.Critical(err.Error())
+			mlog.Fatal(err.Error())
 		}
 	}
 
@@ -1100,7 +1113,7 @@ func (s *Server) startLocalModeServer() error {
 	go func() {
 		err = s.localModeServer.Serve(unixListener)
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting unix socket server", mlog.Err(err))
+			mlog.Fatal("Error starting unix socket server", mlog.Err(err))
 		}
 	}()
 	return nil

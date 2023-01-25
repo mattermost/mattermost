@@ -228,8 +228,8 @@ func (wt WorkTemplate) Validate(categoryIds map[string]struct{}) error {
 }
 
 type FeatureFlag struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
 }
 
 type TranslatableString struct {

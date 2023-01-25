@@ -60,6 +60,20 @@ func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID strin
 	return r0, r1
 }
 
+// CheckCWSConnection provides a mock function with given fields: userId
+func (_m *CloudInterface) CheckCWSConnection(userId string) error {
+	ret := _m.Called(userId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ConfirmCustomerPayment provides a mock function with given fields: userID, confirmRequest
 func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
 	ret := _m.Called(userID, confirmRequest)
@@ -318,6 +332,29 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLicenseExpandStatus provides a mock function with given fields: userID, token
+func (_m *CloudInterface) GetLicenseExpandStatus(userID string, token string) (*model.SubscriptionExpandStatus, error) {
+	ret := _m.Called(userID, token)
+
+	var r0 *model.SubscriptionExpandStatus
+	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionExpandStatus); ok {
+		r0 = rf(userID, token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SubscriptionExpandStatus)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, token)
 	} else {
 		r1 = ret.Error(1)
 	}
