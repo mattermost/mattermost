@@ -414,7 +414,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			IncludeDeleted: false,
 			LastDeleteAt:   0,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// basicUser has no permissions on BasicPrivateChannel2 so the new invited user should be able to only access
 		// one channel from the two he was invited (plus the two default channels)
