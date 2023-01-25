@@ -28,7 +28,7 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	trial := notifyData.TrialNotification
 
 	isUserAlreadyNotified := a.UserAlreadyNotifiedOnRequiredFeature(userId, requiredFeature)
-
+	mlog.Info("SaveAdminNotification")
 	if isUserAlreadyNotified {
 		return model.NewAppError("app.SaveAdminNotification", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 	}
@@ -61,7 +61,9 @@ func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
+	mlog.Info("Trying to save NotifyAdmin data")
 	d, err := a.Srv().Store().NotifyAdmin().Save(data)
+	mlog.Info("NotifyAdmin data saved")
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -71,6 +73,7 @@ func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdm
 			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+	mlog.Info("return from SaveAdminNotifyData")
 
 	return d, nil
 }
@@ -85,6 +88,8 @@ func filterNotificationData(data []*model.NotifyAdminData, test func(*model.Noti
 }
 
 func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
+	mlog.Info("enter SendNotifyAdminPosts")
+
 	if !a.CanNotifyAdmin(trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
@@ -107,6 +112,8 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 	now := model.GetMillis()
 
 	data, err := a.Srv().Store().NotifyAdmin().Get(trial)
+	mlog.Info("SendNotifyAdminPosts")
+
 	if err != nil {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -128,6 +135,8 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 		}
 
 		if len(userBasedPluginData) > 0 {
+			mlog.Info("SendNotifyAdminPosts", mlog.String("length of user based plugin data", fmt.Sprint(len(userBasedPluginData))))
+
 			a.pluginInstallAdminNotifyPost(c, userBasedPluginData, pluginBasedData, systemBot, admin)
 		}
 	}
@@ -154,8 +163,11 @@ func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map
 	props["requested_plugins_by_plugin_ids"] = pluginBasedPluginData
 	props["requested_plugins_by_user_ids"] = userBasedData
 	post.SetProps(props)
+	mlog.Info("pluginInstallAdminNotifyPost: send props")
 
 	_, appErr = a.CreatePost(c, post, channel, false, true)
+	mlog.Info("pluginInstallAdminNotifyPost: post created")
+
 	if appErr != nil {
 		a.Log().Warn("Error creating post", mlog.Err(appErr))
 	}
@@ -246,6 +258,8 @@ func (a *App) CanNotifyAdmin(trial bool) bool {
 }
 
 func (a *App) FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedData map[string][]*model.NotifyAdminData) {
+	mlog.Info("FinishSendAdminNotifyPost")
+
 	systemVarName := lastUpgradeNotificationTimeStamp
 	if trial {
 		systemVarName = lastTrialNotificationTimeStamp
@@ -275,6 +289,7 @@ func (a *App) FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedData m
 	if err := a.Srv().Store().NotifyAdmin().DeleteBefore(trial, now); err != nil {
 		a.Log().Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
+	mlog.Info("exit FinishSendAdminNotifyPost")
 
 }
 
