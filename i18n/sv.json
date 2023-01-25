@@ -885,7 +885,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ogiltigt kanalnamn. Användarnamn är inte tillåtna i kanalnamn, förutom i namn på direktmeddelandekanaler."
+    "translation": "Kanalnamnet kan inte vara i hexadecimal-format. Ange ett annat kanalnamn."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
@@ -9287,10 +9287,6 @@
     "translation": "Uppdatera betalningsinformation"
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "En nedgraderad arbetsyta kan få negativ påverkan på dina kritiska arbetsflöden, integrationer och andra affärskritiska aktiviteter som utförs på arbetsytan."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle1",
     "translation": "Vi har inte kunnat få betalt för utestående fakturor sedan {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
   },
@@ -9327,16 +9323,8 @@
     "translation": "Uppdatera betalningsinformation"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktiva plugins och integrationer"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Meddelandehistorik"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Kort från dina Boards"
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
@@ -9444,7 +9432,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Nedgradera till Cloud Starter"
+    "translation": "Nedgradera till Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9488,7 +9476,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Nedgradera till Cloud Starter"
+    "translation": "Nedgradera till Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9725,5 +9713,61 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portalen är inte tillgänglig för egen-hostad registrering."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Kunde inte öppna nyckelfilen för klientcertifikatet för Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Kunde inte öppna klientcertifikatfilen för Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Avkodningen av klientcertifikatet för Elasticsearch misslyckades"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Kunde inte öppna CA-filen för Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Avkodningen av CA för Elasticsearch misslyckades"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "En nedgraderad arbetsyta kan få negativ påverkan på dina kritiska arbetsflöden och andra affärskritiska aktiviteter som utförs på arbetsytan."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server är inte tillgänglig."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Det gick inte att få fram totala antalet utgående webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Det gick inte att få fram totala antalet inkommande webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Det gick inte att få fram antalet aktiva användare"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True up-granskning är inte tillåten för cloud-instanser"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up-granskning kräver en licens"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Det gick inte att hämta en statuspost för true up"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Det gick inte att skapa en statuspost för true up"
   }
 ]

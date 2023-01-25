@@ -9296,7 +9296,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Herunterstufen zu Cloud Starter"
+    "translation": "Herunterstufen zu Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9340,7 +9340,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Herabstufen zu Cloud Starter"
+    "translation": "Herabstufen zu Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9353,10 +9353,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Aktualisiere jetzt deine Kreditkarteninformationen."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe, Integrationen und andere geschäftskritische Aktivitäten in deinem Arbeitsbereich auswirken."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9395,20 +9391,12 @@
     "translation": "Bezahlart aktualisieren"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktive Plugins und Integrationen"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Nachrichtenverlauf"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Dateien"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Karten von deinen Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9745,5 +9733,41 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Dekodierung der CA für Elasticsearch fehlgeschlagen"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server ist nicht verfügbar."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Die Gesamtzahl der ausgehenden Webhooks konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Die Gesamtzahl der eingehenden Webhooks konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Die Gesamtzahl der aktiven Benutzer konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True Up Review ist für Cloud-Instanzen nicht erlaubt"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up review erfordert eine Lizenz"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Konnte keine True-Up-Status-Datensätze abrufen"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Konnte keinen True-Up-Status-Datensatz erstellen"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
   }
 ]
