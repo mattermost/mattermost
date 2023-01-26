@@ -316,7 +316,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 	return nil
 }
 
-var validAuthServices = []string{"email", "gitlab", "saml", "ldap", "google", "office365"}
+var validAuthServices = []string{"", "email", "gitlab", "saml", "ldap", "google", "office365"}
 
 func validateAuthService(authService *string, cloud bool) *model.AppError {
 	services := validAuthServices
@@ -333,7 +333,7 @@ func validateAuthService(authService *string, cloud bool) *model.AppError {
 		}
 	}
 
-	return model.NewAppError("BulkImport", model.NoTranslation, nil, "", http.StatusBadRequest)
+	return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_auth_service.error", map[string]any{"auth_service": *authService}, "", http.StatusBadRequest)
 }
 
 func ValidateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
