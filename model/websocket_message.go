@@ -97,8 +97,8 @@ type WebsocketBroadcast struct {
 	TeamId                string          `json:"team_id"`            // broadcast only occurs for users in this team
 	ConnectionId          string          `json:"connection_id"`      // broadcast only occurs for this connection
 	OmitConnectionId      string          `json:"omit_connection_id"` // broadcast is omitted for this connection
-	ContainsSanitizedData bool            `json:"-"`
-	ContainsSensitiveData bool            `json:"-"`
+	ContainsSanitizedData bool            `json:"contains_sanitized_data,omitempty"`
+	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"`
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
