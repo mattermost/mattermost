@@ -410,11 +410,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 
 		// Now we get all the channels for the just created user
-		channelList, err := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+		channelList, cErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
 			IncludeDeleted: false,
 			LastDeleteAt:   0,
 		})
-		require.NoError(t, err)
+		require.Nil(t, cErr)
 
 		// basicUser has no permissions on BasicPrivateChannel2 so the new invited user should be able to only access
 		// one channel from the two he was invited (plus the two default channels)
