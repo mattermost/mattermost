@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -93,7 +92,7 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Should be in the form of /$PLUGIN_ID/public/{anything} by the time we get here
+	// Should be in the form of /(subpath/)?/plugins/{plugin_id}/public/* by the time we get here
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
@@ -111,8 +110,13 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	subpath, err := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 	publicFilePath := path.Clean(r.URL.Path)
-	prefix := fmt.Sprintf("/plugins/%s/public/", pluginID)
+	prefix := path.Join(subpath, "plugins", pluginID, "public")
 	if !strings.HasPrefix(publicFilePath, prefix) {
 		http.NotFound(w, r)
 		return

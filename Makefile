@@ -93,6 +93,22 @@ else
     BUILD_BOARDS = false
 endif
 
+# Playbooks
+BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
+BUILD_PLAYBOOKS ?= false
+BUILD_HASH_PLAYBOOKS = none
+
+ifneq ($(wildcard $(BUILD_PLAYBOOKS_DIR)/.),)
+  ifeq ($(BUILD_PLAYBOOKS),true)
+    BUILD_PLAYBOOKS = true
+    BUILD_HASH_PLAYBOOKS = $(shell cd $(BUILD_PLAYBOOKS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_PLAYBOOKS = false
+  endif
+else
+    BUILD_PLAYBOOKS = false
+endif
+
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
 # and docker will add '/', so we need to set the go-build cache location or we'll get
@@ -116,6 +132,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterpr
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashPlaybooks=$(BUILD_HASH_PLAYBOOKS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -149,13 +166,13 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.11.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.12.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.5.2
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.34.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.35.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -163,8 +180,8 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.5.4
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
+PLUGIN_PACKAGES += focalboard-v7.7.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -196,6 +213,12 @@ ifeq ($(BUILD_BOARDS),true)
 	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
 else
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
+endif
+
+ifeq ($(BUILD_PLAYBOOKS),true)
+IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/playbooks_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -312,7 +335,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -393,6 +416,7 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
 	$(GOBIN)/mockery --dir utils --name LicenseValidatorIface --output utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
+	$(GOBIN)/mockery --dir app --name WorkTemplateExecutor --output app/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
@@ -421,6 +445,7 @@ endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
+setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
