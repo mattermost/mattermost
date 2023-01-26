@@ -2667,7 +2667,7 @@ func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, ch
 		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
-			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId)
+			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
 		}
 	}
 	return allowedChannelIds
