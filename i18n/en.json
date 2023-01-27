@@ -7076,7 +7076,7 @@
     "translation": "Unable to find playbook template associated with this work template."
   },
   {
-    "id": "app.worktemplate.execution_request.server_cannot_create_private_playbook",
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
     "translation": "Your license does not support private playbooks."
   },
   {

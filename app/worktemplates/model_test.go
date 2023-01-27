@@ -79,8 +79,17 @@ func TestCanBeExecuted(t *testing.T) {
 		})
 		require.NotNil(t, appErr)
 
+		// enterprise and E20 ok
 		appErr = wtcrMod.CanBeExecuted(PermissionSet{
 			License:                  model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, ""),
+			CanCreatePrivateChannel:  true,
+			CanCreatePrivateBoard:    true,
+			CanCreatePrivatePlaybook: true,
+			CanCreatePublicChannel:   true,
+		})
+		require.Nil(t, appErr)
+		appErr = wtcrMod.CanBeExecuted(PermissionSet{
+			License:                  model.NewTestLicenseSKU(model.LicenseShortSkuE20, ""),
 			CanCreatePrivateChannel:  true,
 			CanCreatePrivateBoard:    true,
 			CanCreatePrivatePlaybook: true,
