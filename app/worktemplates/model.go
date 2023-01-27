@@ -64,9 +64,7 @@ func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) *model.AppError {
 			if !public && !p.CanCreatePrivatePlaybook {
 				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_playbook", nil, "", http.StatusForbidden)
 			}
-			// if the playbook is private, we need to error if:
-			// - there is no license
-			// - OR the license is not E20 && is not enterprise
+			// private playbook is an E20/Enterprise feature
 			if !public && (p.License == nil || (p.License.SkuShortName != model.LicenseShortSkuE20 && p.License.SkuShortName != model.LicenseShortSkuEnterprise)) {
 				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.license_cannot_create_private_playbook", nil, "", http.StatusForbidden)
 			}
