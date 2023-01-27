@@ -793,12 +793,12 @@ func handleDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	var deleteWorkspaceFeedback *model.Feedback
 	if err = json.Unmarshal(bodyBytes, &deleteWorkspaceFeedback); err != nil {
-		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
