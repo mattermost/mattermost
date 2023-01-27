@@ -322,7 +322,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			}
 
 			// Disable focalboard in product mode after it is removed from PluginSettings.Directory
-			if plugin.Manifest.Id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+			if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
 				mlog.Info("Plugin cannot run in product mode, disabling.", mlog.String("plugin_id", model.PluginIdFocalboard))
 				appErr := ch.disablePlugin(model.PluginIdFocalboard)
 				if appErr != nil {
