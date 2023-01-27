@@ -9816,8 +9816,96 @@
     "translation": "Couldn't find the user."
   },
   {
+    "id": "worktemplate.category.companywide",
+    "translation": "Company - Wide"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Leadership"
+  },
+  {
     "id": "worktemplate.category.product_teams",
     "translation": "Product Teams"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.board",
@@ -9834,5 +9922,37 @@
   {
     "id": "worktemplate.product_teams.feature_release.description.playbook",
     "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Description of why the board(s) are needed"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Description of why the channel(s) are needed"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
   }
 ]
