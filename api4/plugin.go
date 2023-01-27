@@ -288,14 +288,15 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
-		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
-		return
-	}
-
 	filter, err := parseMarketplacePluginFilter(r.URL)
 	if err != nil {
 		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	// if we are looking for remote only, we don't need to check for permissions
+	if !filter.RemoteOnly && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
 		return
 	}
 
@@ -386,12 +387,19 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
 	localOnly, _ := strconv.ParseBool(u.Query().Get("local_only"))
+	remoteOnly, _ := strconv.ParseBool(u.Query().Get("remote_only"))
+
+	if localOnly && remoteOnly {
+		return nil, errors.New("local_only and remote_only cannot be both true")
+	}
+
 	return &model.MarketplacePluginFilter{
 		Page:          page,
 		PerPage:       perPage,
 		Filter:        filter,
 		ServerVersion: serverVersion,
 		LocalOnly:     localOnly,
+		RemoteOnly:    remoteOnly,
 	}, nil
 }
 
