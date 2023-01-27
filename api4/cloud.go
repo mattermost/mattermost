@@ -57,7 +57,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
 
 	// POST /api/v4/cloud/delete-workspace
-	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired()).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired(handleDeleteWorkspace)).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
