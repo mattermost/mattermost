@@ -305,16 +305,6 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
-		// Disable focalboard in product mode.
-		if plugin.Manifest.Id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
-			mlog.Info("Plugin cannot run in product mode, disabling.", mlog.String("plugin_id", model.PluginIdFocalboard))
-			appErr := ch.disablePlugin(model.PluginIdFocalboard)
-			if appErr != nil {
-				mlog.Error("Error disabling plugin", mlog.Err(err))
-			}
-			continue
-		}
-
 		wg.Add(1)
 		go func(pluginID string) {
 			defer wg.Done()
@@ -328,6 +318,15 @@ func (ch *Channels) syncPlugins() *model.AppError {
 				mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginID))
 				if err := ch.removePluginLocally(pluginID); err != nil {
 					mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginID), mlog.Err(err))
+				}
+			}
+
+			// Disable focalboard in product mode after it is removed from PluginSettings.Directory
+			if plugin.Manifest.Id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+				mlog.Info("Plugin cannot run in product mode, disabling.", mlog.String("plugin_id", model.PluginIdFocalboard))
+				appErr := ch.disablePlugin(model.PluginIdFocalboard)
+				if appErr != nil {
+					mlog.Error("Error disabling plugin", mlog.Err(err))
 				}
 			}
 		}(plugin.Manifest.Id)
