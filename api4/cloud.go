@@ -776,13 +776,13 @@ func handleDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	subscription, err := c.App.Cloud().GetSubscription(userID)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.subscription_not_found_error", nil, "Could not get subscription with session user id", http.StatusNotFound)
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	product, err := c.App.Cloud().GetCloudProduct(userID, subscription.ProductID)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.product_not_found_error", nil, "Could not get subscription with product id", http.StatusNotFound)
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
