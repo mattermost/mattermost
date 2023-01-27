@@ -55,6 +55,9 @@ func (api *API) InitCloud() {
 
 	// GET /api/v4/cloud/cws-health-check
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
+
+	// POST /api/v4/cloud/delete-workspace
+	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired()).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -759,6 +762,47 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
 		return
 	}
+
+	ReturnStatusOK(w)
+}
+
+func handleDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Channels().License().IsCloud() {
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	userID := c.AppContext.Session().UserId
+
+	subscription, err := c.App.Cloud().GetSubscription(userID)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.subscription_not_found_error", nil, "Could not get subscription with session user id", http.StatusNotFound)
+		return
+	}
+
+	product, err := c.App.Cloud().GetCloudProduct(userID, subscription.ProductID)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.product_not_found_error", nil, "Could not get subscription with product id", http.StatusNotFound)
+		return
+	}
+
+	if product.IsYearly() {
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.cannot_delete_yearly_product", nil, "Cannot delete a workspace that has a yearly product subscription", http.StatusForbidden)
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+	var deleteWorkspaceFeedback *model.Feedback
+	if err = json.Unmarshal(bodyBytes, &deleteWorkspaceFeedback); err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	c.App.Srv().GetTelemetryService().SendTelemetry("delete_workspace_feedback", deleteWorkspaceFeedback.ToMap())
 
 	ReturnStatusOK(w)
 }
