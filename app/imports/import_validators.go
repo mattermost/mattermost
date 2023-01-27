@@ -231,7 +231,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validateAuthService(data.AuthService, false); appErr != nil {
+	if appErr := validateAuthService(data.AuthService); appErr != nil {
 		return appErr
 	}
 
@@ -318,16 +318,11 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 var validAuthServices = []string{"", "email", "gitlab", "saml", "ldap", "google", "office365"}
 
-func validateAuthService(authService *string, cloud bool) *model.AppError {
-	services := validAuthServices
-	if cloud {
-		services = services[:3]
-	}
-
+func validateAuthService(authService *string) *model.AppError {
 	if authService == nil {
 		return nil
 	}
-	for _, valid := range services {
+	for _, valid := range validAuthServices {
 		if *authService == valid {
 			return nil
 		}
