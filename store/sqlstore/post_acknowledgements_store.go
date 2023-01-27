@@ -58,6 +58,12 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 		return nil, err
 	}
 
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	query := s.getQueryBuilder().
 		Insert("PostAcknowledgements").
 		Columns("PostId", "UserId", "AcknowledgedAt").
@@ -69,26 +75,52 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
 	}
 
-	_, err := s.GetMasterX().ExecBuilder(query)
+	_, err = transaction.ExecBuilder(query)
 	if err != nil {
 		return nil, err
+	}
+
+	err = updatePost(transaction, acknowledgement.PostId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return acknowledgement, nil
 }
 
-func (s *SqlPostAcknowledgementStore) Delete(ack *model.PostAcknowledgement) error {
+func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	query := s.getQueryBuilder().
 		Update("PostAcknowledgements").
 		Set("AcknowledgedAt", 0).
 		Where(sq.And{
-			sq.Eq{"PostId": ack.PostId},
-			sq.Eq{"UserId": ack.UserId},
+			sq.Eq{"PostId": acknowledgement.PostId},
+			sq.Eq{"UserId": acknowledgement.UserId},
 		})
 
-	_, err := s.GetMasterX().ExecBuilder(query)
+	_, err = transaction.ExecBuilder(query)
 	if err != nil {
 		return err
+	}
+
+	err = updatePost(transaction, acknowledgement.PostId)
+	if err != nil {
+		return err
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil
@@ -141,4 +173,19 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 	}
 
 	return acknowledgements, nil
+}
+
+func updatePost(transaction *sqlxTxWrapper, postId string) error {
+	_, err := transaction.Exec(
+		`UPDATE
+			Posts
+		SET
+			UpdateAt = ?
+		WHERE
+			Id = ?`,
+		model.GetMillis(),
+		postId,
+	)
+
+	return err
 }
