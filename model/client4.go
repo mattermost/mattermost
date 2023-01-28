@@ -545,6 +545,10 @@ func (c *Client4) exportRoute(name string) string {
 	return fmt.Sprintf(c.exportsRoute()+"/%v", name)
 }
 
+func (c *Client4) importRoute(name string) string {
+	return fmt.Sprintf(c.importsRoute()+"/%v", name)
+}
+
 func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
@@ -8154,6 +8158,15 @@ func (c *Client4) ListImports() ([]string, *Response, error) {
 	}
 	defer closeBody(r)
 	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteImport(name string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.importRoute(name))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 func (c *Client4) ListExports() ([]string, *Response, error) {

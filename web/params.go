@@ -87,6 +87,7 @@ type Params struct {
 	CategoryId                string
 	WarnMetricId              string
 	ExportName                string
+	ImportName                string
 	ExcludePolicyConstrained  bool
 	GroupSource               model.GroupSource
 	FilterHasMember           string
@@ -221,6 +222,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
 	params.WarnMetricId = props["warn_metric_id"]
 	params.ExportName = props["export_name"]
+	params.ImportName = props["import_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
 
 	if val := query.Get("group_source"); val != "" {
