@@ -71,4 +71,3 @@ func MakeInstallNotifyWorker(jobServer *jobs.JobServer, app AppIface) model.Work
 	worker := jobs.NewSimpleWorker(InstallNotifyJobName, jobServer, execute, isEnabled)
 	return worker
 }
-
