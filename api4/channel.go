@@ -614,6 +614,9 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	excludeFilesCount := r.URL.Query().Get("exclude_files_count")
+	excludeFilesCountBool, _ := strconv.ParseBool(excludeFilesCount)
+
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -642,10 +645,13 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filesCount, err := c.App.GetChannelFileCount(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
-		return
+	filesCount := int64(-1)
+	if !excludeFilesCountBool {
+		filesCount, err = c.App.GetChannelFileCount(c.Params.ChannelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	stats := model.ChannelStats{
