@@ -1542,6 +1542,12 @@ func (s *Server) initJobs() {
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
 	)
 
+	s.Jobs.RegisterJobType(
+		model.JobTypeInstallNotifyAdmin,
+		notify_admin.MakeInstallNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeInstallNotifyAdmin),
+	)
+
 	s.platform.Jobs = s.Jobs
 }
 
