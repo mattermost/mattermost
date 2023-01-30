@@ -336,7 +336,7 @@ func validateAuthService(authService *string) *model.AppError {
 		}
 	}
 
-	return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_auth_service.error", map[string]any{"auth_service": *authService}, "", http.StatusBadRequest)
+	return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_auth_service.error", map[string]any{"AuthService": *authService}, "", http.StatusBadRequest)
 }
 
 func ValidateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {

@@ -5725,7 +5725,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
-    "translation": "Invalid auth service."
+    "translation": "Invalid auth service: {{.AuthService}}"
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
