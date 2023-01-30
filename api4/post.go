@@ -80,10 +80,10 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if post.GetPriority() != nil {
-		priorityErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
+		priorityForbiddenErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 
 		if !c.App.IsPostPriorityEnabled() {
-			c.Err = priorityErr
+			c.Err = priorityForbiddenErr
 			return
 		}
 
@@ -107,7 +107,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if !c.App.IsPersistentNotificationsEnabled() {
-				c.Err = priorityErr
+				c.Err = priorityForbiddenErr
 				return
 			}
 
@@ -123,7 +123,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				if user.IsGuest() {
-					c.Err = priorityErr
+					c.Err = priorityForbiddenErr
 					return
 				}
 			}

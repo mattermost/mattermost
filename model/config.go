@@ -374,7 +374,7 @@ type ServiceSettings struct {
 	PostPriority                                      *bool `access:"site_posts"`
 	AllowPersistentNotifications                      *bool `access:"site_posts"`
 	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
-	PersistentNotificationInterval                    *int  `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
 	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
 	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
@@ -863,8 +863,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.AllowPersistentNotificationsForGuests = NewBool(false)
 	}
 
-	if s.PersistentNotificationInterval == nil {
-		s.PersistentNotificationInterval = NewInt(5)
+	if s.PersistentNotificationIntervalMinutes == nil {
+		s.PersistentNotificationIntervalMinutes = NewInt(5)
 	}
 
 	if s.PersistentNotificationMaxCount == nil {
@@ -3770,7 +3770,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.PersistentNotificationInterval < 2 {
+	if *s.PersistentNotificationIntervalMinutes < 2 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
 	}
 

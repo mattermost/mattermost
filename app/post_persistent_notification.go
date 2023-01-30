@@ -72,7 +72,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 }
 
 func (a *App) SendPersistentNotifications() error {
-	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationInterval) * time.Minute
+	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute
 	notificationMaxCount := int16(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 
 	// fetch posts for which first notificationInterval duration has passed
