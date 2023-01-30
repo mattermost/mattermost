@@ -316,7 +316,15 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 	return nil
 }
 
-var validAuthServices = []string{"", "email", "gitlab", "saml", "ldap", "google", "office365"}
+var validAuthServices = []string{
+	"",
+	model.UserAuthServiceEmail,
+	model.UserAuthServiceGitlab,
+	model.UserAuthServiceSaml,
+	model.UserAuthServiceLdap,
+	model.ServiceGoogle,
+	model.ServiceOffice365,
+}
 
 func validateAuthService(authService *string) *model.AppError {
 	if authService == nil {
