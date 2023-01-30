@@ -648,15 +648,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[kullanıcıadı] ~[kanal]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Kullanıcı adı ya da kanal eksik."
+    "translation": "Kullanıcı adı ve/veya kanal eksik."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kullanıcı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
+    "translation": "{{.User}} kullanıcısı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -668,7 +668,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için kanal kısaltması kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltmasını](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_invite.success",
@@ -999,7 +999,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Emoji eklenemedi. Görsel boyutu 1 MB değerinden küçük olmalıdır."
+    "translation": "Emoji eklenemedi. Görsel 512 KiB boyutundan küçük olmalıdır."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -5405,7 +5405,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Kanal adı geçersiz. Doğrudan olmayan ileti kanallarında, kanal adı içinde kullanıcı kodları kullanılamaz."
+    "translation": "Kanal adları onaltılık biçimde olamaz. Lütfen başka bir kanal adı yazın."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -6602,14 +6602,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "İleti dışa aktarma görevinde BatchSize değeri çözümlenemedi."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -8780,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Mattermost Enterprise sürümünün deneme süresi sona ermiş olduğundan artık kullanılamaz. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+    "translation": "Yeni deneme lisansı kullanılamadı. Bu Mattermost kopyasında daha önce deneme lisansı kullanmışsınız. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9379,10 +9371,6 @@
     "translation": "Çalışma alanınız yakında alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle1",
     "translation": "{{.DelinquencyDate}} tarihinden beri ödenmemiş faturaların ödemesini alamadık. Çalışma alanınızın alt tarifeye geçirilme riski var."
   },
@@ -9447,20 +9435,12 @@
     "translation": "Ödeme bilgilerini güncelle"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Etkin uygulama eki ve bütünleştirmeler"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "İleti geçmişi"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Dosyalar"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Panolarınızdan kartlar"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9729,5 +9709,65 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
     "translation": "{{.WorkspaceName}} çalışma alanınız güncellendi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Elasticsearch için istemci anahtar dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Elasticsearch için istemci sertifika dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Elasticsearch için istemci sertifikasının kodu çözülemedi"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Elasticsearch için CA dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Elasticsearch için CA kodu çözülemedi"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS sunucusu kullanılamıyor."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Toplam giden web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Toplam gelen web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Toplam etkin kullanıcı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Bulut kopyalarında lisans artırımı değerlendirmesi yapılamaz"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Lisans artırımı değerlendirmesi için bir lisans gereklidir"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Lisans artırımı durumu kayıtları alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Lisans artırımı durumu kaydı oluşturulamadı"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
   }
 ]

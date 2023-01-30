@@ -6572,14 +6572,6 @@
     "translation": "Tarefa de sincronização do AD/LDAP alcançou o limite de tempo."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Não foi possível analisar a tarefa de exportação de mensagens ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Não foi possível analisar a tarefa de exportação de mensagens BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Endpoint Cluster API não encontrado."
   },

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -17,6 +18,9 @@ func (s *Server) initializeProducts(
 	// create a product map to consume
 	pmap := make(map[string]struct{})
 	for name := range productMap {
+		if !s.shouldStart(name) {
+			continue
+		}
 		pmap[name] = struct{}{}
 	}
 
@@ -63,4 +67,30 @@ func (s *Server) initializeProducts(
 	}
 
 	return nil
+}
+
+func (s *Server) shouldStart(product string) bool {
+	if !s.Config().FeatureFlags.BoardsProduct && product == "boards" {
+		return false
+	}
+
+	return true
+}
+
+func (s *Server) HasBoardProduct() (bool, error) {
+	prod, exists := s.services[product.BoardsKey]
+	if !exists {
+		return false, nil
+	}
+	if prod == nil {
+		return false, errors.New("board product is nil")
+	}
+	if _, ok := prod.(product.BoardsService); !ok {
+		return false, errors.New("board product key does not match its definition")
+	}
+	return true, nil
+}
+
+func (a *App) HasBoardProduct() (bool, error) {
+	return a.Srv().HasBoardProduct()
 }
