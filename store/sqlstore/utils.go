@@ -18,10 +18,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-const (
-	paginationLimit = 1000
-)
-
 var escapeLikeSearchChar = []string{
 	"%",
 	"_",

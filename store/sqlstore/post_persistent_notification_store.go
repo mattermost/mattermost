@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -24,39 +22,32 @@ func newSqlPostPersistentNotificationStore(sqlStore *SqlStore) store.PostPersist
 }
 
 func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
-	andCond := sq.And{
-		sq.Eq{"DeleteAt": 0},
-	}
+	builder := s.getQueryBuilder().
+		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
+		From("PersistentNotifications").
+		Where(sq.Eq{"DeleteAt": 0})
 
 	if params.PostID != "" {
-		andCond = append(andCond, sq.Eq{"PostId": params.PostID})
+		builder = builder.Where(sq.Eq{"PostId": params.PostID})
 	}
 	if params.MaxCreateAt > 0 {
-		andCond = append(andCond, sq.LtOrEq{"CreateAt": params.MaxCreateAt})
+		builder = builder.Where(sq.LtOrEq{"CreateAt": params.MaxCreateAt})
 	}
 	if params.MaxLastSentAt > 0 {
-		andCond = append(andCond, sq.LtOrEq{"LastSentAt": params.MaxLastSentAt})
+		builder = builder.Where(sq.LtOrEq{"LastSentAt": params.MaxLastSentAt})
 	}
-
-	builder := s.getQueryBuilder().
-		Select("*").
-		From("PersistentNotifications").
-		Where(andCond)
 
 	builder = getPersistentNotificationsPaginationBuilder(builder, params.Pagination)
 
 	var posts []*model.PostPersistentNotifications
 	err := s.GetReplicaX().SelectBuilder(&posts, builder)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return []*model.PostPersistentNotifications{}, false, nil
-		}
 		return nil, false, errors.Wrap(err, "failed to get notifications")
 	}
 
 	var hasNext bool
 	if params.Pagination.PerPage != 0 {
-		if len(posts) == utils.MinInt(params.Pagination.PerPage, paginationLimit)+1 {
+		if len(posts) == utils.MinInt(params.Pagination.PerPage, 1000)+1 {
 			// Shave off the next-page item.
 			posts = posts[:len(posts)-1]
 			hasNext = true
@@ -65,58 +56,45 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 	return posts, hasNext, nil
 }
 
-// Delete in batches of 1000
 func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
 	count := len(postIds)
 	if count == 0 {
 		return nil
 	}
 
-	deleteAt := model.GetMillis()
-	for i := 0; i < count; i += paginationLimit {
-		j := utils.MinInt(i+paginationLimit, count)
+	builder := s.getQueryBuilder().
+		Update("PersistentNotifications").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{"PostId": postIds})
 
-		builder := s.getQueryBuilder().
-			Update("PersistentNotifications").
-			Set("DeleteAt", deleteAt).
-			Where(sq.Eq{"PostId": postIds[i:j]})
-
-		_, err := s.GetMasterX().ExecBuilder(builder)
-		if err != nil {
-			return errors.Wrapf(err, "failed to delete notifications for posts %s", postIds[i:j])
-		}
+	_, err := s.GetMasterX().ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete notifications for posts %s", postIds)
 	}
 
 	return nil
 }
 
-// UpdateLastActivity in batches of 1000
 func (s *SqlPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
 	count := len(postIds)
 	if count == 0 {
 		return nil
 	}
 
-	lastSentAt := model.GetMillis()
-	for i := 0; i < count; i += paginationLimit {
-		j := utils.MinInt(i+paginationLimit, count)
+	builder := s.getQueryBuilder().
+		Update("PersistentNotifications").
+		Set("LastSentAt", model.GetMillis()).
+		Set("SentCount", sq.Expr("SentCount+1")).
+		Where(sq.Eq{"PostId": postIds})
 
-		builder := s.getQueryBuilder().
-			Update("PersistentNotifications").
-			Set("LastSentAt", lastSentAt).
-			Set("SentCount", sq.Expr("SentCount+1")).
-			Where(sq.Eq{"PostId": postIds[i:j]})
-
-		_, err := s.GetMasterX().ExecBuilder(builder)
-		if err != nil {
-			return errors.Wrapf(err, "failed to update lastSentAt for posts %s", postIds[i:j])
-		}
+	_, err := s.GetMasterX().ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update lastSentAt for posts %s", postIds)
 	}
 
 	return nil
 }
 
-// DeleteByChannel in batches of 1000
 func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
 	count := len(channelIds)
 	if count == 0 {
@@ -124,39 +102,34 @@ func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string
 	}
 
 	deleteAt := model.GetMillis()
-	for i := 0; i < count; i += paginationLimit {
-		j := utils.MinInt(i+paginationLimit, count)
+	var builder sq.UpdateBuilder
+	builderType := s.getQueryBuilder()
+	if s.DriverName() == model.DatabaseDriverMysql {
+		builder = builderType.
+			Update("PersistentNotifications, Posts").
+			Set("PersistentNotifications.DeleteAt", deleteAt)
+	}
 
-		var builder sq.UpdateBuilder
-		builderType := s.getQueryBuilder()
-		if s.DriverName() == model.DatabaseDriverMysql {
-			builder = builderType.
-				Update("PersistentNotifications, Posts").
-				Set("PersistentNotifications.DeleteAt", deleteAt)
-		}
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		builder = builderType.
+			Update("PersistentNotifications").
+			Set("DeleteAt", deleteAt).
+			From("Posts")
+	}
 
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			builder = builderType.
-				Update("PersistentNotifications").
-				Set("DeleteAt", deleteAt).
-				From("Posts")
-		}
+	builder = builder.Where(sq.And{
+		sq.Expr("Id = PostId"),
+		sq.Eq{"ChannelId": channelIds},
+	})
 
-		builder = builder.Where(sq.And{
-			sq.Expr("Id = PostId"),
-			sq.Eq{"ChannelId": channelIds[i:j]},
-		})
-
-		_, err := s.GetMasterX().ExecBuilder(builder)
-		if err != nil {
-			return errors.Wrapf(err, "failed to delete notifications for channels %s", channelIds[i:j])
-		}
+	_, err := s.GetMasterX().ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete notifications for channels %s", channelIds)
 	}
 
 	return nil
 }
 
-// DeleteByTeam in batches of 1000
 func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) error {
 	count := len(teamIds)
 	if count == 0 {
@@ -164,34 +137,30 @@ func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) erro
 	}
 
 	deleteAt := model.GetMillis()
-	for i := 0; i < count; i += paginationLimit {
-		j := utils.MinInt(i+paginationLimit, count)
+	var builder sq.UpdateBuilder
+	builderType := s.getQueryBuilder()
+	if s.DriverName() == model.DatabaseDriverMysql {
+		builder = builderType.
+			Update("PersistentNotifications, Posts, Channels").
+			Set("PersistentNotifications.DeleteAt", deleteAt)
+	}
 
-		var builder sq.UpdateBuilder
-		builderType := s.getQueryBuilder()
-		if s.DriverName() == model.DatabaseDriverMysql {
-			builder = builderType.
-				Update("PersistentNotifications, Posts, Channels").
-				Set("PersistentNotifications.DeleteAt", deleteAt)
-		}
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		builder = builderType.
+			Update("PersistentNotifications").
+			Set("DeleteAt", deleteAt).
+			From("Posts, Channels")
+	}
 
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			builder = builderType.
-				Update("PersistentNotifications").
-				Set("DeleteAt", deleteAt).
-				From("Posts, Channels")
-		}
+	builder = builder.Where(sq.And{
+		sq.Expr("Posts.Id = PersistentNotifications.PostId"),
+		sq.Expr("Posts.ChannelId = Channels.Id"),
+		sq.Eq{"Channels.TeamId": teamIds},
+	})
 
-		builder = builder.Where(sq.And{
-			sq.Expr("Posts.Id = PersistentNotifications.PostId"),
-			sq.Expr("Posts.ChannelId = Channels.Id"),
-			sq.Eq{"Channels.TeamId": teamIds[i:j]},
-		})
-
-		_, err := s.GetMasterX().ExecBuilder(builder)
-		if err != nil {
-			return errors.Wrapf(err, "failed to delete notifications for teams %s", teamIds[i:j])
-		}
+	_, err := s.GetMasterX().ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete notifications for teams %s", teamIds)
 	}
 
 	return nil
@@ -242,9 +211,9 @@ func getPersistentNotificationsPaginationBuilder(builder sq.SelectBuilder, pagin
 	}
 
 	if pagination.PerPage != 0 {
-		builder = builder.Limit(uint64(utils.MinInt(pagination.PerPage, paginationLimit) + 1))
+		builder = builder.Limit(uint64(utils.MinInt(pagination.PerPage, 1000) + 1))
 	} else {
-		builder = builder.Limit(uint64(paginationLimit + 1))
+		builder = builder.Limit(uint64(1000 + 1))
 	}
 
 	return builder
