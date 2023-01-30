@@ -922,7 +922,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -953,11 +953,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		grantedInvitationEmail := strings.ToLower(model.NewId()) + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		grantedDomainToken := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(forbiddenDomainToken))
 		require.NoError(t, th.App.Srv().Store().Token().Save(grantedDomainToken))
@@ -1001,7 +1001,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
 			TokenTypeGuestInvitation,
-			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		guest := model.User{
