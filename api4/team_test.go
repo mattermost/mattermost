@@ -93,6 +93,30 @@ func TestCreateTeam(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("should take under consideration the server language when creating a new team", func(t *testing.T) {
+		c := th.SystemAdminClient
+		cfg, _, err := c.GetConfig()
+		require.NoError(t, err)
+		newServerLang := "de"
+		cfg.LocalizationSettings.DefaultServerLocale = &newServerLang
+		translateFunc := i18n.GetUserTranslations(newServerLang)
+
+		_, _, err = c.UpdateConfig(cfg)
+		require.NoError(t, err)
+
+		team := th.CreateTeamWithClient(c)
+		channels, _, err := c.GetPublicChannelsForTeam(team.Id, 0, 1000, "")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			if ch.Name == "off-topic" {
+				require.Equal(t, translateFunc("api.channel.create_default_channels.off_topic"), ch.DisplayName)
+			}
+			if ch.Name == "town-square" {
+				require.Equal(t, translateFunc("api.channel.create_default_channels.town_square"), ch.DisplayName)
+			}
+		}
+	})
+
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
