@@ -98,7 +98,7 @@ type WebsocketBroadcast struct {
 	ConnectionId          string          `json:"connection_id"`                     // broadcast only occurs for this connection
 	OmitConnectionId      string          `json:"omit_connection_id"`                // broadcast is omitted for this connection
 	ContainsSanitizedData bool            `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
-	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"` // broadcase only occurs for sysadmins
+	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
