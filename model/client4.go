@@ -8741,3 +8741,17 @@ func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, 
 	err = json.NewDecoder(r.Body).Decode(&templates)
 	return templates, BuildResponse(r), err
 }
+
+func (c *Client4) DeleteWorkspace(feedback *Feedback) (*Response, error) {
+	bytes, err := json.Marshal(feedback)
+	if err != nil {
+		return BuildResponse(nil), NewAppError("DeleteWorkspace", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/delete-workspace", bytes)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}

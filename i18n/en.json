@@ -480,6 +480,10 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.cannot_delete_starter_workspaces",
+    "translation": "Cannot delete a workspace that has a starter subscription"
+  },
+  {
     "id": "api.cloud.cannot_delete_yearly_product",
     "translation": "Cannot delete a workspace that has a yearly product subscription"
   },

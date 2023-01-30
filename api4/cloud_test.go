@@ -807,3 +807,121 @@ func TestGetSelfHostedProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[1].CrossSellsTo, "")
 	})
 }
+
+func TestWorkspaceDeletion(t *testing.T) {
+	subscription := &model.Subscription{
+		ID:          "prod_test5",
+		CustomerID:  "MyCustomer",
+		ProductID:   "SomeProductId",
+		AddOns:      []string{},
+		StartAt:     1000000000,
+		EndAt:       2000000000,
+		CreateAt:    1000000000,
+		Seats:       10,
+		IsFreeTrial: "true",
+		DNS:         "some.dns.server",
+		TrialEndAt:  2000000000,
+		LastInvoice: &model.Invoice{},
+	}
+
+	cloudProductHappyPath := model.Product{
+		ID:                "prod_test1",
+		Name:              "name",
+		Description:       "description",
+		PricePerSeat:      10,
+		SKU:               "sku",
+		PriceID:           "price_id",
+		Family:            "family",
+		RecurringInterval: model.RecurringIntervalMonthly,
+		BillingScheme:     "billing_scheme",
+		CrossSellsTo:      "",
+	}
+
+	cloudProductFailurePathYearly := model.Product{
+		ID:                "prod_test5",
+		Name:              "name",
+		Description:       "description",
+		PricePerSeat:      10,
+		SKU:               "sku",
+		PriceID:           "price_id",
+		Family:            "family",
+		RecurringInterval: model.RecurringIntervalYearly,
+		BillingScheme:     "billing_scheme",
+		CrossSellsTo:      "",
+	}
+
+	cloudProductFailurePathStarter := model.Product{
+		ID:                "prod_test5",
+		Name:              "name",
+		Description:       "description",
+		PricePerSeat:      10,
+		SKU:               "cloud-starter",
+		PriceID:           "price_id",
+		Family:            "family",
+		RecurringInterval: model.RecurringIntervalYearly,
+		BillingScheme:     "billing_scheme",
+		CrossSellsTo:      "",
+	}
+
+	feedback := model.Feedback{
+		Reason:   "Other",
+		Comments: "Didn't need it anymore.",
+	}
+
+	t.Run("delete workspace succeeds if not yearly or free", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(&cloudProductHappyPath, nil)
+
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DeleteWorkspace(&feedback)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+	})
+
+	t.Run("delete workspace fails if yearly or free", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(&cloudProductFailurePathYearly, nil)
+
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DeleteWorkspace(&feedback)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	t.Run("delete workspace fails if yearly or free", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(&cloudProductFailurePathStarter, nil)
+
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DeleteWorkspace(&feedback)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+}

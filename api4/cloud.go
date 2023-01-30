@@ -791,6 +791,11 @@ func handleDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if product.SKU == string(model.SkuCloudStarter) {
+		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.cannot_delete_starter_workspaces", nil, "Cannot delete a workspace that has a starter subscription", http.StatusForbidden)
+		return
+	}
+
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.handleDeleteWorkspace", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
