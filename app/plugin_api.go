@@ -279,6 +279,7 @@ func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []mode
 }
 
 func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	// TODO
 	return api.app.GetSessionById(sessionID)
 }
 

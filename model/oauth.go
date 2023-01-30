@@ -30,6 +30,7 @@ type OAuthApp struct {
 	Homepage        string      `json:"homepage"`
 	IsTrusted       bool        `json:"is_trusted"`
 	MattermostAppID string      `json:"mattermost_app_id"`
+	Disabled        bool        `json:"disabled"`
 }
 
 func (a *OAuthApp) Auditable() map[string]interface{} {
@@ -45,6 +46,7 @@ func (a *OAuthApp) Auditable() map[string]interface{} {
 		"homepage":          a.Homepage,
 		"is_trusted":        a.IsTrusted,
 		"mattermost_app_id": a.MattermostAppID,
+		"disabled":          a.Disabled,
 	}
 }
 
