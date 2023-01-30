@@ -9769,5 +9769,9 @@
   {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "Fout bij het ophalen van het totaal aantal actieve gebruikers"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Fout bij het bijwerken van de serververtalingen."
   }
 ]
