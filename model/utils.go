@@ -33,7 +33,11 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
+	maxPropSizeBytes = 1024 * 1024
 )
+
+var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
 type StringInterface map[string]any
 type StringArray []string
@@ -76,6 +80,14 @@ func (sa StringArray) Equals(input StringArray) bool {
 
 // Value converts StringArray to database value
 func (sa StringArray) Value() (driver.Value, error) {
+	sz := 0
+	for i := range sa {
+		sz += len(sa[i])
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
+		}
+	}
+
 	j, err := json.Marshal(sa)
 	if err != nil {
 		return nil, err
@@ -126,6 +138,15 @@ func (m *StringMap) Scan(value any) error {
 func (m StringMap) Value() (driver.Value, error) {
 	ok := m[BinaryParamKey]
 	delete(m, BinaryParamKey)
+
+	sz := 0
+	for k := range m {
+		sz += len(k) + len(m[k])
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
+		}
+	}
+
 	buf, err := json.Marshal(m)
 	if err != nil {
 		return nil, err
@@ -181,12 +202,21 @@ func (si StringInterface) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(j) > maxPropSizeBytes {
+		return nil, ErrMaxPropSizeExceeded
+	}
+
 	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
 	return string(j), err
 }
 
 func (StringInterface) ImplementsGraphQLType(name string) bool {
 	return name == "StringInterface"
+}
+
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
 }
 
 func (si *StringInterface) UnmarshalGraphQL(input any) error {
@@ -226,11 +256,15 @@ func (er *AppError) Error() string {
 	// render the error information
 	sb.WriteString(er.Where)
 	sb.WriteString(": ")
-	sb.WriteString(er.Message)
+	if er.Message != NoTranslation {
+		sb.WriteString(er.Message)
+	}
 
 	// only render the detailed error when it's present
 	if er.DetailedError != "" {
-		sb.WriteString(", ")
+		if er.Message != NoTranslation {
+			sb.WriteString(", ")
+		}
 		sb.WriteString(er.DetailedError)
 	}
 

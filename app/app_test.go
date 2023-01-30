@@ -41,7 +41,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -168,6 +168,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionCreateCustomGroup.Id,
 			model.PermissionEditCustomGroup.Id,
 			model.PermissionDeleteCustomGroup.Id,
+			model.PermissionRestoreCustomGroup.Id,
 			model.PermissionManageCustomGroupMembers.Id,
 		},
 		"system_post_all": {
@@ -228,6 +229,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PermissionEditCustomGroup.Id,
 		model.PermissionDeleteCustomGroup.Id,
 		model.PermissionManageCustomGroupMembers.Id,
+		model.PermissionRestoreCustomGroup.Id,
 		model.PermissionListPublicTeams.Id,
 		model.PermissionJoinPublicTeams.Id,
 		model.PermissionCreateDirectChannel.Id,
@@ -254,19 +256,19 @@ func TestDBHealthCheckWriteAndDelete(t *testing.T) {
 	expectedKey := "health_check_" + th.App.GetClusterId()
 	assert.Equal(t, expectedKey, th.App.dbHealthCheckKey())
 
-	_, err := th.App.Srv().Store.System().GetByName(expectedKey)
+	_, err := th.App.Srv().Store().System().GetByName(expectedKey)
 	assert.Error(t, err)
 
 	err = th.App.DBHealthCheckWrite()
 	assert.NoError(t, err)
 
-	systemVal, err := th.App.Srv().Store.System().GetByName(expectedKey)
+	systemVal, err := th.App.Srv().Store().System().GetByName(expectedKey)
 	assert.NoError(t, err)
 	assert.NotNil(t, systemVal)
 
 	err = th.App.DBHealthCheckDelete()
 	assert.NoError(t, err)
 
-	_, err = th.App.Srv().Store.System().GetByName(expectedKey)
+	_, err = th.App.Srv().Store().System().GetByName(expectedKey)
 	assert.Error(t, err)
 }

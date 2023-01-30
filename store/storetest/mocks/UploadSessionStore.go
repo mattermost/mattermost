@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -28,13 +30,13 @@ func (_m *UploadSessionStore) Delete(id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: id
-func (_m *UploadSessionStore) Get(id string) (*model.UploadSession, error) {
-	ret := _m.Called(id)
+// Get provides a mock function with given fields: ctx, id
+func (_m *UploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 *model.UploadSession
-	if rf, ok := ret.Get(0).(func(string) *model.UploadSession); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.UploadSession); ok {
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UploadSession)
@@ -42,8 +44,8 @@ func (_m *UploadSessionStore) Get(id string) (*model.UploadSession, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

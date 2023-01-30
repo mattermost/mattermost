@@ -52,9 +52,12 @@ func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.Orphan
 		main = main.OrderBy("CT." + cfg.parentIdAttr)
 	}
 
-	query, args, _ := main.ToSql()
+	query, args, err := main.ToSql()
+	if err != nil {
+		return nil, err
+	}
 
-	err := ss.GetMasterX().Select(&records, query, args...)
+	err = ss.GetMasterX().Select(&records, query, args...)
 	return records, err
 }
 
@@ -465,6 +468,7 @@ func checkPostsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkPostsFileInfoIntegrity(ss)
 	results <- checkPostsPostsRootIdIntegrity(ss)
 	results <- checkPostsReactionsIntegrity(ss)
+	results <- checkThreadsTeamsIntegrity(ss)
 }
 
 func checkSchemesIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
@@ -506,6 +510,16 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkUsersStatusIntegrity(ss)
 	results <- checkUsersTeamMembersIntegrity(ss)
 	results <- checkUsersUserAccessTokensIntegrity(ss)
+}
+
+func checkThreadsTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
+	return checkParentChildIntegrity(ss, relationalCheckConfig{
+		parentName:         "Teams",
+		parentIdAttr:       "ThreadTeamId",
+		childName:          "Threads",
+		childIdAttr:        "PostId",
+		canParentIdBeEmpty: false,
+	})
 }
 
 func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {

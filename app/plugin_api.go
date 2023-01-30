@@ -140,7 +140,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.Srv().getSystemInstallDate()
+	return api.app.Srv().Platform().GetSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
@@ -287,12 +287,12 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
-	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
+	session, err := api.app.ch.srv.platform.GetSessionByID(sessionID)
 	if err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
+	if err := api.app.ch.srv.platform.ExtendSessionExpiry(session, expiresAt); err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -608,7 +608,7 @@ func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppEr
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
-	return api.app.GetGroup(groupId, nil)
+	return api.app.GetGroup(groupId, nil, nil)
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
@@ -616,7 +616,7 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 }
 
 func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
-	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
 
 	return users, err
 }
@@ -630,6 +630,8 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
+	post.AddProp("from_plugin", "true")
+
 	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true)
 	if post != nil {
 		post = post.ForPlugin()
@@ -741,15 +743,15 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
-	return api.app.GetEmojiList(page, perPage, sortBy)
+	return api.app.GetEmojiList(api.ctx, page, perPage, sortBy)
 }
 
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
-	return api.app.GetEmojiByName(name)
+	return api.app.GetEmojiByName(api.ctx, name)
 }
 
 func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
-	return api.app.GetEmoji(emojiId)
+	return api.app.GetEmoji(api.ctx, emojiId)
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
@@ -794,7 +796,7 @@ func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	return api.app.GetEmojiImage(emojiId)
+	return api.app.GetEmojiImage(api.ctx, emojiId)
 }
 
 func (api *PluginAPI) GetTeamIcon(teamID string) ([]byte, *model.AppError) {
@@ -943,7 +945,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)
 }
@@ -1016,6 +1018,9 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
+	// Bots created by a plugin should use the plugin's ID for the creator field.
+	bot.OwnerId = api.id
+
 	return api.app.EnsureBot(api.ctx, api.id, bot)
 }
 
@@ -1089,7 +1094,7 @@ func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
 
 func (api *PluginAPI) ListCustomCommands(teamID string) ([]*model.Command, error) {
 	// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
-	return api.app.Srv().Store.Command().GetByTeam(teamID)
+	return api.app.Srv().Store().Command().GetByTeam(teamID)
 }
 
 func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error) {
@@ -1125,7 +1130,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 }
 
 func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
-	return api.app.Srv().Store.Command().Get(commandID)
+	return api.app.Srv().Store().Command().Get(commandID)
 }
 
 func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
@@ -1145,11 +1150,11 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	return api.app.Srv().Store.Command().Update(updatedCmd)
+	return api.app.Srv().Store().Command().Update(updatedCmd)
 }
 
 func (api *PluginAPI) DeleteCommand(commandID string) error {
-	err := api.app.Srv().Store.Command().Delete(commandID, model.GetMillis())
+	err := api.app.Srv().Store().Command().Delete(commandID, model.GetMillis())
 	if err != nil {
 		return err
 	}
@@ -1225,4 +1230,36 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	}
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
+}
+
+// RegisterCollectionAndTopic informs the server that this plugin handles
+// the given collection and topic types.
+func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
+	return api.app.RegisterCollectionAndTopic(api.id, collectionType, topicType)
+}
+
+func (api *PluginAPI) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {
+	us, err := api.app.CreateUploadSession(api.ctx, us)
+	if err != nil {
+		return nil, err
+	}
+	return us, nil
+}
+
+func (api *PluginAPI) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error) {
+	fi, err := api.app.UploadData(api.ctx, us, rd)
+	if err != nil {
+		return nil, err
+	}
+	return fi, nil
+}
+
+func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, error) {
+	// We want to fetch from master DB to avoid a potential read-after-write on the plugin side.
+	api.ctx.SetContext(WithMaster(api.ctx.Context()))
+	fi, err := api.app.GetUploadSession(api.ctx, uploadID)
+	if err != nil {
+		return nil, err
+	}
+	return fi, nil
 }

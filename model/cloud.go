@@ -4,8 +4,7 @@
 package model
 
 import (
-	"os"
-	"strconv"
+	"encoding/json"
 	"strings"
 )
 
@@ -15,7 +14,10 @@ const (
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
 	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
+
+const UpcomingInvoice = "upcoming"
 
 var MockCWS string
 
@@ -41,8 +43,19 @@ const (
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
 
-const defaultCloudNotifyAdminCoolOffDays = 30
-const CloudNotifyAdminInfo = "cloud_notify_admin_info"
+type ProductSku string
+
+const (
+	SkuStarterGov        = ProductSku("starter-gov")
+	SkuProfessionalGov   = ProductSku("professional-gov")
+	SkuEnterpriseGov     = ProductSku("enterprise-gov")
+	SkuStarter           = ProductSku("starter")
+	SkuProfessional      = ProductSku("professional")
+	SkuEnterprise        = ProductSku("enterprise")
+	SkuCloudStarter      = ProductSku("cloud-starter")
+	SkuCloudProfessional = ProductSku("cloud-professional")
+	SkuCloudEnterprise   = ProductSku("cloud-enterprise")
+)
 
 // Product model represents a product on the cloud system.
 type Product struct {
@@ -56,13 +69,16 @@ type Product struct {
 	Family            SubscriptionFamily `json:"product_family"`
 	RecurringInterval RecurringInterval  `json:"recurring_interval"`
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
+	CrossSellsTo      string             `json:"cross_sells_to"`
 }
 
 type UserFacingProduct struct {
-	ID           string  `json:"id"`
-	Name         string  `json:"name"`
-	SKU          string  `json:"sku"`
-	PricePerSeat float64 `json:"price_per_seat"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	SKU               string            `json:"sku"`
+	PricePerSeat      float64           `json:"price_per_seat"`
+	RecurringInterval RecurringInterval `json:"recurring_interval"`
+	CrossSellsTo      string            `json:"cross_sells_to"`
 }
 
 // AddOn represents an addon to a product.
@@ -109,13 +125,18 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+type SubscriptionExpandStatus struct {
+	IsExpandable bool `json:"is_expandable"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
-	Name             string `json:"name"`
-	Email            string `json:"email,omitempty"`
-	ContactFirstName string `json:"contact_first_name,omitempty"`
-	ContactLastName  string `json:"contact_last_name,omitempty"`
-	NumEmployees     int    `json:"num_employees"`
+	Name                  string `json:"name"`
+	Email                 string `json:"email,omitempty"`
+	ContactFirstName      string `json:"contact_first_name,omitempty"`
+	ContactLastName       string `json:"contact_last_name,omitempty"`
+	NumEmployees          int    `json:"num_employees"`
+	CloudAltPaymentMethod string `json:"monthly_subscription_alt_payment_method"`
 }
 
 // Address model represents a customer's address.
@@ -140,22 +161,37 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID                string   `json:"id"`
-	CustomerID        string   `json:"customer_id"`
-	ProductID         string   `json:"product_id"`
-	AddOns            []string `json:"add_ons"`
-	StartAt           int64    `json:"start_at"`
-	EndAt             int64    `json:"end_at"`
-	CreateAt          int64    `json:"create_at"`
-	Seats             int      `json:"seats"`
-	Status            string   `json:"status"`
-	DNS               string   `json:"dns"`
-	IsPaidTier        string   `json:"is_paid_tier"`
-	LastInvoice       *Invoice `json:"last_invoice"`
-	IsFreeTrial       string   `json:"is_free_trial"`
-	TrialEndAt        int64    `json:"trial_end_at"`
-	DelinquentSince   *int64   `json:"delinquent_since"`
-	ComplianceBlocked string   `json:"compliance_blocked"`
+	ID                      string   `json:"id"`
+	CustomerID              string   `json:"customer_id"`
+	ProductID               string   `json:"product_id"`
+	AddOns                  []string `json:"add_ons"`
+	StartAt                 int64    `json:"start_at"`
+	EndAt                   int64    `json:"end_at"`
+	CreateAt                int64    `json:"create_at"`
+	Seats                   int      `json:"seats"`
+	Status                  string   `json:"status"`
+	DNS                     string   `json:"dns"`
+	LastInvoice             *Invoice `json:"last_invoice"`
+	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
+	IsFreeTrial             string   `json:"is_free_trial"`
+	TrialEndAt              int64    `json:"trial_end_at"`
+	DelinquentSince         *int64   `json:"delinquent_since"`
+	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
+	ComplianceBlocked       string   `json:"compliance_blocked"`
+}
+
+// Subscription History model represents true up event in a yearly subscription
+type SubscriptionHistory struct {
+	ID             string `json:"id"`
+	SubscriptionID string `json:"subscription_id"`
+	Seats          int    `json:"seats"`
+	CreateAt       int64  `json:"create_at"`
+}
+
+type SubscriptionHistoryChange struct {
+	SubscriptionID string `json:"subscription_id"`
+	Seats          int    `json:"seats"`
+	CreateAt       int64  `json:"create_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -190,13 +226,30 @@ type InvoiceLineItem struct {
 	Metadata     map[string]any `json:"metadata"`
 }
 
+type DelinquencyEmailTrigger struct {
+	EmailToTrigger string `json:"email_to_send"`
+}
+
+type DelinquencyEmail string
+
+const (
+	DelinquencyEmail7  DelinquencyEmail = "7"
+	DelinquencyEmail14 DelinquencyEmail = "14"
+	DelinquencyEmail30 DelinquencyEmail = "30"
+	DelinquencyEmail45 DelinquencyEmail = "45"
+	DelinquencyEmail60 DelinquencyEmail = "60"
+	DelinquencyEmail75 DelinquencyEmail = "75"
+	DelinquencyEmail90 DelinquencyEmail = "90"
+)
+
 type CWSWebhookPayload struct {
-	Event                             string               `json:"event"`
-	FailedPayment                     *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
-	ProductLimits                     *ProductLimits       `json:"product_limits"`
-	Subscription                      *Subscription        `json:"subscription"`
-	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
+	Event                             string                   `json:"event"`
+	FailedPayment                     *FailedPayment           `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner     `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits           `json:"product_limits"`
+	Subscription                      *Subscription            `json:"subscription"`
+	SubscriptionTrialEndUnixTimeStamp int64                    `json:"trial_end_time_stamp"`
+	DelinquencyEmail                  *DelinquencyEmailTrigger `json:"delinquency_email"`
 }
 
 type FailedPayment struct {
@@ -209,11 +262,19 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
+
 type SubscriptionChange struct {
-	ProductID       string   `json:"product_id"`
-	ShippingAddress *Address `json:"shipping_address"`
+	ProductID         string             `json:"product_id"`
+	Seats             int                `json:"seats"`
+	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
+	ShippingAddress   *Address           `json:"shipping_address"`
 }
 
+// TODO remove BoardsLimits.
+// It is not used for real.
+// Focalboard has some lingering code using this struct
+// https://github.com/mattermost/focalboard/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+// we should remove this struct once that code is removed.
 type BoardsLimits struct {
 	Cards *int `json:"cards"`
 	Views *int `json:"views"`
@@ -221,10 +282,6 @@ type BoardsLimits struct {
 
 type FilesLimits struct {
 	TotalStorage *int64 `json:"total_storage"`
-}
-
-type IntegrationsLimits struct {
-	Enabled *int `json:"enabled"`
 }
 
 type MessagesLimits struct {
@@ -236,29 +293,51 @@ type TeamsLimits struct {
 }
 
 type ProductLimits struct {
-	Boards       *BoardsLimits       `json:"boards,omitempty"`
-	Files        *FilesLimits        `json:"files,omitempty"`
-	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
-	Messages     *MessagesLimits     `json:"messages,omitempty"`
-	Teams        *TeamsLimits        `json:"teams,omitempty"`
+	// TODO remove Boards property.
+	// It is not used for real.
+	// Focalboard has some lingering code using this property
+	// https://github.com/mattermost/focalboard/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+	// we should remove this property once that code is removed.
+	Boards   *BoardsLimits   `json:"boards,omitempty"`
+	Files    *FilesLimits    `json:"files,omitempty"`
+	Messages *MessagesLimits `json:"messages,omitempty"`
+	Teams    *TeamsLimits    `json:"teams,omitempty"`
 }
 
-type NotifyAdminToUpgradeRequest struct {
-	CurrentTeamId string `json:"current_team_id"`
+// CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+type CreateSubscriptionRequest struct {
+	ProductID             string   `json:"product_id"`
+	AddOns                []string `json:"add_ons"`
+	Seats                 int      `json:"seats"`
+	Total                 float64  `json:"total"`
+	InternalPurchaseOrder string   `json:"internal_purchase_order"`
+	DiscountID            string   `json:"discount_id"`
 }
 
-type AdminNotificationUserInfo struct {
-	LastUserIDToNotify        string
-	LastNotificationTimestamp int64
+type DowngradeFeedback struct {
+	Reason   string `json:"reason"`
+	Comments string `json:"comments"`
 }
 
-func CanNotify(lastNotificationTimestamp int64) bool {
-	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
-	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
-	if parseError != nil {
-		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
+func (p *Product) IsYearly() bool {
+	return p.RecurringInterval == RecurringIntervalYearly
+}
+
+func (p *Product) IsMonthly() bool {
+	return p.RecurringInterval == RecurringIntervalMonthly
+}
+
+func (df *DowngradeFeedback) ToMap() map[string]any {
+	var res map[string]any
+	feedback, err := json.Marshal(df)
+	if err != nil {
+		return res
 	}
-	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
-	timeDiff := GetMillis() - lastNotificationTimestamp
-	return timeDiff >= int64(daysToMillis)
+
+	err = json.Unmarshal(feedback, &res)
+	if err != nil {
+		return res
+	}
+
+	return res
 }

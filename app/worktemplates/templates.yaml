@@ -1,0 +1,46 @@
+id: "product_teams/feature_release:v1"
+category: product_teams
+useCase: Feature Release
+illustration: /static/worktemplates/product_teams/feature_release/feature_release.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.product_teams.feature_release.description.channel"
+        defaultMessage: "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+    board:
+        id: "worktemplate.product_teams.feature_release.description.board"
+        defaultMessage: "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way."
+    playbook:
+        id: "worktemplate.product_teams.feature_release.description.playbook"
+        defaultMessage: "Create transparent workflows across development teams to ensure your feature development process is seamless."
+    integration:
+        id: "worktemplate.product_teams.feature_release.description.integration"
+        defaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+        illustration: "/static/worktemplates/product_teams/feature_release/integrations.png"
+content:
+  - channel:
+      id: feature-release
+      name: Feature Release
+      playbook: product-release-playbook
+      illustration: "/static/worktemplates/product_teams/feature_release/channel.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "54fcf9c610f0ac5e4c522c0657c90602"
+      name: Meeting Agenda
+      channel: feature-release
+      illustration: "/static/worktemplates/product_teams/feature_release/board-ma.png"
+  - board:
+      id: "board-project-task"
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
+      name: Project Task
+      channel: feature-release
+      illustration: "/static/worktemplates/product_teams/feature_release/board-pt.png"
+  - playbook:
+      template: "Product Release"
+      name: "Feature release"
+      id: product-release-playbook
+      illustration: "/static/worktemplates/product_teams/feature_release/playbook.png"
+  - integration:
+      id: jira
+  - integration:
+      id: github

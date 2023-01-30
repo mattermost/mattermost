@@ -7,14 +7,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -23,6 +21,8 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequired(getCloudProducts)).Methods("GET")
 	// GET /api/v4/cloud/limits
 	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods("GET")
+
+	api.BaseRoutes.Cloud.Handle("/products/selfhosted", api.APISessionRequired(getSelfHostedProducts)).Methods("GET")
 
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
@@ -39,7 +39,8 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/expand", api.APISessionRequired(GetLicenseExpandStatus)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// GET /api/v4/cloud/request-trial
@@ -52,28 +53,12 @@ func (api *API) InitCloud() {
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 
-	api.BaseRoutes.Cloud.Handle("/notify-admin-to-upgrade", api.APISessionRequired(handleNotifyAdminToUpgrade)).Methods("POST")
-}
-
-func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
-	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
-		c.SetInvalidParamWithErr("notifyAdminRequest", err)
-		return
-	}
-
-	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentTeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
+	// GET /api/v4/cloud/cws-health-check
+	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -87,20 +72,20 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// if it is an end user, return basic subscription data without sensitive information
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		subscription = &model.Subscription{
-			ID:          subscription.ID,
-			ProductID:   subscription.ProductID,
-			IsFreeTrial: subscription.IsFreeTrial,
-			TrialEndAt:  subscription.TrialEndAt,
-			CustomerID:  "",
-			AddOns:      []string{},
-			StartAt:     0,
-			EndAt:       0,
-			CreateAt:    0,
-			Seats:       0,
-			Status:      "",
-			DNS:         "",
-			IsPaidTier:  "",
-			LastInvoice: &model.Invoice{},
+			ID:              subscription.ID,
+			ProductID:       subscription.ProductID,
+			IsFreeTrial:     subscription.IsFreeTrial,
+			TrialEndAt:      subscription.TrialEndAt,
+			CustomerID:      "",
+			AddOns:          []string{},
+			StartAt:         0,
+			EndAt:           0,
+			CreateAt:        0,
+			Seats:           0,
+			Status:          "",
+			DNS:             "",
+			LastInvoice:     &model.Invoice{},
+			DelinquentSince: subscription.DelinquentSince,
 		}
 	}
 
@@ -114,7 +99,9 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	userId := c.AppContext.Session().UserId
+
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
 		return
 	}
@@ -136,13 +123,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(userId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
-	c.Logger.Error(fmt.Sprintf("%+v", subscriptionChange))
-	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
+
+	changedSub, err := c.App.Cloud().ChangeSubscription(userId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
 		if err.Error() == "compliance-failed" {
 			c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.compliance_failed", nil, "", http.StatusUnprocessableEntity)
@@ -152,15 +139,31 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if subscriptionChange.DowngradeFeedback != nil {
+		c.App.Srv().GetTelemetryService().SendTelemetry("downgrade_feedback", subscriptionChange.DowngradeFeedback.ToMap())
+	}
+
 	json, err := json.Marshal(changedSub)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
+	product, err := c.App.Cloud().GetCloudProduct(c.AppContext.Session().UserId, subscriptionChange.ProductID)
+	if err != nil || product == nil {
+		c.Logger.Error("Error finding the new cloud product", mlog.Err(err))
+	}
+
+	if product.SKU == string(model.SkuCloudStarter) {
+		w.Write(json)
+		return
+	}
+
+	isYearly := product.IsYearly()
+
 	// Log failures for purchase confirmation email, but don't show an error to the user so as not to confuse them
 	// At this point, the upgrade is complete.
-	if appErr := c.App.SendUpgradeConfirmationEmail(); appErr != nil {
+	if appErr := c.App.SendUpgradeConfirmationEmail(isYearly); appErr != nil {
 		c.Logger.Error("Error sending purchase confirmation email", mlog.Err(appErr))
 	}
 
@@ -168,7 +171,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -181,14 +184,14 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	// check if the email needs to be set
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	// this value will not be empty when both emails (user admin and CWS customer) are not business email and
-	// we need to request a new email from the user via the request business email modal
+	// a new business email was provided via the request business email modal
 	var startTrialRequest *model.StartCloudTrialRequest
 	if err = json.Unmarshal(bodyBytes, &startTrialRequest); err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -210,7 +213,7 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -222,20 +225,20 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(appErr)
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	var emailToValidate *model.ValidateBusinessEmailRequest
 	err = json.Unmarshal(bodyBytes, &emailToValidate)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -255,7 +258,7 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -267,14 +270,14 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 
 	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if userErr != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, userErr.Error(), http.StatusInternalServerError)
+		c.Err = userErr
 		return
 	}
 
 	// get the cloud customer email to validate if is a valid business email
 	cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
@@ -300,8 +303,42 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	}
 }
 
+func getSelfHostedProducts(c *Context, w http.ResponseWriter, r *http.Request) {
+	products, err := c.App.Cloud().GetSelfHostedProducts(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	byteProductsData, err := json.Marshal(products)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		sanitizedProducts := []model.UserFacingProduct{}
+		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		byteSanitizedProductsData, err := json.Marshal(sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		w.Write(byteSanitizedProductsData)
+		return
+	}
+
+	w.Write(byteProductsData)
+}
+
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -342,7 +379,7 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -363,7 +400,7 @@ func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -388,8 +425,36 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+func GetLicenseExpandStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	_, token, err := c.App.Srv().GenerateLicenseRenewalLink()
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	res, cloudErr := c.App.Cloud().GetLicenseExpandStatus(c.AppContext.Session().UserId, token)
+	if cloudErr != nil {
+		c.Err = model.NewAppError("Api4.GetLicenseExpandStatusForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
+		return
+	}
+
+	json, jsonErr := json.Marshal(res)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.GetLicenseExpandStatusForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	w.Write(json)
+}
+
 func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -427,7 +492,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -465,7 +530,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -496,7 +561,7 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -533,7 +598,7 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -559,7 +624,7 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.getSubscriptionInvoicePDF", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -594,7 +659,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -624,7 +689,26 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case model.EventTypeSendUpgradeConfirmationEmail:
-		if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
+
+		// isYearly determines whether to send the yearly or monthly Upgrade email
+		isYearly := false
+		if event.Subscription != nil && event.CloudWorkspaceOwner != nil {
+			user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
+			if appErr != nil {
+				c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+				return
+			}
+
+			// Get the current cloud product to determine whether it's a monthly or yearly product
+			product, err := c.App.Cloud().GetCloudProduct(user.Id, event.Subscription.ProductID)
+			if err != nil {
+				c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			isYearly = product.IsYearly()
+		}
+
+		if nErr := c.App.SendUpgradeConfirmationEmail(isYearly); nErr != nil {
 			c.Err = nErr
 			return
 		}
@@ -653,26 +737,30 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	case model.EventTypeSubscriptionChanged:
-		// event.ProductLimits is nil if there was no change
-		if event.ProductLimits != nil {
-			if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
-				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-					hooks.OnCloudLimitsUpdated(event.ProductLimits)
-					return true
-				}, plugin.OnCloudLimitsUpdatedID)
-			}
-			c.App.AdjustInProductLimits(event.ProductLimits, event.Subscription)
-		}
-
-		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
+	case model.EventTypeTriggerDelinquencyEmail:
+		var emailToTrigger model.DelinquencyEmail
+		if event.DelinquencyEmail != nil {
+			emailToTrigger = model.DelinquencyEmail(event.DelinquencyEmail.EmailToTrigger)
+		} else {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.delinquency_email.missing_email_to_trigger", nil, "", http.StatusInternalServerError)
 			return
 		}
-		c.Logger.Info("Updated subscription from webhook event")
+		if nErr := c.App.SendDelinquencyEmail(emailToTrigger); nErr != nil {
+			c.Err = nErr
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
+		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
 		return
 	}
 

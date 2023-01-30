@@ -43,16 +43,11 @@ func TestGraphQLChannels(t *testing.T) {
 			TotalMsgCountRoot float64           `json:"totalMsgCountRoot"`
 			LastRootPostAt    float64           `json:"lastRootPostAt"`
 			Cursor            string            `json:"cursor"`
+			Props             map[string]any    `json:"props"`
 			Team              struct {
 				ID          string `json:"id"`
 				DisplayName string `json:"displayName"`
 			} `json:"team"`
-			Stats struct {
-				ChannelId       string  `json:"channelId"`
-				MemberCount     float64 `json:"memberCount"`
-				GuestCount      float64 `json:"guestCount"`
-				PinnedPostCount float64 `json:"pinnedpostCount"`
-			} `json:"stats"`
 		} `json:"channels"`
 	}
 
@@ -75,6 +70,7 @@ func TestGraphQLChannels(t *testing.T) {
 		totalMsgCountRoot
 		lastRootPostAt
 	    cursor
+	    props
 	  }
 	}
 	`,
@@ -97,6 +93,7 @@ func TestGraphQLChannels(t *testing.T) {
 			assert.NotEmpty(t, ch.PrettyDisplayName)
 			assert.NotEmpty(t, ch.CreateAt)
 			assert.NotEmpty(t, ch.UpdateAt)
+			assert.NotNil(t, ch.Props)
 			if ch.Type == model.ChannelTypeOpen {
 				numPublic++
 			} else if ch.Type == model.ChannelTypePrivate {
@@ -313,7 +310,7 @@ func TestGraphQLChannels(t *testing.T) {
 
 		resp, err = th.MakeGraphQLRequest(&input)
 		require.NoError(t, err)
-		require.Len(t, resp.Errors, 1) // no channels found
+		require.Len(t, resp.Errors, 0) // no errors for no channels found
 
 		th.BasicChannel.Purpose = "newpurpose"
 		_, _, err = th.Client.UpdateChannel(th.BasicChannel)
@@ -384,39 +381,6 @@ func TestGraphQLChannels(t *testing.T) {
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
 		assert.Len(t, q.Channels, 5)
-	})
-
-	t.Run("stats", func(t *testing.T) {
-		query := `query channels($teamId: String, $first: Int) {
-	  channels(userId: "me", teamId: $teamId, first: $first) {
-		id
-		stats {
-		  channelId
-		  memberCount
-		}
-	  }
-	}
-	`
-		input := graphQLInput{
-			OperationName: "channels",
-			Query:         query,
-			Variables: map[string]any{
-				"first":  10,
-				"teamId": myTeam.Id,
-			},
-		}
-
-		resp, err := th.MakeGraphQLRequest(&input)
-		require.NoError(t, err)
-		require.Len(t, resp.Errors, 0)
-		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		require.Len(t, q.Channels, 3)
-		for _, ch := range q.Channels {
-			require.Equal(t, ch.ID, ch.Stats.ChannelId)
-			count, appErr := th.App.GetChannelMemberCount(th.Context, ch.Stats.ChannelId)
-			require.Nil(t, appErr)
-			require.Equal(t, float64(count), ch.Stats.MemberCount)
-		}
 	})
 }
 

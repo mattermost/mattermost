@@ -103,6 +103,9 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/set_unread/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(setUnreadThreadByPostId)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -218,7 +221,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -659,13 +662,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" && sort != "admin" {
+	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" && sort != "admin" && sort != "display_name" {
 		c.SetInvalidURLParam("sort")
 		return
 	}
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
+	// or sort="display_name" on inGroupId
 	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "" || notInGroupId != "") {
 		c.SetInvalidURLParam("sort")
 		return
@@ -675,6 +679,10 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if sort == "admin" && inChannelId == "" {
+		c.SetInvalidURLParam("sort")
+		return
+	}
+	if sort == "display_name" && (inGroupId == "" || notInGroupId != "" || inTeamId != "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -690,11 +698,41 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("inactive")
 	}
 
+	roleNamesAll := []string{}
+	// MM-47378: validate 'role' related parameters
+	if role != "" || rolesString != "" || channelRolesString != "" || teamRolesString != "" {
+		// fetch all role names
+		rolesAll, err := c.App.GetAllRoles()
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getUsers", "api.user.get_users.validation.app_error", nil, "Error fetching roles during validation.", http.StatusBadRequest)
+			return
+		}
+		for _, role := range rolesAll {
+			roleNamesAll = append(roleNamesAll, role.Name)
+		}
+	}
 	roles := []string{}
 	var rolesValid bool
+	if role != "" {
+		roles, rolesValid = model.CleanRoleNames([]string{role})
+		if !rolesValid {
+			c.SetInvalidParam("role")
+			return
+		}
+		roleValid := utils.StringInSlice(role, roleNamesAll)
+		if !roleValid {
+			c.SetInvalidParam("role")
+			return
+		}
+	}
 	if rolesString != "" {
 		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
 		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, roles)
+		if len(validRoleNames) != len(roles) {
 			c.SetInvalidParam("roles")
 			return
 		}
@@ -706,11 +744,21 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("channelRoles")
 			return
 		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, channelRoles)
+		if len(validRoleNames) != len(channelRoles) {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
 	}
 	teamRoles := []string{}
 	if teamRolesString != "" && inTeamId != "" {
 		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
 		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, teamRoles)
+		if len(validRoleNames) != len(teamRoles) {
 			c.SetInvalidParam("teamRoles")
 			return
 		}
@@ -826,10 +874,18 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
-		if appErr != nil {
-			c.Err = appErr
-			return
+		if sort == "display_name" {
+			var user *model.User
+
+			user, appErr = c.App.GetUser(c.AppContext.Session().UserId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			profiles, _, appErr = c.App.GetGroupMemberUsersSortedPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions, c.App.GetNotificationNameFormat(user))
+		} else {
+			profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		}
 	} else if notInGroupId != "" {
 		appErr = requireGroupAccess(c, notInGroupId)
@@ -839,7 +895,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -861,7 +917,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
 	js, err := json.Marshal(profiles)
 	if err != nil {
@@ -873,7 +929,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
-	group, err := c.App.GetGroup(groupID, nil)
+	group, err := c.App.GetGroup(groupID, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -1504,7 +1560,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil, "")
 	c.App.Publish(message)
 
 	ReturnStatusOK(w)
@@ -1911,13 +1967,18 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	campaignToURL := map[string]string{
+		"focalboard": "/boards",
+	}
+
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
 	}
 	r.ParseForm()
 	var loginID string
 	var token string
+	var campaign string
 	if len(r.Form) > 0 {
 		for key, value := range r.Form {
 			if key == "login_id" {
@@ -1925,6 +1986,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if key == "cws_token" {
 				token = value[0]
+			}
+			if key == "utm_campaign" {
+				campaign = value[0]
 			}
 		}
 	}
@@ -1949,7 +2013,20 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
+
+	redirectURL := *c.App.Config().ServiceSettings.SiteURL
+	if campaign != "" {
+		if url, ok := campaignToURL[campaign]; ok {
+			properties := map[string]any{
+				"category":    "acquisition",
+				"redirect_to": strings.TrimSuffix(url, "/"),
+			}
+			c.App.Srv().GetTelemetryService().SendTelemetry("product_start_redirect", properties)
+			redirectURL += url
+		}
+	}
+
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2696,6 +2773,13 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	guestEnabled := c.App.Channels().License() != nil && *c.App.Channels().License().Features.GuestAccounts
+
+	if !guestEnabled {
+		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("demoteUserToGuest", audit.Fail)
 	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
@@ -3019,7 +3103,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := c.App.GetThreadForUser(c.Params.TeamId, threadMembership, extended)
+	thread, err := c.App.GetThreadForUser(threadMembership, extended)
 	if err != nil {
 		c.Err = err
 		return
@@ -3255,7 +3339,7 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().TeamSettings.EnableOpenServer {
-		c.Err = model.NewAppError("GetUsersWithInvalidEmails", "api.users.invalid_emails.enable_open_server.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("GetUsersWithInvalidEmails", model.NoTranslation, nil, "TeamSettings.EnableOpenServer is enabled", http.StatusBadRequest)
 		return
 	}
 

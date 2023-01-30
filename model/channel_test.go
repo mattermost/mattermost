@@ -79,6 +79,12 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Purpose = strings.Repeat("0123456789", 25)
 	require.Nil(t, o.IsValid())
+
+	o.Name = "beu8cc6b3jnxfe9r4na9baooma__36atajbs87dqmpym6o8eiy9saa"
+	require.NotNil(t, o.IsValid())
+
+	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
+	require.NotNil(t, o.IsValid())
 }
 
 func TestChannelPreSave(t *testing.T) {

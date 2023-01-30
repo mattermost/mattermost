@@ -29,36 +29,6 @@ func (ch *channel) Team(ctx context.Context) (*model.Team, error) {
 	return getGraphQLTeam(ctx, ch.TeamId)
 }
 
-// match with api4.getChannelStats
-func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
-	c, err := getCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return nil, c.Err
-	}
-
-	memberCount, appErr := c.App.GetChannelMemberCount(c.AppContext, ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	guestCount, appErr := c.App.GetChannelGuestCount(c.AppContext, ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(c.AppContext, ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	return &model.ChannelStats{ChannelId: ch.Id, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}, nil
-}
-
 func (ch *channel) Cursor() *string {
 	cursor := string(channelCursorPrefix) + "-" + ch.Id
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))
@@ -87,12 +57,18 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 	// This approach becomes effectively similar to a dataloader if the displayName computation
 	// were to be done at the field level per channel.
 
-	// Get DM/GM channelIDs
+	// Get DM/GM channelIDs and set empty maps as well.
 	var channelIDs []string
 	for _, ch := range channels {
 		if ch.IsGroupOrDirect() {
 			channelIDs = append(channelIDs, ch.Id)
 		}
+
+		// This is needed to avoid sending null, which
+		// does not match with the schema since props is not nullable.
+		// And making it nullable would mean taking pointer of a map,
+		// which is not very idiomatic.
+		ch.MakeNonNil()
 	}
 
 	var nameFormat string
@@ -101,7 +77,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 
 	// Avoiding unnecessary queries unless necessary.
 	if len(channelIDs) > 0 {
-		userInfo, err = c.App.Srv().Store.Channel().GetMembersInfoByChannelIds(channelIDs)
+		userInfo, err = c.App.Srv().Store().Channel().GetMembersInfoByChannelIds(channelIDs)
 		if err != nil {
 			return nil, err
 		}
