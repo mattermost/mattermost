@@ -51,6 +51,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	pbTemplate.TeamID = wtcr.TeamID
 	pbTemplate.Title = name
 	pbTemplate.Public = wtcr.Visibility == model.WorkTemplateVisibilityPublic
+	pbTemplate.CreatePublicPlaybookRun = wtcr.Visibility == model.WorkTemplateVisibilityPublic
 	data, err := json.Marshal(pbTemplate)
 	if err != nil {
 		return "", fmt.Errorf("unable to marshal playbook template: %w", err)
