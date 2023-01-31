@@ -15,9 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// DeletePersistentNotificationsPost stops persistent notifications, if mentioned user(except post owner) reacts, reply or ack on the post.
-// Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false" and "mentionedUserID" can be empty.
-func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
+// DeletePersistentNotificationsPost stops persistent notifications, if loggedInUserID(except post owner) reacts, reply or ack on the post.
+// Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false".
+func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, loggedInUserID string, checkMentionedUser bool) *model.AppError {
 	if !a.IsPersistentNotificationsEnabled() {
 		c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled.")
 		return nil
@@ -31,7 +31,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 	}
 
 	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-		user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
+		user, nErr := a.Srv().Store().User().Get(context.Background(), loggedInUserID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -47,13 +47,14 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		}
 	}
 
-	// if checkMentionedUser is "false" that would mean user is already authorized to delete the persistent-notification.
+	// if checkMentionedUser is "false" that would mean user is already authorized to delete the persistent-notification
+	// and the mention-validation can be skipped, so isUserMentioned will be "true".
 	isUserMentioned := !checkMentionedUser
 
 	// post owner is not allowed to stop the persistent notifications via ack, reply or reaction.
-	if checkMentionedUser && mentionedUserID != post.UserId {
+	if checkMentionedUser && loggedInUserID != post.UserId {
 		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
-			if mentions.isUserMentioned(mentionedUserID) {
+			if mentions.isUserMentioned(loggedInUserID) {
 				isUserMentioned = true
 			}
 			return nil
@@ -273,7 +274,6 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		Sender:     sender,
 	}
 
-	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(mentionedUsersList)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		return errors.Errorf("mentioned users: %d are more than allowed users: %d", len(mentionedUsersList), *a.Config().TeamSettings.MaxNotificationsPerChannel)
 	}

@@ -22,6 +22,10 @@ func newSqlPostPersistentNotificationStore(sqlStore *SqlStore) store.PostPersist
 }
 
 func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
+	if params.Pagination.PerPage == 0 {
+		params.Pagination.PerPage = 1000
+	}
+
 	builder := s.getQueryBuilder().
 		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
 		From("PersistentNotifications").
@@ -46,12 +50,10 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 	}
 
 	var hasNext bool
-	if params.Pagination.PerPage != 0 {
-		if len(posts) == utils.MinInt(params.Pagination.PerPage, 1000)+1 {
-			// Shave off the next-page item.
-			posts = posts[:len(posts)-1]
-			hasNext = true
-		}
+	if len(posts) == utils.MinInt(params.Pagination.PerPage, 1000)+1 {
+		// Shave off the next-page item.
+		posts = posts[:len(posts)-1]
+		hasNext = true
 	}
 	return posts, hasNext, nil
 }
@@ -210,11 +212,5 @@ func getPersistentNotificationsPaginationBuilder(builder sq.SelectBuilder, pagin
 		}
 	}
 
-	if pagination.PerPage != 0 {
-		builder = builder.Limit(uint64(utils.MinInt(pagination.PerPage, 1000) + 1))
-	} else {
-		builder = builder.Limit(uint64(1000 + 1))
-	}
-
-	return builder
+	return builder.Limit(uint64(utils.MinInt(pagination.PerPage, 1000) + 1))
 }
