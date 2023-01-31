@@ -39,7 +39,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 	// determine playbook name
 	name := playbook.Name
 	if wtcr.Name != "" {
-		name = fmt.Sprintf("%s: %s", wtcr.Name, playbook.Name)
+		name += " " + wtcr.Name
 	}
 
 	// get the correct playbook pbTemplate
@@ -70,7 +70,7 @@ func (e *appWorkTemplateExecutor) CreatePlaybook(
 
 	runName := channel.Name
 	if wtcr.Name != "" {
-		runName = fmt.Sprintf("%s: %s", wtcr.Name, channel.Name)
+		runName = wtcr.Name
 	}
 	data, err = json.Marshal(pbclient.PlaybookRunCreateOptions{
 		Name:        runName,
@@ -117,7 +117,7 @@ func (e *appWorkTemplateExecutor) CreateChannel(
 	channelID := ""
 	channelDisplayName := cChannel.Name
 	if wtcr.Name != "" {
-		channelDisplayName = fmt.Sprintf("%s: %s", wtcr.Name, cChannel.Name)
+		channelDisplayName = wtcr.Name
 	}
 
 	var channelCreationAppErr *model.AppError = &model.AppError{}
@@ -188,7 +188,7 @@ func (e *appWorkTemplateExecutor) CreateBoard(
 
 	title := cBoard.Name
 	if wtcr.Name != "" {
-		title = fmt.Sprintf("%s: %s", wtcr.Name, cBoard.Name)
+		title += " " + wtcr.Name
 	}
 
 	// Duplicate board From template

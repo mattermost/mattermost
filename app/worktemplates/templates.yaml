@@ -3,7 +3,7 @@
 ######################
 id: "product_teams/feature_release:v1"
 category: product_teams
-useCase: Feature Release
+useCase: Manage feature release
 illustration: /static/worktemplates/product_teams/feature_release/feature_release.svg
 visibility: public
 description:
@@ -50,7 +50,7 @@ content:
 ---
 id: 'product_teams/goals_and_okrs:v1'
 category: product_teams
-useCase: Goals and OKR's
+useCase: Set goals and OKR's
 illustration: /static/worktemplates/product_teams/goals_and_okrs/goals_and_okrs.svg
 visibility: public
 description:
@@ -96,7 +96,7 @@ content:
 ---
 id: 'product_teams/bug_bash:v1'
 category: product_teams
-useCase: Bug Bash
+useCase: Run a bug bash
 illustration: /static/worktemplates/product_teams/bug_bash/bug_bash.svg
 visibility: public
 description:
@@ -137,7 +137,7 @@ content:
 ---
 id: 'product_teams/sprint_planning:v1'
 category: product_teams
-useCase: Sprint Planning
+useCase: Plan sprints
 illustration: /static/worktemplates/product_teams/sprint_planning/sprint_planning.svg
 visibility: public
 description:
@@ -179,7 +179,7 @@ content:
 ---
 id: 'product_teams/product_roadmap:v1'
 category: product_teams
-useCase: Product Roadmap
+useCase: Create a product roadmap
 illustration: /static/worktemplates/product_teams/product_roadmap/product_roadmap.svg
 visibility: public
 description:
@@ -206,7 +206,7 @@ content:
 ######################
 id: 'devops/incident_resolution:v1'
 category: devops
-useCase: Incident Resolution
+useCase: Resolve incidents
 illustration: /static/worktemplates/devops/incident_resolution/incident_resolution.png
 visibility: public
 description:
@@ -239,7 +239,7 @@ content:
 ---
 id: 'devops/product_release:v1'
 category: devops
-useCase: Product Release
+useCase: Prepare a product release
 illustration: /static/worktemplates/devops/product_release/product_release.svg
 visibility: public
 description:
@@ -275,7 +275,7 @@ content:
 ######################
 id: 'companywide/goals_and_okrs:v1'
 category: companywide
-useCase: Goals and OKR's
+useCase: Set goals and OKR's
 illustration: /static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.svg
 visibility: public
 description:
@@ -314,7 +314,7 @@ content:
 ---
 id: 'companywide/create_project:v1'
 category: companywide
-useCase: Create Project
+useCase: Create a project
 illustration: /static/worktemplates/companywide/create_project/create_project.svg
 visibility: public
 description:
@@ -358,7 +358,7 @@ content:
 ######################
 id: 'leadership/goals_and_okrs:v1'
 category: leadership
-useCase: Goals and OKR's
+useCase: Set goals and OKR's
 illustration: /static/worktemplates/leadership/goals_and_okrs/goals_and_okrs.svg
 visibility: public
 description:
