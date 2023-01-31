@@ -85,7 +85,9 @@ Session.vim
 *~
 
 # VSCode project files
-.vscode
+!.vscode/
+.vscode/*
+!.vscode/launch.json
 *.code-workspace
 
 # Gogland project files
