@@ -108,10 +108,16 @@ type UserTeamImportData struct {
 }
 
 type UserChannelImportData struct {
-	Name        *string                           `json:"name"`
-	Roles       *string                           `json:"roles"`
-	NotifyProps *UserChannelNotifyPropsImportData `json:"notify_props,omitempty"`
-	Favorite    *bool                             `json:"favorite,omitempty"`
+	Name               *string                           `json:"name"`
+	Roles              *string                           `json:"roles"`
+	NotifyProps        *UserChannelNotifyPropsImportData `json:"notify_props,omitempty"`
+	Favorite           *bool                             `json:"favorite,omitempty"`
+	MentionCount       *int64                            `json:"mention_count,omitempty"`
+	MentionCountRoot   *int64                            `json:"mention_count_root,omitempty"`
+	UrgentMentionCount *int64                            `json:"urgend_mention_count,omitempty"`
+	MsgCount           *int64                            `json:"msg_count,omitempty"`
+	MsgCountRoot       *int64                            `json:"msg_count_root,omitempty"`
+	LastViewedAt       *int64                            `json:"last_viewed_at,omitempty"`
 }
 
 type UserChannelNotifyPropsImportData struct {

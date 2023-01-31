@@ -2543,7 +2543,7 @@ func TestGetChannelStats(t *testing.T) {
 	client := th.Client
 	channel := th.CreatePrivateChannel()
 
-	stats, _, err := client.GetChannelStats(channel.Id, "")
+	stats, _, err := client.GetChannelStats(channel.Id, "", false)
 	require.NoError(t, err)
 
 	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
@@ -2552,7 +2552,7 @@ func TestGetChannelStats(t *testing.T) {
 	require.Equal(t, int64(0), stats.FilesCount, "got incorrect file count")
 
 	th.CreatePinnedPostWithClient(th.Client, channel)
-	stats, _, err = client.GetChannelStats(channel.Id, "")
+	stats, _, err = client.GetChannelStats(channel.Id, "", false)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
 
@@ -2563,30 +2563,35 @@ func TestGetChannelStats(t *testing.T) {
 	require.NoError(t, err)
 	th.CreatePostInChannelWithFiles(channel, fileResp.FileInfos...)
 	// make sure the file count channel stats is updated
-	stats, _, err = client.GetChannelStats(channel.Id, "")
+	stats, _, err = client.GetChannelStats(channel.Id, "", false)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.FilesCount, "should have returned 1 file count")
 
-	_, resp, err := client.GetChannelStats("junk", "")
+	// exclude file counts
+	stats, _, err = client.GetChannelStats(channel.Id, "", true)
+	require.NoError(t, err)
+	require.Equal(t, int64(-1), stats.FilesCount, "should have returned -1 file count for exclude_files_count=true")
+
+	_, resp, err := client.GetChannelStats("junk", "", false)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetChannelStats(model.NewId(), "")
+	_, resp, err = client.GetChannelStats(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.GetChannelStats(channel.Id, "")
+	_, resp, err = client.GetChannelStats(channel.Id, "", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
 
-	_, resp, err = client.GetChannelStats(channel.Id, "")
+	_, resp, err = client.GetChannelStats(channel.Id, "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.GetChannelStats(channel.Id, "")
+	_, _, err = th.SystemAdminClient.GetChannelStats(channel.Id, "", false)
 	require.NoError(t, err)
 }
 
