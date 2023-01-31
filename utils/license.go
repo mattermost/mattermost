@@ -22,15 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
-var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
-tSyzyxrXkJjsFUf0Ke7bm/TLtIggRdqOcUF3XEWqQk5RGD5vuq7Rlg1zZqMEBk8N
-EZeRhkxyaZW8pLjxwuBUOnXfJew31+gsTNdKZzRjrvPumKr3EtkleuoxNdoatu4E
-HrKmR/4Yi71EqAvkhk7ZjQFuF0osSWJMEEGGCSUYQnTEqUzcZSh1BhVpkIkeu8Kk
-1wCtptODixvEujgqVe+SrE3UlZjBmPjC/CL+3cYmufpSNgcEJm2mwsdaXp2OPpfn
-a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
-hwIDAQAB
------END PUBLIC KEY-----`)
+var publicKey string = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF5Wm1TaGxVOFo4SGRHMElXU1o4cgp0U3l6eXhyWGtKanNGVWYwS2U3Ym0vVEx0SWdnUmRxT2NVRjNYRVdxUWs1UkdENXZ1cTdSbGcxelpxTUVCazhOCkVaZVJoa3h5YVpXOHBManh3dUJVT25YZkpldzMxK2dzVE5kS1p6UmpydlB1bUtyM0V0a2xldW94TmRvYXR1NEUKSHJLbVIvNFlpNzFFcUF2a2hrN1pqUUZ1RjBvc1NXSk1FRUdHQ1NVWVFuVEVxVXpjWlNoMUJoVnBrSWtldThLawoxd0N0cHRPRGl4dkV1amdxVmUrU3JFM1VsWmpCbVBqQy9DTCszY1ltdWZwU05nY0VKbTJtd3NkYVhwMk9QcGZuCmEwdjg1WEw2aTlvdGUyUCtmTFozd1g5RW9pb0h6Z2RnQjdhck94WTUwUVJKTzdPeUNxcEtGS3Y2bFJXVFh1U3QKaHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
 
 var LicenseValidator LicenseValidatorIface
 
@@ -63,9 +55,15 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 }
 
 func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
+	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		mlog.Error("error decoding license public key", mlog.Err(err))
+		return false, ""
+	}
+
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
-	_, err := base64.StdEncoding.Decode(decoded, signed)
+	_, err = base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
 		mlog.Error("Encountered error decoding license", mlog.Err(err))
 		return false, ""
@@ -84,7 +82,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	plaintext := decoded[:len(decoded)-256]
 	signature := decoded[len(decoded)-256:]
 
-	block, _ := pem.Decode(publicKey)
+	block, _ := pem.Decode(publicKeyBytes)
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
