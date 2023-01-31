@@ -282,11 +282,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-<<<<<<< HEAD
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil, th.Server)
-=======
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
->>>>>>> c8d08adf29baa1bd7203ad409e6fe6665f836443
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil, th.Server)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"

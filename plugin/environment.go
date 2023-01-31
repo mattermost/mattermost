@@ -17,7 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
+
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -63,8 +63,14 @@ type Environment struct {
 	patchReactDOM                  bool
 	prepackagedPlugins             []*PrepackagedPlugin
 	prepackagedPluginsLock         sync.RWMutex
-	clusterLeaderManager           sharedchannel.ServerIface
+	clusterLeaderManager           ServerIface
 	clusterLeaderChangedListenerID string
+}
+
+type ServerIface interface {
+	IsLeader() bool
+	AddClusterLeaderChangedListener(listener func()) string
+	RemoveClusterLeaderChangedListener(id string)
 }
 
 func NewEnvironment(
@@ -75,7 +81,7 @@ func NewEnvironment(
 	patchReactDOM bool,
 	logger *mlog.Logger,
 	metrics einterfaces.MetricsInterface,
-	cluster einterfaces.ClusterInterface) (*Environment, error) {
+	cluster ServerIface) (*Environment, error) {
 	env := &Environment{
 		logger:               logger,
 		metrics:              metrics,
@@ -104,14 +110,14 @@ func NewEnvironment(
 	return env, nil
 }
 
-// RemoveClusterleaderChangedListener is used exclusively in tests that create a
-// separate Environment in addition to the one created by the server on startup.
-// The original Listener needs is removed for cleaner tests.
-func (env *Environment) RemoveClusterleaderChangedListener() {
-	// if env != nil && env.clusterLeaderManager != nil && env.clusterLeaderChangedListenerID != "" {
-	// 	env.clusterLeaderManager.RemoveClusterLeaderChangedListener(env.clusterLeaderChangedListenerID)
-	// 	env.clusterLeaderChangedListenerID = ""
-	// }
+// TestCleanupClusterLeaderChangedListener is used exclusively in tests that
+// create a separate Environment in addition to the one created by the server on
+// startup. The original Listener needs is removed for cleaner tests.
+func (env *Environment) TestCleanupClusterLeaderChangedListener() {
+	if env != nil && env.clusterLeaderManager != nil && env.clusterLeaderChangedListenerID != "" {
+		env.clusterLeaderManager.RemoveClusterLeaderChangedListener(env.clusterLeaderChangedListenerID)
+		env.clusterLeaderChangedListenerID = ""
+	}
 }
 
 // Performs a full scan of the given path.
@@ -353,10 +359,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		rp.supervisor = sup
 		env.registeredPlugins.Store(id, rp)
 
-		// if sup.Implements(OnClusterLeaderChangedID) {
-		// 	isLeader := env.clusterLeaderManager == nil || env.clusterLeaderManager.IsLeader()
-		// 	sup.Hooks().OnClusterLeaderChanged(isLeader)
-		// }
+		if sup.Implements(OnClusterLeaderChangedID) {
+			isLeader := env.clusterLeaderManager == nil || env.clusterLeaderManager.IsLeader()
+			sup.Hooks().OnClusterLeaderChanged(isLeader)
+		}
 
 		componentActivated = true
 	}
@@ -589,6 +595,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	startTime := time.Now()
+
 	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 

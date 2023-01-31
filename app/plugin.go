@@ -234,6 +234,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		*ch.cfgSvc.Config().ExperimentalSettings.PatchPluginsReactDOM,
 		ch.srv.Log(),
 		ch.srv.GetMetrics(),
+		ch.srv,
 	)
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))

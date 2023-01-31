@@ -34,12 +34,9 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	app.ch.GetPluginsEnvironment().RemoveClusterleaderChangedListener()
-	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil, app.Srv())
-=======
-	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
->>>>>>> c8d08adf29baa1bd7203ad409e6fe6665f836443
+	app.ch.GetPluginsEnvironment().TestCleanupClusterLeaderChangedListener()
+
+	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil, app.Srv())
 	require.NoError(t, err)
 
 	app.ch.SetPluginsEnvironment(env)
@@ -1036,11 +1033,7 @@ func TestHookMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-<<<<<<< HEAD
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock, th.Server)
-=======
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock)
->>>>>>> c8d08adf29baa1bd7203ad409e6fe6665f836443
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock, th.Server)
 		require.NoError(t, err)
 
 		th.App.ch.SetPluginsEnvironment(env)

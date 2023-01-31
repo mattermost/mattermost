@@ -2,6 +2,8 @@ module github.com/mattermost/mattermost-server/v6
 
 go 1.19
 
+replace github.com/mattermost/focalboard/server => ../focalboard/server
+
 require (
 	code.sajari.com/docconv v1.3.5
 	github.com/Masterminds/semver/v3 v3.2.0
@@ -33,6 +35,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80
 	github.com/lib/pq v1.10.7
+	github.com/mattermost/focalboard/mattermost-plugin v0.0.0-20230131153042-a2366caa4340
 	github.com/mattermost/focalboard/server v0.0.0-20230104182634-f909c2552e37
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gziphandler v0.0.1
@@ -77,6 +80,7 @@ require (
 
 require (
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
+	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/RoaringBitmap/roaring v1.2.1 // indirect
 	github.com/advancedlogic/GoOse v0.0.0-20210820140952-9d5822d4a625 // indirect
@@ -84,6 +88,7 @@ require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.4.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.3.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -121,6 +126,7 @@ require (
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -130,16 +136,21 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
+	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
+	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattermost/mattermost-plugin-api v0.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
+	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
@@ -151,6 +162,10 @@ require (
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.12.1 // indirect
+	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/common v0.33.0 // indirect
+	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.3 // indirect
@@ -158,12 +173,18 @@ require (
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/segmentio/backo-go v1.0.1 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/spf13/afero v1.8.2 // indirect
+	github.com/spf13/cast v1.4.1 // indirect
+	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/viper v1.10.1 // indirect
 	github.com/splitio/go-split-commons/v4 v4.2.3 // indirect
 	github.com/splitio/go-toolkit/v5 v5.2.2 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
@@ -174,7 +195,7 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
+	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf // indirect
