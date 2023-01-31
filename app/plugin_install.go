@@ -195,7 +195,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
-		// The plugin might only be prepacked and not on the Marketplace.
+		// The plugin might only be prepackaged and not on the Marketplace.
 		if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
 			mlog.Warn("Failed to reach Marketplace to install plugin", mlog.String("plugin_id", request.Id), mlog.Err(appErr))
 		}
