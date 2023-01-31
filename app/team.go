@@ -203,7 +203,10 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		return nil, model.NewAppError("CreateBoard", "get templates", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, err := a.GetChannelByName(c, defaultChannelName, teamId, false)
+	channel, appErr := a.GetChannelByName(c, defaultChannelName, teamId, false)
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	var template *fb_model.Board = nil
 	for _, t := range templates {
