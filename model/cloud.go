@@ -317,6 +317,11 @@ type DowngradeFeedback struct {
 	Comments string `json:"comments"`
 }
 
+type WorkspaceDeletionRequest struct {
+	SubscriptionID string
+	DowngradeFeedback
+}
+
 func (p *Product) IsYearly() bool {
 	return p.RecurringInterval == RecurringIntervalYearly
 }

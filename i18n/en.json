@@ -2580,6 +2580,10 @@
     "translation": "CWS Server is not available."
   },
   {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS Server failed to delete workspace."
+  },
+  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },
