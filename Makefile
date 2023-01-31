@@ -183,6 +183,7 @@ PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += focalboard-v7.7.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
 # Just force a rebuild for this branch to pickup focalboard branch.
+# Just force a rebuild for this branch to pickup focalboard branch.
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
