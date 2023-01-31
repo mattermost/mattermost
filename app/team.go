@@ -296,7 +296,8 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 		}
 
 		if board.ID != "" {
-			mlog.Info(fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id), mlog.Err(err))
+			fmtErr := fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id)
+			mlog.Info(fmtErr, mlog.Err(err))
 		}
 	}
 
