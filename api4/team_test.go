@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -18,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app"
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -3071,15 +3069,12 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// define user session and context
-	context := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-
 	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
 		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
 
 		require.Len(t, channelIds, 2)
 
-		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(th.BasicUser.Id, channelIds)
 
 		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
 		require.Len(t, channelIds, 2)
@@ -3091,7 +3086,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 
 		require.Len(t, channelIds, 2)
 
-		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(th.BasicUser.Id, channelIds)
 
 		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
 		require.Len(t, channelIds, 1)

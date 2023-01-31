@@ -76,9 +76,9 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 	channelIds := strings.Split(tokenData["channels"], " ")
 
 	// filter the channels the original inviter has still permissions over
-	channelIds = a.ValidateUserPermissionsOnChannels(c, senderId, channelIds)
+	channelIds = a.ValidateUserPermissionsOnChannels(senderId, channelIds)
 
-	channels, nErr := a.Srv().Store().Channel().GetChannelsByIds(channelIds, false)
+	channels, nErr := a.Srv().Store.Channel().GetChannelsByIds(channelIds, false)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

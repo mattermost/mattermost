@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -17851,7 +17852,7 @@ func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
+func (a *OpenTracingAppLayer) ValidateUserPermissionsOnChannels(userId string, channelIds []string) []string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateUserPermissionsOnChannels")
 
@@ -17863,7 +17864,7 @@ func (a *OpenTracingAppLayer) ValidateUserPermissionsOnChannels(c request.CTX, u
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ValidateUserPermissionsOnChannels(c, userId, channelIds)
+	resultVar0 := a.app.ValidateUserPermissionsOnChannels(userId, channelIds)
 
 	return resultVar0
 }

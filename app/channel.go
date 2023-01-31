@@ -43,11 +43,13 @@ func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*mo
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
+//
 //	['town-square', 'off-topic']
+//
 // However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
-//	['town-square', 'game-of-thrones', 'wow']
 //
+//	['town-square', 'game-of-thrones', 'wow']
 func (a *App) DefaultChannelNames() []string {
 	names := []string{"town-square"}
 
@@ -2567,19 +2569,19 @@ func (a *App) IsCRTEnabledForUser(userID string) bool {
 }
 
 // ValidateUserPermissionsOnChannels filters channelIds based on whether userId is authorized to manage channel members. Unauthorized channels are removed from the returned list.
-func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
+func (a *App) ValidateUserPermissionsOnChannels(userId string, channelIds []string) []string {
 	var allowedChannelIds []string
 
 	for _, channelId := range channelIds {
-		channel, err := a.GetChannel(c, channelId)
+		channel, err := a.GetChannel(channelId)
 		if err != nil {
 			mlog.Info("Invite users to team - couldn't get channel " + channelId)
 			continue
 		}
 
-		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers) {
+		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(userId, channelId, model.PermissionManagePrivateChannelMembers) {
 			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
+		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(userId, channelId, model.PermissionManagePublicChannelMembers) {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
 			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)

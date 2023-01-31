@@ -390,7 +390,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email, "senderId": th.BasicUser.Id, "channels": channelIds}),
 		)
-		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
 		require.NoError(t, err)
@@ -400,7 +400,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after being used")
 
 		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
@@ -409,7 +409,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 
 		// Now we get all the channels for the just created user
-		channelList, cErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+		channelList, cErr := th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
 			IncludeDeleted: false,
 			LastDeleteAt:   0,
 		})
