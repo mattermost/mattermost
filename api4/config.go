@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -157,12 +158,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable && cfg.FeatureFlags.BoardsProduct {
-		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusBadRequest)
-		return
-	}
-
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
-		c.Err = appErr
+		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -187,6 +183,15 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// If the config for default server locale has changed, reinitialize the server's translations.
+	if oldCfg.LocalizationSettings.DefaultServerLocale != newCfg.LocalizationSettings.DefaultServerLocale {
+		s := newCfg.LocalizationSettings
+		if err = i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale); err != nil {
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
 	}
 
 	diffs, err := config.Diff(oldCfg, newCfg)
@@ -302,11 +307,6 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
 			return
 		}
-	}
-
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
-		c.Err = appErr
-		return
 	}
 
 	// There are some settings that cannot be changed in a cloud env

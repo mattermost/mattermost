@@ -219,6 +219,10 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		return nil, -1, errors.Wrap(err, "update thread from posts failed")
 	}
 
+	if err = s.savePostsPriority(transaction, posts); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to save PostPriority")
+	}
+
 	if err = transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
 		return posts, -1, errors.Wrap(err, "commit_transaction")
@@ -1788,18 +1792,6 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
 	return posts, nil
 }
 
-var specialSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	"@",
-	":",
-}
-
 // GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 func (s *SqlPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	if n <= 0 {
@@ -1989,8 +1981,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialSearchChar {
+	for _, c := range s.specialSearchChars() {
 		terms = strings.Replace(terms, c, " ", -1)
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
@@ -2279,6 +2270,20 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 
 	if options.ExcludeDeleted {
 		query = query.Where(sq.Eq{"p.DeleteAt": 0})
+	}
+
+	if options.ExcludeSystemPosts {
+		query = query.Where("p.Type NOT LIKE 'system_%'")
+	}
+
+	if options.SinceUpdateAt > 0 {
+		query = query.Where(sq.Or{
+			sq.Gt{"p.UpdateAt": options.SinceUpdateAt},
+			sq.And{
+				sq.Eq{"p.UpdateAt": options.SinceUpdateAt},
+				sq.Gt{"p.Id": options.SincePostID},
+			},
+		})
 	}
 
 	queryString, args, err := query.ToSql()
@@ -2933,6 +2938,24 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 	return nil
 }
 
+func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
+	for _, post := range posts {
+		if post.GetPriority() != nil {
+			postPriority := &model.PostPriority{
+				PostId:                  post.Id,
+				ChannelId:               post.ChannelId,
+				Priority:                post.Metadata.Priority.Priority,
+				RequestedAck:            post.Metadata.Priority.RequestedAck,
+				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
+			}
+			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
@@ -3290,15 +3313,15 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	meta := &store.PostReminderMetadata{}
 	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
-			t.name as TeamName,
-			u.locale as UserLocale, u.username as Username
-		FROM Posts p, Channels c, Teams t, Users u
-		WHERE p.ChannelId=c.Id
-		AND c.TeamId=t.Id
-		AND p.UserId=u.Id
-		AND p.Id=?`, postID)
+		COALESCE(t.name, '') as TeamName,
+		u.locale as UserLocale, u.username as Username
+	FROM Posts p
+	JOIN Channels c ON p.ChannelId=c.Id
+	LEFT JOIN Teams t ON c.TeamId=t.Id
+	JOIN Users u ON p.UserId=u.Id
+	AND p.Id=?`, postID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get post reminder metadata")
+		return nil, errors.Wrapf(err, "failed to get post reminder metadata: postId %s", postID)
 	}
 
 	return meta, nil

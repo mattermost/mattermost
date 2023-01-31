@@ -7,11 +7,11 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
-	"sync"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -30,6 +30,7 @@ type JoinedThread struct {
 	Participants   model.StringArray
 	ThreadDeleteAt int64
 	TeamId         string
+	IsUrgent       bool
 	model.Post
 }
 
@@ -51,6 +52,7 @@ func (thread *JoinedThread) toThreadResponse(users map[string]*model.User) *mode
 		Participants:   threadParticipants,
 		Post:           thread.Post.ToNilIfInvalid(),
 		DeleteAt:       thread.ThreadDeleteAt,
+		IsUrgent:       thread.IsUrgent,
 	}
 }
 
@@ -213,6 +215,46 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 	return totalUnreadMentions, nil
 }
 
+// GetTotalUnreadUrgentMentions counts the number of unread mentions for the given user, optionally
+// constrained to the given team + DMs/GMs.
+func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
+	var totalUnreadUrgentMentions int64
+
+	query := s.getQueryBuilder().
+		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
+		From("ThreadMemberships").
+		Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+		Where(sq.Eq{
+			"ThreadMemberships.UserId":    userId,
+			"ThreadMemberships.Following": true,
+			"PostsPriority.Priority":      model.PostPriorityUrgent,
+		})
+
+	if teamId != "" || !opts.Deleted {
+		query = query.Join("Threads ON Threads.PostId = ThreadMemberships.PostId")
+	}
+
+	if teamId != "" {
+		query = query.
+			Where(sq.Or{
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
+			})
+	}
+
+	if !opts.Deleted {
+		query = query.
+			Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
+	}
+
+	err := s.GetReplicaX().GetBuilder(&totalUnreadUrgentMentions, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count unread urgent mentions for user id=%s", userId)
+	}
+
+	return totalUnreadUrgentMentions, nil
+}
+
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
@@ -242,6 +284,17 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Eq{"ThreadMemberships.Following": true})
+
+	if opts.IncludeIsUrgent {
+		urgencyCase := sq.
+			Case().
+			When(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}, "true").
+			Else("false")
+
+		query = query.
+			Column(sq.Alias(urgencyCase, "IsUrgent")).
+			LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId")
+	}
 
 	// If a team is specified, constrain to channels in that team or DMs/GMs without
 	// a team at all.
@@ -322,7 +375,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 // GetTeamsUnreadForUser returns the total unread threads and unread mentions
 // for a user from all teams.
-func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
+func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
@@ -330,8 +383,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
 	}
 
-	var wg sync.WaitGroup
-	var err1, err2 error
+	var eg errgroup.Group
 
 	unreadThreads := []struct {
 		Count  int64
@@ -341,13 +393,15 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		Count  int64
 		TeamId string
 	}{}
+	unreadUrgentMentions := []struct {
+		Count  int64
+		TeamId string
+	}{}
 
 	// Running these concurrently hasn't shown any major downside
 	// than running them serially. So using a bit of perf boost.
 	// In any case, they will be replaced by computed columns later.
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	eg.Go(func() error {
 		repliesQuery := s.getQueryBuilder().
 			Select("COUNT(Threads.PostId) AS Count, ThreadTeamId AS TeamId").
 			From("Threads").
@@ -356,15 +410,10 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Threads.ThreadTeamId")
 
-		err := s.GetReplicaX().SelectBuilder(&unreadThreads, repliesQuery)
-		if err != nil {
-			err1 = errors.Wrap(err, "failed to get total unread threads")
-		}
-	}()
+		return errors.Wrap(s.GetReplicaX().SelectBuilder(&unreadThreads, repliesQuery), "failed to get total unread threads")
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	eg.Go(func() error {
 		mentionsQuery := s.getQueryBuilder().
 			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
 			From("ThreadMemberships").
@@ -372,20 +421,27 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 			Where(fetchConditions).
 			GroupBy("Threads.ThreadTeamId")
 
-		err := s.GetReplicaX().SelectBuilder(&unreadMentions, mentionsQuery)
-		if err != nil {
-			err2 = errors.Wrap(err, "failed to get total unread mentions")
-		}
-	}()
+		return errors.Wrap(s.GetReplicaX().SelectBuilder(&unreadMentions, mentionsQuery), "failed to get total unread mentions")
+	})
+
+	if includeUrgentMentionCount {
+		eg.Go(func() error {
+			urgentMentionsQuery := s.getQueryBuilder().
+				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
+				From("ThreadMemberships").
+				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+				Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+				Where(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}).
+				Where(fetchConditions).
+				GroupBy("Threads.ThreadTeamId")
+
+			return errors.Wrap(s.GetReplicaX().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery), "failed to get total unread urgent mentions")
+		})
+	}
 
 	// Wait for them to be over
-	wg.Wait()
-
-	if err1 != nil {
-		return nil, err1
-	}
-	if err2 != nil {
-		return nil, err2
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	res := make(map[string]*model.TeamUnread)
@@ -402,6 +458,15 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		} else {
 			res[item.TeamId] = &model.TeamUnread{
 				ThreadMentionCount: item.Count,
+			}
+		}
+	}
+	for _, item := range unreadUrgentMentions {
+		if _, ok := res[item.TeamId]; ok {
+			res[item.TeamId].ThreadUrgentMentionCount = item.Count
+		} else {
+			res[item.TeamId] = &model.TeamUnread{
+				ThreadUrgentMentionCount: item.Count,
 			}
 		}
 	}
@@ -436,9 +501,9 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	return users, nil
 }
 
-func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
-		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
 	}
 
 	unreadRepliesQuery := sq.
@@ -461,6 +526,17 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
 		Where(sq.Eq{"Threads.PostId": threadMembership.PostId})
+
+	if postPriorityEnabled {
+		urgencyCase := sq.
+			Case().
+			When(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}, "true").
+			Else("false")
+
+		query = query.
+			Column(sq.Alias(urgencyCase, "IsUrgent")).
+			LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId")
+	}
 
 	err := s.GetReplicaX().GetBuilder(&thread, query)
 	if err != nil {

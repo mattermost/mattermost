@@ -4,10 +4,12 @@
 package plugin
 
 import (
+	"bytes"
 	"fmt"
 	"hash/fnv"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,7 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -51,26 +53,29 @@ type PrepackagedPlugin struct {
 // of active plugins.
 type Environment struct {
 	registeredPlugins              sync.Map
-	registeredProducts             sync.Map
 	pluginHealthCheckJob           *PluginHealthCheckJob
 	logger                         *mlog.Logger
 	metrics                        einterfaces.MetricsInterface
 	newAPIImpl                     apiImplCreatorFunc
 	dbDriver                       Driver
-	clusterLeaderManager           remotecluster.ServerIface
-	clusterLeaderChangedListenerID string
 	pluginDir                      string
 	webappPluginDir                string
+	patchReactDOM                  bool
 	prepackagedPlugins             []*PrepackagedPlugin
 	prepackagedPluginsLock         sync.RWMutex
+	clusterLeaderManager           sharedchannel.ServerIface
+	clusterLeaderChangedListenerID string
 }
 
-func NewEnvironment(newAPIImpl apiImplCreatorFunc,
+func NewEnvironment(
+	newAPIImpl apiImplCreatorFunc,
 	dbDriver Driver,
-	pluginDir string, webappPluginDir string,
+	pluginDir string,
+	webappPluginDir string,
+	patchReactDOM bool,
 	logger *mlog.Logger,
 	metrics einterfaces.MetricsInterface,
-	cluster remotecluster.ServerIface) (*Environment, error) {
+	cluster einterfaces.ClusterInterface) (*Environment, error) {
 	env := &Environment{
 		logger:               logger,
 		metrics:              metrics,
@@ -78,6 +83,7 @@ func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 		dbDriver:             dbDriver,
 		pluginDir:            pluginDir,
 		webappPluginDir:      webappPluginDir,
+		patchReactDOM:        patchReactDOM,
 		clusterLeaderManager: cluster,
 	}
 
@@ -102,10 +108,10 @@ func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 // separate Environment in addition to the one created by the server on startup.
 // The original Listener needs is removed for cleaner tests.
 func (env *Environment) RemoveClusterleaderChangedListener() {
-	if env != nil && env.clusterLeaderManager != nil && env.clusterLeaderChangedListenerID != "" {
-		env.clusterLeaderManager.RemoveClusterLeaderChangedListener(env.clusterLeaderChangedListenerID)
-		env.clusterLeaderChangedListenerID = ""
-	}
+	// if env != nil && env.clusterLeaderManager != nil && env.clusterLeaderChangedListenerID != "" {
+	// 	env.clusterLeaderManager.RemoveClusterLeaderChangedListener(env.clusterLeaderChangedListenerID)
+	// 	env.clusterLeaderChangedListenerID = ""
+	// }
 }
 
 // Performs a full scan of the given path.
@@ -347,10 +353,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		rp.supervisor = sup
 		env.registeredPlugins.Store(id, rp)
 
-		if sup.Implements(OnClusterLeaderChangedID) {
-			isLeader := env.clusterLeaderManager == nil || env.clusterLeaderManager.IsLeader()
-			sup.Hooks().OnClusterLeaderChanged(isLeader)
-		}
+		// if sup.Implements(OnClusterLeaderChangedID) {
+		// 	isLeader := env.clusterLeaderManager == nil || env.clusterLeaderManager.IsLeader()
+		// 	sup.Hooks().OnClusterLeaderChanged(isLeader)
+		// }
 
 		componentActivated = true
 	}
@@ -359,27 +365,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("unable to start plugin: must at least have a web app or server component")
 	}
 
+	mlog.Debug("Plugin activated", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
+
 	return pluginInfo.Manifest, true, nil
-}
-
-func (env *Environment) AddProduct(productID string, hooks any) error {
-	prod, err := newAdapter(hooks)
-	if err != nil {
-		return err
-	}
-
-	rp := &registeredProduct{
-		productID: productID,
-		adapter:   prod,
-	}
-
-	env.registeredProducts.Store(productID, rp)
-
-	return nil
-}
-
-func (env *Environment) RemoveProduct(productID string) {
-	env.registeredProducts.Delete(productID)
 }
 
 func (env *Environment) RemovePlugin(id string) {
@@ -508,6 +496,17 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 	}
 
+	if env.patchReactDOM {
+		newContents, changed := patchReactDOM(sourceBundleFileContents)
+		if changed {
+			sourceBundleFileContents = newContents
+			err = os.WriteFile(sourceBundleFilepath, sourceBundleFileContents, 0644)
+			if err != nil {
+				return nil, errors.Wrapf(err, "unable to overwrite webapp bundle: %v", id)
+			}
+		}
+	}
+
 	hash := fnv.New64a()
 	if _, err = hash.Write(sourceBundleFileContents); err != nil {
 		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
@@ -522,6 +521,52 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	}
 
 	return manifest, nil
+}
+
+func patchReactDOM(initialBytes []byte) ([]byte, bool) {
+	if !bytes.Contains(initialBytes, []byte("react-dom.production.min.js")) {
+		return initialBytes, false
+	}
+
+	initial := string(initialBytes)
+	nameIndex := strings.Index(initial, "react-dom.production.min.js")
+
+	beginning := strings.LastIndex(initial[:nameIndex], "{")
+	var end int
+
+	argDefBeginning := strings.LastIndex(initial[:beginning], "function") + 9
+	argDefEnd := strings.LastIndex(initial[:beginning], ")") - 1
+	argsNames := strings.Split(initial[argDefBeginning:argDefEnd], ",")
+	if len(argsNames) != 3 {
+		return initialBytes, false
+	}
+
+	exportsArgName := strings.TrimSpace(argsNames[1])
+
+	numOpenBraces := 0
+	for i, c := range initial[beginning:] {
+		if end != 0 {
+			break
+		}
+		switch c {
+		case '}':
+			numOpenBraces--
+
+			if numOpenBraces == 0 {
+				end = beginning + i
+			}
+		case '{':
+			numOpenBraces++
+		}
+	}
+
+	beforePatch := initial[:end]
+	afterPatch := initial[end:]
+
+	patch := fmt.Sprintf("; Object.assign(%s, window.ReactDOM)", exportsArgName)
+
+	result := fmt.Sprintf("%s%s%s", beforePatch, patch, afterPatch)
+	return []byte(result), true
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
@@ -557,24 +602,6 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
 			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
-		}
-
-		return result
-	})
-
-	env.registeredProducts.Range(func(key, value any) bool {
-		rp := value.(*registeredProduct)
-
-		if !rp.Implements(hookId) {
-			return true
-		}
-
-		hookStartTime := time.Now()
-		result := hookRunnerFunc(rp.adapter)
-
-		if env.metrics != nil {
-			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
-			env.metrics.ObservePluginMultiHookIterationDuration(rp.productID, elapsedTime)
 		}
 
 		return result

@@ -150,10 +150,16 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 
 	roles := strings.Join(rolesList, " ")
 	return &imports.UserChannelImportData{
-		Name:        &member.ChannelName,
-		Roles:       &roles,
-		NotifyProps: &notifyProps,
-		Favorite:    &favorite,
+		Name:               &member.ChannelName,
+		Roles:              &roles,
+		NotifyProps:        &notifyProps,
+		Favorite:           &favorite,
+		MentionCount:       &member.MentionCount,
+		MentionCountRoot:   &member.MentionCountRoot,
+		UrgentMentionCount: &member.UrgentMentionCount,
+		MsgCount:           &member.MsgCount,
+		MsgCountRoot:       &member.MsgCountRoot,
+		LastViewedAt:       &member.LastViewedAt,
 	}
 }
 

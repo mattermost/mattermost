@@ -950,12 +950,13 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	var teamID, NotAssociatedToChannelID, ChannelIDForMemberCount string
+
 	permissionErr := requireLicense(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
 	}
-	var teamID, channelID string
 
 	source := c.Params.GroupSource
 
@@ -964,7 +965,11 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if id := c.Params.NotAssociatedToChannel; model.IsValidId(id) {
-		channelID = id
+		NotAssociatedToChannelID = id
+	}
+
+	if id := c.Params.IncludeChannelMemberCount; model.IsValidId(id) {
+		ChannelIDForMemberCount = id
 	}
 
 	// If they specify the group_source as custom when the feature is disabled, throw an error
@@ -975,9 +980,11 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
-	if !c.App.Config().FeatureFlags.CustomGroups || !*c.App.Config().ServiceSettings.EnableCustomGroups {
+	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
 		source = model.GroupSourceLdap
 	}
+
+	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
@@ -986,6 +993,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
 		FilterHasMember:           c.Params.FilterHasMember,
+		IncludeTimezones:          includeTimezones,
 	}
 
 	if teamID != "" {
@@ -998,8 +1006,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	if channelID != "" {
-		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+	if NotAssociatedToChannelID != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, NotAssociatedToChannelID)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -1010,11 +1018,30 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, permission) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission) {
 			c.SetPermissionError(permission)
 			return
 		}
-		opts.NotAssociatedToChannel = channelID
+		opts.NotAssociatedToChannel = NotAssociatedToChannelID
+	}
+
+	if ChannelIDForMemberCount != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, ChannelIDForMemberCount)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		var permission *model.Permission
+		if channel.Type == model.ChannelTypePrivate {
+			permission = model.PermissionManagePrivateChannelMembers
+		} else {
+			permission = model.PermissionManagePublicChannelMembers
+		}
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission) {
+			c.SetPermissionError(permission)
+			return
+		}
+		opts.IncludeChannelMemberCount = ChannelIDForMemberCount
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -1158,8 +1185,8 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
-		c.SetPermissionError(model.PermissionDeleteCustomGroup)
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionRestoreCustomGroup) {
+		c.SetPermissionError(model.PermissionRestoreCustomGroup)
 		return
 	}
 
@@ -1301,8 +1328,6 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 //
 //	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
 //	err.Where = "Api4.getGroup"
-//
-// Temporarily, this function also checks for the CustomGroups feature flag.
 func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
 	lic := app.Srv().License()
 
@@ -1318,7 +1343,7 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 
-	if source == model.GroupSourceCustom && (!app.Config().FeatureFlags.CustomGroups || !*app.Config().ServiceSettings.EnableCustomGroups) {
+	if source == model.GroupSourceCustom && !*app.Config().ServiceSettings.EnableCustomGroups {
 		return model.NewAppError("", "api.custom_groups.feature_disabled", nil, "", http.StatusBadRequest)
 	}
 

@@ -142,13 +142,13 @@ type OnClusterLeaderChangedIFace interface {
 	OnClusterLeaderChanged(isLeader bool) error
 }
 
-type hooksAdapter struct {
+type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
 }
 
-func newAdapter(productHooks any) (*hooksAdapter, error) {
-	a := &hooksAdapter{
+func NewAdapter(productHooks any) (*HooksAdapter, error) {
+	a := &HooksAdapter{
 		implemented:  make(map[int]struct{}),
 		productHooks: productHooks,
 	}
@@ -446,7 +446,7 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	return a, nil
 }
 
-func (a *hooksAdapter) OnConfigurationChange() error {
+func (a *HooksAdapter) OnConfigurationChange() error {
 	if _, ok := a.implemented[OnConfigurationChangeID]; !ok {
 		panic("product hooks must implement OnConfigurationChange")
 	}
@@ -455,7 +455,7 @@ func (a *hooksAdapter) OnConfigurationChange() error {
 
 }
 
-func (a *hooksAdapter) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (a *HooksAdapter) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	if _, ok := a.implemented[ExecuteCommandID]; !ok {
 		panic("product hooks must implement ExecuteCommand")
 	}
@@ -464,7 +464,7 @@ func (a *hooksAdapter) ExecuteCommand(c *Context, args *model.CommandArgs) (*mod
 
 }
 
-func (a *hooksAdapter) UserHasBeenCreated(c *Context, user *model.User) {
+func (a *HooksAdapter) UserHasBeenCreated(c *Context, user *model.User) {
 	if _, ok := a.implemented[UserHasBeenCreatedID]; !ok {
 		panic("product hooks must implement UserHasBeenCreated")
 	}
@@ -473,7 +473,7 @@ func (a *hooksAdapter) UserHasBeenCreated(c *Context, user *model.User) {
 
 }
 
-func (a *hooksAdapter) UserWillLogIn(c *Context, user *model.User) string {
+func (a *HooksAdapter) UserWillLogIn(c *Context, user *model.User) string {
 	if _, ok := a.implemented[UserWillLogInID]; !ok {
 		panic("product hooks must implement UserWillLogIn")
 	}
@@ -482,7 +482,7 @@ func (a *hooksAdapter) UserWillLogIn(c *Context, user *model.User) string {
 
 }
 
-func (a *hooksAdapter) UserHasLoggedIn(c *Context, user *model.User) {
+func (a *HooksAdapter) UserHasLoggedIn(c *Context, user *model.User) {
 	if _, ok := a.implemented[UserHasLoggedInID]; !ok {
 		panic("product hooks must implement UserHasLoggedIn")
 	}
@@ -491,7 +491,7 @@ func (a *hooksAdapter) UserHasLoggedIn(c *Context, user *model.User) {
 
 }
 
-func (a *hooksAdapter) MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string) {
+func (a *HooksAdapter) MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string) {
 	if _, ok := a.implemented[MessageWillBePostedID]; !ok {
 		panic("product hooks must implement MessageWillBePosted")
 	}
@@ -500,7 +500,7 @@ func (a *hooksAdapter) MessageWillBePosted(c *Context, post *model.Post) (*model
 
 }
 
-func (a *hooksAdapter) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
+func (a *HooksAdapter) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
 	if _, ok := a.implemented[MessageWillBeUpdatedID]; !ok {
 		panic("product hooks must implement MessageWillBeUpdated")
 	}
@@ -509,7 +509,7 @@ func (a *hooksAdapter) MessageWillBeUpdated(c *Context, newPost, oldPost *model.
 
 }
 
-func (a *hooksAdapter) MessageHasBeenPosted(c *Context, post *model.Post) {
+func (a *HooksAdapter) MessageHasBeenPosted(c *Context, post *model.Post) {
 	if _, ok := a.implemented[MessageHasBeenPostedID]; !ok {
 		panic("product hooks must implement MessageHasBeenPosted")
 	}
@@ -518,7 +518,7 @@ func (a *hooksAdapter) MessageHasBeenPosted(c *Context, post *model.Post) {
 
 }
 
-func (a *hooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post) {
+func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post) {
 	if _, ok := a.implemented[MessageHasBeenUpdatedID]; !ok {
 		panic("product hooks must implement MessageHasBeenUpdated")
 	}
@@ -527,7 +527,7 @@ func (a *hooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 
 }
 
-func (a *hooksAdapter) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
+func (a *HooksAdapter) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	if _, ok := a.implemented[ChannelHasBeenCreatedID]; !ok {
 		panic("product hooks must implement ChannelHasBeenCreated")
 	}
@@ -536,7 +536,7 @@ func (a *hooksAdapter) ChannelHasBeenCreated(c *Context, channel *model.Channel)
 
 }
 
-func (a *hooksAdapter) UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
+func (a *HooksAdapter) UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	if _, ok := a.implemented[UserHasJoinedChannelID]; !ok {
 		panic("product hooks must implement UserHasJoinedChannel")
 	}
@@ -545,7 +545,7 @@ func (a *hooksAdapter) UserHasJoinedChannel(c *Context, channelMember *model.Cha
 
 }
 
-func (a *hooksAdapter) UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
+func (a *HooksAdapter) UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	if _, ok := a.implemented[UserHasLeftChannelID]; !ok {
 		panic("product hooks must implement UserHasLeftChannel")
 	}
@@ -554,7 +554,7 @@ func (a *hooksAdapter) UserHasLeftChannel(c *Context, channelMember *model.Chann
 
 }
 
-func (a *hooksAdapter) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
+func (a *HooksAdapter) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	if _, ok := a.implemented[UserHasJoinedTeamID]; !ok {
 		panic("product hooks must implement UserHasJoinedTeam")
 	}
@@ -563,7 +563,7 @@ func (a *hooksAdapter) UserHasJoinedTeam(c *Context, teamMember *model.TeamMembe
 
 }
 
-func (a *hooksAdapter) UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
+func (a *HooksAdapter) UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	if _, ok := a.implemented[UserHasLeftTeamID]; !ok {
 		panic("product hooks must implement UserHasLeftTeam")
 	}
@@ -572,7 +572,7 @@ func (a *hooksAdapter) UserHasLeftTeam(c *Context, teamMember *model.TeamMember,
 
 }
 
-func (a *hooksAdapter) FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+func (a *HooksAdapter) FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
 	if _, ok := a.implemented[FileWillBeUploadedID]; !ok {
 		panic("product hooks must implement FileWillBeUploaded")
 	}
@@ -581,7 +581,7 @@ func (a *hooksAdapter) FileWillBeUploaded(c *Context, info *model.FileInfo, file
 
 }
 
-func (a *hooksAdapter) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
+func (a *HooksAdapter) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
 	if _, ok := a.implemented[ReactionHasBeenAddedID]; !ok {
 		panic("product hooks must implement ReactionHasBeenAdded")
 	}
@@ -590,7 +590,7 @@ func (a *hooksAdapter) ReactionHasBeenAdded(c *Context, reaction *model.Reaction
 
 }
 
-func (a *hooksAdapter) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
+func (a *HooksAdapter) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
 	if _, ok := a.implemented[ReactionHasBeenRemovedID]; !ok {
 		panic("product hooks must implement ReactionHasBeenRemoved")
 	}
@@ -599,7 +599,7 @@ func (a *hooksAdapter) ReactionHasBeenRemoved(c *Context, reaction *model.Reacti
 
 }
 
-func (a *hooksAdapter) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+func (a *HooksAdapter) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
 	if _, ok := a.implemented[OnPluginClusterEventID]; !ok {
 		panic("product hooks must implement OnPluginClusterEvent")
 	}
@@ -608,7 +608,7 @@ func (a *hooksAdapter) OnPluginClusterEvent(c *Context, ev model.PluginClusterEv
 
 }
 
-func (a *hooksAdapter) OnWebSocketConnect(webConnID, userID string) {
+func (a *HooksAdapter) OnWebSocketConnect(webConnID, userID string) {
 	if _, ok := a.implemented[OnWebSocketConnectID]; !ok {
 		panic("product hooks must implement OnWebSocketConnect")
 	}
@@ -617,7 +617,7 @@ func (a *hooksAdapter) OnWebSocketConnect(webConnID, userID string) {
 
 }
 
-func (a *hooksAdapter) OnWebSocketDisconnect(webConnID, userID string) {
+func (a *HooksAdapter) OnWebSocketDisconnect(webConnID, userID string) {
 	if _, ok := a.implemented[OnWebSocketDisconnectID]; !ok {
 		panic("product hooks must implement OnWebSocketDisconnect")
 	}
@@ -626,7 +626,7 @@ func (a *hooksAdapter) OnWebSocketDisconnect(webConnID, userID string) {
 
 }
 
-func (a *hooksAdapter) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
+func (a *HooksAdapter) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
 	if _, ok := a.implemented[WebSocketMessageHasBeenPostedID]; !ok {
 		panic("product hooks must implement WebSocketMessageHasBeenPosted")
 	}
@@ -635,7 +635,7 @@ func (a *hooksAdapter) WebSocketMessageHasBeenPosted(webConnID, userID string, r
 
 }
 
-func (a *hooksAdapter) RunDataRetention(nowTime, batchSize int64) (int64, error) {
+func (a *HooksAdapter) RunDataRetention(nowTime, batchSize int64) (int64, error) {
 	if _, ok := a.implemented[RunDataRetentionID]; !ok {
 		panic("product hooks must implement RunDataRetention")
 	}
@@ -644,7 +644,7 @@ func (a *hooksAdapter) RunDataRetention(nowTime, batchSize int64) (int64, error)
 
 }
 
-func (a *hooksAdapter) OnInstall(c *Context, event model.OnInstallEvent) error {
+func (a *HooksAdapter) OnInstall(c *Context, event model.OnInstallEvent) error {
 	if _, ok := a.implemented[OnInstallID]; !ok {
 		panic("product hooks must implement OnInstall")
 	}
@@ -653,7 +653,7 @@ func (a *hooksAdapter) OnInstall(c *Context, event model.OnInstallEvent) error {
 
 }
 
-func (a *hooksAdapter) OnSendDailyTelemetry() {
+func (a *HooksAdapter) OnSendDailyTelemetry() {
 	if _, ok := a.implemented[OnSendDailyTelemetryID]; !ok {
 		panic("product hooks must implement OnSendDailyTelemetry")
 	}
@@ -662,7 +662,7 @@ func (a *hooksAdapter) OnSendDailyTelemetry() {
 
 }
 
-func (a *hooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+func (a *HooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 	if _, ok := a.implemented[OnCloudLimitsUpdatedID]; !ok {
 		panic("product hooks must implement OnCloudLimitsUpdated")
 	}
@@ -671,7 +671,7 @@ func (a *hooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 
 }
 
-func (a *hooksAdapter) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+func (a *HooksAdapter) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
 	if _, ok := a.implemented[UserHasPermissionToCollectionID]; !ok {
 		panic("product hooks must implement UserHasPermissionToCollection")
 	}
@@ -680,7 +680,7 @@ func (a *hooksAdapter) UserHasPermissionToCollection(c *Context, userID string, 
 
 }
 
-func (a *hooksAdapter) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
+func (a *HooksAdapter) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
 	if _, ok := a.implemented[GetAllCollectionIDsForUserID]; !ok {
 		panic("product hooks must implement GetAllCollectionIDsForUser")
 	}
@@ -689,7 +689,7 @@ func (a *hooksAdapter) GetAllCollectionIDsForUser(c *Context, userID, collection
 
 }
 
-func (a *hooksAdapter) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
+func (a *HooksAdapter) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
 	if _, ok := a.implemented[GetAllUserIdsForCollectionID]; !ok {
 		panic("product hooks must implement GetAllUserIdsForCollection")
 	}
@@ -698,7 +698,7 @@ func (a *hooksAdapter) GetAllUserIdsForCollection(c *Context, collectionType, co
 
 }
 
-func (a *hooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
+func (a *HooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
 	if _, ok := a.implemented[GetTopicRedirectID]; !ok {
 		panic("product hooks must implement GetTopicRedirect")
 	}
@@ -707,7 +707,7 @@ func (a *hooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (
 
 }
 
-func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
+func (a *HooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
 	if _, ok := a.implemented[GetCollectionMetadataByIdsID]; !ok {
 		panic("product hooks must implement GetCollectionMetadataByIds")
 	}
@@ -716,7 +716,7 @@ func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType str
 
 }
 
-func (a *hooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
+func (a *HooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
 	if _, ok := a.implemented[GetTopicMetadataByIdsID]; !ok {
 		panic("product hooks must implement GetTopicMetadataByIds")
 	}
@@ -725,7 +725,7 @@ func (a *hooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topic
 
 }
 
-func (a *hooksAdapter) OnClusterLeaderChanged(isLeader bool) error {
+func (a *HooksAdapter) OnClusterLeaderChanged(isLeader bool) error {
 	if _, ok := a.implemented[OnClusterLeaderChangedID]; !ok {
 		panic("product hooks must implement OnClusterLeaderChanged")
 	}

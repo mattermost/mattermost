@@ -125,13 +125,13 @@ func (_m *ServiceInterface) SendChangeUsernameEmail(newUsername string, _a1 stri
 	return r0
 }
 
-// SendCloudUpgradeConfirmationEmail provides a mock function with given fields: userEmail, name, trialEndDate, locale, siteURL, workspaceName
-func (_m *ServiceInterface) SendCloudUpgradeConfirmationEmail(userEmail string, name string, trialEndDate string, locale string, siteURL string, workspaceName string) error {
-	ret := _m.Called(userEmail, name, trialEndDate, locale, siteURL, workspaceName)
+// SendCloudUpgradeConfirmationEmail provides a mock function with given fields: userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly, embeddedFiles
+func (_m *ServiceInterface) SendCloudUpgradeConfirmationEmail(userEmail string, name string, trialEndDate string, locale string, siteURL string, workspaceName string, isYearly bool, embeddedFiles map[string]io.Reader) error {
+	ret := _m.Called(userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly, embeddedFiles)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string) error); ok {
-		r0 = rf(userEmail, name, trialEndDate, locale, siteURL, workspaceName)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, bool, map[string]io.Reader) error); ok {
+		r0 = rf(userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly, embeddedFiles)
 	} else {
 		r0 = ret.Error(0)
 	}

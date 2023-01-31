@@ -33,6 +33,7 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
+	MessageAttachments       []*EmailMessageAttachment
 }
 
 func (es *Service) InitEmailBatching() {
@@ -314,6 +315,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
+				MessageAttachments:       ProcessMessageAttachments(notification.post, siteURL),
 			})
 		}
 	}
