@@ -981,9 +981,7 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 		isUserByChannelId[channel.Id] = true
 		isAdminByChannelId[channel.Id] = false
 
-		if cdata.Roles == nil {
-			isUserByChannelId[channel.Id] = true
-		} else {
+		if cdata.Roles != nil {
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
@@ -1025,6 +1023,21 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 				return err
 			}
 			member.SchemeAdmin = userShouldBeAdmin
+		}
+
+		if cdata.MentionCount != nil && cdata.MentionCountRoot != nil {
+			member.MentionCount = *cdata.MentionCount
+			member.MentionCountRoot = *cdata.MentionCountRoot
+		}
+		if cdata.UrgentMentionCount != nil {
+			member.UrgentMentionCount = *cdata.UrgentMentionCount
+		}
+		if cdata.MsgCount != nil && cdata.MsgCountRoot != nil {
+			member.MsgCount = *cdata.MsgCount
+			member.MsgCountRoot = *cdata.MsgCountRoot
+		}
+		if cdata.LastViewedAt != nil {
+			member.LastViewedAt = *cdata.LastViewedAt
 		}
 
 		if cdata.NotifyProps != nil {
