@@ -161,9 +161,20 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	return nil
 }
 
-func shouldCreateOnboardingLinkedBoard(a *App, c request.CTX, teamId string) bool {
+func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bool {
 	ffEnabled := a.Config().FeatureFlags.OnboardingAutoShowLinkedBoard
 	if !ffEnabled {
+		return false
+	}
+
+	hasBoard, err := a.HasBoardProduct()
+	if err != nil {
+		mlog.Error("Error checking the existance of boards product: ", mlog.Err(err))
+		return false
+	}
+
+	if !hasBoard {
+		mlog.Warn("Board product not found")
 		return false
 	}
 
@@ -196,7 +207,18 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 	const preferenceName = "linked_board_created"
 	userId := c.Session().UserId
 
-	boardService := a.Srv().services[product.BoardsKey].(product.BoardsService)
+	boardServiceItf, ok := a.Srv().services[product.BoardsKey]
+	if !ok {
+		// here make sure to return error when necessary, othewise just log the errors
+		return nil, model.NewAppError("CreateBoard", "not product key found", nil, "", http.StatusBadRequest)
+	}
+	boardService, typeOk := boardServiceItf.(product.BoardsService)
+
+	if !typeOk {
+		// boardServiceItf is NOT of type product.BoardsService
+		return nil, model.NewAppError("CreateBoard", "not of type", nil, "", http.StatusBadRequest)
+	}
+
 	templates, err := boardService.GetTemplates(defaultTemplatesTeam, userId)
 
 	if err != nil {
@@ -288,7 +310,7 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 	}
 
 	// MM-48246 A/B test show linked boards. Create a welcome to boards linked board per user
-	if shouldCreateOnboardingLinkedBoard(a, c, team.Id) {
+	if a.shouldCreateOnboardingLinkedBoard(c, team.Id) {
 		board, err2 := a.createOnboardingLinkedBoard(c, team.Id)
 
 		if err2 != nil {
