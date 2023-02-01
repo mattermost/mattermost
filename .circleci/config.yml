@@ -132,7 +132,10 @@ jobs:
           command: |
             cd mattermost-server
             make app-layers
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; fi
+            git status
+            git diff .
+            exit 1
 
   check-go-mod-tidy:
     docker:
