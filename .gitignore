@@ -85,7 +85,6 @@ Session.vim
 *~
 
 # VSCode project files
-!.vscode/
 .vscode/*
 !.vscode/launch.json
 *.code-workspace
