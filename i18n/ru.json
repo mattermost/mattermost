@@ -9770,5 +9770,77 @@
   {
     "id": "api.templates.delinquency_45.subtitle2",
     "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Невозможно найти канал, связанный с сценарием."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Ошибка при создании сценария."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Ошибка при создании канала."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Ошибка при создании доски."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Ошибка при выполнении рабочего шаблона."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
+    "translation": "Невозможно найти шаблон сценария, связанный с этим рабочим шаблоном."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_run",
+    "translation": "У вас нет прав на создание публичного канала для запуска сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "У вас нет прав на создание публичного сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "У вас нет прав на создание публичного канала."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "У вас нет прав для создания публичной доски."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_run",
+    "translation": "У вас нет прав на создание приватного канала для запуска сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "У вас нет прав для создания приватного сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "У вас нет прав для создания приватного канала."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "У вас нет прав для создания приватной доски."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Рабочие шаблоны отключены."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Не удалось обновить переводы сервера."
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Ваша лицензия не поддерживает приватные сценарии."
   }
 ]

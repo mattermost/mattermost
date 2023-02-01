@@ -231,6 +231,10 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
+	if appErr := validateAuthService(data.AuthService); appErr != nil {
+		return appErr
+	}
+
 	if data.Password != nil && *data.Password == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
@@ -310,6 +314,29 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	return nil
+}
+
+var validAuthServices = []string{
+	"",
+	model.UserAuthServiceEmail,
+	model.UserAuthServiceGitlab,
+	model.UserAuthServiceSaml,
+	model.UserAuthServiceLdap,
+	model.ServiceGoogle,
+	model.ServiceOffice365,
+}
+
+func validateAuthService(authService *string) *model.AppError {
+	if authService == nil {
+		return nil
+	}
+	for _, valid := range validAuthServices {
+		if *authService == valid {
+			return nil
+		}
+	}
+
+	return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_auth_service.error", map[string]any{"AuthService": *authService}, "", http.StatusBadRequest)
 }
 
 func ValidateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {

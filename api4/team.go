@@ -1405,6 +1405,9 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emails", emailList)
 
 	if len(memberInvite.ChannelIds) > 0 {
+		// Check if the user sending the invitation has access to the channels where the invitation is being sent
+		memberInvite.ChannelIds = c.App.ValidateUserPermissionsOnChannels(c.AppContext, c.AppContext.Session().UserId, memberInvite.ChannelIds)
+
 		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
 		auditRec.AddMeta("channels", memberInvite.ChannelIds)
 	}
@@ -1520,6 +1523,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("emails", guestsInvite.Emails)
 	auditRec.AddMeta("channel_count", len(guestsInvite.Channels))
 	auditRec.AddMeta("channels", guestsInvite.Channels)
+
+	// Check if the user sending the invitation has access to the channels where the invitation is being sent
+	guestsInvite.Channels = c.App.ValidateUserPermissionsOnChannels(c.AppContext, c.AppContext.Session().UserId, guestsInvite.Channels)
 
 	if graceful {
 		var invitesWithError []*model.EmailInviteWithError
