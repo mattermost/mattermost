@@ -72,6 +72,10 @@ const (
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 
 	PostPropsPreviewedPost = "previewed_post"
+
+	PostPriorityUrgent               = "urgent"
+	PostPropsRequestedAck            = "requested_ack"
+	PostPropsPersistentNotifications = "persistent_notifications"
 )
 
 const (
@@ -116,7 +120,7 @@ type Post struct {
 }
 
 func (o *Post) Auditable() map[string]interface{} {
-	return map[string]interface{}{ // TODO check this
+	return map[string]interface{}{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,
@@ -159,6 +163,15 @@ type PostReminder struct {
 	UserId string `json:",omitempty"`
 }
 
+type PostPriority struct {
+	Priority                *string `json:"priority"`
+	RequestedAck            *bool   `json:"requested_ack"`
+	PersistentNotifications *bool   `json:"persistent_notifications"`
+	// These fields are only used internally for interacting with DB.
+	PostId    string `json:",omitempty"`
+	ChannelId string `json:",omitempty"`
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -181,6 +194,15 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 		*copy.Message = RewriteImageURLs(*o.Message, f)
 	}
 	return &copy
+}
+
+func (o *PostPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"is_pinned":     o.IsPinned,
+		"props":         o.Props,
+		"file_ids":      o.FileIds,
+		"has_reactions": o.HasReactions,
+	}
 }
 
 type PostForExport struct {
@@ -307,17 +329,21 @@ type GetPostsOptions struct {
 	FromCreateAt             int64  // CreateAt after which to send the items
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
 	IncludeDeleted           bool
+	IncludePostPriority      bool
 }
 
 type PostCountOptions struct {
 	// Only include posts on a specific team. "" for any team.
-	TeamId          string
-	MustHaveFile    bool
-	MustHaveHashtag bool
-	ExcludeDeleted  bool
-	UsersPostsOnly  bool
+	TeamId             string
+	MustHaveFile       bool
+	MustHaveHashtag    bool
+	ExcludeDeleted     bool
+	ExcludeSystemPosts bool
+	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
+	SincePostID    string
+	SinceUpdateAt  int64
 }
 
 func (o *Post) Etag() string {
@@ -775,4 +801,21 @@ func (o *Post) GetPreviewedPostProp() string {
 
 func (o *Post) IsVoiceMessage() bool {
 	return o.Type == PostTypeVoice
+}
+
+func (o *Post) GetPriority() *PostPriority {
+	if o.Metadata != nil && o.Metadata.Priority != nil {
+		return o.Metadata.Priority
+	}
+
+	return nil
+}
+
+func (o *Post) IsUrgent() bool {
+	postPriority := o.GetPriority()
+	if postPriority == nil {
+		return false
+	}
+
+	return *postPriority.Priority == PostPriorityUrgent
 }

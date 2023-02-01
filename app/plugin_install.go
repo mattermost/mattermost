@@ -102,10 +102,6 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
-
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
-	}
 }
 
 func (ch *Channels) removePluginFromData(data model.PluginEventData) {
@@ -117,10 +113,6 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
-	}
-
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 
@@ -175,10 +167,6 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
-
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -405,6 +393,11 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 			return manifest, nil
 		}
 
+		// We skip it from activating here. It is disabled later, at a higher level
+		// from *Channels.Start.
+		if ch.srv.Config().FeatureFlags.BoardsProduct && manifest.Id == model.PluginIdFocalboard {
+			return manifest, nil
+		}
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -413,6 +406,8 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 		}
 		manifest = updatedManifest
 	}
+
+	mlog.Debug("Installing plugin", mlog.String("plugin_id", manifest.Id), mlog.String("version", manifest.Version))
 
 	return manifest, nil
 }
@@ -453,10 +448,6 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
-
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return nil

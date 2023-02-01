@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -2734,8 +2733,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		}()
 
 		// Enable CRT
-		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -2769,7 +2767,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(c1.TeamId, threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
 		require.Nil(t, appErr)
 		// Then: with notifications set to "all" we should
 		// not see a mention badge

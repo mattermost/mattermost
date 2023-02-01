@@ -223,7 +223,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
 	}
 	c.SetSiteURLHeader(siteURLHeader)
@@ -235,8 +235,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
+	// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
+	w.Header().Set("Permissions-Policy", "")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+
 	cloudCSP := ""
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() || *c.App.Config().ServiceSettings.SelfHostedPurchase {
 		cloudCSP = " js.stripe.com/v3"
 	}
 
@@ -288,7 +293,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Channels().License().IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -360,9 +365,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.AppContext.T)
 		c.Err.RequestId = c.AppContext.RequestId()
 		c.LogErrorByCode(c.Err)
+		// The locale translation needs to happen after we have logged it.
+		// We don't want the server logs to be translated as per user locale.
+		c.Err.Translate(c.AppContext.T)
 
 		c.Err.Where = r.URL.Path
 

@@ -143,6 +143,28 @@ func TestLicenseIsStarted(t *testing.T) {
 	assert.False(t, l1.IsStarted())
 }
 
+func TestIsCloud(t *testing.T) {
+	l1 := License{}
+	l1.Features = &Features{}
+	l1.Features.SetDefaults()
+	assert.False(t, l1.IsCloud())
+
+	boolTrue := true
+	l1.Features.Cloud = &boolTrue
+	assert.True(t, l1.IsCloud())
+
+	var license *License
+	assert.False(t, license.IsCloud())
+
+	l1.Features = nil
+	assert.False(t, l1.IsCloud())
+
+	t.Run("false if license is nil", func(t *testing.T) {
+		var license *License
+		assert.False(t, license.IsCloud())
+	})
+}
+
 func TestLicenseRecordIsValid(t *testing.T) {
 	lr := LicenseRecord{
 		CreateAt: GetMillis(),
@@ -320,4 +342,54 @@ func TestLicense_IsSanctionedTrial(t *testing.T) {
 		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
 		assert.True(t, license.IsSanctionedTrial())
 	})
+}
+
+func TestLicenseHasSharedChannels(t *testing.T) {
+
+	testCases := []struct {
+		description   string
+		license       License
+		expectedValue bool
+	}{
+		{
+			"licensed for shared channels",
+			License{
+				Features: &Features{
+					SharedChannels: NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			true,
+		},
+		{
+			"not licensed for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: "other",
+			},
+			false,
+		},
+		{
+			"professional license for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			true,
+		},
+		{
+			"enterprise license for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, testCase.license.HasSharedChannels())
+		})
+	}
 }

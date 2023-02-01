@@ -38,6 +38,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, ss) })
 	t.Run("PostCountsByDuration", func(t *testing.T) { testPostCountsByDay(t, ss) })
+	t.Run("PostCounts", func(t *testing.T) { testPostCounts(t, ss) })
 	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, ss, s) })
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
@@ -237,6 +238,31 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		assert.Greater(t, rchannel3.LastPostAt, rchannel2.LastPostAt)
 		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
+	})
+
+	t.Run("Save post with priority metadata set", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = NewTestId()
+
+		o1.Metadata = &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("important"),
+				RequestedAck:            model.NewBool(true),
+				PersistentNotifications: model.NewBool(false),
+			},
+		}
+
+		p, err := ss.Post().Save(&o1)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, int64(0), p.ReplyCount)
+
+		pp, err := ss.PostPriority().GetForPost(p.Id)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, "important", *pp.Priority)
+		assert.Equal(t, true, *pp.RequestedAck)
+		assert.Equal(t, false, *pp.PersistentNotifications)
 	})
 }
 
@@ -2660,45 +2686,169 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
+}
+
+func testPostCounts(t *testing.T, ss store.Store) {
+	now := time.Now()
+	twentyMinAgo := now.Add(-20 * time.Minute).UnixMilli()
+	fifteenMinAgo := now.Add(-15 * time.Minute).UnixMilli()
+	tenMinAgo := now.Add(-10 * time.Minute).UnixMilli()
+
+	t1 := &model.Team{}
+	t1.DisplayName = "DisplayName"
+	t1.Name = NewTestId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TeamOpen
+	t1, err := ss.Team().Save(t1)
+	require.NoError(t, err)
+
+	c1 := &model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel2"
+	c1.Name = NewTestId()
+	c1.Type = model.ChannelTypeOpen
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.NoError(t, nErr)
+
+	// system post
+	p1 := &model.Post{}
+	p1.Type = "system_add_to_channel"
+	p1.ChannelId = c1.Id
+	p1.UserId = model.NewId()
+	p1.Message = NewTestId()
+	p1.CreateAt = twentyMinAgo
+	p1.UpdateAt = twentyMinAgo
+	_, nErr = ss.Post().Save(p1)
+	require.NoError(t, nErr)
+
+	p2 := &model.Post{}
+	p2.ChannelId = c1.Id
+	p2.UserId = model.NewId()
+	p2.Message = NewTestId()
+	p2.Hashtags = "hashtag"
+	p2.CreateAt = twentyMinAgo
+	p2.UpdateAt = twentyMinAgo
+	p2, nErr = ss.Post().Save(p2)
+	require.NoError(t, nErr)
+
+	p3 := &model.Post{}
+	p3.ChannelId = c1.Id
+	p3.UserId = model.NewId()
+	p3.Message = NewTestId()
+	p3.FileIds = []string{"fileId1"}
+	p3.CreateAt = twentyMinAgo
+	p3.UpdateAt = twentyMinAgo
+	_, nErr = ss.Post().Save(p3)
+	require.NoError(t, nErr)
+
+	p4 := &model.Post{}
+	p4.ChannelId = c1.Id
+	p4.UserId = model.NewId()
+	p4.Message = NewTestId()
+	p4.Filenames = []string{"filename1"}
+	p4.CreateAt = tenMinAgo
+	p4.UpdateAt = tenMinAgo
+	p4, nErr = ss.Post().Save(p4)
+	require.NoError(t, nErr)
+
+	p5 := &model.Post{}
+	p5.ChannelId = c1.Id
+	p5.UserId = p4.UserId
+	p5.Message = NewTestId()
+	p5.Hashtags = "hashtag"
+	p5.FileIds = []string{"fileId2"}
+	p5.CreateAt = tenMinAgo
+	p5.UpdateAt = tenMinAgo
+	_, nErr = ss.Post().Save(p5)
+	require.NoError(t, nErr)
+
+	bot1 := &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     model.NewId(),
+		UserId:      model.NewId(),
+	}
+	_, nErr = ss.Bot().Save(bot1)
+	require.NoError(t, nErr)
+
+	p6 := &model.Post{}
+	p6.Message = "bot message one"
+	p6.ChannelId = c1.Id
+	p6.UserId = bot1.UserId
+	p6.CreateAt = twentyMinAgo
+	p6.UpdateAt = twentyMinAgo
+	_, nErr = ss.Post().Save(p6)
+	require.NoError(t, nErr)
+
+	p7 := &model.Post{}
+	p7.Message = "bot message two"
+	p7.ChannelId = c1.Id
+	p7.UserId = bot1.UserId
+	p7.CreateAt = tenMinAgo
+	p7.UpdateAt = tenMinAgo
+	_, nErr = ss.Post().Save(p7)
+	require.NoError(t, nErr)
+
+	// total across all teams
+	c, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, c, int64(7))
 
 	// total for single team
-	r2, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id})
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id})
 	require.NoError(t, err)
-	assert.Equal(t, int64(6), r2)
+	assert.Equal(t, int64(7), c)
 
-	// total across teams
-	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	// with files
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, MustHaveFile: true})
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, r2, int64(6))
+	assert.Equal(t, int64(3), c)
 
-	// total across teams with files
-	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveFile: true})
+	// with hashtags
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, MustHaveHashtag: true})
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, r2, int64(3))
+	assert.Equal(t, int64(2), c)
 
-	// total across teams with hashtags
-	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveHashtag: true})
+	// with hashtags and files
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, MustHaveFile: true, MustHaveHashtag: true})
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, r2, int64(2))
+	assert.Equal(t, int64(1), c)
 
-	// total across teams with hashtags and files
-	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveFile: true, MustHaveHashtag: true})
+	// excluding system posts
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeSystemPosts: true})
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, r2, int64(1))
+	assert.Equal(t, int64(6), c)
+
+	// before update_at time
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, SinceUpdateAt: fifteenMinAgo})
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), c)
+
+	// equal to update_at time
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, SinceUpdateAt: tenMinAgo})
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), c)
+
+	// since update_at and since post id
+	tenMinAgoIDs := []string{p4.Id, p5.Id, p7.Id}
+	sort.Strings(tenMinAgoIDs)
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, SinceUpdateAt: tenMinAgo, SincePostID: tenMinAgoIDs[0]})
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), c)
 
 	// delete 1 post
-	err = ss.Post().Delete(o1.Id, 1, o1.UserId)
+	err = ss.Post().Delete(p2.Id, 1, p2.UserId)
 	require.NoError(t, err)
 
 	// total for single team with the deleted post excluded
-	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true})
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true})
 	require.NoError(t, err)
-	assert.Equal(t, int64(5), r2)
+	assert.Equal(t, int64(6), c)
 
 	// total users only posts for single team with the deleted post excluded
-	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true, UsersPostsOnly: true})
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true, UsersPostsOnly: true})
 	require.NoError(t, err)
-	assert.Equal(t, int64(3), r2)
+	assert.Equal(t, int64(3), c)
 }
 
 func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStore) {
@@ -4507,6 +4657,15 @@ func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
 	ch, err = ss.Channel().Save(ch, -1)
 	require.NoError(t, err)
 
+	ch2 := &model.Channel{
+		TeamId:      "",
+		DisplayName: "GM_display",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeGroup,
+	}
+	ch2, err = ss.Channel().Save(ch2, -1)
+	require.NoError(t, err)
+
 	u1 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -4525,10 +4684,26 @@ func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
 	p1, err = ss.Post().Save(p1)
 	require.NoError(t, err)
 
+	p2 := &model.Post{
+		UserId:    u1.Id,
+		ChannelId: ch2.Id,
+		Message:   "hi there 2",
+		Type:      model.PostTypeDefault,
+	}
+	p2, err = ss.Post().Save(p2)
+	require.NoError(t, err)
+
 	meta, err := ss.Post().GetPostReminderMetadata(p1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, meta.ChannelId, ch.Id)
 	assert.Equal(t, meta.TeamName, team.Name)
+	assert.Equal(t, meta.Username, u1.Username)
+	assert.Equal(t, meta.UserLocale, u1.Locale)
+
+	meta, err = ss.Post().GetPostReminderMetadata(p2.Id)
+	require.NoError(t, err)
+	assert.Equal(t, meta.ChannelId, ch2.Id)
+	assert.Equal(t, meta.TeamName, "")
 	assert.Equal(t, meta.Username, u1.Username)
 	assert.Equal(t, meta.UserLocale, u1.Locale)
 }

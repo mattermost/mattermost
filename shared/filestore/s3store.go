@@ -208,26 +208,41 @@ func (b *S3FileBackend) MakeBucket() error {
 // s3WithCancel is a wrapper struct which cancels the context
 // when the object is closed.
 type s3WithCancel struct {
-	*s3.Object
+	io.ReadSeekCloser
+	timer  *time.Timer
 	cancel context.CancelFunc
 }
 
 func (sc *s3WithCancel) Close() error {
+	sc.timer.Stop()
 	sc.cancel()
-	return sc.Object.Close()
+	return sc.ReadSeekCloser.Close()
+}
+
+// CancelTimeout attempts to cancel the timeout for this reader. It allows calling
+// code to ignore the timeout in case of longer running operations. The methods returns
+// false if the timeout has already fired.
+func (sc *s3WithCancel) CancelTimeout() bool {
+	return sc.timer.Stop()
 }
 
 // Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	ctx, cancel := context.WithCancel(context.Background())
 	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		cancel()
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
 
-	return &s3WithCancel{Object: minioObject, cancel: cancel}, nil
+	sc := &s3WithCancel{
+		ReadSeekCloser: minioObject,
+		timer:          time.AfterFunc(b.timeout, cancel),
+		cancel:         cancel,
+	}
+
+	return sc, nil
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
@@ -354,6 +369,13 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 }
 
 func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	return b.WriteFileContext(ctx, fr, path)
+}
+
+func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
@@ -362,22 +384,26 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel()
 	options := s3PutOptions(b.encrypt, contentType)
 
-	objSize := -1
+	objSize := int64(-1)
 	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	if isCloud {
 		options.DisableContentSha256 = true
-	}
-	// We pass an object size only in situations where bifrost is not
-	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
-	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
-		objSize = buf.Len()
+	} else {
+		// We pass an object size only in situations where bifrost is not
+		// used. Bifrost needs to run in HTTPS, which is not yet deployed.
+		switch t := fr.(type) {
+		case *bytes.Buffer:
+			objSize = int64(t.Len())
+		case *os.File:
+			if s, err := t.Stat(); err == nil {
+				objSize = s.Size()
+			}
+		}
 	}
 
-	info, err := b.client.PutObject(ctx, b.bucket, path, fr, int64(objSize), options)
+	info, err := b.client.PutObject(ctx, b.bucket, path, fr, objSize, options)
 	if err != nil {
 		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
 	}
