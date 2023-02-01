@@ -2599,6 +2599,28 @@ func (a *App) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 	return threadsEnabled
 }
 
+// ValidateUserPermissionsOnChannels filters channelIds based on whether userId is authorized to manage channel members. Unauthorized channels are removed from the returned list.
+func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
+	var allowedChannelIds []string
+
+	for _, channelId := range channelIds {
+		channel, err := a.GetChannel(c, channelId)
+		if err != nil {
+			mlog.Info("Invite users to team - couldn't get channel " + channelId)
+			continue
+		}
+
+		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers) {
+			allowedChannelIds = append(allowedChannelIds, channelId)
+		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
+			allowedChannelIds = append(allowedChannelIds, channelId)
+		} else {
+			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
+		}
+	}
+	return allowedChannelIds
+}
+
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID) {
