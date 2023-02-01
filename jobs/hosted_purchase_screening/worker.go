@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	JobName = "LastAccessiblePost"
+	JobName = "HostedPurchaseScreening"
 	// 3 days matches the expecation given in portal purchase flow.
 	waitForScreeningDuration = 3 * 24 * time.Hour
 )
@@ -24,7 +24,7 @@ type ScreenTimeStore interface {
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeStore ScreenTimeStore) model.Worker {
 	isEnabled := func(_ *model.Config) bool {
-		return license != nil && license.Features != nil && *license.Features.Cloud
+		return !license.IsCloud()
 	}
 	execute := func(job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
