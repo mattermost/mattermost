@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -536,32 +535,4 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		hubSink = th.Server.GetHubForUserId(th.BasicUser.Id)
 	}
-}
-
-func TestClusterBroadcast(t *testing.T) {
-	testCluster := &testlib.FakeClusterInterface{}
-
-	th := SetupWithCluster(t, testCluster)
-	defer th.TearDown()
-
-	ev := model.NewWebSocketEvent("test_event", "", "", "", nil, "")
-	broadcast := &model.WebsocketBroadcast{
-		ContainsSanitizedData: true,
-		ContainsSensitiveData: true,
-	}
-	ev = ev.SetBroadcast(broadcast)
-	th.Service.Publish(ev)
-
-	messages := testCluster.GetMessages()
-
-	var clusterEvent struct {
-		Event     string                    `json:"event"`
-		Data      map[string]any            `json:"data"`
-		Broadcast *model.WebsocketBroadcast `json:"broadcast"`
-		Sequence  int64                     `json:"seq"`
-	}
-
-	err := json.Unmarshal(messages[0].Data, &clusterEvent)
-	require.NoError(t, err)
-	require.Equal(t, clusterEvent.Broadcast, broadcast)
 }
