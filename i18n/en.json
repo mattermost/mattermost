@@ -2544,6 +2544,10 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Service only available in Mattermost Enterprise edition"
+  },
+  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },
