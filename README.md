@@ -21,7 +21,6 @@ Other useful resources:
 Table of contents
 =================
 
-  * [Try out Mattermost](#try-out-mattermost)
   * [Install Mattermost](#install-mattermost)
   * [Native Mobile and Desktop Apps](#native-mobile-and-desktop-apps)
   * [Get Security Bulletins](#get-security-bulletins)
@@ -44,7 +43,7 @@ Other install guides:
 - [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
 - [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
 - [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
-- [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
+- [Helm](https://github.com/mattermost/mattermost-helm/tree/master/charts/mattermost-operator)
 - [Debian Buster](https://docs.mattermost.com/install/install-debian.html)
 - [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
 - [More server install guides](https://docs.mattermost.com/guides/deployment.html)
@@ -65,7 +64,7 @@ Receive notifications of critical security updates. The sophistication of online
 
 - [Contribute to Mattermost](https://handbook.mattermost.com/contributors/contributors/ways-to-contribute)
 - [Find "Help Wanted" projects](https://github.com/mattermost/mattermost-server/issues?page=1&q=is%3Aissue+is%3Aopen+%22Help+Wanted%22&utf8=%E2%9C%93)
-- [Join Developer Discussion on a Mattermost server for contributors](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
+- [Join Developer Discussion on a Mattermost server for contributors](https://community.mattermost.com/signup_user_complete)
 - [Get Help With Mattermost](https://docs.mattermost.com/guides/get-help.html)
 
 ## Learn more
