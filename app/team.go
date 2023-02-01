@@ -169,7 +169,7 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 
 	hasBoard, err := a.HasBoardProduct()
 	if err != nil {
-		mlog.Error("Error checking the existance of boards product: ", mlog.Err(err))
+		mlog.Error("Error checking the existence of boards product: ", mlog.Err(err))
 		return false
 	}
 
