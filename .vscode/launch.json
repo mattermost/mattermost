@@ -10,6 +10,17 @@
             "cwd": "${workspaceFolder}",
             "env": {},
             "args": [],
+            "buildFlags": "-ldflags '-X \"github.com/mattermost/mattermost-server/v6/model.BuildNumber=debug\" -X \"github.com/mattermost/mattermost-server/v6/model.BuildBoards=true\" -X \"github.com/mattermost/mattermost-server/v6/model.MockCWS=false\"'"
+        },
+        {
+            "name": "Debug Enterprise Edition",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/mattermost/main.go",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "args": [],
             "buildFlags": "-ldflags '-X \"github.com/mattermost/mattermost-server/v6/model.BuildNumber=debug\" -X \"github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=true\" -X \"github.com/mattermost/mattermost-server/v6/model.BuildBoards=true\" -X \"github.com/mattermost/mattermost-server/v6/model.MockCWS=false\"'"
         }
     ]
