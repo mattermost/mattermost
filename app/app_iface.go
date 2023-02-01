@@ -222,6 +222,8 @@ type AppIface interface {
 	GetTeamSchemeChannelRoles(teamID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
+	// GetUserStatusesByIds used by apiV4
+	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
 	HasRemote(channelID string, remoteID string) (bool, error)
 	// HubRegister registers a connection to a hub.
@@ -383,8 +385,6 @@ type AppIface interface {
 	ValidateUserPermissionsOnChannels(userId string, channelIds []string) []string
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
-	// GetUserStatusesByIds used by apiV4
-	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
