@@ -10,7 +10,7 @@
             "cwd": "${workspaceFolder}",
             "env": {},
             "args": [],
-            "buildFlags": "-ldflags '-X \"github.com/mattermost/mattermost-server/v6/model.BuildNumber=debug\"'"
+            "buildFlags": "-ldflags '-X \"github.com/mattermost/mattermost-server/v6/model.BuildNumber=dev\"'"
         },
         {
             "name": "Debug Enterprise Edition",
@@ -21,7 +21,7 @@
             "cwd": "${workspaceFolder}",
             "env": {},
             "args": [],
-            "buildFlags": "-ldflags '-X \"github.com/mattermost/mattermost-server/v6/model.BuildNumber=debug\" -X \"github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=true\"'"
+            "buildFlags": "-ldflags '-X \"github.com/mattermost/mattermost-server/v6/model.BuildNumber=dev\" -X \"github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=true\"'"
         }
     ]
 }
