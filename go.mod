@@ -37,7 +37,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-	github.com/mattermost/logr/v2 v2.0.15
+	github.com/mattermost/logr/v2 v2.0.16
 	github.com/mattermost/mattermost-plugin-playbooks/client v0.7.0
 	github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
