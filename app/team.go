@@ -209,7 +209,6 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 
 	boardServiceItf, ok := a.Srv().services[product.BoardsKey]
 	if !ok {
-		// here make sure to return error when necessary, othewise just log the errors
 		return nil, model.NewAppError("CreateBoard", "not product key found", nil, "", http.StatusBadRequest)
 	}
 	boardService, typeOk := boardServiceItf.(product.BoardsService)
