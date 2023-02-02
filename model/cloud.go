@@ -318,7 +318,7 @@ type DowngradeFeedback struct {
 }
 
 type WorkspaceDeletionRequest struct {
-	SubscriptionID string
+	SubscriptionID string `json:"subscription_id"`
 	DowngradeFeedback
 }
 
