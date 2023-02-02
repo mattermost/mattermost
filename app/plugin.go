@@ -161,6 +161,11 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				pluginID := plugin.Manifest.Id
+				// We skip it from activating here. It is disabled later, at a higher level
+				// from *Channels.Start.
+				if ch.srv.Config().FeatureFlags.BoardsProduct && pluginID == model.PluginIdFocalboard {
+					return
+				}
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginID)
 				if err != nil {
 					plugin.WrapLogger(ch.srv.Log()).Error("Unable to activate plugin", mlog.Err(err))
@@ -306,16 +311,6 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
-		// Disable focalboard in product mode.
-		if plugin.Manifest.Id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
-			mlog.Info("Plugin cannot run in product mode, disabling.", mlog.String("plugin_id", model.PluginIdFocalboard))
-			appErr := ch.disablePlugin(model.PluginIdFocalboard)
-			if appErr != nil {
-				mlog.Error("Error disabling plugin", mlog.Err(err))
-			}
-			continue
-		}
-
 		wg.Add(1)
 		go func(pluginID string) {
 			defer wg.Done()
