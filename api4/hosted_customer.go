@@ -223,7 +223,11 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := c.App.Cloud().SelfHostedSignupAvailable(); err != nil {
-		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusNotImplemented)
+		if err.Error() == "upstream_off" {
+			c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusServiceUnavailable)
+		} else {
+			c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusNotImplemented)
+		}
 		return
 	}
 
