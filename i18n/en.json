@@ -2576,12 +2576,16 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS Server failed to delete workspace."
+  },
+  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server is not available."
   },
   {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server failed to delete workspace."
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Service only available in Mattermost Enterprise edition"
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -7064,10 +7068,6 @@
     "translation": "You don't have permissions to create a private playbook."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "You don't have permissions to create a private channel for the playbook run."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "You don't have permissions to create a public board."
   },
@@ -7078,14 +7078,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "You don't have permissions to create a public playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "You don't have permissions to create a public channel for the playbook run."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Unable to find playbook template associated with this work template."
   },
   {
     "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
