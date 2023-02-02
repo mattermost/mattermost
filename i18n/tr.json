@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
+    "translation": "Kanalda yalnızca siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Bütünleştirme işlemlerini yalnız sistem yöneticileri yapabilir."
+    "translation": "Bütünleştirme işlemlerini yalnızca sistem yöneticileri yapabilir."
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
@@ -1163,7 +1163,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Lisansta yalnız {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site raporları -> İstatistikleri görüntüle bölümünden görebilirsiniz."
+    "translation": "Lisansta yalnızca {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site raporları -> İstatistikleri görüntüle bölümünden görebilirsiniz."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -2285,7 +2285,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Giden web bağlantıları yalnız herkese açık kanallara eklenebilir."
+    "translation": "Giden web bağlantıları yalnızca herkese açık kanallara eklenebilir."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
@@ -2537,7 +2537,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Doğrudan kanal yalnız üyeleri tarafından sık kullanılanlara eklenebilir. \"{{.Username}}\" bir üye değil."
+    "translation": "Doğrudan kanal yalnızca üyeleri tarafından sık kullanılanlara eklenebilir. \"{{.Username}}\" bir üye değil."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -2569,7 +2569,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Doğrudan ileti yalnız kanal üyeleri tarafından işaretlenebilir. \"{{.Username}}\" bir üye değil."
+    "translation": "Doğrudan ileti yalnızca kanal üyeleri tarafından işaretlenebilir. \"{{.Username}}\" bir üye değil."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3733,7 +3733,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "{{.Scheme}} özel adres biçimi geçersiz. Özel adres biçimleri bir harf ile başlamalı ve yalnız harf, rakam, artı (+), nokta (.) ve tire (-) karakterlerini içermelidir."
+    "translation": "{{.Scheme}} özel adres biçimi geçersiz. Özel adres biçimleri bir harf ile başlamalı ve yalnızca harf, rakam, artı (+), nokta (.) ve tire (-) karakterlerini içermelidir."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -3877,7 +3877,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "İleti dışa aktarma görevi ExportFromTimestamp değeri bir zaman damgası olmalıdır (Unix Epoch başlangıcından itibaren saniye olarak). Yalnız bu zaman damgasından sonra gönderilmiş iletiler dışa aktarılır."
+    "translation": "İleti dışa aktarma görevi ExportFromTimestamp değeri bir zaman damgası olmalıdır (Unix Epoch başlangıcından itibaren saniye olarak). Yalnızca bu zaman damgasından sonra gönderilmiş iletiler dışa aktarılır."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
@@ -5237,7 +5237,7 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": "Yalnız kişisel takımlar aranırken sayfalandırma yapılmaz."
+    "translation": "Yalnızca kişisel takımlar aranırken sayfalandırma yapılmaz."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5405,7 +5405,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Kanal adı geçersiz. Doğrudan olmayan ileti kanallarında, kanal adı içinde kullanıcı kodları kullanılamaz."
+    "translation": "Kanal adları onaltılık biçimde olamaz. Lütfen başka bir kanal adı yazın."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -5665,7 +5665,7 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Yalnız herkese açık takımlar aranırken sayfalandırma yapılmaz."
+    "translation": "Yalnızca herkese açık takımlar aranırken sayfalandırma yapılmaz."
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
@@ -6733,7 +6733,7 @@
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
-    "translation": "Yalnız sistem yöneticileri önceden karılmış parolalar ayarlayabilir."
+    "translation": "Yalnızca sistem yöneticileri önceden karılmış parolalar ayarlayabilir."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -7137,7 +7137,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. Bu özellik yalnız x86-64 mimarisine sahip Linux sistemleri üzerinde kullanılabilir."
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. Bu özellik yalnızca x86-64 mimarisine sahip Linux sistemleri üzerinde kullanılabilir."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
@@ -7549,7 +7549,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Yalnız kanal yöneticilerinin ileti gönderebilmesini sağlamak için **Sistem panosu > Kullanıcı yönetimi > Kanallar** bölümüne gidin."
+    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Yalnızca kanal yöneticilerinin ileti gönderebilmesini sağlamak için **Sistem panosu > Kullanıcı yönetimi > Kanallar** bölümüne gidin."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -8964,7 +8964,7 @@
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": "Başlamaya hazırlık işlemi yalnız bir sistem yöneticisi tarafından tamamlanabilir."
+    "translation": "Başlamaya hazırlık işlemi yalnızca bir sistem yöneticisi tarafından tamamlanabilir."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -9713,5 +9713,145 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Elasticsearch için istemci anahtar dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Elasticsearch için istemci sertifika dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Elasticsearch için istemci sertifikasının kodu çözülemedi"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Elasticsearch için CA dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Elasticsearch için CA kodu çözülemedi"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS sunucusu kullanılamıyor."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Toplam giden web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Toplam gelen web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Toplam etkin kullanıcı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Bulut kopyalarında lisans artırımı değerlendirmesi yapılamaz"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Lisans artırımı değerlendirmesi için bir lisans gereklidir"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Lisans artırımı durumu kayıtları alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Lisans artırımı durumu kaydı oluşturulamadı"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "Herkese açık bir kanal oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "Herkese açık bir pano oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_run",
+    "translation": "Senaryo oyunu için özel bir kanal oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "Özel bir senaryo oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "Özel bir kanal oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "Özel bir pano oluşturma izniniz yok."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Çalışma kalıpları devre dışı bırakıldı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Kanal ile ilişkilendirilmiş bir senaryo bulunamadı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Bir senaryo oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Bir kanal oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Bir pano oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Bir çalışma kalıbı yürütülürken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
+    "translation": "Bu çalışma kalıbı ile ilişkilendirilmiş bir senaryo kalıbı bulunamadı."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_run",
+    "translation": "Senaryo oyunu için herkese açık bir kanal oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "Herkese açık bir senaryo oluşturma izniniz yok."
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Kurum geneli"
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Lisansınızda kişisel senaryo desteği yok."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Sunucu çevirileri güncellenemedi."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Liderlik"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Geliştirme işlemleri"
   }
 ]

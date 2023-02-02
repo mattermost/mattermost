@@ -4658,6 +4658,15 @@ func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
 	ch, err = ss.Channel().Save(ch, -1)
 	require.NoError(t, err)
 
+	ch2 := &model.Channel{
+		TeamId:      "",
+		DisplayName: "GM_display",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeGroup,
+	}
+	ch2, err = ss.Channel().Save(ch2, -1)
+	require.NoError(t, err)
+
 	u1 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -4676,10 +4685,26 @@ func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
 	p1, err = ss.Post().Save(p1)
 	require.NoError(t, err)
 
+	p2 := &model.Post{
+		UserId:    u1.Id,
+		ChannelId: ch2.Id,
+		Message:   "hi there 2",
+		Type:      model.PostTypeDefault,
+	}
+	p2, err = ss.Post().Save(p2)
+	require.NoError(t, err)
+
 	meta, err := ss.Post().GetPostReminderMetadata(p1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, meta.ChannelId, ch.Id)
 	assert.Equal(t, meta.TeamName, team.Name)
+	assert.Equal(t, meta.Username, u1.Username)
+	assert.Equal(t, meta.UserLocale, u1.Locale)
+
+	meta, err = ss.Post().GetPostReminderMetadata(p2.Id)
+	require.NoError(t, err)
+	assert.Equal(t, meta.ChannelId, ch2.Id)
+	assert.Equal(t, meta.TeamName, "")
 	assert.Equal(t, meta.Username, u1.Username)
 	assert.Equal(t, meta.UserLocale, u1.Locale)
 }

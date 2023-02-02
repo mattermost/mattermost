@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType string) error {
+func (a *App) RegisterCollectionAndTopic(pluginID, collectionType, topicType string) error {
 	// we have a race condition due to multiple plugins calling this method
 	a.ch.collectionAndTopicTypesMut.Lock()
 	defer a.ch.collectionAndTopicTypesMut.Unlock()
