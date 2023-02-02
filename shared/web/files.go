@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
