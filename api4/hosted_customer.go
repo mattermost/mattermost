@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -264,7 +265,7 @@ func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeFileResponse(
+	web.WriteFileResponse(
 		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),

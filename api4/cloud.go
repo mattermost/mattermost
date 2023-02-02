@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -641,7 +642,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	writeFileResponse(
+	web.WriteFileResponse(
 		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),
