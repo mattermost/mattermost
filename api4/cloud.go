@@ -137,8 +137,8 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if subscriptionChange.DowngradeFeedback != nil {
-		c.App.Srv().GetTelemetryService().SendTelemetry("downgrade_feedback", subscriptionChange.DowngradeFeedback.ToMap())
+	if subscriptionChange.Feedback != nil {
+		c.App.Srv().GetTelemetryService().SendTelemetry("downgrade_feedback", subscriptionChange.Feedback.ToMap())
 	}
 
 	json, err := json.Marshal(changedSub)
@@ -783,6 +783,8 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.server.cws.delete_workspace.app_error", nil, "CWS Server failed to delete workspace.", http.StatusInternalServerError)
 		return
 	}
+
+	c.App.Srv().GetTelemetryService().SendTelemetry("delete_workspace_feedback", deleteRequest.Feedback.ToMap())
 
 	ReturnStatusOK(w)
 
