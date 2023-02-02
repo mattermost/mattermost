@@ -480,10 +480,6 @@
     "translation": "Internal error during cloud api request."
   },
   {
-    "id": "api.cloud.compliance_failed",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
