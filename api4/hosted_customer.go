@@ -36,6 +36,12 @@ func (api *API) InitHostedCustomer() {
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
+	cloud := c.App.Cloud()
+	if cloud == nil {
+		c.Err = model.NewAppError(where, "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	license := c.App.Channels().License()
 
 	if license.IsCloud() {
