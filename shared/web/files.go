@@ -36,7 +36,6 @@ func WriteFileResponse(filename string, contentType string, contentSize int64, l
 	w.Header().Set("Cache-Control", "private, no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
-	fmt.Println("+++++++++++++ Running successfully +++++++++++")
 	if contentSize > 0 {
 		contentSizeStr := strconv.Itoa(int(contentSize))
 		if webserverMode == "gzip" {
