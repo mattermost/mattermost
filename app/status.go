@@ -98,7 +98,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model
 	return statusMap, nil
 }
 
-//GetUserStatusesByIds used by apiV4
+// GetUserStatusesByIds used by apiV4
 func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return []*model.Status{}, nil
