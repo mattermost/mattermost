@@ -4160,6 +4160,10 @@
     "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
+    "id": "api.user.get_authorization_code.endpoint_parse.app_error",
+    "translation": "Failed to parse authentication endpoint URL."
+  },
+  {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
     "translation": "Failed to get uploads."
   },
