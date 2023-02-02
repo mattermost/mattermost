@@ -214,7 +214,6 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
 	services[product.ChannelKey] = &channelsWrapper{
-		srv: s,
 		app: &App{ch: ch},
 	}
 
@@ -243,6 +242,10 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	services[product.PreferencesKey] = &preferencesServiceWrapper{
 		app: &App{ch: ch},
 	}
+
+	services[product.CommandKey] = &App{ch: ch}
+
+	services[product.ThreadsKey] = &App{ch: ch}
 
 	return ch, nil
 }
@@ -280,6 +283,11 @@ func (ch *Channels) Start() error {
 		}
 
 	})
+
+	// This needs to be done after initPlugins has completed,
+	// because we want the full plugin processing to be complete before disabling it.
+	ch.disableBoardsIfNeeded()
+	ch.srv.AddClusterLeaderChangedListener(ch.disableBoardsIfNeeded)
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
@@ -363,4 +371,17 @@ func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
 	}
 
 	return nil, fmt.Errorf("could not find hooks for id %s", id)
+}
+
+func (ch *Channels) disableBoardsIfNeeded() {
+	// Disable focalboard in product mode.
+	if ch.srv.Config().FeatureFlags.BoardsProduct {
+		// disablePlugin automatically checks if the plugin is running or not,
+		// and if it isn't, it returns an error. Therefore we ignore those errors.
+		// We don't want to check here again if the plugin is enabled or not.
+		appErr := ch.disablePlugin(model.PluginIdFocalboard)
+		if appErr != nil && appErr.Id != "app.plugin.not_installed.app_error" && appErr.Id != "app.plugin.disabled.app_error" {
+			ch.srv.Log().Error("Error disabling plugin in product mode", mlog.Err(appErr))
+		}
+	}
 }

@@ -77,6 +77,7 @@ func TestExportUserNotifyProps(t *testing.T) {
 func TestExportUserChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	channel := th.BasicChannel
 	user := th.BasicUser
 	team := th.BasicTeam
@@ -91,6 +92,10 @@ func TestExportUserChannels(t *testing.T) {
 		Name:     channel.Id,
 		Value:    "true",
 	}
+
+	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true)
+	require.Nil(t, appErr)
+
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
 	err := th.App.Srv().Store().Preference().Save(preferences)
@@ -102,15 +107,19 @@ func TestExportUserChannels(t *testing.T) {
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
 		if *data.Name == channelName {
-			assert.Equal(t, *data.NotifyProps.Desktop, "all")
-			assert.Equal(t, *data.NotifyProps.Mobile, "none")
-			assert.Equal(t, *data.NotifyProps.MarkUnread, "all") // default value
+			assert.Equal(t, "all", *data.NotifyProps.Desktop)
+			assert.Equal(t, "none", *data.NotifyProps.Mobile)
+			assert.Equal(t, "all", *data.NotifyProps.MarkUnread) // default value
 			assert.True(t, *data.Favorite)
+			assert.NotEqualValues(t, 0, *data.LastViewedAt)
+			assert.NotEqualValues(t, 0, *data.MsgCount)
 		} else { // default values
-			assert.Equal(t, *data.NotifyProps.Desktop, "default")
-			assert.Equal(t, *data.NotifyProps.Mobile, "default")
-			assert.Equal(t, *data.NotifyProps.MarkUnread, "all")
+			assert.Equal(t, "default", *data.NotifyProps.Desktop)
+			assert.Equal(t, "default", *data.NotifyProps.Mobile)
+			assert.Equal(t, "all", *data.NotifyProps.MarkUnread)
 			assert.False(t, *data.Favorite)
+			assert.EqualValues(t, 0, *data.LastViewedAt)
+			assert.EqualValues(t, 0, *data.MsgCount)
 		}
 	}
 }

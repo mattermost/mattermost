@@ -27,30 +27,82 @@ import (
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
 type channelsWrapper struct {
-	srv *Server
 	app *App
 }
 
 func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.srv.getDirectChannel(request.EmptyContext(s.srv.Log()), userID1, userID2)
+	return s.app.getDirectChannel(request.EmptyContext(s.app.Log()), userID1, userID2)
 }
 
 // GetChannelByID gets a Channel by its ID.
 func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
-	return s.srv.getChannel(request.EmptyContext(s.srv.Log()), channelID)
+	return s.app.GetChannel(request.EmptyContext(s.app.Log()), channelID)
 }
 
 // GetChannelMember gets a channel member by userID.
 func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	return s.srv.getChannelMember(request.EmptyContext(s.srv.Log()), channelID, userID)
+	return s.app.GetChannelMember(request.EmptyContext(s.app.Log()), channelID, userID)
 }
 
 func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.Log()), teamID, userID, opts)
+	return s.app.GetChannelsForTeamForUser(request.EmptyContext(s.app.Log()), teamID, userID, opts)
+}
+
+func (s *channelsWrapper) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return s.app.GetSidebarCategoriesForTeamForUser(request.EmptyContext(s.app.Log()), userID, teamID)
+}
+
+func (s *channelsWrapper) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
+	return s.app.GetChannelMembersPage(request.EmptyContext(s.app.Log()), channelID, page, perPage)
+}
+
+func (s *channelsWrapper) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return s.app.CreateSidebarCategory(request.EmptyContext(s.app.Log()), userID, teamID, newCategory)
+}
+
+func (s *channelsWrapper) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	return s.app.UpdateSidebarCategories(request.EmptyContext(s.app.Log()), userID, teamID, categories)
+}
+
+func (s *channelsWrapper) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	return s.app.CreateChannel(request.EmptyContext(s.app.Log()), channel, false)
+}
+
+func (s *channelsWrapper) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
+	ctx := request.EmptyContext(s.app.Log())
+	channel, err := s.app.GetChannel(ctx, channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
+		UserRequestorID: asUserID,
+	})
+}
+
+func (s *channelsWrapper) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
+	return s.app.UpdateChannelMemberRoles(request.EmptyContext(s.app.Log()), channelID, userID, newRoles)
+}
+
+func (s *channelsWrapper) DeleteChannelMember(channelID, userID string) *model.AppError {
+	return s.app.LeaveChannel(request.EmptyContext(s.app.Log()), channelID, userID)
+}
+
+func (s *channelsWrapper) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
+	channel, err := s.GetChannelByID(channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.app.AddChannelMember(request.EmptyContext(s.app.Log()), userID, channel, ChannelMemberOpts{
+		// For now, don't allow overriding these via the plugin API.
+		UserRequestorID: "",
+		PostRootID:      "",
+	})
 }
 
 func (s *channelsWrapper) GetDirectChannelOrCreate(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.app.GetOrCreateDirectChannel(request.EmptyContext(s.srv.Log()), userID1, userID2)
+	return s.app.GetOrCreateDirectChannel(request.EmptyContext(s.app.Log()), userID1, userID2)
 }
 
 // Ensure the wrapper implements the product service.
@@ -2597,6 +2649,28 @@ func (a *App) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 		threadsEnabled = preference.Value == "on"
 	}
 	return threadsEnabled
+}
+
+// ValidateUserPermissionsOnChannels filters channelIds based on whether userId is authorized to manage channel members. Unauthorized channels are removed from the returned list.
+func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string {
+	var allowedChannelIds []string
+
+	for _, channelId := range channelIds {
+		channel, err := a.GetChannel(c, channelId)
+		if err != nil {
+			mlog.Info("Invite users to team - couldn't get channel " + channelId)
+			continue
+		}
+
+		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers) {
+			allowedChannelIds = append(allowedChannelIds, channelId)
+		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
+			allowedChannelIds = append(allowedChannelIds, channelId)
+		} else {
+			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
+		}
+	}
+	return allowedChannelIds
 }
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.

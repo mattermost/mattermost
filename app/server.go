@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/v6/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
@@ -137,6 +138,7 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]product.Product
+	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
 }
@@ -164,6 +166,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
 		products:    make(map[string]product.Product),
+		services:    make(map[product.ServiceKey]any),
 	}
 
 	for _, option := range options {
@@ -241,7 +244,6 @@ func NewServer(options ...Option) (*Server, error) {
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:                s,
-		product.ChannelKey:       &channelsWrapper{srv: s, app: app},
 		product.ConfigKey:        s.platform,
 		product.LicenseKey:       s.licenseWrapper,
 		product.FilestoreKey:     s.platform.FileBackend(),
@@ -253,6 +255,8 @@ func NewServer(options ...Option) (*Server, error) {
 		product.KVStoreKey:       s.platform,
 		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		product.SystemKey:        &systemServiceAdapter{server: s},
+		product.SessionKey:       app,
+		product.FrontendKey:      app,
 	}
 
 	// Step 4: Initialize products.
@@ -261,6 +265,14 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
+	s.services = serviceMap
+
+	// After channel is initialized set it to the App object
+	channelsWrapper, ok := serviceMap[product.ChannelKey].(*channelsWrapper)
+	if !ok {
+		return nil, errors.Wrap(err, "channels product is not initialized")
+	}
+	app.ch = channelsWrapper.app.ch
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -1529,6 +1541,12 @@ func (s *Server) initJobs() {
 		model.JobTypeTrialNotifyAdmin,
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeHostedPurchaseScreening,
+		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
+		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.platform.Jobs = s.Jobs
