@@ -131,16 +131,14 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	changedSub, err := c.App.Cloud().ChangeSubscription(userId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
-		if err != nil {
-			appErr := model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			if err.Error() == "compliance-failed" {
-				c.Logger.Error("Compliance check failed", mlog.Err(err))
-				appErr.StatusCode = http.StatusUnprocessableEntity
-			}
-
-			c.Err = appErr
-			return
+		appErr := model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err.Error() == "compliance-failed" {
+			c.Logger.Error("Compliance check failed", mlog.Err(err))
+			appErr.StatusCode = http.StatusUnprocessableEntity
 		}
+
+		c.Err = appErr
+		return
 	}
 
 	if subscriptionChange.DowngradeFeedback != nil {
