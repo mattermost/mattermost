@@ -482,7 +482,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableOAuthServiceProvider == nil {
-		s.EnableOAuthServiceProvider = NewBool(false)
+		s.EnableOAuthServiceProvider = NewBool(true)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
