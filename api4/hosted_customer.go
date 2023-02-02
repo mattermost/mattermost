@@ -230,6 +230,11 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	systemValue, err := c.App.Srv().Store().System().GetByName(model.SystemHostedPurchaseNeedsScreening)
+	if err == nil && systemValue != nil {
+		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusTooEarly)
+		return
+	}
 
 	ReturnStatusOK(w)
 }
