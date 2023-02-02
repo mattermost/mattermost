@@ -620,11 +620,11 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 		})
 
-		t.Run("auth URL without query parameters", func(t *testing.T) {
+		t.Run("auth URL with query parameters", func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.GitLabSettings.Enable = true
-				*cfg.GitLabSettings.AuthEndpoint = "https://sample.gitlab.com"
-				*cfg.ServiceSettings.SiteURL = "https://mattermost.example.com?simply=lovely"
+				*cfg.GitLabSettings.AuthEndpoint = "https://sample.gitlab.com?simply=lovely"
+				*cfg.ServiceSettings.SiteURL = "https://mattermost.example.com"
 			})
 
 			request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
