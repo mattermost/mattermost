@@ -371,8 +371,6 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 }
 
 func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]imports.UserChannelImportData, *model.AppError) {
-	var memberships []imports.UserChannelImportData
-
 	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -384,8 +382,9 @@ func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]impo
 		return nil, err
 	}
 
-	for _, member := range members {
-		memberships = append(memberships, *ImportUserChannelDataFromChannelMemberAndPreferences(member, &preferences))
+	memberships := make([]imports.UserChannelImportData, len(members))
+	for i, member := range members {
+		memberships[i] = *ImportUserChannelDataFromChannelMemberAndPreferences(member, &preferences)
 	}
 	return &memberships, nil
 }
