@@ -16,8 +16,8 @@ const schedFreq = 1 * time.Minute
 
 func MakeScheduler(jobServer *jobs.JobServer, license *model.License, jobType string) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		installJobType := jobType == model.JobTypeInstallNotifyAdmin
-		enabled := (license != nil && *license.Features.Cloud) || installJobType
+		installPluginRequestJobType := jobType == model.JobTypeInstallPluginNotifyAdmin
+		enabled := (license != nil && *license.Features.Cloud) || installPluginRequestJobType
 		mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", jobType))
 		return enabled
 	}
