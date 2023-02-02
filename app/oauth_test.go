@@ -10,6 +10,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -586,5 +588,62 @@ func TestGetAuthorizationCode(t *testing.T) {
 				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 			})
 		}
+	})
+
+	t.Run("configured with auth endpoint and query parameters ", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		t.Run("auth URL without query parameters", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.GitLabSettings.Enable = true
+				*cfg.GitLabSettings.AuthEndpoint = "https://sample.gitlab.com"
+				*cfg.ServiceSettings.SiteURL = "https://mattermost.example.com"
+			})
+
+			request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
+
+			stateProps := map[string]string{
+				"email":  "email@example.com",
+				"action": "action",
+			}
+
+			recorder := httptest.ResponseRecorder{}
+			authUrl, err := th.App.GetAuthorizationCode(&recorder, request, model.ServiceGitlab, stateProps, "")
+			require.Nil(t, err)
+			assert.NotEmpty(t, authUrl)
+
+			parsedUrl, sErr := url.Parse(authUrl)
+			require.Nil(t, sErr)
+			// require no query parameter to have "?"
+			require.False(t, strings.Contains(parsedUrl.RawQuery, "?"), "should not malform query parameters")
+
+		})
+
+		t.Run("auth URL without query parameters", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.GitLabSettings.Enable = true
+				*cfg.GitLabSettings.AuthEndpoint = "https://sample.gitlab.com"
+				*cfg.ServiceSettings.SiteURL = "https://mattermost.example.com?simply=lovely"
+			})
+
+			request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
+
+			stateProps := map[string]string{
+				"email":  "email@example.com",
+				"action": "action",
+			}
+
+			recorder := httptest.ResponseRecorder{}
+			authUrl, err := th.App.GetAuthorizationCode(&recorder, request, model.ServiceGitlab, stateProps, "")
+			require.Nil(t, err)
+			assert.NotEmpty(t, authUrl)
+
+			parsedUrl, sErr := url.Parse(authUrl)
+			require.Nil(t, sErr)
+			// require no query parameter to have "?"
+			require.False(t, strings.Contains(parsedUrl.RawQuery, "?"), "should not malform query parameters")
+
+		})
 	})
 }
