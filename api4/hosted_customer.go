@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/web"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
