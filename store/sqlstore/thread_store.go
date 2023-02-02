@@ -316,8 +316,8 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	if opts.Since > 0 {
 		query = query.
 			Where(sq.Or{
-				sq.Gt{"ThreadMemberships.LastUpdated": opts.Since},
-				sq.Gt{"Threads.LastReplyAt": opts.Since},
+				sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since},
+				sq.GtOrEq{"Threads.LastReplyAt": opts.Since},
 			})
 	}
 
