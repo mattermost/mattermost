@@ -85,7 +85,7 @@ var wtce9b74766edff1096ba7c67999ca259b6 = &WorkTemplateCategory{
 var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 	ID:           "product_teams/feature_release:v1",
 	Category:     "product_teams",
-	UseCase:      "Feature Release",
+	UseCase:      "Manage feature release",
 	Illustration: "/static/worktemplates/product_teams/feature_release/feature_release.svg",
 	Visibility:   "public",
 
@@ -163,7 +163,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 	ID:           "product_teams/goals_and_okrs:v1",
 	Category:     "product_teams",
-	UseCase:      "Goals and OKR's",
+	UseCase:      "Set goals and OKR's",
 	Illustration: "/static/worktemplates/product_teams/goals_and_okrs/goals_and_okrs.svg",
 	Visibility:   "public",
 
@@ -224,7 +224,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 	ID:           "product_teams/bug_bash:v1",
 	Category:     "product_teams",
-	UseCase:      "Bug Bash",
+	UseCase:      "Run a bug bash",
 	Illustration: "/static/worktemplates/product_teams/bug_bash/bug_bash.svg",
 	Visibility:   "public",
 
@@ -279,7 +279,7 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 	ID:           "product_teams/sprint_planning:v1",
 	Category:     "product_teams",
-	UseCase:      "Sprint Planning",
+	UseCase:      "Plan sprints",
 	Illustration: "/static/worktemplates/product_teams/sprint_planning/sprint_planning.svg",
 	Visibility:   "public",
 
@@ -331,7 +331,7 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
 	ID:           "product_teams/product_roadmap:v1",
 	Category:     "product_teams",
-	UseCase:      "Product Roadmap",
+	UseCase:      "Create a product roadmap",
 	Illustration: "/static/worktemplates/product_teams/product_roadmap/product_roadmap.svg",
 	Visibility:   "public",
 
@@ -372,7 +372,7 @@ var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
 var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 	ID:           "devops/incident_resolution:v1",
 	Category:     "devops",
-	UseCase:      "Incident Resolution",
+	UseCase:      "Resolve incidents",
 	Illustration: "/static/worktemplates/devops/incident_resolution/incident_resolution.png",
 	Visibility:   "public",
 
@@ -426,7 +426,7 @@ var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 	ID:           "devops/product_release:v1",
 	Category:     "devops",
-	UseCase:      "Product Release",
+	UseCase:      "Prepare a product release",
 	Illustration: "/static/worktemplates/devops/product_release/product_release.svg",
 	Visibility:   "public",
 
@@ -480,7 +480,7 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 	ID:           "companywide/goals_and_okrs:v1",
 	Category:     "companywide",
-	UseCase:      "Goals and OKR's",
+	UseCase:      "Set goals and OKR's",
 	Illustration: "/static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.svg",
 	Visibility:   "public",
 
@@ -532,7 +532,7 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 	ID:           "companywide/create_project:v1",
 	Category:     "companywide",
-	UseCase:      "Create Project",
+	UseCase:      "Create a project",
 	Illustration: "/static/worktemplates/companywide/create_project/create_project.svg",
 	Visibility:   "public",
 
@@ -594,7 +594,7 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 	ID:           "leadership/goals_and_okrs:v1",
 	Category:     "leadership",
-	UseCase:      "Goals and OKR's",
+	UseCase:      "Set goals and OKR's",
 	Illustration: "/static/worktemplates/leadership/goals_and_okrs/goals_and_okrs.svg",
 	Visibility:   "public",
 
