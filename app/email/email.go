@@ -672,6 +672,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 				"teamId":   team.Id,
 				"email":    invite,
 				"channels": strings.Join(channelIDs, " "),
+				"senderId": senderUserId,
 			}),
 		)
 
