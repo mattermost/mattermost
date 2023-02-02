@@ -614,7 +614,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 			assert.NotEmpty(t, authUrl)
 
 			parsedUrl, sErr := url.Parse(authUrl)
-			require.Nil(t, sErr)
+			require.NoError(t, sErr)
 			// require no query parameter to have "?"
 			require.False(t, strings.Contains(parsedUrl.RawQuery, "?"), "should not malform query parameters")
 
@@ -640,7 +640,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 			assert.NotEmpty(t, authUrl)
 
 			parsedUrl, sErr := url.Parse(authUrl)
-			require.Nil(t, sErr)
+			require.NoError(t, sErr)
 			// require no query parameter to have "?"
 			require.False(t, strings.Contains(parsedUrl.RawQuery, "?"), "should not malform query parameters")
 
