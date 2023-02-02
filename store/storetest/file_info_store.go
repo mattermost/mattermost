@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -810,51 +809,55 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
-	t.Skip("MM-48627")
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
 	assert.Error(t, err)
 
-	_, err = ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
+	// Delete all files
+	// Deleting files 16 minutes into the future as well. Creating files with a
+	// CreateAt in the future is possible
+	_, err = ss.FileInfo().PermanentDeleteBatch(model.GetMillis()+1000000, 100000)
 	require.NoError(t, err)
 
-	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + diff
+	// Lets make files in the past, this makes clean-up easier
+	TenMinutesAgo := model.GetMillis() - 600000
+	inc := int64(10000)
+	ts := TenMinutesAgo + inc
 
 	f1, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
 		Size:      10,
 		Path:      "file1.txt",
-		CreateAt:  now,
+		CreateAt:  ts,
 	})
 	require.NoError(t, err)
-	now = now + diff
+	ts += inc
 	f2, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
 		Size:      10,
 		Path:      "file2.txt",
-		CreateAt:  now,
+		CreateAt:  ts,
 	})
 	require.NoError(t, err)
-	now = now + diff
+	ts += inc
 	f3, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
 		Size:      10,
 		Path:      "file3.txt",
-		CreateAt:  now,
+		CreateAt:  ts,
 	})
 	require.NoError(t, err)
-	now = now + diff
+	ts += inc
 	_, err = ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
 		Size:      10,
 		Path:      "file4.txt",
-		CreateAt:  now,
+		CreateAt:  ts,
 	})
 	require.NoError(t, err)
 
