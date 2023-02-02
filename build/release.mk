@@ -205,6 +205,15 @@ endif
 		exit 1; \
 	fi
 
+	@if [ -d $(BUILD_PLAYBOOKS_DIR) ] ; then \
+		echo "Copying web app files for Playbooks product"; \
+		mkdir -p $(DIST_PATH_GENERIC)/client/products/playbooks; \
+		cp -R $(BUILD_PLAYBOOKS_DIR)/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/playboooks/; \
+	else \
+		echo "Unable to find files for Playbooks product. Please ensure that the Playbooks repository is checked out alongside the server and run 'make build-product' in it."; \
+		exit 1; \
+	fi
+
 package-osx-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package

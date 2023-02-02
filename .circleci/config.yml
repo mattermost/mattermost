@@ -37,6 +37,11 @@ jobs:
           cd focalboard
           git checkout $CIRCLE_BRANCH || git checkout <<parameters.target-branch>> || git checkout rolling-stable
           echo $(git rev-parse HEAD)
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-plugin-playbooks.git
+          cd mattermost-plugin-playbooks
+          git checkout $CIRCLE_BRANCH || git checkout <<parameters.target-branch>> || git checkout rolling-stable
+          echo $(git rev-parse HEAD)
           cd ../mattermost-server
           make setup-go-work
           cd ../focalboard
@@ -46,6 +51,7 @@ jobs:
           paths:
             - mattermost-server
             - focalboard
+            - mattermost-plugin-playbooks
   setup-mattermost-webapp:
     working_directory: /mnt/ramdisk/
     docker:
@@ -100,6 +106,26 @@ jobs:
           root: /mnt/ramdisk
           paths:
             - focalboard/mattermost-plugin/webapp/dist
+  setup-playbooks-product:
+    working_directory: /mnt/ramdisk/
+    docker:
+      - image: cimg/go:1.18-node
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: /mnt/ramdisk
+      - run: |
+          cd mattermost-plugin-playbooks
+          echo "Building Playbooks product for web app"
+          # make prebuild build-product # TODO figure out how to get this to run without bypassing the Makefile
+          make prebuild
+          cd webapp
+          npm run build:product
+          cd ..
+      - persist_to_workspace:
+          root: /mnt/ramdisk
+          paths:
+            - mattermost-plugin-playbooks/webapp/dist
 
   check-app-layers:
     docker:
@@ -512,6 +538,14 @@ workflows:
                 - /^release-.*/
           requires:
             - setup-multi-product-repositories
+      - setup-playbooks-product:
+          filters:
+            branches:
+              ignore:
+                - master
+                - /^release-.*/
+          requires:
+            - setup-multi-product-repositories
       - check-go-mod-tidy:
           requires:
             - setup-multi-product-repositories
@@ -560,6 +594,7 @@ workflows:
             - build-api-spec
             - setup-mattermost-webapp
             - setup-focalboard-product
+            - setup-playbooks-product
       - build-focalboard:
           requires:
             - check-go-mod-tidy
@@ -682,6 +717,15 @@ workflows:
                 - cloud
           requires:
             - setup-multi-product-repositories
+      - setup-playbooks-product:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
+          requires:
+            - setup-multi-product-repositories
       - check-go-mod-tidy:
           requires:
             - setup-multi-product-repositories
@@ -734,6 +778,7 @@ workflows:
             - build-api-spec
             - setup-mattermost-webapp
             - setup-focalboard-product
+            - setup-playbooks-product
       - build-focalboard:
           requires:
             - check-go-mod-tidy

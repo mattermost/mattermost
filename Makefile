@@ -95,7 +95,7 @@ endif
 
 # Playbooks
 BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
-BUILD_PLAYBOOKS ?= false
+BUILD_PLAYBOOKS ?= true
 BUILD_HASH_PLAYBOOKS = none
 
 ifneq ($(wildcard $(BUILD_PLAYBOOKS_DIR)/.),)
