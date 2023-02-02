@@ -4969,7 +4969,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ongeldige kanaalnaam. Gebruikersindentifiers zijn niet toegestaan in een kanaalnaam voor niet directe -berichtenkanalen."
+    "translation": "Kanaalnamen kunnen niet hexadecimaal zijn. Voer een andere kanaalnaam in."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -9320,7 +9320,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Downgraden naar Cloud Starter"
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9333,10 +9333,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Werk nu jouw creditcardgegevens bij."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Een gedowngradede workspace kan een negatieve invloed hebben op kritische workflows, integraties en andere bedrijfskritische activiteiten die in jouw workspace worden uitgevoerd."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9375,20 +9371,12 @@
     "translation": "Betalingsgegevens bijwerken"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Actieve plugins en integraties"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Berichtengeschiedenis"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Bestanden"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Kaarten van jouw Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9428,7 +9416,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Dit is de laatste herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost Cloud-werkruimte sinds {{.DelinquencyDate}}"
+    "translation": "Dit is de laatste herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost Cloud-workspace sinds {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9436,7 +9424,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Downgraden naar Cloud Starter"
+    "translation": "Downgraden naar Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9745,5 +9733,45 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Decodering van de CA voor Elasticsearch is mislukt"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True up-review is niet toegestaan voor cloud-instances"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up-review vereist een licentie"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Kon geen true up statusrecords krijgen"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Kon geen true up statusrecord aanmaken"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Een gedowngrade workspace kan een negatieve invloed hebben op kritische workflows en andere activiteiten die op je workspace worden verricht."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server is niet beschikbaar."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Fout bij het ophalen van het totaal aantal uitgaande webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Fout bij het ophalen van het totaal aantal inkomende webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Fout bij het ophalen van het totaal aantal actieve gebruikers"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Fout bij het bijwerken van de serververtalingen."
   }
 ]

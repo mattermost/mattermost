@@ -3032,8 +3032,9 @@ func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response, error
 }
 
 // GetChannelStats returns statistics for a channel.
-func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/stats", etag)
+func (c *Client4) GetChannelStats(channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
+	route := c.channelRoute(channelId) + fmt.Sprintf("/stats?exclude_files_count=%v", excludeFilesCount)
+	r, err := c.DoAPIGet(route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8697,6 +8698,17 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 		return BuildResponse(r), err
 	}
 	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
 	return BuildResponse(r), nil
 }
 

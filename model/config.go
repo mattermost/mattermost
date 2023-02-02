@@ -385,7 +385,6 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
-	ExperimentalMaxUserPreferences                    *int
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -483,7 +482,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableOAuthServiceProvider == nil {
-		s.EnableOAuthServiceProvider = NewBool(false)
+		s.EnableOAuthServiceProvider = NewBool(true)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -857,10 +856,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
-	}
-
-	if s.ExperimentalMaxUserPreferences == nil {
-		s.ExperimentalMaxUserPreferences = NewInt(1000)
 	}
 }
 
@@ -2872,8 +2867,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Disable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: false}
+		// Enable the focalboard plugin by default
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {
