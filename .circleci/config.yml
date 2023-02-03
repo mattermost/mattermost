@@ -118,7 +118,7 @@ jobs:
           cd mattermost-plugin-playbooks
           echo "Building Playbooks product for web app"
           # make prebuild build-product # TODO figure out how to get this to run without bypassing the Makefile
-          make prebuild
+          # make prebuild
           cd webapp
           npm run build:product
           cd ..
