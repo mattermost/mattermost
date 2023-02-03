@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// EXPERIMENTAL - SUBJECT TO CHANGE
-
 package api4
 
 import (
@@ -25,8 +23,6 @@ const (
 )
 
 func (api *API) InitPlugin() {
-	mlog.Debug("EXPERIMENTAL: Initializing plugin api")
-
 	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods("DELETE")

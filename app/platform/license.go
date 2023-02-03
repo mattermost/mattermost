@@ -191,6 +191,13 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		ps.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
+	// only on prem licenses set this in the first place
+	if !license.IsCloud() {
+		_, err := ps.Store.System().PermanentDeleteByName(model.SystemHostedPurchaseNeedsScreening)
+		if err != nil {
+			ps.logger.Warn(fmt.Sprintf("Failed to remove %s system store key", model.SystemHostedPurchaseNeedsScreening))
+		}
+	}
 
 	ps.ReloadConfig()
 	ps.InvalidateAllCaches()

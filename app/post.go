@@ -43,7 +43,7 @@ type postServiceWrapper struct {
 }
 
 func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
-	return s.app.CreatePostMissingChannel(ctx, post, true)
+	return s.app.CreatePostMissingChannel(ctx, post, true, true)
 }
 
 func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
@@ -115,7 +115,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	return rp, nil
 }
 
-func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -127,7 +127,7 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 		}
 	}
 
-	return a.CreatePost(c, post, channel, triggerWebhooks, true)
+	return a.CreatePost(c, post, channel, triggerWebhooks, setOnline)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -2058,8 +2058,16 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	parsed := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
+	parsedTime := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
 	siteURL := *a.Config().ServiceSettings.SiteURL
+
+	var permalink string
+	if metadata.TeamName == "" {
+		permalink = fmt.Sprintf("%s/pl/%s", siteURL, postID)
+	} else {
+		permalink = fmt.Sprintf("%s/%s/pl/%s", siteURL, metadata.TeamName, postID)
+	}
+
 	// Send an ack message.
 	ephemeralPost := &model.Post{
 		Type:      model.PostTypeEphemeral,
@@ -2070,7 +2078,7 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		ChannelId: metadata.ChannelId,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
-		Message: fmt.Sprintf("You will be reminded about %s/%s/pl/%s by @%s at %s", siteURL, metadata.TeamName, postID, metadata.Username, parsed),
+		Message: fmt.Sprintf("You will be reminded about %s by @%s at %s", permalink, metadata.Username, parsedTime),
 		Props: model.StringInterface{
 			"target_time": targetTime,
 			"team_name":   metadata.TeamName,
@@ -2133,7 +2141,7 @@ func (a *App) CheckPostReminders() {
 		for _, postID := range postIDs {
 			metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
 			if err != nil {
-				mlog.Error("Failed to get post reminder metadata", mlog.Err(err))
+				mlog.Error("Failed to get post reminder metadata", mlog.Err(err), mlog.String("post_id", postID))
 				continue
 			}
 
