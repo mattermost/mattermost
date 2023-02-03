@@ -172,7 +172,7 @@ PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.35.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.36.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -416,6 +416,7 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
 	$(GOBIN)/mockery --dir utils --name LicenseValidatorIface --output utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
+	$(GOBIN)/mockery --dir app --name WorkTemplateExecutor --output app/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
