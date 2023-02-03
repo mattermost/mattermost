@@ -2428,7 +2428,7 @@ func (_m *API) GetUsersInChannel(channelID string, sortBy string, page int, perP
 }
 
 // GetUsersInTeam provides a mock function with given fields: teamID, page, perPage
-func (_m *API) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (_m *API) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, int64, *model.AppError) {
 	ret := _m.Called(teamID, page, perPage)
 
 	var r0 []*model.User
@@ -2440,16 +2440,23 @@ func (_m *API) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.Us
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(string, int, int) int64); ok {
 		r1 = rf(teamID, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Get(1).(int64)
+	}
+
+	var r2 *model.AppError
+	if rf, ok := ret.Get(2).(func(string, int, int) *model.AppError); ok {
+		r2 = rf(teamID, page, perPage)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0, r1, r2
 }
 
 // HasPermissionTo provides a mock function with given fields: userID, permission

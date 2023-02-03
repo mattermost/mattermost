@@ -200,7 +200,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			profiles, _, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
 		if sort == "status" {

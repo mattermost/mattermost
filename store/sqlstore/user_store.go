@@ -726,40 +726,43 @@ func (us SqlUserStore) GetEtagForProfiles(teamId string) string {
 	return fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 }
 
-func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, error) {
-	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
-	query := us.usersQuery.
+func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
+	query := us.getAllProfilesSelectBuilder(options, false)
+
+	query = query.
 		Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-		Where("tm.TeamId = ?", options.InTeamId).
-		OrderBy("u.Username ASC").
-		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
-
-	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
-
-	query = applyRoleFilter(query, options.Role, isPostgreSQL)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
-
-	if options.Inactive {
-		query = query.Where("u.DeleteAt != 0")
-	} else if options.Active {
-		query = query.Where("u.DeleteAt = 0")
-	}
+		Where("tm.TeamId = ?", options.InTeamId)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "get_etag_for_profiles_tosql")
+		return nil, 0, errors.Wrap(err, "get_etag_for_profiles_tosql")
 	}
 
 	users := []*model.User{}
 	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Users")
+		return nil, 0, errors.Wrap(err, "failed to find Users")
 	}
 
 	for _, u := range users {
 		u.Sanitize(map[string]bool{})
 	}
 
-	return users, nil
+	var totalCount int64
+	if options.IncludeTotalCount {
+		countQuery := us.getAllProfilesSelectBuilder(options, true)
+		countQuery = countQuery.
+			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+			Where("tm.TeamId = ?", options.InTeamId)
+		countQueryString, countArgs, err := countQuery.ToSql()
+		if err != nil {
+			return nil, 0, errors.Wrap(err, "get_all_profiles_tosql")
+		}
+		if err := us.GetReplicaX().Get(&totalCount, countQueryString, countArgs...); err != nil {
+			return nil, 0, errors.Wrap(err, "failed to get the total count of user profiles")
+		}
+	}
+
+	return users, totalCount, nil
 }
 
 func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {}

@@ -1634,7 +1634,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 func (a *App) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
 	var profiles []*model.User
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
-	profiles, err := a.Srv().Store().User().GetProfiles(options)
+	profiles, _, err := a.Srv().Store().User().GetProfiles(options)
 	if err != nil {
 		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}

@@ -11358,7 +11358,7 @@ func (s *OpenTracingLayerUserStore) GetProfileByIds(ctx context.Context, userIds
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetProfiles")
 	s.Root.Store.SetContext(newCtx)
@@ -11367,13 +11367,13 @@ func (s *OpenTracingLayerUserStore) GetProfiles(options *model.UserGetOptions) (
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetProfiles(options)
+	result, resultVar1, err := s.UserStore.GetProfiles(options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerUserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {

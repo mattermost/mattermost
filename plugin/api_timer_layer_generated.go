@@ -189,11 +189,11 @@ func (api *apiTimerLayer) GetUsersByUsernames(usernames []string) ([]*model.User
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (api *apiTimerLayer) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, int64, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUsersInTeam(teamID, page, perPage)
-	api.recordTime(startTime, "GetUsersInTeam", _returnsB == nil)
-	return _returnsA, _returnsB
+	_returnsA, _returnsB, _returnsC := api.apiImpl.GetUsersInTeam(teamID, page, perPage)
+	api.recordTime(startTime, "GetUsersInTeam", _returnsC == nil)
+	return _returnsA, _returnsB, _returnsC
 }
 
 func (api *apiTimerLayer) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {

@@ -10230,10 +10230,10 @@ func (s *TimerLayerUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetProfiles(options)
+	result, resultVar1, err := s.UserStore.GetProfiles(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10243,7 +10243,7 @@ func (s *TimerLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*mod
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfiles", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerUserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {

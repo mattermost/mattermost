@@ -736,7 +736,7 @@ func (_m *UserStore) GetProfileByIds(ctx context.Context, userIds []string, opti
 }
 
 // GetProfiles provides a mock function with given fields: options
-func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.User
@@ -748,14 +748,21 @@ func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, 
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) error); ok {
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) int64); ok {
 		r1 = rf(options)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int64)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(*model.UserGetOptions) error); ok {
+		r2 = rf(options)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetProfilesByUsernames provides a mock function with given fields: usernames, viewRestrictions

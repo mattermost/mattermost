@@ -141,7 +141,7 @@ func (us *UserService) GetUsersByIds(userIDs []string, options *store.UserGetByI
 	return us.sanitizeProfiles(users, options.IsAdmin), nil
 }
 
-func (us *UserService) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, error) {
+func (us *UserService) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	return us.store.GetProfiles(options)
 }
 
@@ -149,13 +149,13 @@ func (us *UserService) GetUsersNotInTeam(teamID string, groupConstrained bool, o
 	return us.store.GetProfilesNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 }
 
-func (us *UserService) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
-	users, err := us.GetUsersInTeam(options)
+func (us *UserService) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, int64, error) {
+	users, totalCount, err := us.GetUsersInTeam(options)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return us.sanitizeProfiles(users, asAdmin), nil
+	return us.sanitizeProfiles(users, asAdmin), totalCount, nil
 }
 
 func (us *UserService) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {

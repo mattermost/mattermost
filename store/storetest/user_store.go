@@ -731,7 +731,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	t.Run("get page 0, perPage 100", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: teamId,
 			Page:     0,
 			PerPage:  100,
@@ -748,7 +748,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get page 0, perPage 1", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: teamId,
 			Page:     0,
 			PerPage:  1,
@@ -759,7 +759,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get unknown team id", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: "123",
 			Page:     0,
 			PerPage:  100,
@@ -785,7 +785,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to system_admin role", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: teamId,
 			Page:     0,
 			PerPage:  10,
@@ -798,7 +798,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to inactive", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: teamId,
 			Page:     0,
 			PerPage:  10,
@@ -811,7 +811,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to active", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: teamId,
 			Page:     0,
 			PerPage:  10,
@@ -827,7 +827,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("try to filter to active and inactive", func(t *testing.T) {
-		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+		actual, _, err := ss.User().GetProfiles(&model.UserGetOptions{
 			InTeamId: teamId,
 			Page:     0,
 			PerPage:  10,

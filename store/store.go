@@ -437,7 +437,7 @@ type UserStore interface {
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetAllProfiles(options *model.UserGetOptions) ([]*model.User, int64, error)
-	GetProfiles(options *model.UserGetOptions) ([]*model.User, error)
+	GetProfiles(options *model.UserGetOptions) ([]*model.User, int64, error)
 	GetProfileByIds(ctx context.Context, userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error)
 	GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error)
 	InvalidateProfileCacheForUser(userID string)

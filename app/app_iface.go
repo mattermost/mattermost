@@ -837,9 +837,9 @@ type AppIface interface {
 	GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, int64, *model.AppError)
 	GetUsersInTeamEtag(teamID string, restrictionsHash string) string
-	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, int64, *model.AppError)
 	GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetUsersNotInChannelMap(teamID string, channelID string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError)
 	GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)

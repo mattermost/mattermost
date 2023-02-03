@@ -1665,23 +1665,24 @@ type Z_GetUsersInTeamArgs struct {
 
 type Z_GetUsersInTeamReturns struct {
 	A []*model.User
-	B *model.AppError
+	B int64
+	C *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, int64, *model.AppError) {
 	_args := &Z_GetUsersInTeamArgs{teamID, page, perPage}
 	_returns := &Z_GetUsersInTeamReturns{}
 	if err := g.client.Call("Plugin.GetUsersInTeam", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUsersInTeam API failed: %s", err.Error())
 	}
-	return _returns.A, _returns.B
+	return _returns.A, _returns.B, _returns.C
 }
 
 func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_GetUsersInTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
+		GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, int64, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetUsersInTeam(args.A, args.B, args.C)
+		returns.A, returns.B, returns.C = hook.GetUsersInTeam(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API GetUsersInTeam called but not implemented."))
 	}

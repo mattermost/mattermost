@@ -493,13 +493,13 @@ func (a *App) GetUsersEtag(restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersEtag(restrictionsHash)
 }
 
-func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsersInTeam(options)
+func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, int64, *model.AppError) {
+	users, totalCount, err := a.ch.srv.userService.GetUsersInTeam(options)
 	if err != nil {
-		return nil, model.NewAppError("GetUsersInTeam", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, 0, model.NewAppError("GetUsersInTeam", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return users, nil
+	return users, totalCount, nil
 }
 
 func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
@@ -511,13 +511,13 @@ func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int
 	return users, nil
 }
 
-func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsersInTeamPage(options, asAdmin)
+func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, int64, *model.AppError) {
+	users, totalCount, err := a.ch.srv.userService.GetUsersInTeamPage(options, asAdmin)
 	if err != nil {
-		return nil, model.NewAppError("GetUsersInTeamPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, 0, model.NewAppError("GetUsersInTeamPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), totalCount, nil
 }
 
 func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {

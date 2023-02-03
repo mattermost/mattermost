@@ -478,7 +478,7 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *mo
 
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
+	if profileUsers, _, err := a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
@@ -542,7 +542,7 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.Com
 
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
+	if profileUsers, _, err := a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
