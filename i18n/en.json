@@ -1495,16 +1495,16 @@
     "translation": "shrug"
   },
   {
-    "id": "api.command_work_template.desc",
+    "id": "api.command_templates.desc",
     "translation": "Open the create from template window"
   },
   {
-    "id": "api.command_work_template.name",
-    "translation": "worktemplate"
+    "id": "api.command_templates.name",
+    "translation": "templates"
   },
   {
-    "id": "api.command_work_template.unsupported.app_error",
-    "translation": "The worktemplate command is not supported on your device."
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "The templates command is not supported on your device."
   },
   {
     "id": "api.config.client.old_format.app_error",

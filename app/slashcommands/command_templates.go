@@ -10,22 +10,22 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
-type WorkTemplateProvider struct {
+type TemplatesProvider struct {
 }
 
 const (
-	CmdWorkTemplate = "worktemplate"
+	CmdTemplates = "templates"
 )
 
 func init() {
-	app.RegisterCommandProvider(&WorkTemplateProvider{})
+	app.RegisterCommandProvider(&TemplatesProvider{})
 }
 
-func (h *WorkTemplateProvider) GetTrigger() string {
-	return CmdWorkTemplate
+func (h *TemplatesProvider) GetTrigger() string {
+	return CmdTemplates
 }
 
-func (h *WorkTemplateProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
+func (h *TemplatesProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	workTemplateEnabled := a.Config().FeatureFlags.WorkTemplate
 	pbActive, err := a.IsPluginActive(model.PluginIdPlaybooks)
 	if err != nil {
@@ -37,17 +37,17 @@ func (h *WorkTemplateProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *mod
 	}
 
 	return &model.Command{
-		Trigger:          CmdWorkTemplate,
+		Trigger:          CmdTemplates,
 		AutoComplete:     hasBoard && pbActive && workTemplateEnabled,
-		AutoCompleteDesc: T("api.command_work_template.desc"),
-		DisplayName:      T("api.command_work_template.name"),
+		AutoCompleteDesc: T("api.command_templates.desc"),
+		DisplayName:      T("api.command_templates.name"),
 	}
 }
 
-func (h *WorkTemplateProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *TemplatesProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
-		Text:         args.T("api.command_work_template.unsupported.app_error"),
+		Text:         args.T("api.command_templates.unsupported.app_error"),
 		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }
