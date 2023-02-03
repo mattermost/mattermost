@@ -201,6 +201,10 @@ func (a *App) GetSessionById(sessionID string) (*model.Session, *model.AppError)
 		return nil, model.NewAppError("GetSessionById", "app.session.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	if a.isOAuthAppDisabled(session) {
+		return nil, model.NewAppError("GetSessionById", "app.session.get.oauthapp_disabled", nil, "", http.StatusForbidden).Wrap(err)
+	}
+
 	return session, nil
 }
 
@@ -513,4 +517,16 @@ func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *mo
 		token.Token = ""
 	}
 	return tokens, nil
+}
+
+func (a *App) isOAuthAppDisabled(session *model.Session) bool {
+	appID, found := session.Props[model.SessionPropMattermostAppID]
+	if found {
+		oauth, err := a.GetOAuthApp(appID)
+		// If there is no OAuthApp with this appID
+		// we don't need the error nor log it
+		return err != nil && oauth.Disabled
+	}
+
+	return false
 }
