@@ -1495,6 +1495,18 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_work_template.desc",
+    "translation": "Open the create from template window"
+  },
+  {
+    "id": "api.command_work_template.name",
+    "translation": "worktemplate"
+  },
+  {
+    "id": "api.command_work_template.unsupported.app_error",
+    "translation": "The worktemplate command is not supported on your device."
+  },
+  {
     "id": "api.config.client.old_format.app_error",
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
