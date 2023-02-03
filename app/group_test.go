@@ -84,16 +84,19 @@ func TestCreateGroup(t *testing.T) {
 	require.NotNil(t, err)
 	require.Nil(t, g)
 
-	user := th.CreateUser()
-	usernameGroup := &model.Group{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        &user.Username,
-		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
-	}
-	g, err = th.App.CreateGroup(usernameGroup)
-	require.NotNil(t, err)
-	require.Nil(t, g)
+	t.Run("should check if the group mention is in use as a username", func(t *testing.T) {
+		user := th.CreateUser()
+		usernameGroup := &model.Group{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        &user.Username,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    model.NewString(model.NewId()),
+		}
+		g, err = th.App.CreateGroup(usernameGroup)
+		require.NotNil(t, err)
+		require.Equal(t, "app.group.username_conflict", err.Id)
+		require.Nil(t, g)
+	})
 }
 
 func TestUpdateGroup(t *testing.T) {

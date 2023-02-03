@@ -161,6 +161,11 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				pluginID := plugin.Manifest.Id
+				// We skip it from activating here. It is disabled later, at a higher level
+				// from *Channels.Start.
+				if ch.srv.Config().FeatureFlags.BoardsProduct && pluginID == model.PluginIdFocalboard {
+					return
+				}
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginID)
 				if err != nil {
 					plugin.WrapLogger(ch.srv.Log()).Error("Unable to activate plugin", mlog.Err(err))
@@ -305,16 +310,6 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
-		// Disable focalboard in product mode.
-		if plugin.Manifest.Id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
-			mlog.Info("Plugin cannot run in product mode, disabling.", mlog.String("plugin_id", model.PluginIdFocalboard))
-			appErr := ch.disablePlugin(model.PluginIdFocalboard)
-			if appErr != nil {
-				mlog.Error("Error disabling plugin", mlog.Err(err))
-			}
-			continue
-		}
-
 		wg.Add(1)
 		go func(pluginID string) {
 			defer wg.Done()
@@ -571,22 +566,24 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		plugins = p
 	}
 
-	// Some plugin don't work on cloud. The remote Marketplace is aware of this fact,
-	// but prepackaged plugins are not. Hence, on a cloud installation prepackaged plugins
-	// shouldn't be shown in the Marketplace modal.
-	// This is a short term fix. The long term solution is to have a separate set of
-	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
-	license := a.Srv().License()
-	if license == nil || !license.IsCloud() {
-		appErr := a.mergePrepackagedPlugins(plugins)
+	if !filter.RemoteOnly {
+		// Some plugin don't work on cloud. The remote Marketplace is aware of this fact,
+		// but prepackaged plugins are not. Hence, on a cloud installation prepackaged plugins
+		// shouldn't be shown in the Marketplace modal.
+		// This is a short term fix. The long term solution is to have a separate set of
+		// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
+		license := a.Srv().License()
+		if license == nil || !license.IsCloud() {
+			appErr := a.mergePrepackagedPlugins(plugins)
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+
+		appErr := a.mergeLocalPlugins(plugins)
 		if appErr != nil {
 			return nil, appErr
 		}
-	}
-
-	appErr := a.mergeLocalPlugins(plugins)
-	if appErr != nil {
-		return nil, appErr
 	}
 
 	// Filter plugins.
@@ -1147,4 +1144,17 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	}
 
 	return false, false
+}
+
+func (a *App) IsPluginActive(pluginName string) (bool, error) {
+	return a.Channels().IsPluginActive(pluginName)
+}
+
+func (ch *Channels) IsPluginActive(pluginName string) (bool, error) {
+	pluginStatus, err := ch.GetPluginStatus(pluginName)
+	if err != nil {
+		return false, err
+	}
+
+	return pluginStatus.State == model.PluginStateRunning, nil
 }
