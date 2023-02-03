@@ -29,28 +29,6 @@ const (
 	ThumbnailImageType = "image/jpeg"
 )
 
-var UnsafeContentTypes = [...]string{
-	"application/javascript",
-	"application/ecmascript",
-	"text/javascript",
-	"text/ecmascript",
-	"application/x-javascript",
-	"text/html",
-}
-
-var MediaContentTypes = [...]string{
-	"image/jpeg",
-	"image/png",
-	"image/bmp",
-	"image/gif",
-	"image/tiff",
-	"video/avi",
-	"video/mpeg",
-	"video/mp4",
-	"audio/mpeg",
-	"audio/wav",
-}
-
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
