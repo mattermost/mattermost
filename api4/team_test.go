@@ -3065,6 +3065,34 @@ func TestImportTeam(t *testing.T) {
 	})
 }
 
+func TestValidateUserPermissionsOnChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
+		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
+
+		require.Len(t, channelIds, 2)
+
+		channelIds = th.App.ValidateUserPermissionsOnChannels(th.BasicUser.Id, channelIds)
+
+		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
+		require.Len(t, channelIds, 2)
+	})
+
+	t.Run("User WITHOUT permissions on private channel CAN NOT invite members to it", func(t *testing.T) {
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := []string{th.BasicChannel.Id, channelIdWithoutPermissions}
+
+		require.Len(t, channelIds, 2)
+
+		channelIds = th.App.ValidateUserPermissionsOnChannels(th.BasicUser.Id, channelIds)
+
+		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
+		require.Len(t, channelIds, 1)
+	})
+}
+
 func TestInviteUsersToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
