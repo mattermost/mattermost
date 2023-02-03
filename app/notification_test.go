@@ -41,7 +41,7 @@ func TestSendNotifications(t *testing.T) {
 		Message:   "@" + th.BasicUser2.Username,
 		Type:      model.PostTypeAddToChannel,
 		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
-	}, true)
+	}, true, true)
 	require.Nil(t, appErr)
 
 	mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
@@ -87,7 +87,7 @@ func TestSendNotifications(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
-	}, true)
+	}, true, true)
 	require.Nil(t, appErr)
 
 	mentions, err = th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true)
@@ -103,7 +103,7 @@ func TestSendNotifications(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
-	}, true)
+	}, true, true)
 	require.Nil(t, appErr)
 
 	mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, dm, th.BasicUser, nil, true)
@@ -126,7 +126,7 @@ func TestSendNotifications(t *testing.T) {
 				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 			}
 
-			rootPost, appErr = th.App.CreatePostMissingChannel(th.Context, rootPost, false)
+			rootPost, appErr = th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -135,7 +135,7 @@ func TestSendNotifications(t *testing.T) {
 				RootId:    rootPost.Id,
 				Message:   "a reply",
 			}
-			childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false)
+			childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false, true)
 			require.Nil(t, appErr)
 
 			postList := model.PostList{
@@ -181,7 +181,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		Message:   "@channel",
 		Type:      model.PostTypeAddToChannel,
 		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
-	}, true)
+	}, true, true)
 	require.Nil(t, appErr1)
 
 	// Each user should have a mention count of exactly 1 in the DB at this point.
@@ -201,7 +201,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		Message:   "@channel",
 		Type:      model.PostTypeAddToChannel,
 		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
-	}, true)
+	}, true, true)
 	require.Nil(t, appErr1)
 
 	// Now each user should have a mention count of exactly 2 in the DB.
@@ -2794,7 +2794,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 		}
 
-		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false)
+		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
 		require.Nil(t, appErr)
 
 		childPost := &model.Post{
@@ -2803,7 +2803,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			RootId:    rootPost.Id,
 			Message:   "a reply",
 		}
-		childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false)
+		childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false, true)
 		require.Nil(t, appErr)
 
 		postList := model.PostList{
