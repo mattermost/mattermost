@@ -20,6 +20,7 @@ const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigD
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
 const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
 const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
+const PostPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -538,6 +539,26 @@ func (s *Server) doRemainingSchemaMigrations() {
 	}
 }
 
+func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(PostPriorityConfigDefaultTrueMigrationKey); err == nil {
+		return
+	}
+
+	s.platform.UpdateConfig(func(config *model.Config) {
+		config.ServiceSettings.PostPriority = model.NewBool(true)
+	})
+
+	system := model.System{
+		Name:  PostPriorityConfigDefaultTrueMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store().System().Save(&system); err != nil {
+		mlog.Fatal("Failed to mark post priority config migration as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -558,4 +579,5 @@ func (s *Server) doAppMigrations() {
 	s.doPlaybooksRolesCreationMigration()
 	s.doFirstAdminSetupCompleteMigration()
 	s.doRemainingSchemaMigrations()
+	s.doPostPriorityConfigDefaultTrueMigration()
 }
