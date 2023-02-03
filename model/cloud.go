@@ -177,6 +177,7 @@ type Subscription struct {
 	TrialEndAt              int64    `json:"trial_end_at"`
 	DelinquentSince         *int64   `json:"delinquent_since"`
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
+	ComplianceBlocked       string   `json:"compliance_blocked"`
 }
 
 // Subscription History model represents true up event in a yearly subscription
@@ -266,6 +267,7 @@ type SubscriptionChange struct {
 	ProductID         string             `json:"product_id"`
 	Seats             int                `json:"seats"`
 	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
+	ShippingAddress   *Address           `json:"shipping_address"`
 }
 
 // TODO remove BoardsLimits.
