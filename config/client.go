@@ -57,6 +57,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
 
+	props["WebsocketJitterRange"] = strconv.FormatInt(*c.ExperimentalSettings.WebsocketJitterRange, 10)
+
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 

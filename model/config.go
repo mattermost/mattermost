@@ -969,6 +969,7 @@ type ExperimentalSettings struct {
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
 	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
+	WebsocketJitterRange            *int64  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1006,6 +1007,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.PatchPluginsReactDOM == nil {
 		s.PatchPluginsReactDOM = NewBool(false)
+	}
+
+	if s.WebsocketJitterRange == nil {
+		s.WebsocketJitterRange = NewInt64(0)
 	}
 }
 
