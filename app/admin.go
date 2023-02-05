@@ -22,7 +22,7 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
@@ -58,7 +58,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (a *App) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogs(page, perPage)
+	return a.Srv().GetLogs(c, page, perPage)
 }
 
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
