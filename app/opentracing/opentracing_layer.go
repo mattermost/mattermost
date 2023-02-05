@@ -1444,7 +1444,7 @@ func (a *OpenTracingAppLayer) ClearChannelMembersCache(c request.CTX, channelID 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ClearLatestVersionCache() {
+func (a *OpenTracingAppLayer) ClearLatestVersionCache(c request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearLatestVersionCache")
 
@@ -1456,7 +1456,7 @@ func (a *OpenTracingAppLayer) ClearLatestVersionCache() {
 	}()
 
 	defer span.Finish()
-	a.app.ClearLatestVersionCache()
+	a.app.ClearLatestVersionCache(c)
 }
 
 func (a *OpenTracingAppLayer) ClearSessionCacheForAllUsers() {
@@ -5684,7 +5684,7 @@ func (a *OpenTracingAppLayer) GetClusterPluginStatuses() (model.PluginStatuses, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
+func (a *OpenTracingAppLayer) GetClusterStatus(c request.CTX) []*model.ClusterInfo {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetClusterStatus")
 
@@ -5696,7 +5696,7 @@ func (a *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetClusterStatus()
+	resultVar0 := a.app.GetClusterStatus(c)
 
 	return resultVar0
 }
@@ -7050,7 +7050,7 @@ func (a *OpenTracingAppLayer) GetLatestTermsOfService() (*model.TermsOfService, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLatestVersion(c request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLatestVersion")
 
@@ -7062,7 +7062,7 @@ func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLatestVersion(latestVersionUrl)
+	resultVar0, resultVar1 := a.app.GetLatestVersion(c, latestVersionUrl)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7094,7 +7094,7 @@ func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLogs(c request.CTX, page int, perPage int) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogs")
 
@@ -7106,7 +7106,7 @@ func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.A
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogs(page, perPage)
+	resultVar0, resultVar1 := a.app.GetLogs(c, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7116,7 +7116,7 @@ func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.A
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLogsSkipSend(c request.CTX, page int, perPage int) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogsSkipSend")
 
@@ -7128,7 +7128,7 @@ func (a *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int) ([]string, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogsSkipSend(page, perPage)
+	resultVar0, resultVar1 := a.app.GetLogsSkipSend(c, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13646,7 +13646,7 @@ func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RecycleDatabaseConnection() {
+func (a *OpenTracingAppLayer) RecycleDatabaseConnection(c request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RecycleDatabaseConnection")
 
@@ -13658,7 +13658,7 @@ func (a *OpenTracingAppLayer) RecycleDatabaseConnection() {
 	}()
 
 	defer span.Finish()
-	a.app.RecycleDatabaseConnection()
+	a.app.RecycleDatabaseConnection(c)
 }
 
 func (a *OpenTracingAppLayer) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
@@ -16886,7 +16886,7 @@ func (a *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestEmail(userID string, cfg *model.Config) *model.AppError {
+func (a *OpenTracingAppLayer) TestEmail(c request.CTX, userID string, cfg *model.Config) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestEmail")
 
@@ -16898,7 +16898,7 @@ func (a *OpenTracingAppLayer) TestEmail(userID string, cfg *model.Config) *model
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestEmail(userID, cfg)
+	resultVar0 := a.app.TestEmail(c, userID, cfg)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16974,7 +16974,7 @@ func (a *OpenTracingAppLayer) TestLdap() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
+func (a *OpenTracingAppLayer) TestSiteURL(c request.CTX, siteURL string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestSiteURL")
 
@@ -16986,7 +16986,7 @@ func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestSiteURL(siteURL)
+	resultVar0 := a.app.TestSiteURL(c, siteURL)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

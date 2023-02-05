@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -56,7 +57,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().GetLogs(page, perPage)
 }
 
@@ -64,11 +65,11 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	return s.platform.GetLogsSkipSend(page, perPage)
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogsSkipSend(c request.CTX, page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().GetLogsSkipSend(page, perPage)
 }
 
-func (a *App) GetClusterStatus() []*model.ClusterInfo {
+func (a *App) GetClusterStatus(c request.CTX) []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
 	if a.Cluster() != nil {
@@ -87,7 +88,7 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 
 }
 
-func (a *App) RecycleDatabaseConnection() {
+func (a *App) RecycleDatabaseConnection(c request.CTX) {
 	mlog.Info("Attempting to recycle database connections.")
 
 	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
@@ -98,7 +99,7 @@ func (a *App) RecycleDatabaseConnection() {
 	mlog.Info("Finished recycling database connections.")
 }
 
-func (a *App) TestSiteURL(siteURL string) *model.AppError {
+func (a *App) TestSiteURL(c request.CTX, siteURL string) *model.AppError {
 	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
 	res, err := http.Get(url)
 	if err != nil || res.StatusCode != 200 {
@@ -112,7 +113,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	return nil
 }
 
-func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
+func (a *App) TestEmail(c request.CTX, userID string, cfg *model.Config) *model.AppError {
 	if *cfg.EmailSettings.SMTPServer == "" {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
@@ -143,7 +144,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	return nil
 }
 
-func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+func (a *App) GetLatestVersion(c request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	var cachedLatestVersion *model.GithubReleaseInfo
 	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
@@ -179,6 +180,6 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 	return releaseInfoResponse, nil
 }
 
-func (a *App) ClearLatestVersionCache() {
+func (a *App) ClearLatestVersionCache(c request.CTX) {
 	latestVersionCache.Remove("latest_version_cache")
 }

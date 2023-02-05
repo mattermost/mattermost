@@ -458,7 +458,7 @@ type AppIface interface {
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	ClearChannelMembersCache(c request.CTX, channelID string) error
-	ClearLatestVersionCache()
+	ClearLatestVersionCache(c request.CTX)
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
 	ClearSessionCacheForUser(userID string)
@@ -625,7 +625,7 @@ type AppIface interface {
 	GetChannelsUserNotIn(c request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetCloudSession(token string) (*model.Session, *model.AppError)
 	GetClusterId() string
-	GetClusterStatus() []*model.ClusterInfo
+	GetClusterStatus(c request.CTX) []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError)
 	GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError)
@@ -679,9 +679,9 @@ type AppIface interface {
 	GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
-	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
-	GetLogs(page, perPage int) ([]string, *model.AppError)
-	GetLogsSkipSend(page, perPage int) ([]string, *model.AppError)
+	GetLatestVersion(c request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
+	GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError)
+	GetLogsSkipSend(c request.CTX, page, perPage int) ([]string, *model.AppError)
 	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError)
@@ -961,7 +961,7 @@ type AppIface interface {
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
 	ReadFile(path string) ([]byte, *model.AppError)
-	RecycleDatabaseConnection()
+	RecycleDatabaseConnection(c request.CTX)
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
@@ -1100,11 +1100,11 @@ type AppIface interface {
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
-	TestEmail(userID string, cfg *model.Config) *model.AppError
+	TestEmail(c request.CTX, userID string, cfg *model.Config) *model.AppError
 	TestFileStoreConnection() *model.AppError
 	TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError
 	TestLdap() *model.AppError
-	TestSiteURL(siteURL string) *model.AppError
+	TestSiteURL(c request.CTX, siteURL string) *model.AppError
 	Timezones() *timezones.Timezones
 	ToggleMuteChannel(c request.CTX, channelID, userID string) (*model.ChannelMember, *model.AppError)
 	TotalWebsocketConnections() int
