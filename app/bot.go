@@ -47,34 +47,37 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 		return "", errors.New("passed a bot with no username")
 	}
 
-	botIDBytes, err := a.GetPluginKey(productID, botUserKey)
-	if err != nil {
-		return "", err
+	botIDBytes, pkErr := a.GetPluginKey(productID, botUserKey)
+	if pkErr != nil {
+		return "", pkErr
 	}
 
-	// If the bot has already been created, use it
+	// If the bot has already been created, check whether it still exists and use it
 	if botIDBytes != nil {
 		botID := string(botIDBytes)
 
-		// ensure existing bot is synced with what is being created
-		botPatch := &model.BotPatch{
-			Username:    &bot.Username,
-			DisplayName: &bot.DisplayName,
-			Description: &bot.Description,
-		}
+		if _, err := a.GetBot(botID, true); err == nil {
 
-		if _, err = a.PatchBot(botID, botPatch); err != nil {
-			return "", fmt.Errorf("failed to patch bot: %w", err)
-		}
+			// ensure existing bot is synced with what is being created
+			botPatch := &model.BotPatch{
+				Username:    &bot.Username,
+				DisplayName: &bot.DisplayName,
+				Description: &bot.Description,
+			}
 
-		return botID, nil
+			if _, err = a.PatchBot(botID, botPatch); err != nil {
+				return "", fmt.Errorf("failed to patch bot: %w", err)
+			}
+
+			return botID, nil
+		}
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
 			if appErr := a.SetPluginKey(productID, botUserKey, []byte(user.Id)); appErr != nil {
-				return "", fmt.Errorf("failed to set plugin key: %w", err)
+				return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 			}
 		} else {
 			c.Logger().Error("Product attempted to use an account that already exists. Convert user to a bot "+
@@ -90,13 +93,13 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 		return user.Id, nil
 	}
 
-	createdBot, err := a.CreateBot(c, bot)
-	if err != nil {
-		return "", fmt.Errorf("failed to create bot: %w", err)
+	createdBot, cErr := a.CreateBot(c, bot)
+	if cErr != nil {
+		return "", fmt.Errorf("failed to create bot: %w", cErr)
 	}
 
 	if appErr := a.SetPluginKey(productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
-		return "", fmt.Errorf("failed to set plugin key: %w", err)
+		return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 	}
 
 	return createdBot.UserId, nil
