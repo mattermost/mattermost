@@ -9961,5 +9961,25 @@
   {
     "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
     "translation": "Mit dieser Arbeitsvorlage verknüpfte Playbook-Vorlage kann nicht gefunden werden."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Ungültiger AuthService: {{.AuthService}}"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Der Befehl Vorlagen wird von deinem Gerät nicht unterstützt."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "Vorlagen"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Öffne das Fenster \"Aus Vorlage erstellen\""
   }
 ]
