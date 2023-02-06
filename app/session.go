@@ -525,7 +525,7 @@ func (a *App) isOAuthAppDisabled(session *model.Session) bool {
 		oauth, err := a.GetOAuthApp(appID)
 		// If there is no OAuthApp with this appID
 		// we don't need the error nor log it
-		return err != nil && oauth.Disabled
+		return err != nil && oauth.IsDisabled
 	}
 
 	return false
