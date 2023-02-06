@@ -58,22 +58,50 @@ func TestCanBeExecuted(t *testing.T) {
 		assert.Nil(t, appErr)
 	})
 
+	t.Run("cannot create private playbook if the license is not enterprise", func(t *testing.T) {
+		wtcrMod := *wtcr
+		wtcrMod.Visibility = model.WorkTemplateVisibilityPrivate
+		appErr := wtcrMod.CanBeExecuted(PermissionSet{
+			License:                  model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, ""),
+			CanCreatePrivateChannel:  true,
+			CanCreatePrivateBoard:    true,
+			CanCreatePrivatePlaybook: true,
+			CanCreatePublicChannel:   true, // needed for the channel run
+		})
+		require.NotNil(t, appErr)
+
+		appErr = wtcrMod.CanBeExecuted(PermissionSet{
+			License:                  nil,
+			CanCreatePrivateChannel:  true,
+			CanCreatePrivateBoard:    true,
+			CanCreatePrivatePlaybook: true,
+			CanCreatePublicChannel:   true,
+		})
+		require.NotNil(t, appErr)
+
+		// enterprise and E20 ok
+		appErr = wtcrMod.CanBeExecuted(PermissionSet{
+			License:                  model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, ""),
+			CanCreatePrivateChannel:  true,
+			CanCreatePrivateBoard:    true,
+			CanCreatePrivatePlaybook: true,
+			CanCreatePublicChannel:   true,
+		})
+		require.Nil(t, appErr)
+		appErr = wtcrMod.CanBeExecuted(PermissionSet{
+			License:                  model.NewTestLicenseSKU(model.LicenseShortSkuE20, ""),
+			CanCreatePrivateChannel:  true,
+			CanCreatePrivateBoard:    true,
+			CanCreatePrivatePlaybook: true,
+			CanCreatePublicChannel:   true,
+		})
+		require.Nil(t, appErr)
+	})
+
 	t.Run("fails when something is not allowed", func(t *testing.T) {
 		appErr := wtcr.CanBeExecuted(PermissionSet{
 			CanCreatePublicChannel:  true,
 			CanCreatePublicPlaybook: false,
-			CanCreatePublicBoard:    true,
-		})
-		require.NotNil(t, appErr)
-	})
-
-	t.Run("returns an error and no res when playbook template is not found", func(t *testing.T) {
-		wtcrMod := *wtcr
-		wtcrMod.foundPlaybookTemplates = map[string]*pbclient.PlaybookCreateOptions{}
-		wtcrMod.PlaybookTemplates = []*PlaybookTemplate{}
-		appErr := wtcrMod.CanBeExecuted(PermissionSet{
-			CanCreatePublicChannel:  true,
-			CanCreatePublicPlaybook: true,
 			CanCreatePublicBoard:    true,
 		})
 		require.NotNil(t, appErr)

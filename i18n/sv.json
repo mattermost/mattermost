@@ -9769,5 +9769,69 @@
   {
     "id": "api.license.true_up_review.create_error",
     "translation": "Det gick inte att skapa en statuspost för true up"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Det går inte att hitta kanalen som är associerad med en playbook."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Fel vid skapandet av en playbook."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Fel vid skapandet av en kanal."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Fel vid skapandet av en tavla."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Fel vid utförandet av en arbetsmall."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
+    "translation": "Det går inte att hitta en playbook-mall som är associerad med den här arbetsmallen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_run",
+    "translation": "Du har inte behörighet att skapa en publik kanal för playbook-körningen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "Du har inte behörighet att skapa en publik playbook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "Du har inte behörighet att skapa en publik kanal."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "Du har inte behörighet att skapa en publik tavla."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_run",
+    "translation": "Du har inte behörighet att skapa en privat kanal för playbook-körningen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "Du har inte behörighet att skapa en privat playbook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "Du har inte behörighet att skapa en privat kanal."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "Du har inte behörighet att skapa en privat tavla."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Arbetsmallar är inaktiverade."
   }
 ]
