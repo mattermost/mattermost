@@ -772,20 +772,23 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	queryParams := authURL.Query()
 	queryParams.Set("response_type", "code")
 	queryParams.Set("client_id", clientId)
-	queryParams.Set("redirect_uri", url.QueryEscape(redirectURI))
-	queryParams.Set("state", url.QueryEscape(state))
+	queryParams.Set("redirect_uri", redirectURI)
+	queryParams.Set("state", state)
 
+	authURL.RawQuery = queryParams.Encode()
+	authURLString := authURL.String()
+
+	// Following params aren't being "Set" because URLEncode uses '%20' and QueryEscape uses +,
+	// this change "might" break for some SSO Servers + Mattermost.
 	if scope != "" {
-		queryParams.Set("scope", utils.URLEncode(scope))
+		authURLString += "&scope=" + utils.URLEncode(scope)
 	}
 
 	if loginHint != "" {
-		queryParams.Set("login_hint", utils.URLEncode(loginHint))
+		authURLString += "&login_hint=" + utils.URLEncode(loginHint)
 	}
 
-	authURL.RawQuery = queryParams.Encode()
-
-	return authURL.String(), nil
+	return authURLString, nil
 }
 
 func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError) {

@@ -598,6 +598,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.GitLabSettings.Enable = true
 				*cfg.GitLabSettings.AuthEndpoint = "https://sample.gitlab.com"
+				*cfg.GitLabSettings.Scope = "email user"
 				*cfg.ServiceSettings.SiteURL = "https://mattermost.example.com"
 			})
 
@@ -624,6 +625,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.GitLabSettings.Enable = true
 				*cfg.GitLabSettings.AuthEndpoint = "https://sample.gitlab.com?simply=lovely"
+				*cfg.GitLabSettings.Scope = "email user"
 				*cfg.ServiceSettings.SiteURL = "https://mattermost.example.com"
 			})
 
@@ -644,6 +646,9 @@ func TestGetAuthorizationCode(t *testing.T) {
 			// require no query parameter to have "?"
 			require.False(t, strings.Contains(parsedUrl.RawQuery, "?"), "should not malform query parameters")
 
+			// require encoding to be correct
+			require.Equal(t, parsedUrl.Query().Get("scope"), "email user")
+			require.Equal(t, parsedUrl.Query().Get("simply"), "lovely")
 		})
 	})
 }
