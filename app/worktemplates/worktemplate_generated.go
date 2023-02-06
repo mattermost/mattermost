@@ -86,7 +86,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 	ID:           "product_teams/feature_release:v1",
 	Category:     "product_teams",
 	UseCase:      "Manage feature release",
-	Illustration: "/static/worktemplates/product_teams/feature_release/feature_release.svg",
+	Illustration: "/static/worktemplates/product_teams/feature_release/feature_release.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -108,7 +108,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.integration",
 			DefaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you.",
-			Illustration:   "/static/worktemplates/product_teams/feature_release/integrations.png",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -127,7 +127,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "54fcf9c610f0ac5e4c522c0657c90602",
 				Name:         "Meeting Agenda",
 				Channel:      "feature-release",
-				Illustration: "/static/worktemplates/boards/meeting_agenda.svg",
+				Illustration: "/static/worktemplates/boards/meeting_agenda.png",
 			},
 		},
 		{
@@ -136,7 +136,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "Project Task",
 				Channel:      "feature-release",
-				Illustration: "/static/worktemplates/boards/project_tasks.svg",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 		{
@@ -144,7 +144,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "Product Release",
 				Name:         "Feature release",
 				ID:           "product-release-playbook",
-				Illustration: "/static/worktemplates/playbooks/product_release.svg",
+				Illustration: "/static/worktemplates/playbooks/product_release.png",
 			},
 		},
 		{
@@ -164,7 +164,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 	ID:           "product_teams/goals_and_okrs:v1",
 	Category:     "product_teams",
 	UseCase:      "Set goals and OKR's",
-	Illustration: "/static/worktemplates/product_teams/goals_and_okrs/goals_and_okrs.svg",
+	Illustration: "/static/worktemplates/product_teams/goals_and_okrs/goals_and_okrs.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -182,7 +182,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.integration",
 			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
-			Illustration:   "/static/worktemplates/integrations.svg",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -201,7 +201,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 				Template:     "7ba22ccfdfac391d63dea5c4b8cde0de",
 				Name:         "Goals and OKR",
 				Channel:      "channel-1674845108569",
-				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.svg",
+				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.png",
 			},
 		},
 		{
@@ -210,7 +210,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 				Template:     "54fcf9c610f0ac5e4c522c0657c90602",
 				Name:         "Meeting Agenda",
 				Channel:      "channel-1674845108569",
-				Illustration: "/static/worktemplates/boards/meeting_agenda.svg",
+				Illustration: "/static/worktemplates/boards/meeting_agenda.png",
 			},
 		},
 		{
@@ -225,7 +225,7 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 	ID:           "product_teams/bug_bash:v1",
 	Category:     "product_teams",
 	UseCase:      "Run a bug bash",
-	Illustration: "/static/worktemplates/product_teams/bug_bash/bug_bash.svg",
+	Illustration: "/static/worktemplates/product_teams/bug_bash/bug_bash.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -247,7 +247,7 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.bug_bash.integration",
 			DefaultMessage: "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel.",
-			Illustration:   "/static/worktemplates/integrations.svg",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -256,7 +256,7 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 				Template:     "Bug Bash",
 				Name:         "Bug Bash",
 				ID:           "playbook-1674844017943",
-				Illustration: "/static/worktemplates/playbooks/bug_bash.svg",
+				Illustration: "/static/worktemplates/playbooks/bug_bash.png",
 			},
 		},
 		{
@@ -265,7 +265,7 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 				Name:         "Bug Bash",
 				Purpose:      "",
 				Playbook:     "playbook-1674844017943",
-				Illustration: "/static/worktemplates/product_teams/bug_bash/channel.svg",
+				Illustration: "/static/worktemplates/product_teams/bug_bash/channel.png",
 			},
 		},
 		{
@@ -280,7 +280,7 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 	ID:           "product_teams/sprint_planning:v1",
 	Category:     "product_teams",
 	UseCase:      "Plan sprints",
-	Illustration: "/static/worktemplates/product_teams/sprint_planning/sprint_planning.svg",
+	Illustration: "/static/worktemplates/product_teams/sprint_planning/sprint_planning.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -298,7 +298,7 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.integration",
 			DefaultMessage: "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve.",
-			Illustration:   "/static/worktemplates/integrations.svg",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -317,7 +317,7 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 				Template:     "99b74e26d2f5d0a9b346d43c0a7bfb09",
 				Name:         "Sprint planning",
 				Channel:      "channel-1674850783500",
-				Illustration: "/static/worktemplates/boards/sprint_planner.svg",
+				Illustration: "/static/worktemplates/boards/sprint_planner.png",
 			},
 		},
 		{
@@ -332,7 +332,7 @@ var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
 	ID:           "product_teams/product_roadmap:v1",
 	Category:     "product_teams",
 	UseCase:      "Create a product roadmap",
-	Illustration: "/static/worktemplates/product_teams/product_roadmap/product_roadmap.svg",
+	Illustration: "/static/worktemplates/product_teams/product_roadmap/product_roadmap.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -363,7 +363,7 @@ var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
 				Template:     "b728c6ca730e2cfc229741c5a4712b65",
 				Name:         "Product Roadmap",
 				Channel:      "channel-1674851139450",
-				Illustration: "/static/worktemplates/boards/roadmap.svg",
+				Illustration: "/static/worktemplates/boards/roadmap.png",
 			},
 		},
 	},
@@ -399,7 +399,7 @@ var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 				Template:     "Incident Resolution",
 				Name:         "Incident Resolution",
 				ID:           "irpb",
-				Illustration: "/static/worktemplates/playbooks/incident_resolution.svg",
+				Illustration: "/static/worktemplates/playbooks/incident_resolution.png",
 			},
 		},
 		{
@@ -417,7 +417,7 @@ var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "Incident Resolution",
 				Channel:      "irc",
-				Illustration: "/static/worktemplates/boards/project_tasks.svg",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 	},
@@ -427,7 +427,7 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 	ID:           "devops/product_release:v1",
 	Category:     "devops",
 	UseCase:      "Prepare a product release",
-	Illustration: "/static/worktemplates/devops/product_release/product_release.svg",
+	Illustration: "/static/worktemplates/devops/product_release/product_release.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -453,7 +453,7 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 				Template:     "Product Release",
 				Name:         "Product Release",
 				ID:           "playbook-1674851385983",
-				Illustration: "/static/worktemplates/playbooks/product_release.svg",
+				Illustration: "/static/worktemplates/playbooks/product_release.png",
 			},
 		},
 		{
@@ -471,7 +471,7 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "Product Release",
 				Channel:      "channel-1674851385983",
-				Illustration: "/static/worktemplates/boards/project_tasks.svg",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 	},
@@ -481,7 +481,7 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 	ID:           "companywide/goals_and_okrs:v1",
 	Category:     "companywide",
 	UseCase:      "Set goals and OKR's",
-	Illustration: "/static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.svg",
+	Illustration: "/static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -499,7 +499,7 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.integration",
 			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
-			Illustration:   "/static/worktemplates/integrations.svg",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -518,7 +518,7 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 				Template:     "7ba22ccfdfac391d63dea5c4b8cde0de",
 				Name:         "Goals and OKR",
 				Channel:      "channel-1674845108569",
-				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.svg",
+				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.png",
 			},
 		},
 		{
@@ -551,7 +551,7 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.companywide.create_project.integration",
 			DefaultMessage: "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template.",
-			Illustration:   "/static/worktemplates/integrations.svg",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -570,7 +570,7 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "Create Project",
 				Channel:      "channel-1674851940114",
-				Illustration: "/static/worktemplates/boards/project_tasks.svg",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 		{
@@ -595,7 +595,7 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 	ID:           "leadership/goals_and_okrs:v1",
 	Category:     "leadership",
 	UseCase:      "Set goals and OKR's",
-	Illustration: "/static/worktemplates/leadership/goals_and_okrs/goals_and_okrs.svg",
+	Illustration: "/static/worktemplates/leadership/goals_and_okrs/goals_and_okrs.png",
 	Visibility:   "public",
 
 	Description: Description{
@@ -613,7 +613,7 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 		Integration: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.integration",
 			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
-			Illustration:   "/static/worktemplates/integrations.svg",
+			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
 	Content: []Content{
@@ -632,7 +632,7 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 				Template:     "7ba22ccfdfac391d63dea5c4b8cde0de",
 				Name:         "Goals and OKR",
 				Channel:      "channel-1674845108569",
-				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.svg",
+				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.png",
 			},
 		},
 		{
