@@ -90,6 +90,14 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		contents = bytes.ReplaceAll(contents, []byte(originalHTML), []byte(modifiedHTML))
 	}
 
+	htmlTemplate := "<html lang=\"%s\">"
+	originalHtmlLocale := fmt.Sprintf(htmlTemplate, html.EscapeString(model.DefaultLocale))
+	modifiedHtmlLocale := getCurrentHtmlTag(c)
+
+	if originalHtmlLocale != modifiedHtmlLocale {
+		contents = bytes.ReplaceAll(contents, []byte(originalHtmlLocale), []byte(modifiedHtmlLocale))
+	}
+
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(contents)
 }
@@ -171,4 +179,16 @@ func getOpenGraphMetaTags(c *Context) string {
 	}
 
 	return titleHTML + descriptionHTML
+}
+
+func getCurrentHtmlTag(c *Context) string {
+	userLocale := model.DefaultLocale
+	htmlTemplate := "<html lang=\"%s\">"
+	user, _ := c.App.GetUser(c.AppContext.Session().UserId)
+	if user != nil {
+		userLocale = user.Locale
+	}
+
+	modifiedHtml := fmt.Sprintf(htmlTemplate, html.EscapeString(userLocale))
+	return modifiedHtml
 }
