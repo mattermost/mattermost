@@ -378,6 +378,27 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 	return res, nil
 }
 
+func (*resolver) LdapUsers(ctx context.Context, args struct{ LdapSettings *model.LdapSettingsInput }) ([]*model.LdapUser, error) {
+	return []*model.LdapUser{{
+		Id:             "test",
+		Username:       "test",
+		Email:          "test",
+		FirstName:      "test",
+		LastName:       "test",
+		Position:       "test",
+		Nickname:       "test",
+		LoginID:        "test",
+		ProfilePicture: "test",
+	}}, nil
+}
+
+func (*resolver) LdapGroups(ctx context.Context, args struct{ LdapSettings *model.LdapSettingsInput }) ([]*model.LdapGroup, error) {
+	return []*model.LdapGroup{{
+		Id:          "test",
+		DisplayName: "test",
+	}}, nil
+}
+
 // getCtx extracts web.Context out of the usual request context.
 // Kind of an anti-pattern, but there are lots of methods attached to *web.Context
 // so we use it for now.

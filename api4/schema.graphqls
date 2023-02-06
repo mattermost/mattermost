@@ -28,6 +28,8 @@ type Query {
 	sidebarCategories(userId: String!,
 		teamId: String!,
 		excludeTeam: Boolean = false): [SidebarCategory]!
+	ldapUsers(ldapSettings: LdapSettings): [LdapUser]!
+	ldapGroups(ldapSettings: LdapSettings): [LdapGroup]!
 }
 
 scalar ChannelType
@@ -41,6 +43,64 @@ scalar StringMap
 scalar StringInterface
 
 scalar Time
+
+input LdapSettings {
+	LdapServer: String
+	LdapPort: Int
+	ConnectionSecurity: String
+	BaseDN: String
+	BindUsername: String
+	BindPassword: String
+	UserFilter: String
+	GroupFilter: String
+	GuestFilter: String
+	AdminFilter: String
+	GroupDisplayNameAttribute: String
+	GroupIDAttribute: String
+	FirstNameAttribute: String
+	LastNameAttribute: String
+	EmailAttribute: String
+	UsernameAttribute: String
+	NicknameAttribute: String
+	IdAttribute: String
+	PositionAttribute: String
+	LoginIdAttribute: String
+	PictureAttribute: String
+	SkipCertificateVerification: Boolean
+	PublicCertificateFile: String
+	PrivateKeyFile: String
+	QueryTimeout: Int
+	MaxPageSize: Int
+}
+
+type LdapGroup {
+	id: String!
+	displayName: String!
+	mattermostGroup: MattermostGroup
+	members: [LdapUser]!
+}
+
+type MattermostGroup {
+	id: String!
+	displayName: String!
+	name: String
+	description: String!
+	allowReference: Boolean!
+	members: [LdapUser]!
+}
+
+type LdapUser {
+	id: String!
+	username: String!
+	email: String!
+	firstName: String!
+	lastName: String!
+	nickname: String!
+	position: String!
+	loginID: String!
+	profilePicture: String!
+	groups: [LdapGroup]!
+}
 
 type Channel {
 	id           : String!
