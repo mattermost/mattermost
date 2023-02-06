@@ -1,1 +1,1 @@
-ALTER TABLE OAuthApps ADD COLUMN IF NOT EXISTS IsDisabled tinyint(1);
+ALTER TABLE OAuthApps ADD COLUMN IF NOT EXISTS IsDisabled boolean;
