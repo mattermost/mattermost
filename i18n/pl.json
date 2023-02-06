@@ -9609,7 +9609,7 @@
   },
   {
     "id": "app.draft.get.app_error",
-    "translation": "Nie mogę pobrać szablonu."
+    "translation": "Nie mogę pobrać szkicu."
   },
   {
     "id": "app.draft.feature_disabled",
@@ -9617,7 +9617,7 @@
   },
   {
     "id": "app.draft.delete.app_error",
-    "translation": "Nie można usunąć projektu."
+    "translation": "Nie można usunąć szkicu."
   },
   {
     "id": "app.channel.get_priority_for_posts.app_error",
@@ -9649,7 +9649,7 @@
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
-    "translation": "Nie można zapisać wersji roboczej do usuniętego kanału"
+    "translation": "Nie można zapisać szkicu do usuniętego kanału"
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
@@ -9922,5 +9922,65 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Nie udało się zaktualizować tłumaczeń serwera."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Opis, dlaczego kanał(y) jest(są) potrzebny(e)"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Opis powodów, dla których tablica(e) jest(są) potrzebna(e)"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Nieprawidłowy serwis autentykacji: {{.AuthService}}"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Usługa dostępna tylko w edycji Mattermost Enterprise"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Polecenie szablony nie jest obsługiwane w Twoim urządzeniu."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "szablony"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Otwórz okno tworzenia z szablonu"
   }
 ]
