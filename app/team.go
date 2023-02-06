@@ -243,10 +243,10 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 	// Duplicate board From template
 	boardsAndBlocks, _, err := boardService.DuplicateBoard(template.ID, userId, teamId, false)
 	if err != nil {
-		return nil, model.NewAppError("CreateBoard", "duplicate board", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_duplicating_board", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	if len(boardsAndBlocks.Boards) != 1 {
-		return nil, model.NewAppError("CreateBoard", "duplicate board 2", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_no_board", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	// link the board with the channel
@@ -254,13 +254,13 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		ChannelID: &channel.Id,
 	}, boardsAndBlocks.Boards[0].ID, userId)
 	if err != nil && patchedBoard == nil {
-		return nil, model.NewAppError("CreateBoard", "patch board", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_patching_board", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	// Save in the system preferences that the board was already created once per team
 	data, sysValErr := a.Srv().Store().System().GetByName(model.PreferenceOnboarding + "_" + preferenceName)
 	if sysValErr != nil {
-		mlog.Error("Cannot get the system preferences", mlog.Err(sysValErr))
+		c.Logger().Error("cannot get the system preferences", mlog.Err(sysValErr))
 	}
 
 	// teamsList contains the list of teams where the A/B test has alredy created a channel for town square
@@ -270,7 +270,7 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		Name:  model.PreferenceOnboarding + "_" + preferenceName,
 		Value: teamsList + "," + teamId,
 	}); err != nil {
-		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
+		c.Logger().Warn("encountered error saving user preferences", mlog.Err(err))
 	}
 
 	return patchedBoard, nil

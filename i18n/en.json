@@ -6496,8 +6496,20 @@
     "translation": "Error clearing team member cache"
   },
   {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "error duplicating board"
+  },
+  {
     "id": "app.team.create_onboarding_linked_board.error_getting_templates",
     "translation": "error getting boards templates"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "error no board created"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "error while patching board"
   },
   {
     "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
@@ -7318,14 +7330,6 @@
   {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
-  },
-  {
-    "id": "duplicate board",
-    "translation": ""
-  },
-  {
-    "id": "duplicate board 2",
-    "translation": ""
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -9594,10 +9598,6 @@
   {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to {{.URL}} to accept them and then try logging into Mattermost again."
-  },
-  {
-    "id": "patch board",
-    "translation": ""
   },
   {
     "id": "plugin.api.get_users_in_channel",
