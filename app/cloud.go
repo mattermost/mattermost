@@ -4,7 +4,9 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -194,13 +196,25 @@ func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 	// we want to at least have one email sent out to an admin
 	countNotOks := 0
 
+	embeddedFiles := make(map[string]io.Reader)
+	if isYearly {
+		pdf, filename, pdfErr := a.Cloud().GetInvoicePDF("", subscription.LastInvoice.ID)
+		if pdfErr != nil {
+			a.Log().Error("Error retrieving the invoice for subscription id", mlog.String("subscription", subscription.ID), mlog.Err(pdfErr))
+		} else {
+			embeddedFiles = map[string]io.Reader{
+				filename: bytes.NewReader(pdf),
+			}
+		}
+	}
+
 	for _, admin := range sysAdmins {
 		name := admin.FirstName
 		if name == "" {
 			name = admin.Username
 		}
 
-		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS(), isYearly)
+		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS(), isYearly, embeddedFiles)
 		if err != nil {
 			a.Log().Error("Error sending trial ended email to", mlog.String("email", admin.Email), mlog.Err(err))
 			countNotOks++

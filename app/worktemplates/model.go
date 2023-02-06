@@ -21,6 +21,8 @@ type ExecutionRequest struct {
 }
 
 type PermissionSet struct {
+	License *model.License
+
 	// channels
 	CanCreatePublicChannel  bool
 	CanCreatePrivateChannel bool
@@ -62,18 +64,9 @@ func (r *ExecutionRequest) CanBeExecuted(p PermissionSet) *model.AppError {
 			if !public && !p.CanCreatePrivatePlaybook {
 				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_playbook", nil, "", http.StatusForbidden)
 			}
-
-			// we need to check what's the template default run execution mode
-			// to determine how the channel is created
-			tmpl, err := r.FindPlaybookTemplate(c.Playbook.Template)
-			if err != nil {
-				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_find_playbook_template", nil, err.Error(), http.StatusInternalServerError)
-			}
-			if tmpl.CreatePublicPlaybookRun && !p.CanCreatePublicChannel {
-				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_public_run", nil, "", http.StatusForbidden)
-			}
-			if !tmpl.CreatePublicPlaybookRun && !p.CanCreatePrivateChannel {
-				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.cannot_create_private_run", nil, "", http.StatusForbidden)
+			// private playbook is an E20/Enterprise feature
+			if !public && (p.License == nil || (p.License.SkuShortName != model.LicenseShortSkuE20 && p.License.SkuShortName != model.LicenseShortSkuEnterprise)) {
+				return model.NewAppError("WorkTemplateExecutionRequest.CanBeExecuted", "app.worktemplate.execution_request.license_cannot_create_private_playbook", nil, "", http.StatusForbidden)
 			}
 			continue
 		}
