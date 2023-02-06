@@ -169,12 +169,12 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 
 	hasBoard, err := a.HasBoardProduct()
 	if err != nil {
-		mlog.Error("Error checking the existence of boards product: ", mlog.Err(err))
+		a.Log().Error("error checking the existence of boards product: ", mlog.Err(err))
 		return false
 	}
 
 	if !hasBoard {
-		mlog.Warn("Board product not found")
+		a.Log().Warn("board product not found")
 		return false
 	}
 
@@ -185,7 +185,7 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 		if errors.As(sysValErr, &nfErr) { // if no board has been registered, it can create one for this team
 			return true
 		}
-		mlog.Error("Cannot get the system values", mlog.Err(sysValErr))
+		a.Log().Error("cannot get the system values", mlog.Err(sysValErr))
 		return false
 	}
 
@@ -209,19 +209,18 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 
 	boardServiceItf, ok := a.Srv().services[product.BoardsKey]
 	if !ok {
-		return nil, model.NewAppError("CreateBoard", "not product key found", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.product_key_not_found", nil, "", http.StatusBadRequest)
 	}
-	boardService, typeOk := boardServiceItf.(product.BoardsService)
 
+	boardService, typeOk := boardServiceItf.(product.BoardsService)
 	if !typeOk {
 		// boardServiceItf is NOT of type product.BoardsService
-		return nil, model.NewAppError("CreateBoard", "not of type", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.itf_not_of_type", nil, "", http.StatusBadRequest)
 	}
 
 	templates, err := boardService.GetTemplates(defaultTemplatesTeam, userId)
-
 	if err != nil {
-		return nil, model.NewAppError("CreateBoard", "get templates", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_getting_templates", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	channel, appErr := a.GetChannelByName(c, defaultChannelName, teamId, false)
