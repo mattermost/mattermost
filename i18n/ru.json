@@ -9792,14 +9792,6 @@
     "translation": "Ошибка при выполнении рабочего шаблона."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Невозможно найти шаблон сценария, связанный с этим рабочим шаблоном."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "У вас нет прав на создание публичного канала для запуска сценария."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "У вас нет прав на создание публичного сценария."
   },
@@ -9810,10 +9802,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "У вас нет прав для создания публичной доски."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "У вас нет прав на создание приватного канала для запуска сценария."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",

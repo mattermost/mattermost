@@ -9779,10 +9779,6 @@
     "translation": "Herkese açık bir pano oluşturma izniniz yok."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Senaryo oyunu için özel bir kanal oluşturma izniniz yok."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
     "translation": "Özel bir senaryo oluşturma izniniz yok."
   },
@@ -9821,14 +9817,6 @@
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Bir çalışma kalıbı yürütülürken sorun çıktı."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Bu çalışma kalıbı ile ilişkilendirilmiş bir senaryo kalıbı bulunamadı."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Senaryo oyunu için herkese açık bir kanal oluşturma izniniz yok."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
