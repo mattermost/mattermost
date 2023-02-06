@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
@@ -125,6 +126,9 @@ func (a *App) executeWorkTemplate(
 		if cChannel.Playbook == "" {
 			chanID, err := e.CreateChannel(c, wtcr, cChannel)
 			if err != nil {
+				if strings.Contains(err.Error(), "Invalid display name.") {
+					return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error.invalid_display_name", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
 				return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 

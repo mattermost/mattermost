@@ -7104,6 +7104,10 @@
     "translation": "Error while creating a channel."
   },
   {
+    "id": "app.worktemplates.execute_work_template.channels.create_error.invalid_display_name",
+    "translation": "Invalid channel name."
+  },
+  {
     "id": "app.worktemplates.execute_work_template.playbooks.create_error",
     "translation": "Error while creating a playbook."
   },
