@@ -6182,6 +6182,41 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uss.TotalUnreadThreads, int64(0))
 	})
+
+	t.Run("Since should return threads with new replies and updated memberships", func(t *testing.T) {
+		client := th.Client
+
+		// Create "thread 1"
+		rootPost1, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1, reply 1", RootId: rootPost1.Id})
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(rootPost1.CreateAt),
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 1)
+
+		// Should not fetch any threads since there are no new replies/new threads since the membership is updated
+		threadMembership, _ := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 0)
+
+		// Create "thread 2"
+		rootPost2, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 2"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 2, reply 1", RootId: rootPost2.Id})
+
+		// Add a reply to "thread 1"
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1, Reply 2", RootId: rootPost1.Id})
+
+		// Should fetch "thread 1" & "thread 2"
+		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Equal(t, uss.TotalUnreadThreads, int64(2))
+	})
 }
 
 func TestThreadSocketEvents(t *testing.T) {
