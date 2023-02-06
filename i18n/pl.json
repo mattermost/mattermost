@@ -9880,14 +9880,6 @@
     "translation": "Twoja licencja nie obsługuje prywatnych playbooków."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Nie można znaleźć szablonu playbooka powiązanego z tym szablonem roboczym."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Nie masz uprawnień do tworzenia prywatnego kanału dla uruchomionego playbooka."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "Nie masz uprawnień do tworzenia publicznego playbooka."
   },
@@ -9898,10 +9890,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Nie masz uprawnień do tworzenia tablic publicznych."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Nie masz uprawnień do tworzenia prywatnego kanału dla uruchomionego playbooka."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",

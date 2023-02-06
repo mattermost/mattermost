@@ -9871,14 +9871,6 @@
     "translation": "Jouw licentie ondersteunt geen privé-playbooks."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Kan geen playbook-sjabloon vinden dat bij dit werksjabloon hoort."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Je hebt geen rechten om een privé-kanaal aan te maken voor de playbookuitvoering."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "Je hebt geen rechten om een publiek playbook te maken."
   },
@@ -9889,10 +9881,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Je hebt geen rechten om een openbaar bord aan te maken."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Je hebt geen rechten om een privé kanaal aan te maken voor de playbookuitvoering."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
