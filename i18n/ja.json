@@ -9892,14 +9892,6 @@
     "translation": "あなたのライセンスは非公開Playbooksをサポートしていません。"
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "この作業テンプレートに関連するPlaybookテンプレートが見つかりませんでした。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Playbookを実行する際の公開チャンネルを作成する権限がありません。"
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "公開Playbookを作成する権限がありません。"
   },
@@ -9910,10 +9902,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "公開Boardを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Playbookを実行する際の非公開チャンネルを作成する権限がありません。"
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",

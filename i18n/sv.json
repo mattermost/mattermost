@@ -9791,14 +9791,6 @@
     "translation": "Fel vid utförandet av en arbetsmall."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Det går inte att hitta en playbook-mall som är associerad med den här arbetsmallen."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Du har inte behörighet att skapa en publik kanal för playbook-körningen."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "Du har inte behörighet att skapa en publik playbook."
   },
@@ -9809,10 +9801,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Du har inte behörighet att skapa en publik tavla."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Du har inte behörighet att skapa en privat kanal för playbook-körningen."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
