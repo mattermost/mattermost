@@ -263,12 +263,15 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		c.Logger().Error("cannot get the system preferences", mlog.Err(sysValErr))
 	}
 
-	// teamsList contains the list of teams where the A/B test has alredy created a channel for town square
-	teamsList := data.Value
+	teamsList := teamId
+	// if data is not nil, data.Value contains the list of teams where the A/B test has alredy created a channel for town square
+	if data != nil {
+		teamsList = data.Value + "," + teamId
+	}
 
 	if err := a.Srv().Store().System().SaveOrUpdate(&model.System{
 		Name:  model.PreferenceOnboarding + "_" + preferenceName,
-		Value: teamsList + "," + teamId,
+		Value: teamsList,
 	}); err != nil {
 		c.Logger().Warn("encountered error saving user preferences", mlog.Err(err))
 	}
