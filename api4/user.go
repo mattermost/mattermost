@@ -2283,6 +2283,10 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("Email Verified")
 
+	c.App.Srv().GetTelemetryService().SendTelemetry("email_verified", map[string]any{
+		"category": "signup",
+	})
+
 	ReturnStatusOK(w)
 }
 
