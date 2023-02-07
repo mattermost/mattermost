@@ -567,6 +567,7 @@ func (es *Service) SendGuestInviteEmails(
 					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
 					"guest":    "true",
+					"senderId": senderUserId,
 				}),
 			)
 
