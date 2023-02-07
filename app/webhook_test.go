@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -361,6 +363,23 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
+
+	t.Run("should set webhook creator status to online", func(t *testing.T) {
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Platform().SetCluster(testCluster)
+		defer th.Server.Platform().SetCluster(nil)
+
+		testCluster.ClearMessages()
+		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "")
+		require.Nil(t, appErr)
+
+		msgs := testCluster.GetMessages()
+		// The first message is ClusterEventInvalidateCacheForChannelByName so we skip it
+		ev, err1 := model.WebSocketEventFromJSON(bytes.NewReader(msgs[1].Data))
+		require.NoError(t, err1)
+		require.Equal(t, model.WebsocketEventPosted, ev.EventType())
+		assert.Equal(t, false, ev.GetData()["set_online"])
+	})
 }
 
 func TestSplitWebhookPost(t *testing.T) {
