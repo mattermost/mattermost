@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -126,7 +127,8 @@ func (a *App) executeWorkTemplate(
 		if cChannel.Playbook == "" {
 			chanID, err := e.CreateChannel(c, wtcr, cChannel)
 			if err != nil {
-				if strings.Contains(err.Error(), "Invalid display name.") {
+				appErr := errors.Unwrap(err).(*model.AppError)
+				if strings.Contains(appErr.Id, "model.channel.is_valid.display_name.app_error") {
 					return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error.invalid_display_name", nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 				return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error", nil, "", http.StatusInternalServerError).Wrap(err)
