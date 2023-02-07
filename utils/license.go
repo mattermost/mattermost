@@ -8,7 +8,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha512"
 	"crypto/x509"
-	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
@@ -22,9 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
-
-//go:embed license-public-key.txt
-var publicKey string
 
 var LicenseValidator LicenseValidatorIface
 
