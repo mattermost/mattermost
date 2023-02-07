@@ -24,7 +24,7 @@ import (
 )
 
 //go:embed license-public-key.txt
-var publicKey []byte
+var publicKey string
 
 var LicenseValidator LicenseValidatorIface
 
@@ -78,7 +78,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	plaintext := decoded[:len(decoded)-256]
 	signature := decoded[len(decoded)-256:]
 
-	block, _ := pem.Decode(publicKey)
+	block, _ := pem.Decode([]byte(publicKey))
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
