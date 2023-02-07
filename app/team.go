@@ -44,6 +44,19 @@ func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID s
 	return w.app.AddTeamMember(ctx, teamID, userID)
 }
 
+func (w *teamServiceWrapper) GetGroup(groupID string) (*model.Group, *model.AppError) {
+	return w.app.GetGroup(groupID, nil, nil)
+}
+
+func (w *teamServiceWrapper) GetTeam(teamID string) (*model.Team, *model.AppError) {
+	return w.app.GetTeam(teamID)
+}
+
+func (w *teamServiceWrapper) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	users, _, err := w.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
+	return users, err
+}
+
 // Ensure the wrapper implements the product service.
 var _ product.TeamService = (*teamServiceWrapper)(nil)
 
@@ -414,13 +427,8 @@ func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
 
-	teamID := "" // no filtering by teamID by default
-	if event == model.WebsocketEventUpdateTeam {
-		// in case of update_team event - we send the message only to members of that team
-		teamID = team.Id
-	}
-	message := model.NewWebSocketEvent(event, teamID, "", "", nil, "")
-	teamJSON, jsonErr := json.Marshal(team)
+	message := model.NewWebSocketEvent(event, sanitizedTeam.Id, "", "", nil, "")
+	teamJSON, jsonErr := json.Marshal(sanitizedTeam)
 	if jsonErr != nil {
 		return model.NewAppError("sendTeamEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}

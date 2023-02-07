@@ -39,7 +39,7 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/expand", api.APISessionRequired(GetLicenseExpandStatus)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
@@ -131,7 +131,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	changedSub, err := c.App.Cloud().ChangeSubscription(userId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		appErr := model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err.Error() == "compliance-failed" {
+			c.Logger.Error("Compliance check failed", mlog.Err(err))
+			appErr.StatusCode = http.StatusUnprocessableEntity
+		}
+
+		c.Err = appErr
 		return
 	}
 
@@ -755,7 +761,12 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
+	cloud := c.App.Cloud()
+	if cloud == nil {
+		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
+		return
+	}
+	if err := cloud.CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
 		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
 		return
 	}

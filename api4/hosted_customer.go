@@ -36,6 +36,12 @@ func (api *API) InitHostedCustomer() {
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
+	cloud := c.App.Cloud()
+	if cloud == nil {
+		c.Err = model.NewAppError(where, "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	license := c.App.Channels().License()
 
 	if license.IsCloud() {
@@ -217,7 +223,16 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := c.App.Cloud().SelfHostedSignupAvailable(); err != nil {
-		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusNotImplemented)
+		if err.Error() == "upstream_off" {
+			c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusServiceUnavailable)
+		} else {
+			c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusNotImplemented)
+		}
+		return
+	}
+	systemValue, err := c.App.Srv().Store().System().GetByName(model.SystemHostedPurchaseNeedsScreening)
+	if err == nil && systemValue != nil {
+		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusTooEarly)
 		return
 	}
 

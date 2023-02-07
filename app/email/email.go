@@ -233,7 +233,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string, isYearly bool) error {
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string, isYearly bool, embeddedFiles map[string]io.Reader) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_upgrade_confirmation.subject")
 
@@ -258,8 +258,14 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
+	if isYearly {
+		if err := es.SendMailWithEmbeddedFilesAndCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, embeddedFiles); err != nil {
+			return err
+		}
+	} else {
+		if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -709,6 +715,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 				"teamId":   team.Id,
 				"email":    invite,
 				"channels": strings.Join(channelIDs, " "),
+				"senderId": senderUserId,
 			}),
 		)
 
@@ -850,6 +857,13 @@ func (es *Service) sendMailWithCC(to, subject, htmlBody string, ccMail string) e
 	mailConfig := es.mailServiceConfig("")
 
 	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail)
+}
+
+func (es *Service) SendMailWithEmbeddedFilesAndCustomReplyTo(to, subject, htmlBody, replyToAddress string, embeddedFiles map[string]io.Reader) error {
+	license := es.license()
+	mailConfig := es.mailServiceConfig(replyToAddress)
+
+	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
 }
 
 func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error {
