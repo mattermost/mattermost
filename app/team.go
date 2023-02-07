@@ -161,6 +161,9 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	return nil
 }
 
+// MM-48246 A/B test show linked boards
+const preferenceName = "linked_board_created"
+
 func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bool {
 	ffEnabled := a.Config().FeatureFlags.OnboardingAutoShowLinkedBoard
 	if !ffEnabled {
@@ -178,7 +181,6 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 		return false
 	}
 
-	const preferenceName = "linked_board_created"
 	data, sysValErr := a.Srv().Store().System().GetByName(model.PreferenceOnboarding + "_" + preferenceName)
 	if sysValErr != nil {
 		var nfErr *store.ErrNotFound
@@ -201,10 +203,8 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 }
 
 func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_model.Board, *model.AppError) {
-	const defaultChannelName = "town-square"
 	const defaultTemplatesTeam = "0"
 	const defaultTemplateTitle = "Welcome to Boards!"
-	const preferenceName = "linked_board_created"
 	userId := c.Session().UserId
 
 	boardServiceItf, ok := a.Srv().services[product.BoardsKey]
@@ -223,7 +223,7 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_getting_templates", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, appErr := a.GetChannelByName(c, defaultChannelName, teamId, false)
+	channel, appErr := a.GetChannelByName(c, model.DefaultChannelName, teamId, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -312,9 +312,8 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 
 	// MM-48246 A/B test show linked boards. Create a welcome to boards linked board per user
 	if a.shouldCreateOnboardingLinkedBoard(c, team.Id) {
-		board, err2 := a.createOnboardingLinkedBoard(c, team.Id)
-
-		if err2 != nil {
+		board, aErr := a.createOnboardingLinkedBoard(c, team.Id)
+		if aErr != nil {
 			mlog.Warn("Error creating the linked board", mlog.Err(err))
 		}
 
