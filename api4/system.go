@@ -348,7 +348,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
-	if err != nil {
+	if logerr != nil {
 		c.Err = logerr
 		return
 	}
