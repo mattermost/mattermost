@@ -103,6 +103,26 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	return oauthApp, nil
 }
 
+func (a *App) DisableOAuthApp(appID string, isDisabled bool) (*model.OAuthApp, *model.AppError) {
+	appToBeUpdated, err := a.GetOAuthApp(appID)
+	if err != nil {
+		return nil, model.NewAppError("DisableOAuthApp", "api.oauth.disable_app.get_app.app_error", nil, "", http.StatusNotFound)
+	}
+
+	if appToBeUpdated.IsDisabled == isDisabled {
+		mlog.Warn(fmt.Sprintf("The app %s is already IsDisabled: %t", appID, isDisabled))
+		return appToBeUpdated, nil
+	}
+
+	appToBeUpdated.IsDisabled = isDisabled
+	oauthApp, updateErr := a.Srv().Store().OAuth().UpdateApp(appToBeUpdated)
+	if updateErr != nil {
+		return nil, model.NewAppError("DisableOAuthApp", "api.oauth.disable_app.update_app.app_error", nil, "", http.StatusNotFound)
+	}
+
+	return oauthApp, nil
+}
+
 func (a *App) DeleteOAuthApp(appID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return model.NewAppError("DeleteOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
