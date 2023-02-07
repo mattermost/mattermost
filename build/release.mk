@@ -208,7 +208,7 @@ endif
 	@if [ -d $(BUILD_PLAYBOOKS_DIR) ] ; then \
 		echo "Copying web app files for Playbooks product"; \
 		mkdir -p $(DIST_PATH_GENERIC)/client/products/playbooks; \
-		cp -R $(BUILD_PLAYBOOKS_DIR)/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/playboooks/; \
+		cp -R $(BUILD_PLAYBOOKS_DIR)/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/playbooks/; \
 	else \
 		echo "Unable to find files for Playbooks product. Please ensure that the Playbooks repository is checked out alongside the server and run 'make build-product' in it."; \
 		exit 1; \
