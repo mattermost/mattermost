@@ -778,8 +778,8 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	authURL.RawQuery = queryParams.Encode()
 	authURLString := authURL.String()
 
-	// Following params aren't being "Set" because URLEncode uses '%20' and QueryEscape uses +,
-	// this change "might" break for some SSO Servers + Mattermost.
+	// Following params are being manually appended because URLEncode uses '%20' and QueryEscape uses +,
+	// Using QueryEscape here could be a breaking change for SSO Servers
 	if scope != "" {
 		authURLString += "&scope=" + utils.URLEncode(scope)
 	}
