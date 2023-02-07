@@ -54,7 +54,7 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 	return worker
 }
 
-func MakeInstallNotifyWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	isEnabled := func(_ *model.Config) bool {
 		return true
 	}

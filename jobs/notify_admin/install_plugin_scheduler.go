@@ -12,14 +12,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-const schedFreq = 24 * time.Hour
+const installPluginSchedFreq = 1 * time.Minute
 
-func MakeScheduler(jobServer *jobs.JobServer, license *model.License, jobType string) model.Scheduler {
+func MakeInstallPluginScheduler(jobServer *jobs.JobServer, license *model.License, jobType string) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		enabled := license != nil && *license.Features.Cloud
+		enabled :=  jobType == model.JobTypeInstallPluginNotifyAdmin
 		mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", jobType))
 		return enabled
 	}
-	return jobs.NewPeriodicScheduler(jobServer, jobType, schedFreq, isEnabled)
+	return jobs.NewPeriodicScheduler(jobServer, jobType, installPluginSchedFreq, isEnabled)
 
 }
