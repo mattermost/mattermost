@@ -2344,6 +2344,34 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
+func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Posts.OriginalId": postId}).
+		OrderBy("Posts.EditAt DESC")
+
+	queryString, args, err := builder.ToSql()
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", postId)
+		}
+		return nil, errors.Wrap(err, "failed to find post history")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplicaX().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting posts edit history with postId=%s", postId)
+	}
+
+	if len(posts) == 0 {
+		return nil, store.NewErrNotFound("failed to find post history", postId)
+	}
+
+	return posts, nil
+}
+
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
 	table := "Posts"

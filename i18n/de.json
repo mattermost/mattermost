@@ -9771,10 +9771,6 @@
     "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Du hast keine Berechtigung einen öffentlichen Kanal für den Playbook-Durchlauf zu erstellen."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "Du hast nicht die Berechtigung, ein öffentliches Playbook zu erstellen."
   },
@@ -9785,10 +9781,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Du hast keine Berechtigung, ein öffentliches Board zu erstellen."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Du hast keine Berechtigung zum Erstellen eines privaten Channels für den Playbook-Durchlauf."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
@@ -9959,7 +9951,23 @@
     "translation": "Deine Lizenz unterstützt keine privaten Playbooks."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Mit dieser Arbeitsvorlage verknüpfte Playbook-Vorlage kann nicht gefunden werden."
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Ungültiger AuthService: {{.AuthService}}"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Der Befehl Vorlagen wird von deinem Gerät nicht unterstützt."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "Vorlagen"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Öffne das Fenster \"Aus Vorlage erstellen\""
   }
 ]
