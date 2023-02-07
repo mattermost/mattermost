@@ -6,7 +6,6 @@ package app
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
@@ -128,7 +127,7 @@ func (a *App) executeWorkTemplate(
 			chanID, err := e.CreateChannel(c, wtcr, cChannel)
 			if err != nil {
 				appErr := errors.Unwrap(err).(*model.AppError)
-				if strings.Contains(appErr.Id, "model.channel.is_valid.display_name.app_error") {
+				if appErr.Id == "model.channel.is_valid.display_name.app_error" {
 					return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error.invalid_display_name", nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 				return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.channels.create_error", nil, "", http.StatusInternalServerError).Wrap(err)
