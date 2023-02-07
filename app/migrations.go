@@ -20,7 +20,7 @@ const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigD
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
 const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
 const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
-const PostPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
+const postPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -541,7 +541,7 @@ func (s *Server) doRemainingSchemaMigrations() {
 
 func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store().System().GetByName(PostPriorityConfigDefaultTrueMigrationKey); err == nil {
+	if _, err := s.Store().System().GetByName(postPriorityConfigDefaultTrueMigrationKey); err == nil {
 		return
 	}
 
@@ -550,7 +550,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	})
 
 	system := model.System{
-		Name:  PostPriorityConfigDefaultTrueMigrationKey,
+		Name:  postPriorityConfigDefaultTrueMigrationKey,
 		Value: "true",
 	}
 
