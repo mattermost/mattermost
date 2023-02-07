@@ -106,16 +106,4 @@ func TestCanBeExecuted(t *testing.T) {
 		})
 		require.NotNil(t, appErr)
 	})
-
-	t.Run("returns an error and no res when playbook template is not found", func(t *testing.T) {
-		wtcrMod := *wtcr
-		wtcrMod.foundPlaybookTemplates = map[string]*pbclient.PlaybookCreateOptions{}
-		wtcrMod.PlaybookTemplates = []*PlaybookTemplate{}
-		appErr := wtcrMod.CanBeExecuted(PermissionSet{
-			CanCreatePublicChannel:  true,
-			CanCreatePublicPlaybook: true,
-			CanCreatePublicBoard:    true,
-		})
-		require.NotNil(t, appErr)
-	})
 }
