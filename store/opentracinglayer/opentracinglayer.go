@@ -5928,6 +5928,24 @@ func (s *OpenTracingLayerPostStore) GetDirectPostParentsForExportAfter(limit int
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetEditHistoryForPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetEditHistoryForPost(postId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetEtag")
