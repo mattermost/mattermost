@@ -5371,6 +5371,22 @@ func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetEditHistoryForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetEditHistoryForPost", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
 	start := time.Now()
 

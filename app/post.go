@@ -43,7 +43,7 @@ type postServiceWrapper struct {
 }
 
 func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
-	return s.app.CreatePostMissingChannel(ctx, post, true)
+	return s.app.CreatePostMissingChannel(ctx, post, true, true)
 }
 
 func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
@@ -115,7 +115,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	return rp, nil
 }
 
-func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -127,7 +127,7 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 		}
 	}
 
-	return a.CreatePost(c, post, channel, triggerWebhooks, true)
+	return a.CreatePost(c, post, channel, triggerWebhooks, setOnline)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -1996,6 +1996,22 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	}
 
 	return posts, firstInaccessiblePostTime, nil
+}
+
+func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
+
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetEditHistoryForPost", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetEditHistoryForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return posts, nil
 }
 
 func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
