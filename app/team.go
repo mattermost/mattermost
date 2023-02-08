@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -204,7 +205,11 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 
 func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_model.Board, *model.AppError) {
 	const defaultTemplatesTeam = "0"
+
+	// see https://github.com/mattermost/focalboard/blob/main/server/services/store/sqlstore/board.go#L302
+	// and https://github.com/mattermost/mattermost-server/pull/22201#discussion_r1099536430
 	const defaultTemplateTitle = "Welcome to Boards!"
+	welcomeToBoardsTemplateId := fmt.Sprintf("%x", md5.Sum([]byte(defaultTemplateTitle)))
 	userId := c.Session().UserId
 
 	boardServiceItf, ok := a.Srv().services[product.BoardsKey]
@@ -230,8 +235,8 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 
 	var template *fb_model.Board = nil
 	for _, t := range templates {
-		v := t.Title
-		if v == defaultTemplateTitle {
+		v := t.Properties["trackingTemplateId"]
+		if v == welcomeToBoardsTemplateId {
 			template = t
 			break
 		}
@@ -314,13 +319,13 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 	if a.shouldCreateOnboardingLinkedBoard(c, team.Id) {
 		board, aErr := a.createOnboardingLinkedBoard(c, team.Id)
 		if aErr != nil || board == nil {
-			mlog.Warn("Error creating the linked board, only team created", mlog.Err(err))
+			a.Log().Warn("Error creating the linked board, only team created", mlog.Err(err))
 			return rteam, nil
 		}
 
 		if board.ID != "" {
 			logInfo := fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id)
-			mlog.Info(logInfo, mlog.Err(err))
+			a.Log().Info(logInfo, mlog.Err(err))
 		}
 	}
 
