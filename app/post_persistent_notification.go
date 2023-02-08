@@ -80,7 +80,7 @@ func (a *App) SendPersistentNotifications() error {
 	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
 
 	pagination := model.CursorPagination{
-		Direction: "down",
+		Direction: "up",
 		PerPage:   500,
 	}
 
@@ -99,8 +99,6 @@ func (a *App) SendPersistentNotifications() error {
 		if len(notificationPosts) == 0 {
 			return nil
 		}
-		pagination.FromID = notificationPosts[len(notificationPosts)-1].PostId
-		pagination.FromCreateAt = notificationPosts[len(notificationPosts)-1].CreateAt
 
 		notificationPostsMap := make(map[string]*model.PostPersistentNotifications, len(notificationPosts))
 		postIds := make([]string, 0, len(notificationPosts))
@@ -150,89 +148,34 @@ func (a *App) SendPersistentNotifications() error {
 		if !hasNext {
 			break
 		}
+		pagination.FromID = notificationPosts[len(notificationPosts)-1].PostId
+		pagination.FromCreateAt = notificationPosts[len(notificationPosts)-1].CreateAt
 	}
 	return nil
 }
 
 func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error) error {
-	channelIds := make(model.StringSet)
-	for _, p := range posts {
-		channelIds.Add(p.ChannelId)
-	}
-	channels, err := a.Srv().Store().Channel().GetChannelsByIds(channelIds.Val(), false)
+	channelsMap, teamsMap, err := a.channelTeamMapsForPosts(posts)
 	if err != nil {
-		return errors.Wrap(err, "failed to get channels by IDs")
-	}
-	channelsMap := make(map[string]*model.Channel, len(channels))
-	for _, c := range channels {
-		channelsMap[c.Id] = c
+		return err
 	}
 
-	teamIds := make(model.StringSet)
-	for _, c := range channels {
-		if c.TeamId != "" {
-			teamIds.Add(c.TeamId)
-		}
-	}
-	teams := make([]*model.Team, 0, len(teamIds))
-	if len(teamIds) > 0 {
-		teams, err = a.Srv().Store().Team().GetMany(teamIds.Val())
-		if err != nil {
-			return errors.Wrap(err, "failed to get teams by IDs")
-		}
-	}
-	teamsMap := make(map[string]*model.Team, len(teams))
-	for _, t := range teams {
-		teamsMap[t.Id] = t
-	}
-
-	channelGroupMap := make(map[string]map[string]*model.Group, len(channelsMap))
-	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
-	channelKeywords := make(map[string]map[string][]string, len(channelsMap))
-	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
-	for _, c := range channelsMap {
-		if c.Type != model.ChannelTypeDirect {
-			groups, err := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
-			if err != nil {
-				return errors.Wrap(err, "failed to get groups for channels")
-			}
-			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
-			for k, v := range groups {
-				channelGroupMap[c.Id][k] = v
-			}
-			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
-			if err != nil {
-				return errors.Wrap(err, "failed to get channel notify props")
-			}
-			channelNotifyProps[c.Id] = props
-		}
-
-		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
-		}
-
-		channelKeywords[c.Id] = make(map[string][]string, len(profileMap))
-		validProfileMap := make(map[string]*model.User, len(profileMap))
-		for k, v := range profileMap {
-			if v.IsBot {
-				continue
-			}
-			validProfileMap[k] = v
-			channelKeywords[c.Id]["@"+v.Username] = []string{k}
-		}
-		channelProfileMap[c.Id] = validProfileMap
+	channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, err := a.persistentNotificationsAuxiliaryData(channelsMap, teamsMap)
+	if err != nil {
+		return err
 	}
 
 	for _, post := range posts {
 		channel := channelsMap[post.ChannelId]
 		team := teamsMap[channel.TeamId]
+		// GMs and DMs don't belong to any team
 		if channel.IsGroupOrDirect() {
 			team = &model.Team{}
 		}
 		profileMap := channelProfileMap[channel.Id]
 
 		mentions := &ExplicitMentions{}
+		// In DMs, only the "other" user can be mentioned
 		if channel.Type == model.ChannelTypeDirect {
 			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 			if _, ok := profileMap[otherUserId]; ok {
@@ -255,6 +198,82 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	}
 
 	return nil
+}
+
+func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model.Channel, teamsMap map[string]*model.Team) (map[string]map[string]*model.Group, map[string]model.UserMap, map[string]map[string][]string, map[string]map[string]model.StringMap, error) {
+	channelGroupMap := make(map[string]map[string]*model.Group, len(channelsMap))
+	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
+	channelKeywords := make(map[string]map[string][]string, len(channelsMap))
+	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
+	for _, c := range channelsMap {
+		// In DM, notifications can't be send to any 3rd person.
+		if c.Type != model.ChannelTypeDirect {
+			groups, err := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
+			if err != nil {
+				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+			}
+			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
+			for k, v := range groups {
+				channelGroupMap[c.Id][k] = v
+			}
+			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
+			if err != nil {
+				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+			}
+			channelNotifyProps[c.Id] = props
+		}
+
+		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
+		if err != nil {
+			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+		}
+
+		channelKeywords[c.Id] = make(map[string][]string, len(profileMap))
+		validProfileMap := make(map[string]*model.User, len(profileMap))
+		for k, v := range profileMap {
+			if v.IsBot {
+				continue
+			}
+			validProfileMap[k] = v
+			channelKeywords[c.Id]["@"+v.Username] = []string{k}
+		}
+		channelProfileMap[c.Id] = validProfileMap
+	}
+	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
+}
+
+func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Channel, map[string]*model.Team, error) {
+	channelIds := make(model.StringSet)
+	for _, p := range posts {
+		channelIds.Add(p.ChannelId)
+	}
+	channels, err := a.Srv().Store().Channel().GetChannelsByIds(channelIds.Val(), false)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get teams by IDs")
+	}
+	channelsMap := make(map[string]*model.Channel, len(channels))
+	for _, c := range channels {
+		channelsMap[c.Id] = c
+	}
+
+	teamIds := make(model.StringSet)
+	for _, c := range channels {
+		if c.TeamId != "" {
+			teamIds.Add(c.TeamId)
+		}
+	}
+	teams := make([]*model.Team, 0, len(teamIds))
+	if len(teamIds) > 0 {
+		teams, err = a.Srv().Store().Team().GetMany(teamIds.Val())
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "failed to get teams by IDs")
+		}
+	}
+	teamsMap := make(map[string]*model.Team, len(teams))
+	for _, t := range teams {
+		teamsMap[t.Id] = t
+	}
+	return channelsMap, teamsMap, nil
 }
 
 func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error {

@@ -169,48 +169,35 @@ func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) erro
 }
 
 func getPersistentNotificationsPaginationBuilder(builder sq.SelectBuilder, pagination model.CursorPagination) sq.SelectBuilder {
-	var sort string
-	if pagination.Direction != "" {
-		if pagination.Direction == "up" {
-			sort = "DESC"
-		} else if pagination.Direction == "down" {
-			sort = "ASC"
-		}
-	}
-	if sort != "" {
-		builder = builder.OrderBy("CreateAt " + sort + ", PostId " + sort)
+	if pagination.Direction == "up" {
+		builder = builder.OrderBy("CreateAt ASC, PostId ASC")
+	} else if pagination.Direction == "down" {
+		builder = builder.OrderBy("CreateAt DESC, PostId DESC")
 	}
 
-	if pagination.FromCreateAt != 0 {
-		if pagination.Direction == "down" {
-			direction := sq.Gt{"CreateAt": pagination.FromCreateAt}
-			if pagination.FromID != "" {
-				builder = builder.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"CreateAt": pagination.FromCreateAt},
-						sq.Gt{"PostId": pagination.FromID},
-					},
-				})
-			} else {
-				builder = builder.Where(direction)
-			}
-		} else {
-			direction := sq.Lt{"CreateAt": pagination.FromCreateAt}
-			if pagination.FromID != "" {
-				builder = builder.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"CreateAt": pagination.FromCreateAt},
-						sq.Lt{"PostId": pagination.FromID},
-					},
-				})
-
-			} else {
-				builder = builder.Where(direction)
-			}
-		}
+	if pagination.FromCreateAt == 0 {
+		return builder.Limit(uint64(utils.MinInt(pagination.PerPage, 1000) + 1))
 	}
 
-	return builder.Limit(uint64(utils.MinInt(pagination.PerPage, 1000) + 1))
+	var whereCreateAt sq.Sqlizer
+	var whereID sq.Sqlizer
+	if pagination.Direction == "up" {
+		whereCreateAt = sq.Gt{"CreateAt": pagination.FromCreateAt}
+		whereID = sq.Gt{"PostId": pagination.FromID}
+	} else {
+		whereCreateAt = sq.Lt{"CreateAt": pagination.FromCreateAt}
+		whereID = sq.Lt{"PostId": pagination.FromID}
+	}
+
+	if pagination.FromID == "" {
+		return builder.Where(whereCreateAt)
+	}
+
+	return builder.Where(sq.Or{
+		whereCreateAt,
+		sq.And{
+			sq.Eq{"CreateAt": pagination.FromCreateAt},
+			whereID,
+		},
+	})
 }

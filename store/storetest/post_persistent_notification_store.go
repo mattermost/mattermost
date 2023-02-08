@@ -108,7 +108,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 		pn, hasNext, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 45,
 			Pagination: model.CursorPagination{
-				Direction: "down",
+				Direction: "up",
 				PerPage:   2,
 			},
 		})
@@ -121,7 +121,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 		pn, hasNext, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 100,
 			Pagination: model.CursorPagination{
-				Direction: "down",
+				Direction: "up",
 				PerPage:   20,
 			},
 		})
@@ -135,7 +135,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 		pn, hasNext, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 100,
 			Pagination: model.CursorPagination{
-				Direction: "down",
+				Direction: "up",
 				PerPage:   2,
 			},
 		})
@@ -148,7 +148,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 		pn, hasNext, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 100,
 			Pagination: model.CursorPagination{
-				Direction:    "down",
+				Direction:    "up",
 				PerPage:      2,
 				FromID:       p2.Id,
 				FromCreateAt: p2.CreateAt,
@@ -215,7 +215,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 100,
 			Pagination: model.CursorPagination{
-				Direction: "down",
+				Direction: "up",
 				PerPage:   20,
 			},
 		})
@@ -304,7 +304,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 100,
 			Pagination: model.CursorPagination{
-				Direction: "down",
+				Direction: "up",
 				PerPage:   20,
 			},
 		})
@@ -416,7 +416,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: 100,
 			Pagination: model.CursorPagination{
-				Direction: "down",
+				Direction: "up",
 				PerPage:   20,
 			},
 		})
@@ -458,7 +458,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 		MaxCreateAt:   100,
 		MaxLastSentAt: model.GetMillisForTime(now.Add(delta)),
 		Pagination: model.CursorPagination{
-			Direction: "down",
+			Direction: "up",
 			PerPage:   20,
 		},
 	})
@@ -478,7 +478,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 		MaxCreateAt:   100,
 		MaxLastSentAt: model.GetMillisForTime(now.Add(delta)),
 		Pagination: model.CursorPagination{
-			Direction: "down",
+			Direction: "up",
 			PerPage:   20,
 		},
 	})
@@ -491,7 +491,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 		MaxCreateAt:   100,
 		MaxLastSentAt: model.GetMillisForTime(now.Add(-delta)),
 		Pagination: model.CursorPagination{
-			Direction: "down",
+			Direction: "up",
 			PerPage:   20,
 		},
 	})
