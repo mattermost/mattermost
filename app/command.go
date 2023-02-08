@@ -70,7 +70,7 @@ func (a *App) CreateCommandPost(c request.CTX, post *model.Post, teamID string, 
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		return a.CreatePostMissingChannel(c, post, true)
+		return a.CreatePostMissingChannel(c, post, true, true)
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {

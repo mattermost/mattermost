@@ -9746,5 +9746,201 @@
   {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "総アクティブユーザー数を取得できませんでした"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "チャンネルが必要な理由について"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Boardが必要な理由について"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "リーダーシップ"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "会社全体"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Playbookに関連するチャンネルが見つかりませんでした。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Playbookを作成する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "チャンネルを作成する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Boardを作成する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "作業テンプレートを実行する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "あなたのライセンスは非公開Playbooksをサポートしていません。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "公開Playbookを作成する権限がありません。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "公開チャンネルを作成する権限がありません。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "公開Boardを作成する権限がありません。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "非公開Playbookを作成する権限がありません。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "非公開チャンネルを作成する権限がありません。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "非公開Boardを作成する権限がありません。"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "作業テンプレートは無効です。"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "棚卸しはクラウドインスタンスには許可されていません"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "棚卸しにはライセンスが必要です"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "棚卸し状況のレコードを取得できませんでした"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "棚卸し状況のレコードを作成できませんでした"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "サーバーの翻訳を更新できませんでした。"
   }
 ]
