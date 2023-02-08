@@ -200,9 +200,6 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 	} else if locales[headerLocale] != "" {
 		translations := tfuncWithFallback(headerLocale)
 		return translations, headerLocale
-	} else if locales[defaultLocale] != "" {
-		translations := tfuncWithFallback(defaultLocale)
-		return translations, headerLocale
 	}
 
 	translations := tfuncWithFallback(defaultLocale)
