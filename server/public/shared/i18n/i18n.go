@@ -61,6 +61,12 @@ var supportedLocales = []string{
 var defaultServerLocale string
 var defaultClientLocale string
 
+func newBundle() *i18n.Bundle {
+	b := i18n.NewBundle(language.MustParse(defaultLocale))
+	b.RegisterUnmarshalFunc("json", json.Unmarshal)
+	return b
+}
+
 // TranslationsPreInit loads translations from filesystem if they are not
 // loaded already and assigns english while loading server config
 func TranslationsPreInit(translationsDir string) error {
@@ -68,8 +74,7 @@ func TranslationsPreInit(translationsDir string) error {
 		return nil
 	}
 
-	bundle = i18n.NewBundle(language.MustParse(defaultLocale))
-	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	bundle = newBundle()
 
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
@@ -114,15 +119,14 @@ func initTranslationsWithDir(bundle *i18n.Bundle, dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	bundle := i18n.NewBundle(language.MustParse(defaultLocale))
-	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	b := newBundle()
 
-	if err := initTranslationsWithDir(bundle, dir); err != nil {
+	if err := initTranslationsWithDir(b, dir); err != nil {
 		return nil, err
 	}
 
 	return func(locale string) TranslateFunc {
-		localizer := i18n.NewLocalizer(bundle, locale)
+		localizer := i18n.NewLocalizer(b, locale)
 		return tfuncFromLocalizer(localizer)
 	}, nil
 }
