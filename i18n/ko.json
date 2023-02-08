@@ -655,7 +655,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "사용자를 찾을 수 없습니다. 시스템 관리자가 사용자를 비활성화 했을 수 있습니다."
+    "translation": "사용자 {{.User}} 를 찾을 수 없습니다. 시스템 관리자가 사용자를 비활성화 했을 수 있습니다."
   },
   {
     "id": "api.command_invite.name",
@@ -667,7 +667,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 채널 핸들을 사용하십시오."
+    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들을](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 사용하십시오."
   },
   {
     "id": "api.command_invite.success",
@@ -997,7 +997,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "이모티콘을 생성할 수 없습니다. 이미지 용량은 1MB 미만이어야 합니다."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 용량은 512KiB 미만이어야 합니다."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -7789,7 +7789,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Mattermost 엔터프라이즈 에디션 체험용 라이선스 키가 만료되었으며 더이상 유효하지 않습니다. 체험 기간을 연장하시려면 [저희 영업 팀에 연락해주세요](https://mattermost.com/contact-us/)."
+    "translation": "새로운 체험판 라이선스를 적용하는데 실패하였습니다. 이 Mattermost 인스턴스에는 이전에 적용된 체험판 라이센스를 유지합니다. 체험 기간을 연장하시려면 [저희 영업 팀에 연락해주세요](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
@@ -8038,5 +8038,73 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "이메일 전송"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "엔터프라이즈 체험판이 활성화 되었습니다. 게스트 계정을 활성화하려면 **시스템 콘솔 > 인증 > 게스트 접근** 으로 이동하십시오."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "게스트 계정 생성하기"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "체험판 라이선스를 얻어오지 못했습니다. 라이선스를 요청하려면 https://mattermost.com/trial/ 를 방문해주세요."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS 서버는 사용할수 없습니다."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "원격 클러스터 서비스가 활성화되어있지 않습니다."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "이 엔드포인트를 사용하려면 E10 또는 E30 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api 엔드포인트는 라이선스를 필요로 합니다"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "들어오는 webhook 카운트를 얻어오지 못했습니다"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "활성화된 전체 사용자수를 얻어올 수 없습니다."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "체험판 라이선스를 적용하는데 실패하였습니다. 다시 시도하시거나 support@mattermost 로 연락주십시오. 등록된 사용자수를 얻어올 수 없습니다."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "다운로드하려는 작업타입은 잠시 지원되지 않습니다"
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "유효하지 않은 이메일 설정 값입니다."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "mmctl를 통한 클라우드 인스턴스 업로딩은 지원되지 않습니다. [이곳](https://docs.mattermost.com/manage/cloud-data-export.html)을 확인해주시기 바랍니다."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "임시저장이 비활성되어있습니다."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "삭제된 채널에서는 임시글을 저장할 수 없습니다"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "서버 번역 업데이트가 실패하였습니다."
   }
 ]

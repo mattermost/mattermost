@@ -427,13 +427,8 @@ func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
 
-	teamID := "" // no filtering by teamID by default
-	if event == model.WebsocketEventUpdateTeam {
-		// in case of update_team event - we send the message only to members of that team
-		teamID = team.Id
-	}
-	message := model.NewWebSocketEvent(event, teamID, "", "", nil, "")
-	teamJSON, jsonErr := json.Marshal(team)
+	message := model.NewWebSocketEvent(event, sanitizedTeam.Id, "", "", nil, "")
+	teamJSON, jsonErr := json.Marshal(sanitizedTeam)
 	if jsonErr != nil {
 		return model.NewAppError("sendTeamEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}

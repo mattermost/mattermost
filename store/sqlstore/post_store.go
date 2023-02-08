@@ -2348,6 +2348,34 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
+func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Posts.OriginalId": postId}).
+		OrderBy("Posts.EditAt DESC")
+
+	queryString, args, err := builder.ToSql()
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", postId)
+		}
+		return nil, errors.Wrap(err, "failed to find post history")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplicaX().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting posts edit history with postId=%s", postId)
+	}
+
+	if len(posts) == 0 {
+		return nil, store.NewErrNotFound("failed to find post history", postId)
+	}
+
+	return posts, nil
+}
+
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
 	table := "Posts"
@@ -3331,15 +3359,15 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	meta := &store.PostReminderMetadata{}
 	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
-			t.name as TeamName,
-			u.locale as UserLocale, u.username as Username
-		FROM Posts p, Channels c, Teams t, Users u
-		WHERE p.ChannelId=c.Id
-		AND c.TeamId=t.Id
-		AND p.UserId=u.Id
-		AND p.Id=?`, postID)
+		COALESCE(t.name, '') as TeamName,
+		u.locale as UserLocale, u.username as Username
+	FROM Posts p
+	JOIN Channels c ON p.ChannelId=c.Id
+	LEFT JOIN Teams t ON c.TeamId=t.Id
+	JOIN Users u ON p.UserId=u.Id
+	AND p.Id=?`, postID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get post reminder metadata")
+		return nil, errors.Wrapf(err, "failed to get post reminder metadata: postId %s", postID)
 	}
 
 	return meta, nil
