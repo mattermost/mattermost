@@ -313,13 +313,14 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 	// MM-48246 A/B test show linked boards. Create a welcome to boards linked board per user
 	if a.shouldCreateOnboardingLinkedBoard(c, team.Id) {
 		board, aErr := a.createOnboardingLinkedBoard(c, team.Id)
-		if aErr != nil {
-			mlog.Warn("Error creating the linked board", mlog.Err(err))
+		if aErr != nil || board == nil {
+			mlog.Warn("Error creating the linked board, only team created", mlog.Err(err))
+			return rteam, nil
 		}
 
 		if board.ID != "" {
-			fmtErr := fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id)
-			mlog.Info(fmtErr, mlog.Err(err))
+			logInfo := fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id)
+			mlog.Info(logInfo, mlog.Err(err))
 		}
 	}
 
