@@ -31,7 +31,6 @@ type TranslationFuncByLocal func(locale string) TranslateFunc
 var T TranslateFunc
 
 var bundle *i18n.Bundle
-var locales = make(map[string]string)
 
 // supportedLocales is a hard-coded list of locales considered ready for production use. It must
 // be kept in sync with ../../../../webapp/channels/src/i18n/i18n.jsx.
@@ -104,8 +103,6 @@ func initTranslationsWithDir(bundle *i18n.Bundle, dir string) error {
 			continue
 		}
 
-		locales[locale] = filepath.Join(dir, filename)
-
 		if _, err := bundle.LoadMessageFile(filepath.Join(dir, filename)); err != nil {
 			return err
 		}
@@ -131,8 +128,9 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 }
 
 func getTranslationsBySystemLocale() (TranslateFunc, error) {
+	locales := GetSupportedLocales()
 	locale := defaultServerLocale
-	if _, ok := locales[locale]; !ok {
+	if !locales[locale] {
 		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
 		locale = defaultLocale
 	}
@@ -142,8 +140,8 @@ func getTranslationsBySystemLocale() (TranslateFunc, error) {
 		locale = defaultLocale
 	}
 
-	if locales[locale] == "" {
-		return nil, fmt.Errorf("failed to load system translations for '%v'", defaultLocale)
+	if !locales[locale] {
+		return nil, fmt.Errorf("failed to load system translations for '%v'", locale)
 	}
 
 	translations := tfuncWithFallback(locale)
@@ -151,32 +149,29 @@ func getTranslationsBySystemLocale() (TranslateFunc, error) {
 		return nil, fmt.Errorf("failed to load system translations")
 	}
 
-	mlog.Info("Loaded system translations", mlog.String("for locale", locale), mlog.String("from locale", locales[locale]))
+	mlog.Info("Loaded system translations", mlog.String("for locale", locale))
 	return translations, nil
+
 }
 
 // GetUserTranslations get the translation function for an specific locale
 func GetUserTranslations(locale string) TranslateFunc {
-	if _, ok := locales[locale]; !ok {
-		locale = defaultLocale
-	}
-
-	translations := tfuncWithFallback(locale)
-	return translations
+	return tfuncWithFallback(locale)
 }
 
 // GetTranslationsAndLocaleFromRequest return the translation function and the
 // locale based on a request headers
 func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string) {
+	locales := GetSupportedLocales()
 	// This is for checking against locales like pt_BR or zn_CN
 	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
 	// This is for checking against locales like en, es
 	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	defaultLocale := defaultClientLocale
-	if locales[headerLocaleFull] != "" {
+	if locales[headerLocaleFull] {
 		translations := tfuncWithFallback(headerLocaleFull)
 		return translations, headerLocaleFull
-	} else if locales[headerLocale] != "" {
+	} else if locales[headerLocale] {
 		translations := tfuncWithFallback(headerLocale)
 		return translations, headerLocale
 	}
@@ -187,7 +182,11 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 
 // GetSupportedLocales return a map of locale code and the file path with the
 // translations
-func GetSupportedLocales() map[string]string {
+func GetSupportedLocales() map[string]bool {
+	locales := make(map[string]bool)
+	for _, locale := range bundle.LanguageTags() {
+		locales[locale.String()] = true
+	}
 	return locales
 }
 

@@ -49,7 +49,7 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
 	}
 
-	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
+	if !i18n.GetSupportedLocales()[user.Locale] {
 		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
 	}
 

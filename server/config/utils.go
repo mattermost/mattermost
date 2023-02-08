@@ -115,13 +115,13 @@ func FixInvalidLocales(cfg *model.Config) bool {
 	var changed bool
 
 	locales := i18n.GetSupportedLocales()
-	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
+	if !locales[*cfg.LocalizationSettings.DefaultServerLocale] {
 		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.", mlog.String("locale", *cfg.LocalizationSettings.DefaultServerLocale))
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DefaultLocale
 		changed = true
 	}
 
-	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
+	if !locales[*cfg.LocalizationSettings.DefaultClientLocale] {
 		mlog.Warn("DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value.", mlog.String("locale", *cfg.LocalizationSettings.DefaultClientLocale))
 		*cfg.LocalizationSettings.DefaultClientLocale = model.DefaultLocale
 		changed = true
@@ -130,7 +130,7 @@ func FixInvalidLocales(cfg *model.Config) bool {
 	if *cfg.LocalizationSettings.AvailableLocales != "" {
 		isDefaultClientLocaleInAvailableLocales := false
 		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
-			if _, ok := locales[word]; !ok {
+			if !locales[word] {
 				*cfg.LocalizationSettings.AvailableLocales = ""
 				isDefaultClientLocaleInAvailableLocales = true
 				mlog.Warn("AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value.")
