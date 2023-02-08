@@ -489,7 +489,12 @@ func (es *Service) SendInviteEmails(
 				continue
 			}
 
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			queryString := url.Values{}
+			queryString.Add("d", tokenData)
+			queryString.Add("t", token.Token)
+			queryString.Add("md", "email")
+			queryString.Add("sbr", es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?%s", siteURL, queryString.Encode())
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {
