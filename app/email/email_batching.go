@@ -346,7 +346,9 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", ""); nErr != nil {
+	category := getSendGridCategory("BatchedEmailNotification", es.license().IsCloud())
+
+	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", "", category); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }
