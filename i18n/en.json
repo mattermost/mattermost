@@ -7128,6 +7128,10 @@
     "translation": "Error while creating a channel."
   },
   {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "The name field cannot contain more than 64 characters."
+  },
+  {
     "id": "app.worktemplates.execute_work_template.playbooks.create_error",
     "translation": "Error while creating a playbook."
   },
