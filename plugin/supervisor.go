@@ -4,7 +4,10 @@
 package plugin
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -62,6 +65,14 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 
 	cmd := exec.Command(executable)
 
+	// This doesn't add more security than before
+	// but removes the SecureConfig is nil warning.
+	// https://mattermost.atlassian.net/browse/MM-49167
+	pluginChecksum, err := getPluginExecutableChecksum(executable)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate a checksum for the plugin %s", pluginInfo.Path)
+	}
+
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
@@ -70,6 +81,10 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
+		SecureConfig: &plugin.SecureConfig{
+			Checksum: pluginChecksum,
+			Hash:     sha256.New(),
+		},
 	})
 
 	rpcClient, err := sup.client.Client()
@@ -157,4 +172,22 @@ func (sup *supervisor) Implements(hookId int) bool {
 	sup.lock.RLock()
 	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
+}
+
+func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
+	pathHash := sha256.New()
+	file, err := os.Open(executablePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	_, err = io.Copy(pathHash, file)
+	if err != nil {
+		return nil, err
+	}
+
+	return pathHash.Sum(nil), nil
 }
