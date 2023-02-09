@@ -7,13 +7,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
-	mlog.Info("enter handleNotifyAdmin")
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
 	if err != nil {
@@ -27,14 +24,11 @@ func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	mlog.Info("exit handleNotifyAdmin")
 
 	ReturnStatusOK(w)
 }
 
 func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	mlog.Info("enter handleTriggerNotifyAdminPosts")
-
 	if !*c.App.Config().ServiceSettings.EnableAPITriggerAdminNotifications {
 		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "api.cloud.app_error", nil, "Manual triggering of notifications not allowed", http.StatusForbidden)
 		return
@@ -58,8 +52,6 @@ func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Re
 		c.Err = appErr
 		return
 	}
-
-	mlog.Info("exit handleTriggerNotifyAdminPosts")
 
 	ReturnStatusOK(w)
 }
