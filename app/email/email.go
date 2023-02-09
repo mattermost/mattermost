@@ -532,6 +532,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
 					"guest":    "true",
+					"senderId": senderUserId,
 				}),
 			)
 
