@@ -4764,7 +4764,7 @@ func (s *TimerLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 	return result, err
 }
 
-func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	start := time.Now()
 
 	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
@@ -4794,6 +4794,22 @@ func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.N
 		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Save", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+	start := time.Now()
+
+	err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Update", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerOAuthStore) DeleteApp(id string) error {
@@ -5016,6 +5032,22 @@ func (s *TimerLayerOAuthStore) RemoveAuthData(code string) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthData", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId string) error {
+	start := time.Now()
+
+	err := s.OAuthStore.RemoveAuthDataByClientId(clientId, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthDataByClientId", success, elapsed)
 	}
 	return err
 }
@@ -5367,6 +5399,22 @@ func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetDirectPostParentsForExportAfter", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetEditHistoryForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetEditHistoryForPost", success, elapsed)
 	}
 	return result, err
 }

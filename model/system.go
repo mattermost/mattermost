@@ -33,6 +33,7 @@ const (
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
 	SystemLastAccessibleFileTime           = "LastAccessibleFileTime"
+	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 )

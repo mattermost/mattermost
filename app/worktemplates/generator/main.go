@@ -8,11 +8,12 @@ import (
 	"crypto/md5"
 	_ "embed"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"os"
 	"path"
+	"sort"
+	"text/template"
 
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
 	"github.com/pkg/errors"
@@ -128,13 +129,21 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// order ts by category alphabetically and by name alphabetically
+	sort.Slice(ts, func(i, j int) bool {
+		if ts[i].Category == ts[j].Category {
+			return ts[i].UseCase < ts[j].UseCase
+		}
+		return ts[i].Category < ts[j].Category
+	})
+
 	// print all translatable content
 	fmt.Println("\nTranslation helpers:\n====================")
 	for _, t := range ts {
-		translationHelper(t.Description.Channel)
 		translationHelper(t.Description.Board)
-		translationHelper(t.Description.Playbook)
+		translationHelper(t.Description.Channel)
 		translationHelper(t.Description.Integration)
+		translationHelper(t.Description.Playbook)
 	}
 }
 

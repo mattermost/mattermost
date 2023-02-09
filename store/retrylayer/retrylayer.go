@@ -5941,7 +5941,7 @@ func (s *RetryLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 
 }
 
-func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 
 	tries := 0
 	for {
@@ -5977,6 +5977,27 @@ func (s *RetryLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.N
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+
+	tries := 0
+	for {
+		err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -6261,6 +6282,27 @@ func (s *RetryLayerOAuthStore) RemoveAuthData(code string) error {
 	tries := 0
 	for {
 		err := s.OAuthStore.RemoveAuthData(code)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId string) error {
+
+	tries := 0
+	for {
+		err := s.OAuthStore.RemoveAuthDataByClientId(clientId, userId)
 		if err == nil {
 			return nil
 		}
@@ -6708,6 +6750,27 @@ func (s *RetryLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 	tries := 0
 	for {
 		result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetEditHistoryForPost(postId)
 		if err == nil {
 			return result, nil
 		}
