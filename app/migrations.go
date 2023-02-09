@@ -554,7 +554,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		mlog.Fatal("Failed to mark post priority config migration as completed.", mlog.Err(err))
 	}
 }
