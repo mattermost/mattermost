@@ -561,6 +561,7 @@ func (es *Service) SendGuestInviteEmails(
 					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
 					"guest":    "true",
+					"senderId": senderUserId,
 				}),
 			)
 
@@ -704,6 +705,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 				"teamId":   team.Id,
 				"email":    invite,
 				"channels": strings.Join(channelIDs, " "),
+				"senderId": senderUserId,
 			}),
 		)
 
