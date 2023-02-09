@@ -179,11 +179,11 @@ func (m *Migrator) GeneratePlan(recover bool) (*models.Plan, error) {
 }
 
 // MigrateWithPlan migrates the database to the latest version using the provided plan.
-func (m *Migrator) MigrateWithPlan(settings model.SqlSettings, plan *models.Plan, dryRun bool) error {
+func (m *Migrator) MigrateWithPlan(plan *models.Plan, dryRun bool) error {
 	return m.engine.ApplyPlan(plan)
 }
 
-func (m *Migrator) DowngradeMigrations(settings model.SqlSettings, dryRun bool, versions ...string) error {
+func (m *Migrator) DowngradeMigrations(dryRun bool, versions ...string) error {
 	migrations, err := m.engine.Diff(models.Down)
 	if err != nil {
 		return err

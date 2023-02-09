@@ -204,7 +204,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 		CommandPrettyPrintln("The migration plan has been saved.")
 	}
 
-	err = migrator.MigrateWithPlan(config.SqlSettings, plan, dryRun)
+	err = migrator.MigrateWithPlan(plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -242,7 +242,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	if _, sErr := strconv.Atoi(versions[0]); sErr == nil {
 		CommandPrettyPrintln("Database will be downgraded with the following versions: ", versions)
 
-		err = migrator.DowngradeMigrations(config.SqlSettings, dryRun, versions...)
+		err = migrator.DowngradeMigrations(dryRun, versions...)
 		if err != nil {
 			return errors.Wrap(err, "failed to downgrade migrations")
 		}
@@ -265,7 +265,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	morph.SwapPlanDirection(&plan)
 	plan.Auto = recoverFlag
 
-	err = migrator.MigrateWithPlan(config.SqlSettings, &plan, dryRun)
+	err = migrator.MigrateWithPlan(&plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate")
 	}
