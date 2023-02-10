@@ -57,6 +57,11 @@ var (
 	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
 )
 
+var (
+	// Ensure that the ReaderAt interface is implemented.
+	_ io.ReaderAt = (*s3WithCancel)(nil)
+)
+
 func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
 	return imageExtensions[ext]
@@ -208,7 +213,7 @@ func (b *S3FileBackend) MakeBucket() error {
 // s3WithCancel is a wrapper struct which cancels the context
 // when the object is closed.
 type s3WithCancel struct {
-	io.ReadSeekCloser
+	*s3.Object
 	timer  *time.Timer
 	cancel context.CancelFunc
 }
@@ -216,7 +221,7 @@ type s3WithCancel struct {
 func (sc *s3WithCancel) Close() error {
 	sc.timer.Stop()
 	sc.cancel()
-	return sc.ReadSeekCloser.Close()
+	return sc.Object.Close()
 }
 
 // CancelTimeout attempts to cancel the timeout for this reader. It allows calling
@@ -237,9 +242,9 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	}
 
 	sc := &s3WithCancel{
-		ReadSeekCloser: minioObject,
-		timer:          time.AfterFunc(b.timeout, cancel),
-		cancel:         cancel,
+		Object: minioObject,
+		timer:  time.AfterFunc(b.timeout, cancel),
+		cancel: cancel,
 	}
 
 	return sc, nil
