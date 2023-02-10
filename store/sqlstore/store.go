@@ -112,6 +112,7 @@ type SqlStoreStores struct {
 	notifyAdmin          store.NotifyAdminStore
 	postPriority         store.PostPriorityStore
 	postAcknowledgement  store.PostAcknowledgementStore
+	trueUpReview         store.TrueUpReviewStore
 }
 
 type SqlStore struct {
@@ -220,6 +221,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
+	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -301,6 +303,9 @@ func (ss *SqlStore) initConnection() {
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
+	if ss.metrics != nil {
+		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
@@ -311,6 +316,9 @@ func (ss *SqlStore) initConnection() {
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
+			}
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.ReplicaXs[i].DB.DB, "replica-"+strconv.Itoa(i))
 			}
 		}
 	}
@@ -324,6 +332,9 @@ func (ss *SqlStore) initConnection() {
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
+			}
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
 			}
 		}
 	}
@@ -973,6 +984,10 @@ func (ss *SqlStore) Draft() store.DraftStore {
 
 func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
 	return ss.stores.postAcknowledgement
+}
+
+func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
+	return ss.stores.trueUpReview
 }
 
 func (ss *SqlStore) DropAllTables() {

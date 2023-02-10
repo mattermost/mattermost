@@ -63,6 +63,9 @@ type FeatureFlags struct {
 
 	PostPriority bool
 
+	// Enable WYSIWYG text editor
+	WysiwygEditor bool
+
 	PeopleProduct bool
 
 	AnnualSubscription bool
@@ -73,6 +76,8 @@ type FeatureFlags struct {
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
+
+	OnboardingTourTips bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -101,6 +106,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
+	f.WysiwygEditor = false
+	f.OnboardingTourTips = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

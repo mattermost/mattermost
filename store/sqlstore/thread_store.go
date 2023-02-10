@@ -314,7 +314,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 
 	if opts.Since > 0 {
-		query = query.Where(sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since})
+		query = query.
+			Where(sq.Or{
+				sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since},
+				sq.GtOrEq{"Threads.LastReplyAt": opts.Since},
+			})
 	}
 
 	if opts.Unread {
@@ -503,7 +507,7 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 
 func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
-		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
 	}
 
 	unreadRepliesQuery := sq.
