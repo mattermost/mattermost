@@ -2175,7 +2175,7 @@ func (a *App) CheckPostReminders() {
 				Props: model.StringInterface{
 					"team_name": metadata.TeamName,
 					"post_id":   postID,
-					"username":  systemBot.Username,
+					"username":  metadata.Username,
 				},
 			}
 
