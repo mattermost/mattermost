@@ -912,7 +912,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	DELETE FROM Threads WHERE PostId IN (
 		SELECT * FROM (
 			SELECT Threads.PostId FROM Threads
-			WHERE Threads.ChannelId NOT IN (SELECT Id FROM Channels)
+			WHERE Threads.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX(PRIMARY))
 			LIMIT ?
 		) AS A
 	)`

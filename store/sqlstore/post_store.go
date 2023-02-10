@@ -2435,7 +2435,7 @@ func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) 
 		DELETE FROM Posts WHERE Id IN (
 			SELECT * FROM (
 				SELECT Posts.Id FROM Posts
-				WHERE Posts.ChannelId NOT IN (SELECT Id FROM Channels)
+				WHERE Posts.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX (PRIMARY))
 				LIMIT ?
 			) AS A
 		)`
