@@ -24,12 +24,19 @@ import (
 const (
 	LicenseEnv                = "MM_LICENSE"
 	LicenseRenewalURL         = "https://customers.mattermost.com/subscribe/renew"
+	LicenseRenewalURLTest     = "https://portal.test.cloud.mattermost.com/subscribe/renew"
 	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
 
 var (
 	RequestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 )
+
+func init() {
+	if !model.IsProdLicensePublicKey {
+		RequestTrialURL = "https://portal.test.cloud.mattermost.com/api/v1/trials"
+	}
+}
 
 // JWTClaims custom JWT claims with the needed information for the
 // renewal process
@@ -379,6 +386,10 @@ func (ps *PlatformService) GenerateLicenseRenewalLink() (string, string, *model.
 	if err != nil {
 		return "", "", err
 	}
-	renewalLink := LicenseRenewalURL + "?token=" + renewalToken
+	renewalLink := LicenseRenewalURL
+	if !model.IsProdLicensePublicKey {
+		renewalLink = LicenseRenewalURLTest
+	}
+	renewalLink += "?token=" + renewalToken
 	return renewalLink, renewalToken, nil
 }

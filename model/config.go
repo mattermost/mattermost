@@ -239,9 +239,12 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
-	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
-	OpenidSettingsDefaultScope    = "profile openid email"
+	CloudSettingsDefaultCwsURL        = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsAPIURL     = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURLTest    = "https://portal.test.cloud.mattermost.com"
+	CloudSettingsDefaultCwsAPIURLTest = "https://portal.test.cloud.mattermost.com"
+
+	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 )
@@ -2776,9 +2779,15 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		if !IsProdLicensePublicKey {
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+		}
 	}
 	if s.CWSAPIURL == nil {
 		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		if !IsProdLicensePublicKey {
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
+		}
 	}
 }
 
