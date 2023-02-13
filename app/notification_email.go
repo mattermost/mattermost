@@ -130,11 +130,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	}
 
 	a.Srv().Go(func() {
-		category := ""
-		if a.ch.licenseSvc.GetLicense().IsCloud() {
-			category = "Notification"
-		}
-		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, category); nErr != nil {
+		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})

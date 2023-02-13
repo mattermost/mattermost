@@ -6,7 +6,6 @@ package mail
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime"
@@ -316,12 +315,9 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 		"Precedence":                {"bulk"},
 	}
 
-	if len(mail.category) > 0 {
-		sendgridHeader, headerErr := json.Marshal(XSMTPAPIHeader{Category: mail.category})
-		if headerErr != nil {
-			return errors.Wrapf(headerErr, "Failed to marshal X-SMTPAPI header")
-		}
-		headers[SendGridXSMTPAPIHeader] = []string{string(sendgridHeader)}
+	if mail.category != "" {
+		sendgridHeader := fmt.Sprintf(`{"category": %q}`, mail.category)
+		headers[SendGridXSMTPAPIHeader] = []string{sendgridHeader}
 	}
 
 	if mail.replyTo.Address != "" {

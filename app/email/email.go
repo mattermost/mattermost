@@ -55,9 +55,7 @@ func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL s
 		return err
 	}
 
-	category := getSendGridCategory("ChangeUsernameEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "ChangeUsernameEmail"); err != nil {
 		return err
 	}
 
@@ -90,9 +88,7 @@ func (es *Service) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, tok
 		return err
 	}
 
-	category := getSendGridCategory("EmailChangeVerifyEmail", es.license().IsCloud())
-
-	if err := es.sendMail(newUserEmail, subject, body, category); err != nil {
+	if err := es.sendMail(newUserEmail, subject, body, "EmailChangeVerifyEmail"); err != nil {
 		return err
 	}
 
@@ -118,9 +114,7 @@ func (es *Service) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL stri
 		return err
 	}
 
-	category := getSendGridCategory("EmailChangeEmail", es.license().IsCloud())
-
-	if err := es.sendMail(oldEmail, subject, body, category); err != nil {
+	if err := es.sendMail(oldEmail, subject, body, "EmailChangeEmail"); err != nil {
 		return err
 	}
 
@@ -158,9 +152,7 @@ func (es *Service) SendVerifyEmail(userEmail, locale, siteURL, token, redirect s
 		return err
 	}
 
-	category := getSendGridCategory("VerifyEmail", es.license().IsCloud())
-
-	if err := es.sendMail(userEmail, subject, body, category); err != nil {
+	if err := es.sendMail(userEmail, subject, body, "VerifyEmail"); err != nil {
 		return err
 	}
 
@@ -185,9 +177,7 @@ func (es *Service) SendSignInChangeEmail(email, method, locale, siteURL string) 
 		return err
 	}
 
-	category := getSendGridCategory("SignInChangeEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "SignInChangeEmail"); err != nil {
 		return err
 	}
 
@@ -245,9 +235,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 		return err
 	}
 
-	category := getSendGridCategory("WelcomeEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "WelcomeEmail"); err != nil {
 		return err
 	}
 
@@ -279,14 +267,12 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 		return err
 	}
 
-	category := getSendGridCategory("CloudUpgradeConfirmationEmail", es.license().IsCloud())
-
 	if isYearly {
-		if err := es.SendMailWithEmbeddedFilesAndCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, embeddedFiles, category); err != nil {
+		if err := es.SendMailWithEmbeddedFilesAndCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, embeddedFiles, "CloudUpgradeConfirmationEmail"); err != nil {
 			return err
 		}
 	} else {
-		if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+		if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, "CloudUpgradeConfirmationEmail"); err != nil {
 			return err
 		}
 	}
@@ -327,9 +313,7 @@ func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSp
 		return err
 	}
 
-	category := getSendGridCategory("CloudWelcomeEmail", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, "CloudWelcomeEmail"); err != nil {
 		return err
 	}
 
@@ -355,9 +339,7 @@ func (es *Service) SendPasswordChangeEmail(email, method, locale, siteURL string
 		return err
 	}
 
-	category := getSendGridCategory("PasswordChangeEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "PasswordChangeEmail"); err != nil {
 		return err
 	}
 
@@ -382,9 +364,7 @@ func (es *Service) SendUserAccessTokenAddedEmail(email, locale, siteURL string) 
 		return err
 	}
 
-	category := getSendGridCategory("UserAccessTokenAddedEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "UserAccessTokenAddedEmail"); err != nil {
 		return err
 	}
 
@@ -414,9 +394,7 @@ func (es *Service) SendPasswordResetEmail(email string, token *model.Token, loca
 		return false, err
 	}
 
-	category := getSendGridCategory("PasswordResetEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "PasswordResetEmail"); err != nil {
 		return false, err
 	}
 
@@ -446,9 +424,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 		return err
 	}
 
-	category := getSendGridCategory("MfaChangeEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "MfaChangeEmail"); err != nil {
 		return err
 	}
 
@@ -479,8 +455,6 @@ func (es *Service) SendInviteEmails(
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
-
-	category := getSendGridCategory("InviteEmail", es.license().IsCloud())
 
 	for _, invite := range invites {
 		if invite != "" {
@@ -536,7 +510,7 @@ func (es *Service) SendInviteEmails(
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 			}
 
-			if err := es.sendMail(invite, subject, body, category); err != nil {
+			if err := es.sendMail(invite, subject, body, "InviteEmail"); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				if errorWhenNotSent {
 					return SendMailError
@@ -573,8 +547,6 @@ func (es *Service) SendGuestInviteEmails(
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
-
-	category := getSendGridCategory("InviteEmail", es.license().IsCloud())
 
 	for _, invite := range invites {
 		if invite != "" {
@@ -654,7 +626,7 @@ func (es *Service) SendGuestInviteEmails(
 				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
 			}
 
-			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", category); nErr != nil {
+			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", "InviteEmail"); nErr != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 				if errorWhenNotSent {
 					return SendMailError
@@ -722,8 +694,6 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			"TeamDisplayName": team.DisplayName,
 		})
 	}
-
-	category := getSendGridCategory("InviteEmailToTeamsAndChannels", es.license().IsCloud())
 
 	var invitesWithErrors []*model.EmailInviteWithError
 	for _, invite := range invites {
@@ -804,7 +774,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 		}
 
-		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", category); nErr != nil {
+		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", "InviteEmailToTeamsAndChannels"); nErr != nil {
 			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 			if errorWhenNotSent {
 				inviteWithError := &model.EmailInviteWithError{
@@ -867,9 +837,7 @@ func (es *Service) SendDeactivateAccountEmail(email string, locale, siteURL stri
 		return err
 	}
 
-	category := getSendGridCategory("DeactivateAccountEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil { // this needs to receive the header options
+	if err := es.sendMail(email, subject, body, "DeactivateAccountEmail"); err != nil { // this needs to receive the header options
 		return err
 	}
 
@@ -880,8 +848,7 @@ func (es *Service) SendNotificationMail(to, subject, htmlBody string) error {
 	if !*es.config().EmailSettings.SendEmailNotifications {
 		return nil
 	}
-	category := getSendGridCategory("NotificationEmail", es.license().IsCloud())
-	return es.sendMail(to, subject, htmlBody, category)
+	return es.sendMail(to, subject, htmlBody, "NotificationEmail")
 }
 
 func (es *Service) sendMail(to, subject, htmlBody, category string) error {
@@ -892,12 +859,16 @@ func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddr
 	license := es.license()
 	mailConfig := es.mailServiceConfig(replyToAddress)
 
+	category = getSendGridCategory(category, license.IsCloud())
+
 	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
 }
 
 func (es *Service) sendMailWithCC(to, subject, htmlBody, ccMail, category string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig("")
+
+	category = getSendGridCategory(category, license.IsCloud())
 
 	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail, category)
 }
@@ -906,12 +877,16 @@ func (es *Service) SendMailWithEmbeddedFilesAndCustomReplyTo(to, subject, htmlBo
 	license := es.license()
 	mailConfig := es.mailServiceConfig(replyToAddress)
 
+	category = getSendGridCategory(category, license.IsCloud())
+
 	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
 }
 
 func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig("")
+
+	category = getSendGridCategory(category, license.IsCloud())
 
 	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "", category)
 }
@@ -1007,9 +982,7 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 		return err
 	}
 
-	category := getSendGridCategory("LicenseInactivityEmail", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "LicenseInactivityEmail"); err != nil {
 		return err
 	}
 
@@ -1037,9 +1010,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 		return err
 	}
 
-	category := getSendGridCategory("LicenseUpForRenewal", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "LicenseUpForRenewal"); err != nil {
 		return err
 	}
 
@@ -1072,9 +1043,7 @@ func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPay
 		return false, err
 	}
 
-	category := getSendGridCategory("PaymentFailed", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "PaymentFailed"); err != nil {
 		return false, err
 	}
 
@@ -1101,9 +1070,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 		return err
 	}
 
-	category := getSendGridCategory("NoCardPaymentFailed", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "NoCardPaymentFailed"); err != nil {
 		return err
 	}
 
@@ -1133,9 +1100,7 @@ func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency7", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency7"); err != nil {
 		return err
 	}
 
@@ -1164,9 +1129,7 @@ func (es *Service) SendDelinquencyEmail14(email, locale, siteURL, planName strin
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency14", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency14"); err != nil {
 		return err
 	}
 
@@ -1196,9 +1159,7 @@ func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName strin
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency30", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency30"); err != nil {
 		return err
 	}
 
@@ -1230,9 +1191,7 @@ func (es *Service) SendDelinquencyEmail45(email, locale, siteURL, planName, deli
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency45", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency45"); err != nil {
 		return err
 	}
 
@@ -1265,9 +1224,7 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency60", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency60"); err != nil {
 		return err
 	}
 
@@ -1300,9 +1257,7 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, deli
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency75", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency75"); err != nil {
 		return err
 	}
 
@@ -1334,9 +1289,7 @@ func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 		return err
 	}
 
-	category := getSendGridCategory("Delinquency90", es.license().IsCloud())
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, category); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency90"); err != nil {
 		return err
 	}
 
@@ -1361,9 +1314,7 @@ func (es *Service) SendRemoveExpiredLicenseEmail(renewalLink, email string, loca
 		return err
 	}
 
-	category := getSendGridCategory("RemoveExpiredLicense", es.license().IsCloud())
-
-	if err := es.sendMail(email, subject, body, category); err != nil {
+	if err := es.sendMail(email, subject, body, "RemoveExpiredLicense"); err != nil {
 		return err
 	}
 

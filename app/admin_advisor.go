@@ -194,12 +194,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 
-			category := ""
-			if a.ch.licenseSvc.GetLicense().IsCloud() {
-				category = "NotifyAndSetWarnMetricAck"
-			}
-
-			if err := mail.SendMailUsingConfig(model.MmSupportAdvisorAddress, subject, body, mailConfig, false, "", "", "", sender.Email, category); err != nil {
+			if err := mail.SendMailUsingConfig(model.MmSupportAdvisorAddress, subject, body, mailConfig, false, "", "", "", sender.Email, "NotifyAndSetWarnMetricAck"); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}
