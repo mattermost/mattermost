@@ -1,0 +1,65 @@
+name: mattermost-build
+on:
+  push
+jobs:
+  setup-multiproduct-repositories:
+    name: Checkout repositories
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout mattermost-server
+      uses: actions/checkout@v3
+    - name: Checkout focalboard
+      run: |
+        cd ..
+        git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git  
+        cd focalboard
+        git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+        echo $(git rev-parse HEAD)
+        cd ../mattermost-server
+        make setup-go-work
+    - name: Get Date
+      id: get-date
+      run: |
+        echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: Cache artifacts
+      uses: actions/cache@v3
+      with:
+        path: |
+          .go.work
+          ../focalboard
+        key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+  check-mocks:
+    name: Check mocks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: |
+            .go.work
+            ../focalboard
+          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Generate mocks
+        run: make mocks
+      - name: Check mocks
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
+  check-go-mod-tidy:
+    name: Check go mod tidy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: |
+            .go.work
+            ../focalboard
+          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Run go mod tidy
+        run: make modules-tidy
+      - name: Check modules
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi

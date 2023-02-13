@@ -1,0 +1,21 @@
+name: Checkout
+on:
+  workflow_call
+jobs:
+  setup-multi-product-repositories:
+    name: Setup multi-product repositories
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout mattermost-server
+      uses: actions/checkout@v3
+    - name: Checkout focalboard
+      uses: actions/checkout@v3
+      with:
+        repository: mattermost/focalboard
+    - run: | 
+        mv focalboard ../focalboard
+        cd ../focalboard
+        git checkout $GITHUB_HEAD_REF  || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+        echo $(git rev-parse HEAD)
+        cd ../mattermost-server
+        make setup-go-work
