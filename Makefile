@@ -33,7 +33,9 @@ IS_CI ?= false
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
-GOTAGS =
+
+# Go tags
+GOTAGS ?= $(GOTAGS:)
 
 # If we don't set the build number it defaults to dev
 ifeq ($(BUILD_NUMBER),)
