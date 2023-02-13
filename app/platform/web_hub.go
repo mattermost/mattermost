@@ -121,6 +121,10 @@ func (ps *PlatformService) HubStop() {
 
 // GetHubForUserId returns the hub for a given user id.
 func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
+	if len(ps.hubs) == 0 {
+		return nil
+	}
+
 	// TODO: check if caching the userID -> hub mapping
 	// is worth the memory tradeoff.
 	// https://mattermost.atlassian.net/browse/MM-26629.
