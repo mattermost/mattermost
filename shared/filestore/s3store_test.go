@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
@@ -19,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	s3 "github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/require"
 )
 
@@ -283,20 +283,25 @@ func TestS3WithCancel(t *testing.T) {
 	})
 }
 
-func newMockS3WithCancel(timeout time.Duration, closeErr error) (*s3WithCancel, context.Context) {
+func newMockS3WithCancel(timeout time.Duration, closeErr error) (*fauxCloser, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &s3WithCancel{
-		ReadSeekCloser: fauxCloser{strings.NewReader("testdata"), closeErr},
-		timer:          time.AfterFunc(timeout, cancel),
-		cancel:         cancel,
+	return &fauxCloser{
+		s3WithCancel: &s3WithCancel{
+			Object: &s3.Object{},
+			timer:  time.AfterFunc(timeout, cancel),
+			cancel: cancel,
+		},
+		closeErr: closeErr,
 	}, ctx
 }
 
 type fauxCloser struct {
-	io.ReadSeeker
+	*s3WithCancel
 	closeErr error
 }
 
 func (fc fauxCloser) Close() error {
+	fc.s3WithCancel.timer.Stop()
+	fc.s3WithCancel.cancel()
 	return fc.closeErr
 }

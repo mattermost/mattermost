@@ -21,12 +21,6 @@ const (
 )
 
 type SuiteIFace interface {
-	SetStatusLastActivityAt(userID string, activityAt int64)
-	SetStatusOffline(userID string, manual bool)
-	IsUserAway(lastActivityAt int64) bool
-	SetStatusOnline(userID string, manual bool)
-	UpdateLastActivityAtIfNeeded(session model.Session)
-	SetStatusAwayIfNeeded(userID string, manual bool)
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
@@ -95,7 +89,7 @@ func newWebHub(ps *PlatformService) *Hub {
 }
 
 // hubStart starts all the hubs.
-func (ps *PlatformService) hubStart(suite SuiteIFace) {
+func (ps *PlatformService) hubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
@@ -105,7 +99,7 @@ func (ps *PlatformService) hubStart(suite SuiteIFace) {
 	for i := 0; i < numberOfHubs; i++ {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
-		hubs[i].Start(suite)
+		hubs[i].Start()
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
 	// during the start of the program and always read from after that.
@@ -127,6 +121,10 @@ func (ps *PlatformService) HubStop() {
 
 // GetHubForUserId returns the hub for a given user id.
 func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
+	if len(ps.hubs) == 0 {
+		return nil
+	}
+
 	// TODO: check if caching the userID -> hub mapping
 	// is worth the memory tradeoff.
 	// https://mattermost.atlassian.net/browse/MM-26629.
@@ -366,7 +364,7 @@ func (h *Hub) Stop() {
 }
 
 // Start starts the hub.
-func (h *Hub) Start(suite SuiteIFace) {
+func (h *Hub) Start() {
 	var doStart func()
 	var doRecoverableStart func()
 	var doRecover func()
@@ -439,7 +437,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
 					h.platform.Go(func() {
-						suite.SetStatusOffline(webConn.UserId, false)
+						h.platform.SetStatusOffline(webConn.UserId, false)
 					})
 					continue
 				}
@@ -453,9 +451,9 @@ func (h *Hub) Start(suite SuiteIFace) {
 					}
 				}
 
-				if suite.IsUserAway(latestActivity) {
+				if h.platform.isUserAway(latestActivity) {
 					h.platform.Go(func() {
-						suite.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+						h.platform.SetStatusLastActivityAt(webConn.UserId, latestActivity)
 					})
 				}
 			case userID := <-h.invalidateUser:
@@ -522,7 +520,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					suite.SetStatusOffline(webConn.UserId, false)
+					h.platform.SetStatusOffline(webConn.UserId, false)
 				}
 
 				h.explicitStop = true

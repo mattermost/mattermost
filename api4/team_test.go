@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -91,6 +93,30 @@ func TestCreateTeam(t *testing.T) {
 		_, resp, err = th.Client.CreateTeam(team)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should take under consideration the server language when creating a new team", func(t *testing.T) {
+		c := th.SystemAdminClient
+		cfg, _, err := c.GetConfig()
+		require.NoError(t, err)
+		newServerLang := "de"
+		cfg.LocalizationSettings.DefaultServerLocale = &newServerLang
+		translateFunc := i18n.GetUserTranslations(newServerLang)
+
+		_, _, err = c.UpdateConfig(cfg)
+		require.NoError(t, err)
+
+		team := th.CreateTeamWithClient(c)
+		channels, _, err := c.GetPublicChannelsForTeam(team.Id, 0, 1000, "")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			if ch.Name == "off-topic" {
+				require.Equal(t, translateFunc("api.channel.create_default_channels.off_topic"), ch.DisplayName)
+			}
+			if ch.Name == "town-square" {
+				require.Equal(t, translateFunc("api.channel.create_default_channels.town_square"), ch.DisplayName)
+			}
+		}
 	})
 
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
@@ -871,11 +897,21 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	assert.NotEqual(t, team.InviteId, "")
 	assert.NotEqual(t, team.InviteId, "inviteid0")
 
+	*th.App.Config().PrivacySettings.ShowEmailAddress = true
 	rteam, _, err := client.RegenerateTeamInviteId(team.Id)
 	require.NoError(t, err)
 
 	assert.NotEqual(t, team.InviteId, rteam.InviteId)
 	assert.NotEqual(t, team.InviteId, "")
+	assert.NotEqual(t, rteam.Email, "")
+
+	*th.App.Config().PrivacySettings.ShowEmailAddress = false
+	rteam, _, err = client.RegenerateTeamInviteId(team.Id)
+	require.NoError(t, err)
+
+	assert.NotEqual(t, team.InviteId, rteam.InviteId)
+	assert.NotEqual(t, team.InviteId, "")
+	assert.Equal(t, rteam.Email, "")
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
@@ -1819,6 +1855,17 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
+		*th.App.Config().PrivacySettings.ShowEmailAddress = false
+		rteams, _, err2 := th.Client.GetTeamsForUser(th.BasicUser.Id, "")
+		require.NoError(t, err2)
+		for _, rteam := range rteams {
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
+			}
+
+			require.Empty(t, rteam.Email, "should have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
+		}
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -2611,6 +2658,51 @@ func TestRemoveTeamMember(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRemoveTeamMemberEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client1 := th.CreateClient()
+	th.LoginBasicWithClient(client1)
+	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(client2)
+	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
+	require.NoError(t, err)
+	defer WebSocketClient2.Close()
+	WebSocketClient2.Listen()
+	resp = <-WebSocketClient2.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// remove second user from basic team
+		_, err := client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+
+		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventLeaveTeam, func(event *model.WebSocketEvent) {
+			eventUserId, ok := event.GetData()["user_id"].(string)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUserId, th.BasicUser2.Id)
+			// assert this event doesn't go to event creator
+			assert.Equal(t, event.GetBroadcast().OmitUsers[eventUserId], true)
+		})
+		assertExpectedWebsocketEvent(t, WebSocketClient2, model.WebsocketEventLeaveTeam, func(event *model.WebSocketEvent) {
+			eventUserId, ok := event.GetData()["user_id"].(string)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUserId, th.BasicUser2.Id)
+		})
+	})
+
+}
+
 func TestGetTeamStats(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3064,6 +3156,37 @@ func TestImportTeam(t *testing.T) {
 		_, resp, err := th.Client.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestValidateUserPermissionsOnChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// define user session and context
+	context := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+
+	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
+		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
+
+		require.Len(t, channelIds, 2)
+
+		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+
+		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
+		require.Len(t, channelIds, 2)
+	})
+
+	t.Run("User WITHOUT permissions on private channel CAN NOT invite members to it", func(t *testing.T) {
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := []string{th.BasicChannel.Id, channelIdWithoutPermissions}
+
+		require.Len(t, channelIds, 2)
+
+		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+
+		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
+		require.Len(t, channelIds, 1)
 	})
 }
 

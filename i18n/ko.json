@@ -655,7 +655,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "사용자를 찾을 수 없습니다. 시스템 관리자가 사용자를 비활성화 했을 수 있습니다."
+    "translation": "사용자 {{.User}} 를 찾을 수 없습니다. 시스템 관리자가 사용자를 비활성화 했을 수 있습니다."
   },
   {
     "id": "api.command_invite.name",
@@ -667,7 +667,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 채널 핸들을 사용하십시오."
+    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들을](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 사용하십시오."
   },
   {
     "id": "api.command_invite.success",
@@ -997,7 +997,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "이모티콘을 생성할 수 없습니다. 이미지 용량은 1MB 미만이어야 합니다."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 용량은 512KiB 미만이어야 합니다."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -1369,11 +1369,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " 당신의 게시글에 답글이 달렸습니다."
+    "translation": " 당신의 게시글에 댓글이 달렸습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " 당신이 참여한 글타래에 답글이 달렸습니다."
+    "translation": " 당신이 참여한 글타래에 댓글이 달렸습니다."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -4565,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab 서비스 약관이 업데이트되었습니다. {{.URL}}으로 이동하여 수락한 다음 Mattermost에 다시 로그인해주세요."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4741,7 +4741,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14 이상"
+    "translation": "macOS 11 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "44버전 이상"
+    "translation": "95 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "100 버전 이상"
+    "translation": "106 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6520,14 +6520,6 @@
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -6606,10 +6598,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}}의 해상도({{.Width}} x {{.Height}} 픽셀)가 제한 사항을 초과했습니다."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "파일을 업로드할 수 없습니다. 파일 크기가 너무 큽니다."
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -7253,11 +7241,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " 지켜보는 중인 글타래에 답글을 남겼습니다."
+    "translation": " 지켜보는 글타래에 댓글을 남겼습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": " 글타래에 답글을 남겼습니다."
+    "translation": " 글타래에 댓글을 남겼습니다."
   },
   {
     "id": "api.command_remote.missing_command",
@@ -7801,7 +7789,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Mattermost 엔터프라이즈 에디션 체험용 라이선스 키가 만료되었으며 더이상 유효하지 않습니다. 체험 기간을 연장하시려면 [저희 영업 팀에 연락해주세요](https://mattermost.com/contact-us/)."
+    "translation": "새로운 체험판 라이선스를 적용하는데 실패하였습니다. 이 Mattermost 인스턴스에는 이전에 적용된 체험판 라이센스를 유지합니다. 체험 기간을 연장하시려면 [저희 영업 팀에 연락해주세요](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
@@ -7896,10 +7884,6 @@
     "translation": "사용자 정의 그룹을 위한 라이선스가 없습니다"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "웹훅에서 구독을 업데이트하는 동안 오류가 발생했습니다."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "이미 관리자에게 통지됨"
   },
@@ -7937,7 +7921,7 @@
   },
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "연체 이메일을 보내기 위한 필수 항목이 누락되었습니다."
+    "translation": "연체 알림 전자우편을 보내기 위한 필수 항목이 누락되었습니다."
   },
   {
     "id": "api.error_set_first_admin_complete_setup",
@@ -7962,5 +7946,165 @@
   {
     "id": "api.command_marketplace.name",
     "translation": "마켓플레이스"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "{{.Remote}} 원격 사이트가 오프라인이기 때문에 하나 또는 그 이상의 포스트가 전송되지 않았습니다. 포스트는 해당 사이트가 온라인일 때 전송될 것입니다."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}}님이 글타래에 답장을 남겼습니다"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 지켜보는 중인 글타래에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 {{.ChannelName}} 채널에 있는 지켜보는 중인 글타래에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 그룹 글타래에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "자리를 비운 동안, {{.SenderName}}님이 당신이 직접 보낸 메시지에 답장을 남겼습니다."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "언급된 사용자의 글타래 권한을 갱신하지 못했습니다"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser의 Before와 After 매개변수는 상호 배타적입니다"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "getThreadsForUser의 OnlyThreads와 OnlyTotals 매개변수는 상호 배타적입니다"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "팀의 상위 글타래를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "사용자의 상위 글타래를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "사용자의 글타래 개수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "사용자 글타래 권한을 가져올 수 없습니다"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "사용자 글타래 권한이 없습니다"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "사용자 글타래들을 가져올 수 없습니다"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "사용자 글타래가 존재하지 않거나 지켜보고 있지 않습니다"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "글타래의 지켜보기 상태를 갱신할 수 없습니다"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "글타래의 읽음 상태를 갱신할 수 없습니다"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "유효하지 않은 post_id"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "CollapsedThreads 설정은 disabled, default_on 혹은 default_off 중 하나여야만 합니다"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "CollapsedThreads 기능을 활성화하려면 ThreadAutoFollow 기능이 활성화되어야 합니다"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "모든 사용자 글타래들을 읽음 상태로 변경할 수 없습니다"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "이메일 전송"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "엔터프라이즈 체험판이 활성화 되었습니다. 게스트 계정을 활성화하려면 **시스템 콘솔 > 인증 > 게스트 접근** 으로 이동하십시오."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "게스트 계정 생성하기"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "체험판 라이선스를 얻어오지 못했습니다. 라이선스를 요청하려면 https://mattermost.com/trial/ 를 방문해주세요."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS 서버는 사용할수 없습니다."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "원격 클러스터 서비스가 활성화되어있지 않습니다."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "이 엔드포인트를 사용하려면 E10 또는 E30 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api 엔드포인트는 라이선스를 필요로 합니다"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "들어오는 webhook 카운트를 얻어오지 못했습니다"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "활성화된 전체 사용자수를 얻어올 수 없습니다."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "체험판 라이선스를 적용하는데 실패하였습니다. 다시 시도하시거나 support@mattermost 로 연락주십시오. 등록된 사용자수를 얻어올 수 없습니다."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "다운로드하려는 작업타입은 잠시 지원되지 않습니다"
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "유효하지 않은 이메일 설정 값입니다."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "mmctl를 통한 클라우드 인스턴스 업로딩은 지원되지 않습니다. [이곳](https://docs.mattermost.com/manage/cloud-data-export.html)을 확인해주시기 바랍니다."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "임시저장이 비활성되어있습니다."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "삭제된 채널에서는 임시글을 저장할 수 없습니다"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "서버 번역 업데이트가 실패하였습니다."
   }
 ]
