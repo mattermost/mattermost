@@ -80,3 +80,22 @@ jobs:
         run: make gen-serialized
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+  check-mattermost-vet:
+    name: Check style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: |
+            .go.work
+            ../focalboard
+          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Reset config
+        run: make config-reset
+      - name: Run plugin-checker
+        run: make plugin-checker
+      - name: Run mattermost-vet
+        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
