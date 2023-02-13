@@ -8161,7 +8161,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "使用 Github、Jira 以及 Zoom 等工具简化您的工作.探索我们的所有集成产品。"
+    "translation": "使用 Github、Jira 以及 Zoom 等工具简化您的工作.探索我们的所有集成产品"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9033,7 +9033,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请你加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -9401,7 +9401,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "查看你的发票"
+    "translation": "查看您的发票"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
@@ -9490,5 +9490,17 @@
   {
     "id": "api.templates.delinquency_75.subtitle1",
     "translation": "这是自 {{.DelinquencyDate}} 后我们尚未收到您的 Mattermost Cloud 工作区付款的最后提醒。"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": ""
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "模板"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "打开从模板创建窗口"
   }
 ]
