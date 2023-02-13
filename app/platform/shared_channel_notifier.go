@@ -111,7 +111,7 @@ func handleInvitation(ps *PlatformService, syncService SharedChannelServiceIFace
 		return err
 	}
 
-	if participant == nil {
+	if participant == nil || participant.RemoteId == nil {
 		return nil
 	}
 

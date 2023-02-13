@@ -632,7 +632,7 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	post.AddProp("from_plugin", "true")
 
-	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true)
+	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1235,7 +1235,7 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 // RegisterCollectionAndTopic informs the server that this plugin handles
 // the given collection and topic types.
 func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
-	return api.app.registerCollectionAndTopic(api.id, collectionType, topicType)
+	return api.app.RegisterCollectionAndTopic(api.id, collectionType, topicType)
 }
 
 func (api *PluginAPI) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {

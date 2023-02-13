@@ -33,6 +33,11 @@ type RouterService interface {
 // The service shall be registered via app.PostKey service key.
 type PostService interface {
 	CreatePost(context *request.Context, post *model.Post) (*model.Post, *model.AppError)
+	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
+	SendEphemeralPost(ctx *request.Context, userID string, post *model.Post) *model.Post
+	GetPost(postID string) (*model.Post, *model.AppError)
+	DeletePost(ctx *request.Context, postID, productID string) (*model.Post, *model.AppError)
+	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 }
 
 // PermissionService provides permissions related utilities. For now, the service implementation
@@ -44,6 +49,7 @@ type PermissionService interface {
 	HasPermissionTo(userID string, permission *model.Permission) bool
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
 	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
+	RolesGrantPermission(roleNames []string, permissionID string) bool
 }
 
 // ClusterService enables to publish cluster events. In addition to that, It's being used for
@@ -62,9 +68,19 @@ type ClusterService interface {
 // The service shall be registered via app.ChannelKey service key.
 type ChannelService interface {
 	GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError)
+	GetDirectChannelOrCreate(userID1, userID2 string) (*model.Channel, *model.AppError)
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
+	GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
+	GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError)
+	CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
+	AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError)
+	UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError)
+	DeleteChannelMember(channelID, userID string) *model.AppError
+	AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError)
 }
 
 // LicenseService provides license related utilities.
@@ -95,6 +111,9 @@ type UserService interface {
 type TeamService interface {
 	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
 	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
+	GetGroup(groupId string) (*model.Group, *model.AppError)
+	GetTeam(teamID string) (*model.Team, *model.AppError)
+	GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
 }
 
 // BotService is just a copy implementation of mattermost-plugin-api EnsureBot method.
@@ -160,6 +179,9 @@ type CloudService interface {
 // The service shall be registered via app.KVStoreKey service key.
 type KVStoreService interface {
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+	KVGet(productID, key string) ([]byte, *model.AppError)
+	KVDelete(productID, key string) *model.AppError
+	KVList(productID string, page, perPage int) ([]string, *model.AppError)
 }
 
 // LogService is the API for accessing the log service APIs.
@@ -210,4 +232,33 @@ type BoardsService interface {
 	DeleteCard(cardID string, userID string) error
 	HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool
 	DuplicateBoard(boardID string, userID string, toTeam string, asTemplate bool) (*fb_model.BoardsAndBlocks, []*fb_model.BoardMember, error)
+}
+
+// SessionService is the API for accessing the session.
+//
+// The service shall be registered via app.SessionKey service key.
+type SessionService interface {
+	GetSessionById(sessionID string) (*model.Session, *model.AppError)
+}
+
+// FrontendService is the API for interacting with front end.
+//
+// The service shall be registered via app.FrontendKey service key.
+type FrontendService interface {
+	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
+}
+
+// CommandService is the API for interacting with front end.
+//
+// The service shall be registered via app.CommandKey service key.
+type CommandService interface {
+	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	RegisterPluginCommand(pluginID string, command *model.Command) error
+}
+
+// ThreadsService is the API for interacting with threads anywhere.
+//
+// The service shall be registered via app.ThreadsKey service key.
+type ThreadsService interface {
+	RegisterCollectionAndTopic(productID string, collectionType, topicType string) error
 }

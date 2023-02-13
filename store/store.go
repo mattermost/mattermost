@@ -87,6 +87,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	TrueUpReview() TrueUpReviewStore
 }
 
 type RetentionPolicyStore interface {
@@ -385,6 +386,7 @@ type PostStore interface {
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
+	GetEditHistoryForPost(postId string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
@@ -940,9 +942,10 @@ type LinkMetadataStore interface {
 
 type NotifyAdminStore interface {
 	Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error)
-	GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error)
+	GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error)
 	Get(trial bool) ([]*model.NotifyAdminData, error)
 	DeleteBefore(trial bool, now int64) error
+	Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error
 }
 
 type SharedChannelStore interface {
@@ -996,6 +999,12 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+}
+
+type TrueUpReviewStore interface {
+	GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error)
+	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
+	Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

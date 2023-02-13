@@ -70,7 +70,15 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 		}
 	}
 
-	channels, nErr := a.Srv().Store().Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
+	// find the sender id and grab the channels in order to validate
+	// the sender id still belongs to team and to private channels
+	senderId := tokenData["senderId"]
+	channelIds := strings.Split(tokenData["channels"], " ")
+
+	// filter the channels the original inviter has still permissions over
+	channelIds = a.ValidateUserPermissionsOnChannels(c, senderId, channelIds)
+
+	channels, nErr := a.Srv().Store().Channel().GetChannelsByIds(channelIds, false)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -321,12 +329,14 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
 	// workspace is currently on a monthly plan, then this function will not do anything.
 
-	go func() {
-		_, err := a.SendSubscriptionHistoryEvent(ruser.Id)
-		if err != nil {
-			c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-		}
-	}()
+	if a.Channels().License().IsCloud() {
+		go func(userId string) {
+			_, err := a.SendSubscriptionHistoryEvent(userId)
+			if err != nil {
+				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
+			}
+		}(ruser.Id)
+	}
 
 	return ruser, nil
 }

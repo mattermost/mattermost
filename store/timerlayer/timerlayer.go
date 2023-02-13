@@ -54,6 +54,7 @@ type TimerLayer struct {
 	TermsOfServiceStore       store.TermsOfServiceStore
 	ThreadStore               store.ThreadStore
 	TokenStore                store.TokenStore
+	TrueUpReviewStore         store.TrueUpReviewStore
 	UploadSessionStore        store.UploadSessionStore
 	UserStore                 store.UserStore
 	UserAccessTokenStore      store.UserAccessTokenStore
@@ -203,6 +204,10 @@ func (s *TimerLayer) Thread() store.ThreadStore {
 
 func (s *TimerLayer) Token() store.TokenStore {
 	return s.TokenStore
+}
+
+func (s *TimerLayer) TrueUpReview() store.TrueUpReviewStore {
+	return s.TrueUpReviewStore
 }
 
 func (s *TimerLayer) UploadSession() store.UploadSessionStore {
@@ -402,6 +407,11 @@ type TimerLayerThreadStore struct {
 
 type TimerLayerTokenStore struct {
 	store.TokenStore
+	Root *TimerLayer
+}
+
+type TimerLayerTrueUpReviewStore struct {
+	store.TrueUpReviewStore
 	Root *TimerLayer
 }
 
@@ -4754,7 +4764,7 @@ func (s *TimerLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 	return result, err
 }
 
-func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	start := time.Now()
 
 	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
@@ -4784,6 +4794,22 @@ func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.N
 		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Save", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+	start := time.Now()
+
+	err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Update", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerOAuthStore) DeleteApp(id string) error {
@@ -5357,6 +5383,22 @@ func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetDirectPostParentsForExportAfter", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetEditHistoryForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetEditHistoryForPost", success, elapsed)
 	}
 	return result, err
 }
@@ -9549,6 +9591,54 @@ func (s *TimerLayerTokenStore) Save(recovery *model.Token) error {
 	return err
 }
 
+func (s *TimerLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
+	start := time.Now()
+
+	result, err := s.TrueUpReviewStore.CreateTrueUpReviewStatusRecord(reviewStatus)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TrueUpReviewStore.CreateTrueUpReviewStatusRecord", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error) {
+	start := time.Now()
+
+	result, err := s.TrueUpReviewStore.GetTrueUpReviewStatus(dueDate)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TrueUpReviewStore.GetTrueUpReviewStatus", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTrueUpReviewStore) Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
+	start := time.Now()
+
+	result, err := s.TrueUpReviewStore.Update(reviewStatus)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TrueUpReviewStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUploadSessionStore) Delete(id string) error {
 	start := time.Now()
 
@@ -11573,6 +11663,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.TermsOfServiceStore = &TimerLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}
 	newStore.ThreadStore = &TimerLayerThreadStore{ThreadStore: childStore.Thread(), Root: &newStore}
 	newStore.TokenStore = &TimerLayerTokenStore{TokenStore: childStore.Token(), Root: &newStore}
+	newStore.TrueUpReviewStore = &TimerLayerTrueUpReviewStore{TrueUpReviewStore: childStore.TrueUpReview(), Root: &newStore}
 	newStore.UploadSessionStore = &TimerLayerUploadSessionStore{UploadSessionStore: childStore.UploadSession(), Root: &newStore}
 	newStore.UserStore = &TimerLayerUserStore{UserStore: childStore.User(), Root: &newStore}
 	newStore.UserAccessTokenStore = &TimerLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}

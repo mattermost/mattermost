@@ -4989,7 +4989,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ungültiger Kanalname. Benutzerkennungen sind in Kanalnamen für Kanäle, die keine Direktnachrichtenkanäle sind, nicht erlaubt."
+    "translation": "Kanalnamen können nicht im hexadezimalen Format angegeben werden. Bitte gib einen anderen Kanalnamen ein."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -9296,7 +9296,7 @@
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Herunterstufen zu Cloud Starter"
+    "translation": "Herunterstufen zu Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9340,7 +9340,7 @@
   },
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Herabstufen zu Cloud Starter"
+    "translation": "Herabstufen zu Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9353,10 +9353,6 @@
   {
     "id": "api.templates.delinquency_45.subtitle3",
     "translation": "Aktualisiere jetzt deine Kreditkarteninformationen."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe, Integrationen und andere geschäftskritische Aktivitäten in deinem Arbeitsbereich auswirken."
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
@@ -9395,20 +9391,12 @@
     "translation": "Bezahlart aktualisieren"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Aktive Plugins und Integrationen"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "Nachrichtenverlauf"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Dateien"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Karten von deinen Boards"
   },
   {
     "id": "api.templates.delinquency_14.title",
@@ -9745,5 +9733,241 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Dekodierung der CA für Elasticsearch fehlgeschlagen"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server ist nicht verfügbar."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Die Gesamtzahl der ausgehenden Webhooks konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Die Gesamtzahl der eingehenden Webhooks konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Die Gesamtzahl der aktiven Benutzer konnte nicht ermittelt werden"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True Up Review ist für Cloud-Instanzen nicht erlaubt"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up review erfordert eine Lizenz"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Konnte keine True-Up-Status-Datensätze abrufen"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Konnte keinen True-Up-Status-Datensatz erstellen"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "Du hast nicht die Berechtigung, ein öffentliches Playbook zu erstellen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "Du hast keine Berechtigung, einen öffentlichen Kanal zu erstellen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "Du hast keine Berechtigung, ein öffentliches Board zu erstellen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "Du hast keine Berechtigung, ein privates Playbook zu erstellen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "Du hast keine Berechtigung, einen privaten Kanal zu erstellen."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "Du hast keine Berechtigung, ein privates Board zu erstellen."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "Benutzer mit dem Benutzernamen \"{{.Benutzername}}\" existiert bereits."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Die Arbeitsvorlagen sind deaktiviert."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Die Serverübersetzungen konnten nicht aktualisiert werden."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Kanal, der mit einem Playbook verbunden ist, kann nicht gefunden werden."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Verwende ein Projekt, um die Sprint-Planung zum Kinderspiel zu machen. Der Kanal sorgt dafür, dass die Unterhaltungen und Fragen fokussiert bleiben. Der Sprintplan hält alle Beteiligten auf dem Laufenden, und das Retrospektive Board bringt das Team zusammen, um sich kontinuierlich zu verbessern."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Verwende ein Projekt, um die Sprint-Planung zum Kinderspiel zu machen. Der Kanal sorgt dafür, dass die Unterhaltungen und Fragen fokussiert bleiben. Der Sprintplan hält alle Beteiligten auf dem Laufenden, und das Retrospektive Board bringt das Team zusammen, um sich kontinuierlich zu verbessern."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Verwende ein Projekt, um die Sprint-Planung zum Kinderspiel zu machen. Der Kanal sorgt dafür, dass die Unterhaltungen und Fragen fokussiert bleiben. Der Sprintplan hält alle Beteiligten auf dem Laufenden, und das Retrospektive Board bringt das Team zusammen, um sich kontinuierlich zu verbessern."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Beschreibung, warum der/die Kanal/Kanäle benötigt werden"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Beschreibung, warum das/die Board(s) benötigt werden"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Organisiere dich und beseitige alle Bugs mit   diesem Projekt! Bauen eine Dynamik auf und messe den Fortschritt mit dem zugeordneten Playbook, Board und Kanal."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Organisiere dich und beseitige alle Bugs mit   diesem Projekt! Bauen eine Dynamik auf und messe den Fortschritt mit dem zugeordneten Playbook, Board und Kanal."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Organisiere dich und beseitige alle Bugs mit   diesem Projekt! Bauen eine Dynamik auf und messe den Fortschritt mit dem zugeordneten Playbook, Board und Kanal."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Organisiere dich und beseitige alle Bugs mit   diesem Projekt! Bauen eine Dynamik auf und messe den Fortschritt mit dem zugeordneten Playbook, Board und Kanal."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Verpasse mit diesem Projekt keinen Schritt während einer Produktfreigabe. Weise Aufgaben aus der Playbook-Checkliste zu und setze Meilensteine mit dem Board. Verwende Kanäle, um alle auf dem gleichen Stand zu halten."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Verpasse mit diesem Projekt keinen Schritt während einer Produktfreigabe. Weise Aufgaben aus der Playbook-Checkliste zu und setze Meilensteine mit dem Board. Verwende Kanäle, um alle auf dem gleichen Stand zu halten."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Verpasse mit diesem Projekt keinen Schritt während einer Produktfreigabe. Weise Aufgaben aus der Playbook-Checkliste zu und setze Meilensteine mit dem Board. Verwende Kanäle, um alle auf dem gleichen Stand zu halten."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Wenn alles schief läuft, ist ein wiederholbarer Prozess der Schlüssel, um sicherzustellen, dass alles so schnell wie möglich in Ordnung gebracht wird. Dieses Projekt kombiniert alles, was Mattermost bietet, um sicherzustellen, dass die Probleme gelöst und die Beteiligten auf dem Weg dahin informiert werden."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Wenn alles schief läuft, ist ein wiederholbarer Prozess der Schlüssel, um sicherzustellen, dass alles so schnell wie möglich in Ordnung gebracht wird. Dieses Projekt kombiniert alles, was Mattermost bietet, um sicherzustellen, dass die Probleme gelöst und die Beteiligten auf dem Weg dahin informiert werden."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Wenn alles schief läuft, ist ein wiederholbarer Prozess der Schlüssel, um sicherzustellen, dass alles so schnell wie möglich in Ordnung gebracht wird. Dieses Projekt kombiniert alles, was Mattermost bietet, um sicherzustellen, dass die Probleme gelöst und die Beteiligten auf dem Weg dahin informiert werden."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Plane eine Roadmap mit diesem Projekt-Board und arbeite gemeinsam in dem mit dieser Vorlage erstellten Kanal an einem Thema."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Plane eine Roadmap mit diesem Projekt-Board und arbeite im Team in dem mit dieser Vorlage erstellten Kanal an einem Thema."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Plane mit diesem Projektboard eine Roadmap und arbeite in dem mit dieser Vorlage erstellten Kanal an einem Thema."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Führung"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Unternehmensweit"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Fehler beim Erstellen eines Playbooks."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Fehler beim Erstellen eines Kanals."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Fehler beim Erstellen eines Boards."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Fehler beim Ausführen einer Arbeitsvorlage."
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Deine Lizenz unterstützt keine privaten Playbooks."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Ungültiger AuthService: {{.AuthService}}"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Der Befehl Vorlagen wird von deinem Gerät nicht unterstützt."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "Vorlagen"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Öffne das Fenster \"Aus Vorlage erstellen\""
   }
 ]

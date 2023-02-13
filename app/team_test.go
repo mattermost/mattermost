@@ -4,7 +4,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -24,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -102,7 +105,6 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("block user by domain but allow bot", func(t *testing.T) {
-		t.Skip("MM-48973")
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
@@ -1835,4 +1837,45 @@ func TestGetNewTeamMembersSince(t *testing.T) {
 			require.ElementsMatch(t, uIDs(originalExpectedMembers), nUIDs(actualMembersList.Items))
 		})
 	})
+}
+
+func TestTeamSendEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(testCluster)
+	defer th.Server.Platform().SetCluster(nil)
+
+	team := th.CreateTeam()
+
+	testCluster.ClearMessages()
+
+	wsEvents := []string{model.WebsocketEventUpdateTeam, model.WebsocketEventRestoreTeam, model.WebsocketEventDeleteTeam}
+	for _, wsEvent := range wsEvents {
+		appErr := th.App.sendTeamEvent(team, wsEvent)
+		require.Nil(t, appErr)
+	}
+
+	msgs := testCluster.GetMessages()
+	require.Len(t, msgs, len(wsEvents))
+
+	for _, msg := range msgs {
+		ev, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+		require.NoError(t, err)
+
+		// The event should be a team event.
+		require.Equal(t, team.Id, ev.GetBroadcast().TeamId)
+
+		// Make sure we're hiding the sensitive fields.
+		var teamFromEvent *model.Team
+		err = json.Unmarshal([]byte(ev.GetData()["team"].(string)), &teamFromEvent)
+		require.NoError(t, err)
+		require.Equal(t, team.Id, teamFromEvent.Id)
+		require.Equal(t, team.DisplayName, teamFromEvent.DisplayName)
+		require.Equal(t, team.Name, teamFromEvent.Name)
+		require.Equal(t, team.Description, teamFromEvent.Description)
+		require.Equal(t, "", teamFromEvent.Email)
+		require.Equal(t, "", teamFromEvent.InviteId)
+	}
 }
