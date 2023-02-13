@@ -188,8 +188,10 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 // translations
 func GetSupportedLocales() map[string]bool {
 	locales := make(map[string]bool)
-	for _, locale := range bundle.LanguageTags() {
-		locales[locale.String()] = true
+	if bundle != nil {
+		for _, locale := range bundle.LanguageTags() {
+			locales[locale.String()] = true
+		}
 	}
 	return locales
 }
