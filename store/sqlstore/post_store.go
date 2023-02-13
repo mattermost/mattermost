@@ -2395,16 +2395,35 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 
 // DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
 func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	var query string
 	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Posts WHERE Id IN (
-		SELECT * FROM (
-			SELECT Posts.Id FROM Posts
-			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
+	if s.DriverName() == model.DatabaseDriverMysql {
+		// MySQL fails to do a proper antijoin if the selecting column
+		// and the joining column are different. In that case, doing a subquery
+		// leads to a faster plan because MySQL materializes the sub-query
+		// and does a covering index scan on Posts table. More details on the PR with
+		// this commit.
+		query = `
+		DELETE FROM Posts WHERE Id IN (
+			SELECT * FROM (
+				SELECT Posts.Id FROM Posts
+				WHERE Posts.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX (PRIMARY))
+				LIMIT ?
+			) AS A
+		)`
+	} else {
+		query = `
+		DELETE FROM Posts WHERE Id IN (
+			SELECT * FROM (
+				SELECT Posts.Id FROM Posts
+				LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+				WHERE Channels.Id IS NULL
+				LIMIT ?
+			) AS A
+		)`
+
+	}
+
 	result, err := s.GetMasterX().Exec(query, limit)
 	if err != nil {
 		return
