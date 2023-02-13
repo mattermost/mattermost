@@ -9492,10 +9492,6 @@
     "translation": "这是自 {{.DelinquencyDate}} 后我们尚未收到您的 Mattermost Cloud 工作区付款的最后提醒。"
   },
   {
-    "id": "api.license.true_up_review.create_error",
-    "translation": ""
-  },
-  {
     "id": "api.command_templates.name",
     "translation": "模板"
   },
