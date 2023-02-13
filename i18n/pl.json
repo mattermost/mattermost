@@ -7669,7 +7669,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Zaloguj się do swojego konta klienta, aby odnowić umowę"
+    "translation": "Zaloguj się do swojego konta klienta, aby odnowić"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
@@ -7709,7 +7709,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Twoja subskrypcja Mattermost została przedłużona"
+    "translation": "Twoja subskrypcja Mattermost wymaga przedłużenia"
   },
   {
     "id": "api.templates.license_up_for_renewal_renew_now",
@@ -9970,5 +9970,33 @@
   {
     "id": "api.command_templates.desc",
     "translation": "Otwórz okno tworzenia z szablonu"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Pole nazwa nie może zawierać więcej niż 64 znaki."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "nie znaleziono klucza produktu"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "interfejs nie jest oczekiwanym typem"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "błąd podczas paczowania tablicy"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "błąd nie utworzono tablicy"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "błąd pobierania szablonów tablic"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "błąd duplikowania tablicy"
   }
 ]
