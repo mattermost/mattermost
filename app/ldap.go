@@ -24,8 +24,8 @@ func (a *App) SyncLdap(includeRemovedMembers bool) {
 				mlog.Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
 				return
 			}
-			ldapI := a.Ldap()
 
+			ldapI := a.Ldap()
 			if ldapI == nil {
 				mlog.Error("Not executing ldap sync because ldap is not available")
 				return
