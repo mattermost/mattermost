@@ -2,46 +2,12 @@ name: mattermost-build
 on:
   push
 jobs:
-  setup-multiproduct-repositories:
-    name: Checkout repositories
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout mattermost-server
-      uses: actions/checkout@v3
-    - name: Checkout focalboard
-      run: |
-        cd ..
-        git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git  
-        cd focalboard
-        git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
-        echo $(git rev-parse HEAD)
-        cd ../mattermost-server
-        make setup-go-work
-    - name: Get Date
-      id: get-date
-      run: |
-        echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
-      shell: bash
-    - name: Cache artifacts
-      uses: actions/cache@v3
-      with:
-        path: |
-          .go.work
-          ../focalboard
-        key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
   check-mocks:
     name: Check mocks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
-        id: cache
-        with:
-          path: |
-            .go.work
-            ../focalboard
-          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -52,13 +18,6 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
-        id: cache
-        with:
-          path: |
-            .go.work
-            ../focalboard
-          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -69,13 +28,6 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
-        id: cache
-        with:
-          path: |
-            .go.work
-            ../focalboard
-          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -86,13 +38,15 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
-        id: cache
-        with:
-          path: |
-            .go.work
-            ../focalboard
-          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Checkout focalboard
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git  
+          cd focalboard
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+          echo $(git rev-parse HEAD)
+          cd ../mattermost-server
+          make setup-go-work
       - name: Reset config
         run: make config-reset
       - name: Run plugin-checker
@@ -105,13 +59,6 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
-        id: cache
-        with:
-          path: |
-            .go.work
-            ../focalboard
-          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
