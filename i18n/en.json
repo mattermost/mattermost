@@ -9749,7 +9749,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
