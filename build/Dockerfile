@@ -58,7 +58,7 @@ RUN apt-get update \
   libxext6=2:1.3.3-1+b2 \
   libxrender1=1:0.9.10-1 \
   libcairo2=1.16.0-4+deb10u1 \
-  libcurl3-gnutls=7.64.0-4+deb10u3 \
+  libcurl3-gnutls=7.64.0-4+deb10u4 \
   libglib2.0-0=2.58.3-2+deb10u3 \
   libgsf-1-common=1.14.45-1 \
   libgsf-1-114=1.14.45-1 \
