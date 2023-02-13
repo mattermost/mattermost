@@ -63,3 +63,20 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  check-gen-serialized:
+    name: Check serialization methods for hot structs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: |
+            .go.work
+            ../focalboard
+          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Run make-gen-serialized
+        run: make gen-serialized
+      - name: Check serialized
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
