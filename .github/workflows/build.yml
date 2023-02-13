@@ -99,3 +99,21 @@ jobs:
         run: make plugin-checker
       - name: Run mattermost-vet
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+  check-migrations:
+    name: Check migration files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: |
+            .go.work
+            ../focalboard
+          key: cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Extract migrations files
+        run: make migrations-extract
+      - name: Check migration files
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+
