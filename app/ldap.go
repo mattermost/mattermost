@@ -20,15 +20,17 @@ func (a *App) SyncLdap(includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
-			if *a.Config().LdapSettings.EnableSync {
-				if ldapI := a.Ldap(); ldapI != nil {
-					ldapI.StartSynchronizeJob(false, includeRemovedMembers)
-				} else {
-					mlog.Error("Not executing ldap sync because ldap is not available")
-				}
-			} else {
+			if !*a.Config().LdapSettings.EnableSync {
 				mlog.Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
+				return
 			}
+			ldapI := a.Ldap()
+
+			if ldapI == nil {
+				mlog.Error("Not executing ldap sync because ldap is not available")
+				return
+			}
+			ldapI.StartSynchronizeJob(false, includeRemovedMembers)
 		}
 	})
 }
