@@ -120,3 +120,58 @@ jobs:
         run: make app-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+  build-mattermost-server:
+    name: Build mattermost-server
+    runs-on: ubuntu-latest
+    needs: check-mattermost-vet
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - name: Checkout mattermost-webapp
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
+          cd mattermost-webapp
+          git checkout $GITHUB_HEAD_REF || git checkout master
+          export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
+          echo "$WEBAPP_GIT_COMMIT"
+          FILE_DIST=dist.tar.gz
+          curl --version
+          runtime="2 minute"
+          endtime=$(date -ud "$runtime" +%s)
+          while [[ $(date -u +%s) -le $endtime ]]; do
+            if curl -s --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz; then
+              break
+            fi
+            echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
+            sleep 5
+          done
+          if [[ -f "$FILE_DIST" ]]; then
+            echo "Precompiled version of web app found"
+            mkdir dist && tar -xf $FILE_DIST -C dist --strip-components=1
+          else
+          echo "Building web app from source"
+          make dist
+          fi
+          cd ../mattermost-server
+      - name: Checkout and build focalboard
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
+          cd focalboard
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+          echo $(git rev-parse HEAD)
+          make server-linux
+          echo "Building Boards product for web app"
+          # make prebuild build-product # TODO figure out how to get this to run without bypassing the Makefile
+          make prebuild
+          cd mattermost-plugin/webapp
+          npm run build:product
+          cd ../../../mattermost-server
+          cd ../mattermost-server
+          make setup-go-work
+      - name: Build
+        run: |
+          make config-reset
+          make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+          make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
