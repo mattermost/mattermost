@@ -2948,6 +2948,10 @@
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Invalid log filter"
+  },
+  {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Clearing old product notices failed"
   },

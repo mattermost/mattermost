@@ -9958,5 +9958,45 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Услуга доступна только в редакции Mattermost Enterprise"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Команда шаблонов не поддерживается на вашем устройстве."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "шаблоны"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Откройте окно создания из шаблона"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Поле имени не может содержать более 64 символов."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "ключ продукта не найден"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "интерфейс не ожидаемого типа"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "ошибка при подключении доски"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "ошибка при создании доски"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "ошибка при получении шаблонов досок"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "ошибка при дубликации доски"
   }
 ]
