@@ -9990,5 +9990,9 @@
   {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": ""
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": ""
   }
 ]
