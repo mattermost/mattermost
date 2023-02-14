@@ -23,20 +23,8 @@ import (
 
 const (
 	LicenseEnv                = "MM_LICENSE"
-	LicenseRenewalURL         = "https://customers.mattermost.com/subscribe/renew"
-	LicenseRenewalURLTest     = "https://portal.test.cloud.mattermost.com/subscribe/renew"
 	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
-
-var (
-	RequestTrialURL = "https://customers.mattermost.com/api/v1/trials"
-)
-
-func init() {
-	if !model.IsProdLicensePublicKey {
-		RequestTrialURL = "https://portal.test.cloud.mattermost.com/api/v1/trials"
-	}
-}
 
 // JWTClaims custom JWT claims with the needed information for the
 // renewal process
@@ -309,7 +297,7 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	resp, err := http.Post(RequestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
+	resp, err := http.Post(ps.getRequestTrialURL(), "application/json", bytes.NewBuffer(trialRequestJSON))
 	if err != nil {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -386,10 +374,13 @@ func (ps *PlatformService) GenerateLicenseRenewalLink() (string, string, *model.
 	if err != nil {
 		return "", "", err
 	}
-	renewalLink := LicenseRenewalURL
-	if !model.IsProdLicensePublicKey {
-		renewalLink = LicenseRenewalURLTest
-	}
-	renewalLink += "?token=" + renewalToken
-	return renewalLink, renewalToken, nil
+	return fmt.Sprintf("%s?token=%s", ps.getLicenseRenewalURL(), renewalToken), renewalToken, nil
+}
+
+func (ps *PlatformService) getLicenseRenewalURL() string {
+	return fmt.Sprintf("%s/subscribe/renew", *ps.Config().CloudSettings.CWSURL)
+}
+
+func (ps *PlatformService) getRequestTrialURL() string {
+	return fmt.Sprintf("%s/api/v1/trials", *ps.Config().CloudSettings.CWSURL)
 }

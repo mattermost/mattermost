@@ -242,7 +242,7 @@ const (
 	CloudSettingsDefaultCwsURL        = "https://customers.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL     = "https://portal.internal.prod.cloud.mattermost.com"
 	CloudSettingsDefaultCwsURLTest    = "https://portal.test.cloud.mattermost.com"
-	CloudSettingsDefaultCwsAPIURLTest = "https://portal.test.cloud.mattermost.com"
+	CloudSettingsDefaultCwsAPIURLTest = "https://api.internal.test.cloud.mattermost.com"
 
 	OpenidSettingsDefaultScope = "profile openid email"
 
@@ -2779,13 +2779,13 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !IsProdLicensePublicKey {
+		if !isProdLicensePublicKey {
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
 		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !IsProdLicensePublicKey {
+		if !isProdLicensePublicKey {
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}

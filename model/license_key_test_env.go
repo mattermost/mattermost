@@ -4,4 +4,4 @@
 
 package model
 
-const IsProdLicensePublicKey = false
+const isProdLicensePublicKey = false
