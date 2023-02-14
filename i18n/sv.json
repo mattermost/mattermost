@@ -9997,5 +9997,9 @@
   {
     "id": "api.command_templates.desc",
     "translation": "Öppna fönstret Skapa från mall"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": ""
   }
 ]
