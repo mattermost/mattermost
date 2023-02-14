@@ -171,6 +171,29 @@ func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID strin
 	return r0, r1
 }
 
+// GetEditHistoryForPost provides a mock function with given fields: postId
+func (_m *PostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	ret := _m.Called(postId)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string) []*model.Post); ok {
+		r0 = rf(postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetEtag provides a mock function with given fields: channelID, allowFromCache, collapsedThreads
 func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
 	ret := _m.Called(channelID, allowFromCache, collapsedThreads)

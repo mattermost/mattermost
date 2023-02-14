@@ -3,6 +3,15 @@
 
 package model
 
+const (
+	// used to assign the work template id to newly created channels
+	WorkTemplateIDChannelProp = "work_template_id"
+
+	// Visibility
+	WorkTemplateVisibilityPublic  = "public"
+	WorkTemplateVisibilityPrivate = "private"
+)
+
 type WorkTemplateCategory struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -68,4 +77,9 @@ type WorkTemplateContent struct {
 	Board       *WorkTemplateBoard       `json:"board,omitempty"`
 	Playbook    *WorkTemplatePlaybook    `json:"playbook,omitempty"`
 	Integration *WorkTemplateIntegration `json:"integration,omitempty"`
+}
+
+type WorkTemplateExecutionResult struct {
+	ChannelWithPlaybookIDs []string `json:"channel_with_playbook_ids"`
+	ChannelIDs             []string `json:"channel_ids"`
 }

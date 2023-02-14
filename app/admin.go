@@ -37,7 +37,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 		}
 	}
 
-	melines, err := s.GetLogsSkipSend(page, perPage)
+	melines, err := s.GetLogsSkipSend(page, perPage, &model.LogFilter{})
 	if err != nil {
 		return nil, err
 	}
@@ -56,16 +56,75 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
+func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	logData := make(map[string][]string)
+
+	serverName := "default"
+
+	license := s.License()
+	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
+		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
+			serverName = info.Hostname
+		} else {
+			mlog.Error("Could not get cluster info")
+		}
+	}
+
+	serverNames := logFilter.ServerNames
+	if len(serverNames) > 0 {
+		for _, nodeName := range serverNames {
+			if nodeName == "default" {
+				AddLocalLogs(logData, s, page, perPage, nodeName, logFilter)
+			}
+		}
+	} else {
+		AddLocalLogs(logData, s, page, perPage, serverName, logFilter)
+	}
+
+	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
+		clusterLogs, err := s.platform.Cluster().QueryLogs(page, perPage)
+		if err != nil {
+			return nil, err
+		}
+
+		if clusterLogs != nil && len(serverNames) > 0 {
+			for _, filteredNodeName := range serverNames {
+				logData[filteredNodeName] = clusterLogs[filteredNodeName]
+			}
+		} else {
+			for nodeName, logs := range clusterLogs {
+				logData[nodeName] = logs
+			}
+		}
+	}
+
+	return logData, nil
+}
+
+func AddLocalLogs(logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
+	currentServerLogs, err := s.GetLogsSkipSend(page, perPage, logFilter)
+	if err != nil {
+		return err
+	}
+
+	logData[serverName] = currentServerLogs
+	return nil
+}
+
+func (a *App) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	return a.Srv().QueryLogs(page, perPage, logFilter)
+}
+
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().GetLogs(page, perPage)
 }
 
-func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
-	return s.platform.GetLogsSkipSend(page, perPage)
+func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+	return s.platform.GetLogsSkipSend(page, perPage, logFilter)
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogsSkipSend(page, perPage)
+func (a *App) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+	return a.Srv().GetLogsSkipSend(page, perPage, logFilter)
 }
 
 func (a *App) GetClusterStatus() []*model.ClusterInfo {
@@ -136,7 +195,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	T := i18n.GetUserTranslations(user.Locale)
 	license := a.Srv().License()
 	mailConfig := a.Srv().MailServiceConfig()
-	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, "", "", "", ""); err != nil {
+	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", ""); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 

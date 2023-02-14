@@ -9476,10 +9476,6 @@
     "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle1",
     "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
   },
@@ -9516,20 +9512,12 @@
     "translation": "Обновить платёж"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.plugins",
-    "translation": "Активные плагины и интеграции"
-  },
-  {
     "id": "api.templates.delinquency_30.bullet.message_history",
     "translation": "История сообщений"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Файлы"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.cards",
-    "translation": "Карточки с Ваших Boards"
   },
   {
     "id": "app.collection.add_topic.exists.app_error",
@@ -9746,5 +9734,269 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Расшифровка CA для Elasticsearch не удалась"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "Сервер CWS не доступен."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Не удалось получить общее количество исходящих вебхуков"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Не удалось получить общее количество входящих вебхуков"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Не удалось получить общее количество активных пользователей"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Для облачных экземпляров не допускается пересмотр в сторону увеличения"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Для проверки достоверности требуется лицензия"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Не удалось получить запись истинного состояния"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Не удалось создать запись истинного состояния"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Невозможно найти канал, связанный с сценарием."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Ошибка при создании сценария."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Ошибка при создании канала."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Ошибка при создании доски."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Ошибка при выполнении рабочего шаблона."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "У вас нет прав на создание публичного сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "У вас нет прав на создание публичного канала."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "У вас нет прав для создания публичной доски."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "У вас нет прав для создания приватного сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "У вас нет прав для создания приватного канала."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "У вас нет прав для создания приватной доски."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Рабочие шаблоны отключены."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Не удалось обновить переводы сервера."
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Ваша лицензия не поддерживает приватные сценарии."
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Масштаб всей компании"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Неверная служба авторизации: {{.AuthService}}"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Описание того, зачем нужен канал(ы)"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Описание того, зачем нужна(ы) доска(и)"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Лидерство"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Услуга доступна только в редакции Mattermost Enterprise"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Команда шаблонов не поддерживается на вашем устройстве."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "шаблоны"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Откройте окно создания из шаблона"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Поле имени не может содержать более 64 символов."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "ключ продукта не найден"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "интерфейс не ожидаемого типа"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "ошибка при подключении доски"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "ошибка при создании доски"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "ошибка при получении шаблонов досок"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "ошибка при дубликации доски"
   }
 ]
