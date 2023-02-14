@@ -100,3 +100,23 @@ jobs:
           make build-templates
       - name: Check generated email templates
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+  check-store-layers:
+    name: Check store layers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - name: Generate store layers
+        run: make store-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+  check-app-layers:
+    name: Check app layers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - name: Generate app layers
+        run: make app-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
