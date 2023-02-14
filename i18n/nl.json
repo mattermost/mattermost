@@ -9997,5 +9997,9 @@
   {
     "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
     "translation": "fout bij het dupliceren van het bord"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": ""
   }
 ]
