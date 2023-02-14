@@ -63,4 +63,19 @@ jobs:
         run: make migrations-extract
       - name: Check migration files
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+  build-api-spec:
+    name: Build API specification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@v3
+      - name: Checkout mattermost-api-reference
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
+          cd mattermost-api-reference
+          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
+          make build
+          cd ../mattermost-server
 
