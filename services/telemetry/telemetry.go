@@ -734,15 +734,16 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigExperimental, map[string]any{
-		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
-		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
-		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
-		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
-		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"client_side_cert_enable":                         *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":                isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
+		"link_metadata_timeout_milliseconds":              *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"restrict_system_admin":                           *cfg.ExperimentalSettings.RestrictSystemAdmin,
+		"use_new_saml_library":                            *cfg.ExperimentalSettings.UseNewSAMLLibrary,
+		"enable_shared_channels":                          *cfg.ExperimentalSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":                   *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                                  *cfg.ExperimentalSettings.EnableAppBar,
+		"patch_plugins_react_dom":                         *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"interactive_dialog_trigger_timeout_milliseconds": *cfg.ExperimentalSettings.InteractiveDialogTriggerTimeoutMilliseconds,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
