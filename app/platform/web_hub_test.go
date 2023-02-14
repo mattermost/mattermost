@@ -580,3 +580,40 @@ func TestClusterBroadcast(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, clusterEvent.Broadcast, broadcast)
 }
+
+func TestSynchronousWebSocketSend(t *testing.T) {
+	testCluster := &testlib.FakeClusterInterface{}
+
+	th := SetupWithCluster(t, testCluster)
+	defer th.TearDown()
+
+	ev := model.NewWebSocketEvent("test_async_event", "", "", "", nil, "")
+	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
+	th.Service.Publish(ev)
+	ev2 := model.NewWebSocketEvent("test_sync_event", "", "", "", nil, "")
+
+	ev2 = ev2.SetBroadcast(&model.WebsocketBroadcast{
+		SynchronousClusterSend: true,
+	})
+	th.Service.Publish(ev2)
+
+	messages := testCluster.GetMessages()
+
+	evJSON, err := ev.ToJSON()
+	require.NoError(t, err)
+	ev2JSON, err := ev2.ToJSON()
+	require.NoError(t, err)
+
+	require.Contains(t, messages, &model.ClusterMessage{
+		Event:            model.ClusterEventPublish,
+		Data:             evJSON,
+		SendType:         model.ClusterSendBestEffort,
+		WaitForAllToSend: false,
+	})
+	require.Contains(t, messages, &model.ClusterMessage{
+		Event:            model.ClusterEventPublish,
+		Data:             ev2JSON,
+		SendType:         model.ClusterSendBestEffort,
+		WaitForAllToSend: true,
+	})
+}

@@ -55,7 +55,7 @@ func (ps *PlatformService) PublishPluginClusterEvent(productID string, ev model.
 	msg := &model.ClusterMessage{
 		Event:            model.ClusterEventPluginEvent,
 		SendType:         opts.SendType,
-		WaitForAllToSend: false,
+		WaitForAllToSend: opts.Synchronous,
 		Props: map[string]string{
 			"ProductID": productID,
 			"EventID":   ev.Id,
@@ -192,9 +192,10 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
 		}
 		cm := &model.ClusterMessage{
-			Event:    model.ClusterEventPublish,
-			SendType: model.ClusterSendBestEffort,
-			Data:     data,
+			Event:            model.ClusterEventPublish,
+			SendType:         model.ClusterSendBestEffort,
+			WaitForAllToSend: message.GetBroadcast().SynchronousClusterSend,
+			Data:             data,
 		}
 
 		if message.EventType() == model.WebsocketEventPosted ||

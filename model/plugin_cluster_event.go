@@ -25,4 +25,7 @@ type PluginClusterEventSendOptions struct {
 	// It should match the cluster id of the receiving instance.
 	// If empty, the event gets broadcasted to all other nodes.
 	TargetId string
+	// Synchronous defines whether or not the underlying send operation should be performed
+	// synchronously, waiting for the event to be sent to the available nodes before proceeding.
+	Synchronous bool
 }

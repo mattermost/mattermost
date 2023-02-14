@@ -102,6 +102,10 @@ type WebsocketBroadcast struct {
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
+	// SynchronousClusterSend indicates whether or not the underlying send operation
+	// should be performed synchronously, waiting for the message to be sent to
+	// the other available nodes before proceeding.
+	SynchronousClusterSend bool `json:"-"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
