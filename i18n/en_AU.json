@@ -9965,41 +9965,5 @@
   {
     "id": "api.command_templates.desc",
     "translation": "Open the create from template window"
-  },
-  {
-    "id": "api.system.logs.invalidFilter",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": ""
-  },
-  {
-    "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": ""
   }
 ]
