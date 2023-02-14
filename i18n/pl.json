@@ -9998,5 +9998,9 @@
   {
     "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
     "translation": "błąd duplikowania tablicy"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": ""
   }
 ]
