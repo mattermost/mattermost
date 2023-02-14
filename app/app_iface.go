@@ -573,7 +573,7 @@ type AppIface interface {
 	FillInChannelsProps(c request.CTX, channelList model.ChannelList) *model.AppError
 	FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError)
 	FindTeamByName(name string) bool
-	FinishSendAdminNotifyPost(trial bool, now int64)
+	FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedData map[string][]*model.NotifyAdminData)
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket() []model.FileData
@@ -682,7 +682,7 @@ type AppIface interface {
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)
-	GetLogsSkipSend(page, perPage int) ([]string, *model.AppError)
+	GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
 	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError)
@@ -961,6 +961,7 @@ type AppIface interface {
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
+	QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	RecycleDatabaseConnection()
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
@@ -1167,7 +1168,7 @@ type AppIface interface {
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
-	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool
+	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostFeature) bool
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	UserIsFirstAdmin(user *model.User) bool
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError

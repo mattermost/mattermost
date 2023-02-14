@@ -2170,10 +2170,12 @@ func (a *App) CheckPostReminders() {
 					"PostId":   postID,
 					"Username": metadata.Username,
 				}),
-				Type:   model.PostTypeDefault,
+				Type:   model.PostTypeReminder,
 				UserId: systemBot.UserId,
 				Props: model.StringInterface{
-					"username": systemBot.Username,
+					"team_name": metadata.TeamName,
+					"post_id":   postID,
+					"username":  metadata.Username,
 				},
 			}
 

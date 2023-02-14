@@ -8985,7 +8985,7 @@
   },
   {
     "id": "Playbooks",
-    "translation": "プレイブック"
+    "translation": "Playbooks"
   },
   {
     "id": "Channels",
@@ -8993,7 +8993,7 @@
   },
   {
     "id": "Boards",
-    "translation": "ボード"
+    "translation": "Boards"
   },
   {
     "id": "model.emoji.system_emoji_name.app_error",
@@ -9669,7 +9669,7 @@
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda ボードテンプレート、タスクの進捗管理には Project Task ボードをご利用ください。"
+    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda Boardテンプレート、タスクの進捗管理には Project Task Boardをご利用ください。"
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9942,5 +9942,9 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "サーバーの翻訳を更新できませんでした。"
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "templates"
   }
 ]
