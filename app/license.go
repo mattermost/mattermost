@@ -17,11 +17,11 @@ import (
 
 const (
 	LicenseEnv                = "MM_LICENSE"
-	LicenseRenewalURL         = "https://portal.test.cloud.mattermost.com/subscribe/renew"
+	LicenseRenewalURL         = "https://customers.mattermost.com/subscribe/renew"
 	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
 
-var RequestTrialURL = "https://portal.test.cloud.mattermost.com/api/v1/trials"
+var RequestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 
 // ensure the license service wrapper implements `product.LicenseService`
 var _ product.LicenseService = (*licenseWrapper)(nil)
