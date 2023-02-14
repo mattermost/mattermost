@@ -9946,53 +9946,5 @@
   {
     "id": "api.command_templates.name",
     "translation": "templates"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": ""
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": ""
-  },
-  {
-    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
-    "translation": ""
-  },
-  {
-    "id": "api.system.logs.invalidFilter",
-    "translation": ""
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": ""
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.server.cws.needs_enterprise_edition",
-    "translation": ""
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": ""
   }
 ]
