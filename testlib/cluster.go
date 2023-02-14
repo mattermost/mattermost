@@ -59,6 +59,10 @@ func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppE
 	return []string{}, nil
 }
 
+func (c *FakeClusterInterface) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	return make(map[string][]string), nil
+}
+
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }

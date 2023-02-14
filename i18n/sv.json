@@ -9268,7 +9268,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanban-struktur för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
+    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanbantavlor för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
@@ -9592,7 +9592,7 @@
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chatta med ditt team i kanalen för Kommande leveranser som enkelt kan anslutas till dina boards, playbooks och app-bottar."
+    "translation": "Chatta med ditt team i kanalen för kommande leveranser, som enkelt kan anslutas till dina tavlor, playbooks och app-bottar."
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.board",
@@ -9957,5 +9957,45 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Tjänsten är endast tillgänglig i Mattermost Enterprise-edition"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Fältet Namn får inte innehålla mer än 64 tecken."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "hittade inte produktnyckeln"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "gränssnittet är inte av förväntad typ"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "error när tavlan uppdaterades"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "fel, ingen tavla skapades"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "fel när mallar för tavlor hämtades"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "fel när tavlan duplicerades"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Kommandot för mallar stöds inte på din enhet."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "mallar"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Öppna fönstret Skapa från mall"
   }
 ]
