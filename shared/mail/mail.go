@@ -289,10 +289,6 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 	return sendMail(c, mail, time.Now(), config)
 }
 
-type XSMTPAPIHeader struct {
-	Category string `json:"category,omitempty"`
-}
-
 const SendGridXSMTPAPIHeader = "X-SMTPAPI"
 
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
