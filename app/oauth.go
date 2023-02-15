@@ -502,7 +502,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 	}
 
 	if err := a.Srv().Store().OAuth().RemoveAuthDataByClientId(appID, userID); err != nil {
-		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.RemoveAuthDataByClientId.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.remove_auth_data_by_client_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Deauthorize the app

@@ -5940,6 +5940,10 @@
     "translation": "Unable to remove the access token."
   },
   {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Unable to remove oauth data."
+  },
+  {
     "id": "app.oauth.save_app.existing.app_error",
     "translation": "Must call update for existing app."
   },
