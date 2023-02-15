@@ -9777,19 +9777,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 106+"
+    "translation": "Version 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 95+"
+    "translation": "Version 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 91+"
+    "translation": "Version 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 14.1+"
+    "translation": "Version 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -9797,7 +9797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
