@@ -320,8 +320,8 @@ type Feedback struct {
 }
 
 type WorkspaceDeletionRequest struct {
-	SubscriptionID string `json:"subscription_id"`
-	Feedback
+	SubscriptionID string    `json:"subscription_id"`
+	Feedback       *Feedback `json:"delete_feedback"`
 }
 
 func (p *Product) IsYearly() bool {
