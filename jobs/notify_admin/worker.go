@@ -11,6 +11,7 @@ import (
 const (
 	UpgradeNotifyJobName = "UpgradeNotifyAdmin"
 	TrialNotifyJobName   = "TrialNotifyAdmin"
+	InstallNotifyJobName = "InstallNotifyAdmin"
 )
 
 type AppIface interface {
@@ -50,5 +51,23 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 		return nil
 	}
 	worker := jobs.NewSimpleWorker(TrialNotifyJobName, jobServer, execute, isEnabled)
+	return worker
+}
+
+func MakeInstallPluginNotifyWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+	isEnabled := func(_ *model.Config) bool {
+		return true
+	}
+	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
+		appErr := app.DoCheckForAdminNotifications(false)
+		if appErr != nil {
+			return appErr
+		}
+
+		return nil
+	}
+	worker := jobs.NewSimpleWorker(InstallNotifyJobName, jobServer, execute, isEnabled)
 	return worker
 }

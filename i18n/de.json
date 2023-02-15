@@ -9969,5 +9969,33 @@
   {
     "id": "api.command_templates.desc",
     "translation": "Öffne das Fenster \"Aus Vorlage erstellen\""
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "Produktschlüssel nicht gefunden"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "Schnittstelle nicht vom erwarteten Typ"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "Fehler beim Patchen des Boards"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "Fehler kein Board erstellt"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "Fehler beim Abrufen von Board-Templates"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "Fehler beim Duplizieren des Boards"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Das Namensfeld darf nicht mehr als 64 Zeichen enthalten."
   }
 ]
