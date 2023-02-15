@@ -430,6 +430,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
 		PostTypeWelcomePost,
+		PostTypeReminder,
 		PostTypeMe:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {

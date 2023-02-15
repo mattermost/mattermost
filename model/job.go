@@ -32,6 +32,7 @@ const (
 	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
 	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
 	JobTypePostPersistentNotifications  = "post_persistent_notifications"
+	JobTypeInstallPluginNotifyAdmin     = "install_plugin_notify_admin"
 	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
 
 	JobStatusPending         = "pending"

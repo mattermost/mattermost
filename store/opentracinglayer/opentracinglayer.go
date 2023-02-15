@@ -5259,7 +5259,7 @@ func (s *OpenTracingLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdmin
 	return result, err
 }
 
-func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.GetDataByUserIdAndFeature")
 	s.Root.Store.SetContext(newCtx)
@@ -5293,6 +5293,24 @@ func (s *OpenTracingLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*m
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.Update")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerOAuthStore) DeleteApp(id string) error {

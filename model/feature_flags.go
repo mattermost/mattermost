@@ -73,6 +73,9 @@ type FeatureFlags struct {
 	// A/B Test on reduced onboarding task list item
 	ReduceOnBoardingTaskList bool
 
+	// A/B Test to control when to show onboarding linked board
+	OnboardingAutoShowLinkedBoard bool
+
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
@@ -97,7 +100,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
+	f.BoardsProduct = true
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
@@ -107,6 +110,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
+	f.OnboardingAutoShowLinkedBoard = true
 	f.OnboardingTourTips = true
 }
 

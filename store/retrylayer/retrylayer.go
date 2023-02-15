@@ -5951,7 +5951,7 @@ func (s *RetryLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 
 }
 
-func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 
 	tries := 0
 	for {
@@ -5987,6 +5987,27 @@ func (s *RetryLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.N
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+
+	tries := 0
+	for {
+		err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
