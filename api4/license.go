@@ -54,6 +54,8 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	fmt.Println("<><> addLicence")
+
 	auditRec := c.MakeAuditRecord("addLicense", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -140,6 +142,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("<><> is cloud? %v\n", c.App.Channels().License().IsCloud())
 	if c.App.Channels().License().IsCloud() {
 		// If cloud, invalidate the caches when a new license is loaded
 		defer c.App.Srv().Cloud.HandleLicenseChange()

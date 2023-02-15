@@ -273,6 +273,8 @@ func (ch *Channels) Start() error {
 			}
 		}
 
+		fmt.Printf("<><> hasDiff: %v\n", hasDiff)
+
 		// Do only if some plugin related settings has changed.
 		if hasDiff {
 			if *cfg.PluginSettings.Enable {
@@ -346,6 +348,8 @@ func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 }
 
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+	fmt.Printf("<><> running multihook for hookID: %v, the id for onCloudLimitsUpdated is %v\n", hookId, plugin.OnCloudLimitsUpdatedID)
+
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
