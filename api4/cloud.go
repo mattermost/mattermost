@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 )
 
 func (api *API) InitCloud() {
@@ -133,7 +134,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	changedSub, err := c.App.Cloud().ChangeSubscription(userId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		appErr := model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err.Error() == "compliance-failed" {
+			c.Logger.Error("Compliance check failed", mlog.Err(err))
+			appErr.StatusCode = http.StatusUnprocessableEntity
+		}
+
+		c.Err = appErr
 		return
 	}
 
@@ -643,7 +650,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	writeFileResponse(
+	web.WriteFileResponse(
 		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),

@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -230,6 +231,11 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	systemValue, err := c.App.Srv().Store().System().GetByName(model.SystemHostedPurchaseNeedsScreening)
+	if err == nil && systemValue != nil {
+		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusTooEarly)
+		return
+	}
 
 	ReturnStatusOK(w)
 }
@@ -270,7 +276,7 @@ func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeFileResponse(
+	web.WriteFileResponse(
 		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),
