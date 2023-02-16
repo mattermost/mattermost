@@ -57,6 +57,7 @@ type mailData struct {
 	messageID     string
 	inReplyTo     string
 	references    string
+	category      string
 }
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
@@ -234,7 +235,7 @@ func TestConnection(config *SMTPConfig) error {
 	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string) error {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string, category string) error {
 	fromMail := mail.Address{Name: config.FeedbackName, Address: config.FeedbackEmail}
 	replyTo := mail.Address{Name: config.FeedbackName, Address: config.ReplyToAddress}
 
@@ -250,13 +251,14 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		messageID:     messageID,
 		inReplyTo:     inReplyTo,
 		references:    references,
+		category:      category,
 	}
 
 	return sendMailUsingConfigAdvanced(mail, config)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string) error {
-	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, messageID, inReplyTo, references, ccMail)
+func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail, category string) error {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, messageID, inReplyTo, references, ccMail, category)
 }
 
 // allows for sending an email with differing MIME/SMTP recipients
@@ -287,6 +289,8 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 	return sendMail(c, mail, time.Now(), config)
 }
 
+const SendGridXSMTPAPIHeader = "X-SMTPAPI"
+
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
@@ -305,6 +309,11 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 		"Content-Transfer-Encoding": {"8bit"},
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
+	}
+
+	if mail.category != "" {
+		sendgridHeader := fmt.Sprintf(`{"category": %q}`, mail.category)
+		headers[SendGridXSMTPAPIHeader] = []string{sendgridHeader}
 	}
 
 	if mail.replyTo.Address != "" {

@@ -119,7 +119,7 @@ type Post struct {
 }
 
 func (o *Post) Auditable() map[string]interface{} {
-	return map[string]interface{}{ // TODO check this
+	return map[string]interface{}{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,
@@ -193,6 +193,15 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 		*copy.Message = RewriteImageURLs(*o.Message, f)
 	}
 	return &copy
+}
+
+func (o *PostPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"is_pinned":     o.IsPinned,
+		"props":         o.Props,
+		"file_ids":      o.FileIds,
+		"has_reactions": o.HasReactions,
+	}
 }
 
 type PostForExport struct {
@@ -324,13 +333,16 @@ type GetPostsOptions struct {
 
 type PostCountOptions struct {
 	// Only include posts on a specific team. "" for any team.
-	TeamId          string
-	MustHaveFile    bool
-	MustHaveHashtag bool
-	ExcludeDeleted  bool
-	UsersPostsOnly  bool
+	TeamId             string
+	MustHaveFile       bool
+	MustHaveHashtag    bool
+	ExcludeDeleted     bool
+	ExcludeSystemPosts bool
+	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
+	SincePostID    string
+	SinceUpdateAt  int64
 }
 
 func (o *Post) Etag() string {
@@ -403,6 +415,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
 		PostTypeWelcomePost,
+		PostTypeReminder,
 		PostTypeMe:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {

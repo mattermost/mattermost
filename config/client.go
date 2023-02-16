@@ -92,6 +92,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
+	props["CWSURL"] = *c.CloudSettings.CWSURL
+
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"
@@ -123,7 +125,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionFileRetentionDays"] = "0"
 	props["DataRetentionEnableBoardsDeletion"] = "false"
 	props["DataRetentionBoardsRetentionDays"] = "0"
-	props["CWSURL"] = ""
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
@@ -195,11 +196,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
 		}
 
-		if license.IsCloud() {
-			props["CWSURL"] = *c.CloudSettings.CWSURL
-		}
-
-		if *license.Features.SharedChannels {
+		if license.HasSharedChannels() {
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
 		}
@@ -226,6 +223,9 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHash"] = model.BuildHash
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+	props["BuildHashBoards"] = model.BuildHashBoards
+	props["BuildBoards"] = model.BuildBoards
+	props["BuildHashPlaybooks"] = model.BuildHashPlaybooks
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
@@ -347,7 +347,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			// MM-48727: enable SSO options for free cloud - not in self hosted
 			*license.Features.GoogleOAuth = true
 			*license.Features.Office365OAuth = true
-			*license.Features.OpenId = true
 		}
 
 		if *license.Features.GoogleOAuth {

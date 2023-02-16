@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 )
 
@@ -124,6 +125,10 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+type SubscriptionExpandStatus struct {
+	IsExpandable bool `json:"is_expandable"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name                  string `json:"name"`
@@ -166,13 +171,13 @@ type Subscription struct {
 	Seats                   int      `json:"seats"`
 	Status                  string   `json:"status"`
 	DNS                     string   `json:"dns"`
-	IsPaidTier              string   `json:"is_paid_tier"`
 	LastInvoice             *Invoice `json:"last_invoice"`
 	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
 	DelinquentSince         *int64   `json:"delinquent_since"`
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
+	ComplianceBlocked       string   `json:"compliance_blocked"`
 }
 
 // Subscription History model represents true up event in a yearly subscription
@@ -257,11 +262,19 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
+
 type SubscriptionChange struct {
-	ProductID string `json:"product_id"`
-	Seats     int    `json:"seats"`
+	ProductID         string             `json:"product_id"`
+	Seats             int                `json:"seats"`
+	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
+	ShippingAddress   *Address           `json:"shipping_address"`
 }
 
+// TODO remove BoardsLimits.
+// It is not used for real.
+// Focalboard has some lingering code using this struct
+// https://github.com/mattermost/focalboard/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+// we should remove this struct once that code is removed.
 type BoardsLimits struct {
 	Cards *int `json:"cards"`
 	Views *int `json:"views"`
@@ -269,10 +282,6 @@ type BoardsLimits struct {
 
 type FilesLimits struct {
 	TotalStorage *int64 `json:"total_storage"`
-}
-
-type IntegrationsLimits struct {
-	Enabled *int `json:"enabled"`
 }
 
 type MessagesLimits struct {
@@ -284,24 +293,30 @@ type TeamsLimits struct {
 }
 
 type ProductLimits struct {
-	Boards       *BoardsLimits       `json:"boards,omitempty"`
-	Files        *FilesLimits        `json:"files,omitempty"`
-	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
-	Messages     *MessagesLimits     `json:"messages,omitempty"`
-	Teams        *TeamsLimits        `json:"teams,omitempty"`
+	// TODO remove Boards property.
+	// It is not used for real.
+	// Focalboard has some lingering code using this property
+	// https://github.com/mattermost/focalboard/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+	// we should remove this property once that code is removed.
+	Boards   *BoardsLimits   `json:"boards,omitempty"`
+	Files    *FilesLimits    `json:"files,omitempty"`
+	Messages *MessagesLimits `json:"messages,omitempty"`
+	Teams    *TeamsLimits    `json:"teams,omitempty"`
 }
 
-type BootstrapSelfHostedSignupRequest struct {
-	Email string `json:"email"`
+// CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+type CreateSubscriptionRequest struct {
+	ProductID             string   `json:"product_id"`
+	AddOns                []string `json:"add_ons"`
+	Seats                 int      `json:"seats"`
+	Total                 float64  `json:"total"`
+	InternalPurchaseOrder string   `json:"internal_purchase_order"`
+	DiscountID            string   `json:"discount_id"`
 }
 
-type BootstrapSelfHostedSignupResponse struct {
-	Progress string `json:"progress"`
-}
-
-type BootstrapSelfHostedSignupResponseInternal struct {
-	Progress string `json:"progress"`
-	License  string `json:"license"`
+type DowngradeFeedback struct {
+	Reason   string `json:"reason"`
+	Comments string `json:"comments"`
 }
 
 func (p *Product) IsYearly() bool {
@@ -310,4 +325,19 @@ func (p *Product) IsYearly() bool {
 
 func (p *Product) IsMonthly() bool {
 	return p.RecurringInterval == RecurringIntervalMonthly
+}
+
+func (df *DowngradeFeedback) ToMap() map[string]any {
+	var res map[string]any
+	feedback, err := json.Marshal(df)
+	if err != nil {
+		return res
+	}
+
+	err = json.Unmarshal(feedback, &res)
+	if err != nil {
+		return res
+	}
+
+	return res
 }

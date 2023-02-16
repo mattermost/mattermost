@@ -4,7 +4,7 @@ if [[ $1 != "true" ]] ;
 then
     echo "Creating a go.work file"
 
-    txt="go 1.18\n\nuse ./\n"
+    txt="go 1.19\n\nuse ./\n"
     
     if [ "$BUILD_ENTERPRISE_READY" == "true" ] 
     then
@@ -16,5 +16,10 @@ then
         txt="${txt}use ../focalboard/server\nuse ../focalboard/mattermost-plugin\n"
     fi
     
+    if [ "$BUILD_PLAYBOOKS" == "true" ]
+    then
+        txt="${txt}use ../mattermost-plugin-playbooks\n"
+    fi
+
     printf "$txt" > "go.work"
-fi 
+fi

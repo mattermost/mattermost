@@ -16,9 +16,6 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off support for Collapsed Threads
-	CollapsedThreads bool
-
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
@@ -66,22 +63,27 @@ type FeatureFlags struct {
 
 	PostPriority bool
 
-	PeopleProduct bool
+	// Enable WYSIWYG text editor
+	WysiwygEditor bool
 
-	AnnualSubscription bool
+	PeopleProduct bool
 
 	// A/B Test on reduced onboarding task list item
 	ReduceOnBoardingTaskList bool
 
+	// A/B Test to control when to show onboarding linked board
+	OnboardingAutoShowLinkedBoard bool
+
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
+
+	OnboardingTourTips bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
 	f.PluginApps = ""
@@ -96,15 +98,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
+	f.BoardsProduct = true
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
 	f.WorkTemplate = false
-	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
-	f.GlobalDrafts = false
+	f.GlobalDrafts = true
+	f.WysiwygEditor = false
+	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingTourTips = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

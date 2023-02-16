@@ -382,6 +382,82 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after be used")
 	})
+
+	t.Run("Validate inviter user has permissions on channels he is inviting", func(t *testing.T) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := th.BasicChannel.Id + " " + channelIdWithoutPermissions
+		token := model.NewToken(
+			app.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email, "senderId": th.BasicUser.Id, "channels": channelIds}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err, "The token must be deleted after being used")
+
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, teams, "The user must have teams")
+		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
+
+		// Now we get all the channels for the just created user
+		channelList, cErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
+		require.Nil(t, cErr)
+
+		// basicUser has no permissions on BasicPrivateChannel2 so the new invited user should be able to only access
+		// one channel from the two he was invited (plus the two default channels)
+		require.Len(t, channelList, 3)
+	})
+
+	t.Run("Validate inviterUser permissions on channels he is inviting, when inviting guests", func(t *testing.T) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Guest User", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := th.BasicChannel.Id + " " + channelIdWithoutPermissions
+		token := model.NewToken(
+			app.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"guest": "true", "teamId": th.BasicTeam.Id, "email": user.Email, "senderId": th.BasicUser.Id, "channels": channelIds}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err, "The token must be deleted after being used")
+
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, teams, "The guest must have teams")
+		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The guest joined team must be the team provided.")
+
+		// Now we get all the channels for the just created guest
+		channelList, cErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
+		require.Nil(t, cErr)
+
+		// basicUser has no permissions on BasicPrivateChannel2 so the new invited guest should be able to only access
+		// one channel from the two he was invited (plus the two default channels)
+		require.Len(t, channelList, 3)
+	})
 }
 
 func TestCreateUserWebSocketEvent(t *testing.T) {
@@ -2833,6 +2909,64 @@ func TestGetUsersInGroup(t *testing.T) {
 		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
 		require.NoError(t, err)
 		assert.Equal(t, len(users), 0)
+	})
+
+}
+
+func TestGetUsersInGroupByDisplayName(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "aaa", Password: "test-password-1", Username: "zzz", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
+	user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Password: "test-password-2", Username: "bbb", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+	assert.Nil(t, err)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PrivacySettings.ShowFullName = true
+	})
+
+	preference := model.Preference{
+		UserId:   th.SystemAdminUser.Id,
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameNameFormat,
+		Value:    model.ShowUsername,
+	}
+
+	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group in right order for username", func(t *testing.T) {
+		users, _, err := th.SystemAdminClient.GetUsersInGroupByDisplayName(group.Id, 0, 1, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user2.Id)
+	})
+
+	preference.Value = model.ShowNicknameFullName
+	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group in right order for nickname", func(t *testing.T) {
+		users, _, err := th.SystemAdminClient.GetUsersInGroupByDisplayName(group.Id, 0, 1, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user1.Id)
 	})
 
 }
@@ -5736,8 +5870,6 @@ func TestUpdatePassword(t *testing.T) {
 func TestGetThreadsForUser(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -6088,13 +6220,46 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uss.TotalUnreadThreads, int64(0))
 	})
+
+	t.Run("Since should return threads with new replies and updated memberships", func(t *testing.T) {
+		client := th.Client
+
+		// Create "thread 1"
+		rootPost1, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1, reply 1", RootId: rootPost1.Id})
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(rootPost1.CreateAt),
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 1)
+
+		// Should not fetch any threads since there are no new replies/new threads since the membership is updated
+		threadMembership, _ := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 0)
+
+		// Create "thread 2"
+		rootPost2, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 2"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 2, reply 1", RootId: rootPost2.Id})
+
+		// Add a reply to "thread 1"
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1, Reply 2", RootId: rootPost1.Id})
+
+		// Should fetch "thread 1" & "thread 2"
+		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Equal(t, uss.TotalUnreadThreads, int64(2))
+	})
 }
 
 func TestThreadSocketEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
@@ -6475,8 +6640,6 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6532,8 +6695,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 func TestThreadCounts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6575,8 +6737,6 @@ func TestThreadCounts(t *testing.T) {
 func TestSingleThreadGet(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -6646,8 +6806,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
 	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
 	client := th.Client
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6710,8 +6869,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 func TestReadThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -6814,8 +6972,7 @@ func TestReadThreads(t *testing.T) {
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn

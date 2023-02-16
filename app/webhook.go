@@ -314,7 +314,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 	}
 
 	for _, split := range splits {
-		if _, err := a.CreatePostMissingChannel(c, split, false); err != nil {
+		if _, err = a.CreatePostMissingChannel(c, split, false, false); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
 	}

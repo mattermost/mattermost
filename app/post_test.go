@@ -2357,8 +2357,6 @@ func TestThreadMembership(t *testing.T) {
 func TestFollowThreadSkipsParticipants(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2410,13 +2408,23 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	for _, p := range thread.Participants {
 		require.True(t, p.Id == sysadmin.Id || p.Id == user.Id)
 	}
+
+	oldID := threadMembership.PostId
+	threadMembership.PostId = "notfound"
+	_, err = th.App.GetThreadForUser(threadMembership, false)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+
+	threadMembership.Following = false
+	threadMembership.PostId = oldID
+	_, err = th.App.GetThreadForUser(threadMembership, false)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 }
 
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2445,8 +2453,6 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2528,12 +2534,6 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 
 	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.CollapsedThreads = true
-		})
-
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
 		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
@@ -2765,8 +2765,6 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2834,8 +2832,6 @@ func TestGetPostIfAuthorized(t *testing.T) {
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3151,6 +3147,51 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	topUser2ThreadsAfterPrivateReplyDelete, appErr := th.App.GetTopThreadsForUserSince(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
 	require.Nil(t, appErr)
 	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
+}
+
+func TestGetEditHistoryForPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "new message",
+		UserId:    th.BasicUser.Id,
+	}
+
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+
+	// update the post message
+	patch := &model.PostPatch{
+		Message: model.NewString("new message edited"),
+	}
+	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch)
+	require.Nil(t, err1)
+
+	// update the post message again
+	patch = &model.PostPatch{
+		Message: model.NewString("new message edited again"),
+	}
+
+	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch)
+	require.Nil(t, err2)
+
+	// get the edit history
+	edits, err := th.App.GetEditHistoryForPost(post.Id)
+	require.Nil(t, err)
+
+	t.Run("should return the edit history", func(t *testing.T) {
+		require.Len(t, edits, 2)
+		require.Equal(t, "new message edited", edits[0].Message)
+		require.Equal(t, "new message", edits[1].Message)
+	})
+
+	t.Run("should return an error if the post is not found", func(t *testing.T) {
+		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
+		require.NotNil(t, err)
+		require.Empty(t, edits)
+	})
 }
 
 func TestGetTopDMsForUserSince(t *testing.T) {

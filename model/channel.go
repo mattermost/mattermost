@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -159,7 +160,7 @@ type ChannelModeratedRolesPatch struct {
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup     string
 	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool
+	IncludeDeleted           bool // If true, deleted channels will be included in the results.
 	Deleted                  bool
 	ExcludeChannelNames      []string
 	TeamIds                  []string
@@ -173,7 +174,7 @@ type ChannelSearchOpts struct {
 	Private                  bool
 	Page                     *int
 	PerPage                  *int
-	LastDeleteAt             int
+	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
 	LastUpdateAt             int
 }
 
@@ -184,6 +185,8 @@ type ChannelMemberCountByGroup struct {
 }
 
 type ChannelOption func(channel *Channel)
+
+var gmNameRegex = regexp.MustCompile("^[a-f0-9]{40}$")
 
 func WithID(ID string) ChannelOption {
 	return func(channel *Channel) {
@@ -281,9 +284,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	userIds := strings.Split(o.Name, "__")
-	if o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	if o.Type != ChannelTypeDirect && o.Type != ChannelTypeGroup {
+		userIds := strings.Split(o.Name, "__")
+		if ok := gmNameRegex.MatchString(o.Name); ok || (o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1])) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil

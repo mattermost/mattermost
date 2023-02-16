@@ -87,6 +87,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	TrueUpReview() TrueUpReviewStore
 }
 
 type RetentionPolicyStore interface {
@@ -385,6 +386,7 @@ type PostStore interface {
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
+	GetEditHistoryForPost(postId string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
@@ -549,7 +551,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -714,7 +716,7 @@ type FileInfoStore interface {
 type UploadSessionStore interface {
 	Save(session *model.UploadSession) (*model.UploadSession, error)
 	Update(session *model.UploadSession) error
-	Get(id string) (*model.UploadSession, error)
+	Get(ctx context.Context, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
 }
@@ -842,6 +844,7 @@ type GroupStore interface {
 
 	GetMemberUsers(groupID string) ([]*model.User, error)
 	GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
+	GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error)
 	GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error)
 	GetMemberCount(groupID string) (int64, error)
 
@@ -939,9 +942,10 @@ type LinkMetadataStore interface {
 
 type NotifyAdminStore interface {
 	Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error)
-	GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error)
+	GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error)
 	Get(trial bool) ([]*model.NotifyAdminData, error)
 	DeleteBefore(trial bool, now int64) error
+	Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error
 }
 
 type SharedChannelStore interface {
@@ -995,6 +999,12 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+}
+
+type TrueUpReviewStore interface {
+	GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error)
+	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
+	Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

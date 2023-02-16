@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/marketplace"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
@@ -91,6 +92,7 @@ type ServerIface interface {
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
+	HooksManager() *product.HooksManager
 }
 
 type TelemetryService struct {
@@ -165,6 +167,7 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackGroups()
 		ts.trackChannelModeration()
 		ts.trackWarnMetrics()
+		ts.trackProducts()
 	}
 }
 
@@ -455,7 +458,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
-		"self_hosted_first_time_purchase":                         *cfg.ServiceSettings.SelfHostedFirstTimePurchase,
+		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 	})
 
@@ -774,6 +777,9 @@ func (ts *TelemetryService) trackConfig() {
 		"bulk_indexing_batch_size": *cfg.ElasticsearchSettings.BatchSize,
 		"request_timeout_seconds":  *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
 		"skip_tls_verification":    *cfg.ElasticsearchSettings.SkipTLSVerification,
+		"isdefault_ca":             isDefault(*cfg.ElasticsearchSettings.CA, ""),
+		"isdefault_client_cert":    isDefault(*cfg.ElasticsearchSettings.ClientCert, ""),
+		"isdefault_client_key":     isDefault(*cfg.ElasticsearchSettings.ClientKey, ""),
 		"trace":                    *cfg.ElasticsearchSettings.Trace,
 	})
 
@@ -939,6 +945,18 @@ func (ts *TelemetryService) trackPlugins() {
 	})
 
 	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnSendDailyTelemetry()
+		return true
+	}, plugin.OnSendDailyTelemetryID)
+}
+
+func (ts *TelemetryService) trackProducts() {
+	hm := ts.srv.HooksManager()
+	if hm == nil {
+		return
+	}
+
+	hm.RunMultiHook(func(hooks plugin.Hooks) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)
@@ -1403,7 +1421,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"focalboard",
 	}
 
-	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
+	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
 
@@ -1441,7 +1459,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 
-func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
+func (ts *TelemetryService) GetAllMarketplacePlugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
 		ts.srv.HTTPService(),

@@ -577,7 +577,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 	return nil
 }
 
-// Save writes the (non-direct) channel channel to the database.
+// Save writes the (non-direct) channel to the database.
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
 	if channel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
@@ -3850,7 +3850,31 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 	defer finalizeTransactionX(transaction, &err)
 
 	channelMembers := []channelMember{}
-	if err := transaction.Select(&channelMembers, "SELECT * from ChannelMembers WHERE (ChannelId, UserId) > (?, ?) ORDER BY ChannelId, UserId LIMIT 100", fromChannelId, fromUserId); err != nil {
+	query := `
+		SELECT
+			ChannelId,
+			UserId,
+			Roles,
+			LastViewedAt,
+			MsgCount,
+			MentionCount,
+			MentionCountRoot,
+			COALESCE(UrgentMentionCount, 0) AS UrgentMentionCount,
+			MsgCountRoot,
+			NotifyProps,
+			LastUpdateAt,
+			SchemeUser,
+			SchemeAdmin,
+			SchemeGuest
+		FROM
+			ChannelMembers
+		WHERE
+			(ChannelId, UserId) > (?, ?)
+		ORDER BY ChannelId, UserId
+		LIMIT 100
+	`
+
+	if err := transaction.Select(&channelMembers, query, fromChannelId, fromUserId); err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
 
@@ -3954,7 +3978,31 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 		}
 
 		channelMembers := []*channelMember{}
-		if err = transaction.Select(&channelMembers, "SELECT * from ChannelMembers WHERE (ChannelId, UserId) > (?, ?) ORDER BY ChannelId, UserId LIMIT 1000", lastChannelId, lastUserId); err != nil {
+		query := `
+			SELECT
+				ChannelId,
+				UserId,
+				Roles,
+				LastViewedAt,
+				MsgCount,
+				MentionCount,
+				MentionCountRoot,
+				COALESCE(UrgentMentionCount, 0) AS UrgentMentionCount,
+				MsgCountRoot,
+				NotifyProps,
+				LastUpdateAt,
+				SchemeUser,
+				SchemeAdmin,
+				SchemeGuest
+			FROM
+				ChannelMembers
+			WHERE
+				(ChannelId, UserId) > (?, ?)
+			ORDER BY ChannelId, UserId
+			LIMIT 1000
+		`
+
+		if err = transaction.Select(&channelMembers, query, lastChannelId, lastUserId); err != nil {
 			finalizeTransactionX(transaction, &err)
 			return errors.Wrap(err, "failed to find ChannelMembers")
 		}
@@ -4034,6 +4082,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 			ChannelMembers.MentionCount,
 			ChannelMembers.MentionCountRoot,
 			COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
+			ChannelMembers.MsgCountRoot,
 			ChannelMembers.NotifyProps,
 			ChannelMembers.LastUpdateAt,
 			ChannelMembers.SchemeUser,
@@ -4613,19 +4662,27 @@ func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMill
 	if loc == "Local" {
 		loc = "UTC"
 	}
+	var format string
 	if s.DriverName() == model.DatabaseDriverMysql {
 		if duration == model.PostsByDay {
-			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%d') AS duration`
+			format = `%Y-%m-%d`
 		} else {
-			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
+			format = `%Y-%m-%dT%H`
 		}
+		unixSelect = fmt.Sprintf(`DATE_FORMAT(
+			COALESCE(
+				CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '%s'),
+				FROM_UNIXTIME(Posts.CreateAt / 1000)
+			),
+		'%s') AS duration`, loc, format)
 		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if duration == model.PostsByDay {
-			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
+			format = "YYYY-MM-DD"
 		} else {
-			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
+			format = `YYYY-MM-DD"T"HH24`
 		}
+		unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', '%s') AS duration`, loc, format)
 		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
 	}
 	query := sq.
