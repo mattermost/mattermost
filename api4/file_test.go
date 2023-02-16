@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -55,7 +54,7 @@ func fileBytes(t *testing.T, path string) []byte {
 	f, err := os.Open(path)
 	require.NoError(t, err)
 	defer f.Close()
-	bb, err := ioutil.ReadAll(f)
+	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 	return bb
 }
@@ -84,7 +83,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 
 	var res model.FileUploadResponse
 	if jsonErr := json.NewDecoder(resp.Body).Decode(&res); jsonErr != nil {
-		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	return &res, model.BuildResponse(resp), nil
 }
@@ -398,8 +397,8 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                       "Happy image thumbnail/preview 10",
 			names:                       []string{"10000x1.png"},
-			expectedImageThumbnailNames: []string{"10000x1_expected_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"10000x1_expected_preview.jpeg"},
+			expectedImageThumbnailNames: []string{"10000x1_expected_thumb.png"},
+			expectedImagePreviewNames:   []string{"10000x1_expected_preview.png"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{10000},
 			expectedImageHeights:        []int{1},
@@ -410,8 +409,8 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                       "Happy image thumbnail/preview 11",
 			names:                       []string{"1x10000.png"},
-			expectedImageThumbnailNames: []string{"1x10000_expected_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"1x10000_expected_preview.jpeg"},
+			expectedImageThumbnailNames: []string{"1x10000_expected_thumb.png"},
+			expectedImagePreviewNames:   []string{"1x10000_expected_preview.png"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{1},
 			expectedImageHeights:        []int{10000},
@@ -452,6 +451,17 @@ func TestUploadFiles(t *testing.T) {
 			},
 			expectedImageMiniPreview: []bool{false},
 			expectedCreatorId:        th.BasicUser.Id,
+		},
+		// Webp image test
+		{
+			title:                    "Webp image",
+			names:                    []string{"testwebp.webp"},
+			expectImage:              true,
+			expectedImageWidths:      []int{128},
+			expectedImageHeights:     []int{256},
+			expectedImageHasPreview:  []bool{true},
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{true},
 		},
 		// Error cases
 		{
@@ -501,7 +511,7 @@ func TestUploadFiles(t *testing.T) {
 			client:                th.SystemAdminClient,
 			names:                 []string{"test.png"},
 			skipSuccessValidation: true,
-			checkResponse:         CheckNotImplementedStatus,
+			checkResponse:         CheckForbiddenStatus,
 			setupConfig: func(a *app.App) func(a *app.App) {
 				enableFileAttachments := *a.Config().FileSettings.EnableFileAttachments
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
@@ -653,7 +663,7 @@ func TestUploadFiles(t *testing.T) {
 							fmt.Sprintf("Wrong clientId returned, expected %v, got %v", tc.clientIds[i], fileResp.ClientIds[i]))
 					}
 
-					dbInfo, err := th.App.Srv().Store.FileInfo().Get(ri.Id)
+					dbInfo, err := th.App.Srv().Store().FileInfo().Get(ri.Id)
 					require.NoError(t, err)
 					assert.Equal(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
 					assert.Equal(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
@@ -668,8 +678,12 @@ func TestUploadFiles(t *testing.T) {
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
 
 					if tc.expectImage {
-						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb.jpg", expectedDir, name)
-						expectedPreviewPath := fmt.Sprintf("%s/%s_preview.jpg", expectedDir, name)
+						// We convert all other image types to jpeg, except pngs.
+						if ext != ".png" {
+							ext = ".jpg"
+						}
+						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb%s", expectedDir, name, ext)
+						expectedPreviewPath := fmt.Sprintf("%s/%s_preview%s", expectedDir, name, ext)
 						assert.Equal(t, dbInfo.ThumbnailPath, expectedThumbnailPath,
 							fmt.Sprintf("Thumbnail for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.ThumbnailPath, expectedThumbnailPath))
 						assert.Equal(t, dbInfo.PreviewPath, expectedPreviewPath,
@@ -690,10 +704,10 @@ func TestUploadFiles(t *testing.T) {
 							data, _, err := get(ri.Id)
 							require.NoError(t, err)
 
-							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
+							expected, err := os.ReadFile(filepath.Join(testDir, name))
 							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
-								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
+								tf, err := os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.NoError(t, err)
 								defer tf.Close()
 								_, err = io.Copy(tf, bytes.NewReader(data))
@@ -902,13 +916,13 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp, err = client.GetFileLink(fileId)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, _, err := client.GetFileLink(fileId)
@@ -938,7 +952,7 @@ func TestGetFileLink(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetFileLink(fileId)
 	require.NoError(t, err)
 
-	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
+	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
 	require.NoError(t, err)
 	th.cleanupTestFile(fileInfo)
 }
@@ -1060,10 +1074,10 @@ func TestGetPublicFile(t *testing.T) {
 	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
-	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
+	info, err := th.App.Srv().Store().FileInfo().Get(fileId)
 	require.NoError(t, err)
 	link := th.App.GeneratePublicLink(client.URL, info)
 
@@ -1079,7 +1093,7 @@ func TestGetPublicFile(t *testing.T) {
 
 	resp, err = http.Get(link)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusNotImplemented, resp.StatusCode, "should've failed to get image with disabled public link")
+	require.Equal(t, http.StatusForbidden, resp.StatusCode, "should've failed to get image with disabled public link")
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
@@ -1093,7 +1107,7 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
+	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
 	require.NoError(t, err)
 	require.NoError(t, th.cleanupTestFile(fileInfo))
 
@@ -1125,25 +1139,25 @@ func TestSearchFiles(t *testing.T) {
 	filename := "search for fileInfo1"
 	fileInfo1, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "search for fileInfo2"
 	fileInfo2, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged search for fileInfo3"
 	fileInfo3, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged for fileInfo4"
 	fileInfo4, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	archivedChannel := th.CreatePublicChannel()
@@ -1152,7 +1166,7 @@ func TestSearchFiles(t *testing.T) {
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
 	rpost, _, err := client.CreatePost(post)
 	require.NoError(t, err)
-	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 	th.Client.DeleteChannel(archivedChannel.Id)
 

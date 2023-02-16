@@ -1,0 +1,1 @@
+-- Intentionally left blank as forward migration is not reversible.

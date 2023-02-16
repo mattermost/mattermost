@@ -4,33 +4,23 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
-type Product interface {
-	Start() error
-	Stop() error
-}
-
-type ProductManifest struct {
-	Initializer  func(*Server, map[ServiceKey]interface{}) (Product, error)
-	Dependencies map[ServiceKey]struct{}
-}
-
-var products = make(map[string]ProductManifest)
-
-func RegisterProduct(name string, m ProductManifest) {
-	products[name] = m
-}
-
 func (s *Server) initializeProducts(
-	productMap map[string]ProductManifest,
-	serviceMap map[ServiceKey]interface{},
+	productMap map[string]product.Manifest,
+	serviceMap map[product.ServiceKey]any,
 ) error {
 	// create a product map to consume
 	pmap := make(map[string]struct{})
 	for name := range productMap {
+		if !s.shouldStart(name) {
+			continue
+		}
 		pmap[name] = struct{}{}
 	}
 
@@ -57,7 +47,7 @@ func (s *Server) initializeProducts(
 
 			// some products can register themselves/their services
 			initializer := manifest.Initializer
-			prod, err := initializer(s, serviceMap)
+			prod, err := initializer(serviceMap)
 			if err != nil {
 				return fmt.Errorf("error initializing product %q: %w", product, err)
 			}
@@ -77,4 +67,30 @@ func (s *Server) initializeProducts(
 	}
 
 	return nil
+}
+
+func (s *Server) shouldStart(product string) bool {
+	if !s.Config().FeatureFlags.BoardsProduct && product == "boards" {
+		return false
+	}
+
+	return true
+}
+
+func (s *Server) HasBoardProduct() (bool, error) {
+	prod, exists := s.services[product.BoardsKey]
+	if !exists {
+		return false, nil
+	}
+	if prod == nil {
+		return false, errors.New("board product is nil")
+	}
+	if _, ok := prod.(product.BoardsService); !ok {
+		return false, errors.New("board product key does not match its definition")
+	}
+	return true, nil
+}
+
+func (a *App) HasBoardProduct() (bool, error) {
+	return a.Srv().HasBoardProduct()
 }

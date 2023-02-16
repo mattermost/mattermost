@@ -119,36 +119,13 @@ func (_m *ThreadStore) GetMembershipsForUser(userId string, teamID string) ([]*m
 	return r0, r1
 }
 
-// GetPosts provides a mock function with given fields: threadID, since
-func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-	ret := _m.Called(threadID, since)
-
-	var r0 []*model.Post
-	if rf, ok := ret.Get(0).(func(string, int64) []*model.Post); ok {
-		r0 = rf(threadID, since)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Post)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(threadID, since)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs
-func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
-	ret := _m.Called(userID, teamIDs)
+// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs, includeUrgentMentionCount
+func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+	ret := _m.Called(userID, teamIDs, includeUrgentMentionCount)
 
 	var r0 map[string]*model.TeamUnread
-	if rf, ok := ret.Get(0).(func(string, []string) map[string]*model.TeamUnread); ok {
-		r0 = rf(userID, teamIDs)
+	if rf, ok := ret.Get(0).(func(string, []string, bool) map[string]*model.TeamUnread); ok {
+		r0 = rf(userID, teamIDs, includeUrgentMentionCount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.TeamUnread)
@@ -156,8 +133,8 @@ func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (m
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(userID, teamIDs)
+	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
+		r1 = rf(userID, teamIDs, includeUrgentMentionCount)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -188,13 +165,13 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool)
 	return r0, r1
 }
 
-// GetThreadForUser provides a mock function with given fields: teamID, threadMembership, extended
-func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
-	ret := _m.Called(teamID, threadMembership, extended)
+// GetThreadForUser provides a mock function with given fields: threadMembership, extended, postPriorityIsEnabled
+func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(threadMembership, extended, postPriorityIsEnabled)
 
 	var r0 *model.ThreadResponse
-	if rf, ok := ret.Get(0).(func(string, *model.ThreadMembership, bool) *model.ThreadResponse); ok {
-		r0 = rf(teamID, threadMembership, extended)
+	if rf, ok := ret.Get(0).(func(*model.ThreadMembership, bool, bool) *model.ThreadResponse); ok {
+		r0 = rf(threadMembership, extended, postPriorityIsEnabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadResponse)
@@ -202,8 +179,8 @@ func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.T
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, *model.ThreadMembership, bool) error); ok {
-		r1 = rf(teamID, threadMembership, extended)
+	if rf, ok := ret.Get(1).(func(*model.ThreadMembership, bool, bool) error); ok {
+		r1 = rf(threadMembership, extended, postPriorityIsEnabled)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -255,6 +232,52 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts mode
 	return r0, r1
 }
 
+// GetTopThreadsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopThreadList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopThreadList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopThreadList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopThreadsForUserSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopThreadList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopThreadList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopThreadList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTotalThreads provides a mock function with given fields: userId, teamID, opts
 func (_m *ThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
 	ret := _m.Called(userId, teamID, opts)
@@ -299,6 +322,27 @@ func (_m *ThreadStore) GetTotalUnreadMentions(userId string, teamID string, opts
 
 // GetTotalUnreadThreads provides a mock function with given fields: userId, teamID, opts
 func (_m *ThreadStore) GetTotalUnreadThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	ret := _m.Called(userId, teamID, opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) int64); ok {
+		r0 = rf(userId, teamID, opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userId, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTotalUnreadUrgentMentions provides a mock function with given fields: userId, teamID, opts
+func (_m *ThreadStore) GetTotalUnreadUrgentMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
 	ret := _m.Called(userId, teamID, opts)
 
 	var r0 int64

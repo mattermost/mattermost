@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,7 +26,7 @@ func TestPluginHealthCheck(t *testing.T) {
 }
 
 func testPluginHealthCheckSuccess(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -48,7 +47,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
+	err = os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
@@ -65,7 +64,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 }
 
 func testPluginHealthCheckPanic(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -91,7 +90,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
+	err = os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)

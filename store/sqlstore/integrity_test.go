@@ -213,6 +213,7 @@ func createReaction(ss store.Store, userId, postId string) *model.Reaction {
 		UserId:    userId,
 		PostId:    postId,
 		EmojiName: model.NewId(),
+		ChannelId: model.NewId(),
 	}
 	reaction, _ = ss.Reaction().Save(reaction)
 	return reaction
@@ -650,9 +651,10 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			root := createPost(ss, model.NewId(), model.NewId(), "", "")
+			channel := createChannel(ss, model.NewId(), model.NewId())
+			root := createPost(ss, channel.Id, model.NewId(), "", "")
 			rootId := root.Id
-			post := createPost(ss, model.NewId(), model.NewId(), root.Id, root.Id)
+			post := createPost(ss, channel.Id, model.NewId(), root.Id, root.Id)
 			dbmap.Exec(`DELETE FROM Posts WHERE Id=?`, root.Id)
 			result := checkPostsPostsRootIdIntegrity(store)
 			require.NoError(t, result.Err)
@@ -663,6 +665,8 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 				ChildId:  &post.Id,
 			}, data.Records[0])
 			dbmap.Exec(`DELETE FROM Posts WHERE Id=?`, post.Id)
+			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
+			dbmap.Exec(`DELETE FROM Threads WHERE PostId=?`, rootId)
 		})
 	})
 }
@@ -1599,6 +1603,42 @@ func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 				ChildId:  &uat.Id,
 			}, data.Records[0])
 			ss.UserAccessToken().Delete(uat.Id)
+		})
+	})
+}
+
+func TestCheckThreadsTeamsIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		store := ss.(*SqlStore)
+		dbmap := store.GetMasterX()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkThreadsTeamsIntegrity(store)
+			require.NoError(t, result.Err)
+			data := result.Data.(model.RelationalIntegrityCheckData)
+			require.Empty(t, data.Records)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			team := createTeam(ss)
+			channel := createChannel(ss, team.Id, model.NewId())
+			root := createPost(ss, channel.Id, model.NewId(), "", "")
+			post := createPost(ss, channel.Id, model.NewId(), root.Id, root.Id)
+
+			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
+			result := checkThreadsTeamsIntegrity(store)
+			require.NoError(t, result.Err)
+			data := result.Data.(model.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+
+			require.Equal(t, model.OrphanedRecord{
+				ParentId: &team.Id,
+				ChildId:  &root.Id,
+			}, data.Records[0])
+			dbmap.Exec(`DELETE FROM Posts WHERE Id=?`, post.Id)
+			dbmap.Exec(`DELETE FROM Posts WHERE Id=?`, root.Id)
+			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
+			dbmap.Exec(`DELETE FROM Threads WHERE PostId=?`, root.Id)
 		})
 	})
 }

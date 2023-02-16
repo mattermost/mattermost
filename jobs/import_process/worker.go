@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const jobName = "ImportProcess"
@@ -28,14 +29,17 @@ type AppIface interface {
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	Log() *mlog.Logger
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := &request.Context{}
+	appContext := request.EmptyContext(app.Log())
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		importFileName, ok := job.Data["import_file"]
 		if !ok {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_file", nil, "", http.StatusBadRequest)
@@ -59,9 +63,17 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 		defer importFile.Close()
 
+		// The import is a long running operation, try to cancel any timeouts attached to the reader.
+		type TimeoutCanceler interface{ CancelTimeout() bool }
+		if tc, ok := importFile.(TimeoutCanceler); ok {
+			if !tc.CancelTimeout() {
+				appContext.Logger().Warn("Could not cancel the timeout for the file reader. The import may fail due to a timeout.")
+			}
+		}
+
 		importZipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 		if err != nil {
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		// find JSONL import file.
@@ -77,7 +89,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 			jsonFile, err = f.Open()
 			if err != nil {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			defer jsonFile.Close()

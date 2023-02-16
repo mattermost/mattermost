@@ -24,11 +24,12 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 100)
+	busy.Set(time.Millisecond * 500)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
-	// should automatically expire after 100ms.
-	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*20)
+
+	// should automatically expire after 500ms.
+	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
 
@@ -133,13 +134,18 @@ func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
 func (c *ClusterMock) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 }
-func (c *ClusterMock) GetClusterId() string                                       { return "cluster_mock" }
-func (c *ClusterMock) IsLeader() bool                                             { return false }
-func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo                       { return nil }
-func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo                      { return nil }
-func (c *ClusterMock) NotifyMsg(buf []byte)                                       {}
-func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError)  { return nil, nil }
-func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError)      { return nil, nil }
+func (c *ClusterMock) GetClusterId() string                                      { return "cluster_mock" }
+func (c *ClusterMock) IsLeader() bool                                            { return false }
+func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo                      { return nil }
+func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo                     { return nil }
+func (c *ClusterMock) NotifyMsg(buf []byte)                                      {}
+func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError) { return nil, nil }
+func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return nil, nil
+}
+func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	return nil, nil
+}
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil

@@ -20,7 +20,7 @@ func (r *Response) IsSuccess() bool {
 }
 
 // SetPayload serializes an arbitrary struct as a RawMessage.
-func (r *Response) SetPayload(v interface{}) error {
+func (r *Response) SetPayload(v any) error {
 	raw, err := json.Marshal(v)
 	if err != nil {
 		return err

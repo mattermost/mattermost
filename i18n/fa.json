@@ -1920,14 +1920,6 @@
     "translation": "مهلت زمانی هماهنگ سازی AD/LDAP رسیده است."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "تجزیه و تحلیل کار صادرات پیام ExportFromTimestamp امکان پذیر نیست."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "تجزیه و تحلیل کار صادرات پیام صادرات از مهر زمان انجام نمی شود.."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "مجوز شما از ID Loaded Push Notifications پشتیبانی نمی کند."
   },
@@ -1946,10 +1938,6 @@
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "جستجوی الاستیک غیرفعال است."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "اتصال به سرور جستجوی الاستیک انجام نشد."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -2230,10 +2218,6 @@
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "ویژگی مورد نیاز از دست رفته است: Creat_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "ویژگی پاسخ ایجاد در باید بزرگتر از پست والد ایجاد شود."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -2524,10 +2508,6 @@
     "translation": "خواندن نسخه پرونده درون ریزی داده امکان پذیر نیست."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "قادر به پاسخ مارشال نیست."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "تنظیمات برگزیده تیم ذخیره نمی شود"
   },
@@ -2666,10 +2646,6 @@
   {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "نسخه نادرست یا مفقود شده در پرونده واردات داده است. مطمئن شوید نسخه اولین شی در پرونده وارداتی شما است و دوباره امتحان کنید."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "خطا هنگام پردازش پیوست‌های import انبوه."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
@@ -4912,10 +4888,6 @@
     "translation": "رمز ورود شما برای {{.TeamDisplayName}} در {{.TeamURL}} توسط {{.Method}} به روز شده است."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "اکنون رفع کنید"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "احراز هویت چند عاملی حذف شد"
   },
@@ -5180,14 +5152,6 @@
     "translation": "کانال های دعوت باید بخشی از تیم دعوت باشند."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "مجوز شما از حساب های مهمان پشتیبانی نمی کند"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "حساب های مهمان غیرفعال شده است"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "خطا در عدم اعتبار دعوت نامه های ایمیل."
   },
@@ -5386,10 +5350,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "بارگیری انجام نشد."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "بارگذاری پرونده امکان پذیر نیست. پرونده خیلی بزرگ است."
   },
   {
     "id": "app.upload.create.save.app_error",
@@ -6782,10 +6742,6 @@
     "translation": "ویژگی نیاز به ارتقاء به نسخه Enterprise دارد."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "درخواست مجوز آزمایشی امکان پذیر نیست. لطفاً یک URL سایت را در بخش وب سرور سیستم کنسول Mattermost پیکربندی کنید."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید. تعداد کاربران ثبت شده امکان پذیر نیست."
   },
@@ -7002,38 +6958,6 @@
     "translation": "برنامه ها را به فضای کاری خود اضافه کنید"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "دوره آزمایشی 14 روزه رایگان Mattermost شما به زودی به پایان می رسد"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}، دوره آزمایشی 14 روزه شما از Mattermost، سه روز دیگر در {{.TrialEnd}} به پایان می رسد. لطفاً اطلاعات پرداخت خود را اضافه کنید تا مطمئن شوید که تیم شما همچنان می‌تواند از مزایای Mattermost Cloud بهره مند شود."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "پایان آزمایشی Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "افزودن روش پرداخت"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "دوره آزمایشی 14 روزه رایگان Mattermost امروز به پایان رسید"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}، دوره آزمایشی رایگان 14 روزه Mattermost Cloud Professional امروز، {{.TodayDate}} به پایان رسید. لطفاً اطلاعات پرداخت خود را اضافه کنید تا مطمئن شوید که تیم شما همچنان می‌تواند از مزایای Cloud Professional بهره مند شود."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "آزمایش Mattermost cloud به پایان رسیده است"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "شروع اشتراک"
-  },
-  {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "نمی توان طرح را برای تیم تنظیم کرد زیرا طرح ارائه شده یک طرح تیمی نیست."
   },
@@ -7164,10 +7088,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "پرونده بالای حداکثر ابعاد بارگذاری نمی شود: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "بارگذاری پرونده ها امکان پذیر نیست. تعداد پرونده های نادرست مشخص شده است."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",

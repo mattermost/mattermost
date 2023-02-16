@@ -31,18 +31,34 @@ var groupSourcesRequiringRemoteID = []GroupSource{
 }
 
 type Group struct {
-	Id             string      `json:"id"`
-	Name           *string     `json:"name,omitempty"`
-	DisplayName    string      `json:"display_name"`
-	Description    string      `json:"description"`
-	Source         GroupSource `json:"source"`
-	RemoteId       *string     `json:"remote_id"`
-	CreateAt       int64       `json:"create_at"`
-	UpdateAt       int64       `json:"update_at"`
-	DeleteAt       int64       `json:"delete_at"`
-	HasSyncables   bool        `db:"-" json:"has_syncables"`
-	MemberCount    *int        `db:"-" json:"member_count,omitempty"`
-	AllowReference bool        `json:"allow_reference"`
+	Id                          string      `json:"id"`
+	Name                        *string     `json:"name,omitempty"`
+	DisplayName                 string      `json:"display_name"`
+	Description                 string      `json:"description"`
+	Source                      GroupSource `json:"source"`
+	RemoteId                    *string     `json:"remote_id"`
+	CreateAt                    int64       `json:"create_at"`
+	UpdateAt                    int64       `json:"update_at"`
+	DeleteAt                    int64       `json:"delete_at"`
+	HasSyncables                bool        `db:"-" json:"has_syncables"`
+	MemberCount                 *int        `db:"-" json:"member_count,omitempty"`
+	AllowReference              bool        `json:"allow_reference"`
+	ChannelMemberCount          *int        `db:"-" json:"channel_member_count,omitempty"`
+	ChannelMemberTimezonesCount *int        `db:"-" json:"channel_member_timezones_count,omitempty"`
+}
+
+func (group *Group) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":              group.Id,
+		"source":          group.Source,
+		"remote_id":       group.RemoteId,
+		"create_at":       group.CreateAt,
+		"update_at":       group.UpdateAt,
+		"delete_at":       group.DeleteAt,
+		"has_syncables":   group.HasSyncables,
+		"member_count":    group.MemberCount,
+		"allow_reference": group.AllowReference,
+	}
 }
 
 type GroupWithUserIds struct {
@@ -99,6 +115,9 @@ type GroupSearchOpts struct {
 	// FilterHasMember filters the groups to the intersect of the
 	// set returned by the query and those that have the given user as a member.
 	FilterHasMember string
+
+	IncludeChannelMemberCount string
+	IncludeTimezones          bool
 }
 
 type GetGroupOpts struct {
@@ -135,17 +154,17 @@ func (group *Group) Patch(patch *GroupPatch) {
 }
 
 func (group *Group) IsValidForCreate() *AppError {
-	err := group.IsValidName()
-	if err != nil {
-		return err
+	appErr := group.IsValidName()
+	if appErr != nil {
+		return appErr
 	}
 
 	if l := len(group.DisplayName); l == 0 || l > GroupDisplayNameMaxLength {
-		return NewAppError("Group.IsValidForCreate", "model.group.display_name.app_error", map[string]interface{}{"GroupDisplayNameMaxLength": GroupDisplayNameMaxLength}, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForCreate", "model.group.display_name.app_error", map[string]any{"GroupDisplayNameMaxLength": GroupDisplayNameMaxLength}, "", http.StatusBadRequest)
 	}
 
 	if len(group.Description) > GroupDescriptionMaxLength {
-		return NewAppError("Group.IsValidForCreate", "model.group.description.app_error", map[string]interface{}{"GroupDescriptionMaxLength": GroupDescriptionMaxLength}, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForCreate", "model.group.description.app_error", map[string]any{"GroupDescriptionMaxLength": GroupDescriptionMaxLength}, "", http.StatusBadRequest)
 	}
 
 	isValidSource := false
@@ -185,8 +204,8 @@ func (group *Group) IsValidForUpdate() *AppError {
 	if group.UpdateAt == 0 {
 		return NewAppError("Group.IsValidForUpdate", "model.group.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
-	if err := group.IsValidForCreate(); err != nil {
-		return err
+	if appErr := group.IsValidForCreate(); appErr != nil {
+		return appErr
 	}
 	return nil
 }
@@ -197,11 +216,15 @@ func (group *Group) IsValidName() *AppError {
 
 	if group.Name == nil {
 		if group.AllowReference {
-			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
 		}
 	} else {
 		if l := len(*group.Name); l == 0 || l > GroupNameMaxLength {
-			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+		}
+
+		if *group.Name == UserNotifyAll || *group.Name == ChannelMentionsNotifyProp || *group.Name == UserNotifyHere {
+			return NewAppError("IsValidName", "model.group.name.reserved_name.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if !validGroupnameChars.MatchString(*group.Name) {
@@ -228,4 +251,12 @@ func (group *Group) GetRemoteId() string {
 type GroupsWithCount struct {
 	Groups     []*Group `json:"groups"`
 	TotalCount int64    `json:"total_count"`
+}
+
+type CreateDefaultMembershipParams struct {
+	Since               int64
+	ReAddRemovedMembers bool
+	ScopedUserID        *string
+	ScopedTeamID        *string
+	ScopedChannelID     *string
 }

@@ -167,7 +167,7 @@ func TestWebSocketClose(t *testing.T) {
 	})
 }
 
-func binaryWebsocketHandler(t *testing.T, clientData map[string]interface{}, doneCh chan struct{}) http.HandlerFunc {
+func binaryWebsocketHandler(t *testing.T, clientData map[string]any, doneCh chan struct{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		defer close(doneCh)
 		upgrader := &websocket.Upgrader{
@@ -194,7 +194,7 @@ func binaryWebsocketHandler(t *testing.T, clientData map[string]interface{}, don
 }
 
 func TestWebSocketSendBinaryMessage(t *testing.T) {
-	clientData := map[string]interface{}{
+	clientData := map[string]any{
 		"data": []byte("some data to send as binary"),
 	}
 
@@ -208,7 +208,7 @@ func TestWebSocketSendBinaryMessage(t *testing.T) {
 	cli.Listen()
 	defer cli.Close()
 
-	err = cli.SendBinaryMessage("binaryAction", map[string]interface{}{
+	err = cli.SendBinaryMessage("binaryAction", map[string]any{
 		"unmarshable": func() {},
 	})
 	require.Error(t, err)

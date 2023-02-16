@@ -70,11 +70,11 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
-		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
+		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
 			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
-				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		// If token is stored in the database that means it was used
 		if token != nil {
@@ -88,7 +88,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 				CreateAt: model.GetMillis(),
 				Type:     TokenTypeCWSAccess,
 			}
-			err := a.Srv().Store.Token().Save(token)
+			err := a.Srv().Store().Token().Save(token)
 			if err != nil {
 				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -139,7 +139,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if user, err := a.Srv().Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+	if user, err := a.Srv().Store().User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
 		return user, nil
 	}
 
@@ -157,17 +157,15 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 }
 
 func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionReason string
-		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
-			return rejectionReason == ""
-		}, plugin.UserWillLogInID)
+	var rejectionReason string
+	pluginContext := pluginContext(c)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		rejectionReason = hooks.UserWillLogIn(pluginContext, user)
+		return rejectionReason == ""
+	}, plugin.UserWillLogInID)
 
-		if rejectionReason != "" {
-			return model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
-		}
+	if rejectionReason != "" {
+		return model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
 
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceID, IsOAuth: false, Props: map[string]string{
@@ -178,7 +176,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	session.GenerateCSRF()
 
 	if deviceID != "" {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
@@ -186,11 +184,11 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 			return err
 		}
 	} else if isMobile {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 	} else if isOAuthUser || isSaml {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	} else {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthWebInDays)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
@@ -222,19 +220,16 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
+			a.Ldap().UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
 		})
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLoggedIn(pluginContext, user)
-				return true
-			}, plugin.UserHasLoggedInID)
-		})
-	}
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.UserHasLoggedIn(pluginContext, user)
+			return true
+		}, plugin.UserHasLoggedInID)
+	})
 
 	return nil
 }
@@ -245,9 +240,9 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		secure = true
 	}
 
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	maxAgeSeconds := *a.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 
 	domain := ""
 	if siteURL, err := url.Parse(a.GetSiteURL()); err == nil {
@@ -276,7 +271,7 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		Name:    model.SessionCookieCloudUrl,
 		Value:   workspaceName,
 		Path:    subpath,
-		MaxAge:  maxAge,
+		MaxAge:  maxAgeSeconds,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -292,16 +287,16 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		secure = true
 	}
 
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	maxAgeSeconds := *a.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
 	domain := a.GetCookieDomain()
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SessionCookieToken,
 		Value:    c.Session().Token,
 		Path:     subpath,
-		MaxAge:   maxAge,
+		MaxAge:   maxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Domain:   domain,
@@ -312,7 +307,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Name:    model.SessionCookieUser,
 		Value:   c.Session().UserId,
 		Path:    subpath,
-		MaxAge:  maxAge,
+		MaxAge:  maxAgeSeconds,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -322,7 +317,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Name:    model.SessionCookieCsrf,
 		Value:   c.Session().GetCSRF(),
 		Path:    subpath,
-		MaxAge:  maxAge,
+		MaxAge:  maxAgeSeconds,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -331,6 +326,11 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
 	http.SetCookie(w, csrfCookie)
+
+	// For context see: https://mattermost.atlassian.net/browse/MM-39583
+	if a.License().IsCloud() {
+		a.AttachCloudSessionCookie(c, w, r)
+	}
 }
 
 func GetProtocol(r *http.Request) string {
@@ -341,5 +341,5 @@ func GetProtocol(r *http.Request) string {
 }
 
 func IsCWSLogin(a *App, token string) bool {
-	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
+	return a.License().IsCloud() && token != ""
 }

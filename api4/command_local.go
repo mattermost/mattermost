@@ -25,11 +25,12 @@ func (api *API) InitCommandLocal() {
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
-		c.SetInvalidParam("command")
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("localCreateCommand", audit.Fail)
+	auditRec.AddEventParameter("command", cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -41,10 +42,11 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("success")
-	auditRec.AddMeta("command", rcmd)
+	auditRec.AddEventResultState(rcmd)
+	auditRec.AddEventObjectType("command")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

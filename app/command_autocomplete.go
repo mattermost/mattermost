@@ -280,7 +280,7 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 
 	var listItems []model.AutocompleteListItem
 	if jsonErr := json.NewDecoder(resp.Body).Decode(&listItems); jsonErr != nil {
-		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		c.Logger().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
 
 	return parseListItems(listItems, parsed, toBeParsed)

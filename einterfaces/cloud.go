@@ -8,12 +8,16 @@ import (
 )
 
 type CloudInterface interface {
+	GetCloudProduct(userID string, productID string) (*model.Product, error)
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
+	GetSelfHostedProducts(userID string) ([]*model.Product, error)
+	GetCloudLimits(userID string) (*model.ProductLimits, error)
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
 
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
+	GetLicenseExpandStatus(userID string, token string) (*model.SubscriptionExpandStatus, error)
 	UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error)
 	UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error)
 
@@ -23,7 +27,24 @@ type CloudInterface interface {
 
 	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
 
+	RequestCloudTrial(userID, subscriptionID, newValidBusinessEmail string) (*model.Subscription, error)
+	ValidateBusinessEmail(userID, email string) error
+
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
+
+	// hosted customer methods
+	SelfHostedSignupAvailable() error
+	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
+	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm, requesterEmail string) (*model.SelfHostedSignupCustomerResponse, error)
+	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
+	ConfirmSelfHostedSignupLicenseApplication() error
+	GetSelfHostedInvoices() ([]*model.Invoice, error)
+	GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error)
+
+	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
+	HandleLicenseChange() error
+
+	CheckCWSConnection(userId string) error
 }

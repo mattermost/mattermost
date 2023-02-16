@@ -25,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/morph"
 
 	"github.com/mattermost/morph/drivers"
@@ -116,20 +117,15 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 		return err
 	}
 
-	cfg := drivers.Config{
-		MigrationsTable:        migrationsTableName,
-		StatementTimeoutInSecs: migrationsTimeoutInSeconds,
-	}
-
 	var driver drivers.Driver
 	switch ds.driverName {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(ds.dataSourceName)
+		dataSource, rErr := sqlstore.ResetReadTimeout(ds.dataSourceName)
 		if rErr != nil {
 			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		dataSource, err = appendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlstore.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
@@ -140,15 +136,11 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 			return errors.Wrapf(err, "failed to connect to %s database", ds.driverName)
 		}
 
-		driver, err = ms.WithInstance(db.DB, &ms.Config{
-			Config: cfg,
-		})
+		driver, err = ms.WithInstance(db.DB)
 
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ds.db.DB, &ps.Config{
-			Config: cfg,
-		})
+		driver, err = ps.WithInstance(ds.db.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ds.driverName)
 	}
@@ -158,6 +150,8 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 
 	opts := []morph.EngineOption{
 		morph.WithLock("mm-config-lock-key"),
+		morph.SetMigrationTableName(migrationsTableName),
+		morph.SetStatementTimeoutInSeconds(migrationsTimeoutInSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
@@ -171,8 +165,11 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 // parseDSN splits up a connection string into a driver name and data source name.
 //
 // For example:
+//
 //	mysql://mmuser:mostest@localhost:5432/mattermost_test
+//
 // returns
+//
 //	driverName = mysql
 //	dataSourceName = mmuser:mostest@localhost:5432/mattermost_test
 //
@@ -277,7 +274,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 			return errors.Wrap(err, "failed to query active configuration")
 		}
 		if oldId != "" {
-			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]interface{}{"id": oldId}); err != nil {
+			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldId}); err != nil {
 				return errors.Wrap(err, "failed to deactivate current configuration")
 			}
 		}
@@ -287,7 +284,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}
 
-	params := map[string]interface{}{
+	params := map[string]any{
 		"id":        model.NewId(),
 		"value":     value,
 		"create_at": model.GetMillis(),
@@ -328,7 +325,7 @@ func (ds *DatabaseStore) Load() ([]byte, error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
-	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -350,7 +347,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "file data failed length check")
 	}
-	params := map[string]interface{}{
+	params := map[string]any{
 		"name":      name,
 		"data":      data,
 		"create_at": model.GetMillis(),
@@ -379,7 +376,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 
 // HasFile returns true if the given file was previously persisted.
 func (ds *DatabaseStore) HasFile(name string) (bool, error) {
-	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -397,7 +394,7 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 
 // RemoveFile remoevs a previously persisted configuration file.
 func (ds *DatabaseStore) RemoveFile(name string) error {
-	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -419,7 +416,7 @@ func (ds *DatabaseStore) Close() error {
 
 // removes configurations from database if they are older than threshold.
 func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
-	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]interface{}{"timestamp": thresholdCreatAt}); err != nil {
+	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]any{"timestamp": thresholdCreatAt}); err != nil {
 		return errors.Wrap(err, "unable to clean Configurations table")
 	}
 

@@ -99,7 +99,7 @@ func TestTextRanges(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var ranges []Range
 			var values []string
-			Inspect(tc.Markdown, func(node interface{}) bool {
+			Inspect(tc.Markdown, func(node any) bool {
 				if textNode, ok := node.(*Text); ok {
 					ranges = append(ranges, textNode.Range)
 					values = append(values, textNode.Text)

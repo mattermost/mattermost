@@ -6,7 +6,6 @@ package templates
 import (
 	"bytes"
 	"html/template"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,12 +16,12 @@ import (
 )
 
 func TestHTMLTemplateWatcher(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
 	require.NoError(t, os.Mkdir(filepath.Join(dir, "templates"), 0700))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}foo{{ end }}`), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}foo{{ end }}`), 0600))
 
 	prevDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -45,7 +44,7 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "foo", text)
 
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}bar{{ end }}`), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}bar{{ end }}`), 0600))
 
 	require.Eventually(t, func() bool {
 		text, err := watcher.RenderToString("foo", Data{})
@@ -73,7 +72,7 @@ func TestRender(t *testing.T) {
 	mt := NewFromTemplate(tpl)
 
 	data := Data{
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"Bar": "bar",
 		},
 	}

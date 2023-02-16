@@ -8,14 +8,22 @@ import (
 	"path/filepath"
 )
 
-var (
-	commonBaseSearchPaths = []string{
+func CommonBaseSearchPaths() []string {
+	paths := []string{
 		".",
 		"..",
 		"../..",
 		"../../..",
+		"../../../..",
 	}
-)
+
+	// this enables the server to be used in tests from a different repository
+	if mmPath := os.Getenv("MM_SERVER_PATH"); mmPath != "" {
+		paths = append(paths, mmPath)
+	}
+
+	return paths
+}
 
 func findPath(path string, baseSearchPaths []string, workingDirFirst bool, filter func(os.FileInfo) bool) string {
 	if filepath.IsAbs(path) {
@@ -79,7 +87,7 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 // FindFile looks for the given file in nearby ancestors relative to the current working
 // directory as well as the directory of the executable.
 func FindFile(path string) string {
-	return FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+	return FindPath(path, CommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return !fileInfo.IsDir()
 	})
 }
@@ -87,7 +95,7 @@ func FindFile(path string) string {
 // fileutils.FindDir looks for the given directory in nearby ancestors relative to the current working
 // directory as well as the directory of the executable, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	found := FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+	found := FindPath(dir, CommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
 	if found == "" {
@@ -100,7 +108,7 @@ func FindDir(dir string) (string, bool) {
 // FindDirRelBinary looks for the given directory in nearby ancestors relative to the
 // directory of the executable, then relative to the working directory, falling back to `./` if not found.
 func FindDirRelBinary(dir string) (string, bool) {
-	found := findPath(dir, commonBaseSearchPaths, false, func(fileInfo os.FileInfo) bool {
+	found := findPath(dir, CommonBaseSearchPaths(), false, func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
 	if found == "" {

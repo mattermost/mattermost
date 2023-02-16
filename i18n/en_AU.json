@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -253,7 +253,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab's Terms of Service have updated. Please go to {{.URL}} to accept them and then try logging into Mattermost again."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -2436,10 +2436,6 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
   },
@@ -2741,7 +2737,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User IDs are not permitted in channel name for non-direct message channels."
+    "translation": "Channel names can't be in a hexadecimal format. Please enter a different channel name."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
@@ -3256,14 +3252,6 @@
     "translation": "Reached AD/LDAP synchronisation job timeout."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Your licence does not support ID Loaded Push Notifications."
   },
@@ -3282,10 +3270,6 @@
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch is disabled."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -4110,10 +4094,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "Failed to get upload."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
   },
   {
     "id": "app.upload.create.save.app_error",
@@ -4969,11 +4949,11 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Email us any time at "
+    "translation": "Need help or have questions? Email us at "
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -4997,15 +4977,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Failed Payment"
+    "translation": "The payment wasn't successful"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost Cloud"
+    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5026,10 +5006,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
@@ -5066,10 +5042,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -5229,7 +5201,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "You updated your email"
+    "translation": "You successfully updated your email"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
@@ -5273,7 +5245,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your workspace is ready to go!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -5338,38 +5310,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Add apps to your workspace"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 14-day trial of Mattermost is ending soon"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloud trial ending"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Add payment method"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost ends today"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, your Cloud workspace will be permanently deleted and you will lose any associated data."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloud trial has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start subscription"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -5506,14 +5446,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Your licence does not support guest accounts"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -5744,10 +5676,6 @@
     "translation": "Failed to marshal."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Unable to request a trial licence. Please configure a Site URL in the web server section of the Mattermost System Console."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial licence, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
@@ -5910,10 +5838,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Unable to upload files. Incorrect number of files specified."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -6537,7 +6461,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be less than 1 MB in size."
+    "translation": "Unable to create emoji. Image must be less than 512 KiB in size."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -7131,7 +7055,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -7143,15 +7067,15 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Couldn't find a matching user. They may have been deactivated by the System Administrator."
+    "translation": "Couldn't find a matching user {{.User}}. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Missing Username and/or Channel."
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -7183,7 +7107,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Show Mattermost help message"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -7794,7 +7718,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.hoursCount}} hours(s)."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -8848,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "This trial licence key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial licence. You have previously applied a trial license to this Mattermost instance. If you would like to extend your trial period please [contact the sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -8957,10 +8881,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " replied to a thread."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error while processing bulk import attachments."
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
@@ -9116,7 +9036,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "Open Mattermost to increase your team’s productivity"
+    "translation": "Open Mattermost to increase your team’s productivity!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9220,11 +9140,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "{{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
@@ -9233,5 +9153,817 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Invalid request body."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch settings has unset values."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "You received this one-time email because your Mattermost server was inactive for more than {{.Hours}} hours. This email was automatically generated by your Mattermost server."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "An error occurred while fetching recent searches"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to retrieve top threads for user."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to retrieve top threads for team."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights is behind a feature flag which is not enabled."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Already notified admin"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can't fetch the post as it is past the cloud's plan limit."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "An error occurred while fetching the last accessible post"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hello there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "An error occurred while clearing team member cache"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "To keep your {{.Plan}} plan active, please contact your financial department or institution as soon as possible. Then, update your payment details as needed."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Please contact your financial department or institution to resolve any issues. Then, update your payment details as needed."
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Unable to get top DMs for user."
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Subscription is not delinquent"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Cloud subscription couldn't be retrieved"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Cloud products couldn't be retrieved"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Your Mattermost workspace has been downgraded"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "To unarchive your data and keep paid features, update your payment information."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "If you use Cloud Professional or Enterprise features for important business operations, these will no longer be available and you'll experience degraded performance."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Your Mattermost Cloud workspace has been downgraded"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "View Plans & Pricing"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Your workspace will be downgraded in 15 days"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Update your payment information now, or downgrade to Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "This is a final reminder that payment for your Mattermost Cloud workspace hasn't been received since {{.DelinquencyDate}}."
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Your payment wasn't completed"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Your most recent payment couldn't be processed."
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Your Mattermost workspace will be downgraded in 30 days"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Update your payment information now or downgrade to Cloud Free below."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Your workspace will be downgraded automatically in 30 days if your payment is unable to be processed."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Please update your payment information soon to process your outstanding invoices."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Action Required: Workspace will be downgraded in 30 days"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Your workspace will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Update your credit card information now."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried out in your workspace."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Payment for outstanding invoices since {{.DelinquencyDate}} have not been able to be collected. Your workspace is at risk of being downgraded."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Notice: Your Mattermost {{.Plan}} will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Your workspace will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "You have time to keep your Mattermost {{.Plan}} active but you'll need to resolve issues with your payment method."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Act to keep your Mattermost {{.Plan}} Features"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "View all limits documentation."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Message history"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Files"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Payment not received"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "The credit card on record wasn't able to be charged. This means your workspace is at risk of being downgraded to Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "The marketplace command is not supported on your device."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Open the Marketplace"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost is an open source platform for secure communication, collaboration and orchestration of work across tools and teams.\nMattermost contains three key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\n\n[View documentation and guides]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Missing required fields to send delinquency email."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Unable to send notification post."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Unable to save notify data."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "The user's badge couldn't be retrieved."
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Unable to get current plan name"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Unable to retrieve file: cloud storage limit exceeded."
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Invalid time range."
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} cannot be enabled in product mode."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Your workspace licence does not support guest accounts"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type already exists."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection type already exists."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "not an LDAP user"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "Failed to add user to group-teams and group-channels"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Invalid root ID."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Invalid props."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Invalid message."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Invalid file IDs."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Unable to get post priority for post"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Unable to update the draft."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Unable to save the draft."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Unable to get files for draft."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Unable to get user's drafts."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Unable to get the draft."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Unable to delete the draft."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "You cannot remove an acknowledgment in an archived channel."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating a Jira bot and GitHub bot. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Use the Meeting Agenda board template for recurring meetings like standup and the Project Tasks board to manage the progress of tasks along the way."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Product Teams"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Invalid priority"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "View your invoice"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be charged from {{.Date}}."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal unavailable for self-hosted signup."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Could not open the client key file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Could not open the client certificate file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Decoding of the client certificate for Elasticsearch failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Could not open the CA file for Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Decoding of the CA for Elasticsearch failed"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Unable to retrieve work templates"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Unable to retrieve categories for work templates"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Unable to enumerate urgent posts since the given date."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Unable to save post acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Unable to retrieve post acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Unable to retrieve acknowledgement."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "The CWS Server is unavailable."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Could not retrieve the total number of outgoing webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Could not retrieve the total number of incoming webhooks"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Could not retrieve the total number of active users"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "True up review is not allowed for cloud instances"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "True up review requires a licence"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Could not retrieve true up status records"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Could not create true up status record"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Cannot save a draft to a deleted channel"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Description of why the channel(s) are necessary"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Description of why the board(s) are necessary"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Get organised and squash all the bugs with this project! Build momentum and measure progress using included Playbook, Board and Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Get organised and squash all the bugs with this project! Build momentum and measure progress using included Playbook, Board and Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Get organised and squash all the bugs with this project! Build momentum and measure progress using included Playbook, Board and Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Get organised and squash all the bugs with this project! Build momentum and measure progress using included Playbook, Board and Channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure issues are resolved and stakeholders informed along the way."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure issues are resolved and stakeholders informed along the way."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure issues are resolved and stakeholders informed along the way."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Leadership"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Company - Wide"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Unable to find channel associated with a playbook."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Error while creating a playbook."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Error while creating a channel."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Error while creating a board."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Error while executing a work template."
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Your licence does not support private playbooks."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "You don't have permission to create a public playbook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "You don't have permission to create a public channel."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "You don't have permission to create a public board."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "You don't have permission to create a private playbook."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "You don't have permission to create a private channel."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "You don't have permission to create a private board."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Invalid auth service: {{.AuthService}}"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "A user with the username '{{.Username}}' already exists."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Work templates are disabled."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Service only available in Mattermost Enterprise edition"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Failed to update server translations."
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "The templates command is not supported on your device."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "templates"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Open the create from template window"
   }
 ]

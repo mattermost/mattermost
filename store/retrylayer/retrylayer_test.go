@@ -53,6 +53,11 @@ func genStore() *mocks.Store {
 	mock.On("UserAccessToken").Return(&mocks.UserAccessTokenStore{})
 	mock.On("UserTermsOfService").Return(&mocks.UserTermsOfServiceStore{})
 	mock.On("Webhook").Return(&mocks.WebhookStore{})
+	mock.On("NotifyAdmin").Return(&mocks.NotifyAdminStore{})
+	mock.On("Draft").Return(&mocks.DraftStore{})
+	mock.On("PostPriority").Return(&mocks.PostPriorityStore{})
+	mock.On("PostAcknowledgement").Return(&mocks.PostAcknowledgementStore{})
+	mock.On("TrueUpReview").Return(&mocks.TrueUpReviewStore{})
 	return mock
 }
 

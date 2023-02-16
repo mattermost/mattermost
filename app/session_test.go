@@ -35,7 +35,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
-	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr := th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -53,7 +53,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr = th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -68,7 +68,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr = th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -86,7 +86,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr = th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -134,7 +134,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
@@ -155,9 +155,9 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInHours = 24 })
 
 	t.Run("get session length mobile", func(t *testing.T) {
 		session := &model.Session{
@@ -244,9 +244,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInHours = 24 })
 
 	t.Run("expired session should not be extended", func(t *testing.T) {
 		expires := model.GetMillis() - hourMillis
@@ -317,12 +317,12 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.False(t, session.IsExpired())
 
 			// check cache was updated
-			cachedSession, errGet := th.App.ch.srv.userService.GetSession(session.Token)
+			cachedSession, errGet := th.App.ch.srv.platform.GetSession(session.Token)
 			require.NoError(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
+			storedSession, nErr := th.App.Srv().Store().Session().Get(context.Background(), session.Token)
 			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})

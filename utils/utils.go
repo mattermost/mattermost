@@ -4,7 +4,8 @@
 package utils
 
 import (
-	"io/ioutil"
+	"io"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -100,9 +101,9 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	for _, proxyHeader := range trustedProxyIPHeader {
 		header := r.Header.Get(proxyHeader)
 		if header != "" {
-			addresses := strings.Fields(header)
+			addresses := strings.Split(header, ",")
 			if len(addresses) > 0 {
-				address = strings.TrimRight(addresses[0], ",")
+				address = strings.TrimSpace(addresses[0])
 			}
 		}
 
@@ -164,7 +165,7 @@ func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 		return nil, errors.Errorf("Fetching notices failed with status code %d", resp.StatusCode)
 	}
 
-	cache.Data, err = ioutil.ReadAll(resp.Body)
+	cache.Data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		cache.Data = nil
 		return nil, err
@@ -214,4 +215,49 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 		}
 	}
 	return false
+}
+
+// RoundOffToZeroes converts all digits to 0 except the 1st one.
+// Special case: If there is only 1 digit, then returns 0.
+func RoundOffToZeroes(n float64) int64 {
+	if n >= -9 && n <= 9 {
+		return 0
+	}
+
+	zeroes := int(math.Log10(math.Abs(n)))
+	tens := int64(math.Pow10(zeroes))
+	firstDigit := int64(n) / tens
+	return firstDigit * tens
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// RoundOffToZeroesResolution truncates off at most minResolution zero places.
+// It implicitly sets the lowest minResolution to 0.
+// e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
+func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
+	resolution := max(0, minResolution)
+	if n >= -9 && n <= 9 {
+		if resolution == 0 {
+			return int64(n)
+		}
+		return 0
+	}
+
+	zeroes := int(math.Log10(math.Abs(n)))
+	resolution = min(zeroes, resolution)
+	tens := int64(math.Pow10(resolution))
+	significantDigits := int64(n) / tens
+	return significantDigits * tens
 }

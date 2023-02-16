@@ -16,6 +16,7 @@ type Reaction struct {
 	UpdateAt  int64   `json:"update_at"`
 	DeleteAt  int64   `json:"delete_at"`
 	RemoteId  *string `json:"remote_id"`
+	ChannelId string  `json:"channel_id"`
 }
 
 func (o *Reaction) IsValid() *AppError {

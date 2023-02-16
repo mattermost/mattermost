@@ -35,13 +35,13 @@ func (_m *CommandStore) AnalyticsCommandCount(teamID string) (int64, error) {
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: commandID, time
-func (_m *CommandStore) Delete(commandID string, time int64) error {
-	ret := _m.Called(commandID, time)
+// Delete provides a mock function with given fields: commandID, timestamp
+func (_m *CommandStore) Delete(commandID string, timestamp int64) error {
+	ret := _m.Called(commandID, timestamp)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(commandID, time)
+		r0 = rf(commandID, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}

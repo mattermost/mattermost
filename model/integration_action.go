@@ -164,7 +164,7 @@ type PostActionCookie struct {
 	ChannelId   string                 `json:"channel_id,omitempty"`
 	DataSource  string                 `json:"data_source,omitempty"`
 	Integration *PostActionIntegration `json:"integration,omitempty"`
-	RetainProps map[string]interface{} `json:"retain_props,omitempty"`
+	RetainProps map[string]any         `json:"retain_props,omitempty"`
 	RemoveProps []string               `json:"remove_props,omitempty"`
 }
 
@@ -174,22 +174,22 @@ type PostActionOptions struct {
 }
 
 type PostActionIntegration struct {
-	URL     string                 `json:"url,omitempty"`
-	Context map[string]interface{} `json:"context,omitempty"`
+	URL     string         `json:"url,omitempty"`
+	Context map[string]any `json:"context,omitempty"`
 }
 
 type PostActionIntegrationRequest struct {
-	UserId      string                 `json:"user_id"`
-	UserName    string                 `json:"user_name"`
-	ChannelId   string                 `json:"channel_id"`
-	ChannelName string                 `json:"channel_name"`
-	TeamId      string                 `json:"team_id"`
-	TeamName    string                 `json:"team_domain"`
-	PostId      string                 `json:"post_id"`
-	TriggerId   string                 `json:"trigger_id"`
-	Type        string                 `json:"type"`
-	DataSource  string                 `json:"data_source"`
-	Context     map[string]interface{} `json:"context,omitempty"`
+	UserId      string         `json:"user_id"`
+	UserName    string         `json:"user_name"`
+	ChannelId   string         `json:"channel_id"`
+	ChannelName string         `json:"channel_name"`
+	TeamId      string         `json:"team_id"`
+	TeamName    string         `json:"team_domain"`
+	PostId      string         `json:"post_id"`
+	TriggerId   string         `json:"trigger_id"`
+	Type        string         `json:"type"`
+	DataSource  string         `json:"data_source"`
+	Context     map[string]any `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {
@@ -236,15 +236,15 @@ type OpenDialogRequest struct {
 }
 
 type SubmitDialogRequest struct {
-	Type       string                 `json:"type"`
-	URL        string                 `json:"url,omitempty"`
-	CallbackId string                 `json:"callback_id"`
-	State      string                 `json:"state"`
-	UserId     string                 `json:"user_id"`
-	ChannelId  string                 `json:"channel_id"`
-	TeamId     string                 `json:"team_id"`
-	Submission map[string]interface{} `json:"submission"`
-	Cancelled  bool                   `json:"cancelled"`
+	Type       string         `json:"type"`
+	URL        string         `json:"url,omitempty"`
+	CallbackId string         `json:"callback_id"`
+	State      string         `json:"state"`
+	UserId     string         `json:"user_id"`
+	ChannelId  string         `json:"channel_id"`
+	TeamId     string         `json:"team_id"`
+	Submission map[string]any `json:"submission"`
+	Cancelled  bool           `json:"cancelled"`
 }
 
 type SubmitDialogResponse struct {
@@ -261,7 +261,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 	sum.Write([]byte(triggerData))
 	signature, err := s.Sign(rand.Reader, sum.Sum(nil), h)
 	if err != nil {
-		return "", "", NewAppError("GenerateTriggerId", "interactive_message.generate_trigger_id.signing_failed", nil, err.Error(), http.StatusInternalServerError)
+		return "", "", NewAppError("GenerateTriggerId", "interactive_message.generate_trigger_id.signing_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	base64Sig := base64.StdEncoding.EncodeToString(signature)
@@ -271,9 +271,9 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 }
 
 func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
-	clientTriggerId, triggerId, err := GenerateTriggerId(r.UserId, s)
-	if err != nil {
-		return "", "", err
+	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, s)
+	if appErr != nil {
+		return "", "", appErr
 	}
 
 	r.TriggerId = triggerId
@@ -283,7 +283,7 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, err.Error(), http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
@@ -298,12 +298,12 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 
 	now := GetMillis()
 	if now-timestamp > InteractiveDialogTriggerTimeoutMilliseconds {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]interface{}{"Seconds": InteractiveDialogTriggerTimeoutMilliseconds / 1000}, "", http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Seconds": InteractiveDialogTriggerTimeoutMilliseconds / 1000}, "", http.StatusBadRequest)
 	}
 
 	signature, err := base64.StdEncoding.DecodeString(split[3])
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, err.Error(), http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var esig struct {
@@ -311,7 +311,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 	}
 
 	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, err.Error(), http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr}, ":") + ":"
@@ -373,7 +373,7 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 	p := o.Clone()
 
 	// retainedProps carry over their value from the old post, including no value
-	retainProps := map[string]interface{}{}
+	retainProps := map[string]any{}
 	removeProps := []string{}
 	for _, key := range PostActionRetainPropKeys {
 		value, ok := p.GetProps()[key]

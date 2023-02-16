@@ -32,7 +32,6 @@ func (s SearchFileInfoStore) indexFile(file *model.FileInfo) {
 					mlog.Error("Encountered error indexing file", mlog.String("file_info_id", file.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Indexed file in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id))
 			})
 		}
 	}
@@ -46,7 +45,6 @@ func (s SearchFileInfoStore) deleteFileIndex(fileID string) {
 					mlog.Error("Encountered error deleting file", mlog.String("file_info_id", fileID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed file from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", fileID))
 			})
 		}
 	}
@@ -172,7 +170,6 @@ func (s SearchFileInfoStore) Search(paramsList []*model.SearchParams, userId, te
 				mlog.Error("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(appErr))
 				continue
 			}
-			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 
 			// Get the files
 			filesList := model.NewFileInfoList()
@@ -191,10 +188,8 @@ func (s SearchFileInfoStore) Search(paramsList []*model.SearchParams, userId, te
 	}
 
 	if *s.rootStore.getConfig().SqlSettings.DisableDatabaseSearch {
-		mlog.Debug("Returning empty results for file Search as the database search is disabled")
 		return model.NewFileInfoList(), nil
 	}
 
-	mlog.Debug("Using database search because no other search engine is available")
 	return s.FileInfoStore.Search(paramsList, userId, teamId, page, perPage)
 }

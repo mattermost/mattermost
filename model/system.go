@@ -31,6 +31,9 @@ const (
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
+	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
+	SystemLastAccessibleFileTime           = "LastAccessibleFileTime"
+	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 )
@@ -73,16 +76,18 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
-	ServerOS             string   `yaml:"server_os"`
-	ServerArchitecture   string   `yaml:"server_architecture"`
-	ServerVersion        string   `yaml:"server_version"`
-	BuildHash            string   `yaml:"build_hash,omitempty"`
-	DatabaseType         string   `yaml:"database_type"`
-	DatabaseVersion      string   `yaml:"database_version"`
-	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion    string   `yaml:"ldap_vendor_version,omitempty"`
-	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+	ServerOS              string   `yaml:"server_os"`
+	ServerArchitecture    string   `yaml:"server_architecture"`
+	ServerVersion         string   `yaml:"server_version"`
+	BuildHash             string   `yaml:"build_hash,omitempty"`
+	DatabaseType          string   `yaml:"database_type"`
+	DatabaseVersion       string   `yaml:"database_version"`
+	LdapVendorName        string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion     string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion  string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins  []string `yaml:"elastic_server_plugins,omitempty"`
+	ActiveUsers           int      `yaml:"active_users"`
+	LicenseSupportedUsers int      `yaml:"license_supported_users,omitempty"`
 }
 
 type FileData struct {
@@ -175,4 +180,16 @@ type SendWarnMetricAck struct {
 type AppliedMigration struct {
 	Version int    `json:"version"`
 	Name    string `json:"name"`
+}
+
+type LogFilter struct {
+	ServerNames []string `json:"server_names"`
+	LogLevels   []string `json:"log_levels"`
+	DateFrom    string   `json:"date_from"`
+	DateTo      string   `json:"date_to"`
+}
+
+type LogEntry struct {
+	Timestamp string
+	Level     string
 }

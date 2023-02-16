@@ -84,8 +84,7 @@ func TestGetLatestVersion(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		_, err := th.App.GetLatestVersion(errorServer.URL)
-		require.NotNil(t, err)
-		require.Equal(t, "app.admin.latest_version_external_error.failure", err.Id)
+		_, appErr := th.App.GetLatestVersion(errorServer.URL)
+		require.NotNil(t, appErr)
 	})
 }

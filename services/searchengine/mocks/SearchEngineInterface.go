@@ -400,13 +400,13 @@ func (_m *SearchEngineInterface) RefreshIndexes() *model.AppError {
 	return r0
 }
 
-// SearchChannels provides a mock function with given fields: teamId, userID, term
-func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, term string) ([]string, *model.AppError) {
-	ret := _m.Called(teamId, userID, term)
+// SearchChannels provides a mock function with given fields: teamId, userID, term, isGuest
+func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, term string, isGuest bool) ([]string, *model.AppError) {
+	ret := _m.Called(teamId, userID, term, isGuest)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(string, string, string) []string); ok {
-		r0 = rf(teamId, userID, term)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) []string); ok {
+		r0 = rf(teamId, userID, term, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -414,8 +414,8 @@ func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, te
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
-		r1 = rf(teamId, userID, term)
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) *model.AppError); ok {
+		r1 = rf(teamId, userID, term, isGuest)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

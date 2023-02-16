@@ -14,14 +14,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestNoticeValidation(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
 	mockSystemStore := mocks.SystemStore{}
 	mockUserStore := mocks.UserStore{}
@@ -114,7 +113,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ServerConfig: map[string]interface{}{"ServiceSettings.LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache"},
+						ServerConfig: map[string]any{"ServiceSettings.LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache"},
 					},
 				},
 			},
@@ -126,7 +125,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ServerConfig: map[string]interface{}{"ServiceSettings.ZZ": "test"},
+						ServerConfig: map[string]any{"ServiceSettings.ZZ": "test"},
 					},
 				},
 			},
@@ -138,7 +137,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff": "test"},
+						UserConfig: map[string]any{"Stuff": "test"},
 					},
 				},
 			},
@@ -150,7 +149,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data": "test"},
+						UserConfig: map[string]any{"Stuff.Data": "test"},
 					},
 				},
 			},
@@ -162,7 +161,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data2": "test"},
+						UserConfig: map[string]any{"Stuff.Data2": "test"},
 					},
 				},
 			},
@@ -174,7 +173,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data3": "stuff"},
+						UserConfig: map[string]any{"Stuff.Data3": "stuff"},
 					},
 				},
 			},
@@ -360,7 +359,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().Format("2006-01-02"))),
+						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
 					},
 				},
 			},
@@ -644,7 +643,7 @@ func TestNoticeValidation(t *testing.T) {
 			}
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),
-				th.App.Srv().Store.Preference(),
+				th.App.Srv().Store().Preference(),
 				"test",
 				tt.args.client,
 				clientVersion,
@@ -720,7 +719,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them for specified user
-	messages, appErr := th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
+	messages, appErr := th.App.GetProductNotices(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 1)
 
@@ -729,12 +728,12 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, see that none are returned
-	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
 	// validate views table
-	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	views, err := th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 1)
 
@@ -748,12 +747,12 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
-	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
-	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	views, err = th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 0)
 }

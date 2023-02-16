@@ -161,7 +161,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
 		if err != nil {
 			mlog.Error("Worker: Failed to parse start_time for job", mlog.String("workername", worker.name), mlog.String("start_time", startString), mlog.String("job_id", job.Id), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_start_time.error", nil, err.Error(), http.StatusInternalServerError)
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_start_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
@@ -174,7 +174,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		oldestEntityCreationTime, err := worker.jobServer.Store.Post().GetOldestEntityCreationTime()
 		if err != nil {
 			mlog.Error("Worker: Failed to fetch oldest entity for job.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("start_time", startString), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_entity.error", nil, err.Error(), http.StatusInternalServerError)
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_entity.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
@@ -188,7 +188,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		endInt, err := strconv.ParseInt(endString, 10, 64)
 		if err != nil {
 			mlog.Error("Worker: Failed to parse end_time for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("end_time", endString), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_end_time.error", nil, err.Error(), http.StatusInternalServerError)
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_end_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job errorv", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
@@ -212,7 +212,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
-	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount("", false, false); err != nil {
+	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
 		mlog.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		progress.TotalPostsCount = estimatedPostCount
 	} else {
@@ -339,7 +339,7 @@ func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (In
 		posts, err = worker.jobServer.Store.Post().GetPostsBatchForIndexing(progress.LastEntityTime, progress.LastPostID, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if err != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			mlog.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
 
@@ -393,7 +393,7 @@ func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing,
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.PostIndex.Batch(batch); err != nil {
-		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_posts.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_posts.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &posts[len(posts)-1].Post, nil
 }
@@ -407,7 +407,7 @@ func (worker *BleveIndexerWorker) IndexFilesBatch(progress IndexingProgress) (In
 		files, err = worker.jobServer.Store.FileInfo().GetFilesBatchForIndexing(progress.LastEntityTime, progress.LastFileID, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if err != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("IndexFilesBatch", "app.post.get_files_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("IndexFilesBatch", "app.post.get_files_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			mlog.Warn("Failed to get files batch for indexing. Retrying.", mlog.Err(err))
 
@@ -460,7 +460,7 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.FileIndex.Batch(batch); err != nil {
-		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_files.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_files.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &files[len(files)-1].FileInfo, nil
 }
@@ -474,7 +474,7 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 		channels, nErr = worker.jobServer.Store.Channel().GetChannelsBatchForIndexing(progress.LastEntityTime, progress.LastChannelID, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if nErr != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("BleveIndexerWorker.IndexChannelsBatch", "app.channel.get_channels_batch_for_indexing.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("BleveIndexerWorker.IndexChannelsBatch", "app.channel.get_channels_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 
 			mlog.Warn("Failed to get channels batch for indexing. Retrying.", mlog.Err(nErr))
@@ -521,14 +521,14 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 			if channel.Type == model.ChannelTypePrivate {
 				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMembersById(channel.Id)
 				if err != nil {
-					return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+					return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 			}
 
 			// Get teamMember ids from channelid
 			teamMemberIDs, err := worker.jobServer.Store.Channel().GetTeamMembersForChannel(channel.Id)
 			if err != nil {
-				return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			searchChannel := bleveengine.BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
@@ -542,7 +542,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.ChannelIndex.Batch(batch); err != nil {
-		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channels[len(channels)-1], nil
 }
@@ -554,7 +554,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 	for users == nil {
 		if usersBatch, err := worker.jobServer.Store.User().GetUsersBatchForIndexing(progress.LastEntityTime, progress.LastUserID, *worker.jobServer.Config().BleveSettings.BatchSize); err != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			mlog.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
 
@@ -608,7 +608,7 @@ func (worker *BleveIndexerWorker) BulkIndexUsers(users []*model.UserForIndexing,
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.UserIndex.Batch(batch); err != nil {
-		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexUsers", "bleveengine.indexer.do_job.bulk_index_users.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexUsers", "bleveengine.indexer.do_job.bulk_index_users.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return users[len(users)-1], nil
 }

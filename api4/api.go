@@ -134,6 +134,17 @@ type Routes struct {
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 
 	Permissions *mux.Router // 'api/v4/permissions'
+
+	InsightsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/top'
+	InsightsForUser *mux.Router // 'api/v4/users/me/top'
+
+	Usage *mux.Router // 'api/v4/usage'
+
+	WorkTemplates *mux.Router // 'api/v4/worktemplates'
+
+	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
+
+	Drafts *mux.Router // 'api/v4/drafts'
 }
 
 type API struct {
@@ -255,6 +266,17 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 
+	api.BaseRoutes.InsightsForTeam = api.BaseRoutes.Team.PathPrefix("/top").Subrouter()
+	api.BaseRoutes.InsightsForUser = api.BaseRoutes.Users.PathPrefix("/me/top").Subrouter()
+
+	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
+
+	api.BaseRoutes.WorkTemplates = api.BaseRoutes.APIRoot.PathPrefix("/worktemplates").Subrouter()
+
+	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
+
+	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -296,6 +318,11 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
+	api.InitInsights()
+	api.InitUsage()
+	api.InitWorkTemplate()
+	api.InitHostedCustomer()
+	api.InitDrafts()
 	if err := api.InitGraphQL(); err != nil {
 		return nil, err
 	}

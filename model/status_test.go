@@ -30,12 +30,12 @@ func TestStatusListToJSON(t *testing.T) {
 	jsonStatuses, err := StatusListToJSON(statuses)
 	assert.NoError(t, err)
 
-	var dat []map[string]interface{}
+	var dat []map[string]any
 	if err := json.Unmarshal(jsonStatuses, &dat); err != nil {
 		panic(err)
 	}
 
-	assert.Equal(t, len(dat), 2)
+	assert.Len(t, dat, 2)
 
 	_, ok := dat[0]["active_channel"]
 	assert.False(t, ok)

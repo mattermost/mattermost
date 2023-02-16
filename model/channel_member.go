@@ -22,42 +22,65 @@ const (
 )
 
 type ChannelUnread struct {
-	TeamId           string    `json:"team_id"`
-	ChannelId        string    `json:"channel_id"`
-	MsgCount         int64     `json:"msg_count"`
-	MentionCount     int64     `json:"mention_count"`
-	MentionCountRoot int64     `json:"mention_count_root"`
-	MsgCountRoot     int64     `json:"msg_count_root"`
-	NotifyProps      StringMap `json:"-"`
+	TeamId             string    `json:"team_id"`
+	ChannelId          string    `json:"channel_id"`
+	MsgCount           int64     `json:"msg_count"`
+	MentionCount       int64     `json:"mention_count"`
+	MentionCountRoot   int64     `json:"mention_count_root"`
+	UrgentMentionCount int64     `json:"urgent_mention_count"`
+	MsgCountRoot       int64     `json:"msg_count_root"`
+	NotifyProps        StringMap `json:"-"`
 }
 
 type ChannelUnreadAt struct {
-	TeamId           string    `json:"team_id"`
-	UserId           string    `json:"user_id"`
-	ChannelId        string    `json:"channel_id"`
-	MsgCount         int64     `json:"msg_count"`
-	MentionCount     int64     `json:"mention_count"`
-	MentionCountRoot int64     `json:"mention_count_root"`
-	MsgCountRoot     int64     `json:"msg_count_root"`
-	LastViewedAt     int64     `json:"last_viewed_at"`
-	NotifyProps      StringMap `json:"-"`
+	TeamId             string    `json:"team_id"`
+	UserId             string    `json:"user_id"`
+	ChannelId          string    `json:"channel_id"`
+	MsgCount           int64     `json:"msg_count"`
+	MentionCount       int64     `json:"mention_count"`
+	MentionCountRoot   int64     `json:"mention_count_root"`
+	UrgentMentionCount int64     `json:"urgent_mention_count"`
+	MsgCountRoot       int64     `json:"msg_count_root"`
+	LastViewedAt       int64     `json:"last_viewed_at"`
+	NotifyProps        StringMap `json:"-"`
 }
 
 type ChannelMember struct {
-	ChannelId        string    `json:"channel_id"`
-	UserId           string    `json:"user_id"`
-	Roles            string    `json:"roles"`
-	LastViewedAt     int64     `json:"last_viewed_at"`
-	MsgCount         int64     `json:"msg_count"`
-	MentionCount     int64     `json:"mention_count"`
-	MentionCountRoot int64     `json:"mention_count_root"`
-	MsgCountRoot     int64     `json:"msg_count_root"`
-	NotifyProps      StringMap `json:"notify_props"`
-	LastUpdateAt     int64     `json:"last_update_at"`
-	SchemeGuest      bool      `json:"scheme_guest"`
-	SchemeUser       bool      `json:"scheme_user"`
-	SchemeAdmin      bool      `json:"scheme_admin"`
-	ExplicitRoles    string    `json:"explicit_roles"`
+	ChannelId          string    `json:"channel_id"`
+	UserId             string    `json:"user_id"`
+	Roles              string    `json:"roles"`
+	LastViewedAt       int64     `json:"last_viewed_at"`
+	MsgCount           int64     `json:"msg_count"`
+	MentionCount       int64     `json:"mention_count"`
+	MentionCountRoot   int64     `json:"mention_count_root"`
+	UrgentMentionCount int64     `json:"urgent_mention_count"`
+	MsgCountRoot       int64     `json:"msg_count_root"`
+	NotifyProps        StringMap `json:"notify_props"`
+	LastUpdateAt       int64     `json:"last_update_at"`
+	SchemeGuest        bool      `json:"scheme_guest"`
+	SchemeUser         bool      `json:"scheme_user"`
+	SchemeAdmin        bool      `json:"scheme_admin"`
+	ExplicitRoles      string    `json:"explicit_roles"`
+}
+
+func (o *ChannelMember) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"channel_id":           o.ChannelId,
+		"user_id":              o.UserId,
+		"roles":                o.Roles,
+		"last_viewed_at":       o.LastViewedAt,
+		"msg_count":            o.MsgCount,
+		"mention_count":        o.MentionCount,
+		"mention_count_root":   o.MentionCountRoot,
+		"urgent_mention_count": o.UrgentMentionCount,
+		"msg_count_root":       o.MsgCountRoot,
+		"notify_props":         o.NotifyProps,
+		"last_update_at":       o.LastUpdateAt,
+		"scheme_guest":         o.SchemeGuest,
+		"scheme_user":          o.SchemeUser,
+		"scheme_admin":         o.SchemeAdmin,
+		"explicit_roles":       o.ExplicitRoles,
+	}
 }
 
 // The following are some GraphQL methods necessary to return the
@@ -79,6 +102,14 @@ func (o *ChannelMember) MentionCount_() float64 {
 
 func (o *ChannelMember) MentionCountRoot_() float64 {
 	return float64(o.MentionCountRoot)
+}
+
+func (o *ChannelMember) UrgentMentionCount_() float64 {
+	return float64(o.UrgentMentionCount)
+}
+
+func (o *ChannelMember) MsgCountRoot_() float64 {
+	return float64(o.MsgCountRoot)
 }
 
 func (o *ChannelMember) LastUpdateAt_() float64 {
@@ -143,7 +174,7 @@ func (o *ChannelMember) IsValid() *AppError {
 
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

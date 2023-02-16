@@ -16,7 +16,7 @@ func slackParseChannels(data io.Reader, channelType model.ChannelType) ([]slackC
 
 	var channels []slackChannel
 	if err := decoder.Decode(&channels); err != nil {
-		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.")
+		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.", mlog.Err(err))
 		return channels, err
 	}
 
@@ -43,7 +43,7 @@ func slackParsePosts(data io.Reader) ([]slackPost, error) {
 
 	var posts []slackPost
 	if err := decoder.Decode(&posts); err != nil {
-		mlog.Warn("Slack Import: Error occurred when parsing some Slack posts. Import may work anyway.")
+		mlog.Warn("Slack Import: Error occurred when parsing some Slack posts. Import may work anyway.", mlog.Err(err))
 		return posts, err
 	}
 	return posts, nil

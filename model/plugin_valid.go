@@ -15,7 +15,8 @@ const (
 )
 
 // ValidId constrains the set of valid plugin identifiers:
-//  ^[a-zA-Z0-9-_\.]+
+//
+//	^[a-zA-Z0-9-_\.]+
 var validId *regexp.Regexp
 
 func init() {
