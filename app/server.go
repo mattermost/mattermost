@@ -1288,9 +1288,20 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	ctaText := "api.templates.license_up_for_renewal_renew_now"
+	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	status, err := s.Cloud.GetLicenseExpandStatus("", tokenToBeUsedForRenew)
+	if err != nil {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if !status.IsExpandable {
+		ctaText = "api.templates.license_up_for_renewal_contact_sales"
+		ctaLink = "https://mattermost.com/contact-sales/"
 	}
 
 	// we want to at least have one email sent out to an admin
@@ -1301,7 +1312,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		if name == "" {
 			name = user.Username
 		}
-		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
+		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, ctaLink, ctaText, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
 			countNotOks++
 		}

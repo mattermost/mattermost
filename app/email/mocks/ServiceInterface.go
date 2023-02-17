@@ -358,13 +358,13 @@ func (_m *ServiceInterface) SendLicenseInactivityEmail(_a0 string, name string, 
 	return r0
 }
 
-// SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, name, locale, siteURL, renewalLink, daysToExpiration
-func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string, locale string, siteURL string, renewalLink string, daysToExpiration int) error {
-	ret := _m.Called(_a0, name, locale, siteURL, renewalLink, daysToExpiration)
+// SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, name, locale, siteURL, ctaLink, ctaText, daysToExpiration
+func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string, locale string, siteURL string, ctaLink string, ctaText string, daysToExpiration int) error {
+	ret := _m.Called(_a0, name, locale, siteURL, ctaLink, ctaText, daysToExpiration)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int) error); ok {
-		r0 = rf(_a0, name, locale, siteURL, renewalLink, daysToExpiration)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, int) error); ok {
+		r0 = rf(_a0, name, locale, siteURL, ctaLink, ctaText, daysToExpiration)
 	} else {
 		r0 = ret.Error(0)
 	}

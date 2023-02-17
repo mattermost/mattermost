@@ -989,7 +989,7 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 	return nil
 }
 
-func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error {
+func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaLink, ctaText string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.license_up_for_renewal_subject")
 
@@ -999,8 +999,8 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
 	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
-	data.Props["ButtonURL"] = renewalLink
+	data.Props["Button"] = T(ctaText)
+	data.Props["ButtonURL"] = ctaLink
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["SupportEmail"] = "feedback@mattermost.com"
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
