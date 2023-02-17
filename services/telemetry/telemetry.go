@@ -1421,7 +1421,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"focalboard",
 	}
 
-	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
+	marketplacePlugins, err := ts.GetAllMarketplacePlugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
 
@@ -1459,7 +1459,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 
-func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
+func (ts *TelemetryService) GetAllMarketplacePlugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
 		ts.srv.HTTPService(),

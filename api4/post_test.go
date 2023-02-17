@@ -3073,6 +3073,73 @@ func TestGetPostsByIds(t *testing.T) {
 	CheckNotFoundStatus(t, response)
 }
 
+func TestGetEditHistoryForPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "new message",
+		UserId:    th.BasicUser.Id,
+	}
+
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Millisecond)
+
+	t.Run("unedited post", func(t *testing.T) {
+		history, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Len(t, history, 0)
+	})
+
+	// update the post message
+	patch := &model.PostPatch{
+		Message: model.NewString("new message edited"),
+	}
+
+	// Patch the post
+	_, response1, err1 := client.PatchPost(rpost.Id, patch)
+	require.NoError(t, err1)
+	CheckOKStatus(t, response1)
+
+	// update the post message again
+	patch = &model.PostPatch{
+		Message: model.NewString("new message edited again"),
+	}
+
+	_, response2, err2 := client.PatchPost(rpost.Id, patch)
+	require.NoError(t, err2)
+	CheckOKStatus(t, response2)
+
+	t.Run("update history correctly", func(t *testing.T) {
+		history, response3, err3 := client.GetEditHistoryForPost(rpost.Id)
+		require.NoError(t, err3)
+		CheckOKStatus(t, response3)
+
+		require.Len(t, history, 2)
+		require.Equal(t, "new message edited", history[0].Message)
+		require.Equal(t, "new message", history[1].Message)
+	})
+
+	t.Run("logged out", func(t *testing.T) {
+		client.Logout()
+		_, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	th := Setup(t).InitBasic()
 	rpost := th.CreatePost()

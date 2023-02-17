@@ -223,6 +223,9 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHash"] = model.BuildHash
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+	props["BuildHashBoards"] = model.BuildHashBoards
+	props["BuildBoards"] = model.BuildBoards
+	props["BuildHashPlaybooks"] = model.BuildHashPlaybooks
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
@@ -344,7 +347,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			// MM-48727: enable SSO options for free cloud - not in self hosted
 			*license.Features.GoogleOAuth = true
 			*license.Features.Office365OAuth = true
-			*license.Features.OpenId = true
 		}
 
 		if *license.Features.GoogleOAuth {
