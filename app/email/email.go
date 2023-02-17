@@ -999,7 +999,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
 	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Button"] = T(ctaText)
+	data.Props["Button"] = ctaText
 	data.Props["ButtonURL"] = ctaLink
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["SupportEmail"] = "feedback@mattermost.com"
