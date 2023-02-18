@@ -224,6 +224,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		debugBarLayer = debugbarlayer.New(c.App.Srv().Store(), c.AppContext.Session().UserId, c.App.Publish)
 		c.App.Srv().SetStore(debugBarLayer)
 	})
+	c.App.Srv().Platform().LastUserID = c.AppContext.Session().UserId
 	debugBarLayer.SetCurrentUser(c.AppContext.Session().UserId)
 	// }
 

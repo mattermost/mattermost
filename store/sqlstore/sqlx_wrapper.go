@@ -64,15 +64,17 @@ var namedParamRegex = regexp.MustCompile(`:\w+`)
 
 type sqlxDBWrapper struct {
 	*sqlx.DB
-	queryTimeout time.Duration
-	trace        bool
+	queryTimeout    time.Duration
+	trace           bool
+	debugbarPublish func(string, time.Duration, ...any)
 }
 
-func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool) *sqlxDBWrapper {
+func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool, debugbarPublish func(string, time.Duration, ...any)) *sqlxDBWrapper {
 	return &sqlxDBWrapper{
-		DB:           db,
-		queryTimeout: timeout,
-		trace:        trace,
+		DB:              db,
+		queryTimeout:    timeout,
+		trace:           trace,
+		debugbarPublish: debugbarPublish,
 	}
 }
 
@@ -86,7 +88,7 @@ func (w *sqlxDBWrapper) Beginx() (*sqlxTxWrapper, error) {
 		return nil, err
 	}
 
-	return newSqlxTxWrapper(tx, w.queryTimeout, w.trace), nil
+	return newSqlxTxWrapper(tx, w.queryTimeout, w.trace, w.debugbarPublish), nil
 }
 
 func (w *sqlxDBWrapper) BeginXWithIsolation(opts *sql.TxOptions) (*sqlxTxWrapper, error) {
@@ -95,7 +97,7 @@ func (w *sqlxDBWrapper) BeginXWithIsolation(opts *sql.TxOptions) (*sqlxTxWrapper
 		return nil, err
 	}
 
-	return newSqlxTxWrapper(tx, w.queryTimeout, w.trace), nil
+	return newSqlxTxWrapper(tx, w.queryTimeout, w.trace, w.debugbarPublish), nil
 }
 
 func (w *sqlxDBWrapper) Get(dest any, query string, args ...any) error {
@@ -106,6 +108,11 @@ func (w *sqlxDBWrapper) Get(dest any, query string, args ...any) error {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
 		}(time.Now())
 	}
 
@@ -131,6 +138,12 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), arg)
+		}(time.Now())
+	}
+
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), arg)
 		}(time.Now())
 	}
 
@@ -161,6 +174,12 @@ func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, er
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.DB.ExecContext(context.Background(), query, args...)
 }
 
@@ -173,6 +192,12 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
 		}(time.Now())
 	}
 
@@ -192,6 +217,12 @@ func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), arg)
+		}(time.Now())
+	}
+
 	return w.DB.NamedQueryContext(ctx, query, arg)
 }
 
@@ -206,6 +237,12 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.DB.QueryRowxContext(ctx, query, args...)
 }
 
@@ -217,6 +254,12 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
 		}(time.Now())
 	}
 
@@ -238,6 +281,12 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.DB.SelectContext(ctx, dest, query, args...)
 }
 
@@ -252,15 +301,17 @@ func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
 
 type sqlxTxWrapper struct {
 	*sqlx.Tx
-	queryTimeout time.Duration
-	trace        bool
+	queryTimeout    time.Duration
+	trace           bool
+	debugbarPublish func(string, time.Duration, ...any)
 }
 
-func newSqlxTxWrapper(tx *sqlx.Tx, timeout time.Duration, trace bool) *sqlxTxWrapper {
+func newSqlxTxWrapper(tx *sqlx.Tx, timeout time.Duration, trace bool, debugbarPublish func(string, time.Duration, ...any)) *sqlxTxWrapper {
 	return &sqlxTxWrapper{
-		Tx:           tx,
-		queryTimeout: timeout,
-		trace:        trace,
+		Tx:              tx,
+		queryTimeout:    timeout,
+		trace:           trace,
+		debugbarPublish: debugbarPublish,
 	}
 }
 
@@ -272,6 +323,12 @@ func (w *sqlxTxWrapper) Get(dest any, query string, args ...any) error {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
 		}(time.Now())
 	}
 
@@ -302,6 +359,12 @@ func (w *sqlxTxWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, er
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.Tx.ExecContext(context.Background(), query, args...)
 }
 
@@ -326,6 +389,12 @@ func (w *sqlxTxWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.Tx.ExecContext(ctx, query, args...)
 }
 
@@ -342,6 +411,12 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), arg)
+		}(time.Now())
+	}
+
 	return w.Tx.NamedExecContext(ctx, query, arg)
 }
 
@@ -355,6 +430,12 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), arg)
+		}(time.Now())
+	}
+
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), arg)
 		}(time.Now())
 	}
 
@@ -400,6 +481,12 @@ func (w *sqlxTxWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.Tx.QueryRowxContext(ctx, query, args...)
 }
 
@@ -414,6 +501,12 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
+		}(time.Now())
+	}
+
 	return w.Tx.QueryxContext(ctx, query, args)
 }
 
@@ -425,6 +518,12 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	if w.debugbarPublish != nil {
+		defer func(then time.Time) {
+			w.debugbarPublish(query, time.Since(then), args...)
 		}(time.Now())
 	}
 
