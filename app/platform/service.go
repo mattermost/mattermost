@@ -192,7 +192,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		event.Add("type", "sql-query")
 		event.Add("query", query)
 		event.Add("args", args)
-		event.Add("duration", elapsed)
+		event.Add("duration", float64(elapsed)/float64(time.Second))
 		ps.Publish(event)
 	}
 
