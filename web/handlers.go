@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/gziphandler"
@@ -27,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/debugbarlayer"
 	"github.com/mattermost/mattermost-server/v6/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -86,6 +88,9 @@ type Handler struct {
 
 	cspShaDirective string
 }
+
+var onlyOnce sync.Once
+var debugBarLayer *debugbarlayer.DebugBarLayer
 
 func generateDevCSP(c Context) string {
 	var devCSP []string
@@ -212,6 +217,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
+
+	// TODO: Enable this only if the debug bar is enabled
+	// if os.Getenv("MM_ENABLE_DEBUG_BAR") != "" {
+	onlyOnce.Do(func() {
+		debugBarLayer = debugbarlayer.New(c.App.Srv().Store(), c.AppContext.Session().UserId, c.App.Publish)
+		c.App.Srv().SetStore(debugBarLayer)
+	})
+	debugBarLayer.SetCurrentUser(c.AppContext.Session().UserId)
+	// }
 
 	// Set the max request body size to be equal to MaxFileSize.
 	// Ideally, non-file request bodies should be smaller than file request bodies,
@@ -401,18 +415,36 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+
+	elapsed := float64(time.Since(now)) / float64(time.Second)
+	var endpoint string
+	if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+		// It's a graphQL query, so use the operation name.
+		endpoint = c.GraphQLOperationName
+	} else {
+		endpoint = h.HandlerName
+	}
+	event := model.NewWebSocketEvent("debug", "", "", c.AppContext.Session().UserId, nil, "")
+	event.Add("time", model.GetMillis())
+	event.Add("type", "api-call")
+	event.Add("endpoint", endpoint)
+	event.Add("method", r.Method)
+	event.Add("statusCode", statusCode)
+	event.Add("duration", elapsed)
+	c.App.Publish(event)
+
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
-			elapsed := float64(time.Since(now)) / float64(time.Second)
-			var endpoint string
-			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-				// It's a graphQL query, so use the operation name.
-				endpoint = c.GraphQLOperationName
-			} else {
-				endpoint = h.HandlerName
-			}
+			// elapsed := float64(time.Since(now)) / float64(time.Second)
+			// var endpoint string
+			// if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+			// 	// It's a graphQL query, so use the operation name.
+			// 	endpoint = c.GraphQLOperationName
+			// } else {
+			// 	endpoint = h.HandlerName
+			// }
 			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
 		}
 	}
