@@ -366,7 +366,6 @@ func NewServer(options ...Option) (*Server, error) {
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
 		LicenseFn:          s.License,
-		GoFn:               s.Go,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
@@ -718,6 +717,10 @@ func (s *Server) Shutdown() {
 	if err = s.platform.ShutdownMetrics(); err != nil {
 		s.Log().Warn("Failed to stop metrics server", mlog.Err(err))
 	}
+
+	// Stopping email service after HTTP server has stopped to prevent
+	// any stray notifications from being queued.
+	s.EmailService.Stop()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
