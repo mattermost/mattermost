@@ -382,6 +382,37 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	})
 }
 
+func TestCreateWebhookPostLinks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, err)
+	defer th.App.DeleteIncomingWebhook(hook.Id)
+
+	for name, tc := range map[string]struct {
+		input          string
+		expectedOutput string
+	}{
+		"if statement": {
+			input:          "`if(status_int < QUERY_UNKNOWN || status_int >= QUERY_STATUS_MAX)`",
+			expectedOutput: "`if(status_int < QUERY_UNKNOWN || status_int >= QUERY_STATUS_MAX)`",
+		},
+		"angle bracket link": {
+			input:          "<https://mattermost.com|Mattermost>",
+			expectedOutput: "[Mattermost](https://mattermost.com)",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "")
+			require.Nil(t, err)
+			require.Equal(t, tc.expectedOutput, post.Message)
+		})
+	}
+}
+
 func TestSplitWebhookPost(t *testing.T) {
 	type TestCase struct {
 		Post     *model.Post
