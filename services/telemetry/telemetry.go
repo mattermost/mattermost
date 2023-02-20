@@ -49,6 +49,7 @@ const (
 	TrackConfigLDAP              = "config_ldap"
 	TrackConfigCompliance        = "config_compliance"
 	TrackConfigLocalization      = "config_localization"
+	TrackConfigChannel           = "config_channel"
 	TrackConfigSAML              = "config_saml"
 	TrackConfigPassword          = "config_password"
 	TrackConfigCluster           = "config_cluster"
@@ -679,6 +680,10 @@ func (ts *TelemetryService) trackConfig() {
 		"default_server_locale": *cfg.LocalizationSettings.DefaultServerLocale,
 		"default_client_locale": *cfg.LocalizationSettings.DefaultClientLocale,
 		"available_locales":     *cfg.LocalizationSettings.AvailableLocales,
+	})
+
+	ts.SendTelemetry(TrackConfigChannel, map[string]any{
+		"enable_channel_autocomplete": *cfg.ChannelSettings.EnableChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigSAML, map[string]any{

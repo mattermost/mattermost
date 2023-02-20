@@ -270,6 +270,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 
+	props["EnableChannelAutocomplete"] = strconv.FormatBool(*c.ChannelSettings.EnableChannelAutocomplete)
+
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink

@@ -2329,6 +2329,16 @@ func (s *LocalizationSettings) SetDefaults() {
 	}
 }
 
+type ChannelSettings struct {
+	EnableChannelAutocomplete *bool `access:"site_posts"`
+}
+
+func (s *ChannelSettings) SetDefaults() {
+	if s.EnableChannelAutocomplete == nil {
+		s.EnableChannelAutocomplete = NewBool(true)
+	}
+}
+
 type SamlSettings struct {
 	// Basic
 	Enable                        *bool `access:"authentication_saml"`
@@ -3174,6 +3184,7 @@ type Config struct {
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
+	ChannelSettings           ChannelSettings
 	SamlSettings              SamlSettings
 	NativeAppSettings         NativeAppSettings
 	ClusterSettings           ClusterSettings
@@ -3289,6 +3300,7 @@ func (o *Config) SetDefaults() {
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
+	o.ChannelSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
 	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
