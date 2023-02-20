@@ -127,7 +127,8 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 	query := s.getQueryBuilder().
 		Select("COUNT(ThreadMemberships.PostId)").
 		From("ThreadMemberships").
-		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
@@ -189,7 +190,8 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 	query := s.getQueryBuilder().
 		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 		From("ThreadMemberships").
-		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
@@ -224,15 +226,13 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 		From("ThreadMemberships").
 		Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 			"PostsPriority.Priority":      model.PostPriorityUrgent,
 		})
-
-	if teamId != "" || !opts.Deleted {
-		query = query.Join("Threads ON Threads.PostId = ThreadMemberships.PostId")
-	}
 
 	if teamId != "" {
 		query = query.
@@ -279,7 +279,8 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		).
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
-		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+		Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId")
 
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
@@ -409,7 +410,8 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 		repliesQuery := s.getQueryBuilder().
 			Select("COUNT(Threads.PostId) AS Count, ThreadTeamId AS TeamId").
 			From("Threads").
-			LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
+			Join("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
+			Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 			Where(fetchConditions).
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Threads.ThreadTeamId")
@@ -421,7 +423,8 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 		mentionsQuery := s.getQueryBuilder().
 			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
 			From("ThreadMemberships").
-			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 			Where(fetchConditions).
 			GroupBy("Threads.ThreadTeamId")
 
@@ -435,6 +438,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 				From("ThreadMemberships").
 				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 				Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+				Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 				Where(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}).
 				Where(fetchConditions).
 				GroupBy("Threads.ThreadTeamId")
@@ -495,6 +499,8 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	query := s.getQueryBuilder().
 		Select("ThreadMemberships.UserId").
 		From("ThreadMemberships").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
 		Where(fetchConditions)
 
 	err := s.GetReplicaX().SelectBuilder(&users, query)
@@ -529,7 +535,10 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 	query = query.
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
-		Where(sq.Eq{"Threads.PostId": threadMembership.PostId})
+		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+		Join("ChannelMembers ON ChannelMembers.UserId = ThreadMemberships.UserId AND ChannelMembers.ChannelId = Threads.ChannelId").
+		Where(sq.Eq{"Threads.PostId": threadMembership.PostId}).
+		Where(sq.Eq{"ThreadMemberships.UserId": threadMembership.UserId})
 
 	if postPriorityEnabled {
 		urgencyCase := sq.
