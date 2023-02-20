@@ -486,7 +486,7 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	users := []string{}
 
 	fetchConditions := sq.And{
-		sq.Eq{"PostId": threadID},
+		sq.Eq{"ThreadMemberships.PostId": threadID},
 	}
 
 	if fetchOnlyActive {
