@@ -17,6 +17,7 @@ func New(publish func(*model.WebSocketEvent)) *DebugBar {
 		enabled: os.Getenv("MM_ENABLE_DEBUG_BAR") == "true",
 	}
 }
+
 func (db *DebugBar) IsEnabled() bool {
 	return db.enabled
 }
@@ -42,12 +43,12 @@ func (db *DebugBar) SendApiCall(endpoint, method, statusCode string, elapsed flo
 	db.publish(event)
 }
 
-func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64) {
+func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64, params map[string]any) {
 	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "store-call")
 	event.Add("method", method)
-	// event.Add("params", fmt.Sprintf("%v", []any{{`{`}}{{$element.Params | joinParams}}{{`}`}}))
+	event.Add("params", params)
 	event.Add("success", success)
 	event.Add("duration", elapsed)
 	db.publish(event)

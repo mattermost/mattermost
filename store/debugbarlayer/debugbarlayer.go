@@ -453,8 +453,16 @@ func (s *DebugBarLayerAuditStore) Get(user_id string, offset int, limit int) (mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{user_id, offset, limit}))
-	s.Root.debugBar.SendStoreCall("AuditStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["user_id"] = user_id
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("AuditStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -469,8 +477,12 @@ func (s *DebugBarLayerAuditStore) PermanentDeleteByUser(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("AuditStore.PermanentDeleteByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("AuditStore.PermanentDeleteByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -485,8 +497,12 @@ func (s *DebugBarLayerAuditStore) Save(audit *model.Audit) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{audit}))
-	s.Root.debugBar.SendStoreCall("AuditStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["audit"] = audit
+
+	s.Root.debugBar.SendStoreCall("AuditStore.Save", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -501,8 +517,14 @@ func (s *DebugBarLayerBotStore) Get(userID string, includeDeleted bool) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("BotStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("BotStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -517,8 +539,12 @@ func (s *DebugBarLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.B
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("BotStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("BotStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -533,8 +559,12 @@ func (s *DebugBarLayerBotStore) PermanentDelete(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("BotStore.PermanentDelete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("BotStore.PermanentDelete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -549,8 +579,12 @@ func (s *DebugBarLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{bot}))
-	s.Root.debugBar.SendStoreCall("BotStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["bot"] = bot
+
+	s.Root.debugBar.SendStoreCall("BotStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -565,8 +599,12 @@ func (s *DebugBarLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{bot}))
-	s.Root.debugBar.SendStoreCall("BotStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["bot"] = bot
+
+	s.Root.debugBar.SendStoreCall("BotStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -581,8 +619,14 @@ func (s *DebugBarLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, cha
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelType}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.AnalyticsDeletedTypeCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["channelType"] = channelType
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.AnalyticsDeletedTypeCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -597,8 +641,14 @@ func (s *DebugBarLayerChannelStore) AnalyticsTypeCount(teamID string, channelTyp
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelType}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.AnalyticsTypeCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["channelType"] = channelType
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.AnalyticsTypeCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -613,8 +663,18 @@ func (s *DebugBarLayerChannelStore) Autocomplete(userID string, term string, inc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, term, includeDeleted, isGuest}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.Autocomplete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	debugBarLayerParams["isGuest"] = isGuest
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.Autocomplete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -629,8 +689,20 @@ func (s *DebugBarLayerChannelStore) AutocompleteInTeam(teamID string, userID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, term, includeDeleted, isGuest}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.AutocompleteInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	debugBarLayerParams["isGuest"] = isGuest
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.AutocompleteInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -645,8 +717,18 @@ func (s *DebugBarLayerChannelStore) AutocompleteInTeamForSearch(teamID string, u
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, term, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.AutocompleteInTeamForSearch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.AutocompleteInTeamForSearch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -661,8 +743,10 @@ func (s *DebugBarLayerChannelStore) ClearAllCustomRoleAssignments() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.ClearAllCustomRoleAssignments", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearAllCustomRoleAssignments", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -677,8 +761,9 @@ func (s *DebugBarLayerChannelStore) ClearCaches() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.ClearCaches", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearCaches", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -693,8 +778,9 @@ func (s *DebugBarLayerChannelStore) ClearMembersForUserCache() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.ClearMembersForUserCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearMembersForUserCache", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -709,8 +795,14 @@ func (s *DebugBarLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.ClearSidebarOnTeamLeave", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearSidebarOnTeamLeave", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -725,8 +817,16 @@ func (s *DebugBarLayerChannelStore) CountPostsAfter(channelID string, timestamp 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.CountPostsAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.CountPostsAfter", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -741,8 +841,16 @@ func (s *DebugBarLayerChannelStore) CountUrgentPostsAfter(channelID string, time
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.CountUrgentPostsAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.CountUrgentPostsAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -757,8 +865,16 @@ func (s *DebugBarLayerChannelStore) CreateDirectChannel(userID *model.User, othe
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, otherUserID, channelOptions...}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.CreateDirectChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["otherUserID"] = otherUserID
+
+	debugBarLayerParams["channelOptions"] = channelOptions
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.CreateDirectChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -773,8 +889,14 @@ func (s *DebugBarLayerChannelStore) CreateInitialSidebarCategories(userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.CreateInitialSidebarCategories", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.CreateInitialSidebarCategories", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -789,8 +911,16 @@ func (s *DebugBarLayerChannelStore) CreateSidebarCategory(userID string, teamID 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, newCategory}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.CreateSidebarCategory", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["newCategory"] = newCategory
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.CreateSidebarCategory", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -805,8 +935,14 @@ func (s *DebugBarLayerChannelStore) Delete(channelID string, timestamp int64) er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -821,8 +957,12 @@ func (s *DebugBarLayerChannelStore) DeleteSidebarCategory(categoryID string) err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{categoryID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.DeleteSidebarCategory", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["categoryID"] = categoryID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.DeleteSidebarCategory", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -837,8 +977,12 @@ func (s *DebugBarLayerChannelStore) DeleteSidebarChannelsByPreferences(preferenc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{preferences}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.DeleteSidebarChannelsByPreferences", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["preferences"] = preferences
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.DeleteSidebarChannelsByPreferences", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -853,8 +997,14 @@ func (s *DebugBarLayerChannelStore) Get(id string, allowFromCache bool) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -869,8 +1019,12 @@ func (s *DebugBarLayerChannelStore) GetAll(teamID string) ([]*model.Channel, err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -885,8 +1039,12 @@ func (s *DebugBarLayerChannelStore) GetAllChannelMembersById(id string) ([]strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersById", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersById", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -901,8 +1059,16 @@ func (s *DebugBarLayerChannelStore) GetAllChannelMembersForUser(userID string, a
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, allowFromCache, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -917,8 +1083,14 @@ func (s *DebugBarLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel(ch
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersNotifyPropsForChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersNotifyPropsForChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -933,8 +1105,16 @@ func (s *DebugBarLayerChannelStore) GetAllChannels(page int, perPage int, opts s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -949,8 +1129,12 @@ func (s *DebugBarLayerChannelStore) GetAllChannelsCount(opts store.ChannelSearch
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelsCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelsCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -965,8 +1149,14 @@ func (s *DebugBarLayerChannelStore) GetAllChannelsForExportAfter(limit int, afte
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelsForExportAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["afterID"] = afterID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelsForExportAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -981,8 +1171,14 @@ func (s *DebugBarLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllDirectChannelsForExportAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["afterID"] = afterID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllDirectChannelsForExportAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -997,8 +1193,16 @@ func (s *DebugBarLayerChannelStore) GetByName(team_id string, name string, allow
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, name, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team_id"] = team_id
+
+	debugBarLayerParams["name"] = name
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1013,8 +1217,16 @@ func (s *DebugBarLayerChannelStore) GetByNameIncludeDeleted(team_id string, name
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, name, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetByNameIncludeDeleted", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team_id"] = team_id
+
+	debugBarLayerParams["name"] = name
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetByNameIncludeDeleted", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1029,8 +1241,16 @@ func (s *DebugBarLayerChannelStore) GetByNames(team_id string, names []string, a
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, names, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetByNames", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team_id"] = team_id
+
+	debugBarLayerParams["names"] = names
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetByNames", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1045,8 +1265,14 @@ func (s *DebugBarLayerChannelStore) GetChannelCounts(teamID string, userID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelCounts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelCounts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1061,8 +1287,14 @@ func (s *DebugBarLayerChannelStore) GetChannelMembersForExport(userID string, te
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelMembersForExport", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelMembersForExport", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1077,8 +1309,12 @@ func (s *DebugBarLayerChannelStore) GetChannelMembersTimezones(channelID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelMembersTimezones", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelMembersTimezones", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1093,8 +1329,14 @@ func (s *DebugBarLayerChannelStore) GetChannelUnread(channelID string, userID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelUnread", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelUnread", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1109,8 +1351,16 @@ func (s *DebugBarLayerChannelStore) GetChannels(teamID string, userID string, op
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1125,8 +1375,16 @@ func (s *DebugBarLayerChannelStore) GetChannelsBatchForIndexing(startTime int64,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startChannelID, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsBatchForIndexing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["startTime"] = startTime
+
+	debugBarLayerParams["startChannelID"] = startChannelID
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsBatchForIndexing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1141,8 +1399,14 @@ func (s *DebugBarLayerChannelStore) GetChannelsByIds(channelIds []string, includ
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1157,8 +1421,16 @@ func (s *DebugBarLayerChannelStore) GetChannelsByScheme(schemeID string, offset 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByScheme", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["schemeID"] = schemeID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByScheme", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1173,8 +1445,20 @@ func (s *DebugBarLayerChannelStore) GetChannelsByUser(userID string, includeDele
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	debugBarLayerParams["lastDeleteAt"] = lastDeleteAt
+
+	debugBarLayerParams["pageSize"] = pageSize
+
+	debugBarLayerParams["fromChannelID"] = fromChannelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1189,8 +1473,18 @@ func (s *DebugBarLayerChannelStore) GetChannelsWithCursor(teamId string, userId 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamId, userId, opts, afterChannelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsWithCursor", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamId"] = teamId
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["opts"] = opts
+
+	debugBarLayerParams["afterChannelID"] = afterChannelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsWithCursor", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1205,8 +1499,14 @@ func (s *DebugBarLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsWithTeamDataByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsWithTeamDataByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1221,8 +1521,18 @@ func (s *DebugBarLayerChannelStore) GetDeleted(team_id string, offset int, limit
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, offset, limit, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetDeleted", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team_id"] = team_id
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetDeleted", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1237,8 +1547,14 @@ func (s *DebugBarLayerChannelStore) GetDeletedByName(team_id string, name string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, name}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetDeletedByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team_id"] = team_id
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetDeletedByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1253,8 +1569,12 @@ func (s *DebugBarLayerChannelStore) GetFileCount(channelID string) (int64, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetFileCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetFileCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1269,8 +1589,12 @@ func (s *DebugBarLayerChannelStore) GetForPost(postID string) (*model.Channel, e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1285,8 +1609,14 @@ func (s *DebugBarLayerChannelStore) GetGuestCount(channelID string, allowFromCac
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetGuestCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetGuestCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1301,8 +1631,14 @@ func (s *DebugBarLayerChannelStore) GetMany(ids []string, allowFromCache bool) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMany", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ids"] = ids
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMany", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1317,8 +1653,16 @@ func (s *DebugBarLayerChannelStore) GetMember(ctx context.Context, channelID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, channelID, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1333,8 +1677,14 @@ func (s *DebugBarLayerChannelStore) GetMemberCount(channelID string, allowFromCa
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1349,8 +1699,12 @@ func (s *DebugBarLayerChannelStore) GetMemberCountFromCache(channelID string) in
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCountFromCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCountFromCache", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -1365,8 +1719,16 @@ func (s *DebugBarLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, channelID, includeTimezones}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCountsByGroup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["includeTimezones"] = includeTimezones
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCountsByGroup", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1381,8 +1743,14 @@ func (s *DebugBarLayerChannelStore) GetMemberForPost(postID string, userID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1397,8 +1765,16 @@ func (s *DebugBarLayerChannelStore) GetMembers(channelID string, offset int, lim
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1413,8 +1789,14 @@ func (s *DebugBarLayerChannelStore) GetMembersByChannelIds(channelIds []string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersByChannelIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersByChannelIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1429,8 +1811,14 @@ func (s *DebugBarLayerChannelStore) GetMembersByIds(channelID string, userIds []
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIds}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userIds"] = userIds
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1445,8 +1833,14 @@ func (s *DebugBarLayerChannelStore) GetMembersForUser(teamID string, userID stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1461,8 +1855,16 @@ func (s *DebugBarLayerChannelStore) GetMembersForUserWithCursor(userID string, t
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUserWithCursor", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUserWithCursor", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1477,8 +1879,16 @@ func (s *DebugBarLayerChannelStore) GetMembersForUserWithPagination(userID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, page, perPage}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUserWithPagination", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUserWithPagination", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1493,8 +1903,12 @@ func (s *DebugBarLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIDs}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersInfoByChannelIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelIDs"] = channelIDs
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersInfoByChannelIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1509,8 +1923,18 @@ func (s *DebugBarLayerChannelStore) GetMoreChannels(teamID string, userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetMoreChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMoreChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1525,8 +1949,14 @@ func (s *DebugBarLayerChannelStore) GetPinnedPostCount(channelID string, allowFr
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetPinnedPostCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPinnedPostCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1541,8 +1971,12 @@ func (s *DebugBarLayerChannelStore) GetPinnedPosts(channelID string) (*model.Pos
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetPinnedPosts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPinnedPosts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1557,8 +1991,16 @@ func (s *DebugBarLayerChannelStore) GetPrivateChannelsForTeam(teamID string, off
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetPrivateChannelsForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPrivateChannelsForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1573,8 +2015,14 @@ func (s *DebugBarLayerChannelStore) GetPublicChannelsByIdsForTeam(teamID string,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelIds}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetPublicChannelsByIdsForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPublicChannelsByIdsForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1589,8 +2037,16 @@ func (s *DebugBarLayerChannelStore) GetPublicChannelsForTeam(teamID string, offs
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetPublicChannelsForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPublicChannelsForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1605,8 +2061,14 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategories(userID string, opts *st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategories", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategories", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1621,8 +2083,14 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategoriesForTeamForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategoriesForTeamForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1637,8 +2105,12 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategory(categoryID string) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{categoryID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategory", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["categoryID"] = categoryID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategory", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1653,8 +2125,14 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategoryOrder(userID string, teamI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategoryOrder", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategoryOrder", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1669,8 +2147,12 @@ func (s *DebugBarLayerChannelStore) GetTeamChannels(teamID string) (model.Channe
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1685,8 +2167,12 @@ func (s *DebugBarLayerChannelStore) GetTeamForChannel(channelID string) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamForChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamForChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1701,8 +2187,12 @@ func (s *DebugBarLayerChannelStore) GetTeamMembersForChannel(channelID string) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamMembersForChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamMembersForChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1717,8 +2207,20 @@ func (s *DebugBarLayerChannelStore) GetTopChannelsForTeamSince(teamID string, us
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopChannelsForTeamSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopChannelsForTeamSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1733,8 +2235,20 @@ func (s *DebugBarLayerChannelStore) GetTopChannelsForUserSince(userID string, te
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopChannelsForUserSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopChannelsForUserSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1749,8 +2263,20 @@ func (s *DebugBarLayerChannelStore) GetTopInactiveChannelsForTeamSince(teamID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopInactiveChannelsForTeamSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopInactiveChannelsForTeamSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1765,8 +2291,20 @@ func (s *DebugBarLayerChannelStore) GetTopInactiveChannelsForUserSince(teamID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopInactiveChannelsForUserSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopInactiveChannelsForUserSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1781,8 +2319,10 @@ func (s *DebugBarLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.GroupSyncedChannelCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.GroupSyncedChannelCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1797,8 +2337,18 @@ func (s *DebugBarLayerChannelStore) IncrementMentionCount(channelID string, user
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIDs, isRoot, isUrgent}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.IncrementMentionCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userIDs"] = userIDs
+
+	debugBarLayerParams["isRoot"] = isRoot
+
+	debugBarLayerParams["isUrgent"] = isUrgent
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.IncrementMentionCount", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -1813,8 +2363,11 @@ func (s *DebugBarLayerChannelStore) InvalidateAllChannelMembersForUser(userID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateAllChannelMembersForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateAllChannelMembersForUser", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1829,8 +2382,11 @@ func (s *DebugBarLayerChannelStore) InvalidateCacheForChannelMembersNotifyProps(
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateCacheForChannelMembersNotifyProps", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateCacheForChannelMembersNotifyProps", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1845,8 +2401,11 @@ func (s *DebugBarLayerChannelStore) InvalidateChannel(id string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateChannel", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1861,8 +2420,13 @@ func (s *DebugBarLayerChannelStore) InvalidateChannelByName(teamID string, name 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, name}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateChannelByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateChannelByName", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1877,8 +2441,11 @@ func (s *DebugBarLayerChannelStore) InvalidateGuestCount(channelID string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateGuestCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateGuestCount", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1893,8 +2460,11 @@ func (s *DebugBarLayerChannelStore) InvalidateMemberCount(channelID string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateMemberCount", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1909,8 +2479,11 @@ func (s *DebugBarLayerChannelStore) InvalidatePinnedPostCount(channelID string) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidatePinnedPostCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidatePinnedPostCount", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -1925,8 +2498,14 @@ func (s *DebugBarLayerChannelStore) IsUserInChannelUseCache(userID string, chann
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.IsUserInChannelUseCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.IsUserInChannelUseCache", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -1941,8 +2520,14 @@ func (s *DebugBarLayerChannelStore) MigrateChannelMembers(fromChannelID string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fromChannelID, fromUserID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.MigrateChannelMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["fromChannelID"] = fromChannelID
+
+	debugBarLayerParams["fromUserID"] = fromUserID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.MigrateChannelMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -1957,8 +2542,12 @@ func (s *DebugBarLayerChannelStore) PermanentDelete(channelID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDelete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDelete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -1973,8 +2562,12 @@ func (s *DebugBarLayerChannelStore) PermanentDeleteByTeam(teamID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteByTeam", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -1989,8 +2582,12 @@ func (s *DebugBarLayerChannelStore) PermanentDeleteMembersByChannel(channelID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteMembersByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteMembersByChannel", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2005,8 +2602,12 @@ func (s *DebugBarLayerChannelStore) PermanentDeleteMembersByUser(userID string) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteMembersByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteMembersByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2021,8 +2622,20 @@ func (s *DebugBarLayerChannelStore) PostCountsByDuration(channelIDs []string, si
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIDs, sinceUnixMillis, userID, duration, groupingLocation}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.PostCountsByDuration", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelIDs"] = channelIDs
+
+	debugBarLayerParams["sinceUnixMillis"] = sinceUnixMillis
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["duration"] = duration
+
+	debugBarLayerParams["groupingLocation"] = groupingLocation
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.PostCountsByDuration", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2037,8 +2650,12 @@ func (s *DebugBarLayerChannelStore) RemoveAllDeactivatedMembers(channelID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveAllDeactivatedMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveAllDeactivatedMembers", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2053,8 +2670,14 @@ func (s *DebugBarLayerChannelStore) RemoveMember(channelID string, userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveMember", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2069,8 +2692,14 @@ func (s *DebugBarLayerChannelStore) RemoveMembers(channelID string, userIds []st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIds}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userIds"] = userIds
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveMembers", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2085,8 +2714,10 @@ func (s *DebugBarLayerChannelStore) ResetAllChannelSchemes() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.ResetAllChannelSchemes", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.ResetAllChannelSchemes", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2101,8 +2732,14 @@ func (s *DebugBarLayerChannelStore) Restore(channelID string, timestamp int64) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.Restore", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.Restore", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2117,8 +2754,14 @@ func (s *DebugBarLayerChannelStore) Save(channel *model.Channel, maxChannelsPerT
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel, maxChannelsPerTeam}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channel"] = channel
+
+	debugBarLayerParams["maxChannelsPerTeam"] = maxChannelsPerTeam
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2133,8 +2776,16 @@ func (s *DebugBarLayerChannelStore) SaveDirectChannel(channel *model.Channel, me
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel, member1, member2}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SaveDirectChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channel"] = channel
+
+	debugBarLayerParams["member1"] = member1
+
+	debugBarLayerParams["member2"] = member2
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SaveDirectChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2149,8 +2800,12 @@ func (s *DebugBarLayerChannelStore) SaveMember(member *model.ChannelMember) (*mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SaveMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["member"] = member
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SaveMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2165,8 +2820,12 @@ func (s *DebugBarLayerChannelStore) SaveMultipleMembers(members []*model.Channel
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SaveMultipleMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["members"] = members
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SaveMultipleMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2181,8 +2840,14 @@ func (s *DebugBarLayerChannelStore) SearchAllChannels(term string, opts store.Ch
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{term, opts}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SearchAllChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchAllChannels", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -2197,8 +2862,16 @@ func (s *DebugBarLayerChannelStore) SearchArchivedInTeam(teamID string, term str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, term, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SearchArchivedInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchArchivedInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2213,8 +2886,18 @@ func (s *DebugBarLayerChannelStore) SearchForUserInTeam(userID string, teamID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, term, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SearchForUserInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchForUserInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2229,8 +2912,14 @@ func (s *DebugBarLayerChannelStore) SearchGroupChannels(userID string, term stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, term}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SearchGroupChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["term"] = term
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchGroupChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2245,8 +2934,16 @@ func (s *DebugBarLayerChannelStore) SearchInTeam(teamID string, term string, inc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, term, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SearchInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2261,8 +2958,16 @@ func (s *DebugBarLayerChannelStore) SearchMore(userID string, teamID string, ter
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, term}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SearchMore", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["term"] = term
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchMore", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2277,8 +2982,16 @@ func (s *DebugBarLayerChannelStore) SetDeleteAt(channelID string, deleteAt int64
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, deleteAt, updateAt}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SetDeleteAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["deleteAt"] = deleteAt
+
+	debugBarLayerParams["updateAt"] = updateAt
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SetDeleteAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2293,8 +3006,14 @@ func (s *DebugBarLayerChannelStore) SetShared(channelId string, shared bool) err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId, shared}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.SetShared", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelId"] = channelId
+
+	debugBarLayerParams["shared"] = shared
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.SetShared", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2309,8 +3028,12 @@ func (s *DebugBarLayerChannelStore) Update(channel *model.Channel) (*model.Chann
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channel"] = channel
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2325,8 +3048,14 @@ func (s *DebugBarLayerChannelStore) UpdateLastViewedAt(channelIds []string, user
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, userID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateLastViewedAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateLastViewedAt", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2341,8 +3070,22 @@ func (s *DebugBarLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Pos
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateLastViewedAtPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["unreadPost"] = unreadPost
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["mentionCount"] = mentionCount
+
+	debugBarLayerParams["mentionCountRoot"] = mentionCountRoot
+
+	debugBarLayerParams["urgentMentionCount"] = urgentMentionCount
+
+	debugBarLayerParams["setUnreadCountRoot"] = setUnreadCountRoot
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateLastViewedAtPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2357,8 +3100,12 @@ func (s *DebugBarLayerChannelStore) UpdateMember(member *model.ChannelMember) (*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["member"] = member
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2373,8 +3120,16 @@ func (s *DebugBarLayerChannelStore) UpdateMemberNotifyProps(channelID string, us
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID, props}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMemberNotifyProps", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["props"] = props
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMemberNotifyProps", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2389,8 +3144,14 @@ func (s *DebugBarLayerChannelStore) UpdateMembersRole(channelID string, userIDs 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIDs}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMembersRole", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userIDs"] = userIDs
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMembersRole", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2405,8 +3166,12 @@ func (s *DebugBarLayerChannelStore) UpdateMultipleMembers(members []*model.Chann
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMultipleMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["members"] = members
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMultipleMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2421,8 +3186,16 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarCategories(userID string, teamI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, categories}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarCategories", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["categories"] = categories
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarCategories", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -2437,8 +3210,16 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarCategoryOrder(userID string, te
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, categoryOrder}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarCategoryOrder", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["categoryOrder"] = categoryOrder
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarCategoryOrder", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2453,8 +3234,14 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel, newTeamID}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarChannelCategoryOnMove", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channel"] = channel
+
+	debugBarLayerParams["newTeamID"] = newTeamID
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarChannelCategoryOnMove", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2469,8 +3256,12 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarChannelsByPreferences(preferenc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{preferences}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarChannelsByPreferences", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["preferences"] = preferences
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarChannelsByPreferences", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2485,8 +3276,14 @@ func (s *DebugBarLayerChannelStore) UserBelongsToChannels(userID string, channel
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelIds}))
-	s.Root.debugBar.SendStoreCall("ChannelStore.UserBelongsToChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	s.Root.debugBar.SendStoreCall("ChannelStore.UserBelongsToChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2501,8 +3298,12 @@ func (s *DebugBarLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.DeleteOrphanedRows", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.DeleteOrphanedRows", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2517,8 +3318,14 @@ func (s *DebugBarLayerChannelMemberHistoryStore) GetChannelsLeftSince(userID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, since}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.GetChannelsLeftSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.GetChannelsLeftSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2533,8 +3340,16 @@ func (s *DebugBarLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, endTime, channelID}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.GetUsersInChannelDuring", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["startTime"] = startTime
+
+	debugBarLayerParams["endTime"] = endTime
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.GetUsersInChannelDuring", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2549,8 +3364,16 @@ func (s *DebugBarLayerChannelMemberHistoryStore) LogJoinEvent(userID string, cha
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, joinTime}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.LogJoinEvent", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["joinTime"] = joinTime
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.LogJoinEvent", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2565,8 +3388,16 @@ func (s *DebugBarLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, ch
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, leaveTime}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.LogLeaveEvent", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["leaveTime"] = leaveTime
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.LogLeaveEvent", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2581,8 +3412,14 @@ func (s *DebugBarLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime in
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.PermanentDeleteBatch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["endTime"] = endTime
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.PermanentDeleteBatch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2597,8 +3434,18 @@ func (s *DebugBarLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentio
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["now"] = now
+
+	debugBarLayerParams["globalPolicyEndTime"] = globalPolicyEndTime
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["cursor"] = cursor
+
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -2613,8 +3460,10 @@ func (s *DebugBarLayerClusterDiscoveryStore) Cleanup() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Cleanup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Cleanup", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2629,8 +3478,12 @@ func (s *DebugBarLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDisc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
-	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["discovery"] = discovery
+
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2645,8 +3498,12 @@ func (s *DebugBarLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDisc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
-	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Exists", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["discovery"] = discovery
+
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Exists", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2661,8 +3518,14 @@ func (s *DebugBarLayerClusterDiscoveryStore) GetAll(discoveryType string, cluste
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discoveryType, clusterName}))
-	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["discoveryType"] = discoveryType
+
+	debugBarLayerParams["clusterName"] = clusterName
+
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2677,8 +3540,12 @@ func (s *DebugBarLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscov
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
-	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["discovery"] = discovery
+
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Save", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2693,8 +3560,12 @@ func (s *DebugBarLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Clus
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
-	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.SetLastPingAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["discovery"] = discovery
+
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.SetLastPingAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2709,8 +3580,12 @@ func (s *DebugBarLayerCommandStore) AnalyticsCommandCount(teamID string) (int64,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("CommandStore.AnalyticsCommandCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("CommandStore.AnalyticsCommandCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2725,8 +3600,14 @@ func (s *DebugBarLayerCommandStore) Delete(commandID string, timestamp int64) er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{commandID, timestamp}))
-	s.Root.debugBar.SendStoreCall("CommandStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["commandID"] = commandID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("CommandStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2741,8 +3622,12 @@ func (s *DebugBarLayerCommandStore) Get(id string) (*model.Command, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("CommandStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("CommandStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2757,8 +3642,12 @@ func (s *DebugBarLayerCommandStore) GetByTeam(teamID string) ([]*model.Command, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("CommandStore.GetByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("CommandStore.GetByTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2773,8 +3662,14 @@ func (s *DebugBarLayerCommandStore) GetByTrigger(teamID string, trigger string) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, trigger}))
-	s.Root.debugBar.SendStoreCall("CommandStore.GetByTrigger", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["trigger"] = trigger
+
+	s.Root.debugBar.SendStoreCall("CommandStore.GetByTrigger", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2789,8 +3684,12 @@ func (s *DebugBarLayerCommandStore) PermanentDeleteByTeam(teamID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("CommandStore.PermanentDeleteByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("CommandStore.PermanentDeleteByTeam", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2805,8 +3704,12 @@ func (s *DebugBarLayerCommandStore) PermanentDeleteByUser(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("CommandStore.PermanentDeleteByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("CommandStore.PermanentDeleteByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2821,8 +3724,12 @@ func (s *DebugBarLayerCommandStore) Save(webhook *model.Command) (*model.Command
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
-	s.Root.debugBar.SendStoreCall("CommandStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhook"] = webhook
+
+	s.Root.debugBar.SendStoreCall("CommandStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2837,8 +3744,12 @@ func (s *DebugBarLayerCommandStore) Update(hook *model.Command) (*model.Command,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{hook}))
-	s.Root.debugBar.SendStoreCall("CommandStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["hook"] = hook
+
+	s.Root.debugBar.SendStoreCall("CommandStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2853,8 +3764,9 @@ func (s *DebugBarLayerCommandWebhookStore) Cleanup() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Cleanup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Cleanup", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -2869,8 +3781,12 @@ func (s *DebugBarLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2885,8 +3801,12 @@ func (s *DebugBarLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
-	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhook"] = webhook
+
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2901,8 +3821,14 @@ func (s *DebugBarLayerCommandWebhookStore) TryUse(id string, limit int) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, limit}))
-	s.Root.debugBar.SendStoreCall("CommandWebhookStore.TryUse", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.TryUse", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -2917,8 +3843,16 @@ func (s *DebugBarLayerComplianceStore) ComplianceExport(compliance *model.Compli
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{compliance, cursor, limit}))
-	s.Root.debugBar.SendStoreCall("ComplianceStore.ComplianceExport", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["compliance"] = compliance
+
+	debugBarLayerParams["cursor"] = cursor
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ComplianceStore.ComplianceExport", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -2933,8 +3867,12 @@ func (s *DebugBarLayerComplianceStore) Get(id string) (*model.Compliance, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("ComplianceStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("ComplianceStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2949,8 +3887,14 @@ func (s *DebugBarLayerComplianceStore) GetAll(offset int, limit int) (model.Comp
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("ComplianceStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ComplianceStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2965,8 +3909,16 @@ func (s *DebugBarLayerComplianceStore) MessageExport(ctx context.Context, cursor
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, cursor, limit}))
-	s.Root.debugBar.SendStoreCall("ComplianceStore.MessageExport", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["cursor"] = cursor
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ComplianceStore.MessageExport", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -2981,8 +3933,12 @@ func (s *DebugBarLayerComplianceStore) Save(compliance *model.Compliance) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{compliance}))
-	s.Root.debugBar.SendStoreCall("ComplianceStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["compliance"] = compliance
+
+	s.Root.debugBar.SendStoreCall("ComplianceStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -2997,8 +3953,12 @@ func (s *DebugBarLayerComplianceStore) Update(compliance *model.Compliance) (*mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{compliance}))
-	s.Root.debugBar.SendStoreCall("ComplianceStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["compliance"] = compliance
+
+	s.Root.debugBar.SendStoreCall("ComplianceStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3013,8 +3973,16 @@ func (s *DebugBarLayerDraftStore) Delete(userID string, channelID string, rootID
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, rootID}))
-	s.Root.debugBar.SendStoreCall("DraftStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["rootID"] = rootID
+
+	s.Root.debugBar.SendStoreCall("DraftStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -3029,8 +3997,18 @@ func (s *DebugBarLayerDraftStore) Get(userID string, channelID string, rootID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, rootID, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("DraftStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["rootID"] = rootID
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("DraftStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3045,8 +4023,14 @@ func (s *DebugBarLayerDraftStore) GetDraftsForUser(userID string, teamID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
-	s.Root.debugBar.SendStoreCall("DraftStore.GetDraftsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("DraftStore.GetDraftsForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3061,8 +4045,12 @@ func (s *DebugBarLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{d}))
-	s.Root.debugBar.SendStoreCall("DraftStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["d"] = d
+
+	s.Root.debugBar.SendStoreCall("DraftStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3077,8 +4065,12 @@ func (s *DebugBarLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{d}))
-	s.Root.debugBar.SendStoreCall("DraftStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["d"] = d
+
+	s.Root.debugBar.SendStoreCall("DraftStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3093,8 +4085,14 @@ func (s *DebugBarLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{emoji, timestamp}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["emoji"] = emoji
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -3109,8 +4107,16 @@ func (s *DebugBarLayerEmojiStore) Get(ctx context.Context, id string, allowFromC
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3125,8 +4131,16 @@ func (s *DebugBarLayerEmojiStore) GetByName(ctx context.Context, name string, al
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, name, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["name"] = name
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3141,8 +4155,16 @@ func (s *DebugBarLayerEmojiStore) GetList(offset int, limit int, sort string) ([
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit, sort}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.GetList", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["sort"] = sort
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.GetList", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3157,8 +4179,12 @@ func (s *DebugBarLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Em
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{names}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.GetMultipleByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["names"] = names
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.GetMultipleByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3173,8 +4199,12 @@ func (s *DebugBarLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{emoji}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["emoji"] = emoji
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3189,8 +4219,16 @@ func (s *DebugBarLayerEmojiStore) Search(name string, prefixOnly bool, limit int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name, prefixOnly, limit}))
-	s.Root.debugBar.SendStoreCall("EmojiStore.Search", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["name"] = name
+
+	debugBarLayerParams["prefixOnly"] = prefixOnly
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("EmojiStore.Search", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3205,8 +4243,16 @@ func (s *DebugBarLayerFileInfoStore) AttachToPost(fileID string, postID string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileID, postID, creatorID}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.AttachToPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["fileID"] = fileID
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["creatorID"] = creatorID
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.AttachToPost", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -3221,8 +4267,9 @@ func (s *DebugBarLayerFileInfoStore) ClearCaches() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.ClearCaches", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.ClearCaches", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -3237,8 +4284,10 @@ func (s *DebugBarLayerFileInfoStore) CountAll() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.CountAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.CountAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3253,8 +4302,12 @@ func (s *DebugBarLayerFileInfoStore) DeleteForPost(postID string) (string, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.DeleteForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.DeleteForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3269,8 +4322,12 @@ func (s *DebugBarLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3285,8 +4342,12 @@ func (s *DebugBarLayerFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ids"] = ids
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3301,8 +4362,12 @@ func (s *DebugBarLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{path}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetByPath", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["path"] = path
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetByPath", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3317,8 +4382,16 @@ func (s *DebugBarLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startFileID, limit}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetFilesBatchForIndexing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["startTime"] = startTime
+
+	debugBarLayerParams["startFileID"] = startFileID
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetFilesBatchForIndexing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3333,8 +4406,18 @@ func (s *DebugBarLayerFileInfoStore) GetForPost(postID string, readFromMaster bo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, readFromMaster, includeDeleted, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["readFromMaster"] = readFromMaster
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3349,8 +4432,12 @@ func (s *DebugBarLayerFileInfoStore) GetForUser(userID string) ([]*model.FileInf
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3365,8 +4452,12 @@ func (s *DebugBarLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetFromMaster", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetFromMaster", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3381,8 +4472,14 @@ func (s *DebugBarLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includ
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{allowFromCache, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetStorageUsage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetStorageUsage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3397,8 +4494,12 @@ func (s *DebugBarLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{n}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetUptoNSizeFileTime", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["n"] = n
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetUptoNSizeFileTime", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3413,8 +4514,16 @@ func (s *DebugBarLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, opt}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.GetWithOptions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["opt"] = opt
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetWithOptions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3429,8 +4538,13 @@ func (s *DebugBarLayerFileInfoStore) InvalidateFileInfosForPostCache(postID stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, deleted}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.InvalidateFileInfosForPostCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["deleted"] = deleted
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.InvalidateFileInfosForPostCache", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -3445,8 +4559,12 @@ func (s *DebugBarLayerFileInfoStore) PermanentDelete(fileID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileID}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDelete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["fileID"] = fileID
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDelete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -3461,8 +4579,14 @@ func (s *DebugBarLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit i
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDeleteBatch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["endTime"] = endTime
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDeleteBatch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3477,8 +4601,12 @@ func (s *DebugBarLayerFileInfoStore) PermanentDeleteByUser(userID string) (int64
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDeleteByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDeleteByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3493,8 +4621,12 @@ func (s *DebugBarLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{info}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["info"] = info
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3509,8 +4641,20 @@ func (s *DebugBarLayerFileInfoStore) Search(paramsList []*model.SearchParams, us
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{paramsList, userID, teamID, page, perPage}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.Search", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["paramsList"] = paramsList
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Search", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3525,8 +4669,14 @@ func (s *DebugBarLayerFileInfoStore) SetContent(fileID string, content string) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileID, content}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.SetContent", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["fileID"] = fileID
+
+	debugBarLayerParams["content"] = content
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.SetContent", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -3541,8 +4691,12 @@ func (s *DebugBarLayerFileInfoStore) Upsert(info *model.FileInfo) (*model.FileIn
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{info}))
-	s.Root.debugBar.SendStoreCall("FileInfoStore.Upsert", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["info"] = info
+
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Upsert", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3557,8 +4711,16 @@ func (s *DebugBarLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, syncableID, syncableType}))
-	s.Root.debugBar.SendStoreCall("GroupStore.AdminRoleGroupsForSyncableMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["syncableID"] = syncableID
+
+	debugBarLayerParams["syncableType"] = syncableType
+
+	s.Root.debugBar.SendStoreCall("GroupStore.AdminRoleGroupsForSyncableMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3573,8 +4735,18 @@ func (s *DebugBarLayerGroupStore) ChannelMembersMinusGroupMembers(channelID stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, groupIDs, page, perPage}))
-	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersMinusGroupMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["groupIDs"] = groupIDs
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersMinusGroupMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3589,8 +4761,16 @@ func (s *DebugBarLayerGroupStore) ChannelMembersToAdd(since int64, channelID *st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{since, channelID, includeRemovedMembers}))
-	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersToAdd", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["includeRemovedMembers"] = includeRemovedMembers
+
+	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersToAdd", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3605,8 +4785,12 @@ func (s *DebugBarLayerGroupStore) ChannelMembersToRemove(channelID *string) ([]*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersToRemove", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersToRemove", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3621,8 +4805,14 @@ func (s *DebugBarLayerGroupStore) CountChannelMembersMinusGroupMembers(channelID
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, groupIDs}))
-	s.Root.debugBar.SendStoreCall("GroupStore.CountChannelMembersMinusGroupMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["groupIDs"] = groupIDs
+
+	s.Root.debugBar.SendStoreCall("GroupStore.CountChannelMembersMinusGroupMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3637,8 +4827,14 @@ func (s *DebugBarLayerGroupStore) CountGroupsByChannel(channelID string, opts mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, opts}))
-	s.Root.debugBar.SendStoreCall("GroupStore.CountGroupsByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("GroupStore.CountGroupsByChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3653,8 +4849,14 @@ func (s *DebugBarLayerGroupStore) CountGroupsByTeam(teamID string, opts model.Gr
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, opts}))
-	s.Root.debugBar.SendStoreCall("GroupStore.CountGroupsByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("GroupStore.CountGroupsByTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3669,8 +4871,14 @@ func (s *DebugBarLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, groupIDs}))
-	s.Root.debugBar.SendStoreCall("GroupStore.CountTeamMembersMinusGroupMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["groupIDs"] = groupIDs
+
+	s.Root.debugBar.SendStoreCall("GroupStore.CountTeamMembersMinusGroupMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3685,8 +4893,12 @@ func (s *DebugBarLayerGroupStore) Create(group *model.Group) (*model.Group, erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{group}))
-	s.Root.debugBar.SendStoreCall("GroupStore.Create", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["group"] = group
+
+	s.Root.debugBar.SendStoreCall("GroupStore.Create", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3701,8 +4913,12 @@ func (s *DebugBarLayerGroupStore) CreateGroupSyncable(groupSyncable *model.Group
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupSyncable}))
-	s.Root.debugBar.SendStoreCall("GroupStore.CreateGroupSyncable", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupSyncable"] = groupSyncable
+
+	s.Root.debugBar.SendStoreCall("GroupStore.CreateGroupSyncable", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3717,8 +4933,12 @@ func (s *DebugBarLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserId
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{group}))
-	s.Root.debugBar.SendStoreCall("GroupStore.CreateWithUserIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["group"] = group
+
+	s.Root.debugBar.SendStoreCall("GroupStore.CreateWithUserIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3733,8 +4953,12 @@ func (s *DebugBarLayerGroupStore) Delete(groupID string) (*model.Group, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3749,8 +4973,16 @@ func (s *DebugBarLayerGroupStore) DeleteGroupSyncable(groupID string, syncableID
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, syncableID, syncableType}))
-	s.Root.debugBar.SendStoreCall("GroupStore.DeleteGroupSyncable", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["syncableID"] = syncableID
+
+	debugBarLayerParams["syncableType"] = syncableType
+
+	s.Root.debugBar.SendStoreCall("GroupStore.DeleteGroupSyncable", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3765,8 +4997,14 @@ func (s *DebugBarLayerGroupStore) DeleteMember(groupID string, userID string) (*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.DeleteMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.DeleteMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3781,8 +5019,14 @@ func (s *DebugBarLayerGroupStore) DeleteMembers(groupID string, userIDs []string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userIDs}))
-	s.Root.debugBar.SendStoreCall("GroupStore.DeleteMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["userIDs"] = userIDs
+
+	s.Root.debugBar.SendStoreCall("GroupStore.DeleteMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3797,8 +5041,10 @@ func (s *DebugBarLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("GroupStore.DistinctGroupMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("GroupStore.DistinctGroupMemberCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3813,8 +5059,12 @@ func (s *DebugBarLayerGroupStore) DistinctGroupMemberCountForSource(source model
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{source}))
-	s.Root.debugBar.SendStoreCall("GroupStore.DistinctGroupMemberCountForSource", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["source"] = source
+
+	s.Root.debugBar.SendStoreCall("GroupStore.DistinctGroupMemberCountForSource", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3829,8 +5079,12 @@ func (s *DebugBarLayerGroupStore) Get(groupID string) (*model.Group, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3845,8 +5099,12 @@ func (s *DebugBarLayerGroupStore) GetAllBySource(groupSource model.GroupSource) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupSource}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetAllBySource", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupSource"] = groupSource
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetAllBySource", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3861,8 +5119,14 @@ func (s *DebugBarLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, syncableType}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetAllGroupSyncablesByGroupId", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["syncableType"] = syncableType
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetAllGroupSyncablesByGroupId", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3877,8 +5141,12 @@ func (s *DebugBarLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupIDs}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetByIDs", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupIDs"] = groupIDs
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByIDs", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3893,8 +5161,14 @@ func (s *DebugBarLayerGroupStore) GetByName(name string, opts model.GroupSearchO
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name, opts}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["name"] = name
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3909,8 +5183,14 @@ func (s *DebugBarLayerGroupStore) GetByRemoteID(remoteID string, groupSource mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteID, groupSource}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetByRemoteID", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteID"] = remoteID
+
+	debugBarLayerParams["groupSource"] = groupSource
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByRemoteID", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3925,8 +5205,12 @@ func (s *DebugBarLayerGroupStore) GetByUser(userID string) ([]*model.Group, erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3941,8 +5225,16 @@ func (s *DebugBarLayerGroupStore) GetGroupSyncable(groupID string, syncableID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, syncableID, syncableType}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupSyncable", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["syncableID"] = syncableID
+
+	debugBarLayerParams["syncableType"] = syncableType
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupSyncable", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3957,8 +5249,18 @@ func (s *DebugBarLayerGroupStore) GetGroups(page int, perPage int, opts model.Gr
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, opts, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetGroups", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["opts"] = opts
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroups", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3973,8 +5275,14 @@ func (s *DebugBarLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, opts}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsAssociatedToChannelsByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsAssociatedToChannelsByTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -3989,8 +5297,14 @@ func (s *DebugBarLayerGroupStore) GetGroupsByChannel(channelID string, opts mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, opts}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsByChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4005,8 +5319,14 @@ func (s *DebugBarLayerGroupStore) GetGroupsByTeam(teamID string, opts model.Grou
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, opts}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsByTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4021,8 +5341,14 @@ func (s *DebugBarLayerGroupStore) GetMember(groupID string, userID string) (*mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4037,8 +5363,12 @@ func (s *DebugBarLayerGroupStore) GetMemberCount(groupID string) (int64, error) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4053,8 +5383,14 @@ func (s *DebugBarLayerGroupStore) GetMemberCountWithRestrictions(groupID string,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberCountWithRestrictions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberCountWithRestrictions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4069,8 +5405,12 @@ func (s *DebugBarLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4085,8 +5425,14 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, teamID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4101,8 +5447,14 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersNotInChannel(groupID string, cha
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, channelID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersNotInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersNotInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4117,8 +5469,18 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersPage(groupID string, page int, p
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4133,8 +5495,20 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersSortedPage(groupID string, page 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions, teammateNameDisplay}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersSortedPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	debugBarLayerParams["teammateNameDisplay"] = teammateNameDisplay
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersSortedPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4149,8 +5523,18 @@ func (s *DebugBarLayerGroupStore) GetNonMemberUsersPage(groupID string, page int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GetNonMemberUsersPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GetNonMemberUsersPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4165,8 +5549,10 @@ func (s *DebugBarLayerGroupStore) GroupChannelCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GroupChannelCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupChannelCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4181,8 +5567,10 @@ func (s *DebugBarLayerGroupStore) GroupCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GroupCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4197,8 +5585,12 @@ func (s *DebugBarLayerGroupStore) GroupCountBySource(source model.GroupSource) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{source}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GroupCountBySource", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["source"] = source
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupCountBySource", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4213,8 +5605,10 @@ func (s *DebugBarLayerGroupStore) GroupCountWithAllowReference() (int64, error) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GroupCountWithAllowReference", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupCountWithAllowReference", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4229,8 +5623,10 @@ func (s *DebugBarLayerGroupStore) GroupMemberCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GroupMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupMemberCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4245,8 +5641,10 @@ func (s *DebugBarLayerGroupStore) GroupTeamCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("GroupStore.GroupTeamCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupTeamCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4261,8 +5659,12 @@ func (s *DebugBarLayerGroupStore) PermanentDeleteMembersByUser(userID string) er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.PermanentDeleteMembersByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.PermanentDeleteMembersByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -4277,8 +5679,14 @@ func (s *DebugBarLayerGroupStore) PermittedSyncableAdmins(syncableID string, syn
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{syncableID, syncableType}))
-	s.Root.debugBar.SendStoreCall("GroupStore.PermittedSyncableAdmins", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["syncableID"] = syncableID
+
+	debugBarLayerParams["syncableType"] = syncableType
+
+	s.Root.debugBar.SendStoreCall("GroupStore.PermittedSyncableAdmins", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4293,8 +5701,12 @@ func (s *DebugBarLayerGroupStore) Restore(groupID string) (*model.Group, error) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.Restore", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.Restore", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4309,8 +5721,18 @@ func (s *DebugBarLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, gr
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, groupIDs, page, perPage}))
-	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersMinusGroupMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["groupIDs"] = groupIDs
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersMinusGroupMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4325,8 +5747,16 @@ func (s *DebugBarLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{since, teamID, includeRemovedMembers}))
-	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersToAdd", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["includeRemovedMembers"] = includeRemovedMembers
+
+	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersToAdd", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4341,8 +5771,12 @@ func (s *DebugBarLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersToRemove", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersToRemove", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4357,8 +5791,12 @@ func (s *DebugBarLayerGroupStore) Update(group *model.Group) (*model.Group, erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{group}))
-	s.Root.debugBar.SendStoreCall("GroupStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["group"] = group
+
+	s.Root.debugBar.SendStoreCall("GroupStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4373,8 +5811,12 @@ func (s *DebugBarLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.Group
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupSyncable}))
-	s.Root.debugBar.SendStoreCall("GroupStore.UpdateGroupSyncable", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupSyncable"] = groupSyncable
+
+	s.Root.debugBar.SendStoreCall("GroupStore.UpdateGroupSyncable", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4389,8 +5831,14 @@ func (s *DebugBarLayerGroupStore) UpsertMember(groupID string, userID string) (*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userID}))
-	s.Root.debugBar.SendStoreCall("GroupStore.UpsertMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("GroupStore.UpsertMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4405,8 +5853,14 @@ func (s *DebugBarLayerGroupStore) UpsertMembers(groupID string, userIDs []string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userIDs}))
-	s.Root.debugBar.SendStoreCall("GroupStore.UpsertMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["userIDs"] = userIDs
+
+	s.Root.debugBar.SendStoreCall("GroupStore.UpsertMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4421,8 +5875,14 @@ func (s *DebugBarLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{expiryTime, batchSize}))
-	s.Root.debugBar.SendStoreCall("JobStore.Cleanup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["expiryTime"] = expiryTime
+
+	debugBarLayerParams["batchSize"] = batchSize
+
+	s.Root.debugBar.SendStoreCall("JobStore.Cleanup", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -4437,8 +5897,12 @@ func (s *DebugBarLayerJobStore) Delete(id string) (string, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("JobStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("JobStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4453,8 +5917,12 @@ func (s *DebugBarLayerJobStore) Get(id string) (*model.Job, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("JobStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("JobStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4469,8 +5937,12 @@ func (s *DebugBarLayerJobStore) GetAllByStatus(status string) ([]*model.Job, err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetAllByStatus", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["status"] = status
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByStatus", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4485,8 +5957,12 @@ func (s *DebugBarLayerJobStore) GetAllByType(jobType string) ([]*model.Job, erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobType}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetAllByType", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["jobType"] = jobType
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByType", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4501,8 +5977,14 @@ func (s *DebugBarLayerJobStore) GetAllByTypeAndStatus(jobType string, status str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobType, status}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypeAndStatus", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["jobType"] = jobType
+
+	debugBarLayerParams["status"] = status
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypeAndStatus", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4517,8 +5999,16 @@ func (s *DebugBarLayerJobStore) GetAllByTypePage(jobType string, offset int, lim
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobType, offset, limit}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypePage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["jobType"] = jobType
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypePage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4533,8 +6023,16 @@ func (s *DebugBarLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobTypes, offset, limit}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypesPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["jobTypes"] = jobTypes
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypesPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4549,8 +6047,14 @@ func (s *DebugBarLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetAllPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4565,8 +6069,14 @@ func (s *DebugBarLayerJobStore) GetCountByStatusAndType(status string, jobType s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status, jobType}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetCountByStatusAndType", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["status"] = status
+
+	debugBarLayerParams["jobType"] = jobType
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetCountByStatusAndType", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4581,8 +6091,14 @@ func (s *DebugBarLayerJobStore) GetNewestJobByStatusAndType(status string, jobTy
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status, jobType}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetNewestJobByStatusAndType", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["status"] = status
+
+	debugBarLayerParams["jobType"] = jobType
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetNewestJobByStatusAndType", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4597,8 +6113,14 @@ func (s *DebugBarLayerJobStore) GetNewestJobByStatusesAndType(statuses []string,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{statuses, jobType}))
-	s.Root.debugBar.SendStoreCall("JobStore.GetNewestJobByStatusesAndType", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["statuses"] = statuses
+
+	debugBarLayerParams["jobType"] = jobType
+
+	s.Root.debugBar.SendStoreCall("JobStore.GetNewestJobByStatusesAndType", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4613,8 +6135,12 @@ func (s *DebugBarLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{job}))
-	s.Root.debugBar.SendStoreCall("JobStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["job"] = job
+
+	s.Root.debugBar.SendStoreCall("JobStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4629,8 +6155,14 @@ func (s *DebugBarLayerJobStore) UpdateOptimistically(job *model.Job, currentStat
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{job, currentStatus}))
-	s.Root.debugBar.SendStoreCall("JobStore.UpdateOptimistically", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["job"] = job
+
+	debugBarLayerParams["currentStatus"] = currentStatus
+
+	s.Root.debugBar.SendStoreCall("JobStore.UpdateOptimistically", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4645,8 +6177,14 @@ func (s *DebugBarLayerJobStore) UpdateStatus(id string, status string) (*model.J
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, status}))
-	s.Root.debugBar.SendStoreCall("JobStore.UpdateStatus", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["status"] = status
+
+	s.Root.debugBar.SendStoreCall("JobStore.UpdateStatus", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4661,8 +6199,16 @@ func (s *DebugBarLayerJobStore) UpdateStatusOptimistically(id string, currentSta
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, currentStatus, newStatus}))
-	s.Root.debugBar.SendStoreCall("JobStore.UpdateStatusOptimistically", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["currentStatus"] = currentStatus
+
+	debugBarLayerParams["newStatus"] = newStatus
+
+	s.Root.debugBar.SendStoreCall("JobStore.UpdateStatusOptimistically", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4677,8 +6223,12 @@ func (s *DebugBarLayerLicenseStore) Get(id string) (*model.LicenseRecord, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("LicenseStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("LicenseStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4693,8 +6243,10 @@ func (s *DebugBarLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("LicenseStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("LicenseStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4709,8 +6261,12 @@ func (s *DebugBarLayerLicenseStore) Save(license *model.LicenseRecord) (*model.L
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{license}))
-	s.Root.debugBar.SendStoreCall("LicenseStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["license"] = license
+
+	s.Root.debugBar.SendStoreCall("LicenseStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4725,8 +6281,14 @@ func (s *DebugBarLayerLinkMetadataStore) Get(url string, timestamp int64) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{url, timestamp}))
-	s.Root.debugBar.SendStoreCall("LinkMetadataStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["url"] = url
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("LinkMetadataStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4741,8 +6303,12 @@ func (s *DebugBarLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{linkMetadata}))
-	s.Root.debugBar.SendStoreCall("LinkMetadataStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["linkMetadata"] = linkMetadata
+
+	s.Root.debugBar.SendStoreCall("LinkMetadataStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4757,8 +6323,14 @@ func (s *DebugBarLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{trial, now}))
-	s.Root.debugBar.SendStoreCall("NotifyAdminStore.DeleteBefore", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["trial"] = trial
+
+	debugBarLayerParams["now"] = now
+
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.DeleteBefore", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -4773,8 +6345,12 @@ func (s *DebugBarLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminDat
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{trial}))
-	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["trial"] = trial
+
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4789,8 +6365,14 @@ func (s *DebugBarLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, feature}))
-	s.Root.debugBar.SendStoreCall("NotifyAdminStore.GetDataByUserIdAndFeature", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["feature"] = feature
+
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.GetDataByUserIdAndFeature", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4805,8 +6387,12 @@ func (s *DebugBarLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{data}))
-	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["data"] = data
+
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4821,8 +6407,18 @@ func (s *DebugBarLayerNotifyAdminStore) Update(userId string, requiredPlan strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, requiredPlan, requiredFeature, now}))
-	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["requiredPlan"] = requiredPlan
+
+	debugBarLayerParams["requiredFeature"] = requiredFeature
+
+	debugBarLayerParams["now"] = now
+
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Update", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -4837,8 +6433,12 @@ func (s *DebugBarLayerOAuthStore) DeleteApp(id string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.DeleteApp", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.DeleteApp", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -4853,8 +6453,12 @@ func (s *DebugBarLayerOAuthStore) GetAccessData(token string) (*model.AccessData
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["token"] = token
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4869,8 +6473,12 @@ func (s *DebugBarLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessDataByRefreshToken", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["token"] = token
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessDataByRefreshToken", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4885,8 +6493,14 @@ func (s *DebugBarLayerOAuthStore) GetAccessDataByUserForApp(userID string, clien
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, clientId}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessDataByUserForApp", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["clientId"] = clientId
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessDataByUserForApp", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4901,8 +6515,12 @@ func (s *DebugBarLayerOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetApp", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetApp", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4917,8 +6535,16 @@ func (s *DebugBarLayerOAuthStore) GetAppByUser(userID string, offset int, limit 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetAppByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAppByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4933,8 +6559,14 @@ func (s *DebugBarLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuth
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetApps", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetApps", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4949,8 +6581,12 @@ func (s *DebugBarLayerOAuthStore) GetAuthData(code string) (*model.AuthData, err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{code}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetAuthData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["code"] = code
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAuthData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4965,8 +6601,16 @@ func (s *DebugBarLayerOAuthStore) GetAuthorizedApps(userID string, offset int, l
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetAuthorizedApps", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAuthorizedApps", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4981,8 +6625,14 @@ func (s *DebugBarLayerOAuthStore) GetPreviousAccessData(userID string, clientId 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, clientId}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.GetPreviousAccessData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["clientId"] = clientId
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetPreviousAccessData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -4997,8 +6647,12 @@ func (s *DebugBarLayerOAuthStore) PermanentDeleteAuthDataByUser(userID string) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.PermanentDeleteAuthDataByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.PermanentDeleteAuthDataByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5013,8 +6667,12 @@ func (s *DebugBarLayerOAuthStore) RemoveAccessData(token string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAccessData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["token"] = token
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAccessData", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5029,8 +6687,10 @@ func (s *DebugBarLayerOAuthStore) RemoveAllAccessData() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAllAccessData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAllAccessData", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5045,8 +6705,12 @@ func (s *DebugBarLayerOAuthStore) RemoveAuthData(code string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{code}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAuthData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["code"] = code
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAuthData", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5061,8 +6725,12 @@ func (s *DebugBarLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{accessData}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.SaveAccessData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["accessData"] = accessData
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.SaveAccessData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5077,8 +6745,12 @@ func (s *DebugBarLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{app}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.SaveApp", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["app"] = app
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.SaveApp", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5093,8 +6765,12 @@ func (s *DebugBarLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authData}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.SaveAuthData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["authData"] = authData
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.SaveAuthData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5109,8 +6785,12 @@ func (s *DebugBarLayerOAuthStore) UpdateAccessData(accessData *model.AccessData)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{accessData}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.UpdateAccessData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["accessData"] = accessData
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.UpdateAccessData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5125,8 +6805,12 @@ func (s *DebugBarLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthAp
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{app}))
-	s.Root.debugBar.SendStoreCall("OAuthStore.UpdateApp", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["app"] = app
+
+	s.Root.debugBar.SendStoreCall("OAuthStore.UpdateApp", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5141,8 +6825,14 @@ func (s *DebugBarLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{keyVal, oldValue}))
-	s.Root.debugBar.SendStoreCall("PluginStore.CompareAndDelete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["keyVal"] = keyVal
+
+	debugBarLayerParams["oldValue"] = oldValue
+
+	s.Root.debugBar.SendStoreCall("PluginStore.CompareAndDelete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5157,8 +6847,14 @@ func (s *DebugBarLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, o
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{keyVal, oldValue}))
-	s.Root.debugBar.SendStoreCall("PluginStore.CompareAndSet", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["keyVal"] = keyVal
+
+	debugBarLayerParams["oldValue"] = oldValue
+
+	s.Root.debugBar.SendStoreCall("PluginStore.CompareAndSet", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5173,8 +6869,14 @@ func (s *DebugBarLayerPluginStore) Delete(pluginID string, key string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, key}))
-	s.Root.debugBar.SendStoreCall("PluginStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["pluginID"] = pluginID
+
+	debugBarLayerParams["key"] = key
+
+	s.Root.debugBar.SendStoreCall("PluginStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5189,8 +6891,10 @@ func (s *DebugBarLayerPluginStore) DeleteAllExpired() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("PluginStore.DeleteAllExpired", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("PluginStore.DeleteAllExpired", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5205,8 +6909,12 @@ func (s *DebugBarLayerPluginStore) DeleteAllForPlugin(PluginID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{PluginID}))
-	s.Root.debugBar.SendStoreCall("PluginStore.DeleteAllForPlugin", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["PluginID"] = PluginID
+
+	s.Root.debugBar.SendStoreCall("PluginStore.DeleteAllForPlugin", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5221,8 +6929,14 @@ func (s *DebugBarLayerPluginStore) Get(pluginID string, key string) (*model.Plug
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, key}))
-	s.Root.debugBar.SendStoreCall("PluginStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["pluginID"] = pluginID
+
+	debugBarLayerParams["key"] = key
+
+	s.Root.debugBar.SendStoreCall("PluginStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5237,8 +6951,16 @@ func (s *DebugBarLayerPluginStore) List(pluginID string, page int, perPage int) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, page, perPage}))
-	s.Root.debugBar.SendStoreCall("PluginStore.List", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["pluginID"] = pluginID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("PluginStore.List", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5253,8 +6975,12 @@ func (s *DebugBarLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{keyVal}))
-	s.Root.debugBar.SendStoreCall("PluginStore.SaveOrUpdate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["keyVal"] = keyVal
+
+	s.Root.debugBar.SendStoreCall("PluginStore.SaveOrUpdate", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5269,8 +6995,18 @@ func (s *DebugBarLayerPluginStore) SetWithOptions(pluginID string, key string, v
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, key, value, options}))
-	s.Root.debugBar.SendStoreCall("PluginStore.SetWithOptions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["pluginID"] = pluginID
+
+	debugBarLayerParams["key"] = key
+
+	debugBarLayerParams["value"] = value
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("PluginStore.SetWithOptions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5285,8 +7021,12 @@ func (s *DebugBarLayerPostStore) AnalyticsPostCount(options *model.PostCountOpti
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsPostCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsPostCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5301,8 +7041,12 @@ func (s *DebugBarLayerPostStore) AnalyticsPostCountsByDay(options *model.Analyti
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsPostCountsByDay", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsPostCountsByDay", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5317,8 +7061,12 @@ func (s *DebugBarLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsUserCountsWithPostsByDay", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsUserCountsWithPostsByDay", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5333,8 +7081,9 @@ func (s *DebugBarLayerPostStore) ClearCaches() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("PostStore.ClearCaches", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("PostStore.ClearCaches", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -5349,8 +7098,16 @@ func (s *DebugBarLayerPostStore) Delete(postID string, timestamp int64, deleteBy
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, timestamp, deleteByID}))
-	s.Root.debugBar.SendStoreCall("PostStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["deleteByID"] = deleteByID
+
+	s.Root.debugBar.SendStoreCall("PostStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5365,8 +7122,12 @@ func (s *DebugBarLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.DeleteOrphanedRows", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.DeleteOrphanedRows", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5381,8 +7142,20 @@ func (s *DebugBarLayerPostStore) Get(ctx context.Context, id string, opts model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id, opts, userID, sanitizeOptions}))
-	s.Root.debugBar.SendStoreCall("PostStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["opts"] = opts
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["sanitizeOptions"] = sanitizeOptions
+
+	s.Root.debugBar.SendStoreCall("PostStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5397,8 +7170,14 @@ func (s *DebugBarLayerPostStore) GetDirectPostParentsForExportAfter(limit int, a
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetDirectPostParentsForExportAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["afterID"] = afterID
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetDirectPostParentsForExportAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5413,8 +7192,12 @@ func (s *DebugBarLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postId}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetEditHistoryForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postId"] = postId
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetEditHistoryForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5429,8 +7212,16 @@ func (s *DebugBarLayerPostStore) GetEtag(channelID string, allowFromCache bool, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache, collapsedThreads}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetEtag", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	debugBarLayerParams["collapsedThreads"] = collapsedThreads
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetEtag", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -5445,8 +7236,16 @@ func (s *DebugBarLayerPostStore) GetFlaggedPosts(userID string, offset int, limi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPosts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPosts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5461,8 +7260,18 @@ func (s *DebugBarLayerPostStore) GetFlaggedPostsForChannel(userID string, channe
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPostsForChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPostsForChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5477,8 +7286,18 @@ func (s *DebugBarLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPostsForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPostsForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5493,8 +7312,10 @@ func (s *DebugBarLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetLastPostRowCreateAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetLastPostRowCreateAt", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5509,8 +7330,10 @@ func (s *DebugBarLayerPostStore) GetMaxPostSize() int {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetMaxPostSize", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetMaxPostSize", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -5525,8 +7348,12 @@ func (s *DebugBarLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{n}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetNthRecentPostTime", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["n"] = n
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetNthRecentPostTime", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5541,8 +7368,10 @@ func (s *DebugBarLayerPostStore) GetOldest() (*model.Post, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetOldest", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetOldest", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5557,8 +7386,10 @@ func (s *DebugBarLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetOldestEntityCreationTime", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetOldestEntityCreationTime", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5573,8 +7404,14 @@ func (s *DebugBarLayerPostStore) GetParentsForExportAfter(limit int, afterID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetParentsForExportAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["afterID"] = afterID
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetParentsForExportAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5589,8 +7426,16 @@ func (s *DebugBarLayerPostStore) GetPostAfterTime(channelID string, timestamp in
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostAfterTime", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["collapsedThreads"] = collapsedThreads
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostAfterTime", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5605,8 +7450,16 @@ func (s *DebugBarLayerPostStore) GetPostIdAfterTime(channelID string, timestamp 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostIdAfterTime", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["collapsedThreads"] = collapsedThreads
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostIdAfterTime", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5621,8 +7474,16 @@ func (s *DebugBarLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostIdBeforeTime", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["collapsedThreads"] = collapsedThreads
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostIdBeforeTime", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5637,8 +7498,12 @@ func (s *DebugBarLayerPostStore) GetPostReminderMetadata(postID string) (*store.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostReminderMetadata", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostReminderMetadata", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5653,8 +7518,12 @@ func (s *DebugBarLayerPostStore) GetPostReminders(now int64) ([]*model.PostRemin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostReminders", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["now"] = now
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostReminders", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5669,8 +7538,16 @@ func (s *DebugBarLayerPostStore) GetPosts(options model.GetPostsOptions, allowFr
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, allowFromCache, sanitizeOptions}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPosts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	debugBarLayerParams["sanitizeOptions"] = sanitizeOptions
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPosts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5685,8 +7562,14 @@ func (s *DebugBarLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sa
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, sanitizeOptions}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["sanitizeOptions"] = sanitizeOptions
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5701,8 +7584,16 @@ func (s *DebugBarLayerPostStore) GetPostsBatchForIndexing(startTime int64, start
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startPostID, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsBatchForIndexing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["startTime"] = startTime
+
+	debugBarLayerParams["startPostID"] = startPostID
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsBatchForIndexing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5717,8 +7608,14 @@ func (s *DebugBarLayerPostStore) GetPostsBefore(options model.GetPostsOptions, s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, sanitizeOptions}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsBefore", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["sanitizeOptions"] = sanitizeOptions
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsBefore", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5733,8 +7630,12 @@ func (s *DebugBarLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postIds}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postIds"] = postIds
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5749,8 +7650,14 @@ func (s *DebugBarLayerPostStore) GetPostsByThread(threadID string, since int64) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadID, since}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsByThread", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["threadID"] = threadID
+
+	debugBarLayerParams["since"] = since
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsByThread", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5765,8 +7672,14 @@ func (s *DebugBarLayerPostStore) GetPostsCreatedAt(channelID string, timestamp i
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsCreatedAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsCreatedAt", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5781,8 +7694,16 @@ func (s *DebugBarLayerPostStore) GetPostsSince(options model.GetPostsSinceOption
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, allowFromCache, sanitizeOptions}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	debugBarLayerParams["sanitizeOptions"] = sanitizeOptions
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5797,8 +7718,16 @@ func (s *DebugBarLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, cursor, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetPostsSinceForSync", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["cursor"] = cursor
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsSinceForSync", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -5813,8 +7742,12 @@ func (s *DebugBarLayerPostStore) GetRecentSearchesForUser(userID string) ([]*mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetRecentSearchesForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetRecentSearchesForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5829,8 +7762,12 @@ func (s *DebugBarLayerPostStore) GetRepliesForExport(parentID string) ([]*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{parentID}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetRepliesForExport", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["parentID"] = parentID
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetRepliesForExport", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5845,8 +7782,14 @@ func (s *DebugBarLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, inclDeleted}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetSingle", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["inclDeleted"] = inclDeleted
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetSingle", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5861,8 +7804,18 @@ func (s *DebugBarLayerPostStore) GetTopDMsForUserSince(userID string, since int6
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.GetTopDMsForUserSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.GetTopDMsForUserSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5877,8 +7830,14 @@ func (s *DebugBarLayerPostStore) HasAutoResponsePostByUserSince(options model.Ge
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, userId}))
-	s.Root.debugBar.SendStoreCall("PostStore.HasAutoResponsePostByUserSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["userId"] = userId
+
+	s.Root.debugBar.SendStoreCall("PostStore.HasAutoResponsePostByUserSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5893,8 +7852,11 @@ func (s *DebugBarLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("PostStore.InvalidateLastPostTimeCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("PostStore.InvalidateLastPostTimeCache", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -5909,8 +7871,16 @@ func (s *DebugBarLayerPostStore) LogRecentSearch(userID string, searchQuery []by
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, searchQuery, createAt}))
-	s.Root.debugBar.SendStoreCall("PostStore.LogRecentSearch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["searchQuery"] = searchQuery
+
+	debugBarLayerParams["createAt"] = createAt
+
+	s.Root.debugBar.SendStoreCall("PostStore.LogRecentSearch", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -5925,8 +7895,12 @@ func (s *DebugBarLayerPostStore) Overwrite(post *model.Post) (*model.Post, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{post}))
-	s.Root.debugBar.SendStoreCall("PostStore.Overwrite", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["post"] = post
+
+	s.Root.debugBar.SendStoreCall("PostStore.Overwrite", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5941,8 +7915,12 @@ func (s *DebugBarLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{posts}))
-	s.Root.debugBar.SendStoreCall("PostStore.OverwriteMultiple", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["posts"] = posts
+
+	s.Root.debugBar.SendStoreCall("PostStore.OverwriteMultiple", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -5957,8 +7935,14 @@ func (s *DebugBarLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
-	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteBatch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["endTime"] = endTime
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteBatch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -5973,8 +7957,18 @@ func (s *DebugBarLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now in
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["now"] = now
+
+	debugBarLayerParams["globalPolicyEndTime"] = globalPolicyEndTime
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["cursor"] = cursor
+
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -5989,8 +7983,12 @@ func (s *DebugBarLayerPostStore) PermanentDeleteByChannel(channelID string) erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteByChannel", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6005,8 +8003,12 @@ func (s *DebugBarLayerPostStore) PermanentDeleteByUser(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6021,8 +8023,12 @@ func (s *DebugBarLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{post}))
-	s.Root.debugBar.SendStoreCall("PostStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["post"] = post
+
+	s.Root.debugBar.SendStoreCall("PostStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6037,8 +8043,12 @@ func (s *DebugBarLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Pos
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{posts}))
-	s.Root.debugBar.SendStoreCall("PostStore.SaveMultiple", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["posts"] = posts
+
+	s.Root.debugBar.SendStoreCall("PostStore.SaveMultiple", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -6053,8 +8063,16 @@ func (s *DebugBarLayerPostStore) Search(teamID string, userID string, params *mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, params}))
-	s.Root.debugBar.SendStoreCall("PostStore.Search", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["params"] = params
+
+	s.Root.debugBar.SendStoreCall("PostStore.Search", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6069,8 +8087,20 @@ func (s *DebugBarLayerPostStore) SearchPostsForUser(paramsList []*model.SearchPa
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{paramsList, userID, teamID, page, perPage}))
-	s.Root.debugBar.SendStoreCall("PostStore.SearchPostsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["paramsList"] = paramsList
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("PostStore.SearchPostsForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6085,8 +8115,12 @@ func (s *DebugBarLayerPostStore) SetPostReminder(reminder *model.PostReminder) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reminder}))
-	s.Root.debugBar.SendStoreCall("PostStore.SetPostReminder", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["reminder"] = reminder
+
+	s.Root.debugBar.SendStoreCall("PostStore.SetPostReminder", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6101,8 +8135,14 @@ func (s *DebugBarLayerPostStore) Update(newPost *model.Post, oldPost *model.Post
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{newPost, oldPost}))
-	s.Root.debugBar.SendStoreCall("PostStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["newPost"] = newPost
+
+	debugBarLayerParams["oldPost"] = oldPost
+
+	s.Root.debugBar.SendStoreCall("PostStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6117,8 +8157,12 @@ func (s *DebugBarLayerPostAcknowledgementStore) Delete(acknowledgement *model.Po
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{acknowledgement}))
-	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["acknowledgement"] = acknowledgement
+
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6133,8 +8177,14 @@ func (s *DebugBarLayerPostAcknowledgementStore) Get(postID string, userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, userID}))
-	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6149,8 +8199,12 @@ func (s *DebugBarLayerPostAcknowledgementStore) GetForPost(postID string) ([]*mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
-	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.GetForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.GetForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6165,8 +8219,12 @@ func (s *DebugBarLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postIds}))
-	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.GetForPosts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postIds"] = postIds
+
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.GetForPosts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6181,8 +8239,16 @@ func (s *DebugBarLayerPostAcknowledgementStore) Save(postID string, userID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, userID, acknowledgedAt}))
-	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["acknowledgedAt"] = acknowledgedAt
+
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6197,8 +8263,12 @@ func (s *DebugBarLayerPostPriorityStore) GetForPost(postId string) (*model.PostP
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postId}))
-	s.Root.debugBar.SendStoreCall("PostPriorityStore.GetForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postId"] = postId
+
+	s.Root.debugBar.SendStoreCall("PostPriorityStore.GetForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6213,8 +8283,12 @@ func (s *DebugBarLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.Pos
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids}))
-	s.Root.debugBar.SendStoreCall("PostPriorityStore.GetForPosts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ids"] = ids
+
+	s.Root.debugBar.SendStoreCall("PostPriorityStore.GetForPosts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6229,8 +8303,12 @@ func (s *DebugBarLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.CleanupFlagsBatch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.CleanupFlagsBatch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6245,8 +8323,16 @@ func (s *DebugBarLayerPreferenceStore) Delete(userID string, category string, na
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category, name}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["category"] = category
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6261,8 +8347,14 @@ func (s *DebugBarLayerPreferenceStore) DeleteCategory(userID string, category st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteCategory", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["category"] = category
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteCategory", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6277,8 +8369,14 @@ func (s *DebugBarLayerPreferenceStore) DeleteCategoryAndName(category string, na
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{category, name}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteCategoryAndName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["category"] = category
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteCategoryAndName", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6293,8 +8391,12 @@ func (s *DebugBarLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteOrphanedRows", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteOrphanedRows", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6309,8 +8411,16 @@ func (s *DebugBarLayerPreferenceStore) Get(userID string, category string, name 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category, name}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["category"] = category
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6325,8 +8435,12 @@ func (s *DebugBarLayerPreferenceStore) GetAll(userID string) (model.Preferences,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6341,8 +8455,14 @@ func (s *DebugBarLayerPreferenceStore) GetCategory(userID string, category strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.GetCategory", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["category"] = category
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.GetCategory", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6357,8 +8477,14 @@ func (s *DebugBarLayerPreferenceStore) GetCategoryAndName(category string, nane 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{category, nane}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.GetCategoryAndName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["category"] = category
+
+	debugBarLayerParams["nane"] = nane
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.GetCategoryAndName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6373,8 +8499,12 @@ func (s *DebugBarLayerPreferenceStore) PermanentDeleteByUser(userID string) erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.PermanentDeleteByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.PermanentDeleteByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6389,8 +8519,12 @@ func (s *DebugBarLayerPreferenceStore) Save(preferences model.Preferences) error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{preferences}))
-	s.Root.debugBar.SendStoreCall("PreferenceStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["preferences"] = preferences
+
+	s.Root.debugBar.SendStoreCall("PreferenceStore.Save", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6405,8 +8539,12 @@ func (s *DebugBarLayerProductNoticesStore) Clear(notices []string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{notices}))
-	s.Root.debugBar.SendStoreCall("ProductNoticesStore.Clear", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["notices"] = notices
+
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.Clear", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6421,8 +8559,12 @@ func (s *DebugBarLayerProductNoticesStore) ClearOldNotices(currentNotices model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{currentNotices}))
-	s.Root.debugBar.SendStoreCall("ProductNoticesStore.ClearOldNotices", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["currentNotices"] = currentNotices
+
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.ClearOldNotices", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6437,8 +8579,12 @@ func (s *DebugBarLayerProductNoticesStore) GetViews(userID string) ([]model.Prod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("ProductNoticesStore.GetViews", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.GetViews", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6453,8 +8599,14 @@ func (s *DebugBarLayerProductNoticesStore) View(userID string, notices []string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, notices}))
-	s.Root.debugBar.SendStoreCall("ProductNoticesStore.View", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["notices"] = notices
+
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.View", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6469,8 +8621,12 @@ func (s *DebugBarLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postIds}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.BulkGetForPosts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postIds"] = postIds
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.BulkGetForPosts", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6485,8 +8641,12 @@ func (s *DebugBarLayerReactionStore) Delete(reaction *model.Reaction) (*model.Re
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reaction}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["reaction"] = reaction
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6501,8 +8661,12 @@ func (s *DebugBarLayerReactionStore) DeleteAllWithEmojiName(emojiName string) er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{emojiName}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.DeleteAllWithEmojiName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["emojiName"] = emojiName
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.DeleteAllWithEmojiName", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6517,8 +8681,12 @@ func (s *DebugBarLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.DeleteOrphanedRows", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.DeleteOrphanedRows", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6533,8 +8701,14 @@ func (s *DebugBarLayerReactionStore) GetForPost(postID string, allowFromCache bo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.GetForPost", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetForPost", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6549,8 +8723,18 @@ func (s *DebugBarLayerReactionStore) GetForPostSince(postId string, since int64,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postId, since, excludeRemoteId, inclDeleted}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.GetForPostSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["postId"] = postId
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["excludeRemoteId"] = excludeRemoteId
+
+	debugBarLayerParams["inclDeleted"] = inclDeleted
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetForPostSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6565,8 +8749,20 @@ func (s *DebugBarLayerReactionStore) GetTopForTeamSince(teamID string, userID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.GetTopForTeamSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetTopForTeamSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6581,8 +8777,20 @@ func (s *DebugBarLayerReactionStore) GetTopForUserSince(userID string, teamID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.GetTopForUserSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetTopForUserSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6597,8 +8805,14 @@ func (s *DebugBarLayerReactionStore) PermanentDeleteBatch(endTime int64, limit i
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.PermanentDeleteBatch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["endTime"] = endTime
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.PermanentDeleteBatch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6613,8 +8827,12 @@ func (s *DebugBarLayerReactionStore) Save(reaction *model.Reaction) (*model.Reac
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reaction}))
-	s.Root.debugBar.SendStoreCall("ReactionStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["reaction"] = reaction
+
+	s.Root.debugBar.SendStoreCall("ReactionStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6629,8 +8847,12 @@ func (s *DebugBarLayerRemoteClusterStore) Delete(remoteClusterId string) (bool, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteClusterId"] = remoteClusterId
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6645,8 +8867,12 @@ func (s *DebugBarLayerRemoteClusterStore) Get(remoteClusterId string) (*model.Re
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteClusterId"] = remoteClusterId
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6661,8 +8887,12 @@ func (s *DebugBarLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQuery
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{filter}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["filter"] = filter
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6677,8 +8907,12 @@ func (s *DebugBarLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{rc}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["rc"] = rc
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6693,8 +8927,12 @@ func (s *DebugBarLayerRemoteClusterStore) SetLastPingAt(remoteClusterId string) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.SetLastPingAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteClusterId"] = remoteClusterId
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.SetLastPingAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6709,8 +8947,12 @@ func (s *DebugBarLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{rc}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["rc"] = rc
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6725,8 +8967,14 @@ func (s *DebugBarLayerRemoteClusterStore) UpdateTopics(remoteClusterId string, t
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId, topics}))
-	s.Root.debugBar.SendStoreCall("RemoteClusterStore.UpdateTopics", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteClusterId"] = remoteClusterId
+
+	debugBarLayerParams["topics"] = topics
+
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.UpdateTopics", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6741,8 +8989,14 @@ func (s *DebugBarLayerRetentionPolicyStore) AddChannels(policyId string, channel
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, channelIds}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.AddChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.AddChannels", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6757,8 +9011,14 @@ func (s *DebugBarLayerRetentionPolicyStore) AddTeams(policyId string, teamIds []
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, teamIds}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.AddTeams", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	debugBarLayerParams["teamIds"] = teamIds
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.AddTeams", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6773,8 +9033,12 @@ func (s *DebugBarLayerRetentionPolicyStore) Delete(id string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -6789,8 +9053,12 @@ func (s *DebugBarLayerRetentionPolicyStore) DeleteOrphanedRows(limit int) (int64
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.DeleteOrphanedRows", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.DeleteOrphanedRows", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6805,8 +9073,12 @@ func (s *DebugBarLayerRetentionPolicyStore) Get(id string) (*model.RetentionPoli
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6821,8 +9093,14 @@ func (s *DebugBarLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6837,8 +9115,12 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannelPoliciesCountForUser(userI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelPoliciesCountForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelPoliciesCountForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6853,8 +9135,16 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannelPoliciesForUser(userID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelPoliciesForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelPoliciesForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6869,8 +9159,16 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannels(policyId string, offset 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, offset, limit}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannels", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6885,8 +9183,12 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannelsCount(policyId string) (i
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelsCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelsCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6901,8 +9203,10 @@ func (s *DebugBarLayerRetentionPolicyStore) GetCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6917,8 +9221,12 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeamPoliciesCountForUser(userID s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamPoliciesCountForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamPoliciesCountForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6933,8 +9241,16 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamPoliciesForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamPoliciesForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6949,8 +9265,16 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeams(policyId string, offset int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, offset, limit}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeams", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeams", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6965,8 +9289,12 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeamsCount(policyId string) (int6
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamsCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamsCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6981,8 +9309,12 @@ func (s *DebugBarLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{patch}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Patch", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["patch"] = patch
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Patch", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -6997,8 +9329,14 @@ func (s *DebugBarLayerRetentionPolicyStore) RemoveChannels(policyId string, chan
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, channelIds}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.RemoveChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.RemoveChannels", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7013,8 +9351,14 @@ func (s *DebugBarLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, teamIds}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.RemoveTeams", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policyId"] = policyId
+
+	debugBarLayerParams["teamIds"] = teamIds
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.RemoveTeams", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7029,8 +9373,12 @@ func (s *DebugBarLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policy}))
-	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["policy"] = policy
+
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7045,8 +9393,10 @@ func (s *DebugBarLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("RoleStore.AllChannelSchemeRoles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("RoleStore.AllChannelSchemeRoles", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7061,8 +9411,12 @@ func (s *DebugBarLayerRoleStore) ChannelHigherScopedPermissions(roleNames []stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleNames}))
-	s.Root.debugBar.SendStoreCall("RoleStore.ChannelHigherScopedPermissions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["roleNames"] = roleNames
+
+	s.Root.debugBar.SendStoreCall("RoleStore.ChannelHigherScopedPermissions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7077,8 +9431,12 @@ func (s *DebugBarLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleName}))
-	s.Root.debugBar.SendStoreCall("RoleStore.ChannelRolesUnderTeamRole", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["roleName"] = roleName
+
+	s.Root.debugBar.SendStoreCall("RoleStore.ChannelRolesUnderTeamRole", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7093,8 +9451,12 @@ func (s *DebugBarLayerRoleStore) Delete(roleID string) (*model.Role, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleID}))
-	s.Root.debugBar.SendStoreCall("RoleStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["roleID"] = roleID
+
+	s.Root.debugBar.SendStoreCall("RoleStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7109,8 +9471,12 @@ func (s *DebugBarLayerRoleStore) Get(roleID string) (*model.Role, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleID}))
-	s.Root.debugBar.SendStoreCall("RoleStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["roleID"] = roleID
+
+	s.Root.debugBar.SendStoreCall("RoleStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7125,8 +9491,10 @@ func (s *DebugBarLayerRoleStore) GetAll() ([]*model.Role, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("RoleStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("RoleStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7141,8 +9509,14 @@ func (s *DebugBarLayerRoleStore) GetByName(ctx context.Context, name string) (*m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, name}))
-	s.Root.debugBar.SendStoreCall("RoleStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("RoleStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7157,8 +9531,12 @@ func (s *DebugBarLayerRoleStore) GetByNames(names []string) ([]*model.Role, erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{names}))
-	s.Root.debugBar.SendStoreCall("RoleStore.GetByNames", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["names"] = names
+
+	s.Root.debugBar.SendStoreCall("RoleStore.GetByNames", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7173,8 +9551,10 @@ func (s *DebugBarLayerRoleStore) PermanentDeleteAll() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("RoleStore.PermanentDeleteAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("RoleStore.PermanentDeleteAll", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7189,8 +9569,12 @@ func (s *DebugBarLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{role}))
-	s.Root.debugBar.SendStoreCall("RoleStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["role"] = role
+
+	s.Root.debugBar.SendStoreCall("RoleStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7205,8 +9589,12 @@ func (s *DebugBarLayerSchemeStore) CountByScope(scope string) (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scope}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.CountByScope", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["scope"] = scope
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.CountByScope", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7221,8 +9609,18 @@ func (s *DebugBarLayerSchemeStore) CountWithoutPermission(scope string, permissi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scope, permissionID, roleScope, roleType}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.CountWithoutPermission", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["scope"] = scope
+
+	debugBarLayerParams["permissionID"] = permissionID
+
+	debugBarLayerParams["roleScope"] = roleScope
+
+	debugBarLayerParams["roleType"] = roleType
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.CountWithoutPermission", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7237,8 +9635,12 @@ func (s *DebugBarLayerSchemeStore) Delete(schemeID string) (*model.Scheme, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["schemeID"] = schemeID
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7253,8 +9655,12 @@ func (s *DebugBarLayerSchemeStore) Get(schemeID string) (*model.Scheme, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["schemeID"] = schemeID
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7269,8 +9675,16 @@ func (s *DebugBarLayerSchemeStore) GetAllPage(scope string, offset int, limit in
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scope, offset, limit}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.GetAllPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["scope"] = scope
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.GetAllPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7285,8 +9699,12 @@ func (s *DebugBarLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeName}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["schemeName"] = schemeName
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7301,8 +9719,10 @@ func (s *DebugBarLayerSchemeStore) PermanentDeleteAll() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.PermanentDeleteAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.PermanentDeleteAll", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7317,8 +9737,12 @@ func (s *DebugBarLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scheme}))
-	s.Root.debugBar.SendStoreCall("SchemeStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["scheme"] = scheme
+
+	s.Root.debugBar.SendStoreCall("SchemeStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7333,8 +9757,10 @@ func (s *DebugBarLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("SessionStore.AnalyticsSessionCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("SessionStore.AnalyticsSessionCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7349,8 +9775,14 @@ func (s *DebugBarLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{expiryTime, batchSize}))
-	s.Root.debugBar.SendStoreCall("SessionStore.Cleanup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["expiryTime"] = expiryTime
+
+	debugBarLayerParams["batchSize"] = batchSize
+
+	s.Root.debugBar.SendStoreCall("SessionStore.Cleanup", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7365,8 +9797,14 @@ func (s *DebugBarLayerSessionStore) Get(ctx context.Context, sessionIDOrToken st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, sessionIDOrToken}))
-	s.Root.debugBar.SendStoreCall("SessionStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["sessionIDOrToken"] = sessionIDOrToken
+
+	s.Root.debugBar.SendStoreCall("SessionStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7381,8 +9819,10 @@ func (s *DebugBarLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("SessionStore.GetLastSessionRowCreateAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("SessionStore.GetLastSessionRowCreateAt", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7397,8 +9837,12 @@ func (s *DebugBarLayerSessionStore) GetSessions(userID string) ([]*model.Session
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("SessionStore.GetSessions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("SessionStore.GetSessions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7413,8 +9857,16 @@ func (s *DebugBarLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{thresholdMillis, mobileOnly, unnotifiedOnly}))
-	s.Root.debugBar.SendStoreCall("SessionStore.GetSessionsExpired", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["thresholdMillis"] = thresholdMillis
+
+	debugBarLayerParams["mobileOnly"] = mobileOnly
+
+	debugBarLayerParams["unnotifiedOnly"] = unnotifiedOnly
+
+	s.Root.debugBar.SendStoreCall("SessionStore.GetSessionsExpired", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7429,8 +9881,12 @@ func (s *DebugBarLayerSessionStore) GetSessionsWithActiveDeviceIds(userID string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("SessionStore.GetSessionsWithActiveDeviceIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("SessionStore.GetSessionsWithActiveDeviceIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7445,8 +9901,12 @@ func (s *DebugBarLayerSessionStore) PermanentDeleteSessionsByUser(teamID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("SessionStore.PermanentDeleteSessionsByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("SessionStore.PermanentDeleteSessionsByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7461,8 +9921,12 @@ func (s *DebugBarLayerSessionStore) Remove(sessionIDOrToken string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionIDOrToken}))
-	s.Root.debugBar.SendStoreCall("SessionStore.Remove", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["sessionIDOrToken"] = sessionIDOrToken
+
+	s.Root.debugBar.SendStoreCall("SessionStore.Remove", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7477,8 +9941,10 @@ func (s *DebugBarLayerSessionStore) RemoveAllSessions() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("SessionStore.RemoveAllSessions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("SessionStore.RemoveAllSessions", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7493,8 +9959,12 @@ func (s *DebugBarLayerSessionStore) Save(session *model.Session) (*model.Session
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
-	s.Root.debugBar.SendStoreCall("SessionStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["session"] = session
+
+	s.Root.debugBar.SendStoreCall("SessionStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7509,8 +9979,16 @@ func (s *DebugBarLayerSessionStore) UpdateDeviceId(id string, deviceID string, e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, deviceID, expiresAt}))
-	s.Root.debugBar.SendStoreCall("SessionStore.UpdateDeviceId", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["deviceID"] = deviceID
+
+	debugBarLayerParams["expiresAt"] = expiresAt
+
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateDeviceId", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7525,8 +10003,14 @@ func (s *DebugBarLayerSessionStore) UpdateExpiredNotify(sessionid string, notifi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionid, notified}))
-	s.Root.debugBar.SendStoreCall("SessionStore.UpdateExpiredNotify", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["sessionid"] = sessionid
+
+	debugBarLayerParams["notified"] = notified
+
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateExpiredNotify", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7541,8 +10025,14 @@ func (s *DebugBarLayerSessionStore) UpdateExpiresAt(sessionID string, timestamp 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionID, timestamp}))
-	s.Root.debugBar.SendStoreCall("SessionStore.UpdateExpiresAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["sessionID"] = sessionID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateExpiresAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7557,8 +10047,14 @@ func (s *DebugBarLayerSessionStore) UpdateLastActivityAt(sessionID string, times
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionID, timestamp}))
-	s.Root.debugBar.SendStoreCall("SessionStore.UpdateLastActivityAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["sessionID"] = sessionID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateLastActivityAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7573,8 +10069,12 @@ func (s *DebugBarLayerSessionStore) UpdateProps(session *model.Session) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
-	s.Root.debugBar.SendStoreCall("SessionStore.UpdateProps", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["session"] = session
+
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateProps", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7589,8 +10089,14 @@ func (s *DebugBarLayerSessionStore) UpdateRoles(userID string, roles string) (st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, roles}))
-	s.Root.debugBar.SendStoreCall("SessionStore.UpdateRoles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["roles"] = roles
+
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateRoles", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7605,8 +10111,12 @@ func (s *DebugBarLayerSharedChannelStore) Delete(channelId string) (bool, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelId"] = channelId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7621,8 +10131,12 @@ func (s *DebugBarLayerSharedChannelStore) DeleteRemote(remoteId string) (bool, e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.DeleteRemote", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteId"] = remoteId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.DeleteRemote", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7637,8 +10151,12 @@ func (s *DebugBarLayerSharedChannelStore) Get(channelId string) (*model.SharedCh
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelId"] = channelId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7653,8 +10171,16 @@ func (s *DebugBarLayerSharedChannelStore) GetAll(offset int, limit int, opts mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit, opts}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7669,8 +10195,12 @@ func (s *DebugBarLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFi
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAllCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAllCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7685,8 +10215,14 @@ func (s *DebugBarLayerSharedChannelStore) GetAttachment(fileId string, remoteId 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileId, remoteId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAttachment", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["fileId"] = fileId
+
+	debugBarLayerParams["remoteId"] = remoteId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAttachment", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7701,8 +10237,12 @@ func (s *DebugBarLayerSharedChannelStore) GetRemote(id string) (*model.SharedCha
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemote", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemote", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7717,8 +10257,14 @@ func (s *DebugBarLayerSharedChannelStore) GetRemoteByIds(channelId string, remot
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId, remoteId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemoteByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelId"] = channelId
+
+	debugBarLayerParams["remoteId"] = remoteId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemoteByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7733,8 +10279,14 @@ func (s *DebugBarLayerSharedChannelStore) GetRemoteForUser(remoteId string, user
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteId, userId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemoteForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remoteId"] = remoteId
+
+	debugBarLayerParams["userId"] = userId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemoteForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7749,8 +10301,12 @@ func (s *DebugBarLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRem
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemotes", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemotes", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7765,8 +10321,12 @@ func (s *DebugBarLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemotesStatus", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelId"] = channelId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemotesStatus", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7781,8 +10341,16 @@ func (s *DebugBarLayerSharedChannelStore) GetSingleUser(userID string, channelID
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, remoteID}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetSingleUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["remoteID"] = remoteID
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetSingleUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7797,8 +10365,12 @@ func (s *DebugBarLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersF
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{filter}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetUsersForSync", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["filter"] = filter
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetUsersForSync", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7813,8 +10385,12 @@ func (s *DebugBarLayerSharedChannelStore) GetUsersForUser(userID string) ([]*mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetUsersForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetUsersForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7829,8 +10405,12 @@ func (s *DebugBarLayerSharedChannelStore) HasChannel(channelID string) (bool, er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.HasChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.HasChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7845,8 +10425,14 @@ func (s *DebugBarLayerSharedChannelStore) HasRemote(channelID string, remoteId s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, remoteId}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.HasRemote", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["remoteId"] = remoteId
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.HasRemote", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7861,8 +10447,12 @@ func (s *DebugBarLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sc}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["sc"] = sc
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7877,8 +10467,12 @@ func (s *DebugBarLayerSharedChannelStore) SaveAttachment(remote *model.SharedCha
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveAttachment", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remote"] = remote
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveAttachment", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7893,8 +10487,12 @@ func (s *DebugBarLayerSharedChannelStore) SaveRemote(remote *model.SharedChannel
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveRemote", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remote"] = remote
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveRemote", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7909,8 +10507,12 @@ func (s *DebugBarLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUs
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remote"] = remote
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7925,8 +10527,12 @@ func (s *DebugBarLayerSharedChannelStore) Update(sc *model.SharedChannel) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sc}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["sc"] = sc
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7941,8 +10547,14 @@ func (s *DebugBarLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, syncTime}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateAttachmentLastSyncAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["syncTime"] = syncTime
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateAttachmentLastSyncAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7957,8 +10569,12 @@ func (s *DebugBarLayerSharedChannelStore) UpdateRemote(remote *model.SharedChann
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateRemote", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remote"] = remote
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateRemote", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -7973,8 +10589,14 @@ func (s *DebugBarLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, cursor}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateRemoteCursor", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["cursor"] = cursor
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateRemoteCursor", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -7989,8 +10611,16 @@ func (s *DebugBarLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, ch
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, remoteID}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["remoteID"] = remoteID
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8005,8 +10635,12 @@ func (s *DebugBarLayerSharedChannelStore) UpsertAttachment(remote *model.SharedC
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
-	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpsertAttachment", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["remote"] = remote
+
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpsertAttachment", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8021,8 +10655,12 @@ func (s *DebugBarLayerStatusStore) Get(userID string) (*model.Status, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("StatusStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("StatusStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8037,8 +10675,12 @@ func (s *DebugBarLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userIds}))
-	s.Root.debugBar.SendStoreCall("StatusStore.GetByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userIds"] = userIds
+
+	s.Root.debugBar.SendStoreCall("StatusStore.GetByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8053,8 +10695,10 @@ func (s *DebugBarLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("StatusStore.GetTotalActiveUsersCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("StatusStore.GetTotalActiveUsersCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8069,8 +10713,10 @@ func (s *DebugBarLayerStatusStore) ResetAll() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("StatusStore.ResetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("StatusStore.ResetAll", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8085,8 +10731,12 @@ func (s *DebugBarLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status}))
-	s.Root.debugBar.SendStoreCall("StatusStore.SaveOrUpdate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["status"] = status
+
+	s.Root.debugBar.SendStoreCall("StatusStore.SaveOrUpdate", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8101,8 +10751,10 @@ func (s *DebugBarLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("StatusStore.UpdateExpiredDNDStatuses", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("StatusStore.UpdateExpiredDNDStatuses", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8117,8 +10769,14 @@ func (s *DebugBarLayerStatusStore) UpdateLastActivityAt(userID string, lastActiv
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, lastActivityAt}))
-	s.Root.debugBar.SendStoreCall("StatusStore.UpdateLastActivityAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["lastActivityAt"] = lastActivityAt
+
+	s.Root.debugBar.SendStoreCall("StatusStore.UpdateLastActivityAt", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8133,8 +10791,10 @@ func (s *DebugBarLayerSystemStore) Get() (model.StringMap, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("SystemStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("SystemStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8149,8 +10809,12 @@ func (s *DebugBarLayerSystemStore) GetByName(name string) (*model.System, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
-	s.Root.debugBar.SendStoreCall("SystemStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("SystemStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8165,8 +10829,12 @@ func (s *DebugBarLayerSystemStore) InsertIfExists(system *model.System) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
-	s.Root.debugBar.SendStoreCall("SystemStore.InsertIfExists", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["system"] = system
+
+	s.Root.debugBar.SendStoreCall("SystemStore.InsertIfExists", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8181,8 +10849,12 @@ func (s *DebugBarLayerSystemStore) PermanentDeleteByName(name string) (*model.Sy
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
-	s.Root.debugBar.SendStoreCall("SystemStore.PermanentDeleteByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("SystemStore.PermanentDeleteByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8197,8 +10869,12 @@ func (s *DebugBarLayerSystemStore) Save(system *model.System) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
-	s.Root.debugBar.SendStoreCall("SystemStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["system"] = system
+
+	s.Root.debugBar.SendStoreCall("SystemStore.Save", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8213,8 +10889,12 @@ func (s *DebugBarLayerSystemStore) SaveOrUpdate(system *model.System) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
-	s.Root.debugBar.SendStoreCall("SystemStore.SaveOrUpdate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["system"] = system
+
+	s.Root.debugBar.SendStoreCall("SystemStore.SaveOrUpdate", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8229,8 +10909,12 @@ func (s *DebugBarLayerSystemStore) SaveOrUpdateWithWarnMetricHandling(system *mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
-	s.Root.debugBar.SendStoreCall("SystemStore.SaveOrUpdateWithWarnMetricHandling", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["system"] = system
+
+	s.Root.debugBar.SendStoreCall("SystemStore.SaveOrUpdateWithWarnMetricHandling", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8245,8 +10929,12 @@ func (s *DebugBarLayerSystemStore) Update(system *model.System) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
-	s.Root.debugBar.SendStoreCall("SystemStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["system"] = system
+
+	s.Root.debugBar.SendStoreCall("SystemStore.Update", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8261,8 +10949,12 @@ func (s *DebugBarLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.AnalyticsGetTeamCountForScheme", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["schemeID"] = schemeID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.AnalyticsGetTeamCountForScheme", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8277,8 +10969,12 @@ func (s *DebugBarLayerTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("TeamStore.AnalyticsTeamCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("TeamStore.AnalyticsTeamCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8293,8 +10989,10 @@ func (s *DebugBarLayerTeamStore) ClearAllCustomRoleAssignments() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.ClearAllCustomRoleAssignments", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.ClearAllCustomRoleAssignments", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8309,8 +11007,9 @@ func (s *DebugBarLayerTeamStore) ClearCaches() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.ClearCaches", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.ClearCaches", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -8325,8 +11024,12 @@ func (s *DebugBarLayerTeamStore) Get(id string) (*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("TeamStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("TeamStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8341,8 +11044,14 @@ func (s *DebugBarLayerTeamStore) GetActiveMemberCount(teamID string, restriction
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, restrictions}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetActiveMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["restrictions"] = restrictions
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetActiveMemberCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8357,8 +11066,10 @@ func (s *DebugBarLayerTeamStore) GetAll() ([]*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8373,8 +11084,14 @@ func (s *DebugBarLayerTeamStore) GetAllForExportAfter(limit int, afterID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetAllForExportAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["afterID"] = afterID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllForExportAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8389,8 +11106,16 @@ func (s *DebugBarLayerTeamStore) GetAllPage(offset int, limit int, opts *model.T
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit, opts}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetAllPage", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllPage", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8405,8 +11130,10 @@ func (s *DebugBarLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetAllPrivateTeamListing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllPrivateTeamListing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8421,8 +11148,10 @@ func (s *DebugBarLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetAllTeamListing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllTeamListing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8437,8 +11166,10 @@ func (s *DebugBarLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetByEmptyInviteID", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByEmptyInviteID", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8453,8 +11184,12 @@ func (s *DebugBarLayerTeamStore) GetByInviteId(inviteID string) (*model.Team, er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{inviteID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetByInviteId", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["inviteID"] = inviteID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByInviteId", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8469,8 +11204,12 @@ func (s *DebugBarLayerTeamStore) GetByName(name string) (*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetByName", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByName", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8485,8 +11224,12 @@ func (s *DebugBarLayerTeamStore) GetByNames(name []string) ([]*model.Team, error
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetByNames", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["name"] = name
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByNames", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8501,8 +11244,14 @@ func (s *DebugBarLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamID stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{excludeTeamID, userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetChannelUnreadsForAllTeams", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["excludeTeamID"] = excludeTeamID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetChannelUnreadsForAllTeams", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8517,8 +11266,14 @@ func (s *DebugBarLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetChannelUnreadsForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetChannelUnreadsForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8533,8 +11288,14 @@ func (s *DebugBarLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, othe
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, otherUserID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetCommonTeamIDsForTwoUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["otherUserID"] = otherUserID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetCommonTeamIDsForTwoUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8549,8 +11310,12 @@ func (s *DebugBarLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetMany", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ids"] = ids
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMany", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8565,8 +11330,16 @@ func (s *DebugBarLayerTeamStore) GetMember(ctx context.Context, teamID string, u
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, teamID, userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8581,8 +11354,18 @@ func (s *DebugBarLayerTeamStore) GetMembers(teamID string, offset int, limit int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit, teamMembersGetOptions}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["teamMembersGetOptions"] = teamMembersGetOptions
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8597,8 +11380,16 @@ func (s *DebugBarLayerTeamStore) GetMembersByIds(teamID string, userIds []string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userIds, restrictions}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetMembersByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userIds"] = userIds
+
+	debugBarLayerParams["restrictions"] = restrictions
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMembersByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8613,8 +11404,18 @@ func (s *DebugBarLayerTeamStore) GetNewTeamMembersSince(teamID string, since int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetNewTeamMembersSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetNewTeamMembersSince", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -8629,8 +11430,12 @@ func (s *DebugBarLayerTeamStore) GetTeamMembersForExport(userID string) ([]*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamMembersForExport", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamMembersForExport", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8645,8 +11450,16 @@ func (s *DebugBarLayerTeamStore) GetTeamsByScheme(schemeID string, offset int, l
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsByScheme", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["schemeID"] = schemeID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsByScheme", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8661,8 +11474,12 @@ func (s *DebugBarLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsByUserId", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsByUserId", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8677,8 +11494,18 @@ func (s *DebugBarLayerTeamStore) GetTeamsForUser(ctx context.Context, userID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, userID, excludeTeamID, includeDeleted}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["excludeTeamID"] = excludeTeamID
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8693,8 +11520,16 @@ func (s *DebugBarLayerTeamStore) GetTeamsForUserWithPagination(userID string, pa
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, page, perPage}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsForUserWithPagination", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsForUserWithPagination", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8709,8 +11544,14 @@ func (s *DebugBarLayerTeamStore) GetTotalMemberCount(teamID string, restrictions
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, restrictions}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetTotalMemberCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["restrictions"] = restrictions
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTotalMemberCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8725,8 +11566,14 @@ func (s *DebugBarLayerTeamStore) GetUserTeamIds(userID string, allowFromCache bo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GetUserTeamIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GetUserTeamIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8741,8 +11588,10 @@ func (s *DebugBarLayerTeamStore) GroupSyncedTeamCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.GroupSyncedTeamCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.GroupSyncedTeamCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8757,8 +11606,11 @@ func (s *DebugBarLayerTeamStore) InvalidateAllTeamIdsForUser(userID string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.InvalidateAllTeamIdsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.InvalidateAllTeamIdsForUser", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -8773,8 +11625,14 @@ func (s *DebugBarLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fromTeamID, fromUserID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.MigrateTeamMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["fromTeamID"] = fromTeamID
+
+	debugBarLayerParams["fromUserID"] = fromUserID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.MigrateTeamMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8789,8 +11647,12 @@ func (s *DebugBarLayerTeamStore) PermanentDelete(teamID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.PermanentDelete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.PermanentDelete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8805,8 +11667,12 @@ func (s *DebugBarLayerTeamStore) RemoveAllMembersByTeam(teamID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.RemoveAllMembersByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveAllMembersByTeam", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8821,8 +11687,12 @@ func (s *DebugBarLayerTeamStore) RemoveAllMembersByUser(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.RemoveAllMembersByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveAllMembersByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8837,8 +11707,14 @@ func (s *DebugBarLayerTeamStore) RemoveMember(teamID string, userID string) erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
-	s.Root.debugBar.SendStoreCall("TeamStore.RemoveMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveMember", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8853,8 +11729,14 @@ func (s *DebugBarLayerTeamStore) RemoveMembers(teamID string, userIds []string) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userIds}))
-	s.Root.debugBar.SendStoreCall("TeamStore.RemoveMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userIds"] = userIds
+
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveMembers", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8869,8 +11751,10 @@ func (s *DebugBarLayerTeamStore) ResetAllTeamSchemes() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("TeamStore.ResetAllTeamSchemes", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("TeamStore.ResetAllTeamSchemes", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -8885,8 +11769,12 @@ func (s *DebugBarLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team}))
-	s.Root.debugBar.SendStoreCall("TeamStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team"] = team
+
+	s.Root.debugBar.SendStoreCall("TeamStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8901,8 +11789,14 @@ func (s *DebugBarLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPe
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member, maxUsersPerTeam}))
-	s.Root.debugBar.SendStoreCall("TeamStore.SaveMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["member"] = member
+
+	debugBarLayerParams["maxUsersPerTeam"] = maxUsersPerTeam
+
+	s.Root.debugBar.SendStoreCall("TeamStore.SaveMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8917,8 +11811,14 @@ func (s *DebugBarLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members, maxUsersPerTeam}))
-	s.Root.debugBar.SendStoreCall("TeamStore.SaveMultipleMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["members"] = members
+
+	debugBarLayerParams["maxUsersPerTeam"] = maxUsersPerTeam
+
+	s.Root.debugBar.SendStoreCall("TeamStore.SaveMultipleMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8933,8 +11833,12 @@ func (s *DebugBarLayerTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Tea
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("TeamStore.SearchAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8949,8 +11853,12 @@ func (s *DebugBarLayerTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("TeamStore.SearchAllPaged", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchAllPaged", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -8965,8 +11873,12 @@ func (s *DebugBarLayerTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Te
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("TeamStore.SearchOpen", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchOpen", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8981,8 +11893,12 @@ func (s *DebugBarLayerTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
-	s.Root.debugBar.SendStoreCall("TeamStore.SearchPrivate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchPrivate", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -8997,8 +11913,12 @@ func (s *DebugBarLayerTeamStore) Update(team *model.Team) (*model.Team, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team}))
-	s.Root.debugBar.SendStoreCall("TeamStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["team"] = team
+
+	s.Root.debugBar.SendStoreCall("TeamStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9013,8 +11933,14 @@ func (s *DebugBarLayerTeamStore) UpdateLastTeamIconUpdate(teamID string, curTime
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, curTime}))
-	s.Root.debugBar.SendStoreCall("TeamStore.UpdateLastTeamIconUpdate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["curTime"] = curTime
+
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateLastTeamIconUpdate", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9029,8 +11955,12 @@ func (s *DebugBarLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member}))
-	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMember", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["member"] = member
+
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMember", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9045,8 +11975,14 @@ func (s *DebugBarLayerTeamStore) UpdateMembersRole(teamID string, userIDs []stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userIDs}))
-	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMembersRole", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userIDs"] = userIDs
+
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMembersRole", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9061,8 +11997,12 @@ func (s *DebugBarLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMemb
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members}))
-	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMultipleMembers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["members"] = members
+
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMultipleMembers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9077,8 +12017,14 @@ func (s *DebugBarLayerTeamStore) UserBelongsToTeams(userID string, teamIds []str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamIds}))
-	s.Root.debugBar.SendStoreCall("TeamStore.UserBelongsToTeams", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamIds"] = teamIds
+
+	s.Root.debugBar.SendStoreCall("TeamStore.UserBelongsToTeams", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9093,8 +12039,14 @@ func (s *DebugBarLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9109,8 +12061,12 @@ func (s *DebugBarLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{allowFromCache}))
-	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.GetLatest", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.GetLatest", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9125,8 +12081,12 @@ func (s *DebugBarLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfSer
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{termsOfService}))
-	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["termsOfService"] = termsOfService
+
+	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9141,8 +12101,14 @@ func (s *DebugBarLayerThreadStore) DeleteMembershipForUser(userId string, postID
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, postID}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.DeleteMembershipForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["postID"] = postID
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.DeleteMembershipForUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9157,8 +12123,12 @@ func (s *DebugBarLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.DeleteOrphanedRows", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.DeleteOrphanedRows", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9173,8 +12143,12 @@ func (s *DebugBarLayerThreadStore) Get(id string) (*model.Thread, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9189,8 +12163,14 @@ func (s *DebugBarLayerThreadStore) GetMembershipForUser(userId string, postID st
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, postID}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetMembershipForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["postID"] = postID
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetMembershipForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9205,8 +12185,14 @@ func (s *DebugBarLayerThreadStore) GetMembershipsForUser(userId string, teamID s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetMembershipsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetMembershipsForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9221,8 +12207,16 @@ func (s *DebugBarLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamIDs, includeUrgentMentionCount}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTeamsUnreadForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamIDs"] = teamIDs
+
+	debugBarLayerParams["includeUrgentMentionCount"] = includeUrgentMentionCount
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTeamsUnreadForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9237,8 +12231,14 @@ func (s *DebugBarLayerThreadStore) GetThreadFollowers(threadID string, fetchOnly
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadID, fetchOnlyActive}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadFollowers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["threadID"] = threadID
+
+	debugBarLayerParams["fetchOnlyActive"] = fetchOnlyActive
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadFollowers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9253,8 +12253,16 @@ func (s *DebugBarLayerThreadStore) GetThreadForUser(threadMembership *model.Thre
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadMembership, extended, postPriorityIsEnabled}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["threadMembership"] = threadMembership
+
+	debugBarLayerParams["extended"] = extended
+
+	debugBarLayerParams["postPriorityIsEnabled"] = postPriorityIsEnabled
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9269,8 +12277,12 @@ func (s *DebugBarLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadMembership}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadUnreadReplyCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["threadMembership"] = threadMembership
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadUnreadReplyCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9285,8 +12297,16 @@ func (s *DebugBarLayerThreadStore) GetThreadsForUser(userId string, teamID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadsForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9301,8 +12321,20 @@ func (s *DebugBarLayerThreadStore) GetTopThreadsForTeamSince(teamID string, user
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTopThreadsForTeamSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTopThreadsForTeamSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9317,8 +12349,20 @@ func (s *DebugBarLayerThreadStore) GetTopThreadsForUserSince(teamID string, user
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTopThreadsForUserSince", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["since"] = since
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTopThreadsForUserSince", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9333,8 +12377,16 @@ func (s *DebugBarLayerThreadStore) GetTotalThreads(userId string, teamID string,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalThreads", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalThreads", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9349,8 +12401,16 @@ func (s *DebugBarLayerThreadStore) GetTotalUnreadMentions(userId string, teamID 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadMentions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadMentions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9365,8 +12425,16 @@ func (s *DebugBarLayerThreadStore) GetTotalUnreadThreads(userId string, teamID s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadThreads", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadThreads", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9381,8 +12449,16 @@ func (s *DebugBarLayerThreadStore) GetTotalUnreadUrgentMentions(userId string, t
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadUrgentMentions", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userId"] = userId
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadUrgentMentions", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9397,8 +12473,16 @@ func (s *DebugBarLayerThreadStore) MaintainMembership(userID string, postID stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, postID, opts}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.MaintainMembership", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["postID"] = postID
+
+	debugBarLayerParams["opts"] = opts
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.MaintainMembership", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9413,8 +12497,14 @@ func (s *DebugBarLayerThreadStore) MarkAllAsRead(userID string, threadIds []stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, threadIds}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsRead", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["threadIds"] = threadIds
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsRead", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9429,8 +12519,14 @@ func (s *DebugBarLayerThreadStore) MarkAllAsReadByChannels(userID string, channe
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelIDs}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsReadByChannels", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelIDs"] = channelIDs
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsReadByChannels", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9445,8 +12541,14 @@ func (s *DebugBarLayerThreadStore) MarkAllAsReadByTeam(userID string, teamID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsReadByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsReadByTeam", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9461,8 +12563,16 @@ func (s *DebugBarLayerThreadStore) MarkAsRead(userID string, threadID string, ti
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, threadID, timestamp}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAsRead", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["threadID"] = threadID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAsRead", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9477,8 +12587,18 @@ func (s *DebugBarLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["now"] = now
+
+	debugBarLayerParams["globalPolicyEndTime"] = globalPolicyEndTime
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["cursor"] = cursor
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -9493,8 +12613,18 @@ func (s *DebugBarLayerThreadStore) PermanentDeleteBatchThreadMembershipsForReten
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["now"] = now
+
+	debugBarLayerParams["globalPolicyEndTime"] = globalPolicyEndTime
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["cursor"] = cursor
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies", success, elapsed, debugBarLayerParams)
+
 	return result, resultVar1, err
 }
 
@@ -9509,8 +12639,12 @@ func (s *DebugBarLayerThreadStore) UpdateMembership(membership *model.ThreadMemb
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{membership}))
-	s.Root.debugBar.SendStoreCall("ThreadStore.UpdateMembership", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["membership"] = membership
+
+	s.Root.debugBar.SendStoreCall("ThreadStore.UpdateMembership", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9525,8 +12659,11 @@ func (s *DebugBarLayerTokenStore) Cleanup(expiryTime int64) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{expiryTime}))
-	s.Root.debugBar.SendStoreCall("TokenStore.Cleanup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["expiryTime"] = expiryTime
+
+	s.Root.debugBar.SendStoreCall("TokenStore.Cleanup", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -9541,8 +12678,12 @@ func (s *DebugBarLayerTokenStore) Delete(token string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
-	s.Root.debugBar.SendStoreCall("TokenStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["token"] = token
+
+	s.Root.debugBar.SendStoreCall("TokenStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9557,8 +12698,12 @@ func (s *DebugBarLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenType}))
-	s.Root.debugBar.SendStoreCall("TokenStore.GetAllTokensByType", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenType"] = tokenType
+
+	s.Root.debugBar.SendStoreCall("TokenStore.GetAllTokensByType", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9573,8 +12718,12 @@ func (s *DebugBarLayerTokenStore) GetByToken(token string) (*model.Token, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
-	s.Root.debugBar.SendStoreCall("TokenStore.GetByToken", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["token"] = token
+
+	s.Root.debugBar.SendStoreCall("TokenStore.GetByToken", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9589,8 +12738,12 @@ func (s *DebugBarLayerTokenStore) RemoveAllTokensByType(tokenType string) error 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenType}))
-	s.Root.debugBar.SendStoreCall("TokenStore.RemoveAllTokensByType", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenType"] = tokenType
+
+	s.Root.debugBar.SendStoreCall("TokenStore.RemoveAllTokensByType", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9605,8 +12758,12 @@ func (s *DebugBarLayerTokenStore) Save(recovery *model.Token) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{recovery}))
-	s.Root.debugBar.SendStoreCall("TokenStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["recovery"] = recovery
+
+	s.Root.debugBar.SendStoreCall("TokenStore.Save", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9621,8 +12778,12 @@ func (s *DebugBarLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewSt
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reviewStatus}))
-	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.CreateTrueUpReviewStatusRecord", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["reviewStatus"] = reviewStatus
+
+	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.CreateTrueUpReviewStatusRecord", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9637,8 +12798,12 @@ func (s *DebugBarLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{dueDate}))
-	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.GetTrueUpReviewStatus", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["dueDate"] = dueDate
+
+	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.GetTrueUpReviewStatus", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9653,8 +12818,12 @@ func (s *DebugBarLayerTrueUpReviewStore) Update(reviewStatus *model.TrueUpReview
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reviewStatus}))
-	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["reviewStatus"] = reviewStatus
+
+	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9669,8 +12838,12 @@ func (s *DebugBarLayerUploadSessionStore) Delete(id string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("UploadSessionStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9685,8 +12858,14 @@ func (s *DebugBarLayerUploadSessionStore) Get(ctx context.Context, id string) (*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id}))
-	s.Root.debugBar.SendStoreCall("UploadSessionStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9701,8 +12880,12 @@ func (s *DebugBarLayerUploadSessionStore) GetForUser(userID string) ([]*model.Up
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UploadSessionStore.GetForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.GetForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9717,8 +12900,12 @@ func (s *DebugBarLayerUploadSessionStore) Save(session *model.UploadSession) (*m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
-	s.Root.debugBar.SendStoreCall("UploadSessionStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["session"] = session
+
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9733,8 +12920,12 @@ func (s *DebugBarLayerUploadSessionStore) Update(session *model.UploadSession) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
-	s.Root.debugBar.SendStoreCall("UploadSessionStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["session"] = session
+
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Update", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9749,8 +12940,14 @@ func (s *DebugBarLayerUserStore) AnalyticsActiveCount(timestamp int64, options m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{timestamp, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsActiveCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsActiveCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9765,8 +12962,16 @@ func (s *DebugBarLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, endTime, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsActiveCountForPeriod", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["startTime"] = startTime
+
+	debugBarLayerParams["endTime"] = endTime
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsActiveCountForPeriod", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9781,8 +12986,12 @@ func (s *DebugBarLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (b
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{hostDomain}))
-	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetExternalUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["hostDomain"] = hostDomain
+
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetExternalUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9797,8 +13006,10 @@ func (s *DebugBarLayerUserStore) AnalyticsGetGuestCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetGuestCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetGuestCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9813,8 +13024,10 @@ func (s *DebugBarLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, error)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetInactiveUsersCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetInactiveUsersCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9829,8 +13042,10 @@ func (s *DebugBarLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetSystemAdminCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetSystemAdminCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9845,8 +13060,18 @@ func (s *DebugBarLayerUserStore) AutocompleteUsersInChannel(teamID string, chann
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.AutocompleteUsersInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.AutocompleteUsersInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9861,8 +13086,10 @@ func (s *DebugBarLayerUserStore) ClearAllCustomRoleAssignments() error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.ClearAllCustomRoleAssignments", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.ClearAllCustomRoleAssignments", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -9877,8 +13104,9 @@ func (s *DebugBarLayerUserStore) ClearCaches() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.ClearCaches", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.ClearCaches", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -9893,8 +13121,12 @@ func (s *DebugBarLayerUserStore) Count(options model.UserCountOptions) (int64, e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.Count", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.Count", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9909,8 +13141,10 @@ func (s *DebugBarLayerUserStore) DeactivateGuests() ([]string, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.DeactivateGuests", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.DeactivateGuests", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9925,8 +13159,12 @@ func (s *DebugBarLayerUserStore) DemoteUserToGuest(userID string) (*model.User, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.DemoteUserToGuest", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.DemoteUserToGuest", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9941,8 +13179,14 @@ func (s *DebugBarLayerUserStore) Get(ctx context.Context, id string) (*model.Use
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id}))
-	s.Root.debugBar.SendStoreCall("UserStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("UserStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9957,8 +13201,10 @@ func (s *DebugBarLayerUserStore) GetAll() ([]*model.User, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9973,8 +13219,14 @@ func (s *DebugBarLayerUserStore) GetAllAfter(limit int, afterID string) ([]*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAllAfter", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["afterID"] = afterID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllAfter", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -9989,8 +13241,12 @@ func (s *DebugBarLayerUserStore) GetAllNotInAuthService(authServices []string) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authServices}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAllNotInAuthService", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["authServices"] = authServices
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllNotInAuthService", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10005,8 +13261,12 @@ func (s *DebugBarLayerUserStore) GetAllProfiles(options *model.UserGetOptions) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAllProfiles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllProfiles", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10021,8 +13281,16 @@ func (s *DebugBarLayerUserStore) GetAllProfilesInChannel(ctx context.Context, ch
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, channelID, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAllProfilesInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllProfilesInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10037,8 +13305,12 @@ func (s *DebugBarLayerUserStore) GetAllUsingAuthService(authService string) ([]*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authService}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAllUsingAuthService", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["authService"] = authService
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllUsingAuthService", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10053,8 +13325,14 @@ func (s *DebugBarLayerUserStore) GetAnyUnreadPostCountForChannel(userID string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetAnyUnreadPostCountForChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetAnyUnreadPostCountForChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10069,8 +13347,14 @@ func (s *DebugBarLayerUserStore) GetByAuth(authData *string, authService string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authData, authService}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetByAuth", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["authData"] = authData
+
+	debugBarLayerParams["authService"] = authService
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetByAuth", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10085,8 +13369,12 @@ func (s *DebugBarLayerUserStore) GetByEmail(email string) (*model.User, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{email}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetByEmail", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["email"] = email
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetByEmail", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10101,8 +13389,12 @@ func (s *DebugBarLayerUserStore) GetByUsername(username string) (*model.User, er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{username}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetByUsername", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["username"] = username
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetByUsername", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10117,8 +13409,12 @@ func (s *DebugBarLayerUserStore) GetChannelGroupUsers(channelID string) ([]*mode
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetChannelGroupUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetChannelGroupUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10133,8 +13429,10 @@ func (s *DebugBarLayerUserStore) GetEtagForAllProfiles() string {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForAllProfiles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForAllProfiles", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -10149,8 +13447,12 @@ func (s *DebugBarLayerUserStore) GetEtagForProfiles(teamID string) string {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForProfiles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForProfiles", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -10165,8 +13467,12 @@ func (s *DebugBarLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForProfilesNotInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForProfilesNotInTeam", success, elapsed, debugBarLayerParams)
+
 	return result
 }
 
@@ -10181,8 +13487,10 @@ func (s *DebugBarLayerUserStore) GetFirstSystemAdminID() (string, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetFirstSystemAdminID", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetFirstSystemAdminID", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10197,8 +13505,16 @@ func (s *DebugBarLayerUserStore) GetForLogin(loginID string, allowSignInWithUser
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{loginID, allowSignInWithUsername, allowSignInWithEmail}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetForLogin", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["loginID"] = loginID
+
+	debugBarLayerParams["allowSignInWithUsername"] = allowSignInWithUsername
+
+	debugBarLayerParams["allowSignInWithEmail"] = allowSignInWithEmail
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetForLogin", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10213,8 +13529,12 @@ func (s *DebugBarLayerUserStore) GetKnownUsers(userID string) ([]string, error) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetKnownUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetKnownUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10229,8 +13549,14 @@ func (s *DebugBarLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, ids}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetMany", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["ids"] = ids
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetMany", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10245,8 +13571,18 @@ func (s *DebugBarLayerUserStore) GetNewUsersForTeam(teamID string, offset int, l
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetNewUsersForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetNewUsersForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10261,8 +13597,14 @@ func (s *DebugBarLayerUserStore) GetProfileByGroupChannelIdsForUser(userID strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelIds}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfileByGroupChannelIdsForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelIds"] = channelIds
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfileByGroupChannelIdsForUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10277,8 +13619,18 @@ func (s *DebugBarLayerUserStore) GetProfileByIds(ctx context.Context, userIds []
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, userIds, options, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfileByIds", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["ctx"] = ctx
+
+	debugBarLayerParams["userIds"] = userIds
+
+	debugBarLayerParams["options"] = options
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfileByIds", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10293,8 +13645,12 @@ func (s *DebugBarLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfiles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfiles", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10309,8 +13665,14 @@ func (s *DebugBarLayerUserStore) GetProfilesByUsernames(usernames []string, view
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{usernames, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesByUsernames", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["usernames"] = usernames
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesByUsernames", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10325,8 +13687,12 @@ func (s *DebugBarLayerUserStore) GetProfilesInChannel(options *model.UserGetOpti
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10341,8 +13707,12 @@ func (s *DebugBarLayerUserStore) GetProfilesInChannelByAdmin(options *model.User
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannelByAdmin", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannelByAdmin", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10357,8 +13727,12 @@ func (s *DebugBarLayerUserStore) GetProfilesInChannelByStatus(options *model.Use
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannelByStatus", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannelByStatus", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10373,8 +13747,22 @@ func (s *DebugBarLayerUserStore) GetProfilesNotInChannel(teamID string, channelI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelId, groupConstrained, offset, limit, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesNotInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["channelId"] = channelId
+
+	debugBarLayerParams["groupConstrained"] = groupConstrained
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesNotInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10389,8 +13777,20 @@ func (s *DebugBarLayerUserStore) GetProfilesNotInTeam(teamID string, groupConstr
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, groupConstrained, offset, limit, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesNotInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["groupConstrained"] = groupConstrained
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesNotInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10405,8 +13805,12 @@ func (s *DebugBarLayerUserStore) GetProfilesWithoutTeam(options *model.UserGetOp
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesWithoutTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesWithoutTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10421,8 +13825,18 @@ func (s *DebugBarLayerUserStore) GetRecentlyActiveUsersForTeam(teamID string, of
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit, viewRestrictions}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetRecentlyActiveUsersForTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	debugBarLayerParams["viewRestrictions"] = viewRestrictions
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetRecentlyActiveUsersForTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10437,8 +13851,10 @@ func (s *DebugBarLayerUserStore) GetSystemAdminProfiles() (map[string]*model.Use
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetSystemAdminProfiles", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetSystemAdminProfiles", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10453,8 +13869,12 @@ func (s *DebugBarLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetTeamGroupUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetTeamGroupUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10469,8 +13889,14 @@ func (s *DebugBarLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, isCRTEnabled}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetUnreadCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["isCRTEnabled"] = isCRTEnabled
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetUnreadCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10485,8 +13911,14 @@ func (s *DebugBarLayerUserStore) GetUnreadCountForChannel(userID string, channel
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetUnreadCountForChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetUnreadCountForChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10501,8 +13933,16 @@ func (s *DebugBarLayerUserStore) GetUsersBatchForIndexing(startTime int64, start
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startFileID, limit}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetUsersBatchForIndexing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["startTime"] = startTime
+
+	debugBarLayerParams["startFileID"] = startFileID
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetUsersBatchForIndexing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10517,8 +13957,16 @@ func (s *DebugBarLayerUserStore) GetUsersWithInvalidEmails(page int, perPage int
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, restrictedDomains}))
-	s.Root.debugBar.SendStoreCall("UserStore.GetUsersWithInvalidEmails", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	debugBarLayerParams["restrictedDomains"] = restrictedDomains
+
+	s.Root.debugBar.SendStoreCall("UserStore.GetUsersWithInvalidEmails", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10533,8 +13981,10 @@ func (s *DebugBarLayerUserStore) InferSystemInstallDate() (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("UserStore.InferSystemInstallDate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("UserStore.InferSystemInstallDate", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10549,8 +13999,12 @@ func (s *DebugBarLayerUserStore) InsertUsers(users []*model.User) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{users}))
-	s.Root.debugBar.SendStoreCall("UserStore.InsertUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["users"] = users
+
+	s.Root.debugBar.SendStoreCall("UserStore.InsertUsers", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10565,8 +14019,11 @@ func (s *DebugBarLayerUserStore) InvalidateProfileCacheForUser(userID string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfileCacheForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfileCacheForUser", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -10581,8 +14038,11 @@ func (s *DebugBarLayerUserStore) InvalidateProfilesInChannelCache(channelID stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfilesInChannelCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfilesInChannelCache", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -10597,8 +14057,11 @@ func (s *DebugBarLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfilesInChannelCacheByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfilesInChannelCacheByUser", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -10613,8 +14076,12 @@ func (s *DebugBarLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{excludeBots}))
-	s.Root.debugBar.SendStoreCall("UserStore.IsEmpty", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["excludeBots"] = excludeBots
+
+	s.Root.debugBar.SendStoreCall("UserStore.IsEmpty", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10629,8 +14096,12 @@ func (s *DebugBarLayerUserStore) PermanentDelete(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.PermanentDelete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.PermanentDelete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10645,8 +14116,12 @@ func (s *DebugBarLayerUserStore) PromoteGuestToUser(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.PromoteGuestToUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.PromoteGuestToUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10661,8 +14136,18 @@ func (s *DebugBarLayerUserStore) ResetAuthDataToEmailForUsers(service string, us
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{service, userIDs, includeDeleted, dryRun}))
-	s.Root.debugBar.SendStoreCall("UserStore.ResetAuthDataToEmailForUsers", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["service"] = service
+
+	debugBarLayerParams["userIDs"] = userIDs
+
+	debugBarLayerParams["includeDeleted"] = includeDeleted
+
+	debugBarLayerParams["dryRun"] = dryRun
+
+	s.Root.debugBar.SendStoreCall("UserStore.ResetAuthDataToEmailForUsers", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10677,8 +14162,12 @@ func (s *DebugBarLayerUserStore) ResetLastPictureUpdate(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.ResetLastPictureUpdate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.ResetLastPictureUpdate", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10693,8 +14182,12 @@ func (s *DebugBarLayerUserStore) Save(user *model.User) (*model.User, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{user}))
-	s.Root.debugBar.SendStoreCall("UserStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["user"] = user
+
+	s.Root.debugBar.SendStoreCall("UserStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10709,8 +14202,16 @@ func (s *DebugBarLayerUserStore) Search(teamID string, term string, options *mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.Search", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.Search", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10725,8 +14226,16 @@ func (s *DebugBarLayerUserStore) SearchInChannel(channelID string, term string, 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.SearchInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.SearchInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10741,8 +14250,16 @@ func (s *DebugBarLayerUserStore) SearchInGroup(groupID string, term string, opti
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.SearchInGroup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.SearchInGroup", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10757,8 +14274,18 @@ func (s *DebugBarLayerUserStore) SearchNotInChannel(teamID string, channelID str
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10773,8 +14300,16 @@ func (s *DebugBarLayerUserStore) SearchNotInGroup(groupID string, term string, o
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInGroup", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["groupID"] = groupID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInGroup", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10789,8 +14324,16 @@ func (s *DebugBarLayerUserStore) SearchNotInTeam(notInTeamID string, term string
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{notInTeamID, term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["notInTeamID"] = notInTeamID
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10805,8 +14348,14 @@ func (s *DebugBarLayerUserStore) SearchWithoutTeam(term string, options *model.U
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{term, options}))
-	s.Root.debugBar.SendStoreCall("UserStore.SearchWithoutTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["term"] = term
+
+	debugBarLayerParams["options"] = options
+
+	s.Root.debugBar.SendStoreCall("UserStore.SearchWithoutTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10821,8 +14370,14 @@ func (s *DebugBarLayerUserStore) Update(user *model.User, allowRoleUpdate bool) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{user, allowRoleUpdate}))
-	s.Root.debugBar.SendStoreCall("UserStore.Update", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["user"] = user
+
+	debugBarLayerParams["allowRoleUpdate"] = allowRoleUpdate
+
+	s.Root.debugBar.SendStoreCall("UserStore.Update", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10837,8 +14392,20 @@ func (s *DebugBarLayerUserStore) UpdateAuthData(userID string, service string, a
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, service, authData, email, resetMfa}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateAuthData", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["service"] = service
+
+	debugBarLayerParams["authData"] = authData
+
+	debugBarLayerParams["email"] = email
+
+	debugBarLayerParams["resetMfa"] = resetMfa
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateAuthData", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10853,8 +14420,14 @@ func (s *DebugBarLayerUserStore) UpdateFailedPasswordAttempts(userID string, att
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, attempts}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateFailedPasswordAttempts", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["attempts"] = attempts
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateFailedPasswordAttempts", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10869,8 +14442,12 @@ func (s *DebugBarLayerUserStore) UpdateLastPictureUpdate(userID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateLastPictureUpdate", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateLastPictureUpdate", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10885,8 +14462,14 @@ func (s *DebugBarLayerUserStore) UpdateMfaActive(userID string, active bool) err
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, active}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateMfaActive", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["active"] = active
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateMfaActive", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10901,8 +14484,14 @@ func (s *DebugBarLayerUserStore) UpdateMfaSecret(userID string, secret string) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, secret}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateMfaSecret", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["secret"] = secret
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateMfaSecret", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10917,8 +14506,14 @@ func (s *DebugBarLayerUserStore) UpdateNotifyProps(userID string, props map[stri
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, props}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateNotifyProps", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["props"] = props
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateNotifyProps", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10933,8 +14528,14 @@ func (s *DebugBarLayerUserStore) UpdatePassword(userID string, newPassword strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, newPassword}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdatePassword", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["newPassword"] = newPassword
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdatePassword", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10949,8 +14550,12 @@ func (s *DebugBarLayerUserStore) UpdateUpdateAt(userID string) (int64, error) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserStore.UpdateUpdateAt", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateUpdateAt", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10965,8 +14570,14 @@ func (s *DebugBarLayerUserStore) VerifyEmail(userID string, email string) (strin
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, email}))
-	s.Root.debugBar.SendStoreCall("UserStore.VerifyEmail", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["email"] = email
+
+	s.Root.debugBar.SendStoreCall("UserStore.VerifyEmail", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -10981,8 +14592,12 @@ func (s *DebugBarLayerUserAccessTokenStore) Delete(tokenID string) error {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenID"] = tokenID
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -10997,8 +14612,12 @@ func (s *DebugBarLayerUserAccessTokenStore) DeleteAllForUser(userID string) erro
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.DeleteAllForUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.DeleteAllForUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11013,8 +14632,12 @@ func (s *DebugBarLayerUserAccessTokenStore) Get(tokenID string) (*model.UserAcce
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Get", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenID"] = tokenID
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Get", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11029,8 +14652,14 @@ func (s *DebugBarLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*mo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetAll", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetAll", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11045,8 +14674,12 @@ func (s *DebugBarLayerUserAccessTokenStore) GetByToken(tokenString string) (*mod
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenString}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetByToken", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenString"] = tokenString
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetByToken", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11061,8 +14694,16 @@ func (s *DebugBarLayerUserAccessTokenStore) GetByUser(userID string, page int, p
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, page, perPage}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["page"] = page
+
+	debugBarLayerParams["perPage"] = perPage
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11077,8 +14718,12 @@ func (s *DebugBarLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["token"] = token
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11093,8 +14738,12 @@ func (s *DebugBarLayerUserAccessTokenStore) Search(term string) ([]*model.UserAc
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{term}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Search", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["term"] = term
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Search", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11109,8 +14758,12 @@ func (s *DebugBarLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) e
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.UpdateTokenDisable", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenID"] = tokenID
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.UpdateTokenDisable", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11125,8 +14778,12 @@ func (s *DebugBarLayerUserAccessTokenStore) UpdateTokenEnable(tokenID string) er
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
-	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.UpdateTokenEnable", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["tokenID"] = tokenID
+
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.UpdateTokenEnable", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11141,8 +14798,14 @@ func (s *DebugBarLayerUserTermsOfServiceStore) Delete(userID string, termsOfServ
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, termsOfServiceId}))
-	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.Delete", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["termsOfServiceId"] = termsOfServiceId
+
+	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.Delete", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11157,8 +14820,12 @@ func (s *DebugBarLayerUserTermsOfServiceStore) GetByUser(userID string) (*model.
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.GetByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.GetByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11173,8 +14840,12 @@ func (s *DebugBarLayerUserTermsOfServiceStore) Save(userTermsOfService *model.Us
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userTermsOfService}))
-	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.Save", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userTermsOfService"] = userTermsOfService
+
+	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.Save", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11189,8 +14860,12 @@ func (s *DebugBarLayerWebhookStore) AnalyticsIncomingCount(teamID string) (int64
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.AnalyticsIncomingCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.AnalyticsIncomingCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11205,8 +14880,12 @@ func (s *DebugBarLayerWebhookStore) AnalyticsOutgoingCount(teamID string) (int64
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.AnalyticsOutgoingCount", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.AnalyticsOutgoingCount", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11221,8 +14900,9 @@ func (s *DebugBarLayerWebhookStore) ClearCaches() {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.ClearCaches", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.ClearCaches", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -11237,8 +14917,14 @@ func (s *DebugBarLayerWebhookStore) DeleteIncoming(webhookID string, timestamp i
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhookID, timestamp}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.DeleteIncoming", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhookID"] = webhookID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.DeleteIncoming", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11253,8 +14939,14 @@ func (s *DebugBarLayerWebhookStore) DeleteOutgoing(webhookID string, timestamp i
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhookID, timestamp}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.DeleteOutgoing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhookID"] = webhookID
+
+	debugBarLayerParams["timestamp"] = timestamp
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.DeleteOutgoing", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11269,8 +14961,14 @@ func (s *DebugBarLayerWebhookStore) GetIncoming(id string, allowFromCache bool) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, allowFromCache}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncoming", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	debugBarLayerParams["allowFromCache"] = allowFromCache
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncoming", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11285,8 +14983,12 @@ func (s *DebugBarLayerWebhookStore) GetIncomingByChannel(channelID string) ([]*m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11301,8 +15003,16 @@ func (s *DebugBarLayerWebhookStore) GetIncomingByTeam(teamID string, offset int,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11317,8 +15027,18 @@ func (s *DebugBarLayerWebhookStore) GetIncomingByTeamByUser(teamID string, userI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByTeamByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByTeamByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11333,8 +15053,14 @@ func (s *DebugBarLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingList", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingList", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11349,8 +15075,16 @@ func (s *DebugBarLayerWebhookStore) GetIncomingListByUser(userID string, offset 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingListByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingListByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11365,8 +15099,12 @@ func (s *DebugBarLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebho
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["id"] = id
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11381,8 +15119,16 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByChannel(channelID string, offse
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByChannel", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11397,8 +15143,18 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByChannelByUser(channelID string,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByChannelByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByChannelByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11413,8 +15169,16 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByTeam(teamID string, offset int,
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByTeam", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByTeam", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11429,8 +15193,18 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByTeamByUser(teamID string, userI
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByTeamByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["teamID"] = teamID
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByTeamByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11445,8 +15219,14 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*m
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingList", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingList", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11461,8 +15241,16 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingListByUser(userID string, offset 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingListByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	debugBarLayerParams["offset"] = offset
+
+	debugBarLayerParams["limit"] = limit
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingListByUser", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11477,8 +15265,11 @@ func (s *DebugBarLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.InvalidateWebhookCache", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhook"] = webhook
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.InvalidateWebhookCache", success, elapsed, debugBarLayerParams)
 
 }
 
@@ -11493,8 +15284,12 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteIncomingByChannel(channelID s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteIncomingByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteIncomingByChannel", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11509,8 +15304,12 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteIncomingByUser(userID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteIncomingByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteIncomingByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11525,8 +15324,12 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelID s
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteOutgoingByChannel", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["channelID"] = channelID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteOutgoingByChannel", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11541,8 +15344,12 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteOutgoingByUser(userID string)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteOutgoingByUser", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["userID"] = userID
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteOutgoingByUser", success, elapsed, debugBarLayerParams)
+
 	return err
 }
 
@@ -11557,8 +15364,12 @@ func (s *DebugBarLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.SaveIncoming", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhook"] = webhook
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.SaveIncoming", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11573,8 +15384,12 @@ func (s *DebugBarLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook)
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.SaveOutgoing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhook"] = webhook
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.SaveOutgoing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11589,8 +15404,12 @@ func (s *DebugBarLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhoo
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.UpdateIncoming", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["webhook"] = webhook
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.UpdateIncoming", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 
@@ -11605,8 +15424,12 @@ func (s *DebugBarLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) 
 		success = true
 	}
 
-	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{hook}))
-	s.Root.debugBar.SendStoreCall("WebhookStore.UpdateOutgoing", success, elapsed)
+	debugBarLayerParams := map[string]any{}
+
+	debugBarLayerParams["hook"] = hook
+
+	s.Root.debugBar.SendStoreCall("WebhookStore.UpdateOutgoing", success, elapsed, debugBarLayerParams)
+
 	return result, err
 }
 

@@ -52,8 +52,12 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
         success = true
     }
 
-    // TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{{`{`}}{{$element.Params | joinParams}}{{`}`}}))
-    s.Root.debugBar.SendStoreCall("{{$substoreName}}Store.{{$index}}", success, elapsed)
+    debugBarLayerParams := map[string]any{}
+    {{range $paramIndex, $param := $element.Params}}
+    debugBarLayerParams["{{$param.Name}}"] = {{$param.Name}}
+    {{end}}
+    s.Root.debugBar.SendStoreCall("{{$substoreName}}Store.{{$index}}", success, elapsed, debugBarLayerParams)
+
 	{{ with (genResultsVars $element.Results false ) -}}
 	return {{ . }}
 	{{- end }}
