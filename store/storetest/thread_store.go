@@ -406,9 +406,8 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    true,
 		}
-		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
+		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
-		m.UserId = newPosts[0].UserId
 		th, err := ss.Thread().GetThreadForUser(m, true, false)
 		require.NoError(t, err)
 		for _, user := range th.Participants {
@@ -691,6 +690,13 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		MsgCount:    0,
+	})
+	require.NoError(t, err)
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: channel1.Id,
 		UserId:    userID,
@@ -732,6 +738,12 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}, -1)
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
 	require.NoError(t, err)
 
 	post2, err := ss.Post().Save(&model.Post{
@@ -819,6 +831,7 @@ func testVarious(t *testing.T, ss store.Store) {
 
 	user1ID := user1.Id
 	user2ID := user2.Id
+	userIds := []string{user1ID, user2ID}
 
 	team1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
@@ -843,6 +856,14 @@ func testVarious(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   team1channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	team2channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team2.Id,
@@ -851,6 +872,14 @@ func testVarious(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   team2channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	dm1, err := ss.Channel().CreateDirectChannel(&model.User{Id: user1ID}, &model.User{Id: user2ID})
 	require.NoError(t, err)
@@ -861,7 +890,14 @@ func testVarious(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeGroup,
 	}, -1)
 	require.NoError(t, err)
-
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   gm1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 	team1channel1post1, err := ss.Post().Save(&model.Post{
 		ChannelId: team1channel1.Id,
 		UserId:    user1ID,
@@ -1208,6 +1244,7 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 	postingUserId := model.NewId()
 	userAID := model.NewId()
 	userBID := model.NewId()
+	userIds := []string{postingUserId, userAID, userBID}
 
 	team1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
@@ -1225,6 +1262,15 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Channel2",
@@ -1232,6 +1278,15 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
@@ -1715,6 +1770,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	postingUserId := model.NewId()
 	userAID := model.NewId()
 	userBID := model.NewId()
+	userIds := []string{postingUserId, userAID, userBID}
 
 	team1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
@@ -1732,6 +1788,15 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   team1channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+
 	team1channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Team1: Channel2",
@@ -1739,6 +1804,15 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   team1channel2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	team2, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team2",
@@ -1756,6 +1830,15 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
+	for _, userId := range userIds {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   team2channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+
 	team2channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team2.Id,
 		DisplayName: "Team2: Channel2",
@@ -1763,6 +1846,15 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+
+	for _, userId := range userIds {
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   team2channel2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	team1channel1post1, err := ss.Post().Save(&model.Post{
 		ChannelId: team1channel1.Id,
@@ -1831,6 +1923,15 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
+	for _, userId := range userIds {
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   gm1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+
 	gm1post1, err := ss.Post().Save(&model.Post{
 		ChannelId: gm1.Id,
 		UserId:    postingUserId,
@@ -1852,6 +1953,15 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeGroup,
 	}, -1)
 	require.NoError(t, err)
+
+	for _, userId := range userIds {
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   gm2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	gm2post1, err := ss.Post().Save(&model.Post{
 		ChannelId: gm2.Id,
