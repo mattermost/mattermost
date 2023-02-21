@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -67,8 +68,16 @@ func (ps *PlatformService) initLogging() error {
 	// Redirect default Go logger to app logger.
 	ps.logger.RedirectStdLog(mlog.LvlStdLog)
 
-	// Use the app logger as the global logger (eventually remove all instances of global logging).
-	mlog.InitGlobalLogger(ps.logger)
+	if ps.DebugBar.IsEnabled() {
+		debugBarLogger := debugbar.NewLogger(
+			ps.logger,
+			ps.DebugBar,
+		)
+		// Use the app logger as the global logger (eventually remove all instances of global logging).
+		mlog.InitGlobalLogger(debugBarLogger)
+	} else {
+		mlog.InitGlobalLogger(ps.logger)
+	}
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&ps.Config().NotificationLogSettings)
 	if err := ps.ConfigureLogger("notification logging", ps.notificationsLogger, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {

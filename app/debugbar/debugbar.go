@@ -1,35 +1,28 @@
 package debugbar
 
 import (
-	"sync"
+	"os"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type DebugBar struct {
-	userID  string
 	publish func(*model.WebSocketEvent)
-	mutex   sync.Mutex
+	enabled bool
 }
 
-func (db *DebugBar) SetUserID(userID string) {
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-	db.userID = userID
+func New(publish func(*model.WebSocketEvent)) *DebugBar {
+	return &DebugBar{
+		publish: publish,
+		enabled: os.Getenv("MM_ENABLE_DEBUG_BAR") == "true",
+	}
 }
-
-func (db *DebugBar) SetPublish(publish func(*model.WebSocketEvent)) {
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-	db.publish = publish
+func (db *DebugBar) IsEnabled() bool {
+	return db.enabled
 }
 
 func (db *DebugBar) SendLogEvent(logLevel string, logMessage string, fields map[string]string) {
-	if db.userID == "" || db.publish == nil {
-		return
-	}
-
-	event := model.NewWebSocketEvent("debug", "", "", db.userID, nil, "")
+	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "log-line")
 	event.Add("level", logLevel)
@@ -39,11 +32,7 @@ func (db *DebugBar) SendLogEvent(logLevel string, logMessage string, fields map[
 }
 
 func (db *DebugBar) SendApiCall(endpoint, method, statusCode string, elapsed float64) {
-	if db.userID == "" || db.publish == nil {
-		return
-	}
-
-	event := model.NewWebSocketEvent("debug", "", "", db.userID, nil, "")
+	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "api-call")
 	event.Add("endpoint", endpoint)
@@ -54,11 +43,7 @@ func (db *DebugBar) SendApiCall(endpoint, method, statusCode string, elapsed flo
 }
 
 func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64) {
-	if db.userID == "" || db.publish == nil {
-		return
-	}
-
-	event := model.NewWebSocketEvent("debug", "", "", db.userID, nil, "")
+	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "store-call")
 	event.Add("method", method)
@@ -69,11 +54,7 @@ func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64) 
 }
 
 func (db *DebugBar) SendSqlQuery(query string, elapsed float64, args ...any) {
-	if db.userID == "" || db.publish == nil {
-		return
-	}
-
-	event := model.NewWebSocketEvent("debug", "", "", db.userID, nil, "")
+	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "sql-query")
 	event.Add("query", query)

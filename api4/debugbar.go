@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"runtime"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -24,7 +25,11 @@ type SystemInfo struct {
 }
 
 func getSystemInfo(c *Context, w http.ResponseWriter, r *http.Request) {
-	// TODO: Add the check if the DEBUGBAR is enabled
+	if !c.App.Srv().DebugBar().IsEnabled() {
+		c.Err = model.NewAppError("Api4.GetSystemInfo", "api.debugbar.getSystemInfo.disabled_debugbar.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	info := SystemInfo{
 		GoVersion:  runtime.Version(),
 		Goroutines: runtime.NumGoroutine(),

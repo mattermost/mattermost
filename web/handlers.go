@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/mattermost/gziphandler"
@@ -22,14 +21,12 @@ import (
 	spanlog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/mattermost/mattermost-server/v6/app"
-	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	app_opentracing "github.com/mattermost/mattermost-server/v6/app/opentracing"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store/debugbarlayer"
 	"github.com/mattermost/mattermost-server/v6/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -89,9 +86,6 @@ type Handler struct {
 
 	cspShaDirective string
 }
-
-var onlyOnce sync.Once
-var debugBarLayer *debugbarlayer.DebugBarLayer
 
 func generateDevCSP(c Context) string {
 	var devCSP []string
@@ -325,16 +319,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if true { // TODO: Replace this to the only enable this if the debugbar is enabled
-		debugBarLogger := debugbar.NewLogger(
-			c.Logger,
-			c.App.Srv().DebugBar(),
-		)
-		c.AppContext.SetLogger(debugBarLogger)
-		mlog.InitGlobalLogger(debugBarLogger)
-	} else {
-		c.AppContext.SetLogger(c.Logger)
-	}
+	c.Logger = c.App.Log().With(
+		mlog.String("path", c.AppContext.Path()),
+		mlog.String("request_id", c.AppContext.RequestId()),
+		mlog.String("ip_addr", c.AppContext.IPAddress()),
+		mlog.String("user_id", c.AppContext.Session().UserId),
+		mlog.String("method", r.Method),
+	)
+	c.AppContext.SetLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -410,41 +402,31 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 
-	elapsed := float64(time.Since(now)) / float64(time.Second)
-	var endpoint string
-	if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-		// It's a graphQL query, so use the operation name.
-		endpoint = c.GraphQLOperationName
-	} else {
-		endpoint = h.HandlerName
-	}
+	if c.App.Srv().DebugBar().IsEnabled() {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		var endpoint string
+		if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+			// It's a graphQL query, so use the operation name.
+			endpoint = c.GraphQLOperationName
+		} else {
+			endpoint = h.HandlerName
+		}
 
-	// TODO: Only send this info if the DEBUGBAR is enabled
-	// TODO: Enable this only if the debug bar is enabled
-	// if os.Getenv("MM_ENABLE_DEBUG_BAR") != "" {
-	onlyOnce.Do(func() {
-		debugBar := c.App.Srv().DebugBar()
-		debugBarLayer = debugbarlayer.New(c.App.Srv().Store(), debugBar)
-		c.App.Srv().SetStore(debugBarLayer)
-		debugBar.SetPublish(c.App.Publish)
-	})
-	debugBar := c.App.Srv().DebugBar()
-	debugBar.SetUserID(c.AppContext.Session().UserId)
-	c.App.Srv().DebugBar().SendApiCall(endpoint, r.Method, statusCode, elapsed)
-	// }
+		c.App.Srv().DebugBar().SendApiCall(endpoint, r.Method, statusCode, elapsed)
+	}
 
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
-			// elapsed := float64(time.Since(now)) / float64(time.Second)
-			// var endpoint string
-			// if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-			// 	// It's a graphQL query, so use the operation name.
-			// 	endpoint = c.GraphQLOperationName
-			// } else {
-			// 	endpoint = h.HandlerName
-			// }
+			elapsed := float64(time.Since(now)) / float64(time.Second)
+			var endpoint string
+			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+				// It's a graphQL query, so use the operation name.
+				endpoint = c.GraphQLOperationName
+			} else {
+				endpoint = h.HandlerName
+			}
 			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
 		}
 	}

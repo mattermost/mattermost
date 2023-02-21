@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/debugbarlayer"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
 	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
@@ -112,7 +113,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
 		Store:               sc.Store,
-		DebugBar:            &debugbar.DebugBar{},
 		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
@@ -129,6 +129,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
 	}
+	ps.DebugBar = debugbar.New(ps.Publish)
 
 	// Step 1: Cache provider.
 	// At the moment we only have this implementation
@@ -218,10 +219,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				ps.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return timerlayer.New(
+			timerStore := timerlayer.New(
 				searchStore,
 				ps.metricsIFace,
-			), nil
+			)
+
+			if ps.DebugBar.IsEnabled() {
+				return debugbarlayer.New(timerStore, ps.DebugBar), nil
+			}
+			return timerStore, nil
 		}
 	}
 
