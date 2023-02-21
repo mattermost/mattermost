@@ -1848,7 +1848,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   team2channel2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1924,7 +1924,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   gm1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1955,7 +1955,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   gm2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
