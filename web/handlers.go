@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/mattermost/gziphandler"
+	"github.com/mattermost/logr/v2"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -32,6 +33,58 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
+
+type DebugBarLogger struct {
+	mlog.LoggerIFace
+	userID  string
+	publish func(event *model.WebSocketEvent)
+}
+
+func (l DebugBarLogger) Trace(message string, fields ...mlog.Field) {
+	l.Log(logr.Trace, message, fields...)
+}
+func (l DebugBarLogger) Debug(message string, fields ...mlog.Field) {
+	l.Log(logr.Debug, message, fields...)
+}
+func (l DebugBarLogger) Info(message string, fields ...mlog.Field) {
+	l.Log(logr.Info, message, fields...)
+}
+func (l DebugBarLogger) Warn(message string, fields ...mlog.Field) {
+	l.Log(logr.Warn, message, fields...)
+}
+func (l DebugBarLogger) Error(message string, fields ...mlog.Field) {
+	l.Log(logr.Error, message, fields...)
+}
+func (l DebugBarLogger) Critical(message string, fields ...mlog.Field) {
+	l.Fatal(message, fields...)
+}
+func (l DebugBarLogger) Fatal(message string, fields ...mlog.Field) {
+	l.Log(logr.Fatal, message, fields...)
+}
+
+func (l DebugBarLogger) Log(level mlog.Level, message string, fields ...mlog.Field) {
+	event := model.NewWebSocketEvent("debug", "", "", l.userID, nil, "")
+	event.Add("time", model.GetMillis())
+	event.Add("type", "log-line")
+	event.Add("level", level.Name)
+	event.Add("message", message)
+	event.Add("fields", fields)
+	l.publish(event)
+	l.LoggerIFace.Log(level, message, fields...)
+}
+
+func (l DebugBarLogger) LogM(levels []mlog.Level, message string, fields ...mlog.Field) {
+	for _, level := range levels {
+		event := model.NewWebSocketEvent("debug", "", "", l.userID, nil, "")
+		event.Add("time", model.GetMillis())
+		event.Add("type", "log-line")
+		event.Add("level", level.Name)
+		event.Add("message", message)
+		event.Add("fields", fields)
+		l.publish(event)
+	}
+	l.LoggerIFace.LogM(levels, message, fields...)
+}
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
 	handlerName := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
@@ -334,14 +387,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Logger = c.App.Log().With(
-		mlog.String("path", c.AppContext.Path()),
-		mlog.String("request_id", c.AppContext.RequestId()),
-		mlog.String("ip_addr", c.AppContext.IPAddress()),
-		mlog.String("user_id", c.AppContext.Session().UserId),
-		mlog.String("method", r.Method),
-	)
-	c.AppContext.SetLogger(c.Logger)
+	if true { // TODO: Replace this to the only enable this if the debugbar is enabled
+		debugBarLogger := DebugBarLogger{
+			LoggerIFace: c.Logger,
+			userID:      c.AppContext.Session().UserId,
+			publish:     c.App.Publish,
+		}
+		c.AppContext.SetLogger(debugBarLogger)
+		mlog.InitGlobalLogger(debugBarLogger)
+		fmt.Println("SETTING THE LOGGER")
+	} else {
+		c.AppContext.SetLogger(c.Logger)
+	}
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -425,6 +482,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		endpoint = h.HandlerName
 	}
+
+	// TODO: Only send this info if the DEBUGBAR is enabled
 	event := model.NewWebSocketEvent("debug", "", "", c.AppContext.Session().UserId, nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "api-call")

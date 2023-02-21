@@ -8,18 +8,18 @@ import (
 )
 
 var (
-	globalLogger    *Logger
+	globalLogger    LoggerIFace
 	muxGlobalLogger sync.RWMutex
 )
 
-func InitGlobalLogger(logger *Logger) {
+func InitGlobalLogger(logger LoggerIFace) {
 	muxGlobalLogger.Lock()
 	defer muxGlobalLogger.Unlock()
 
 	globalLogger = logger
 }
 
-func getGlobalLogger() *Logger {
+func getGlobalLogger() LoggerIFace {
 	muxGlobalLogger.RLock()
 	defer muxGlobalLogger.RUnlock()
 
