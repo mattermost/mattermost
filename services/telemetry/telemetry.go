@@ -49,7 +49,6 @@ const (
 	TrackConfigLDAP              = "config_ldap"
 	TrackConfigCompliance        = "config_compliance"
 	TrackConfigLocalization      = "config_localization"
-	TrackConfigChannel           = "config_channel"
 	TrackConfigSAML              = "config_saml"
 	TrackConfigPassword          = "config_password"
 	TrackConfigCluster           = "config_cluster"
@@ -682,10 +681,6 @@ func (ts *TelemetryService) trackConfig() {
 		"available_locales":     *cfg.LocalizationSettings.AvailableLocales,
 	})
 
-	ts.SendTelemetry(TrackConfigChannel, map[string]any{
-		"enable_channel_autocomplete": *cfg.ChannelSettings.EnableChannelAutocomplete,
-	})
-
 	ts.SendTelemetry(TrackConfigSAML, map[string]any{
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
@@ -748,6 +743,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"enable_channel_autocomplete":        *cfg.ExperimentalSettings.EnableChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{

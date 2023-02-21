@@ -57,6 +57,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
 
+	props["EnableChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.EnableChannelAutocomplete)
+
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 
@@ -269,8 +271,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
-
-	props["EnableChannelAutocomplete"] = strconv.FormatBool(*c.ChannelSettings.EnableChannelAutocomplete)
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
