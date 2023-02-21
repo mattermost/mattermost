@@ -9997,5 +9997,9 @@
   {
     "id": "app.worktemplates.execute_work_template.name_too_long",
     "translation": "Das Namensfeld darf nicht mehr als 64 Zeichen enthalten."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Ungültiger Protokollfilter"
   }
 ]
