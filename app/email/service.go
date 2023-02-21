@@ -83,7 +83,9 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 func (es *Service) Stop() {
 	mlog.Info("Shutting down Email batching service...")
-	es.EmailBatching.Stop()
+	if es.EmailBatching != nil {
+		es.EmailBatching.Stop()
+	}
 }
 
 func (c *ServiceConfig) validate() error {
