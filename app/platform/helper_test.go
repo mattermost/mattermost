@@ -4,7 +4,7 @@
 package platform
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -127,7 +127,7 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
 	}
@@ -181,7 +181,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	err = th.Service.Start(th.Suite)
+	err = th.Service.Start()
 	if err != nil {
 		panic(err)
 	}

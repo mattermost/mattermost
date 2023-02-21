@@ -16,9 +16,6 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off support for Collapsed Threads
-	CollapsedThreads bool
-
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
@@ -33,22 +30,11 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable Calls plugin support in the mobile app
-	CallsMobile bool
-
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
-
-	// Enable Create First Channel
-	GuidedChannelCreation bool
-
-	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
-	InviteToTeam string
-
-	CustomGroups bool
 
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
@@ -70,28 +56,40 @@ type FeatureFlags struct {
 	// Enable Boards as a product (multi-product architecture)
 	BoardsProduct bool
 
-	PlanUpgradeButtonText string
-
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
 
+	WorkTemplate bool
+
 	PostPriority bool
+
+	// Enable WYSIWYG text editor
+	WysiwygEditor bool
+
+	PeopleProduct bool
+
+	// A/B Test on reduced onboarding task list item
+	ReduceOnBoardingTaskList bool
+
+	// A/B Test to control when to show onboarding linked board
+	OnboardingAutoShowLinkedBoard bool
+
+	ThreadsEverywhere bool
+
+	GlobalDrafts bool
+
+	OnboardingTourTips bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
-	f.GuidedChannelCreation = false
-	f.InviteToTeam = "none"
-	f.CustomGroups = true
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
@@ -100,10 +98,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "upgrade"
+	f.BoardsProduct = true
 	f.SendWelcomePost = true
-	f.PostPriority = false
+	f.PostPriority = true
+	f.PeopleProduct = false
+	f.WorkTemplate = false
+	f.ReduceOnBoardingTaskList = false
+	f.ThreadsEverywhere = false
+	f.GlobalDrafts = true
+	f.WysiwygEditor = false
+	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingTourTips = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

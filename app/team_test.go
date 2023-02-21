@@ -4,7 +4,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -24,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -1109,6 +1112,45 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
 	require.Nil(t, err)
 	require.Equal(t, mockID, updatedTeam.SchemeId, "Wrong Team SchemeId")
+
+	// Test that a newly applied team scheme applies the new permissions to a team member
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	team2Scheme := th.SetupTeamScheme()
+	channelUser, err := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelUserRole)
+	require.Nil(t, err)
+	channelUser.Permissions = []string{}
+	_, err = th.App.UpdateRole(channelUser) // Remove all permissions from the team user role of the scheme
+	require.Nil(t, err)
+
+	channelAdmin, err := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelAdminRole)
+	require.Nil(t, err)
+	channelAdmin.Permissions = []string{}
+	_, err = th.App.UpdateRole(channelAdmin) // Remove all permissions from the team admin role of the scheme
+	require.Nil(t, err)
+
+	team2 := th.CreateTeam()
+	th.App.AddUserToTeam(th.Context, team2.Id, th.BasicUser.Id, "")
+	channel := th.CreateChannel(th.Context, team2)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, true)
+	session := model.Session{
+		Roles:  model.SystemUserRoleId,
+		UserId: th.BasicUser.Id,
+		TeamMembers: []*model.TeamMember{
+			{
+				UserId:     th.BasicUser.Id,
+				TeamId:     team2.Id,
+				SchemeUser: true,
+			},
+		},
+	}
+	// ensure user can update channel properties before applying the scheme
+	require.True(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
+	// apply the team scheme
+	team2.SchemeId = &team2Scheme.Id
+	_, err = th.App.UpdateTeamScheme(team2)
+	require.Nil(t, err)
+	require.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
 }
 
 func TestGetTeamMembers(t *testing.T) {
@@ -1457,6 +1499,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
+			false,
+			false,
 		).Once().Return(nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
@@ -1479,6 +1523,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
+			false,
+			false,
 		).Once().Return(email.SendMailError)
 		th.App.Srv().EmailService = &emailServiceMock
 
@@ -1505,6 +1551,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.Anything,
 			mock.AnythingOfType("string"),
 			true,
+			false,
+			false,
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
@@ -1527,6 +1575,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
+			false,
+			false,
 		).Once().Return(nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
@@ -1557,6 +1607,8 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			"",
 			"",
 			true,
+			false,
+			false,
 		).Once().Return(nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
@@ -1581,6 +1633,8 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			"",
 			"",
 			true,
+			false,
+			false,
 		).Once().Return(email.SendMailError)
 		th.App.Srv().EmailService = &emailServiceMock
 
@@ -1783,4 +1837,45 @@ func TestGetNewTeamMembersSince(t *testing.T) {
 			require.ElementsMatch(t, uIDs(originalExpectedMembers), nUIDs(actualMembersList.Items))
 		})
 	})
+}
+
+func TestTeamSendEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(testCluster)
+	defer th.Server.Platform().SetCluster(nil)
+
+	team := th.CreateTeam()
+
+	testCluster.ClearMessages()
+
+	wsEvents := []string{model.WebsocketEventUpdateTeam, model.WebsocketEventRestoreTeam, model.WebsocketEventDeleteTeam}
+	for _, wsEvent := range wsEvents {
+		appErr := th.App.sendTeamEvent(team, wsEvent)
+		require.Nil(t, appErr)
+	}
+
+	msgs := testCluster.GetMessages()
+	require.Len(t, msgs, len(wsEvents))
+
+	for _, msg := range msgs {
+		ev, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+		require.NoError(t, err)
+
+		// The event should be a team event.
+		require.Equal(t, team.Id, ev.GetBroadcast().TeamId)
+
+		// Make sure we're hiding the sensitive fields.
+		var teamFromEvent *model.Team
+		err = json.Unmarshal([]byte(ev.GetData()["team"].(string)), &teamFromEvent)
+		require.NoError(t, err)
+		require.Equal(t, team.Id, teamFromEvent.Id)
+		require.Equal(t, team.DisplayName, teamFromEvent.DisplayName)
+		require.Equal(t, team.Name, teamFromEvent.Name)
+		require.Equal(t, team.Description, teamFromEvent.Description)
+		require.Equal(t, "", teamFromEvent.Email)
+		require.Equal(t, "", teamFromEvent.InviteId)
+	}
 }

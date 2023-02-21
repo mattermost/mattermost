@@ -63,6 +63,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'incomingwebhooks'
+    AND table_schema = current_schema()
     AND column_name = 'description'
     AND NOT data_type = 'VARCHAR(500)';
 IF column_exist THEN

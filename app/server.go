@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/v6/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
@@ -74,30 +75,6 @@ import (
 
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
-
-type ServiceKey string
-
-const (
-	ChannelKey       ServiceKey = "channel"
-	ConfigKey        ServiceKey = "config"
-	LicenseKey       ServiceKey = "license"
-	FilestoreKey     ServiceKey = "filestore"
-	FileInfoStoreKey ServiceKey = "fileinfostore"
-	ClusterKey       ServiceKey = "cluster"
-	CloudKey         ServiceKey = "cloud"
-	PostKey          ServiceKey = "post"
-	TeamKey          ServiceKey = "team"
-	UserKey          ServiceKey = "user"
-	PermissionsKey   ServiceKey = "permissions"
-	RouterKey        ServiceKey = "router"
-	BotKey           ServiceKey = "bot"
-	LogKey           ServiceKey = "log"
-	HooksKey         ServiceKey = "hooks"
-	KVStoreKey       ServiceKey = "kvstore"
-	StoreKey         ServiceKey = "storekey"
-	SystemKey        ServiceKey = "systemkey"
-	PreferencesKey   ServiceKey = "preferenceskey"
-)
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -137,7 +114,6 @@ type Server struct {
 	openGraphDataCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
-	filestore               filestore.FileBackend
 
 	platform         *platform.PlatformService
 	platformOptions  []platform.Option
@@ -161,7 +137,10 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
-	products map[string]Product
+	products map[string]product.Product
+	services map[product.ServiceKey]any
+
+	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -186,7 +165,8 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
-		products:    make(map[string]Product),
+		products:    make(map[string]product.Product),
+		services:    make(map[product.ServiceKey]any),
 	}
 
 	for _, option := range options {
@@ -239,15 +219,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense()
 	}
 
-	license := s.License()
-	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	// Step 3: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize filebackend")
-	}
-	s.filestore = backend
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
@@ -265,35 +236,48 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
+	s.hooksManager = product.NewHooksManager(s.GetMetrics())
+
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
-	serviceMap := map[ServiceKey]any{
-		ChannelKey:       &channelsWrapper{srv: s},
-		ConfigKey:        s.platform,
-		LicenseKey:       s.licenseWrapper,
-		FilestoreKey:     s.filestore,
-		FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		ClusterKey:       s.platform,
-		UserKey:          New(ServerConnector(s.Channels())),
-		LogKey:           s.platform.Log(),
-		CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		KVStoreKey:       s.platform,
-		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		SystemKey:        &systemServiceAdapter{server: s},
+	app := New(ServerConnector(s.Channels()))
+	serviceMap := map[product.ServiceKey]any{
+		ServerKey:                s,
+		product.ConfigKey:        s.platform,
+		product.LicenseKey:       s.licenseWrapper,
+		product.FilestoreKey:     s.platform.FileBackend(),
+		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
+		product.ClusterKey:       s.platform,
+		product.UserKey:          app,
+		product.LogKey:           s.platform.Log(),
+		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:       s.platform,
+		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:        &systemServiceAdapter{server: s},
+		product.SessionKey:       app,
+		product.FrontendKey:      app,
 	}
 
 	// Step 4: Initialize products.
 	// Depends on s.httpService.
-	err = s.initializeProducts(products, serviceMap)
+	err = s.initializeProducts(product.GetProducts(), serviceMap)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
+	s.services = serviceMap
+
+	// After channel is initialized set it to the App object
+	channelsWrapper, ok := serviceMap[product.ChannelKey].(*channelsWrapper)
+	if !ok {
+		return nil, errors.Wrap(err, "channels product is not initialized")
+	}
+	app.ch = channelsWrapper.app.ch
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
-	s.platform.Start(New(ServerConnector(s.Channels())))
+	s.platform.Start()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -319,8 +303,9 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
-				TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
-					return sentry.SampledFalse
+				EnableTracing: false,
+				TracesSampler: sentry.TracesSampler(func(ctx sentry.SamplingContext) float64 {
+					return 0.0
 				}),
 			}); err2 != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
@@ -375,7 +360,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log())
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -439,6 +424,7 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
+	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
@@ -623,7 +609,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	// Shared Channels service
 
 	// License check
-	if !*license.Features.SharedChannels {
+	if !license.HasSharedChannels() {
 		mlog.Debug("License does not have shared channels enabled")
 		return nil
 	}
@@ -714,8 +700,6 @@ func (s *Server) Shutdown() {
 	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
 	s.htmlTemplateWatcher.Close()
-
-	s.WaitForGoroutines()
 
 	s.platform.StopSearchEngine()
 
@@ -821,11 +805,6 @@ func (s *Server) Go(f func()) {
 // to ensure that execution completes before the server is shutdown.
 func (s *Server) GoBuffered(f func()) {
 	s.platform.GoBuffered(f)
-}
-
-// WaitForGoroutines blocks until all goroutines created by App.Go exit.
-func (s *Server) WaitForGoroutines() {
-	s.platform.WaitForGoroutines()
 }
 
 var corsAllowedMethods = []string{
@@ -1094,7 +1073,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting server", mlog.Err(err))
+			mlog.Fatal("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -1103,7 +1082,7 @@ func (s *Server) Start() error {
 
 	if *s.platform.Config().ServiceSettings.EnableLocalMode {
 		if err := s.startLocalModeServer(); err != nil {
-			mlog.Critical(err.Error())
+			mlog.Fatal(err.Error())
 		}
 	}
 
@@ -1135,7 +1114,7 @@ func (s *Server) startLocalModeServer() error {
 	go func() {
 		err = s.localModeServer.Serve(unixListener)
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting unix socket server", mlog.Err(err))
+			mlog.Fatal("Error starting unix socket server", mlog.Err(err))
 		}
 	}()
 	return nil
@@ -1363,7 +1342,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if *license.Features.Cloud {
+	if license.IsCloud() {
 		mlog.Debug("Skipping license expiration check for Cloud")
 		return
 	}
@@ -1425,7 +1404,7 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale
 }
 
 func (s *Server) FileBackend() filestore.FileBackend {
-	return s.filestore
+	return s.platform.FileBackend()
 }
 
 func (s *Server) TotalWebsocketConnections() int {
@@ -1562,6 +1541,18 @@ func (s *Server) initJobs() {
 		model.JobTypeTrialNotifyAdmin,
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeInstallPluginNotifyAdmin,
+		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeHostedPurchaseScreening,
+		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
+		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.platform.Jobs = s.Jobs

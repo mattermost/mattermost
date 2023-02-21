@@ -277,3 +277,34 @@ func TestUploadPrivateCertificate(t *testing.T) {
 		require.NoErrorf(t, err, "Should have passed. System Admin privileges %v", err)
 	})
 }
+
+func TestAddUserToGroupSyncables(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	resp, err := th.Client.AddUserToGroupSyncables(th.BasicUser.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.AddUserToGroupSyncables("invalid-user-id")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(th.BasicUser.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	id := model.NewId()
+	user := &model.User{
+		Email:       "test@localhost",
+		Username:    model.NewId(),
+		AuthData:    &id,
+		AuthService: model.UserAuthServiceLdap,
+	}
+	user, err = th.App.Srv().Store().User().Save(user)
+	require.NoError(t, err)
+
+	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(user.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+}

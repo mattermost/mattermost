@@ -1,6 +1,8 @@
 dist: | check-style test package
 
-build-linux:
+build-linux: build-linux-amd64 build-linux-arm64
+
+build-linux-amd64:
 	@echo Build Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
@@ -8,6 +10,8 @@ else
 	mkdir -p $(GOBIN)/linux_amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
 endif
+
+build-linux-arm64:
 	@echo Build Linux arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
 	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
@@ -189,6 +193,17 @@ else
 		fi; \
 	done
 endif
+
+	@# Products
+
+	@if [ -d $(BUILD_BOARDS_DIR) ] ; then \
+		echo "Copying web app files for Boards product"; \
+		mkdir -p $(DIST_PATH_GENERIC)/client/products/boards; \
+		cp -R $(BUILD_BOARDS_DIR)/mattermost-plugin/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/boards/; \
+	else \
+		echo "Unable to find files for Boards product. Please ensure that the Focalboard repository is checked out alongside the server and run 'make build-product' in it."; \
+		exit 1; \
+	fi
 
 package-osx-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general

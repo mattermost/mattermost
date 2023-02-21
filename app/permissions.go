@@ -29,12 +29,20 @@ type permissionsServiceWrapper struct {
 	app AppIface
 }
 
+func (s *permissionsServiceWrapper) HasPermissionTo(userID string, permission *model.Permission) bool {
+	return s.app.HasPermissionTo(userID, permission)
+}
+
 func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
 	return s.app.HasPermissionToTeam(userID, teamID, permission)
 }
 
 func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool {
 	return s.app.HasPermissionToChannel(request.EmptyContext(s.app.Log()), askingUserID, channelID, permission)
+}
+
+func (s *permissionsServiceWrapper) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	return s.app.RolesGrantPermission(roleNames, permissionId)
 }
 
 func (a *App) ResetPermissionsSystem() *model.AppError {

@@ -22,7 +22,9 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/edit_history", api.APISessionRequired(getEditHistoryForPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
+	api.BaseRoutes.Post.Handle("/info", api.APISessionRequired(getPostInfo)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods("GET")
 	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser)).Methods("GET")
@@ -38,6 +40,9 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
+
+	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(acknowledgePost)).Methods("POST")
+	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods("DELETE")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -99,7 +104,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.SetStatusOnline(c.AppContext.Session().UserId, false)
 	}
 
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	w.WriteHeader(http.StatusCreated)
@@ -141,7 +146,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, true, false)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, true, false, true)
 	rp, err := c.App.SanitizePostMetadataForUser(c.AppContext, rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -420,7 +425,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, false, false)
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, false, false, true)
 	post, err = c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -479,7 +484,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		post = c.App.PreparePostForClient(post, false, false)
+		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
@@ -487,6 +492,39 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	if err != nil {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	if c.AppContext.Session().UserId != originalPost.UserId {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(postsList); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -798,7 +836,8 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	auditRec.AddEventParameter("patch", post)
+	auditRec.AddEventParameter("id", c.Params.PostId)
+	auditRec.AddEventParameter("patch", post.Auditable())
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
@@ -941,6 +980,80 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	saveIsPinnedPost(c, w, false)
 }
 
+func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	c.RequirePostId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(acknowledgement)
+	if err != nil {
+		c.Err = model.NewAppError("acknowledgePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
+}
+
+func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	c.RequirePostId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	_, err := c.App.GetSinglePost(c.Params.PostId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	appErr := c.App.DeleteAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -976,5 +1089,26 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
+	w.Write(js)
+}
+
+func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	info, appErr := c.App.GetPostInfo(c.AppContext, c.Params.PostId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(info)
+	if err != nil {
+		c.Err = model.NewAppError("getPostInfo", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
 	w.Write(js)
 }

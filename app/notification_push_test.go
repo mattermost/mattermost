@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
@@ -1440,22 +1441,22 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		products:  make(map[string]Product),
-		Router:    mux.NewRouter(),
-		filestore: &fmocks.FileBackend{},
+		products: make(map[string]product.Product),
+		Router:   mux.NewRouter(),
 	}
 	var err error
 	s.platform, err = platform.New(platform.ServiceConfig{
 		ConfigStore: memoryStore,
-	})
+	}, platform.SetFileStore(&fmocks.FileBackend{}))
 	s.SetStore(mockStore)
 	require.NoError(t, err)
-	serviceMap := map[ServiceKey]any{
-		ConfigKey:    s.platform,
-		LicenseKey:   &licenseWrapper{s},
-		FilestoreKey: s.filestore,
+	serviceMap := map[product.ServiceKey]any{
+		ServerKey:            s,
+		product.ConfigKey:    s.platform,
+		product.LicenseKey:   &licenseWrapper{s},
+		product.FilestoreKey: s.FileBackend(),
 	}
-	ch, err := NewChannels(s, serviceMap)
+	ch, err := NewChannels(serviceMap)
 	require.NoError(t, err)
 	s.products["channels"] = ch
 

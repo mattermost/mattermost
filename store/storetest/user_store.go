@@ -1003,6 +1003,36 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
+
+	t.Run("Filter by channel members and channel admins", func(t *testing.T) {
+		// save admin for c1
+		user2Admin, err := ss.User().Save(&model.User{
+			Email:    MakeEmail(),
+			Username: "bbb" + model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
+		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:     c1.Id,
+			UserId:        user2Admin.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			ExplicitRoles: "channel_admin",
+		})
+		require.NoError(t, nErr)
+		ss.Channel().UpdateMembersRole(c1.Id, []string{user2Admin.Id})
+
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId:  c1.Id,
+			ChannelRoles: []string{model.ChannelAdminRoleId},
+			Page:         0,
+			PerPage:      5,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, user2Admin.Id, users[0].Id)
+	})
 }
 
 func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
@@ -2438,7 +2468,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false, false)
 	require.NoError(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2449,7 +2479,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
 	require.NoError(t, nErr)
 
 	p3 := model.Post{}
@@ -2459,7 +2489,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.NoError(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
 	require.NoError(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
@@ -2471,7 +2501,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(1), badge, "should have 1 unread message")
 
 	// Increment root mentions by 1
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true, false)
 	require.NoError(t, nErr)
 
 	// CRT is enabled, only root mentions are counted
@@ -4882,10 +4912,35 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
+	cDM := &model.Channel{
+		Name: model.NewId() + "__" + model.NewId(),
+		Type: model.ChannelTypeDirect,
+	}
+	cm1 := &model.ChannelMember{
+		UserId:      u3.Id,
+		ChannelId:   cDM.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cm2 := &model.ChannelMember{
+		UserId:      u2.Id,
+		ChannelId:   cDM.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cDM, nErr = ss.Channel().SaveDirectChannel(cDM, cm1, cm2)
+	require.NoError(t, nErr)
+
 	// Getting all users
 	res1List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 100)
 	require.NoError(t, err)
 	assert.Len(t, res1List, 3)
+	for _, user := range res1List {
+		switch user.Id {
+		case u2.Id:
+			assert.ElementsMatch(t, user.ChannelsIds, []string{cPub1.Id, cPub2.Id, cDM.Id})
+		case u3.Id:
+			assert.ElementsMatch(t, user.ChannelsIds, []string{cPub2.Id, cDM.Id})
+		}
+	}
 
 	// Testing pagination
 	res2List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 1)

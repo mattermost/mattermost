@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	email "github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -129,7 +130,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	}
 
 	a.Srv().Go(func() {
-		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references); nErr != nil {
+		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
@@ -211,6 +212,7 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
+	MessageAttachments       []*email.EmailMessageAttachment
 }
 
 /**
@@ -232,7 +234,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage)
+		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, a.GetSiteURL())
 		if mdErr != nil {
 			mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
 			mdPostMessage = postMessage
@@ -245,6 +247,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
+		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL())
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)

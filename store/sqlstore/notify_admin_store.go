@@ -42,7 +42,7 @@ func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdm
 	return data, nil
 }
 
-func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	data := []*model.NotifyAdminData{}
 	query, args, err := s.getQueryBuilder().
 		Select("*").
@@ -50,7 +50,7 @@ func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mo
 		Where(sq.Eq{"UserId": userId, "RequiredFeature": feature}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data by user id and required feature")
+		return nil, errors.Wrap(err, "could not build sql query to get all notification data by user id and required feature")
 	}
 
 	if err := s.GetReplicaX().Select(&data, query, args...); err != nil {
@@ -67,7 +67,8 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("NotifyAdmin").
-		Where(sq.Eq{"trial": trial}).
+		Where(sq.Eq{"Trial": trial}).
+		Where("(SentAt IS NULL)").
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data")
@@ -80,8 +81,15 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 }
 
 func (s SqlNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE trial = ? AND createat < ?", trial, now); err != nil {
+	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE Trial = ? AND CreateAt < ? AND SentAt IS NULL", trial, now); err != nil {
 		return errors.Wrapf(err, "failed to remove all notification data with trial=%t", trial)
+	}
+	return nil
+}
+
+func (s SqlNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+	if _, err := s.GetMasterX().Exec("UPDATE NotifyAdmin SET SentAt = ? WHERE UserId = ? AND RequiredPlan = ? AND RequiredFeature = ?", now, userId, requiredPlan, requiredFeature); err != nil {
+		return errors.Wrapf(err, "failed to update SentAt for userId=%s and requiredPlan=%s", userId, requiredPlan)
 	}
 	return nil
 }

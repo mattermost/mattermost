@@ -27,6 +27,15 @@ import (
 
 const serverInactivityHours = 100
 
+// Returns category if enabled is true (default false)
+// If "" is returned when enabled is false, the category headers aren't attached to the email
+func getSendGridCategory(category string, enabled bool) string {
+	if enabled {
+		return category
+	}
+	return ""
+}
+
 func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 
@@ -46,7 +55,7 @@ func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL s
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "ChangeUsernameEmail"); err != nil {
 		return err
 	}
 
@@ -79,7 +88,7 @@ func (es *Service) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, tok
 		return err
 	}
 
-	if err := es.sendMail(newUserEmail, subject, body); err != nil {
+	if err := es.sendMail(newUserEmail, subject, body, "EmailChangeVerifyEmail"); err != nil {
 		return err
 	}
 
@@ -105,7 +114,7 @@ func (es *Service) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL stri
 		return err
 	}
 
-	if err := es.sendMail(oldEmail, subject, body); err != nil {
+	if err := es.sendMail(oldEmail, subject, body, "EmailChangeEmail"); err != nil {
 		return err
 	}
 
@@ -143,7 +152,7 @@ func (es *Service) SendVerifyEmail(userEmail, locale, siteURL, token, redirect s
 		return err
 	}
 
-	if err := es.sendMail(userEmail, subject, body); err != nil {
+	if err := es.sendMail(userEmail, subject, body, "VerifyEmail"); err != nil {
 		return err
 	}
 
@@ -168,7 +177,7 @@ func (es *Service) SendSignInChangeEmail(email, method, locale, siteURL string) 
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "SignInChangeEmail"); err != nil {
 		return err
 	}
 
@@ -226,20 +235,20 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "WelcomeEmail"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string) error {
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string, isYearly bool, embeddedFiles map[string]io.Reader) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_upgrade_confirmation.subject")
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
+	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_monthly.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
 	data.Props["SiteURL"] = siteURL
 	data.Props["ButtonURL"] = siteURL
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
@@ -247,13 +256,25 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 
+	if isYearly {
+		data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_yearly.subtitle", map[string]any{"WorkspaceName": workspaceName})
+		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history"
+		data.Props["Button"] = T("api.templates.cloud_welcome_email.yearly_plan_button")
+	}
+
 	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
 	if err != nil {
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
+	if isYearly {
+		if err := es.SendMailWithEmbeddedFilesAndCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, embeddedFiles, "CloudUpgradeConfirmationEmail"); err != nil {
+			return err
+		}
+	} else {
+		if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, "CloudUpgradeConfirmationEmail"); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -292,7 +313,7 @@ func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSp
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, "CloudWelcomeEmail"); err != nil {
 		return err
 	}
 
@@ -318,7 +339,7 @@ func (es *Service) SendPasswordChangeEmail(email, method, locale, siteURL string
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "PasswordChangeEmail"); err != nil {
 		return err
 	}
 
@@ -343,7 +364,7 @@ func (es *Service) SendUserAccessTokenAddedEmail(email, locale, siteURL string) 
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "UserAccessTokenAddedEmail"); err != nil {
 		return err
 	}
 
@@ -373,7 +394,7 @@ func (es *Service) SendPasswordResetEmail(email string, token *model.Token, loca
 		return false, err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "PasswordResetEmail"); err != nil {
 		return false, err
 	}
 
@@ -403,14 +424,24 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "MfaChangeEmail"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
+func (es *Service) SendInviteEmails(
+	team *model.Team,
+	senderName string,
+	senderUserId string,
+	invites []string,
+	siteURL string,
+	reminderData *model.TeamInviteReminderData,
+	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
+) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -466,14 +497,20 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+
+			queryString := url.Values{}
+			queryString.Add("d", tokenData)
+			queryString.Add("t", token.Token)
+			queryString.Add("md", "email")
+			queryString.Add("sbr", es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?%s", siteURL, queryString.Encode())
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 			}
 
-			if err := es.sendMail(invite, subject, body); err != nil {
+			if err := es.sendMail(invite, subject, body, "InviteEmail"); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				if errorWhenNotSent {
 					return SendMailError
@@ -484,7 +521,19 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 	return nil
 }
 
-func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
+func (es *Service) SendGuestInviteEmails(
+	team *model.Team,
+	channels []*model.Channel,
+	senderName string,
+	senderUserId string,
+	senderProfileImage []byte,
+	invites []string,
+	siteURL string,
+	message string,
+	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
+) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -532,6 +581,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
 					"guest":    "true",
+					"senderId": senderUserId,
 				}),
 			)
 
@@ -545,7 +595,8 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
@@ -575,7 +626,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
 			}
 
-			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
+			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", "InviteEmail"); nErr != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 				if errorWhenNotSent {
 					return SendMailError
@@ -597,6 +648,8 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	reminderData *model.TeamInviteReminderData,
 	message string,
 	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
 ) ([]*model.EmailInviteWithError, error) {
 	if es.perHourEmailRateLimiter == nil {
 		return nil, NoRateLimiterError
@@ -672,6 +725,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 				"teamId":   team.Id,
 				"email":    invite,
 				"channels": strings.Join(channelIDs, " "),
+				"senderId": senderUserId,
 			}),
 		)
 
@@ -694,7 +748,8 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 			continue
 		}
-		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+
+		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 
 		senderPhoto := ""
 		embeddedFiles := make(map[string]io.Reader)
@@ -719,7 +774,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 		}
 
-		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
+		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", "InviteEmailToTeamsAndChannels"); nErr != nil {
 			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 			if errorWhenNotSent {
 				inviteWithError := &model.EmailInviteWithError{
@@ -782,7 +837,7 @@ func (es *Service) SendDeactivateAccountEmail(email string, locale, siteURL stri
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil { // this needs to receive the header options
+	if err := es.sendMail(email, subject, body, "DeactivateAccountEmail"); err != nil { // this needs to receive the header options
 		return err
 	}
 
@@ -793,32 +848,47 @@ func (es *Service) SendNotificationMail(to, subject, htmlBody string) error {
 	if !*es.config().EmailSettings.SendEmailNotifications {
 		return nil
 	}
-	return es.sendMail(to, subject, htmlBody)
+	return es.sendMail(to, subject, htmlBody, "NotificationEmail")
 }
 
-func (es *Service) sendMail(to, subject, htmlBody string) error {
-	return es.sendMailWithCC(to, subject, htmlBody, "")
+func (es *Service) sendMail(to, subject, htmlBody, category string) error {
+	return es.sendMailWithCC(to, subject, htmlBody, "", category)
 }
 
-func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddress string) error {
+func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddress, category string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig(replyToAddress)
 
-	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
+	category = getSendGridCategory(category, license.IsCloud())
+
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
 }
 
-func (es *Service) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
+func (es *Service) sendMailWithCC(to, subject, htmlBody, ccMail, category string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig("")
 
-	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail)
+	category = getSendGridCategory(category, license.IsCloud())
+
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail, category)
 }
 
-func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error {
+func (es *Service) SendMailWithEmbeddedFilesAndCustomReplyTo(to, subject, htmlBody, replyToAddress string, embeddedFiles map[string]io.Reader, category string) error {
+	license := es.license()
+	mailConfig := es.mailServiceConfig(replyToAddress)
+
+	category = getSendGridCategory(category, license.IsCloud())
+
+	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
+}
+
+func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig("")
 
-	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "")
+	category = getSendGridCategory(category, license.IsCloud())
+
+	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "", category)
 }
 
 func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppError {
@@ -912,7 +982,7 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "LicenseInactivityEmail"); err != nil {
 		return err
 	}
 
@@ -940,7 +1010,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "LicenseUpForRenewal"); err != nil {
 		return err
 	}
 
@@ -973,7 +1043,7 @@ func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPay
 		return false, err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "PaymentFailed"); err != nil {
 		return false, err
 	}
 
@@ -1000,7 +1070,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "NoCardPaymentFailed"); err != nil {
 		return err
 	}
 
@@ -1010,7 +1080,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.payment_failed.subject")
+	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
@@ -1030,7 +1100,7 @@ func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency7"); err != nil {
 		return err
 	}
 
@@ -1059,7 +1129,7 @@ func (es *Service) SendDelinquencyEmail14(email, locale, siteURL, planName strin
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency14"); err != nil {
 		return err
 	}
 
@@ -1080,7 +1150,7 @@ func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName strin
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_30.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["BulletListItems"] = []string{T("api.templates.delinquency_30.bullet.message_history"), T("api.templates.delinquency_30.bullet.files"), T("api.templates.delinquency_30.bullet.cards"), T("api.templates.delinquency_30.bullet.plugins")}
+	data.Props["BulletListItems"] = []string{T("api.templates.delinquency_30.bullet.message_history"), T("api.templates.delinquency_30.bullet.files")}
 	data.Props["LimitsDocs"] = T("api.templates.delinquency_30.limits_documentation")
 	data.Props["Footer"] = T("api.templates.copyright")
 
@@ -1089,7 +1159,7 @@ func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName strin
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency30"); err != nil {
 		return err
 	}
 
@@ -1121,7 +1191,7 @@ func (es *Service) SendDelinquencyEmail45(email, locale, siteURL, planName, deli
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency45"); err != nil {
 		return err
 	}
 
@@ -1145,7 +1215,7 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	data.Props["Button"] = T("api.templates.delinquency_60.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_starter")
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_free")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 60 day one so its reused
@@ -1154,7 +1224,7 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency60"); err != nil {
 		return err
 	}
 
@@ -1178,7 +1248,7 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, deli
 	data.Props["Button"] = T("api.templates.delinquency_75.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_starter")
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_free")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 75 day one so its reused
@@ -1187,7 +1257,7 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, deli
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency75"); err != nil {
 		return err
 	}
 
@@ -1219,7 +1289,7 @@ func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 		return err
 	}
 
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency90"); err != nil {
 		return err
 	}
 
@@ -1244,7 +1314,7 @@ func (es *Service) SendRemoveExpiredLicenseEmail(renewalLink, email string, loca
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body, "RemoveExpiredLicense"); err != nil {
 		return err
 	}
 
