@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
-	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -36,6 +36,7 @@ import (
 // by a product such as database access, configuration access, licensing etc.
 type PlatformService struct {
 	sqlStore   *sqlstore.SqlStore
+	DebugBar   *debugbar.DebugBar
 	Store      store.Store
 	newStore   func() (store.Store, error)
 	LastUserID string
@@ -111,6 +112,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
 		Store:               sc.Store,
+		DebugBar:            &debugbar.DebugBar{},
 		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
@@ -184,23 +186,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
-	debugbarSqlPublish := func(query string, elapsed time.Duration, args ...any) {}
-	// TODO: Only set this function to debug whenever the environment variable is enabled
-	debugbarSqlPublish = func(query string, elapsed time.Duration, args ...any) {
-		event := model.NewWebSocketEvent("debug", "", "", ps.LastUserID, nil, "")
-		event.Add("time", model.GetMillis())
-		event.Add("type", "sql-query")
-		event.Add("query", query)
-		event.Add("args", args)
-		event.Add("duration", float64(elapsed)/float64(time.Second))
-		ps.Publish(event)
-	}
-
 	// Step 6: Store.
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace, debugbarSqlPublish)
+			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace, ps.DebugBar.SendSqlQuery)
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(ps.sqlStore),

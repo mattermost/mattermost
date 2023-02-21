@@ -17,12 +17,12 @@ import (
 	"time"
 
 	"github.com/mattermost/gziphandler"
-	"github.com/mattermost/logr/v2"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	app_opentracing "github.com/mattermost/mattermost-server/v6/app/opentracing"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -33,163 +33,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
-
-type DebugBarLogger struct {
-	mlog.LoggerIFace
-	userID  string
-	publish func(event *model.WebSocketEvent)
-}
-
-func (l DebugBarLogger) Trace(message string, fields ...mlog.Field) {
-	l.Log(logr.Trace, message, fields...)
-}
-func (l DebugBarLogger) Debug(message string, fields ...mlog.Field) {
-	l.Log(logr.Debug, message, fields...)
-}
-func (l DebugBarLogger) Info(message string, fields ...mlog.Field) {
-	l.Log(logr.Info, message, fields...)
-}
-func (l DebugBarLogger) Warn(message string, fields ...mlog.Field) {
-	l.Log(logr.Warn, message, fields...)
-}
-func (l DebugBarLogger) Error(message string, fields ...mlog.Field) {
-	l.Log(logr.Error, message, fields...)
-}
-func (l DebugBarLogger) Critical(message string, fields ...mlog.Field) {
-	l.Fatal(message, fields...)
-}
-func (l DebugBarLogger) Fatal(message string, fields ...mlog.Field) {
-	l.Log(logr.Fatal, message, fields...)
-}
-
-func (l DebugBarLogger) fieldsToStringsMap(fields ...mlog.Field) map[string]string {
-	result := map[string]string{}
-	for _, field := range fields {
-		result[field.Key] = l.fieldToString(field)
-	}
-	return result
-}
-
-func (l DebugBarLogger) fieldToString(field mlog.Field) string {
-	switch field.Type {
-	case logr.StringType:
-		return field.String
-
-	case logr.StringerType:
-		s, ok := field.Interface.(fmt.Stringer)
-		if ok {
-			return s.String()
-		}
-		return ""
-
-	case logr.StructType:
-		return fmt.Sprintf("%v", field.Interface)
-
-	case logr.ErrorType:
-		return fmt.Sprintf("%v", field.Interface)
-
-	case logr.BoolType:
-		var b bool
-		if field.Integer != 0 {
-			b = true
-		}
-		return strconv.FormatBool(b)
-
-	case logr.TimestampMillisType:
-		ts := time.Unix(field.Integer/1000, (field.Integer%1000)*int64(time.Millisecond))
-		return ts.UTC().Format(logr.TimestampMillisFormat)
-
-	case logr.TimeType:
-		t, ok := field.Interface.(time.Time)
-		if !ok {
-			return ""
-		}
-		return t.Format(logr.DefTimestampFormat)
-
-	case logr.DurationType:
-		return fmt.Sprintf("%s", time.Duration(field.Integer))
-
-	case logr.Int64Type, logr.Int32Type, logr.IntType:
-		return strconv.FormatInt(field.Integer, 10)
-
-	case logr.Uint64Type, logr.Uint32Type, logr.UintType:
-		return strconv.FormatUint(uint64(field.Integer), 10)
-
-	case logr.Float64Type, logr.Float32Type:
-		size := 64
-		if field.Type == logr.Float32Type {
-			size = 32
-		}
-		return strconv.FormatFloat(field.Float, 'f', -1, size)
-
-	case logr.BinaryType:
-		b, ok := field.Interface.([]byte)
-		if ok {
-			return fmt.Sprintf("[%X]", b)
-		}
-		return fmt.Sprintf("[%v]", field.Interface)
-
-	case logr.ArrayType:
-		a := reflect.ValueOf(field.Interface)
-		results := []string{}
-		for i := 0; i < a.Len(); i++ {
-			item := a.Index(i)
-			switch v := item.Interface().(type) {
-			case fmt.Stringer:
-				results = append(results, v.String())
-			default:
-				s := fmt.Sprintf("%v", v)
-				results = append(results, s)
-			}
-		}
-		return fmt.Sprintf("[%v]", results)
-
-	case logr.MapType:
-		a := reflect.ValueOf(field.Interface)
-		iter := a.MapRange()
-		results := map[string]string{}
-		for iter.Next() {
-
-			val := iter.Value().Interface()
-			switch v := val.(type) {
-			case fmt.Stringer:
-				results[iter.Key().String()] = v.String()
-			default:
-				s := fmt.Sprintf("%v", v)
-				results[iter.Key().String()] = s
-			}
-		}
-		return fmt.Sprintf("%v", results)
-
-	case logr.UnknownType:
-		return fmt.Sprintf("%v", field.Interface)
-	}
-	return ""
-}
-
-func (l DebugBarLogger) Log(level mlog.Level, message string, fields ...mlog.Field) {
-	event := model.NewWebSocketEvent("debug", "", "", l.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "log-line")
-	event.Add("level", level.Name)
-	event.Add("message", message)
-	event.Add("fields", l.fieldsToStringsMap(fields...))
-	l.publish(event)
-	l.LoggerIFace.Log(level, message, fields...)
-}
-
-func (l DebugBarLogger) LogM(levels []mlog.Level, message string, fields ...mlog.Field) {
-	for _, level := range levels {
-		event := model.NewWebSocketEvent("debug", "", "", l.userID, nil, "")
-		event.Add("time", model.GetMillis())
-		event.Add("type", "log-line")
-		event.Add("level", level.Name)
-		event.Add("message", message)
-		event.Add("fields", l.fieldsToStringsMap(fields...))
-		l.publish(event)
-	}
-	l.LoggerIFace.LogM(levels, message, fields...)
-}
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
 	handlerName := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
@@ -376,16 +219,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
-	// TODO: Enable this only if the debug bar is enabled
-	// if os.Getenv("MM_ENABLE_DEBUG_BAR") != "" {
-	onlyOnce.Do(func() {
-		debugBarLayer = debugbarlayer.New(c.App.Srv().Store(), c.AppContext.Session().UserId, c.App.Publish)
-		c.App.Srv().SetStore(debugBarLayer)
-	})
-	c.App.Srv().Platform().LastUserID = c.AppContext.Session().UserId
-	debugBarLayer.SetCurrentUser(c.AppContext.Session().UserId)
-	// }
-
 	// Set the max request body size to be equal to MaxFileSize.
 	// Ideally, non-file request bodies should be smaller than file request bodies,
 	// but we don't have a clean way to identify all file upload handlers.
@@ -493,14 +326,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if true { // TODO: Replace this to the only enable this if the debugbar is enabled
-		debugBarLogger := DebugBarLogger{
-			LoggerIFace: c.Logger,
-			userID:      c.AppContext.Session().UserId,
-			publish:     c.App.Publish,
-		}
+		debugBarLogger := debugbar.NewLogger(
+			c.Logger,
+			c.App.Srv().DebugBar(),
+		)
 		c.AppContext.SetLogger(debugBarLogger)
 		mlog.InitGlobalLogger(debugBarLogger)
-		fmt.Println("SETTING THE LOGGER")
 	} else {
 		c.AppContext.SetLogger(c.Logger)
 	}
@@ -589,14 +420,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Only send this info if the DEBUGBAR is enabled
-	event := model.NewWebSocketEvent("debug", "", "", c.AppContext.Session().UserId, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "api-call")
-	event.Add("endpoint", endpoint)
-	event.Add("method", r.Method)
-	event.Add("statusCode", statusCode)
-	event.Add("duration", elapsed)
-	c.App.Publish(event)
+	// TODO: Enable this only if the debug bar is enabled
+	// if os.Getenv("MM_ENABLE_DEBUG_BAR") != "" {
+	onlyOnce.Do(func() {
+		debugBar := c.App.Srv().DebugBar()
+		debugBarLayer = debugbarlayer.New(c.App.Srv().Store(), debugBar)
+		c.App.Srv().SetStore(debugBarLayer)
+		debugBar.SetPublish(c.App.Publish)
+	})
+	debugBar := c.App.Srv().DebugBar()
+	debugBar.SetUserID(c.AppContext.Session().UserId)
+	c.App.Srv().DebugBar().SendApiCall(endpoint, r.Method, statusCode, elapsed)
+	// }
 
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()

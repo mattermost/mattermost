@@ -66,10 +66,10 @@ type sqlxDBWrapper struct {
 	*sqlx.DB
 	queryTimeout    time.Duration
 	trace           bool
-	debugbarPublish func(string, time.Duration, ...any)
+	debugbarPublish func(string, float64, ...any)
 }
 
-func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool, debugbarPublish func(string, time.Duration, ...any)) *sqlxDBWrapper {
+func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool, debugbarPublish func(string, float64, ...any)) *sqlxDBWrapper {
 	return &sqlxDBWrapper{
 		DB:              db,
 		queryTimeout:    timeout,
@@ -112,7 +112,7 @@ func (w *sqlxDBWrapper) Get(dest any, query string, args ...any) error {
 	}
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -143,7 +143,7 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), arg)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), arg)
 		}(time.Now())
 	}
 
@@ -176,7 +176,7 @@ func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, er
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -197,7 +197,7 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -219,7 +219,7 @@ func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), arg)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), arg)
 		}(time.Now())
 	}
 
@@ -239,7 +239,7 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -259,7 +259,7 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -283,7 +283,7 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -303,10 +303,10 @@ type sqlxTxWrapper struct {
 	*sqlx.Tx
 	queryTimeout    time.Duration
 	trace           bool
-	debugbarPublish func(string, time.Duration, ...any)
+	debugbarPublish func(string, float64, ...any)
 }
 
-func newSqlxTxWrapper(tx *sqlx.Tx, timeout time.Duration, trace bool, debugbarPublish func(string, time.Duration, ...any)) *sqlxTxWrapper {
+func newSqlxTxWrapper(tx *sqlx.Tx, timeout time.Duration, trace bool, debugbarPublish func(string, float64, ...any)) *sqlxTxWrapper {
 	return &sqlxTxWrapper{
 		Tx:              tx,
 		queryTimeout:    timeout,
@@ -328,7 +328,7 @@ func (w *sqlxTxWrapper) Get(dest any, query string, args ...any) error {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -361,7 +361,7 @@ func (w *sqlxTxWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, er
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -391,7 +391,7 @@ func (w *sqlxTxWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -413,7 +413,7 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), arg)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), arg)
 		}(time.Now())
 	}
 
@@ -435,7 +435,7 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), arg)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), arg)
 		}(time.Now())
 	}
 
@@ -483,7 +483,7 @@ func (w *sqlxTxWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -503,7 +503,7 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 
@@ -523,7 +523,7 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 
 	if w.debugbarPublish != nil {
 		defer func(then time.Time) {
-			w.debugbarPublish(query, time.Since(then), args...)
+			w.debugbarPublish(query, float64(time.Since(then))/float64(time.Second), args...)
 		}(time.Now())
 	}
 

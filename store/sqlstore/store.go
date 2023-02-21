@@ -130,7 +130,7 @@ type SqlStore struct {
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
-	debugbarPublish   func(string, time.Duration, ...any)
+	debugbarPublish   func(string, float64, ...any)
 	lockedToMaster    bool
 	context           context.Context
 	license           *model.License
@@ -141,7 +141,7 @@ type SqlStore struct {
 	pgDefaultTextSearchConfig string
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface, debugbarPublish func(string, time.Duration, ...any)) *SqlStore {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface, debugbarPublish func(string, float64, ...any)) *SqlStore {
 	store := &SqlStore{
 		rrCounter:       0,
 		srCounter:       0,

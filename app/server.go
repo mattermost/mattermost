@@ -27,6 +27,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -141,6 +142,14 @@ type Server struct {
 	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
+}
+
+func (s *Server) DebugBar() *debugbar.DebugBar {
+	if s.platform != nil {
+		return s.platform.DebugBar
+	}
+
+	return nil
 }
 
 func (s *Server) Store() store.Store {

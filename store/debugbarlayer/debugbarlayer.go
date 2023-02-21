@@ -11,13 +11,14 @@ import (
 	"time"
 	//"fmt"
 
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type DebugBarLayer struct {
 	store.Store
-	userID                    string
+	debugBar                  *debugbar.DebugBar
 	eventPublish              func(event *model.WebSocketEvent)
 	AuditStore                store.AuditStore
 	BotStore                  store.BotStore
@@ -447,19 +448,13 @@ func (s *DebugBarLayerAuditStore) Get(user_id string, offset int, limit int) (mo
 	result, err := s.AuditStore.Get(user_id, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "AuditStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{user_id, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{user_id, offset, limit}))
+	s.Root.debugBar.SendStoreCall("AuditStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -469,19 +464,13 @@ func (s *DebugBarLayerAuditStore) PermanentDeleteByUser(userID string) error {
 	err := s.AuditStore.PermanentDeleteByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "AuditStore.PermanentDeleteByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("AuditStore.PermanentDeleteByUser", success, elapsed)
 	return err
 }
 
@@ -491,19 +480,13 @@ func (s *DebugBarLayerAuditStore) Save(audit *model.Audit) error {
 	err := s.AuditStore.Save(audit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "AuditStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{audit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{audit}))
+	s.Root.debugBar.SendStoreCall("AuditStore.Save", success, elapsed)
 	return err
 }
 
@@ -513,19 +496,13 @@ func (s *DebugBarLayerBotStore) Get(userID string, includeDeleted bool) (*model.
 	result, err := s.BotStore.Get(userID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "BotStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("BotStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -535,19 +512,13 @@ func (s *DebugBarLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.B
 	result, err := s.BotStore.GetAll(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "BotStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("BotStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -557,19 +528,13 @@ func (s *DebugBarLayerBotStore) PermanentDelete(userID string) error {
 	err := s.BotStore.PermanentDelete(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "BotStore.PermanentDelete")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("BotStore.PermanentDelete", success, elapsed)
 	return err
 }
 
@@ -579,19 +544,13 @@ func (s *DebugBarLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	result, err := s.BotStore.Save(bot)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "BotStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{bot}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{bot}))
+	s.Root.debugBar.SendStoreCall("BotStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -601,19 +560,13 @@ func (s *DebugBarLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	result, err := s.BotStore.Update(bot)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "BotStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{bot}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{bot}))
+	s.Root.debugBar.SendStoreCall("BotStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -623,19 +576,13 @@ func (s *DebugBarLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, cha
 	result, err := s.ChannelStore.AnalyticsDeletedTypeCount(teamID, channelType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.AnalyticsDeletedTypeCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, channelType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelType}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.AnalyticsDeletedTypeCount", success, elapsed)
 	return result, err
 }
 
@@ -645,19 +592,13 @@ func (s *DebugBarLayerChannelStore) AnalyticsTypeCount(teamID string, channelTyp
 	result, err := s.ChannelStore.AnalyticsTypeCount(teamID, channelType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.AnalyticsTypeCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, channelType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelType}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.AnalyticsTypeCount", success, elapsed)
 	return result, err
 }
 
@@ -667,19 +608,13 @@ func (s *DebugBarLayerChannelStore) Autocomplete(userID string, term string, inc
 	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.Autocomplete")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, term, includeDeleted, isGuest}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, term, includeDeleted, isGuest}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.Autocomplete", success, elapsed)
 	return result, err
 }
 
@@ -689,19 +624,13 @@ func (s *DebugBarLayerChannelStore) AutocompleteInTeam(teamID string, userID str
 	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.AutocompleteInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, term, includeDeleted, isGuest}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, term, includeDeleted, isGuest}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.AutocompleteInTeam", success, elapsed)
 	return result, err
 }
 
@@ -711,19 +640,13 @@ func (s *DebugBarLayerChannelStore) AutocompleteInTeamForSearch(teamID string, u
 	result, err := s.ChannelStore.AutocompleteInTeamForSearch(teamID, userID, term, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.AutocompleteInTeamForSearch")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, term, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, term, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.AutocompleteInTeamForSearch", success, elapsed)
 	return result, err
 }
 
@@ -733,19 +656,13 @@ func (s *DebugBarLayerChannelStore) ClearAllCustomRoleAssignments() error {
 	err := s.ChannelStore.ClearAllCustomRoleAssignments()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.ClearAllCustomRoleAssignments")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearAllCustomRoleAssignments", success, elapsed)
 	return err
 }
 
@@ -755,19 +672,13 @@ func (s *DebugBarLayerChannelStore) ClearCaches() {
 	s.ChannelStore.ClearCaches()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.ClearCaches")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearCaches", success, elapsed)
 
 }
 
@@ -777,19 +688,13 @@ func (s *DebugBarLayerChannelStore) ClearMembersForUserCache() {
 	s.ChannelStore.ClearMembersForUserCache()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.ClearMembersForUserCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearMembersForUserCache", success, elapsed)
 
 }
 
@@ -799,19 +704,13 @@ func (s *DebugBarLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamI
 	err := s.ChannelStore.ClearSidebarOnTeamLeave(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.ClearSidebarOnTeamLeave")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.ClearSidebarOnTeamLeave", success, elapsed)
 	return err
 }
 
@@ -821,19 +720,13 @@ func (s *DebugBarLayerChannelStore) CountPostsAfter(channelID string, timestamp 
 	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.CountPostsAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.CountPostsAfter", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -843,19 +736,13 @@ func (s *DebugBarLayerChannelStore) CountUrgentPostsAfter(channelID string, time
 	result, err := s.ChannelStore.CountUrgentPostsAfter(channelID, timestamp, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.CountUrgentPostsAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.CountUrgentPostsAfter", success, elapsed)
 	return result, err
 }
 
@@ -865,19 +752,13 @@ func (s *DebugBarLayerChannelStore) CreateDirectChannel(userID *model.User, othe
 	result, err := s.ChannelStore.CreateDirectChannel(userID, otherUserID, channelOptions...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.CreateDirectChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, otherUserID, channelOptions...}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, otherUserID, channelOptions...}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.CreateDirectChannel", success, elapsed)
 	return result, err
 }
 
@@ -887,19 +768,13 @@ func (s *DebugBarLayerChannelStore) CreateInitialSidebarCategories(userID string
 	result, err := s.ChannelStore.CreateInitialSidebarCategories(userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.CreateInitialSidebarCategories")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.CreateInitialSidebarCategories", success, elapsed)
 	return result, err
 }
 
@@ -909,19 +784,13 @@ func (s *DebugBarLayerChannelStore) CreateSidebarCategory(userID string, teamID 
 	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.CreateSidebarCategory")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, newCategory}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, newCategory}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.CreateSidebarCategory", success, elapsed)
 	return result, err
 }
 
@@ -931,19 +800,13 @@ func (s *DebugBarLayerChannelStore) Delete(channelID string, timestamp int64) er
 	err := s.ChannelStore.Delete(channelID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.Delete", success, elapsed)
 	return err
 }
 
@@ -953,19 +816,13 @@ func (s *DebugBarLayerChannelStore) DeleteSidebarCategory(categoryID string) err
 	err := s.ChannelStore.DeleteSidebarCategory(categoryID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.DeleteSidebarCategory")
-	// event.Add("params", fmt.Sprintf("%v", []any{categoryID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{categoryID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.DeleteSidebarCategory", success, elapsed)
 	return err
 }
 
@@ -975,19 +832,13 @@ func (s *DebugBarLayerChannelStore) DeleteSidebarChannelsByPreferences(preferenc
 	err := s.ChannelStore.DeleteSidebarChannelsByPreferences(preferences)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.DeleteSidebarChannelsByPreferences")
-	// event.Add("params", fmt.Sprintf("%v", []any{preferences}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{preferences}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.DeleteSidebarChannelsByPreferences", success, elapsed)
 	return err
 }
 
@@ -997,19 +848,13 @@ func (s *DebugBarLayerChannelStore) Get(id string, allowFromCache bool) (*model.
 	result, err := s.ChannelStore.Get(id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -1019,19 +864,13 @@ func (s *DebugBarLayerChannelStore) GetAll(teamID string) ([]*model.Channel, err
 	result, err := s.ChannelStore.GetAll(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -1041,19 +880,13 @@ func (s *DebugBarLayerChannelStore) GetAllChannelMembersById(id string) ([]strin
 	result, err := s.ChannelStore.GetAllChannelMembersById(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllChannelMembersById")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersById", success, elapsed)
 	return result, err
 }
 
@@ -1063,19 +896,13 @@ func (s *DebugBarLayerChannelStore) GetAllChannelMembersForUser(userID string, a
 	result, err := s.ChannelStore.GetAllChannelMembersForUser(userID, allowFromCache, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllChannelMembersForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, allowFromCache, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, allowFromCache, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersForUser", success, elapsed)
 	return result, err
 }
 
@@ -1085,19 +912,13 @@ func (s *DebugBarLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel(ch
 	result, err := s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllChannelMembersNotifyPropsForChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelMembersNotifyPropsForChannel", success, elapsed)
 	return result, err
 }
 
@@ -1107,19 +928,13 @@ func (s *DebugBarLayerChannelStore) GetAllChannels(page int, perPage int, opts s
 	result, err := s.ChannelStore.GetAllChannels(page, perPage, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{page, perPage, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannels", success, elapsed)
 	return result, err
 }
 
@@ -1129,19 +944,13 @@ func (s *DebugBarLayerChannelStore) GetAllChannelsCount(opts store.ChannelSearch
 	result, err := s.ChannelStore.GetAllChannelsCount(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllChannelsCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelsCount", success, elapsed)
 	return result, err
 }
 
@@ -1151,19 +960,13 @@ func (s *DebugBarLayerChannelStore) GetAllChannelsForExportAfter(limit int, afte
 	result, err := s.ChannelStore.GetAllChannelsForExportAfter(limit, afterID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllChannelsForExportAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit, afterID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllChannelsForExportAfter", success, elapsed)
 	return result, err
 }
 
@@ -1173,19 +976,13 @@ func (s *DebugBarLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int
 	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetAllDirectChannelsForExportAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit, afterID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetAllDirectChannelsForExportAfter", success, elapsed)
 	return result, err
 }
 
@@ -1195,19 +992,13 @@ func (s *DebugBarLayerChannelStore) GetByName(team_id string, name string, allow
 	result, err := s.ChannelStore.GetByName(team_id, name, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{team_id, name, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, name, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -1217,19 +1008,13 @@ func (s *DebugBarLayerChannelStore) GetByNameIncludeDeleted(team_id string, name
 	result, err := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetByNameIncludeDeleted")
-	// event.Add("params", fmt.Sprintf("%v", []any{team_id, name, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, name, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetByNameIncludeDeleted", success, elapsed)
 	return result, err
 }
 
@@ -1239,19 +1024,13 @@ func (s *DebugBarLayerChannelStore) GetByNames(team_id string, names []string, a
 	result, err := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetByNames")
-	// event.Add("params", fmt.Sprintf("%v", []any{team_id, names, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, names, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetByNames", success, elapsed)
 	return result, err
 }
 
@@ -1261,19 +1040,13 @@ func (s *DebugBarLayerChannelStore) GetChannelCounts(teamID string, userID strin
 	result, err := s.ChannelStore.GetChannelCounts(teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelCounts")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelCounts", success, elapsed)
 	return result, err
 }
 
@@ -1283,19 +1056,13 @@ func (s *DebugBarLayerChannelStore) GetChannelMembersForExport(userID string, te
 	result, err := s.ChannelStore.GetChannelMembersForExport(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelMembersForExport")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelMembersForExport", success, elapsed)
 	return result, err
 }
 
@@ -1305,19 +1072,13 @@ func (s *DebugBarLayerChannelStore) GetChannelMembersTimezones(channelID string)
 	result, err := s.ChannelStore.GetChannelMembersTimezones(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelMembersTimezones")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelMembersTimezones", success, elapsed)
 	return result, err
 }
 
@@ -1327,19 +1088,13 @@ func (s *DebugBarLayerChannelStore) GetChannelUnread(channelID string, userID st
 	result, err := s.ChannelStore.GetChannelUnread(channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelUnread")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelUnread", success, elapsed)
 	return result, err
 }
 
@@ -1349,19 +1104,13 @@ func (s *DebugBarLayerChannelStore) GetChannels(teamID string, userID string, op
 	result, err := s.ChannelStore.GetChannels(teamID, userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannels", success, elapsed)
 	return result, err
 }
 
@@ -1371,19 +1120,13 @@ func (s *DebugBarLayerChannelStore) GetChannelsBatchForIndexing(startTime int64,
 	result, err := s.ChannelStore.GetChannelsBatchForIndexing(startTime, startChannelID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelsBatchForIndexing")
-	// event.Add("params", fmt.Sprintf("%v", []any{startTime, startChannelID, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startChannelID, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsBatchForIndexing", success, elapsed)
 	return result, err
 }
 
@@ -1393,19 +1136,13 @@ func (s *DebugBarLayerChannelStore) GetChannelsByIds(channelIds []string, includ
 	result, err := s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelsByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelIds, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByIds", success, elapsed)
 	return result, err
 }
 
@@ -1415,19 +1152,13 @@ func (s *DebugBarLayerChannelStore) GetChannelsByScheme(schemeID string, offset 
 	result, err := s.ChannelStore.GetChannelsByScheme(schemeID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelsByScheme")
-	// event.Add("params", fmt.Sprintf("%v", []any{schemeID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByScheme", success, elapsed)
 	return result, err
 }
 
@@ -1437,19 +1168,13 @@ func (s *DebugBarLayerChannelStore) GetChannelsByUser(userID string, includeDele
 	result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelsByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsByUser", success, elapsed)
 	return result, err
 }
 
@@ -1459,19 +1184,13 @@ func (s *DebugBarLayerChannelStore) GetChannelsWithCursor(teamId string, userId 
 	result, err := s.ChannelStore.GetChannelsWithCursor(teamId, userId, opts, afterChannelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelsWithCursor")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamId, userId, opts, afterChannelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamId, userId, opts, afterChannelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsWithCursor", success, elapsed)
 	return result, err
 }
 
@@ -1481,19 +1200,13 @@ func (s *DebugBarLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []st
 	result, err := s.ChannelStore.GetChannelsWithTeamDataByIds(channelIds, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetChannelsWithTeamDataByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelIds, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetChannelsWithTeamDataByIds", success, elapsed)
 	return result, err
 }
 
@@ -1503,19 +1216,13 @@ func (s *DebugBarLayerChannelStore) GetDeleted(team_id string, offset int, limit
 	result, err := s.ChannelStore.GetDeleted(team_id, offset, limit, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetDeleted")
-	// event.Add("params", fmt.Sprintf("%v", []any{team_id, offset, limit, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, offset, limit, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetDeleted", success, elapsed)
 	return result, err
 }
 
@@ -1525,19 +1232,13 @@ func (s *DebugBarLayerChannelStore) GetDeletedByName(team_id string, name string
 	result, err := s.ChannelStore.GetDeletedByName(team_id, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetDeletedByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{team_id, name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team_id, name}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetDeletedByName", success, elapsed)
 	return result, err
 }
 
@@ -1547,19 +1248,13 @@ func (s *DebugBarLayerChannelStore) GetFileCount(channelID string) (int64, error
 	result, err := s.ChannelStore.GetFileCount(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetFileCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetFileCount", success, elapsed)
 	return result, err
 }
 
@@ -1569,19 +1264,13 @@ func (s *DebugBarLayerChannelStore) GetForPost(postID string) (*model.Channel, e
 	result, err := s.ChannelStore.GetForPost(postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetForPost", success, elapsed)
 	return result, err
 }
 
@@ -1591,19 +1280,13 @@ func (s *DebugBarLayerChannelStore) GetGuestCount(channelID string, allowFromCac
 	result, err := s.ChannelStore.GetGuestCount(channelID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetGuestCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetGuestCount", success, elapsed)
 	return result, err
 }
 
@@ -1613,19 +1296,13 @@ func (s *DebugBarLayerChannelStore) GetMany(ids []string, allowFromCache bool) (
 	result, err := s.ChannelStore.GetMany(ids, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMany")
-	// event.Add("params", fmt.Sprintf("%v", []any{ids, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMany", success, elapsed)
 	return result, err
 }
 
@@ -1635,19 +1312,13 @@ func (s *DebugBarLayerChannelStore) GetMember(ctx context.Context, channelID str
 	result, err := s.ChannelStore.GetMember(ctx, channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, channelID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, channelID, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMember", success, elapsed)
 	return result, err
 }
 
@@ -1657,19 +1328,13 @@ func (s *DebugBarLayerChannelStore) GetMemberCount(channelID string, allowFromCa
 	result, err := s.ChannelStore.GetMemberCount(channelID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCount", success, elapsed)
 	return result, err
 }
 
@@ -1679,19 +1344,13 @@ func (s *DebugBarLayerChannelStore) GetMemberCountFromCache(channelID string) in
 	result := s.ChannelStore.GetMemberCountFromCache(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMemberCountFromCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCountFromCache", success, elapsed)
 	return result
 }
 
@@ -1701,19 +1360,13 @@ func (s *DebugBarLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, 
 	result, err := s.ChannelStore.GetMemberCountsByGroup(ctx, channelID, includeTimezones)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMemberCountsByGroup")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, channelID, includeTimezones}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, channelID, includeTimezones}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberCountsByGroup", success, elapsed)
 	return result, err
 }
 
@@ -1723,19 +1376,13 @@ func (s *DebugBarLayerChannelStore) GetMemberForPost(postID string, userID strin
 	result, err := s.ChannelStore.GetMemberForPost(postID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMemberForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMemberForPost", success, elapsed)
 	return result, err
 }
 
@@ -1745,19 +1392,13 @@ func (s *DebugBarLayerChannelStore) GetMembers(channelID string, offset int, lim
 	result, err := s.ChannelStore.GetMembers(channelID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembers", success, elapsed)
 	return result, err
 }
 
@@ -1767,19 +1408,13 @@ func (s *DebugBarLayerChannelStore) GetMembersByChannelIds(channelIds []string, 
 	result, err := s.ChannelStore.GetMembersByChannelIds(channelIds, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembersByChannelIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelIds, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersByChannelIds", success, elapsed)
 	return result, err
 }
 
@@ -1789,19 +1424,13 @@ func (s *DebugBarLayerChannelStore) GetMembersByIds(channelID string, userIds []
 	result, err := s.ChannelStore.GetMembersByIds(channelID, userIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembersByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIds}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersByIds", success, elapsed)
 	return result, err
 }
 
@@ -1811,19 +1440,13 @@ func (s *DebugBarLayerChannelStore) GetMembersForUser(teamID string, userID stri
 	result, err := s.ChannelStore.GetMembersForUser(teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembersForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUser", success, elapsed)
 	return result, err
 }
 
@@ -1833,19 +1456,13 @@ func (s *DebugBarLayerChannelStore) GetMembersForUserWithCursor(userID string, t
 	result, err := s.ChannelStore.GetMembersForUserWithCursor(userID, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembersForUserWithCursor")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUserWithCursor", success, elapsed)
 	return result, err
 }
 
@@ -1855,19 +1472,13 @@ func (s *DebugBarLayerChannelStore) GetMembersForUserWithPagination(userID strin
 	result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembersForUserWithPagination")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, page, perPage}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersForUserWithPagination", success, elapsed)
 	return result, err
 }
 
@@ -1877,19 +1488,13 @@ func (s *DebugBarLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []stri
 	result, err := s.ChannelStore.GetMembersInfoByChannelIds(channelIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMembersInfoByChannelIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIDs}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMembersInfoByChannelIds", success, elapsed)
 	return result, err
 }
 
@@ -1899,19 +1504,13 @@ func (s *DebugBarLayerChannelStore) GetMoreChannels(teamID string, userID string
 	result, err := s.ChannelStore.GetMoreChannels(teamID, userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetMoreChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetMoreChannels", success, elapsed)
 	return result, err
 }
 
@@ -1921,19 +1520,13 @@ func (s *DebugBarLayerChannelStore) GetPinnedPostCount(channelID string, allowFr
 	result, err := s.ChannelStore.GetPinnedPostCount(channelID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetPinnedPostCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPinnedPostCount", success, elapsed)
 	return result, err
 }
 
@@ -1943,19 +1536,13 @@ func (s *DebugBarLayerChannelStore) GetPinnedPosts(channelID string) (*model.Pos
 	result, err := s.ChannelStore.GetPinnedPosts(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetPinnedPosts")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPinnedPosts", success, elapsed)
 	return result, err
 }
 
@@ -1965,19 +1552,13 @@ func (s *DebugBarLayerChannelStore) GetPrivateChannelsForTeam(teamID string, off
 	result, err := s.ChannelStore.GetPrivateChannelsForTeam(teamID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetPrivateChannelsForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPrivateChannelsForTeam", success, elapsed)
 	return result, err
 }
 
@@ -1987,19 +1568,13 @@ func (s *DebugBarLayerChannelStore) GetPublicChannelsByIdsForTeam(teamID string,
 	result, err := s.ChannelStore.GetPublicChannelsByIdsForTeam(teamID, channelIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetPublicChannelsByIdsForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, channelIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelIds}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPublicChannelsByIdsForTeam", success, elapsed)
 	return result, err
 }
 
@@ -2009,19 +1584,13 @@ func (s *DebugBarLayerChannelStore) GetPublicChannelsForTeam(teamID string, offs
 	result, err := s.ChannelStore.GetPublicChannelsForTeam(teamID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetPublicChannelsForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetPublicChannelsForTeam", success, elapsed)
 	return result, err
 }
 
@@ -2031,19 +1600,13 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategories(userID string, opts *st
 	result, err := s.ChannelStore.GetSidebarCategories(userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetSidebarCategories")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategories", success, elapsed)
 	return result, err
 }
 
@@ -2053,19 +1616,13 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID st
 	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetSidebarCategoriesForTeamForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategoriesForTeamForUser", success, elapsed)
 	return result, err
 }
 
@@ -2075,19 +1632,13 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategory(categoryID string) (*mode
 	result, err := s.ChannelStore.GetSidebarCategory(categoryID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetSidebarCategory")
-	// event.Add("params", fmt.Sprintf("%v", []any{categoryID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{categoryID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategory", success, elapsed)
 	return result, err
 }
 
@@ -2097,19 +1648,13 @@ func (s *DebugBarLayerChannelStore) GetSidebarCategoryOrder(userID string, teamI
 	result, err := s.ChannelStore.GetSidebarCategoryOrder(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetSidebarCategoryOrder")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetSidebarCategoryOrder", success, elapsed)
 	return result, err
 }
 
@@ -2119,19 +1664,13 @@ func (s *DebugBarLayerChannelStore) GetTeamChannels(teamID string) (model.Channe
 	result, err := s.ChannelStore.GetTeamChannels(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTeamChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamChannels", success, elapsed)
 	return result, err
 }
 
@@ -2141,19 +1680,13 @@ func (s *DebugBarLayerChannelStore) GetTeamForChannel(channelID string) (*model.
 	result, err := s.ChannelStore.GetTeamForChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTeamForChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamForChannel", success, elapsed)
 	return result, err
 }
 
@@ -2163,19 +1696,13 @@ func (s *DebugBarLayerChannelStore) GetTeamMembersForChannel(channelID string) (
 	result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTeamMembersForChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTeamMembersForChannel", success, elapsed)
 	return result, err
 }
 
@@ -2185,19 +1712,13 @@ func (s *DebugBarLayerChannelStore) GetTopChannelsForTeamSince(teamID string, us
 	result, err := s.ChannelStore.GetTopChannelsForTeamSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTopChannelsForTeamSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopChannelsForTeamSince", success, elapsed)
 	return result, err
 }
 
@@ -2207,19 +1728,13 @@ func (s *DebugBarLayerChannelStore) GetTopChannelsForUserSince(userID string, te
 	result, err := s.ChannelStore.GetTopChannelsForUserSince(userID, teamID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTopChannelsForUserSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopChannelsForUserSince", success, elapsed)
 	return result, err
 }
 
@@ -2229,19 +1744,13 @@ func (s *DebugBarLayerChannelStore) GetTopInactiveChannelsForTeamSince(teamID st
 	result, err := s.ChannelStore.GetTopInactiveChannelsForTeamSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTopInactiveChannelsForTeamSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopInactiveChannelsForTeamSince", success, elapsed)
 	return result, err
 }
 
@@ -2251,19 +1760,13 @@ func (s *DebugBarLayerChannelStore) GetTopInactiveChannelsForUserSince(teamID st
 	result, err := s.ChannelStore.GetTopInactiveChannelsForUserSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GetTopInactiveChannelsForUserSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GetTopInactiveChannelsForUserSince", success, elapsed)
 	return result, err
 }
 
@@ -2273,19 +1776,13 @@ func (s *DebugBarLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	result, err := s.ChannelStore.GroupSyncedChannelCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.GroupSyncedChannelCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.GroupSyncedChannelCount", success, elapsed)
 	return result, err
 }
 
@@ -2295,19 +1792,13 @@ func (s *DebugBarLayerChannelStore) IncrementMentionCount(channelID string, user
 	err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot, isUrgent)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.IncrementMentionCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userIDs, isRoot, isUrgent}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIDs, isRoot, isUrgent}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.IncrementMentionCount", success, elapsed)
 	return err
 }
 
@@ -2317,19 +1808,13 @@ func (s *DebugBarLayerChannelStore) InvalidateAllChannelMembersForUser(userID st
 	s.ChannelStore.InvalidateAllChannelMembersForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidateAllChannelMembersForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateAllChannelMembersForUser", success, elapsed)
 
 }
 
@@ -2339,19 +1824,13 @@ func (s *DebugBarLayerChannelStore) InvalidateCacheForChannelMembersNotifyProps(
 	s.ChannelStore.InvalidateCacheForChannelMembersNotifyProps(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidateCacheForChannelMembersNotifyProps")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateCacheForChannelMembersNotifyProps", success, elapsed)
 
 }
 
@@ -2361,19 +1840,13 @@ func (s *DebugBarLayerChannelStore) InvalidateChannel(id string) {
 	s.ChannelStore.InvalidateChannel(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidateChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateChannel", success, elapsed)
 
 }
 
@@ -2383,19 +1856,13 @@ func (s *DebugBarLayerChannelStore) InvalidateChannelByName(teamID string, name 
 	s.ChannelStore.InvalidateChannelByName(teamID, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidateChannelByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, name}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateChannelByName", success, elapsed)
 
 }
 
@@ -2405,19 +1872,13 @@ func (s *DebugBarLayerChannelStore) InvalidateGuestCount(channelID string) {
 	s.ChannelStore.InvalidateGuestCount(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidateGuestCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateGuestCount", success, elapsed)
 
 }
 
@@ -2427,19 +1888,13 @@ func (s *DebugBarLayerChannelStore) InvalidateMemberCount(channelID string) {
 	s.ChannelStore.InvalidateMemberCount(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidateMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidateMemberCount", success, elapsed)
 
 }
 
@@ -2449,19 +1904,13 @@ func (s *DebugBarLayerChannelStore) InvalidatePinnedPostCount(channelID string) 
 	s.ChannelStore.InvalidatePinnedPostCount(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.InvalidatePinnedPostCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.InvalidatePinnedPostCount", success, elapsed)
 
 }
 
@@ -2471,19 +1920,13 @@ func (s *DebugBarLayerChannelStore) IsUserInChannelUseCache(userID string, chann
 	result := s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.IsUserInChannelUseCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.IsUserInChannelUseCache", success, elapsed)
 	return result
 }
 
@@ -2493,19 +1936,13 @@ func (s *DebugBarLayerChannelStore) MigrateChannelMembers(fromChannelID string, 
 	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelID, fromUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.MigrateChannelMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{fromChannelID, fromUserID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fromChannelID, fromUserID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.MigrateChannelMembers", success, elapsed)
 	return result, err
 }
 
@@ -2515,19 +1952,13 @@ func (s *DebugBarLayerChannelStore) PermanentDelete(channelID string) error {
 	err := s.ChannelStore.PermanentDelete(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.PermanentDelete")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDelete", success, elapsed)
 	return err
 }
 
@@ -2537,19 +1968,13 @@ func (s *DebugBarLayerChannelStore) PermanentDeleteByTeam(teamID string) error {
 	err := s.ChannelStore.PermanentDeleteByTeam(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.PermanentDeleteByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteByTeam", success, elapsed)
 	return err
 }
 
@@ -2559,19 +1984,13 @@ func (s *DebugBarLayerChannelStore) PermanentDeleteMembersByChannel(channelID st
 	err := s.ChannelStore.PermanentDeleteMembersByChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.PermanentDeleteMembersByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteMembersByChannel", success, elapsed)
 	return err
 }
 
@@ -2581,19 +2000,13 @@ func (s *DebugBarLayerChannelStore) PermanentDeleteMembersByUser(userID string) 
 	err := s.ChannelStore.PermanentDeleteMembersByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.PermanentDeleteMembersByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.PermanentDeleteMembersByUser", success, elapsed)
 	return err
 }
 
@@ -2603,19 +2016,13 @@ func (s *DebugBarLayerChannelStore) PostCountsByDuration(channelIDs []string, si
 	result, err := s.ChannelStore.PostCountsByDuration(channelIDs, sinceUnixMillis, userID, duration, groupingLocation)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.PostCountsByDuration")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelIDs, sinceUnixMillis, userID, duration, groupingLocation}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIDs, sinceUnixMillis, userID, duration, groupingLocation}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.PostCountsByDuration", success, elapsed)
 	return result, err
 }
 
@@ -2625,19 +2032,13 @@ func (s *DebugBarLayerChannelStore) RemoveAllDeactivatedMembers(channelID string
 	err := s.ChannelStore.RemoveAllDeactivatedMembers(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.RemoveAllDeactivatedMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveAllDeactivatedMembers", success, elapsed)
 	return err
 }
 
@@ -2647,19 +2048,13 @@ func (s *DebugBarLayerChannelStore) RemoveMember(channelID string, userID string
 	err := s.ChannelStore.RemoveMember(channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.RemoveMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveMember", success, elapsed)
 	return err
 }
 
@@ -2669,19 +2064,13 @@ func (s *DebugBarLayerChannelStore) RemoveMembers(channelID string, userIds []st
 	err := s.ChannelStore.RemoveMembers(channelID, userIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.RemoveMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIds}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.RemoveMembers", success, elapsed)
 	return err
 }
 
@@ -2691,19 +2080,13 @@ func (s *DebugBarLayerChannelStore) ResetAllChannelSchemes() error {
 	err := s.ChannelStore.ResetAllChannelSchemes()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.ResetAllChannelSchemes")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.ResetAllChannelSchemes", success, elapsed)
 	return err
 }
 
@@ -2713,19 +2096,13 @@ func (s *DebugBarLayerChannelStore) Restore(channelID string, timestamp int64) e
 	err := s.ChannelStore.Restore(channelID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.Restore")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.Restore", success, elapsed)
 	return err
 }
 
@@ -2735,19 +2112,13 @@ func (s *DebugBarLayerChannelStore) Save(channel *model.Channel, maxChannelsPerT
 	result, err := s.ChannelStore.Save(channel, maxChannelsPerTeam)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{channel, maxChannelsPerTeam}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel, maxChannelsPerTeam}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -2757,19 +2128,13 @@ func (s *DebugBarLayerChannelStore) SaveDirectChannel(channel *model.Channel, me
 	result, err := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SaveDirectChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channel, member1, member2}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel, member1, member2}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SaveDirectChannel", success, elapsed)
 	return result, err
 }
 
@@ -2779,19 +2144,13 @@ func (s *DebugBarLayerChannelStore) SaveMember(member *model.ChannelMember) (*mo
 	result, err := s.ChannelStore.SaveMember(member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SaveMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{member}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SaveMember", success, elapsed)
 	return result, err
 }
 
@@ -2801,19 +2160,13 @@ func (s *DebugBarLayerChannelStore) SaveMultipleMembers(members []*model.Channel
 	result, err := s.ChannelStore.SaveMultipleMembers(members)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SaveMultipleMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{members}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SaveMultipleMembers", success, elapsed)
 	return result, err
 }
 
@@ -2823,19 +2176,13 @@ func (s *DebugBarLayerChannelStore) SearchAllChannels(term string, opts store.Ch
 	result, resultVar1, err := s.ChannelStore.SearchAllChannels(term, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SearchAllChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{term, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{term, opts}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchAllChannels", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -2845,19 +2192,13 @@ func (s *DebugBarLayerChannelStore) SearchArchivedInTeam(teamID string, term str
 	result, err := s.ChannelStore.SearchArchivedInTeam(teamID, term, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SearchArchivedInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, term, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, term, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchArchivedInTeam", success, elapsed)
 	return result, err
 }
 
@@ -2867,19 +2208,13 @@ func (s *DebugBarLayerChannelStore) SearchForUserInTeam(userID string, teamID st
 	result, err := s.ChannelStore.SearchForUserInTeam(userID, teamID, term, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SearchForUserInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, term, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, term, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchForUserInTeam", success, elapsed)
 	return result, err
 }
 
@@ -2889,19 +2224,13 @@ func (s *DebugBarLayerChannelStore) SearchGroupChannels(userID string, term stri
 	result, err := s.ChannelStore.SearchGroupChannels(userID, term)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SearchGroupChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, term}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, term}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchGroupChannels", success, elapsed)
 	return result, err
 }
 
@@ -2911,19 +2240,13 @@ func (s *DebugBarLayerChannelStore) SearchInTeam(teamID string, term string, inc
 	result, err := s.ChannelStore.SearchInTeam(teamID, term, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SearchInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, term, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, term, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchInTeam", success, elapsed)
 	return result, err
 }
 
@@ -2933,19 +2256,13 @@ func (s *DebugBarLayerChannelStore) SearchMore(userID string, teamID string, ter
 	result, err := s.ChannelStore.SearchMore(userID, teamID, term)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SearchMore")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, term}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, term}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SearchMore", success, elapsed)
 	return result, err
 }
 
@@ -2955,19 +2272,13 @@ func (s *DebugBarLayerChannelStore) SetDeleteAt(channelID string, deleteAt int64
 	err := s.ChannelStore.SetDeleteAt(channelID, deleteAt, updateAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SetDeleteAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, deleteAt, updateAt}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, deleteAt, updateAt}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SetDeleteAt", success, elapsed)
 	return err
 }
 
@@ -2977,19 +2288,13 @@ func (s *DebugBarLayerChannelStore) SetShared(channelId string, shared bool) err
 	err := s.ChannelStore.SetShared(channelId, shared)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.SetShared")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelId, shared}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId, shared}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.SetShared", success, elapsed)
 	return err
 }
 
@@ -2999,19 +2304,13 @@ func (s *DebugBarLayerChannelStore) Update(channel *model.Channel) (*model.Chann
 	result, err := s.ChannelStore.Update(channel)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{channel}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -3021,19 +2320,13 @@ func (s *DebugBarLayerChannelStore) UpdateLastViewedAt(channelIds []string, user
 	result, err := s.ChannelStore.UpdateLastViewedAt(channelIds, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateLastViewedAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelIds, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelIds, userID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateLastViewedAt", success, elapsed)
 	return result, err
 }
 
@@ -3043,19 +2336,13 @@ func (s *DebugBarLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Pos
 	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateLastViewedAtPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateLastViewedAtPost", success, elapsed)
 	return result, err
 }
 
@@ -3065,19 +2352,13 @@ func (s *DebugBarLayerChannelStore) UpdateMember(member *model.ChannelMember) (*
 	result, err := s.ChannelStore.UpdateMember(member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{member}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMember", success, elapsed)
 	return result, err
 }
 
@@ -3087,19 +2368,13 @@ func (s *DebugBarLayerChannelStore) UpdateMemberNotifyProps(channelID string, us
 	result, err := s.ChannelStore.UpdateMemberNotifyProps(channelID, userID, props)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateMemberNotifyProps")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userID, props}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID, props}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMemberNotifyProps", success, elapsed)
 	return result, err
 }
 
@@ -3109,19 +2384,13 @@ func (s *DebugBarLayerChannelStore) UpdateMembersRole(channelID string, userIDs 
 	err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateMembersRole")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userIDs}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMembersRole", success, elapsed)
 	return err
 }
 
@@ -3131,19 +2400,13 @@ func (s *DebugBarLayerChannelStore) UpdateMultipleMembers(members []*model.Chann
 	result, err := s.ChannelStore.UpdateMultipleMembers(members)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateMultipleMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{members}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateMultipleMembers", success, elapsed)
 	return result, err
 }
 
@@ -3153,19 +2416,13 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarCategories(userID string, teamI
 	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateSidebarCategories")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, categories}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, categories}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarCategories", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -3175,19 +2432,13 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarCategoryOrder(userID string, te
 	err := s.ChannelStore.UpdateSidebarCategoryOrder(userID, teamID, categoryOrder)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateSidebarCategoryOrder")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, categoryOrder}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, categoryOrder}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarCategoryOrder", success, elapsed)
 	return err
 }
 
@@ -3197,19 +2448,13 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *
 	err := s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateSidebarChannelCategoryOnMove")
-	// event.Add("params", fmt.Sprintf("%v", []any{channel, newTeamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channel, newTeamID}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarChannelCategoryOnMove", success, elapsed)
 	return err
 }
 
@@ -3219,19 +2464,13 @@ func (s *DebugBarLayerChannelStore) UpdateSidebarChannelsByPreferences(preferenc
 	err := s.ChannelStore.UpdateSidebarChannelsByPreferences(preferences)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UpdateSidebarChannelsByPreferences")
-	// event.Add("params", fmt.Sprintf("%v", []any{preferences}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{preferences}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UpdateSidebarChannelsByPreferences", success, elapsed)
 	return err
 }
 
@@ -3241,19 +2480,13 @@ func (s *DebugBarLayerChannelStore) UserBelongsToChannels(userID string, channel
 	result, err := s.ChannelStore.UserBelongsToChannels(userID, channelIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelStore.UserBelongsToChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelIds}))
+	s.Root.debugBar.SendStoreCall("ChannelStore.UserBelongsToChannels", success, elapsed)
 	return result, err
 }
 
@@ -3263,19 +2496,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (
 	result, err := s.ChannelMemberHistoryStore.DeleteOrphanedRows(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.DeleteOrphanedRows")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.DeleteOrphanedRows", success, elapsed)
 	return result, err
 }
 
@@ -3285,19 +2512,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) GetChannelsLeftSince(userID str
 	result, err := s.ChannelMemberHistoryStore.GetChannelsLeftSince(userID, since)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.GetChannelsLeftSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, since}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, since}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.GetChannelsLeftSince", success, elapsed)
 	return result, err
 }
 
@@ -3307,19 +2528,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTi
 	result, err := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.GetUsersInChannelDuring")
-	// event.Add("params", fmt.Sprintf("%v", []any{startTime, endTime, channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, endTime, channelID}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.GetUsersInChannelDuring", success, elapsed)
 	return result, err
 }
 
@@ -3329,19 +2544,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) LogJoinEvent(userID string, cha
 	err := s.ChannelMemberHistoryStore.LogJoinEvent(userID, channelID, joinTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.LogJoinEvent")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, joinTime}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, joinTime}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.LogJoinEvent", success, elapsed)
 	return err
 }
 
@@ -3351,19 +2560,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, ch
 	err := s.ChannelMemberHistoryStore.LogLeaveEvent(userID, channelID, leaveTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.LogLeaveEvent")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, leaveTime}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, leaveTime}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.LogLeaveEvent", success, elapsed)
 	return err
 }
 
@@ -3373,19 +2576,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime in
 	result, err := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.PermanentDeleteBatch")
-	// event.Add("params", fmt.Sprintf("%v", []any{endTime, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.PermanentDeleteBatch", success, elapsed)
 	return result, err
 }
 
@@ -3395,19 +2592,13 @@ func (s *DebugBarLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentio
 	result, resultVar1, err := s.ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies")
-	// event.Add("params", fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
+	s.Root.debugBar.SendStoreCall("ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -3417,19 +2608,13 @@ func (s *DebugBarLayerClusterDiscoveryStore) Cleanup() error {
 	err := s.ClusterDiscoveryStore.Cleanup()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ClusterDiscoveryStore.Cleanup")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Cleanup", success, elapsed)
 	return err
 }
 
@@ -3439,19 +2624,13 @@ func (s *DebugBarLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDisc
 	result, err := s.ClusterDiscoveryStore.Delete(discovery)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ClusterDiscoveryStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{discovery}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -3461,19 +2640,13 @@ func (s *DebugBarLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDisc
 	result, err := s.ClusterDiscoveryStore.Exists(discovery)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ClusterDiscoveryStore.Exists")
-	// event.Add("params", fmt.Sprintf("%v", []any{discovery}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Exists", success, elapsed)
 	return result, err
 }
 
@@ -3483,19 +2656,13 @@ func (s *DebugBarLayerClusterDiscoveryStore) GetAll(discoveryType string, cluste
 	result, err := s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ClusterDiscoveryStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{discoveryType, clusterName}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discoveryType, clusterName}))
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -3505,19 +2672,13 @@ func (s *DebugBarLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscov
 	err := s.ClusterDiscoveryStore.Save(discovery)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ClusterDiscoveryStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{discovery}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.Save", success, elapsed)
 	return err
 }
 
@@ -3527,19 +2688,13 @@ func (s *DebugBarLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Clus
 	err := s.ClusterDiscoveryStore.SetLastPingAt(discovery)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ClusterDiscoveryStore.SetLastPingAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{discovery}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{discovery}))
+	s.Root.debugBar.SendStoreCall("ClusterDiscoveryStore.SetLastPingAt", success, elapsed)
 	return err
 }
 
@@ -3549,19 +2704,13 @@ func (s *DebugBarLayerCommandStore) AnalyticsCommandCount(teamID string) (int64,
 	result, err := s.CommandStore.AnalyticsCommandCount(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.AnalyticsCommandCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("CommandStore.AnalyticsCommandCount", success, elapsed)
 	return result, err
 }
 
@@ -3571,19 +2720,13 @@ func (s *DebugBarLayerCommandStore) Delete(commandID string, timestamp int64) er
 	err := s.CommandStore.Delete(commandID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{commandID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{commandID, timestamp}))
+	s.Root.debugBar.SendStoreCall("CommandStore.Delete", success, elapsed)
 	return err
 }
 
@@ -3593,19 +2736,13 @@ func (s *DebugBarLayerCommandStore) Get(id string) (*model.Command, error) {
 	result, err := s.CommandStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("CommandStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -3615,19 +2752,13 @@ func (s *DebugBarLayerCommandStore) GetByTeam(teamID string) ([]*model.Command, 
 	result, err := s.CommandStore.GetByTeam(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.GetByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("CommandStore.GetByTeam", success, elapsed)
 	return result, err
 }
 
@@ -3637,19 +2768,13 @@ func (s *DebugBarLayerCommandStore) GetByTrigger(teamID string, trigger string) 
 	result, err := s.CommandStore.GetByTrigger(teamID, trigger)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.GetByTrigger")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, trigger}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, trigger}))
+	s.Root.debugBar.SendStoreCall("CommandStore.GetByTrigger", success, elapsed)
 	return result, err
 }
 
@@ -3659,19 +2784,13 @@ func (s *DebugBarLayerCommandStore) PermanentDeleteByTeam(teamID string) error {
 	err := s.CommandStore.PermanentDeleteByTeam(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.PermanentDeleteByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("CommandStore.PermanentDeleteByTeam", success, elapsed)
 	return err
 }
 
@@ -3681,19 +2800,13 @@ func (s *DebugBarLayerCommandStore) PermanentDeleteByUser(userID string) error {
 	err := s.CommandStore.PermanentDeleteByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.PermanentDeleteByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("CommandStore.PermanentDeleteByUser", success, elapsed)
 	return err
 }
 
@@ -3703,19 +2816,13 @@ func (s *DebugBarLayerCommandStore) Save(webhook *model.Command) (*model.Command
 	result, err := s.CommandStore.Save(webhook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
+	s.Root.debugBar.SendStoreCall("CommandStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -3725,19 +2832,13 @@ func (s *DebugBarLayerCommandStore) Update(hook *model.Command) (*model.Command,
 	result, err := s.CommandStore.Update(hook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{hook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{hook}))
+	s.Root.debugBar.SendStoreCall("CommandStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -3747,19 +2848,13 @@ func (s *DebugBarLayerCommandWebhookStore) Cleanup() {
 	s.CommandWebhookStore.Cleanup()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandWebhookStore.Cleanup")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Cleanup", success, elapsed)
 
 }
 
@@ -3769,19 +2864,13 @@ func (s *DebugBarLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook
 	result, err := s.CommandWebhookStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandWebhookStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -3791,19 +2880,13 @@ func (s *DebugBarLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (
 	result, err := s.CommandWebhookStore.Save(webhook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandWebhookStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -3813,19 +2896,13 @@ func (s *DebugBarLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	err := s.CommandWebhookStore.TryUse(id, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "CommandWebhookStore.TryUse")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, limit}))
+	s.Root.debugBar.SendStoreCall("CommandWebhookStore.TryUse", success, elapsed)
 	return err
 }
 
@@ -3835,19 +2912,13 @@ func (s *DebugBarLayerComplianceStore) ComplianceExport(compliance *model.Compli
 	result, resultVar1, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ComplianceStore.ComplianceExport")
-	// event.Add("params", fmt.Sprintf("%v", []any{compliance, cursor, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{compliance, cursor, limit}))
+	s.Root.debugBar.SendStoreCall("ComplianceStore.ComplianceExport", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -3857,19 +2928,13 @@ func (s *DebugBarLayerComplianceStore) Get(id string) (*model.Compliance, error)
 	result, err := s.ComplianceStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ComplianceStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("ComplianceStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -3879,19 +2944,13 @@ func (s *DebugBarLayerComplianceStore) GetAll(offset int, limit int) (model.Comp
 	result, err := s.ComplianceStore.GetAll(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ComplianceStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("ComplianceStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -3901,19 +2960,13 @@ func (s *DebugBarLayerComplianceStore) MessageExport(ctx context.Context, cursor
 	result, resultVar1, err := s.ComplianceStore.MessageExport(ctx, cursor, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ComplianceStore.MessageExport")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, cursor, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, cursor, limit}))
+	s.Root.debugBar.SendStoreCall("ComplianceStore.MessageExport", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -3923,19 +2976,13 @@ func (s *DebugBarLayerComplianceStore) Save(compliance *model.Compliance) (*mode
 	result, err := s.ComplianceStore.Save(compliance)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ComplianceStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{compliance}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{compliance}))
+	s.Root.debugBar.SendStoreCall("ComplianceStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -3945,19 +2992,13 @@ func (s *DebugBarLayerComplianceStore) Update(compliance *model.Compliance) (*mo
 	result, err := s.ComplianceStore.Update(compliance)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ComplianceStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{compliance}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{compliance}))
+	s.Root.debugBar.SendStoreCall("ComplianceStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -3967,19 +3008,13 @@ func (s *DebugBarLayerDraftStore) Delete(userID string, channelID string, rootID
 	err := s.DraftStore.Delete(userID, channelID, rootID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "DraftStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, rootID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, rootID}))
+	s.Root.debugBar.SendStoreCall("DraftStore.Delete", success, elapsed)
 	return err
 }
 
@@ -3989,19 +3024,13 @@ func (s *DebugBarLayerDraftStore) Get(userID string, channelID string, rootID st
 	result, err := s.DraftStore.Get(userID, channelID, rootID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "DraftStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, rootID, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, rootID, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("DraftStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -4011,19 +3040,13 @@ func (s *DebugBarLayerDraftStore) GetDraftsForUser(userID string, teamID string)
 	result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "DraftStore.GetDraftsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
+	s.Root.debugBar.SendStoreCall("DraftStore.GetDraftsForUser", success, elapsed)
 	return result, err
 }
 
@@ -4033,19 +3056,13 @@ func (s *DebugBarLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
 	result, err := s.DraftStore.Save(d)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "DraftStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{d}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{d}))
+	s.Root.debugBar.SendStoreCall("DraftStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -4055,19 +3072,13 @@ func (s *DebugBarLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
 	result, err := s.DraftStore.Update(d)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "DraftStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{d}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{d}))
+	s.Root.debugBar.SendStoreCall("DraftStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -4077,19 +3088,13 @@ func (s *DebugBarLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) er
 	err := s.EmojiStore.Delete(emoji, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{emoji, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{emoji, timestamp}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.Delete", success, elapsed)
 	return err
 }
 
@@ -4099,19 +3104,13 @@ func (s *DebugBarLayerEmojiStore) Get(ctx context.Context, id string, allowFromC
 	result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, id, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -4121,19 +3120,13 @@ func (s *DebugBarLayerEmojiStore) GetByName(ctx context.Context, name string, al
 	result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, name, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, name, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -4143,19 +3136,13 @@ func (s *DebugBarLayerEmojiStore) GetList(offset int, limit int, sort string) ([
 	result, err := s.EmojiStore.GetList(offset, limit, sort)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.GetList")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit, sort}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit, sort}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.GetList", success, elapsed)
 	return result, err
 }
 
@@ -4165,19 +3152,13 @@ func (s *DebugBarLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Em
 	result, err := s.EmojiStore.GetMultipleByName(names)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.GetMultipleByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{names}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{names}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.GetMultipleByName", success, elapsed)
 	return result, err
 }
 
@@ -4187,19 +3168,13 @@ func (s *DebugBarLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error)
 	result, err := s.EmojiStore.Save(emoji)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{emoji}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{emoji}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -4209,19 +3184,13 @@ func (s *DebugBarLayerEmojiStore) Search(name string, prefixOnly bool, limit int
 	result, err := s.EmojiStore.Search(name, prefixOnly, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "EmojiStore.Search")
-	// event.Add("params", fmt.Sprintf("%v", []any{name, prefixOnly, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name, prefixOnly, limit}))
+	s.Root.debugBar.SendStoreCall("EmojiStore.Search", success, elapsed)
 	return result, err
 }
 
@@ -4231,19 +3200,13 @@ func (s *DebugBarLayerFileInfoStore) AttachToPost(fileID string, postID string, 
 	err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.AttachToPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{fileID, postID, creatorID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileID, postID, creatorID}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.AttachToPost", success, elapsed)
 	return err
 }
 
@@ -4253,19 +3216,13 @@ func (s *DebugBarLayerFileInfoStore) ClearCaches() {
 	s.FileInfoStore.ClearCaches()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.ClearCaches")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.ClearCaches", success, elapsed)
 
 }
 
@@ -4275,19 +3232,13 @@ func (s *DebugBarLayerFileInfoStore) CountAll() (int64, error) {
 	result, err := s.FileInfoStore.CountAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.CountAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.CountAll", success, elapsed)
 	return result, err
 }
 
@@ -4297,19 +3248,13 @@ func (s *DebugBarLayerFileInfoStore) DeleteForPost(postID string) (string, error
 	result, err := s.FileInfoStore.DeleteForPost(postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.DeleteForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.DeleteForPost", success, elapsed)
 	return result, err
 }
 
@@ -4319,19 +3264,13 @@ func (s *DebugBarLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	result, err := s.FileInfoStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -4341,19 +3280,13 @@ func (s *DebugBarLayerFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, 
 	result, err := s.FileInfoStore.GetByIds(ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{ids}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetByIds", success, elapsed)
 	return result, err
 }
 
@@ -4363,19 +3296,13 @@ func (s *DebugBarLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, er
 	result, err := s.FileInfoStore.GetByPath(path)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetByPath")
-	// event.Add("params", fmt.Sprintf("%v", []any{path}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{path}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetByPath", success, elapsed)
 	return result, err
 }
 
@@ -4385,19 +3312,13 @@ func (s *DebugBarLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, s
 	result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, startFileID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetFilesBatchForIndexing")
-	// event.Add("params", fmt.Sprintf("%v", []any{startTime, startFileID, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startFileID, limit}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetFilesBatchForIndexing", success, elapsed)
 	return result, err
 }
 
@@ -4407,19 +3328,13 @@ func (s *DebugBarLayerFileInfoStore) GetForPost(postID string, readFromMaster bo
 	result, err := s.FileInfoStore.GetForPost(postID, readFromMaster, includeDeleted, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, readFromMaster, includeDeleted, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, readFromMaster, includeDeleted, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetForPost", success, elapsed)
 	return result, err
 }
 
@@ -4429,19 +3344,13 @@ func (s *DebugBarLayerFileInfoStore) GetForUser(userID string) ([]*model.FileInf
 	result, err := s.FileInfoStore.GetForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetForUser", success, elapsed)
 	return result, err
 }
 
@@ -4451,19 +3360,13 @@ func (s *DebugBarLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, 
 	result, err := s.FileInfoStore.GetFromMaster(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetFromMaster")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetFromMaster", success, elapsed)
 	return result, err
 }
 
@@ -4473,19 +3376,13 @@ func (s *DebugBarLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includ
 	result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetStorageUsage")
-	// event.Add("params", fmt.Sprintf("%v", []any{allowFromCache, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{allowFromCache, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetStorageUsage", success, elapsed)
 	return result, err
 }
 
@@ -4495,19 +3392,13 @@ func (s *DebugBarLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error
 	result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetUptoNSizeFileTime")
-	// event.Add("params", fmt.Sprintf("%v", []any{n}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{n}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetUptoNSizeFileTime", success, elapsed)
 	return result, err
 }
 
@@ -4517,19 +3408,13 @@ func (s *DebugBarLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *
 	result, err := s.FileInfoStore.GetWithOptions(page, perPage, opt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.GetWithOptions")
-	// event.Add("params", fmt.Sprintf("%v", []any{page, perPage, opt}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, opt}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.GetWithOptions", success, elapsed)
 	return result, err
 }
 
@@ -4539,19 +3424,13 @@ func (s *DebugBarLayerFileInfoStore) InvalidateFileInfosForPostCache(postID stri
 	s.FileInfoStore.InvalidateFileInfosForPostCache(postID, deleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.InvalidateFileInfosForPostCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, deleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, deleted}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.InvalidateFileInfosForPostCache", success, elapsed)
 
 }
 
@@ -4561,19 +3440,13 @@ func (s *DebugBarLayerFileInfoStore) PermanentDelete(fileID string) error {
 	err := s.FileInfoStore.PermanentDelete(fileID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.PermanentDelete")
-	// event.Add("params", fmt.Sprintf("%v", []any{fileID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileID}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDelete", success, elapsed)
 	return err
 }
 
@@ -4583,19 +3456,13 @@ func (s *DebugBarLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit i
 	result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.PermanentDeleteBatch")
-	// event.Add("params", fmt.Sprintf("%v", []any{endTime, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDeleteBatch", success, elapsed)
 	return result, err
 }
 
@@ -4605,19 +3472,13 @@ func (s *DebugBarLayerFileInfoStore) PermanentDeleteByUser(userID string) (int64
 	result, err := s.FileInfoStore.PermanentDeleteByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.PermanentDeleteByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.PermanentDeleteByUser", success, elapsed)
 	return result, err
 }
 
@@ -4627,19 +3488,13 @@ func (s *DebugBarLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo
 	result, err := s.FileInfoStore.Save(info)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{info}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{info}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -4649,19 +3504,13 @@ func (s *DebugBarLayerFileInfoStore) Search(paramsList []*model.SearchParams, us
 	result, err := s.FileInfoStore.Search(paramsList, userID, teamID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.Search")
-	// event.Add("params", fmt.Sprintf("%v", []any{paramsList, userID, teamID, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{paramsList, userID, teamID, page, perPage}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Search", success, elapsed)
 	return result, err
 }
 
@@ -4671,19 +3520,13 @@ func (s *DebugBarLayerFileInfoStore) SetContent(fileID string, content string) e
 	err := s.FileInfoStore.SetContent(fileID, content)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.SetContent")
-	// event.Add("params", fmt.Sprintf("%v", []any{fileID, content}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileID, content}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.SetContent", success, elapsed)
 	return err
 }
 
@@ -4693,19 +3536,13 @@ func (s *DebugBarLayerFileInfoStore) Upsert(info *model.FileInfo) (*model.FileIn
 	result, err := s.FileInfoStore.Upsert(info)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "FileInfoStore.Upsert")
-	// event.Add("params", fmt.Sprintf("%v", []any{info}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{info}))
+	s.Root.debugBar.SendStoreCall("FileInfoStore.Upsert", success, elapsed)
 	return result, err
 }
 
@@ -4715,19 +3552,13 @@ func (s *DebugBarLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string
 	result, err := s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.AdminRoleGroupsForSyncableMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, syncableID, syncableType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, syncableID, syncableType}))
+	s.Root.debugBar.SendStoreCall("GroupStore.AdminRoleGroupsForSyncableMember", success, elapsed)
 	return result, err
 }
 
@@ -4737,19 +3568,13 @@ func (s *DebugBarLayerGroupStore) ChannelMembersMinusGroupMembers(channelID stri
 	result, err := s.GroupStore.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.ChannelMembersMinusGroupMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, groupIDs, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, groupIDs, page, perPage}))
+	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersMinusGroupMembers", success, elapsed)
 	return result, err
 }
 
@@ -4759,19 +3584,13 @@ func (s *DebugBarLayerGroupStore) ChannelMembersToAdd(since int64, channelID *st
 	result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.ChannelMembersToAdd")
-	// event.Add("params", fmt.Sprintf("%v", []any{since, channelID, includeRemovedMembers}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{since, channelID, includeRemovedMembers}))
+	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersToAdd", success, elapsed)
 	return result, err
 }
 
@@ -4781,19 +3600,13 @@ func (s *DebugBarLayerGroupStore) ChannelMembersToRemove(channelID *string) ([]*
 	result, err := s.GroupStore.ChannelMembersToRemove(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.ChannelMembersToRemove")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.ChannelMembersToRemove", success, elapsed)
 	return result, err
 }
 
@@ -4803,19 +3616,13 @@ func (s *DebugBarLayerGroupStore) CountChannelMembersMinusGroupMembers(channelID
 	result, err := s.GroupStore.CountChannelMembersMinusGroupMembers(channelID, groupIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.CountChannelMembersMinusGroupMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, groupIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, groupIDs}))
+	s.Root.debugBar.SendStoreCall("GroupStore.CountChannelMembersMinusGroupMembers", success, elapsed)
 	return result, err
 }
 
@@ -4825,19 +3632,13 @@ func (s *DebugBarLayerGroupStore) CountGroupsByChannel(channelID string, opts mo
 	result, err := s.GroupStore.CountGroupsByChannel(channelID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.CountGroupsByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, opts}))
+	s.Root.debugBar.SendStoreCall("GroupStore.CountGroupsByChannel", success, elapsed)
 	return result, err
 }
 
@@ -4847,19 +3648,13 @@ func (s *DebugBarLayerGroupStore) CountGroupsByTeam(teamID string, opts model.Gr
 	result, err := s.GroupStore.CountGroupsByTeam(teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.CountGroupsByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, opts}))
+	s.Root.debugBar.SendStoreCall("GroupStore.CountGroupsByTeam", success, elapsed)
 	return result, err
 }
 
@@ -4869,19 +3664,13 @@ func (s *DebugBarLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID strin
 	result, err := s.GroupStore.CountTeamMembersMinusGroupMembers(teamID, groupIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.CountTeamMembersMinusGroupMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, groupIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, groupIDs}))
+	s.Root.debugBar.SendStoreCall("GroupStore.CountTeamMembersMinusGroupMembers", success, elapsed)
 	return result, err
 }
 
@@ -4891,19 +3680,13 @@ func (s *DebugBarLayerGroupStore) Create(group *model.Group) (*model.Group, erro
 	result, err := s.GroupStore.Create(group)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.Create")
-	// event.Add("params", fmt.Sprintf("%v", []any{group}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{group}))
+	s.Root.debugBar.SendStoreCall("GroupStore.Create", success, elapsed)
 	return result, err
 }
 
@@ -4913,19 +3696,13 @@ func (s *DebugBarLayerGroupStore) CreateGroupSyncable(groupSyncable *model.Group
 	result, err := s.GroupStore.CreateGroupSyncable(groupSyncable)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.CreateGroupSyncable")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupSyncable}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupSyncable}))
+	s.Root.debugBar.SendStoreCall("GroupStore.CreateGroupSyncable", success, elapsed)
 	return result, err
 }
 
@@ -4935,19 +3712,13 @@ func (s *DebugBarLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserId
 	result, err := s.GroupStore.CreateWithUserIds(group)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.CreateWithUserIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{group}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{group}))
+	s.Root.debugBar.SendStoreCall("GroupStore.CreateWithUserIds", success, elapsed)
 	return result, err
 }
 
@@ -4957,19 +3728,13 @@ func (s *DebugBarLayerGroupStore) Delete(groupID string) (*model.Group, error) {
 	result, err := s.GroupStore.Delete(groupID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -4979,19 +3744,13 @@ func (s *DebugBarLayerGroupStore) DeleteGroupSyncable(groupID string, syncableID
 	result, err := s.GroupStore.DeleteGroupSyncable(groupID, syncableID, syncableType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.DeleteGroupSyncable")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, syncableID, syncableType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, syncableID, syncableType}))
+	s.Root.debugBar.SendStoreCall("GroupStore.DeleteGroupSyncable", success, elapsed)
 	return result, err
 }
 
@@ -5001,19 +3760,13 @@ func (s *DebugBarLayerGroupStore) DeleteMember(groupID string, userID string) (*
 	result, err := s.GroupStore.DeleteMember(groupID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.DeleteMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.DeleteMember", success, elapsed)
 	return result, err
 }
 
@@ -5023,19 +3776,13 @@ func (s *DebugBarLayerGroupStore) DeleteMembers(groupID string, userIDs []string
 	result, err := s.GroupStore.DeleteMembers(groupID, userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.DeleteMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, userIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userIDs}))
+	s.Root.debugBar.SendStoreCall("GroupStore.DeleteMembers", success, elapsed)
 	return result, err
 }
 
@@ -5045,19 +3792,13 @@ func (s *DebugBarLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 	result, err := s.GroupStore.DistinctGroupMemberCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.DistinctGroupMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("GroupStore.DistinctGroupMemberCount", success, elapsed)
 	return result, err
 }
 
@@ -5067,19 +3808,13 @@ func (s *DebugBarLayerGroupStore) DistinctGroupMemberCountForSource(source model
 	result, err := s.GroupStore.DistinctGroupMemberCountForSource(source)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.DistinctGroupMemberCountForSource")
-	// event.Add("params", fmt.Sprintf("%v", []any{source}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{source}))
+	s.Root.debugBar.SendStoreCall("GroupStore.DistinctGroupMemberCountForSource", success, elapsed)
 	return result, err
 }
 
@@ -5089,19 +3824,13 @@ func (s *DebugBarLayerGroupStore) Get(groupID string) (*model.Group, error) {
 	result, err := s.GroupStore.Get(groupID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -5111,19 +3840,13 @@ func (s *DebugBarLayerGroupStore) GetAllBySource(groupSource model.GroupSource) 
 	result, err := s.GroupStore.GetAllBySource(groupSource)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetAllBySource")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupSource}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupSource}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetAllBySource", success, elapsed)
 	return result, err
 }
 
@@ -5133,19 +3856,13 @@ func (s *DebugBarLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID string, 
 	result, err := s.GroupStore.GetAllGroupSyncablesByGroupId(groupID, syncableType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetAllGroupSyncablesByGroupId")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, syncableType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, syncableType}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetAllGroupSyncablesByGroupId", success, elapsed)
 	return result, err
 }
 
@@ -5155,19 +3872,13 @@ func (s *DebugBarLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, e
 	result, err := s.GroupStore.GetByIDs(groupIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetByIDs")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupIDs}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByIDs", success, elapsed)
 	return result, err
 }
 
@@ -5177,19 +3888,13 @@ func (s *DebugBarLayerGroupStore) GetByName(name string, opts model.GroupSearchO
 	result, err := s.GroupStore.GetByName(name, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{name, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name, opts}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -5199,19 +3904,13 @@ func (s *DebugBarLayerGroupStore) GetByRemoteID(remoteID string, groupSource mod
 	result, err := s.GroupStore.GetByRemoteID(remoteID, groupSource)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetByRemoteID")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteID, groupSource}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteID, groupSource}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByRemoteID", success, elapsed)
 	return result, err
 }
 
@@ -5221,19 +3920,13 @@ func (s *DebugBarLayerGroupStore) GetByUser(userID string) ([]*model.Group, erro
 	result, err := s.GroupStore.GetByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetByUser", success, elapsed)
 	return result, err
 }
 
@@ -5243,19 +3936,13 @@ func (s *DebugBarLayerGroupStore) GetGroupSyncable(groupID string, syncableID st
 	result, err := s.GroupStore.GetGroupSyncable(groupID, syncableID, syncableType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetGroupSyncable")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, syncableID, syncableType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, syncableID, syncableType}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupSyncable", success, elapsed)
 	return result, err
 }
 
@@ -5265,19 +3952,13 @@ func (s *DebugBarLayerGroupStore) GetGroups(page int, perPage int, opts model.Gr
 	result, err := s.GroupStore.GetGroups(page, perPage, opts, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetGroups")
-	// event.Add("params", fmt.Sprintf("%v", []any{page, perPage, opts, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, opts, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroups", success, elapsed)
 	return result, err
 }
 
@@ -5287,19 +3968,13 @@ func (s *DebugBarLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamID str
 	result, err := s.GroupStore.GetGroupsAssociatedToChannelsByTeam(teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetGroupsAssociatedToChannelsByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, opts}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsAssociatedToChannelsByTeam", success, elapsed)
 	return result, err
 }
 
@@ -5309,19 +3984,13 @@ func (s *DebugBarLayerGroupStore) GetGroupsByChannel(channelID string, opts mode
 	result, err := s.GroupStore.GetGroupsByChannel(channelID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetGroupsByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, opts}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsByChannel", success, elapsed)
 	return result, err
 }
 
@@ -5331,19 +4000,13 @@ func (s *DebugBarLayerGroupStore) GetGroupsByTeam(teamID string, opts model.Grou
 	result, err := s.GroupStore.GetGroupsByTeam(teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetGroupsByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, opts}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetGroupsByTeam", success, elapsed)
 	return result, err
 }
 
@@ -5353,19 +4016,13 @@ func (s *DebugBarLayerGroupStore) GetMember(groupID string, userID string) (*mod
 	result, err := s.GroupStore.GetMember(groupID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMember", success, elapsed)
 	return result, err
 }
 
@@ -5375,19 +4032,13 @@ func (s *DebugBarLayerGroupStore) GetMemberCount(groupID string) (int64, error) 
 	result, err := s.GroupStore.GetMemberCount(groupID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberCount", success, elapsed)
 	return result, err
 }
 
@@ -5397,19 +4048,13 @@ func (s *DebugBarLayerGroupStore) GetMemberCountWithRestrictions(groupID string,
 	result, err := s.GroupStore.GetMemberCountWithRestrictions(groupID, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberCountWithRestrictions")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberCountWithRestrictions", success, elapsed)
 	return result, err
 }
 
@@ -5419,19 +4064,13 @@ func (s *DebugBarLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User,
 	result, err := s.GroupStore.GetMemberUsers(groupID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsers", success, elapsed)
 	return result, err
 }
 
@@ -5441,19 +4080,13 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID st
 	result, err := s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberUsersInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, teamID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersInTeam", success, elapsed)
 	return result, err
 }
 
@@ -5463,19 +4096,13 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersNotInChannel(groupID string, cha
 	result, err := s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberUsersNotInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, channelID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersNotInChannel", success, elapsed)
 	return result, err
 }
 
@@ -5485,19 +4112,13 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersPage(groupID string, page int, p
 	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberUsersPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersPage", success, elapsed)
 	return result, err
 }
 
@@ -5507,19 +4128,13 @@ func (s *DebugBarLayerGroupStore) GetMemberUsersSortedPage(groupID string, page 
 	result, err := s.GroupStore.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetMemberUsersSortedPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions, teammateNameDisplay}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions, teammateNameDisplay}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetMemberUsersSortedPage", success, elapsed)
 	return result, err
 }
 
@@ -5529,19 +4144,13 @@ func (s *DebugBarLayerGroupStore) GetNonMemberUsersPage(groupID string, page int
 	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GetNonMemberUsersPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, page, perPage, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GetNonMemberUsersPage", success, elapsed)
 	return result, err
 }
 
@@ -5551,19 +4160,13 @@ func (s *DebugBarLayerGroupStore) GroupChannelCount() (int64, error) {
 	result, err := s.GroupStore.GroupChannelCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GroupChannelCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupChannelCount", success, elapsed)
 	return result, err
 }
 
@@ -5573,19 +4176,13 @@ func (s *DebugBarLayerGroupStore) GroupCount() (int64, error) {
 	result, err := s.GroupStore.GroupCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GroupCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupCount", success, elapsed)
 	return result, err
 }
 
@@ -5595,19 +4192,13 @@ func (s *DebugBarLayerGroupStore) GroupCountBySource(source model.GroupSource) (
 	result, err := s.GroupStore.GroupCountBySource(source)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GroupCountBySource")
-	// event.Add("params", fmt.Sprintf("%v", []any{source}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{source}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupCountBySource", success, elapsed)
 	return result, err
 }
 
@@ -5617,19 +4208,13 @@ func (s *DebugBarLayerGroupStore) GroupCountWithAllowReference() (int64, error) 
 	result, err := s.GroupStore.GroupCountWithAllowReference()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GroupCountWithAllowReference")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupCountWithAllowReference", success, elapsed)
 	return result, err
 }
 
@@ -5639,19 +4224,13 @@ func (s *DebugBarLayerGroupStore) GroupMemberCount() (int64, error) {
 	result, err := s.GroupStore.GroupMemberCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GroupMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupMemberCount", success, elapsed)
 	return result, err
 }
 
@@ -5661,19 +4240,13 @@ func (s *DebugBarLayerGroupStore) GroupTeamCount() (int64, error) {
 	result, err := s.GroupStore.GroupTeamCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.GroupTeamCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("GroupStore.GroupTeamCount", success, elapsed)
 	return result, err
 }
 
@@ -5683,19 +4256,13 @@ func (s *DebugBarLayerGroupStore) PermanentDeleteMembersByUser(userID string) er
 	err := s.GroupStore.PermanentDeleteMembersByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.PermanentDeleteMembersByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.PermanentDeleteMembersByUser", success, elapsed)
 	return err
 }
 
@@ -5705,19 +4272,13 @@ func (s *DebugBarLayerGroupStore) PermittedSyncableAdmins(syncableID string, syn
 	result, err := s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.PermittedSyncableAdmins")
-	// event.Add("params", fmt.Sprintf("%v", []any{syncableID, syncableType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{syncableID, syncableType}))
+	s.Root.debugBar.SendStoreCall("GroupStore.PermittedSyncableAdmins", success, elapsed)
 	return result, err
 }
 
@@ -5727,19 +4288,13 @@ func (s *DebugBarLayerGroupStore) Restore(groupID string) (*model.Group, error) 
 	result, err := s.GroupStore.Restore(groupID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.Restore")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.Restore", success, elapsed)
 	return result, err
 }
 
@@ -5749,19 +4304,13 @@ func (s *DebugBarLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, gr
 	result, err := s.GroupStore.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.TeamMembersMinusGroupMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, groupIDs, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, groupIDs, page, perPage}))
+	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersMinusGroupMembers", success, elapsed)
 	return result, err
 }
 
@@ -5771,19 +4320,13 @@ func (s *DebugBarLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, 
 	result, err := s.GroupStore.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.TeamMembersToAdd")
-	// event.Add("params", fmt.Sprintf("%v", []any{since, teamID, includeRemovedMembers}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{since, teamID, includeRemovedMembers}))
+	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersToAdd", success, elapsed)
 	return result, err
 }
 
@@ -5793,19 +4336,13 @@ func (s *DebugBarLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.
 	result, err := s.GroupStore.TeamMembersToRemove(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.TeamMembersToRemove")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.TeamMembersToRemove", success, elapsed)
 	return result, err
 }
 
@@ -5815,19 +4352,13 @@ func (s *DebugBarLayerGroupStore) Update(group *model.Group) (*model.Group, erro
 	result, err := s.GroupStore.Update(group)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{group}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{group}))
+	s.Root.debugBar.SendStoreCall("GroupStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -5837,19 +4368,13 @@ func (s *DebugBarLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.Group
 	result, err := s.GroupStore.UpdateGroupSyncable(groupSyncable)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.UpdateGroupSyncable")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupSyncable}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupSyncable}))
+	s.Root.debugBar.SendStoreCall("GroupStore.UpdateGroupSyncable", success, elapsed)
 	return result, err
 }
 
@@ -5859,19 +4384,13 @@ func (s *DebugBarLayerGroupStore) UpsertMember(groupID string, userID string) (*
 	result, err := s.GroupStore.UpsertMember(groupID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.UpsertMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userID}))
+	s.Root.debugBar.SendStoreCall("GroupStore.UpsertMember", success, elapsed)
 	return result, err
 }
 
@@ -5881,19 +4400,13 @@ func (s *DebugBarLayerGroupStore) UpsertMembers(groupID string, userIDs []string
 	result, err := s.GroupStore.UpsertMembers(groupID, userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "GroupStore.UpsertMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, userIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, userIDs}))
+	s.Root.debugBar.SendStoreCall("GroupStore.UpsertMembers", success, elapsed)
 	return result, err
 }
 
@@ -5903,19 +4416,13 @@ func (s *DebugBarLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	err := s.JobStore.Cleanup(expiryTime, batchSize)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.Cleanup")
-	// event.Add("params", fmt.Sprintf("%v", []any{expiryTime, batchSize}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{expiryTime, batchSize}))
+	s.Root.debugBar.SendStoreCall("JobStore.Cleanup", success, elapsed)
 	return err
 }
 
@@ -5925,19 +4432,13 @@ func (s *DebugBarLayerJobStore) Delete(id string) (string, error) {
 	result, err := s.JobStore.Delete(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("JobStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -5947,19 +4448,13 @@ func (s *DebugBarLayerJobStore) Get(id string) (*model.Job, error) {
 	result, err := s.JobStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("JobStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -5969,19 +4464,13 @@ func (s *DebugBarLayerJobStore) GetAllByStatus(status string) ([]*model.Job, err
 	result, err := s.JobStore.GetAllByStatus(status)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetAllByStatus")
-	// event.Add("params", fmt.Sprintf("%v", []any{status}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByStatus", success, elapsed)
 	return result, err
 }
 
@@ -5991,19 +4480,13 @@ func (s *DebugBarLayerJobStore) GetAllByType(jobType string) ([]*model.Job, erro
 	result, err := s.JobStore.GetAllByType(jobType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetAllByType")
-	// event.Add("params", fmt.Sprintf("%v", []any{jobType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobType}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByType", success, elapsed)
 	return result, err
 }
 
@@ -6013,19 +4496,13 @@ func (s *DebugBarLayerJobStore) GetAllByTypeAndStatus(jobType string, status str
 	result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetAllByTypeAndStatus")
-	// event.Add("params", fmt.Sprintf("%v", []any{jobType, status}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobType, status}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypeAndStatus", success, elapsed)
 	return result, err
 }
 
@@ -6035,19 +4512,13 @@ func (s *DebugBarLayerJobStore) GetAllByTypePage(jobType string, offset int, lim
 	result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetAllByTypePage")
-	// event.Add("params", fmt.Sprintf("%v", []any{jobType, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobType, offset, limit}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypePage", success, elapsed)
 	return result, err
 }
 
@@ -6057,19 +4528,13 @@ func (s *DebugBarLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int,
 	result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetAllByTypesPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{jobTypes, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{jobTypes, offset, limit}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllByTypesPage", success, elapsed)
 	return result, err
 }
 
@@ -6079,19 +4544,13 @@ func (s *DebugBarLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job,
 	result, err := s.JobStore.GetAllPage(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetAllPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetAllPage", success, elapsed)
 	return result, err
 }
 
@@ -6101,19 +4560,13 @@ func (s *DebugBarLayerJobStore) GetCountByStatusAndType(status string, jobType s
 	result, err := s.JobStore.GetCountByStatusAndType(status, jobType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetCountByStatusAndType")
-	// event.Add("params", fmt.Sprintf("%v", []any{status, jobType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status, jobType}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetCountByStatusAndType", success, elapsed)
 	return result, err
 }
 
@@ -6123,19 +4576,13 @@ func (s *DebugBarLayerJobStore) GetNewestJobByStatusAndType(status string, jobTy
 	result, err := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetNewestJobByStatusAndType")
-	// event.Add("params", fmt.Sprintf("%v", []any{status, jobType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status, jobType}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetNewestJobByStatusAndType", success, elapsed)
 	return result, err
 }
 
@@ -6145,19 +4592,13 @@ func (s *DebugBarLayerJobStore) GetNewestJobByStatusesAndType(statuses []string,
 	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.GetNewestJobByStatusesAndType")
-	// event.Add("params", fmt.Sprintf("%v", []any{statuses, jobType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{statuses, jobType}))
+	s.Root.debugBar.SendStoreCall("JobStore.GetNewestJobByStatusesAndType", success, elapsed)
 	return result, err
 }
 
@@ -6167,19 +4608,13 @@ func (s *DebugBarLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	result, err := s.JobStore.Save(job)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{job}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{job}))
+	s.Root.debugBar.SendStoreCall("JobStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -6189,19 +4624,13 @@ func (s *DebugBarLayerJobStore) UpdateOptimistically(job *model.Job, currentStat
 	result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.UpdateOptimistically")
-	// event.Add("params", fmt.Sprintf("%v", []any{job, currentStatus}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{job, currentStatus}))
+	s.Root.debugBar.SendStoreCall("JobStore.UpdateOptimistically", success, elapsed)
 	return result, err
 }
 
@@ -6211,19 +4640,13 @@ func (s *DebugBarLayerJobStore) UpdateStatus(id string, status string) (*model.J
 	result, err := s.JobStore.UpdateStatus(id, status)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.UpdateStatus")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, status}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, status}))
+	s.Root.debugBar.SendStoreCall("JobStore.UpdateStatus", success, elapsed)
 	return result, err
 }
 
@@ -6233,19 +4656,13 @@ func (s *DebugBarLayerJobStore) UpdateStatusOptimistically(id string, currentSta
 	result, err := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "JobStore.UpdateStatusOptimistically")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, currentStatus, newStatus}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, currentStatus, newStatus}))
+	s.Root.debugBar.SendStoreCall("JobStore.UpdateStatusOptimistically", success, elapsed)
 	return result, err
 }
 
@@ -6255,19 +4672,13 @@ func (s *DebugBarLayerLicenseStore) Get(id string) (*model.LicenseRecord, error)
 	result, err := s.LicenseStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "LicenseStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("LicenseStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -6277,19 +4688,13 @@ func (s *DebugBarLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 	result, err := s.LicenseStore.GetAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "LicenseStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("LicenseStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -6299,19 +4704,13 @@ func (s *DebugBarLayerLicenseStore) Save(license *model.LicenseRecord) (*model.L
 	result, err := s.LicenseStore.Save(license)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "LicenseStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{license}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{license}))
+	s.Root.debugBar.SendStoreCall("LicenseStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -6321,19 +4720,13 @@ func (s *DebugBarLayerLinkMetadataStore) Get(url string, timestamp int64) (*mode
 	result, err := s.LinkMetadataStore.Get(url, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "LinkMetadataStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{url, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{url, timestamp}))
+	s.Root.debugBar.SendStoreCall("LinkMetadataStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -6343,19 +4736,13 @@ func (s *DebugBarLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) 
 	result, err := s.LinkMetadataStore.Save(linkMetadata)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "LinkMetadataStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{linkMetadata}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{linkMetadata}))
+	s.Root.debugBar.SendStoreCall("LinkMetadataStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -6365,19 +4752,13 @@ func (s *DebugBarLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) erro
 	err := s.NotifyAdminStore.DeleteBefore(trial, now)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "NotifyAdminStore.DeleteBefore")
-	// event.Add("params", fmt.Sprintf("%v", []any{trial, now}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{trial, now}))
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.DeleteBefore", success, elapsed)
 	return err
 }
 
@@ -6387,19 +4768,13 @@ func (s *DebugBarLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminDat
 	result, err := s.NotifyAdminStore.Get(trial)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "NotifyAdminStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{trial}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{trial}))
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -6409,19 +4784,13 @@ func (s *DebugBarLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string,
 	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "NotifyAdminStore.GetDataByUserIdAndFeature")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, feature}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, feature}))
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.GetDataByUserIdAndFeature", success, elapsed)
 	return result, err
 }
 
@@ -6431,19 +4800,13 @@ func (s *DebugBarLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*mode
 	result, err := s.NotifyAdminStore.Save(data)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "NotifyAdminStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{data}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{data}))
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -6453,19 +4816,13 @@ func (s *DebugBarLayerNotifyAdminStore) Update(userId string, requiredPlan strin
 	err := s.NotifyAdminStore.Update(userId, requiredPlan, requiredFeature, now)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "NotifyAdminStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, requiredPlan, requiredFeature, now}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, requiredPlan, requiredFeature, now}))
+	s.Root.debugBar.SendStoreCall("NotifyAdminStore.Update", success, elapsed)
 	return err
 }
 
@@ -6475,19 +4832,13 @@ func (s *DebugBarLayerOAuthStore) DeleteApp(id string) error {
 	err := s.OAuthStore.DeleteApp(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.DeleteApp")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.DeleteApp", success, elapsed)
 	return err
 }
 
@@ -6497,19 +4848,13 @@ func (s *DebugBarLayerOAuthStore) GetAccessData(token string) (*model.AccessData
 	result, err := s.OAuthStore.GetAccessData(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetAccessData")
-	// event.Add("params", fmt.Sprintf("%v", []any{token}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessData", success, elapsed)
 	return result, err
 }
 
@@ -6519,19 +4864,13 @@ func (s *DebugBarLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*mo
 	result, err := s.OAuthStore.GetAccessDataByRefreshToken(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetAccessDataByRefreshToken")
-	// event.Add("params", fmt.Sprintf("%v", []any{token}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessDataByRefreshToken", success, elapsed)
 	return result, err
 }
 
@@ -6541,19 +4880,13 @@ func (s *DebugBarLayerOAuthStore) GetAccessDataByUserForApp(userID string, clien
 	result, err := s.OAuthStore.GetAccessDataByUserForApp(userID, clientId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetAccessDataByUserForApp")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, clientId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, clientId}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAccessDataByUserForApp", success, elapsed)
 	return result, err
 }
 
@@ -6563,19 +4896,13 @@ func (s *DebugBarLayerOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	result, err := s.OAuthStore.GetApp(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetApp")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetApp", success, elapsed)
 	return result, err
 }
 
@@ -6585,19 +4912,13 @@ func (s *DebugBarLayerOAuthStore) GetAppByUser(userID string, offset int, limit 
 	result, err := s.OAuthStore.GetAppByUser(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetAppByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAppByUser", success, elapsed)
 	return result, err
 }
 
@@ -6607,19 +4928,13 @@ func (s *DebugBarLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuth
 	result, err := s.OAuthStore.GetApps(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetApps")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetApps", success, elapsed)
 	return result, err
 }
 
@@ -6629,19 +4944,13 @@ func (s *DebugBarLayerOAuthStore) GetAuthData(code string) (*model.AuthData, err
 	result, err := s.OAuthStore.GetAuthData(code)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetAuthData")
-	// event.Add("params", fmt.Sprintf("%v", []any{code}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{code}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAuthData", success, elapsed)
 	return result, err
 }
 
@@ -6651,19 +4960,13 @@ func (s *DebugBarLayerOAuthStore) GetAuthorizedApps(userID string, offset int, l
 	result, err := s.OAuthStore.GetAuthorizedApps(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetAuthorizedApps")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetAuthorizedApps", success, elapsed)
 	return result, err
 }
 
@@ -6673,19 +4976,13 @@ func (s *DebugBarLayerOAuthStore) GetPreviousAccessData(userID string, clientId 
 	result, err := s.OAuthStore.GetPreviousAccessData(userID, clientId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.GetPreviousAccessData")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, clientId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, clientId}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.GetPreviousAccessData", success, elapsed)
 	return result, err
 }
 
@@ -6695,19 +4992,13 @@ func (s *DebugBarLayerOAuthStore) PermanentDeleteAuthDataByUser(userID string) e
 	err := s.OAuthStore.PermanentDeleteAuthDataByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.PermanentDeleteAuthDataByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.PermanentDeleteAuthDataByUser", success, elapsed)
 	return err
 }
 
@@ -6717,19 +5008,13 @@ func (s *DebugBarLayerOAuthStore) RemoveAccessData(token string) error {
 	err := s.OAuthStore.RemoveAccessData(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.RemoveAccessData")
-	// event.Add("params", fmt.Sprintf("%v", []any{token}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAccessData", success, elapsed)
 	return err
 }
 
@@ -6739,19 +5024,13 @@ func (s *DebugBarLayerOAuthStore) RemoveAllAccessData() error {
 	err := s.OAuthStore.RemoveAllAccessData()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.RemoveAllAccessData")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAllAccessData", success, elapsed)
 	return err
 }
 
@@ -6761,19 +5040,13 @@ func (s *DebugBarLayerOAuthStore) RemoveAuthData(code string) error {
 	err := s.OAuthStore.RemoveAuthData(code)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.RemoveAuthData")
-	// event.Add("params", fmt.Sprintf("%v", []any{code}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{code}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.RemoveAuthData", success, elapsed)
 	return err
 }
 
@@ -6783,19 +5056,13 @@ func (s *DebugBarLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (
 	result, err := s.OAuthStore.SaveAccessData(accessData)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.SaveAccessData")
-	// event.Add("params", fmt.Sprintf("%v", []any{accessData}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{accessData}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.SaveAccessData", success, elapsed)
 	return result, err
 }
 
@@ -6805,19 +5072,13 @@ func (s *DebugBarLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp,
 	result, err := s.OAuthStore.SaveApp(app)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.SaveApp")
-	// event.Add("params", fmt.Sprintf("%v", []any{app}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{app}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.SaveApp", success, elapsed)
 	return result, err
 }
 
@@ -6827,19 +5088,13 @@ func (s *DebugBarLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model
 	result, err := s.OAuthStore.SaveAuthData(authData)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.SaveAuthData")
-	// event.Add("params", fmt.Sprintf("%v", []any{authData}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authData}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.SaveAuthData", success, elapsed)
 	return result, err
 }
 
@@ -6849,19 +5104,13 @@ func (s *DebugBarLayerOAuthStore) UpdateAccessData(accessData *model.AccessData)
 	result, err := s.OAuthStore.UpdateAccessData(accessData)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.UpdateAccessData")
-	// event.Add("params", fmt.Sprintf("%v", []any{accessData}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{accessData}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.UpdateAccessData", success, elapsed)
 	return result, err
 }
 
@@ -6871,19 +5120,13 @@ func (s *DebugBarLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthAp
 	result, err := s.OAuthStore.UpdateApp(app)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "OAuthStore.UpdateApp")
-	// event.Add("params", fmt.Sprintf("%v", []any{app}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{app}))
+	s.Root.debugBar.SendStoreCall("OAuthStore.UpdateApp", success, elapsed)
 	return result, err
 }
 
@@ -6893,19 +5136,13 @@ func (s *DebugBarLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue
 	result, err := s.PluginStore.CompareAndDelete(keyVal, oldValue)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.CompareAndDelete")
-	// event.Add("params", fmt.Sprintf("%v", []any{keyVal, oldValue}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{keyVal, oldValue}))
+	s.Root.debugBar.SendStoreCall("PluginStore.CompareAndDelete", success, elapsed)
 	return result, err
 }
 
@@ -6915,19 +5152,13 @@ func (s *DebugBarLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, o
 	result, err := s.PluginStore.CompareAndSet(keyVal, oldValue)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.CompareAndSet")
-	// event.Add("params", fmt.Sprintf("%v", []any{keyVal, oldValue}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{keyVal, oldValue}))
+	s.Root.debugBar.SendStoreCall("PluginStore.CompareAndSet", success, elapsed)
 	return result, err
 }
 
@@ -6937,19 +5168,13 @@ func (s *DebugBarLayerPluginStore) Delete(pluginID string, key string) error {
 	err := s.PluginStore.Delete(pluginID, key)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{pluginID, key}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, key}))
+	s.Root.debugBar.SendStoreCall("PluginStore.Delete", success, elapsed)
 	return err
 }
 
@@ -6959,19 +5184,13 @@ func (s *DebugBarLayerPluginStore) DeleteAllExpired() error {
 	err := s.PluginStore.DeleteAllExpired()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.DeleteAllExpired")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("PluginStore.DeleteAllExpired", success, elapsed)
 	return err
 }
 
@@ -6981,19 +5200,13 @@ func (s *DebugBarLayerPluginStore) DeleteAllForPlugin(PluginID string) error {
 	err := s.PluginStore.DeleteAllForPlugin(PluginID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.DeleteAllForPlugin")
-	// event.Add("params", fmt.Sprintf("%v", []any{PluginID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{PluginID}))
+	s.Root.debugBar.SendStoreCall("PluginStore.DeleteAllForPlugin", success, elapsed)
 	return err
 }
 
@@ -7003,19 +5216,13 @@ func (s *DebugBarLayerPluginStore) Get(pluginID string, key string) (*model.Plug
 	result, err := s.PluginStore.Get(pluginID, key)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{pluginID, key}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, key}))
+	s.Root.debugBar.SendStoreCall("PluginStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -7025,19 +5232,13 @@ func (s *DebugBarLayerPluginStore) List(pluginID string, page int, perPage int) 
 	result, err := s.PluginStore.List(pluginID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.List")
-	// event.Add("params", fmt.Sprintf("%v", []any{pluginID, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, page, perPage}))
+	s.Root.debugBar.SendStoreCall("PluginStore.List", success, elapsed)
 	return result, err
 }
 
@@ -7047,19 +5248,13 @@ func (s *DebugBarLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*
 	result, err := s.PluginStore.SaveOrUpdate(keyVal)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.SaveOrUpdate")
-	// event.Add("params", fmt.Sprintf("%v", []any{keyVal}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{keyVal}))
+	s.Root.debugBar.SendStoreCall("PluginStore.SaveOrUpdate", success, elapsed)
 	return result, err
 }
 
@@ -7069,19 +5264,13 @@ func (s *DebugBarLayerPluginStore) SetWithOptions(pluginID string, key string, v
 	result, err := s.PluginStore.SetWithOptions(pluginID, key, value, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PluginStore.SetWithOptions")
-	// event.Add("params", fmt.Sprintf("%v", []any{pluginID, key, value, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{pluginID, key, value, options}))
+	s.Root.debugBar.SendStoreCall("PluginStore.SetWithOptions", success, elapsed)
 	return result, err
 }
 
@@ -7091,19 +5280,13 @@ func (s *DebugBarLayerPostStore) AnalyticsPostCount(options *model.PostCountOpti
 	result, err := s.PostStore.AnalyticsPostCount(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.AnalyticsPostCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsPostCount", success, elapsed)
 	return result, err
 }
 
@@ -7113,19 +5296,13 @@ func (s *DebugBarLayerPostStore) AnalyticsPostCountsByDay(options *model.Analyti
 	result, err := s.PostStore.AnalyticsPostCountsByDay(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.AnalyticsPostCountsByDay")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsPostCountsByDay", success, elapsed)
 	return result, err
 }
 
@@ -7135,19 +5312,13 @@ func (s *DebugBarLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string
 	result, err := s.PostStore.AnalyticsUserCountsWithPostsByDay(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.AnalyticsUserCountsWithPostsByDay")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("PostStore.AnalyticsUserCountsWithPostsByDay", success, elapsed)
 	return result, err
 }
 
@@ -7157,19 +5328,13 @@ func (s *DebugBarLayerPostStore) ClearCaches() {
 	s.PostStore.ClearCaches()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.ClearCaches")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("PostStore.ClearCaches", success, elapsed)
 
 }
 
@@ -7179,19 +5344,13 @@ func (s *DebugBarLayerPostStore) Delete(postID string, timestamp int64, deleteBy
 	err := s.PostStore.Delete(postID, timestamp, deleteByID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, timestamp, deleteByID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, timestamp, deleteByID}))
+	s.Root.debugBar.SendStoreCall("PostStore.Delete", success, elapsed)
 	return err
 }
 
@@ -7201,19 +5360,13 @@ func (s *DebugBarLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	result, err := s.PostStore.DeleteOrphanedRows(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.DeleteOrphanedRows")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.DeleteOrphanedRows", success, elapsed)
 	return result, err
 }
 
@@ -7223,19 +5376,13 @@ func (s *DebugBarLayerPostStore) Get(ctx context.Context, id string, opts model.
 	result, err := s.PostStore.Get(ctx, id, opts, userID, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, id, opts, userID, sanitizeOptions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id, opts, userID, sanitizeOptions}))
+	s.Root.debugBar.SendStoreCall("PostStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -7245,19 +5392,13 @@ func (s *DebugBarLayerPostStore) GetDirectPostParentsForExportAfter(limit int, a
 	result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetDirectPostParentsForExportAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit, afterID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetDirectPostParentsForExportAfter", success, elapsed)
 	return result, err
 }
 
@@ -7267,19 +5408,13 @@ func (s *DebugBarLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.
 	result, err := s.PostStore.GetEditHistoryForPost(postId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetEditHistoryForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postId}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetEditHistoryForPost", success, elapsed)
 	return result, err
 }
 
@@ -7289,19 +5424,13 @@ func (s *DebugBarLayerPostStore) GetEtag(channelID string, allowFromCache bool, 
 	result := s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetEtag")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, allowFromCache, collapsedThreads}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, allowFromCache, collapsedThreads}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetEtag", success, elapsed)
 	return result
 }
 
@@ -7311,19 +5440,13 @@ func (s *DebugBarLayerPostStore) GetFlaggedPosts(userID string, offset int, limi
 	result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetFlaggedPosts")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPosts", success, elapsed)
 	return result, err
 }
 
@@ -7333,19 +5456,13 @@ func (s *DebugBarLayerPostStore) GetFlaggedPostsForChannel(userID string, channe
 	result, err := s.PostStore.GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetFlaggedPostsForChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPostsForChannel", success, elapsed)
 	return result, err
 }
 
@@ -7355,19 +5472,13 @@ func (s *DebugBarLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID st
 	result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetFlaggedPostsForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetFlaggedPostsForTeam", success, elapsed)
 	return result, err
 }
 
@@ -7377,19 +5488,13 @@ func (s *DebugBarLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
 	result, err := s.PostStore.GetLastPostRowCreateAt()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetLastPostRowCreateAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetLastPostRowCreateAt", success, elapsed)
 	return result, err
 }
 
@@ -7399,19 +5504,13 @@ func (s *DebugBarLayerPostStore) GetMaxPostSize() int {
 	result := s.PostStore.GetMaxPostSize()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetMaxPostSize")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetMaxPostSize", success, elapsed)
 	return result
 }
 
@@ -7421,19 +5520,13 @@ func (s *DebugBarLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	result, err := s.PostStore.GetNthRecentPostTime(n)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetNthRecentPostTime")
-	// event.Add("params", fmt.Sprintf("%v", []any{n}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{n}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetNthRecentPostTime", success, elapsed)
 	return result, err
 }
 
@@ -7443,19 +5536,13 @@ func (s *DebugBarLayerPostStore) GetOldest() (*model.Post, error) {
 	result, err := s.PostStore.GetOldest()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetOldest")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetOldest", success, elapsed)
 	return result, err
 }
 
@@ -7465,19 +5552,13 @@ func (s *DebugBarLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 	result, err := s.PostStore.GetOldestEntityCreationTime()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetOldestEntityCreationTime")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetOldestEntityCreationTime", success, elapsed)
 	return result, err
 }
 
@@ -7487,19 +5568,13 @@ func (s *DebugBarLayerPostStore) GetParentsForExportAfter(limit int, afterID str
 	result, err := s.PostStore.GetParentsForExportAfter(limit, afterID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetParentsForExportAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit, afterID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetParentsForExportAfter", success, elapsed)
 	return result, err
 }
 
@@ -7509,19 +5584,13 @@ func (s *DebugBarLayerPostStore) GetPostAfterTime(channelID string, timestamp in
 	result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostAfterTime")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostAfterTime", success, elapsed)
 	return result, err
 }
 
@@ -7531,19 +5600,13 @@ func (s *DebugBarLayerPostStore) GetPostIdAfterTime(channelID string, timestamp 
 	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostIdAfterTime")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostIdAfterTime", success, elapsed)
 	return result, err
 }
 
@@ -7553,19 +5616,13 @@ func (s *DebugBarLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp
 	result, err := s.PostStore.GetPostIdBeforeTime(channelID, timestamp, collapsedThreads)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostIdBeforeTime")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp, collapsedThreads}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostIdBeforeTime", success, elapsed)
 	return result, err
 }
 
@@ -7575,19 +5632,13 @@ func (s *DebugBarLayerPostStore) GetPostReminderMetadata(postID string) (*store.
 	result, err := s.PostStore.GetPostReminderMetadata(postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostReminderMetadata")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostReminderMetadata", success, elapsed)
 	return result, err
 }
 
@@ -7597,19 +5648,13 @@ func (s *DebugBarLayerPostStore) GetPostReminders(now int64) ([]*model.PostRemin
 	result, err := s.PostStore.GetPostReminders(now)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostReminders")
-	// event.Add("params", fmt.Sprintf("%v", []any{now}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostReminders", success, elapsed)
 	return result, err
 }
 
@@ -7619,19 +5664,13 @@ func (s *DebugBarLayerPostStore) GetPosts(options model.GetPostsOptions, allowFr
 	result, err := s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPosts")
-	// event.Add("params", fmt.Sprintf("%v", []any{options, allowFromCache, sanitizeOptions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, allowFromCache, sanitizeOptions}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPosts", success, elapsed)
 	return result, err
 }
 
@@ -7641,19 +5680,13 @@ func (s *DebugBarLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sa
 	result, err := s.PostStore.GetPostsAfter(options, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{options, sanitizeOptions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, sanitizeOptions}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsAfter", success, elapsed)
 	return result, err
 }
 
@@ -7663,19 +5696,13 @@ func (s *DebugBarLayerPostStore) GetPostsBatchForIndexing(startTime int64, start
 	result, err := s.PostStore.GetPostsBatchForIndexing(startTime, startPostID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsBatchForIndexing")
-	// event.Add("params", fmt.Sprintf("%v", []any{startTime, startPostID, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startPostID, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsBatchForIndexing", success, elapsed)
 	return result, err
 }
 
@@ -7685,19 +5712,13 @@ func (s *DebugBarLayerPostStore) GetPostsBefore(options model.GetPostsOptions, s
 	result, err := s.PostStore.GetPostsBefore(options, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsBefore")
-	// event.Add("params", fmt.Sprintf("%v", []any{options, sanitizeOptions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, sanitizeOptions}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsBefore", success, elapsed)
 	return result, err
 }
 
@@ -7707,19 +5728,13 @@ func (s *DebugBarLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post,
 	result, err := s.PostStore.GetPostsByIds(postIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{postIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postIds}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsByIds", success, elapsed)
 	return result, err
 }
 
@@ -7729,19 +5744,13 @@ func (s *DebugBarLayerPostStore) GetPostsByThread(threadID string, since int64) 
 	result, err := s.PostStore.GetPostsByThread(threadID, since)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsByThread")
-	// event.Add("params", fmt.Sprintf("%v", []any{threadID, since}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadID, since}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsByThread", success, elapsed)
 	return result, err
 }
 
@@ -7751,19 +5760,13 @@ func (s *DebugBarLayerPostStore) GetPostsCreatedAt(channelID string, timestamp i
 	result, err := s.PostStore.GetPostsCreatedAt(channelID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsCreatedAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, timestamp}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsCreatedAt", success, elapsed)
 	return result, err
 }
 
@@ -7773,19 +5776,13 @@ func (s *DebugBarLayerPostStore) GetPostsSince(options model.GetPostsSinceOption
 	result, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{options, allowFromCache, sanitizeOptions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, allowFromCache, sanitizeOptions}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsSince", success, elapsed)
 	return result, err
 }
 
@@ -7795,19 +5792,13 @@ func (s *DebugBarLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinc
 	result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetPostsSinceForSync")
-	// event.Add("params", fmt.Sprintf("%v", []any{options, cursor, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, cursor, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetPostsSinceForSync", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -7817,19 +5808,13 @@ func (s *DebugBarLayerPostStore) GetRecentSearchesForUser(userID string) ([]*mod
 	result, err := s.PostStore.GetRecentSearchesForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetRecentSearchesForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetRecentSearchesForUser", success, elapsed)
 	return result, err
 }
 
@@ -7839,19 +5824,13 @@ func (s *DebugBarLayerPostStore) GetRepliesForExport(parentID string) ([]*model.
 	result, err := s.PostStore.GetRepliesForExport(parentID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetRepliesForExport")
-	// event.Add("params", fmt.Sprintf("%v", []any{parentID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{parentID}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetRepliesForExport", success, elapsed)
 	return result, err
 }
 
@@ -7861,19 +5840,13 @@ func (s *DebugBarLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.
 	result, err := s.PostStore.GetSingle(id, inclDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetSingle")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, inclDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, inclDeleted}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetSingle", success, elapsed)
 	return result, err
 }
 
@@ -7883,19 +5856,13 @@ func (s *DebugBarLayerPostStore) GetTopDMsForUserSince(userID string, since int6
 	result, err := s.PostStore.GetTopDMsForUserSince(userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.GetTopDMsForUserSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.GetTopDMsForUserSince", success, elapsed)
 	return result, err
 }
 
@@ -7905,19 +5872,13 @@ func (s *DebugBarLayerPostStore) HasAutoResponsePostByUserSince(options model.Ge
 	result, err := s.PostStore.HasAutoResponsePostByUserSince(options, userId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.HasAutoResponsePostByUserSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{options, userId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options, userId}))
+	s.Root.debugBar.SendStoreCall("PostStore.HasAutoResponsePostByUserSince", success, elapsed)
 	return result, err
 }
 
@@ -7927,19 +5888,13 @@ func (s *DebugBarLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 	s.PostStore.InvalidateLastPostTimeCache(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.InvalidateLastPostTimeCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("PostStore.InvalidateLastPostTimeCache", success, elapsed)
 
 }
 
@@ -7949,19 +5904,13 @@ func (s *DebugBarLayerPostStore) LogRecentSearch(userID string, searchQuery []by
 	err := s.PostStore.LogRecentSearch(userID, searchQuery, createAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.LogRecentSearch")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, searchQuery, createAt}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, searchQuery, createAt}))
+	s.Root.debugBar.SendStoreCall("PostStore.LogRecentSearch", success, elapsed)
 	return err
 }
 
@@ -7971,19 +5920,13 @@ func (s *DebugBarLayerPostStore) Overwrite(post *model.Post) (*model.Post, error
 	result, err := s.PostStore.Overwrite(post)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.Overwrite")
-	// event.Add("params", fmt.Sprintf("%v", []any{post}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{post}))
+	s.Root.debugBar.SendStoreCall("PostStore.Overwrite", success, elapsed)
 	return result, err
 }
 
@@ -7993,19 +5936,13 @@ func (s *DebugBarLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*mode
 	result, resultVar1, err := s.PostStore.OverwriteMultiple(posts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.OverwriteMultiple")
-	// event.Add("params", fmt.Sprintf("%v", []any{posts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{posts}))
+	s.Root.debugBar.SendStoreCall("PostStore.OverwriteMultiple", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -8015,19 +5952,13 @@ func (s *DebugBarLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64
 	result, err := s.PostStore.PermanentDeleteBatch(endTime, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.PermanentDeleteBatch")
-	// event.Add("params", fmt.Sprintf("%v", []any{endTime, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteBatch", success, elapsed)
 	return result, err
 }
 
@@ -8037,19 +5968,13 @@ func (s *DebugBarLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now in
 	result, resultVar1, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.PermanentDeleteBatchForRetentionPolicies")
-	// event.Add("params", fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -8059,19 +5984,13 @@ func (s *DebugBarLayerPostStore) PermanentDeleteByChannel(channelID string) erro
 	err := s.PostStore.PermanentDeleteByChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.PermanentDeleteByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteByChannel", success, elapsed)
 	return err
 }
 
@@ -8081,19 +6000,13 @@ func (s *DebugBarLayerPostStore) PermanentDeleteByUser(userID string) error {
 	err := s.PostStore.PermanentDeleteByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.PermanentDeleteByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("PostStore.PermanentDeleteByUser", success, elapsed)
 	return err
 }
 
@@ -8103,19 +6016,13 @@ func (s *DebugBarLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	result, err := s.PostStore.Save(post)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{post}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{post}))
+	s.Root.debugBar.SendStoreCall("PostStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -8125,19 +6032,13 @@ func (s *DebugBarLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Pos
 	result, resultVar1, err := s.PostStore.SaveMultiple(posts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.SaveMultiple")
-	// event.Add("params", fmt.Sprintf("%v", []any{posts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{posts}))
+	s.Root.debugBar.SendStoreCall("PostStore.SaveMultiple", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -8147,19 +6048,13 @@ func (s *DebugBarLayerPostStore) Search(teamID string, userID string, params *mo
 	result, err := s.PostStore.Search(teamID, userID, params)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.Search")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, params}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, params}))
+	s.Root.debugBar.SendStoreCall("PostStore.Search", success, elapsed)
 	return result, err
 }
 
@@ -8169,19 +6064,13 @@ func (s *DebugBarLayerPostStore) SearchPostsForUser(paramsList []*model.SearchPa
 	result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.SearchPostsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{paramsList, userID, teamID, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{paramsList, userID, teamID, page, perPage}))
+	s.Root.debugBar.SendStoreCall("PostStore.SearchPostsForUser", success, elapsed)
 	return result, err
 }
 
@@ -8191,19 +6080,13 @@ func (s *DebugBarLayerPostStore) SetPostReminder(reminder *model.PostReminder) e
 	err := s.PostStore.SetPostReminder(reminder)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.SetPostReminder")
-	// event.Add("params", fmt.Sprintf("%v", []any{reminder}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reminder}))
+	s.Root.debugBar.SendStoreCall("PostStore.SetPostReminder", success, elapsed)
 	return err
 }
 
@@ -8213,19 +6096,13 @@ func (s *DebugBarLayerPostStore) Update(newPost *model.Post, oldPost *model.Post
 	result, err := s.PostStore.Update(newPost, oldPost)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{newPost, oldPost}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{newPost, oldPost}))
+	s.Root.debugBar.SendStoreCall("PostStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -8235,19 +6112,13 @@ func (s *DebugBarLayerPostAcknowledgementStore) Delete(acknowledgement *model.Po
 	err := s.PostAcknowledgementStore.Delete(acknowledgement)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostAcknowledgementStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{acknowledgement}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{acknowledgement}))
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Delete", success, elapsed)
 	return err
 }
 
@@ -8257,19 +6128,13 @@ func (s *DebugBarLayerPostAcknowledgementStore) Get(postID string, userID string
 	result, err := s.PostAcknowledgementStore.Get(postID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostAcknowledgementStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, userID}))
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -8279,19 +6144,13 @@ func (s *DebugBarLayerPostAcknowledgementStore) GetForPost(postID string) ([]*mo
 	result, err := s.PostAcknowledgementStore.GetForPost(postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostAcknowledgementStore.GetForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID}))
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.GetForPost", success, elapsed)
 	return result, err
 }
 
@@ -8301,19 +6160,13 @@ func (s *DebugBarLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([
 	result, err := s.PostAcknowledgementStore.GetForPosts(postIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostAcknowledgementStore.GetForPosts")
-	// event.Add("params", fmt.Sprintf("%v", []any{postIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postIds}))
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.GetForPosts", success, elapsed)
 	return result, err
 }
 
@@ -8323,19 +6176,13 @@ func (s *DebugBarLayerPostAcknowledgementStore) Save(postID string, userID strin
 	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostAcknowledgementStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, userID, acknowledgedAt}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, userID, acknowledgedAt}))
+	s.Root.debugBar.SendStoreCall("PostAcknowledgementStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -8345,19 +6192,13 @@ func (s *DebugBarLayerPostPriorityStore) GetForPost(postId string) (*model.PostP
 	result, err := s.PostPriorityStore.GetForPost(postId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostPriorityStore.GetForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postId}))
+	s.Root.debugBar.SendStoreCall("PostPriorityStore.GetForPost", success, elapsed)
 	return result, err
 }
 
@@ -8367,19 +6208,13 @@ func (s *DebugBarLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.Pos
 	result, err := s.PostPriorityStore.GetForPosts(ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PostPriorityStore.GetForPosts")
-	// event.Add("params", fmt.Sprintf("%v", []any{ids}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids}))
+	s.Root.debugBar.SendStoreCall("PostPriorityStore.GetForPosts", success, elapsed)
 	return result, err
 }
 
@@ -8389,19 +6224,13 @@ func (s *DebugBarLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, er
 	result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.CleanupFlagsBatch")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.CleanupFlagsBatch", success, elapsed)
 	return result, err
 }
 
@@ -8411,19 +6240,13 @@ func (s *DebugBarLayerPreferenceStore) Delete(userID string, category string, na
 	err := s.PreferenceStore.Delete(userID, category, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, category, name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category, name}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.Delete", success, elapsed)
 	return err
 }
 
@@ -8433,19 +6256,13 @@ func (s *DebugBarLayerPreferenceStore) DeleteCategory(userID string, category st
 	err := s.PreferenceStore.DeleteCategory(userID, category)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.DeleteCategory")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, category}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteCategory", success, elapsed)
 	return err
 }
 
@@ -8455,19 +6272,13 @@ func (s *DebugBarLayerPreferenceStore) DeleteCategoryAndName(category string, na
 	err := s.PreferenceStore.DeleteCategoryAndName(category, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.DeleteCategoryAndName")
-	// event.Add("params", fmt.Sprintf("%v", []any{category, name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{category, name}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteCategoryAndName", success, elapsed)
 	return err
 }
 
@@ -8477,19 +6288,13 @@ func (s *DebugBarLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, err
 	result, err := s.PreferenceStore.DeleteOrphanedRows(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.DeleteOrphanedRows")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.DeleteOrphanedRows", success, elapsed)
 	return result, err
 }
 
@@ -8499,19 +6304,13 @@ func (s *DebugBarLayerPreferenceStore) Get(userID string, category string, name 
 	result, err := s.PreferenceStore.Get(userID, category, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, category, name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category, name}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -8521,19 +6320,13 @@ func (s *DebugBarLayerPreferenceStore) GetAll(userID string) (model.Preferences,
 	result, err := s.PreferenceStore.GetAll(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -8543,19 +6336,13 @@ func (s *DebugBarLayerPreferenceStore) GetCategory(userID string, category strin
 	result, err := s.PreferenceStore.GetCategory(userID, category)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.GetCategory")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, category}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, category}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.GetCategory", success, elapsed)
 	return result, err
 }
 
@@ -8565,19 +6352,13 @@ func (s *DebugBarLayerPreferenceStore) GetCategoryAndName(category string, nane 
 	result, err := s.PreferenceStore.GetCategoryAndName(category, nane)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.GetCategoryAndName")
-	// event.Add("params", fmt.Sprintf("%v", []any{category, nane}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{category, nane}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.GetCategoryAndName", success, elapsed)
 	return result, err
 }
 
@@ -8587,19 +6368,13 @@ func (s *DebugBarLayerPreferenceStore) PermanentDeleteByUser(userID string) erro
 	err := s.PreferenceStore.PermanentDeleteByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.PermanentDeleteByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.PermanentDeleteByUser", success, elapsed)
 	return err
 }
 
@@ -8609,19 +6384,13 @@ func (s *DebugBarLayerPreferenceStore) Save(preferences model.Preferences) error
 	err := s.PreferenceStore.Save(preferences)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "PreferenceStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{preferences}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{preferences}))
+	s.Root.debugBar.SendStoreCall("PreferenceStore.Save", success, elapsed)
 	return err
 }
 
@@ -8631,19 +6400,13 @@ func (s *DebugBarLayerProductNoticesStore) Clear(notices []string) error {
 	err := s.ProductNoticesStore.Clear(notices)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ProductNoticesStore.Clear")
-	// event.Add("params", fmt.Sprintf("%v", []any{notices}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{notices}))
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.Clear", success, elapsed)
 	return err
 }
 
@@ -8653,19 +6416,13 @@ func (s *DebugBarLayerProductNoticesStore) ClearOldNotices(currentNotices model.
 	err := s.ProductNoticesStore.ClearOldNotices(currentNotices)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ProductNoticesStore.ClearOldNotices")
-	// event.Add("params", fmt.Sprintf("%v", []any{currentNotices}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{currentNotices}))
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.ClearOldNotices", success, elapsed)
 	return err
 }
 
@@ -8675,19 +6432,13 @@ func (s *DebugBarLayerProductNoticesStore) GetViews(userID string) ([]model.Prod
 	result, err := s.ProductNoticesStore.GetViews(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ProductNoticesStore.GetViews")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.GetViews", success, elapsed)
 	return result, err
 }
 
@@ -8697,19 +6448,13 @@ func (s *DebugBarLayerProductNoticesStore) View(userID string, notices []string)
 	err := s.ProductNoticesStore.View(userID, notices)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ProductNoticesStore.View")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, notices}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, notices}))
+	s.Root.debugBar.SendStoreCall("ProductNoticesStore.View", success, elapsed)
 	return err
 }
 
@@ -8719,19 +6464,13 @@ func (s *DebugBarLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model
 	result, err := s.ReactionStore.BulkGetForPosts(postIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.BulkGetForPosts")
-	// event.Add("params", fmt.Sprintf("%v", []any{postIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postIds}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.BulkGetForPosts", success, elapsed)
 	return result, err
 }
 
@@ -8741,19 +6480,13 @@ func (s *DebugBarLayerReactionStore) Delete(reaction *model.Reaction) (*model.Re
 	result, err := s.ReactionStore.Delete(reaction)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{reaction}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reaction}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -8763,19 +6496,13 @@ func (s *DebugBarLayerReactionStore) DeleteAllWithEmojiName(emojiName string) er
 	err := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.DeleteAllWithEmojiName")
-	// event.Add("params", fmt.Sprintf("%v", []any{emojiName}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{emojiName}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.DeleteAllWithEmojiName", success, elapsed)
 	return err
 }
 
@@ -8785,19 +6512,13 @@ func (s *DebugBarLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error
 	result, err := s.ReactionStore.DeleteOrphanedRows(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.DeleteOrphanedRows")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.DeleteOrphanedRows", success, elapsed)
 	return result, err
 }
 
@@ -8807,19 +6528,13 @@ func (s *DebugBarLayerReactionStore) GetForPost(postID string, allowFromCache bo
 	result, err := s.ReactionStore.GetForPost(postID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.GetForPost")
-	// event.Add("params", fmt.Sprintf("%v", []any{postID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetForPost", success, elapsed)
 	return result, err
 }
 
@@ -8829,19 +6544,13 @@ func (s *DebugBarLayerReactionStore) GetForPostSince(postId string, since int64,
 	result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.GetForPostSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{postId, since, excludeRemoteId, inclDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{postId, since, excludeRemoteId, inclDeleted}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetForPostSince", success, elapsed)
 	return result, err
 }
 
@@ -8851,19 +6560,13 @@ func (s *DebugBarLayerReactionStore) GetTopForTeamSince(teamID string, userID st
 	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.GetTopForTeamSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetTopForTeamSince", success, elapsed)
 	return result, err
 }
 
@@ -8873,19 +6576,13 @@ func (s *DebugBarLayerReactionStore) GetTopForUserSince(userID string, teamID st
 	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.GetTopForUserSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.GetTopForUserSince", success, elapsed)
 	return result, err
 }
 
@@ -8895,19 +6592,13 @@ func (s *DebugBarLayerReactionStore) PermanentDeleteBatch(endTime int64, limit i
 	result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.PermanentDeleteBatch")
-	// event.Add("params", fmt.Sprintf("%v", []any{endTime, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{endTime, limit}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.PermanentDeleteBatch", success, elapsed)
 	return result, err
 }
 
@@ -8917,19 +6608,13 @@ func (s *DebugBarLayerReactionStore) Save(reaction *model.Reaction) (*model.Reac
 	result, err := s.ReactionStore.Save(reaction)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ReactionStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{reaction}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reaction}))
+	s.Root.debugBar.SendStoreCall("ReactionStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -8939,19 +6624,13 @@ func (s *DebugBarLayerRemoteClusterStore) Delete(remoteClusterId string) (bool, 
 	result, err := s.RemoteClusterStore.Delete(remoteClusterId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteClusterId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -8961,19 +6640,13 @@ func (s *DebugBarLayerRemoteClusterStore) Get(remoteClusterId string) (*model.Re
 	result, err := s.RemoteClusterStore.Get(remoteClusterId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteClusterId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -8983,19 +6656,13 @@ func (s *DebugBarLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQuery
 	result, err := s.RemoteClusterStore.GetAll(filter)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{filter}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{filter}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -9005,19 +6672,13 @@ func (s *DebugBarLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.
 	result, err := s.RemoteClusterStore.Save(rc)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{rc}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{rc}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -9027,19 +6688,13 @@ func (s *DebugBarLayerRemoteClusterStore) SetLastPingAt(remoteClusterId string) 
 	err := s.RemoteClusterStore.SetLastPingAt(remoteClusterId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.SetLastPingAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteClusterId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.SetLastPingAt", success, elapsed)
 	return err
 }
 
@@ -9049,19 +6704,13 @@ func (s *DebugBarLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*mode
 	result, err := s.RemoteClusterStore.Update(rc)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{rc}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{rc}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -9071,19 +6720,13 @@ func (s *DebugBarLayerRemoteClusterStore) UpdateTopics(remoteClusterId string, t
 	result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterId, topics)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RemoteClusterStore.UpdateTopics")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteClusterId, topics}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteClusterId, topics}))
+	s.Root.debugBar.SendStoreCall("RemoteClusterStore.UpdateTopics", success, elapsed)
 	return result, err
 }
 
@@ -9093,19 +6736,13 @@ func (s *DebugBarLayerRetentionPolicyStore) AddChannels(policyId string, channel
 	err := s.RetentionPolicyStore.AddChannels(policyId, channelIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.AddChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId, channelIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, channelIds}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.AddChannels", success, elapsed)
 	return err
 }
 
@@ -9115,19 +6752,13 @@ func (s *DebugBarLayerRetentionPolicyStore) AddTeams(policyId string, teamIds []
 	err := s.RetentionPolicyStore.AddTeams(policyId, teamIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.AddTeams")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId, teamIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, teamIds}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.AddTeams", success, elapsed)
 	return err
 }
 
@@ -9137,19 +6768,13 @@ func (s *DebugBarLayerRetentionPolicyStore) Delete(id string) error {
 	err := s.RetentionPolicyStore.Delete(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Delete", success, elapsed)
 	return err
 }
 
@@ -9159,19 +6784,13 @@ func (s *DebugBarLayerRetentionPolicyStore) DeleteOrphanedRows(limit int) (int64
 	result, err := s.RetentionPolicyStore.DeleteOrphanedRows(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.DeleteOrphanedRows")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.DeleteOrphanedRows", success, elapsed)
 	return result, err
 }
 
@@ -9181,19 +6800,13 @@ func (s *DebugBarLayerRetentionPolicyStore) Get(id string) (*model.RetentionPoli
 	result, err := s.RetentionPolicyStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -9203,19 +6816,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*mo
 	result, err := s.RetentionPolicyStore.GetAll(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -9225,19 +6832,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannelPoliciesCountForUser(userI
 	result, err := s.RetentionPolicyStore.GetChannelPoliciesCountForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetChannelPoliciesCountForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelPoliciesCountForUser", success, elapsed)
 	return result, err
 }
 
@@ -9247,19 +6848,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannelPoliciesForUser(userID str
 	result, err := s.RetentionPolicyStore.GetChannelPoliciesForUser(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetChannelPoliciesForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelPoliciesForUser", success, elapsed)
 	return result, err
 }
 
@@ -9269,19 +6864,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannels(policyId string, offset 
 	result, err := s.RetentionPolicyStore.GetChannels(policyId, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, offset, limit}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannels", success, elapsed)
 	return result, err
 }
 
@@ -9291,19 +6880,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetChannelsCount(policyId string) (i
 	result, err := s.RetentionPolicyStore.GetChannelsCount(policyId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetChannelsCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetChannelsCount", success, elapsed)
 	return result, err
 }
 
@@ -9313,19 +6896,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetCount() (int64, error) {
 	result, err := s.RetentionPolicyStore.GetCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetCount", success, elapsed)
 	return result, err
 }
 
@@ -9335,19 +6912,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeamPoliciesCountForUser(userID s
 	result, err := s.RetentionPolicyStore.GetTeamPoliciesCountForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetTeamPoliciesCountForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamPoliciesCountForUser", success, elapsed)
 	return result, err
 }
 
@@ -9357,19 +6928,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string
 	result, err := s.RetentionPolicyStore.GetTeamPoliciesForUser(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetTeamPoliciesForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamPoliciesForUser", success, elapsed)
 	return result, err
 }
 
@@ -9379,19 +6944,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeams(policyId string, offset int
 	result, err := s.RetentionPolicyStore.GetTeams(policyId, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetTeams")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, offset, limit}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeams", success, elapsed)
 	return result, err
 }
 
@@ -9401,19 +6960,13 @@ func (s *DebugBarLayerRetentionPolicyStore) GetTeamsCount(policyId string) (int6
 	result, err := s.RetentionPolicyStore.GetTeamsCount(policyId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.GetTeamsCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.GetTeamsCount", success, elapsed)
 	return result, err
 }
 
@@ -9423,19 +6976,13 @@ func (s *DebugBarLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWi
 	result, err := s.RetentionPolicyStore.Patch(patch)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.Patch")
-	// event.Add("params", fmt.Sprintf("%v", []any{patch}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{patch}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Patch", success, elapsed)
 	return result, err
 }
 
@@ -9445,19 +6992,13 @@ func (s *DebugBarLayerRetentionPolicyStore) RemoveChannels(policyId string, chan
 	err := s.RetentionPolicyStore.RemoveChannels(policyId, channelIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.RemoveChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId, channelIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, channelIds}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.RemoveChannels", success, elapsed)
 	return err
 }
 
@@ -9467,19 +7008,13 @@ func (s *DebugBarLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds
 	err := s.RetentionPolicyStore.RemoveTeams(policyId, teamIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.RemoveTeams")
-	// event.Add("params", fmt.Sprintf("%v", []any{policyId, teamIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policyId, teamIds}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.RemoveTeams", success, elapsed)
 	return err
 }
 
@@ -9489,19 +7024,13 @@ func (s *DebugBarLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWi
 	result, err := s.RetentionPolicyStore.Save(policy)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RetentionPolicyStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{policy}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{policy}))
+	s.Root.debugBar.SendStoreCall("RetentionPolicyStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -9511,19 +7040,13 @@ func (s *DebugBarLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) 
 	result, err := s.RoleStore.AllChannelSchemeRoles()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.AllChannelSchemeRoles")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("RoleStore.AllChannelSchemeRoles", success, elapsed)
 	return result, err
 }
 
@@ -9533,19 +7056,13 @@ func (s *DebugBarLayerRoleStore) ChannelHigherScopedPermissions(roleNames []stri
 	result, err := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.ChannelHigherScopedPermissions")
-	// event.Add("params", fmt.Sprintf("%v", []any{roleNames}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleNames}))
+	s.Root.debugBar.SendStoreCall("RoleStore.ChannelHigherScopedPermissions", success, elapsed)
 	return result, err
 }
 
@@ -9555,19 +7072,13 @@ func (s *DebugBarLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*
 	result, err := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.ChannelRolesUnderTeamRole")
-	// event.Add("params", fmt.Sprintf("%v", []any{roleName}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleName}))
+	s.Root.debugBar.SendStoreCall("RoleStore.ChannelRolesUnderTeamRole", success, elapsed)
 	return result, err
 }
 
@@ -9577,19 +7088,13 @@ func (s *DebugBarLayerRoleStore) Delete(roleID string) (*model.Role, error) {
 	result, err := s.RoleStore.Delete(roleID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{roleID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleID}))
+	s.Root.debugBar.SendStoreCall("RoleStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -9599,19 +7104,13 @@ func (s *DebugBarLayerRoleStore) Get(roleID string) (*model.Role, error) {
 	result, err := s.RoleStore.Get(roleID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{roleID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{roleID}))
+	s.Root.debugBar.SendStoreCall("RoleStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -9621,19 +7120,13 @@ func (s *DebugBarLayerRoleStore) GetAll() ([]*model.Role, error) {
 	result, err := s.RoleStore.GetAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("RoleStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -9643,19 +7136,13 @@ func (s *DebugBarLayerRoleStore) GetByName(ctx context.Context, name string) (*m
 	result, err := s.RoleStore.GetByName(ctx, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, name}))
+	s.Root.debugBar.SendStoreCall("RoleStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -9665,19 +7152,13 @@ func (s *DebugBarLayerRoleStore) GetByNames(names []string) ([]*model.Role, erro
 	result, err := s.RoleStore.GetByNames(names)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.GetByNames")
-	// event.Add("params", fmt.Sprintf("%v", []any{names}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{names}))
+	s.Root.debugBar.SendStoreCall("RoleStore.GetByNames", success, elapsed)
 	return result, err
 }
 
@@ -9687,19 +7168,13 @@ func (s *DebugBarLayerRoleStore) PermanentDeleteAll() error {
 	err := s.RoleStore.PermanentDeleteAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.PermanentDeleteAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("RoleStore.PermanentDeleteAll", success, elapsed)
 	return err
 }
 
@@ -9709,19 +7184,13 @@ func (s *DebugBarLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	result, err := s.RoleStore.Save(role)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "RoleStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{role}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{role}))
+	s.Root.debugBar.SendStoreCall("RoleStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -9731,19 +7200,13 @@ func (s *DebugBarLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	result, err := s.SchemeStore.CountByScope(scope)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.CountByScope")
-	// event.Add("params", fmt.Sprintf("%v", []any{scope}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scope}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.CountByScope", success, elapsed)
 	return result, err
 }
 
@@ -9753,19 +7216,13 @@ func (s *DebugBarLayerSchemeStore) CountWithoutPermission(scope string, permissi
 	result, err := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.CountWithoutPermission")
-	// event.Add("params", fmt.Sprintf("%v", []any{scope, permissionID, roleScope, roleType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scope, permissionID, roleScope, roleType}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.CountWithoutPermission", success, elapsed)
 	return result, err
 }
 
@@ -9775,19 +7232,13 @@ func (s *DebugBarLayerSchemeStore) Delete(schemeID string) (*model.Scheme, error
 	result, err := s.SchemeStore.Delete(schemeID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{schemeID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -9797,19 +7248,13 @@ func (s *DebugBarLayerSchemeStore) Get(schemeID string) (*model.Scheme, error) {
 	result, err := s.SchemeStore.Get(schemeID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{schemeID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -9819,19 +7264,13 @@ func (s *DebugBarLayerSchemeStore) GetAllPage(scope string, offset int, limit in
 	result, err := s.SchemeStore.GetAllPage(scope, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.GetAllPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{scope, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scope, offset, limit}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.GetAllPage", success, elapsed)
 	return result, err
 }
 
@@ -9841,19 +7280,13 @@ func (s *DebugBarLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, 
 	result, err := s.SchemeStore.GetByName(schemeName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{schemeName}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeName}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -9863,19 +7296,13 @@ func (s *DebugBarLayerSchemeStore) PermanentDeleteAll() error {
 	err := s.SchemeStore.PermanentDeleteAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.PermanentDeleteAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.PermanentDeleteAll", success, elapsed)
 	return err
 }
 
@@ -9885,19 +7312,13 @@ func (s *DebugBarLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, er
 	result, err := s.SchemeStore.Save(scheme)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SchemeStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{scheme}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{scheme}))
+	s.Root.debugBar.SendStoreCall("SchemeStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -9907,19 +7328,13 @@ func (s *DebugBarLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	result, err := s.SessionStore.AnalyticsSessionCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.AnalyticsSessionCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("SessionStore.AnalyticsSessionCount", success, elapsed)
 	return result, err
 }
 
@@ -9929,19 +7344,13 @@ func (s *DebugBarLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) e
 	err := s.SessionStore.Cleanup(expiryTime, batchSize)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.Cleanup")
-	// event.Add("params", fmt.Sprintf("%v", []any{expiryTime, batchSize}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{expiryTime, batchSize}))
+	s.Root.debugBar.SendStoreCall("SessionStore.Cleanup", success, elapsed)
 	return err
 }
 
@@ -9951,19 +7360,13 @@ func (s *DebugBarLayerSessionStore) Get(ctx context.Context, sessionIDOrToken st
 	result, err := s.SessionStore.Get(ctx, sessionIDOrToken)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, sessionIDOrToken}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, sessionIDOrToken}))
+	s.Root.debugBar.SendStoreCall("SessionStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -9973,19 +7376,13 @@ func (s *DebugBarLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
 	result, err := s.SessionStore.GetLastSessionRowCreateAt()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.GetLastSessionRowCreateAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("SessionStore.GetLastSessionRowCreateAt", success, elapsed)
 	return result, err
 }
 
@@ -9995,19 +7392,13 @@ func (s *DebugBarLayerSessionStore) GetSessions(userID string) ([]*model.Session
 	result, err := s.SessionStore.GetSessions(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.GetSessions")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("SessionStore.GetSessions", success, elapsed)
 	return result, err
 }
 
@@ -10017,19 +7408,13 @@ func (s *DebugBarLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mo
 	result, err := s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.GetSessionsExpired")
-	// event.Add("params", fmt.Sprintf("%v", []any{thresholdMillis, mobileOnly, unnotifiedOnly}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{thresholdMillis, mobileOnly, unnotifiedOnly}))
+	s.Root.debugBar.SendStoreCall("SessionStore.GetSessionsExpired", success, elapsed)
 	return result, err
 }
 
@@ -10039,19 +7424,13 @@ func (s *DebugBarLayerSessionStore) GetSessionsWithActiveDeviceIds(userID string
 	result, err := s.SessionStore.GetSessionsWithActiveDeviceIds(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.GetSessionsWithActiveDeviceIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("SessionStore.GetSessionsWithActiveDeviceIds", success, elapsed)
 	return result, err
 }
 
@@ -10061,19 +7440,13 @@ func (s *DebugBarLayerSessionStore) PermanentDeleteSessionsByUser(teamID string)
 	err := s.SessionStore.PermanentDeleteSessionsByUser(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.PermanentDeleteSessionsByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("SessionStore.PermanentDeleteSessionsByUser", success, elapsed)
 	return err
 }
 
@@ -10083,19 +7456,13 @@ func (s *DebugBarLayerSessionStore) Remove(sessionIDOrToken string) error {
 	err := s.SessionStore.Remove(sessionIDOrToken)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.Remove")
-	// event.Add("params", fmt.Sprintf("%v", []any{sessionIDOrToken}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionIDOrToken}))
+	s.Root.debugBar.SendStoreCall("SessionStore.Remove", success, elapsed)
 	return err
 }
 
@@ -10105,19 +7472,13 @@ func (s *DebugBarLayerSessionStore) RemoveAllSessions() error {
 	err := s.SessionStore.RemoveAllSessions()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.RemoveAllSessions")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("SessionStore.RemoveAllSessions", success, elapsed)
 	return err
 }
 
@@ -10127,19 +7488,13 @@ func (s *DebugBarLayerSessionStore) Save(session *model.Session) (*model.Session
 	result, err := s.SessionStore.Save(session)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{session}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
+	s.Root.debugBar.SendStoreCall("SessionStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -10149,19 +7504,13 @@ func (s *DebugBarLayerSessionStore) UpdateDeviceId(id string, deviceID string, e
 	result, err := s.SessionStore.UpdateDeviceId(id, deviceID, expiresAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.UpdateDeviceId")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, deviceID, expiresAt}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, deviceID, expiresAt}))
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateDeviceId", success, elapsed)
 	return result, err
 }
 
@@ -10171,19 +7520,13 @@ func (s *DebugBarLayerSessionStore) UpdateExpiredNotify(sessionid string, notifi
 	err := s.SessionStore.UpdateExpiredNotify(sessionid, notified)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.UpdateExpiredNotify")
-	// event.Add("params", fmt.Sprintf("%v", []any{sessionid, notified}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionid, notified}))
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateExpiredNotify", success, elapsed)
 	return err
 }
 
@@ -10193,19 +7536,13 @@ func (s *DebugBarLayerSessionStore) UpdateExpiresAt(sessionID string, timestamp 
 	err := s.SessionStore.UpdateExpiresAt(sessionID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.UpdateExpiresAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{sessionID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionID, timestamp}))
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateExpiresAt", success, elapsed)
 	return err
 }
 
@@ -10215,19 +7552,13 @@ func (s *DebugBarLayerSessionStore) UpdateLastActivityAt(sessionID string, times
 	err := s.SessionStore.UpdateLastActivityAt(sessionID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.UpdateLastActivityAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{sessionID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sessionID, timestamp}))
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateLastActivityAt", success, elapsed)
 	return err
 }
 
@@ -10237,19 +7568,13 @@ func (s *DebugBarLayerSessionStore) UpdateProps(session *model.Session) error {
 	err := s.SessionStore.UpdateProps(session)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.UpdateProps")
-	// event.Add("params", fmt.Sprintf("%v", []any{session}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateProps", success, elapsed)
 	return err
 }
 
@@ -10259,19 +7584,13 @@ func (s *DebugBarLayerSessionStore) UpdateRoles(userID string, roles string) (st
 	result, err := s.SessionStore.UpdateRoles(userID, roles)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SessionStore.UpdateRoles")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, roles}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, roles}))
+	s.Root.debugBar.SendStoreCall("SessionStore.UpdateRoles", success, elapsed)
 	return result, err
 }
 
@@ -10281,19 +7600,13 @@ func (s *DebugBarLayerSharedChannelStore) Delete(channelId string) (bool, error)
 	result, err := s.SharedChannelStore.Delete(channelId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Delete", success, elapsed)
 	return result, err
 }
 
@@ -10303,19 +7616,13 @@ func (s *DebugBarLayerSharedChannelStore) DeleteRemote(remoteId string) (bool, e
 	result, err := s.SharedChannelStore.DeleteRemote(remoteId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.DeleteRemote")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.DeleteRemote", success, elapsed)
 	return result, err
 }
 
@@ -10325,19 +7632,13 @@ func (s *DebugBarLayerSharedChannelStore) Get(channelId string) (*model.SharedCh
 	result, err := s.SharedChannelStore.Get(channelId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -10347,19 +7648,13 @@ func (s *DebugBarLayerSharedChannelStore) GetAll(offset int, limit int, opts mod
 	result, err := s.SharedChannelStore.GetAll(offset, limit, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit, opts}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -10369,19 +7664,13 @@ func (s *DebugBarLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFi
 	result, err := s.SharedChannelStore.GetAllCount(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetAllCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAllCount", success, elapsed)
 	return result, err
 }
 
@@ -10391,19 +7680,13 @@ func (s *DebugBarLayerSharedChannelStore) GetAttachment(fileId string, remoteId 
 	result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetAttachment")
-	// event.Add("params", fmt.Sprintf("%v", []any{fileId, remoteId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fileId, remoteId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetAttachment", success, elapsed)
 	return result, err
 }
 
@@ -10413,19 +7696,13 @@ func (s *DebugBarLayerSharedChannelStore) GetRemote(id string) (*model.SharedCha
 	result, err := s.SharedChannelStore.GetRemote(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetRemote")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemote", success, elapsed)
 	return result, err
 }
 
@@ -10435,19 +7712,13 @@ func (s *DebugBarLayerSharedChannelStore) GetRemoteByIds(channelId string, remot
 	result, err := s.SharedChannelStore.GetRemoteByIds(channelId, remoteId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetRemoteByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelId, remoteId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId, remoteId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemoteByIds", success, elapsed)
 	return result, err
 }
 
@@ -10457,19 +7728,13 @@ func (s *DebugBarLayerSharedChannelStore) GetRemoteForUser(remoteId string, user
 	result, err := s.SharedChannelStore.GetRemoteForUser(remoteId, userId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetRemoteForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{remoteId, userId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remoteId, userId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemoteForUser", success, elapsed)
 	return result, err
 }
 
@@ -10479,19 +7744,13 @@ func (s *DebugBarLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRem
 	result, err := s.SharedChannelStore.GetRemotes(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetRemotes")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemotes", success, elapsed)
 	return result, err
 }
 
@@ -10501,19 +7760,13 @@ func (s *DebugBarLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]
 	result, err := s.SharedChannelStore.GetRemotesStatus(channelId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetRemotesStatus")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetRemotesStatus", success, elapsed)
 	return result, err
 }
 
@@ -10523,19 +7776,13 @@ func (s *DebugBarLayerSharedChannelStore) GetSingleUser(userID string, channelID
 	result, err := s.SharedChannelStore.GetSingleUser(userID, channelID, remoteID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetSingleUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, remoteID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, remoteID}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetSingleUser", success, elapsed)
 	return result, err
 }
 
@@ -10545,19 +7792,13 @@ func (s *DebugBarLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersF
 	result, err := s.SharedChannelStore.GetUsersForSync(filter)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetUsersForSync")
-	// event.Add("params", fmt.Sprintf("%v", []any{filter}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{filter}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetUsersForSync", success, elapsed)
 	return result, err
 }
 
@@ -10567,19 +7808,13 @@ func (s *DebugBarLayerSharedChannelStore) GetUsersForUser(userID string) ([]*mod
 	result, err := s.SharedChannelStore.GetUsersForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.GetUsersForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.GetUsersForUser", success, elapsed)
 	return result, err
 }
 
@@ -10589,19 +7824,13 @@ func (s *DebugBarLayerSharedChannelStore) HasChannel(channelID string) (bool, er
 	result, err := s.SharedChannelStore.HasChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.HasChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.HasChannel", success, elapsed)
 	return result, err
 }
 
@@ -10611,19 +7840,13 @@ func (s *DebugBarLayerSharedChannelStore) HasRemote(channelID string, remoteId s
 	result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.HasRemote")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, remoteId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, remoteId}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.HasRemote", success, elapsed)
 	return result, err
 }
 
@@ -10633,19 +7856,13 @@ func (s *DebugBarLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.
 	result, err := s.SharedChannelStore.Save(sc)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{sc}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sc}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -10655,19 +7872,13 @@ func (s *DebugBarLayerSharedChannelStore) SaveAttachment(remote *model.SharedCha
 	result, err := s.SharedChannelStore.SaveAttachment(remote)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.SaveAttachment")
-	// event.Add("params", fmt.Sprintf("%v", []any{remote}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveAttachment", success, elapsed)
 	return result, err
 }
 
@@ -10677,19 +7888,13 @@ func (s *DebugBarLayerSharedChannelStore) SaveRemote(remote *model.SharedChannel
 	result, err := s.SharedChannelStore.SaveRemote(remote)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.SaveRemote")
-	// event.Add("params", fmt.Sprintf("%v", []any{remote}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveRemote", success, elapsed)
 	return result, err
 }
 
@@ -10699,19 +7904,13 @@ func (s *DebugBarLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUs
 	result, err := s.SharedChannelStore.SaveUser(remote)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.SaveUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{remote}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.SaveUser", success, elapsed)
 	return result, err
 }
 
@@ -10721,19 +7920,13 @@ func (s *DebugBarLayerSharedChannelStore) Update(sc *model.SharedChannel) (*mode
 	result, err := s.SharedChannelStore.Update(sc)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{sc}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{sc}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -10743,19 +7936,13 @@ func (s *DebugBarLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, 
 	err := s.SharedChannelStore.UpdateAttachmentLastSyncAt(id, syncTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.UpdateAttachmentLastSyncAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, syncTime}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, syncTime}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateAttachmentLastSyncAt", success, elapsed)
 	return err
 }
 
@@ -10765,19 +7952,13 @@ func (s *DebugBarLayerSharedChannelStore) UpdateRemote(remote *model.SharedChann
 	result, err := s.SharedChannelStore.UpdateRemote(remote)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.UpdateRemote")
-	// event.Add("params", fmt.Sprintf("%v", []any{remote}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateRemote", success, elapsed)
 	return result, err
 }
 
@@ -10787,19 +7968,13 @@ func (s *DebugBarLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor m
 	err := s.SharedChannelStore.UpdateRemoteCursor(id, cursor)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.UpdateRemoteCursor")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, cursor}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, cursor}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateRemoteCursor", success, elapsed)
 	return err
 }
 
@@ -10809,19 +7984,13 @@ func (s *DebugBarLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, ch
 	err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.UpdateUserLastSyncAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID, remoteID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID, remoteID}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed)
 	return err
 }
 
@@ -10831,19 +8000,13 @@ func (s *DebugBarLayerSharedChannelStore) UpsertAttachment(remote *model.SharedC
 	result, err := s.SharedChannelStore.UpsertAttachment(remote)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SharedChannelStore.UpsertAttachment")
-	// event.Add("params", fmt.Sprintf("%v", []any{remote}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{remote}))
+	s.Root.debugBar.SendStoreCall("SharedChannelStore.UpsertAttachment", success, elapsed)
 	return result, err
 }
 
@@ -10853,19 +8016,13 @@ func (s *DebugBarLayerStatusStore) Get(userID string) (*model.Status, error) {
 	result, err := s.StatusStore.Get(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("StatusStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -10875,19 +8032,13 @@ func (s *DebugBarLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, 
 	result, err := s.StatusStore.GetByIds(userIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.GetByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{userIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userIds}))
+	s.Root.debugBar.SendStoreCall("StatusStore.GetByIds", success, elapsed)
 	return result, err
 }
 
@@ -10897,19 +8048,13 @@ func (s *DebugBarLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	result, err := s.StatusStore.GetTotalActiveUsersCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.GetTotalActiveUsersCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("StatusStore.GetTotalActiveUsersCount", success, elapsed)
 	return result, err
 }
 
@@ -10919,19 +8064,13 @@ func (s *DebugBarLayerStatusStore) ResetAll() error {
 	err := s.StatusStore.ResetAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.ResetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("StatusStore.ResetAll", success, elapsed)
 	return err
 }
 
@@ -10941,19 +8080,13 @@ func (s *DebugBarLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	err := s.StatusStore.SaveOrUpdate(status)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.SaveOrUpdate")
-	// event.Add("params", fmt.Sprintf("%v", []any{status}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{status}))
+	s.Root.debugBar.SendStoreCall("StatusStore.SaveOrUpdate", success, elapsed)
 	return err
 }
 
@@ -10963,19 +8096,13 @@ func (s *DebugBarLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, 
 	result, err := s.StatusStore.UpdateExpiredDNDStatuses()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.UpdateExpiredDNDStatuses")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("StatusStore.UpdateExpiredDNDStatuses", success, elapsed)
 	return result, err
 }
 
@@ -10985,19 +8112,13 @@ func (s *DebugBarLayerStatusStore) UpdateLastActivityAt(userID string, lastActiv
 	err := s.StatusStore.UpdateLastActivityAt(userID, lastActivityAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "StatusStore.UpdateLastActivityAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, lastActivityAt}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, lastActivityAt}))
+	s.Root.debugBar.SendStoreCall("StatusStore.UpdateLastActivityAt", success, elapsed)
 	return err
 }
 
@@ -11007,19 +8128,13 @@ func (s *DebugBarLayerSystemStore) Get() (model.StringMap, error) {
 	result, err := s.SystemStore.Get()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("SystemStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -11029,19 +8144,13 @@ func (s *DebugBarLayerSystemStore) GetByName(name string) (*model.System, error)
 	result, err := s.SystemStore.GetByName(name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
+	s.Root.debugBar.SendStoreCall("SystemStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -11051,19 +8160,13 @@ func (s *DebugBarLayerSystemStore) InsertIfExists(system *model.System) (*model.
 	result, err := s.SystemStore.InsertIfExists(system)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.InsertIfExists")
-	// event.Add("params", fmt.Sprintf("%v", []any{system}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
+	s.Root.debugBar.SendStoreCall("SystemStore.InsertIfExists", success, elapsed)
 	return result, err
 }
 
@@ -11073,19 +8176,13 @@ func (s *DebugBarLayerSystemStore) PermanentDeleteByName(name string) (*model.Sy
 	result, err := s.SystemStore.PermanentDeleteByName(name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.PermanentDeleteByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
+	s.Root.debugBar.SendStoreCall("SystemStore.PermanentDeleteByName", success, elapsed)
 	return result, err
 }
 
@@ -11095,19 +8192,13 @@ func (s *DebugBarLayerSystemStore) Save(system *model.System) error {
 	err := s.SystemStore.Save(system)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{system}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
+	s.Root.debugBar.SendStoreCall("SystemStore.Save", success, elapsed)
 	return err
 }
 
@@ -11117,19 +8208,13 @@ func (s *DebugBarLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	err := s.SystemStore.SaveOrUpdate(system)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.SaveOrUpdate")
-	// event.Add("params", fmt.Sprintf("%v", []any{system}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
+	s.Root.debugBar.SendStoreCall("SystemStore.SaveOrUpdate", success, elapsed)
 	return err
 }
 
@@ -11139,19 +8224,13 @@ func (s *DebugBarLayerSystemStore) SaveOrUpdateWithWarnMetricHandling(system *mo
 	err := s.SystemStore.SaveOrUpdateWithWarnMetricHandling(system)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.SaveOrUpdateWithWarnMetricHandling")
-	// event.Add("params", fmt.Sprintf("%v", []any{system}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
+	s.Root.debugBar.SendStoreCall("SystemStore.SaveOrUpdateWithWarnMetricHandling", success, elapsed)
 	return err
 }
 
@@ -11161,19 +8240,13 @@ func (s *DebugBarLayerSystemStore) Update(system *model.System) error {
 	err := s.SystemStore.Update(system)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "SystemStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{system}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{system}))
+	s.Root.debugBar.SendStoreCall("SystemStore.Update", success, elapsed)
 	return err
 }
 
@@ -11183,19 +8256,13 @@ func (s *DebugBarLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeID string)
 	result, err := s.TeamStore.AnalyticsGetTeamCountForScheme(schemeID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.AnalyticsGetTeamCountForScheme")
-	// event.Add("params", fmt.Sprintf("%v", []any{schemeID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.AnalyticsGetTeamCountForScheme", success, elapsed)
 	return result, err
 }
 
@@ -11205,19 +8272,13 @@ func (s *DebugBarLayerTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int
 	result, err := s.TeamStore.AnalyticsTeamCount(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.AnalyticsTeamCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("TeamStore.AnalyticsTeamCount", success, elapsed)
 	return result, err
 }
 
@@ -11227,19 +8288,13 @@ func (s *DebugBarLayerTeamStore) ClearAllCustomRoleAssignments() error {
 	err := s.TeamStore.ClearAllCustomRoleAssignments()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.ClearAllCustomRoleAssignments")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.ClearAllCustomRoleAssignments", success, elapsed)
 	return err
 }
 
@@ -11249,19 +8304,13 @@ func (s *DebugBarLayerTeamStore) ClearCaches() {
 	s.TeamStore.ClearCaches()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.ClearCaches")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.ClearCaches", success, elapsed)
 
 }
 
@@ -11271,19 +8320,13 @@ func (s *DebugBarLayerTeamStore) Get(id string) (*model.Team, error) {
 	result, err := s.TeamStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("TeamStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -11293,19 +8336,13 @@ func (s *DebugBarLayerTeamStore) GetActiveMemberCount(teamID string, restriction
 	result, err := s.TeamStore.GetActiveMemberCount(teamID, restrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetActiveMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, restrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, restrictions}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetActiveMemberCount", success, elapsed)
 	return result, err
 }
 
@@ -11315,19 +8352,13 @@ func (s *DebugBarLayerTeamStore) GetAll() ([]*model.Team, error) {
 	result, err := s.TeamStore.GetAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -11337,19 +8368,13 @@ func (s *DebugBarLayerTeamStore) GetAllForExportAfter(limit int, afterID string)
 	result, err := s.TeamStore.GetAllForExportAfter(limit, afterID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetAllForExportAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit, afterID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllForExportAfter", success, elapsed)
 	return result, err
 }
 
@@ -11359,19 +8384,13 @@ func (s *DebugBarLayerTeamStore) GetAllPage(offset int, limit int, opts *model.T
 	result, err := s.TeamStore.GetAllPage(offset, limit, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetAllPage")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit, opts}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllPage", success, elapsed)
 	return result, err
 }
 
@@ -11381,19 +8400,13 @@ func (s *DebugBarLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, erro
 	result, err := s.TeamStore.GetAllPrivateTeamListing()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetAllPrivateTeamListing")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllPrivateTeamListing", success, elapsed)
 	return result, err
 }
 
@@ -11403,19 +8416,13 @@ func (s *DebugBarLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	result, err := s.TeamStore.GetAllTeamListing()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetAllTeamListing")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetAllTeamListing", success, elapsed)
 	return result, err
 }
 
@@ -11425,19 +8432,13 @@ func (s *DebugBarLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
 	result, err := s.TeamStore.GetByEmptyInviteID()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetByEmptyInviteID")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByEmptyInviteID", success, elapsed)
 	return result, err
 }
 
@@ -11447,19 +8448,13 @@ func (s *DebugBarLayerTeamStore) GetByInviteId(inviteID string) (*model.Team, er
 	result, err := s.TeamStore.GetByInviteId(inviteID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetByInviteId")
-	// event.Add("params", fmt.Sprintf("%v", []any{inviteID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{inviteID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByInviteId", success, elapsed)
 	return result, err
 }
 
@@ -11469,19 +8464,13 @@ func (s *DebugBarLayerTeamStore) GetByName(name string) (*model.Team, error) {
 	result, err := s.TeamStore.GetByName(name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetByName")
-	// event.Add("params", fmt.Sprintf("%v", []any{name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByName", success, elapsed)
 	return result, err
 }
 
@@ -11491,19 +8480,13 @@ func (s *DebugBarLayerTeamStore) GetByNames(name []string) ([]*model.Team, error
 	result, err := s.TeamStore.GetByNames(name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetByNames")
-	// event.Add("params", fmt.Sprintf("%v", []any{name}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{name}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetByNames", success, elapsed)
 	return result, err
 }
 
@@ -11513,19 +8496,13 @@ func (s *DebugBarLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamID stri
 	result, err := s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetChannelUnreadsForAllTeams")
-	// event.Add("params", fmt.Sprintf("%v", []any{excludeTeamID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{excludeTeamID, userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetChannelUnreadsForAllTeams", success, elapsed)
 	return result, err
 }
 
@@ -11535,19 +8512,13 @@ func (s *DebugBarLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID 
 	result, err := s.TeamStore.GetChannelUnreadsForTeam(teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetChannelUnreadsForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetChannelUnreadsForTeam", success, elapsed)
 	return result, err
 }
 
@@ -11557,19 +8528,13 @@ func (s *DebugBarLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, othe
 	result, err := s.TeamStore.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetCommonTeamIDsForTwoUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, otherUserID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, otherUserID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetCommonTeamIDsForTwoUsers", success, elapsed)
 	return result, err
 }
 
@@ -11579,19 +8544,13 @@ func (s *DebugBarLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	result, err := s.TeamStore.GetMany(ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetMany")
-	// event.Add("params", fmt.Sprintf("%v", []any{ids}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ids}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMany", success, elapsed)
 	return result, err
 }
 
@@ -11601,19 +8560,13 @@ func (s *DebugBarLayerTeamStore) GetMember(ctx context.Context, teamID string, u
 	result, err := s.TeamStore.GetMember(ctx, teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, teamID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, teamID, userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMember", success, elapsed)
 	return result, err
 }
 
@@ -11623,19 +8576,13 @@ func (s *DebugBarLayerTeamStore) GetMembers(teamID string, offset int, limit int
 	result, err := s.TeamStore.GetMembers(teamID, offset, limit, teamMembersGetOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit, teamMembersGetOptions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit, teamMembersGetOptions}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMembers", success, elapsed)
 	return result, err
 }
 
@@ -11645,19 +8592,13 @@ func (s *DebugBarLayerTeamStore) GetMembersByIds(teamID string, userIds []string
 	result, err := s.TeamStore.GetMembersByIds(teamID, userIds, restrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetMembersByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userIds, restrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userIds, restrictions}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetMembersByIds", success, elapsed)
 	return result, err
 }
 
@@ -11667,19 +8608,13 @@ func (s *DebugBarLayerTeamStore) GetNewTeamMembersSince(teamID string, since int
 	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetNewTeamMembersSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetNewTeamMembersSince", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -11689,19 +8624,13 @@ func (s *DebugBarLayerTeamStore) GetTeamMembersForExport(userID string) ([]*mode
 	result, err := s.TeamStore.GetTeamMembersForExport(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetTeamMembersForExport")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamMembersForExport", success, elapsed)
 	return result, err
 }
 
@@ -11711,19 +8640,13 @@ func (s *DebugBarLayerTeamStore) GetTeamsByScheme(schemeID string, offset int, l
 	result, err := s.TeamStore.GetTeamsByScheme(schemeID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetTeamsByScheme")
-	// event.Add("params", fmt.Sprintf("%v", []any{schemeID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{schemeID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsByScheme", success, elapsed)
 	return result, err
 }
 
@@ -11733,19 +8656,13 @@ func (s *DebugBarLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team,
 	result, err := s.TeamStore.GetTeamsByUserId(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetTeamsByUserId")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsByUserId", success, elapsed)
 	return result, err
 }
 
@@ -11755,19 +8672,13 @@ func (s *DebugBarLayerTeamStore) GetTeamsForUser(ctx context.Context, userID str
 	result, err := s.TeamStore.GetTeamsForUser(ctx, userID, excludeTeamID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetTeamsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, userID, excludeTeamID, includeDeleted}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, userID, excludeTeamID, includeDeleted}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsForUser", success, elapsed)
 	return result, err
 }
 
@@ -11777,19 +8688,13 @@ func (s *DebugBarLayerTeamStore) GetTeamsForUserWithPagination(userID string, pa
 	result, err := s.TeamStore.GetTeamsForUserWithPagination(userID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetTeamsForUserWithPagination")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, page, perPage}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTeamsForUserWithPagination", success, elapsed)
 	return result, err
 }
 
@@ -11799,19 +8704,13 @@ func (s *DebugBarLayerTeamStore) GetTotalMemberCount(teamID string, restrictions
 	result, err := s.TeamStore.GetTotalMemberCount(teamID, restrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetTotalMemberCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, restrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, restrictions}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetTotalMemberCount", success, elapsed)
 	return result, err
 }
 
@@ -11821,19 +8720,13 @@ func (s *DebugBarLayerTeamStore) GetUserTeamIds(userID string, allowFromCache bo
 	result, err := s.TeamStore.GetUserTeamIds(userID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GetUserTeamIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GetUserTeamIds", success, elapsed)
 	return result, err
 }
 
@@ -11843,19 +8736,13 @@ func (s *DebugBarLayerTeamStore) GroupSyncedTeamCount() (int64, error) {
 	result, err := s.TeamStore.GroupSyncedTeamCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.GroupSyncedTeamCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.GroupSyncedTeamCount", success, elapsed)
 	return result, err
 }
 
@@ -11865,19 +8752,13 @@ func (s *DebugBarLayerTeamStore) InvalidateAllTeamIdsForUser(userID string) {
 	s.TeamStore.InvalidateAllTeamIdsForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.InvalidateAllTeamIdsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.InvalidateAllTeamIdsForUser", success, elapsed)
 
 }
 
@@ -11887,19 +8768,13 @@ func (s *DebugBarLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserI
 	result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.MigrateTeamMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{fromTeamID, fromUserID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{fromTeamID, fromUserID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.MigrateTeamMembers", success, elapsed)
 	return result, err
 }
 
@@ -11909,19 +8784,13 @@ func (s *DebugBarLayerTeamStore) PermanentDelete(teamID string) error {
 	err := s.TeamStore.PermanentDelete(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.PermanentDelete")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.PermanentDelete", success, elapsed)
 	return err
 }
 
@@ -11931,19 +8800,13 @@ func (s *DebugBarLayerTeamStore) RemoveAllMembersByTeam(teamID string) error {
 	err := s.TeamStore.RemoveAllMembersByTeam(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.RemoveAllMembersByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveAllMembersByTeam", success, elapsed)
 	return err
 }
 
@@ -11953,19 +8816,13 @@ func (s *DebugBarLayerTeamStore) RemoveAllMembersByUser(userID string) error {
 	err := s.TeamStore.RemoveAllMembersByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.RemoveAllMembersByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveAllMembersByUser", success, elapsed)
 	return err
 }
 
@@ -11975,19 +8832,13 @@ func (s *DebugBarLayerTeamStore) RemoveMember(teamID string, userID string) erro
 	err := s.TeamStore.RemoveMember(teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.RemoveMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID}))
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveMember", success, elapsed)
 	return err
 }
 
@@ -11997,19 +8848,13 @@ func (s *DebugBarLayerTeamStore) RemoveMembers(teamID string, userIds []string) 
 	err := s.TeamStore.RemoveMembers(teamID, userIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.RemoveMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userIds}))
+	s.Root.debugBar.SendStoreCall("TeamStore.RemoveMembers", success, elapsed)
 	return err
 }
 
@@ -12019,19 +8864,13 @@ func (s *DebugBarLayerTeamStore) ResetAllTeamSchemes() error {
 	err := s.TeamStore.ResetAllTeamSchemes()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.ResetAllTeamSchemes")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("TeamStore.ResetAllTeamSchemes", success, elapsed)
 	return err
 }
 
@@ -12041,19 +8880,13 @@ func (s *DebugBarLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 	result, err := s.TeamStore.Save(team)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{team}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team}))
+	s.Root.debugBar.SendStoreCall("TeamStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -12063,19 +8896,13 @@ func (s *DebugBarLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPe
 	result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.SaveMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{member, maxUsersPerTeam}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member, maxUsersPerTeam}))
+	s.Root.debugBar.SendStoreCall("TeamStore.SaveMember", success, elapsed)
 	return result, err
 }
 
@@ -12085,19 +8912,13 @@ func (s *DebugBarLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember
 	result, err := s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.SaveMultipleMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{members, maxUsersPerTeam}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members, maxUsersPerTeam}))
+	s.Root.debugBar.SendStoreCall("TeamStore.SaveMultipleMembers", success, elapsed)
 	return result, err
 }
 
@@ -12107,19 +8928,13 @@ func (s *DebugBarLayerTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Tea
 	result, err := s.TeamStore.SearchAll(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.SearchAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchAll", success, elapsed)
 	return result, err
 }
 
@@ -12129,19 +8944,13 @@ func (s *DebugBarLayerTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*mode
 	result, resultVar1, err := s.TeamStore.SearchAllPaged(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.SearchAllPaged")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchAllPaged", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -12151,19 +8960,13 @@ func (s *DebugBarLayerTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Te
 	result, err := s.TeamStore.SearchOpen(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.SearchOpen")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchOpen", success, elapsed)
 	return result, err
 }
 
@@ -12173,19 +8976,13 @@ func (s *DebugBarLayerTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model
 	result, err := s.TeamStore.SearchPrivate(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.SearchPrivate")
-	// event.Add("params", fmt.Sprintf("%v", []any{opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{opts}))
+	s.Root.debugBar.SendStoreCall("TeamStore.SearchPrivate", success, elapsed)
 	return result, err
 }
 
@@ -12195,19 +8992,13 @@ func (s *DebugBarLayerTeamStore) Update(team *model.Team) (*model.Team, error) {
 	result, err := s.TeamStore.Update(team)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{team}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{team}))
+	s.Root.debugBar.SendStoreCall("TeamStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -12217,19 +9008,13 @@ func (s *DebugBarLayerTeamStore) UpdateLastTeamIconUpdate(teamID string, curTime
 	err := s.TeamStore.UpdateLastTeamIconUpdate(teamID, curTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.UpdateLastTeamIconUpdate")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, curTime}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, curTime}))
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateLastTeamIconUpdate", success, elapsed)
 	return err
 }
 
@@ -12239,19 +9024,13 @@ func (s *DebugBarLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.
 	result, err := s.TeamStore.UpdateMember(member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.UpdateMember")
-	// event.Add("params", fmt.Sprintf("%v", []any{member}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{member}))
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMember", success, elapsed)
 	return result, err
 }
 
@@ -12261,19 +9040,13 @@ func (s *DebugBarLayerTeamStore) UpdateMembersRole(teamID string, userIDs []stri
 	err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.UpdateMembersRole")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userIDs}))
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMembersRole", success, elapsed)
 	return err
 }
 
@@ -12283,19 +9056,13 @@ func (s *DebugBarLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMemb
 	result, err := s.TeamStore.UpdateMultipleMembers(members)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.UpdateMultipleMembers")
-	// event.Add("params", fmt.Sprintf("%v", []any{members}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{members}))
+	s.Root.debugBar.SendStoreCall("TeamStore.UpdateMultipleMembers", success, elapsed)
 	return result, err
 }
 
@@ -12305,19 +9072,13 @@ func (s *DebugBarLayerTeamStore) UserBelongsToTeams(userID string, teamIds []str
 	result, err := s.TeamStore.UserBelongsToTeams(userID, teamIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TeamStore.UserBelongsToTeams")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamIds}))
+	s.Root.debugBar.SendStoreCall("TeamStore.UserBelongsToTeams", success, elapsed)
 	return result, err
 }
 
@@ -12327,19 +9088,13 @@ func (s *DebugBarLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (
 	result, err := s.TermsOfServiceStore.Get(id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TermsOfServiceStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -12349,19 +9104,13 @@ func (s *DebugBarLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*mode
 	result, err := s.TermsOfServiceStore.GetLatest(allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TermsOfServiceStore.GetLatest")
-	// event.Add("params", fmt.Sprintf("%v", []any{allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{allowFromCache}))
+	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.GetLatest", success, elapsed)
 	return result, err
 }
 
@@ -12371,19 +9120,13 @@ func (s *DebugBarLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfSer
 	result, err := s.TermsOfServiceStore.Save(termsOfService)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TermsOfServiceStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{termsOfService}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{termsOfService}))
+	s.Root.debugBar.SendStoreCall("TermsOfServiceStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -12393,19 +9136,13 @@ func (s *DebugBarLayerThreadStore) DeleteMembershipForUser(userId string, postID
 	err := s.ThreadStore.DeleteMembershipForUser(userId, postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.DeleteMembershipForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, postID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, postID}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.DeleteMembershipForUser", success, elapsed)
 	return err
 }
 
@@ -12415,19 +9152,13 @@ func (s *DebugBarLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) 
 	result, err := s.ThreadStore.DeleteOrphanedRows(limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.DeleteOrphanedRows")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.DeleteOrphanedRows", success, elapsed)
 	return result, err
 }
 
@@ -12437,19 +9168,13 @@ func (s *DebugBarLayerThreadStore) Get(id string) (*model.Thread, error) {
 	result, err := s.ThreadStore.Get(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -12459,19 +9184,13 @@ func (s *DebugBarLayerThreadStore) GetMembershipForUser(userId string, postID st
 	result, err := s.ThreadStore.GetMembershipForUser(userId, postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetMembershipForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, postID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, postID}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetMembershipForUser", success, elapsed)
 	return result, err
 }
 
@@ -12481,19 +9200,13 @@ func (s *DebugBarLayerThreadStore) GetMembershipsForUser(userId string, teamID s
 	result, err := s.ThreadStore.GetMembershipsForUser(userId, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetMembershipsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetMembershipsForUser", success, elapsed)
 	return result, err
 }
 
@@ -12503,19 +9216,13 @@ func (s *DebugBarLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs 
 	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTeamsUnreadForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamIDs, includeUrgentMentionCount}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamIDs, includeUrgentMentionCount}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTeamsUnreadForUser", success, elapsed)
 	return result, err
 }
 
@@ -12525,19 +9232,13 @@ func (s *DebugBarLayerThreadStore) GetThreadFollowers(threadID string, fetchOnly
 	result, err := s.ThreadStore.GetThreadFollowers(threadID, fetchOnlyActive)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetThreadFollowers")
-	// event.Add("params", fmt.Sprintf("%v", []any{threadID, fetchOnlyActive}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadID, fetchOnlyActive}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadFollowers", success, elapsed)
 	return result, err
 }
 
@@ -12547,19 +9248,13 @@ func (s *DebugBarLayerThreadStore) GetThreadForUser(threadMembership *model.Thre
 	result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended, postPriorityIsEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetThreadForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{threadMembership, extended, postPriorityIsEnabled}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadMembership, extended, postPriorityIsEnabled}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadForUser", success, elapsed)
 	return result, err
 }
 
@@ -12569,19 +9264,13 @@ func (s *DebugBarLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *m
 	result, err := s.ThreadStore.GetThreadUnreadReplyCount(threadMembership)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetThreadUnreadReplyCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{threadMembership}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{threadMembership}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadUnreadReplyCount", success, elapsed)
 	return result, err
 }
 
@@ -12591,19 +9280,13 @@ func (s *DebugBarLayerThreadStore) GetThreadsForUser(userId string, teamID strin
 	result, err := s.ThreadStore.GetThreadsForUser(userId, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetThreadsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetThreadsForUser", success, elapsed)
 	return result, err
 }
 
@@ -12613,19 +9296,13 @@ func (s *DebugBarLayerThreadStore) GetTopThreadsForTeamSince(teamID string, user
 	result, err := s.ThreadStore.GetTopThreadsForTeamSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTopThreadsForTeamSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTopThreadsForTeamSince", success, elapsed)
 	return result, err
 }
 
@@ -12635,19 +9312,13 @@ func (s *DebugBarLayerThreadStore) GetTopThreadsForUserSince(teamID string, user
 	result, err := s.ThreadStore.GetTopThreadsForUserSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTopThreadsForUserSince")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, since, offset, limit}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTopThreadsForUserSince", success, elapsed)
 	return result, err
 }
 
@@ -12657,19 +9328,13 @@ func (s *DebugBarLayerThreadStore) GetTotalThreads(userId string, teamID string,
 	result, err := s.ThreadStore.GetTotalThreads(userId, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTotalThreads")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalThreads", success, elapsed)
 	return result, err
 }
 
@@ -12679,19 +9344,13 @@ func (s *DebugBarLayerThreadStore) GetTotalUnreadMentions(userId string, teamID 
 	result, err := s.ThreadStore.GetTotalUnreadMentions(userId, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTotalUnreadMentions")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadMentions", success, elapsed)
 	return result, err
 }
 
@@ -12701,19 +9360,13 @@ func (s *DebugBarLayerThreadStore) GetTotalUnreadThreads(userId string, teamID s
 	result, err := s.ThreadStore.GetTotalUnreadThreads(userId, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTotalUnreadThreads")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadThreads", success, elapsed)
 	return result, err
 }
 
@@ -12723,19 +9376,13 @@ func (s *DebugBarLayerThreadStore) GetTotalUnreadUrgentMentions(userId string, t
 	result, err := s.ThreadStore.GetTotalUnreadUrgentMentions(userId, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.GetTotalUnreadUrgentMentions")
-	// event.Add("params", fmt.Sprintf("%v", []any{userId, teamID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userId, teamID, opts}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.GetTotalUnreadUrgentMentions", success, elapsed)
 	return result, err
 }
 
@@ -12745,19 +9392,13 @@ func (s *DebugBarLayerThreadStore) MaintainMembership(userID string, postID stri
 	result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.MaintainMembership")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, postID, opts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, postID, opts}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.MaintainMembership", success, elapsed)
 	return result, err
 }
 
@@ -12767,19 +9408,13 @@ func (s *DebugBarLayerThreadStore) MarkAllAsRead(userID string, threadIds []stri
 	err := s.ThreadStore.MarkAllAsRead(userID, threadIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.MarkAllAsRead")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, threadIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, threadIds}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsRead", success, elapsed)
 	return err
 }
 
@@ -12789,19 +9424,13 @@ func (s *DebugBarLayerThreadStore) MarkAllAsReadByChannels(userID string, channe
 	err := s.ThreadStore.MarkAllAsReadByChannels(userID, channelIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.MarkAllAsReadByChannels")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelIDs}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelIDs}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsReadByChannels", success, elapsed)
 	return err
 }
 
@@ -12811,19 +9440,13 @@ func (s *DebugBarLayerThreadStore) MarkAllAsReadByTeam(userID string, teamID str
 	err := s.ThreadStore.MarkAllAsReadByTeam(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.MarkAllAsReadByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, teamID}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAllAsReadByTeam", success, elapsed)
 	return err
 }
 
@@ -12833,19 +9456,13 @@ func (s *DebugBarLayerThreadStore) MarkAsRead(userID string, threadID string, ti
 	err := s.ThreadStore.MarkAsRead(userID, threadID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.MarkAsRead")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, threadID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, threadID, timestamp}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.MarkAsRead", success, elapsed)
 	return err
 }
 
@@ -12855,19 +9472,13 @@ func (s *DebugBarLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now 
 	result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.PermanentDeleteBatchForRetentionPolicies")
-	// event.Add("params", fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -12877,19 +9488,13 @@ func (s *DebugBarLayerThreadStore) PermanentDeleteBatchThreadMembershipsForReten
 	result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies")
-	// event.Add("params", fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{now, globalPolicyEndTime, limit, cursor}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies", success, elapsed)
 	return result, resultVar1, err
 }
 
@@ -12899,19 +9504,13 @@ func (s *DebugBarLayerThreadStore) UpdateMembership(membership *model.ThreadMemb
 	result, err := s.ThreadStore.UpdateMembership(membership)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "ThreadStore.UpdateMembership")
-	// event.Add("params", fmt.Sprintf("%v", []any{membership}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{membership}))
+	s.Root.debugBar.SendStoreCall("ThreadStore.UpdateMembership", success, elapsed)
 	return result, err
 }
 
@@ -12921,19 +9520,13 @@ func (s *DebugBarLayerTokenStore) Cleanup(expiryTime int64) {
 	s.TokenStore.Cleanup(expiryTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TokenStore.Cleanup")
-	// event.Add("params", fmt.Sprintf("%v", []any{expiryTime}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{expiryTime}))
+	s.Root.debugBar.SendStoreCall("TokenStore.Cleanup", success, elapsed)
 
 }
 
@@ -12943,19 +9536,13 @@ func (s *DebugBarLayerTokenStore) Delete(token string) error {
 	err := s.TokenStore.Delete(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TokenStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{token}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
+	s.Root.debugBar.SendStoreCall("TokenStore.Delete", success, elapsed)
 	return err
 }
 
@@ -12965,19 +9552,13 @@ func (s *DebugBarLayerTokenStore) GetAllTokensByType(tokenType string) ([]*model
 	result, err := s.TokenStore.GetAllTokensByType(tokenType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TokenStore.GetAllTokensByType")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenType}))
+	s.Root.debugBar.SendStoreCall("TokenStore.GetAllTokensByType", success, elapsed)
 	return result, err
 }
 
@@ -12987,19 +9568,13 @@ func (s *DebugBarLayerTokenStore) GetByToken(token string) (*model.Token, error)
 	result, err := s.TokenStore.GetByToken(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TokenStore.GetByToken")
-	// event.Add("params", fmt.Sprintf("%v", []any{token}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
+	s.Root.debugBar.SendStoreCall("TokenStore.GetByToken", success, elapsed)
 	return result, err
 }
 
@@ -13009,19 +9584,13 @@ func (s *DebugBarLayerTokenStore) RemoveAllTokensByType(tokenType string) error 
 	err := s.TokenStore.RemoveAllTokensByType(tokenType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TokenStore.RemoveAllTokensByType")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenType}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenType}))
+	s.Root.debugBar.SendStoreCall("TokenStore.RemoveAllTokensByType", success, elapsed)
 	return err
 }
 
@@ -13031,19 +9600,13 @@ func (s *DebugBarLayerTokenStore) Save(recovery *model.Token) error {
 	err := s.TokenStore.Save(recovery)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TokenStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{recovery}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{recovery}))
+	s.Root.debugBar.SendStoreCall("TokenStore.Save", success, elapsed)
 	return err
 }
 
@@ -13053,19 +9616,13 @@ func (s *DebugBarLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewSt
 	result, err := s.TrueUpReviewStore.CreateTrueUpReviewStatusRecord(reviewStatus)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TrueUpReviewStore.CreateTrueUpReviewStatusRecord")
-	// event.Add("params", fmt.Sprintf("%v", []any{reviewStatus}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reviewStatus}))
+	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.CreateTrueUpReviewStatusRecord", success, elapsed)
 	return result, err
 }
 
@@ -13075,19 +9632,13 @@ func (s *DebugBarLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*
 	result, err := s.TrueUpReviewStore.GetTrueUpReviewStatus(dueDate)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TrueUpReviewStore.GetTrueUpReviewStatus")
-	// event.Add("params", fmt.Sprintf("%v", []any{dueDate}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{dueDate}))
+	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.GetTrueUpReviewStatus", success, elapsed)
 	return result, err
 }
 
@@ -13097,19 +9648,13 @@ func (s *DebugBarLayerTrueUpReviewStore) Update(reviewStatus *model.TrueUpReview
 	result, err := s.TrueUpReviewStore.Update(reviewStatus)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "TrueUpReviewStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{reviewStatus}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{reviewStatus}))
+	s.Root.debugBar.SendStoreCall("TrueUpReviewStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -13119,19 +9664,13 @@ func (s *DebugBarLayerUploadSessionStore) Delete(id string) error {
 	err := s.UploadSessionStore.Delete(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UploadSessionStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Delete", success, elapsed)
 	return err
 }
 
@@ -13141,19 +9680,13 @@ func (s *DebugBarLayerUploadSessionStore) Get(ctx context.Context, id string) (*
 	result, err := s.UploadSessionStore.Get(ctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UploadSessionStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id}))
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -13163,19 +9696,13 @@ func (s *DebugBarLayerUploadSessionStore) GetForUser(userID string) ([]*model.Up
 	result, err := s.UploadSessionStore.GetForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UploadSessionStore.GetForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.GetForUser", success, elapsed)
 	return result, err
 }
 
@@ -13185,19 +9712,13 @@ func (s *DebugBarLayerUploadSessionStore) Save(session *model.UploadSession) (*m
 	result, err := s.UploadSessionStore.Save(session)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UploadSessionStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{session}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -13207,19 +9728,13 @@ func (s *DebugBarLayerUploadSessionStore) Update(session *model.UploadSession) e
 	err := s.UploadSessionStore.Update(session)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UploadSessionStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{session}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{session}))
+	s.Root.debugBar.SendStoreCall("UploadSessionStore.Update", success, elapsed)
 	return err
 }
 
@@ -13229,19 +9744,13 @@ func (s *DebugBarLayerUserStore) AnalyticsActiveCount(timestamp int64, options m
 	result, err := s.UserStore.AnalyticsActiveCount(timestamp, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AnalyticsActiveCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{timestamp, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{timestamp, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsActiveCount", success, elapsed)
 	return result, err
 }
 
@@ -13251,19 +9760,13 @@ func (s *DebugBarLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, 
 	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AnalyticsActiveCountForPeriod")
-	// event.Add("params", fmt.Sprintf("%v", []any{startTime, endTime, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, endTime, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsActiveCountForPeriod", success, elapsed)
 	return result, err
 }
 
@@ -13273,19 +9776,13 @@ func (s *DebugBarLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (b
 	result, err := s.UserStore.AnalyticsGetExternalUsers(hostDomain)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AnalyticsGetExternalUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{hostDomain}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{hostDomain}))
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetExternalUsers", success, elapsed)
 	return result, err
 }
 
@@ -13295,19 +9792,13 @@ func (s *DebugBarLayerUserStore) AnalyticsGetGuestCount() (int64, error) {
 	result, err := s.UserStore.AnalyticsGetGuestCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AnalyticsGetGuestCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetGuestCount", success, elapsed)
 	return result, err
 }
 
@@ -13317,19 +9808,13 @@ func (s *DebugBarLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, error)
 	result, err := s.UserStore.AnalyticsGetInactiveUsersCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AnalyticsGetInactiveUsersCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetInactiveUsersCount", success, elapsed)
 	return result, err
 }
 
@@ -13339,19 +9824,13 @@ func (s *DebugBarLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	result, err := s.UserStore.AnalyticsGetSystemAdminCount()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AnalyticsGetSystemAdminCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.AnalyticsGetSystemAdminCount", success, elapsed)
 	return result, err
 }
 
@@ -13361,19 +9840,13 @@ func (s *DebugBarLayerUserStore) AutocompleteUsersInChannel(teamID string, chann
 	result, err := s.UserStore.AutocompleteUsersInChannel(teamID, channelID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.AutocompleteUsersInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, channelID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.AutocompleteUsersInChannel", success, elapsed)
 	return result, err
 }
 
@@ -13383,19 +9856,13 @@ func (s *DebugBarLayerUserStore) ClearAllCustomRoleAssignments() error {
 	err := s.UserStore.ClearAllCustomRoleAssignments()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.ClearAllCustomRoleAssignments")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.ClearAllCustomRoleAssignments", success, elapsed)
 	return err
 }
 
@@ -13405,19 +9872,13 @@ func (s *DebugBarLayerUserStore) ClearCaches() {
 	s.UserStore.ClearCaches()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.ClearCaches")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.ClearCaches", success, elapsed)
 
 }
 
@@ -13427,19 +9888,13 @@ func (s *DebugBarLayerUserStore) Count(options model.UserCountOptions) (int64, e
 	result, err := s.UserStore.Count(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.Count")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.Count", success, elapsed)
 	return result, err
 }
 
@@ -13449,19 +9904,13 @@ func (s *DebugBarLayerUserStore) DeactivateGuests() ([]string, error) {
 	result, err := s.UserStore.DeactivateGuests()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.DeactivateGuests")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.DeactivateGuests", success, elapsed)
 	return result, err
 }
 
@@ -13471,19 +9920,13 @@ func (s *DebugBarLayerUserStore) DemoteUserToGuest(userID string) (*model.User, 
 	result, err := s.UserStore.DemoteUserToGuest(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.DemoteUserToGuest")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.DemoteUserToGuest", success, elapsed)
 	return result, err
 }
 
@@ -13493,19 +9936,13 @@ func (s *DebugBarLayerUserStore) Get(ctx context.Context, id string) (*model.Use
 	result, err := s.UserStore.Get(ctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, id}))
+	s.Root.debugBar.SendStoreCall("UserStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -13515,19 +9952,13 @@ func (s *DebugBarLayerUserStore) GetAll() ([]*model.User, error) {
 	result, err := s.UserStore.GetAll()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -13537,19 +9968,13 @@ func (s *DebugBarLayerUserStore) GetAllAfter(limit int, afterID string) ([]*mode
 	result, err := s.UserStore.GetAllAfter(limit, afterID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAllAfter")
-	// event.Add("params", fmt.Sprintf("%v", []any{limit, afterID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{limit, afterID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllAfter", success, elapsed)
 	return result, err
 }
 
@@ -13559,19 +9984,13 @@ func (s *DebugBarLayerUserStore) GetAllNotInAuthService(authServices []string) (
 	result, err := s.UserStore.GetAllNotInAuthService(authServices)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAllNotInAuthService")
-	// event.Add("params", fmt.Sprintf("%v", []any{authServices}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authServices}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllNotInAuthService", success, elapsed)
 	return result, err
 }
 
@@ -13581,19 +10000,13 @@ func (s *DebugBarLayerUserStore) GetAllProfiles(options *model.UserGetOptions) (
 	result, err := s.UserStore.GetAllProfiles(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAllProfiles")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllProfiles", success, elapsed)
 	return result, err
 }
 
@@ -13603,19 +10016,13 @@ func (s *DebugBarLayerUserStore) GetAllProfilesInChannel(ctx context.Context, ch
 	result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAllProfilesInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, channelID, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, channelID, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllProfilesInChannel", success, elapsed)
 	return result, err
 }
 
@@ -13625,19 +10032,13 @@ func (s *DebugBarLayerUserStore) GetAllUsingAuthService(authService string) ([]*
 	result, err := s.UserStore.GetAllUsingAuthService(authService)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAllUsingAuthService")
-	// event.Add("params", fmt.Sprintf("%v", []any{authService}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authService}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAllUsingAuthService", success, elapsed)
 	return result, err
 }
 
@@ -13647,19 +10048,13 @@ func (s *DebugBarLayerUserStore) GetAnyUnreadPostCountForChannel(userID string, 
 	result, err := s.UserStore.GetAnyUnreadPostCountForChannel(userID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetAnyUnreadPostCountForChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetAnyUnreadPostCountForChannel", success, elapsed)
 	return result, err
 }
 
@@ -13669,19 +10064,13 @@ func (s *DebugBarLayerUserStore) GetByAuth(authData *string, authService string)
 	result, err := s.UserStore.GetByAuth(authData, authService)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetByAuth")
-	// event.Add("params", fmt.Sprintf("%v", []any{authData, authService}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{authData, authService}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetByAuth", success, elapsed)
 	return result, err
 }
 
@@ -13691,19 +10080,13 @@ func (s *DebugBarLayerUserStore) GetByEmail(email string) (*model.User, error) {
 	result, err := s.UserStore.GetByEmail(email)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetByEmail")
-	// event.Add("params", fmt.Sprintf("%v", []any{email}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{email}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetByEmail", success, elapsed)
 	return result, err
 }
 
@@ -13713,19 +10096,13 @@ func (s *DebugBarLayerUserStore) GetByUsername(username string) (*model.User, er
 	result, err := s.UserStore.GetByUsername(username)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetByUsername")
-	// event.Add("params", fmt.Sprintf("%v", []any{username}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{username}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetByUsername", success, elapsed)
 	return result, err
 }
 
@@ -13735,19 +10112,13 @@ func (s *DebugBarLayerUserStore) GetChannelGroupUsers(channelID string) ([]*mode
 	result, err := s.UserStore.GetChannelGroupUsers(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetChannelGroupUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetChannelGroupUsers", success, elapsed)
 	return result, err
 }
 
@@ -13757,19 +10128,13 @@ func (s *DebugBarLayerUserStore) GetEtagForAllProfiles() string {
 	result := s.UserStore.GetEtagForAllProfiles()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetEtagForAllProfiles")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForAllProfiles", success, elapsed)
 	return result
 }
 
@@ -13779,19 +10144,13 @@ func (s *DebugBarLayerUserStore) GetEtagForProfiles(teamID string) string {
 	result := s.UserStore.GetEtagForProfiles(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetEtagForProfiles")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForProfiles", success, elapsed)
 	return result
 }
 
@@ -13801,19 +10160,13 @@ func (s *DebugBarLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) stri
 	result := s.UserStore.GetEtagForProfilesNotInTeam(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetEtagForProfilesNotInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetEtagForProfilesNotInTeam", success, elapsed)
 	return result
 }
 
@@ -13823,19 +10176,13 @@ func (s *DebugBarLayerUserStore) GetFirstSystemAdminID() (string, error) {
 	result, err := s.UserStore.GetFirstSystemAdminID()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetFirstSystemAdminID")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetFirstSystemAdminID", success, elapsed)
 	return result, err
 }
 
@@ -13845,19 +10192,13 @@ func (s *DebugBarLayerUserStore) GetForLogin(loginID string, allowSignInWithUser
 	result, err := s.UserStore.GetForLogin(loginID, allowSignInWithUsername, allowSignInWithEmail)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetForLogin")
-	// event.Add("params", fmt.Sprintf("%v", []any{loginID, allowSignInWithUsername, allowSignInWithEmail}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{loginID, allowSignInWithUsername, allowSignInWithEmail}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetForLogin", success, elapsed)
 	return result, err
 }
 
@@ -13867,19 +10208,13 @@ func (s *DebugBarLayerUserStore) GetKnownUsers(userID string) ([]string, error) 
 	result, err := s.UserStore.GetKnownUsers(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetKnownUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetKnownUsers", success, elapsed)
 	return result, err
 }
 
@@ -13889,19 +10224,13 @@ func (s *DebugBarLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*
 	result, err := s.UserStore.GetMany(ctx, ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetMany")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, ids}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, ids}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetMany", success, elapsed)
 	return result, err
 }
 
@@ -13911,19 +10240,13 @@ func (s *DebugBarLayerUserStore) GetNewUsersForTeam(teamID string, offset int, l
 	result, err := s.UserStore.GetNewUsersForTeam(teamID, offset, limit, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetNewUsersForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetNewUsersForTeam", success, elapsed)
 	return result, err
 }
 
@@ -13933,19 +10256,13 @@ func (s *DebugBarLayerUserStore) GetProfileByGroupChannelIdsForUser(userID strin
 	result, err := s.UserStore.GetProfileByGroupChannelIdsForUser(userID, channelIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfileByGroupChannelIdsForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelIds}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelIds}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfileByGroupChannelIdsForUser", success, elapsed)
 	return result, err
 }
 
@@ -13955,19 +10272,13 @@ func (s *DebugBarLayerUserStore) GetProfileByIds(ctx context.Context, userIds []
 	result, err := s.UserStore.GetProfileByIds(ctx, userIds, options, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfileByIds")
-	// event.Add("params", fmt.Sprintf("%v", []any{ctx, userIds, options, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{ctx, userIds, options, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfileByIds", success, elapsed)
 	return result, err
 }
 
@@ -13977,19 +10288,13 @@ func (s *DebugBarLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*
 	result, err := s.UserStore.GetProfiles(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfiles")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfiles", success, elapsed)
 	return result, err
 }
 
@@ -13999,19 +10304,13 @@ func (s *DebugBarLayerUserStore) GetProfilesByUsernames(usernames []string, view
 	result, err := s.UserStore.GetProfilesByUsernames(usernames, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesByUsernames")
-	// event.Add("params", fmt.Sprintf("%v", []any{usernames, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{usernames, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesByUsernames", success, elapsed)
 	return result, err
 }
 
@@ -14021,19 +10320,13 @@ func (s *DebugBarLayerUserStore) GetProfilesInChannel(options *model.UserGetOpti
 	result, err := s.UserStore.GetProfilesInChannel(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannel", success, elapsed)
 	return result, err
 }
 
@@ -14043,19 +10336,13 @@ func (s *DebugBarLayerUserStore) GetProfilesInChannelByAdmin(options *model.User
 	result, err := s.UserStore.GetProfilesInChannelByAdmin(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesInChannelByAdmin")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannelByAdmin", success, elapsed)
 	return result, err
 }
 
@@ -14065,19 +10352,13 @@ func (s *DebugBarLayerUserStore) GetProfilesInChannelByStatus(options *model.Use
 	result, err := s.UserStore.GetProfilesInChannelByStatus(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesInChannelByStatus")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesInChannelByStatus", success, elapsed)
 	return result, err
 }
 
@@ -14087,19 +10368,13 @@ func (s *DebugBarLayerUserStore) GetProfilesNotInChannel(teamID string, channelI
 	result, err := s.UserStore.GetProfilesNotInChannel(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesNotInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, channelId, groupConstrained, offset, limit, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelId, groupConstrained, offset, limit, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesNotInChannel", success, elapsed)
 	return result, err
 }
 
@@ -14109,19 +10384,13 @@ func (s *DebugBarLayerUserStore) GetProfilesNotInTeam(teamID string, groupConstr
 	result, err := s.UserStore.GetProfilesNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesNotInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, groupConstrained, offset, limit, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, groupConstrained, offset, limit, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesNotInTeam", success, elapsed)
 	return result, err
 }
 
@@ -14131,19 +10400,13 @@ func (s *DebugBarLayerUserStore) GetProfilesWithoutTeam(options *model.UserGetOp
 	result, err := s.UserStore.GetProfilesWithoutTeam(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetProfilesWithoutTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{options}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetProfilesWithoutTeam", success, elapsed)
 	return result, err
 }
 
@@ -14153,19 +10416,13 @@ func (s *DebugBarLayerUserStore) GetRecentlyActiveUsersForTeam(teamID string, of
 	result, err := s.UserStore.GetRecentlyActiveUsersForTeam(teamID, offset, limit, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetRecentlyActiveUsersForTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit, viewRestrictions}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit, viewRestrictions}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetRecentlyActiveUsersForTeam", success, elapsed)
 	return result, err
 }
 
@@ -14175,19 +10432,13 @@ func (s *DebugBarLayerUserStore) GetSystemAdminProfiles() (map[string]*model.Use
 	result, err := s.UserStore.GetSystemAdminProfiles()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetSystemAdminProfiles")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetSystemAdminProfiles", success, elapsed)
 	return result, err
 }
 
@@ -14197,19 +10448,13 @@ func (s *DebugBarLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User
 	result, err := s.UserStore.GetTeamGroupUsers(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetTeamGroupUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetTeamGroupUsers", success, elapsed)
 	return result, err
 }
 
@@ -14219,19 +10464,13 @@ func (s *DebugBarLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool
 	result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetUnreadCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, isCRTEnabled}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, isCRTEnabled}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetUnreadCount", success, elapsed)
 	return result, err
 }
 
@@ -14241,19 +10480,13 @@ func (s *DebugBarLayerUserStore) GetUnreadCountForChannel(userID string, channel
 	result, err := s.UserStore.GetUnreadCountForChannel(userID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetUnreadCountForChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, channelID}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetUnreadCountForChannel", success, elapsed)
 	return result, err
 }
 
@@ -14263,19 +10496,13 @@ func (s *DebugBarLayerUserStore) GetUsersBatchForIndexing(startTime int64, start
 	result, err := s.UserStore.GetUsersBatchForIndexing(startTime, startFileID, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetUsersBatchForIndexing")
-	// event.Add("params", fmt.Sprintf("%v", []any{startTime, startFileID, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{startTime, startFileID, limit}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetUsersBatchForIndexing", success, elapsed)
 	return result, err
 }
 
@@ -14285,19 +10512,13 @@ func (s *DebugBarLayerUserStore) GetUsersWithInvalidEmails(page int, perPage int
 	result, err := s.UserStore.GetUsersWithInvalidEmails(page, perPage, restrictedDomains)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.GetUsersWithInvalidEmails")
-	// event.Add("params", fmt.Sprintf("%v", []any{page, perPage, restrictedDomains}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{page, perPage, restrictedDomains}))
+	s.Root.debugBar.SendStoreCall("UserStore.GetUsersWithInvalidEmails", success, elapsed)
 	return result, err
 }
 
@@ -14307,19 +10528,13 @@ func (s *DebugBarLayerUserStore) InferSystemInstallDate() (int64, error) {
 	result, err := s.UserStore.InferSystemInstallDate()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.InferSystemInstallDate")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("UserStore.InferSystemInstallDate", success, elapsed)
 	return result, err
 }
 
@@ -14329,19 +10544,13 @@ func (s *DebugBarLayerUserStore) InsertUsers(users []*model.User) error {
 	err := s.UserStore.InsertUsers(users)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.InsertUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{users}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{users}))
+	s.Root.debugBar.SendStoreCall("UserStore.InsertUsers", success, elapsed)
 	return err
 }
 
@@ -14351,19 +10560,13 @@ func (s *DebugBarLayerUserStore) InvalidateProfileCacheForUser(userID string) {
 	s.UserStore.InvalidateProfileCacheForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.InvalidateProfileCacheForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfileCacheForUser", success, elapsed)
 
 }
 
@@ -14373,19 +10576,13 @@ func (s *DebugBarLayerUserStore) InvalidateProfilesInChannelCache(channelID stri
 	s.UserStore.InvalidateProfilesInChannelCache(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.InvalidateProfilesInChannelCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfilesInChannelCache", success, elapsed)
 
 }
 
@@ -14395,19 +10592,13 @@ func (s *DebugBarLayerUserStore) InvalidateProfilesInChannelCacheByUser(userID s
 	s.UserStore.InvalidateProfilesInChannelCacheByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.InvalidateProfilesInChannelCacheByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.InvalidateProfilesInChannelCacheByUser", success, elapsed)
 
 }
 
@@ -14417,19 +10608,13 @@ func (s *DebugBarLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 	result, err := s.UserStore.IsEmpty(excludeBots)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.IsEmpty")
-	// event.Add("params", fmt.Sprintf("%v", []any{excludeBots}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{excludeBots}))
+	s.Root.debugBar.SendStoreCall("UserStore.IsEmpty", success, elapsed)
 	return result, err
 }
 
@@ -14439,19 +10624,13 @@ func (s *DebugBarLayerUserStore) PermanentDelete(userID string) error {
 	err := s.UserStore.PermanentDelete(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.PermanentDelete")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.PermanentDelete", success, elapsed)
 	return err
 }
 
@@ -14461,19 +10640,13 @@ func (s *DebugBarLayerUserStore) PromoteGuestToUser(userID string) error {
 	err := s.UserStore.PromoteGuestToUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.PromoteGuestToUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.PromoteGuestToUser", success, elapsed)
 	return err
 }
 
@@ -14483,19 +10656,13 @@ func (s *DebugBarLayerUserStore) ResetAuthDataToEmailForUsers(service string, us
 	result, err := s.UserStore.ResetAuthDataToEmailForUsers(service, userIDs, includeDeleted, dryRun)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.ResetAuthDataToEmailForUsers")
-	// event.Add("params", fmt.Sprintf("%v", []any{service, userIDs, includeDeleted, dryRun}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{service, userIDs, includeDeleted, dryRun}))
+	s.Root.debugBar.SendStoreCall("UserStore.ResetAuthDataToEmailForUsers", success, elapsed)
 	return result, err
 }
 
@@ -14505,19 +10672,13 @@ func (s *DebugBarLayerUserStore) ResetLastPictureUpdate(userID string) error {
 	err := s.UserStore.ResetLastPictureUpdate(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.ResetLastPictureUpdate")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.ResetLastPictureUpdate", success, elapsed)
 	return err
 }
 
@@ -14527,19 +10688,13 @@ func (s *DebugBarLayerUserStore) Save(user *model.User) (*model.User, error) {
 	result, err := s.UserStore.Save(user)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{user}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{user}))
+	s.Root.debugBar.SendStoreCall("UserStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -14549,19 +10704,13 @@ func (s *DebugBarLayerUserStore) Search(teamID string, term string, options *mod
 	result, err := s.UserStore.Search(teamID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.Search")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.Search", success, elapsed)
 	return result, err
 }
 
@@ -14571,19 +10720,13 @@ func (s *DebugBarLayerUserStore) SearchInChannel(channelID string, term string, 
 	result, err := s.UserStore.SearchInChannel(channelID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.SearchInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.SearchInChannel", success, elapsed)
 	return result, err
 }
 
@@ -14593,19 +10736,13 @@ func (s *DebugBarLayerUserStore) SearchInGroup(groupID string, term string, opti
 	result, err := s.UserStore.SearchInGroup(groupID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.SearchInGroup")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.SearchInGroup", success, elapsed)
 	return result, err
 }
 
@@ -14615,19 +10752,13 @@ func (s *DebugBarLayerUserStore) SearchNotInChannel(teamID string, channelID str
 	result, err := s.UserStore.SearchNotInChannel(teamID, channelID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.SearchNotInChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, channelID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, channelID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInChannel", success, elapsed)
 	return result, err
 }
 
@@ -14637,19 +10768,13 @@ func (s *DebugBarLayerUserStore) SearchNotInGroup(groupID string, term string, o
 	result, err := s.UserStore.SearchNotInGroup(groupID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.SearchNotInGroup")
-	// event.Add("params", fmt.Sprintf("%v", []any{groupID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{groupID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInGroup", success, elapsed)
 	return result, err
 }
 
@@ -14659,19 +10784,13 @@ func (s *DebugBarLayerUserStore) SearchNotInTeam(notInTeamID string, term string
 	result, err := s.UserStore.SearchNotInTeam(notInTeamID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.SearchNotInTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{notInTeamID, term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{notInTeamID, term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.SearchNotInTeam", success, elapsed)
 	return result, err
 }
 
@@ -14681,19 +10800,13 @@ func (s *DebugBarLayerUserStore) SearchWithoutTeam(term string, options *model.U
 	result, err := s.UserStore.SearchWithoutTeam(term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.SearchWithoutTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{term, options}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{term, options}))
+	s.Root.debugBar.SendStoreCall("UserStore.SearchWithoutTeam", success, elapsed)
 	return result, err
 }
 
@@ -14703,19 +10816,13 @@ func (s *DebugBarLayerUserStore) Update(user *model.User, allowRoleUpdate bool) 
 	result, err := s.UserStore.Update(user, allowRoleUpdate)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.Update")
-	// event.Add("params", fmt.Sprintf("%v", []any{user, allowRoleUpdate}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{user, allowRoleUpdate}))
+	s.Root.debugBar.SendStoreCall("UserStore.Update", success, elapsed)
 	return result, err
 }
 
@@ -14725,19 +10832,13 @@ func (s *DebugBarLayerUserStore) UpdateAuthData(userID string, service string, a
 	result, err := s.UserStore.UpdateAuthData(userID, service, authData, email, resetMfa)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateAuthData")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, service, authData, email, resetMfa}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, service, authData, email, resetMfa}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateAuthData", success, elapsed)
 	return result, err
 }
 
@@ -14747,19 +10848,13 @@ func (s *DebugBarLayerUserStore) UpdateFailedPasswordAttempts(userID string, att
 	err := s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateFailedPasswordAttempts")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, attempts}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, attempts}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateFailedPasswordAttempts", success, elapsed)
 	return err
 }
 
@@ -14769,19 +10864,13 @@ func (s *DebugBarLayerUserStore) UpdateLastPictureUpdate(userID string) error {
 	err := s.UserStore.UpdateLastPictureUpdate(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateLastPictureUpdate")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateLastPictureUpdate", success, elapsed)
 	return err
 }
 
@@ -14791,19 +10880,13 @@ func (s *DebugBarLayerUserStore) UpdateMfaActive(userID string, active bool) err
 	err := s.UserStore.UpdateMfaActive(userID, active)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateMfaActive")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, active}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, active}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateMfaActive", success, elapsed)
 	return err
 }
 
@@ -14813,19 +10896,13 @@ func (s *DebugBarLayerUserStore) UpdateMfaSecret(userID string, secret string) e
 	err := s.UserStore.UpdateMfaSecret(userID, secret)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateMfaSecret")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, secret}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, secret}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateMfaSecret", success, elapsed)
 	return err
 }
 
@@ -14835,19 +10912,13 @@ func (s *DebugBarLayerUserStore) UpdateNotifyProps(userID string, props map[stri
 	err := s.UserStore.UpdateNotifyProps(userID, props)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateNotifyProps")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, props}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, props}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateNotifyProps", success, elapsed)
 	return err
 }
 
@@ -14857,19 +10928,13 @@ func (s *DebugBarLayerUserStore) UpdatePassword(userID string, newPassword strin
 	err := s.UserStore.UpdatePassword(userID, newPassword)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdatePassword")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, newPassword}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, newPassword}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdatePassword", success, elapsed)
 	return err
 }
 
@@ -14879,19 +10944,13 @@ func (s *DebugBarLayerUserStore) UpdateUpdateAt(userID string) (int64, error) {
 	result, err := s.UserStore.UpdateUpdateAt(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.UpdateUpdateAt")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserStore.UpdateUpdateAt", success, elapsed)
 	return result, err
 }
 
@@ -14901,19 +10960,13 @@ func (s *DebugBarLayerUserStore) VerifyEmail(userID string, email string) (strin
 	result, err := s.UserStore.VerifyEmail(userID, email)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserStore.VerifyEmail")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, email}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, email}))
+	s.Root.debugBar.SendStoreCall("UserStore.VerifyEmail", success, elapsed)
 	return result, err
 }
 
@@ -14923,19 +10976,13 @@ func (s *DebugBarLayerUserAccessTokenStore) Delete(tokenID string) error {
 	err := s.UserAccessTokenStore.Delete(tokenID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Delete", success, elapsed)
 	return err
 }
 
@@ -14945,19 +10992,13 @@ func (s *DebugBarLayerUserAccessTokenStore) DeleteAllForUser(userID string) erro
 	err := s.UserAccessTokenStore.DeleteAllForUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.DeleteAllForUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.DeleteAllForUser", success, elapsed)
 	return err
 }
 
@@ -14967,19 +11008,13 @@ func (s *DebugBarLayerUserAccessTokenStore) Get(tokenID string) (*model.UserAcce
 	result, err := s.UserAccessTokenStore.Get(tokenID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.Get")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Get", success, elapsed)
 	return result, err
 }
 
@@ -14989,19 +11024,13 @@ func (s *DebugBarLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*mo
 	result, err := s.UserAccessTokenStore.GetAll(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.GetAll")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetAll", success, elapsed)
 	return result, err
 }
 
@@ -15011,19 +11040,13 @@ func (s *DebugBarLayerUserAccessTokenStore) GetByToken(tokenString string) (*mod
 	result, err := s.UserAccessTokenStore.GetByToken(tokenString)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.GetByToken")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenString}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenString}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetByToken", success, elapsed)
 	return result, err
 }
 
@@ -15033,19 +11056,13 @@ func (s *DebugBarLayerUserAccessTokenStore) GetByUser(userID string, page int, p
 	result, err := s.UserAccessTokenStore.GetByUser(userID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.GetByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, page, perPage}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, page, perPage}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.GetByUser", success, elapsed)
 	return result, err
 }
 
@@ -15055,19 +11072,13 @@ func (s *DebugBarLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (
 	result, err := s.UserAccessTokenStore.Save(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{token}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{token}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -15077,19 +11088,13 @@ func (s *DebugBarLayerUserAccessTokenStore) Search(term string) ([]*model.UserAc
 	result, err := s.UserAccessTokenStore.Search(term)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.Search")
-	// event.Add("params", fmt.Sprintf("%v", []any{term}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{term}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.Search", success, elapsed)
 	return result, err
 }
 
@@ -15099,19 +11104,13 @@ func (s *DebugBarLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) e
 	err := s.UserAccessTokenStore.UpdateTokenDisable(tokenID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.UpdateTokenDisable")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.UpdateTokenDisable", success, elapsed)
 	return err
 }
 
@@ -15121,19 +11120,13 @@ func (s *DebugBarLayerUserAccessTokenStore) UpdateTokenEnable(tokenID string) er
 	err := s.UserAccessTokenStore.UpdateTokenEnable(tokenID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserAccessTokenStore.UpdateTokenEnable")
-	// event.Add("params", fmt.Sprintf("%v", []any{tokenID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{tokenID}))
+	s.Root.debugBar.SendStoreCall("UserAccessTokenStore.UpdateTokenEnable", success, elapsed)
 	return err
 }
 
@@ -15143,19 +11136,13 @@ func (s *DebugBarLayerUserTermsOfServiceStore) Delete(userID string, termsOfServ
 	err := s.UserTermsOfServiceStore.Delete(userID, termsOfServiceId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserTermsOfServiceStore.Delete")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, termsOfServiceId}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, termsOfServiceId}))
+	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.Delete", success, elapsed)
 	return err
 }
 
@@ -15165,19 +11152,13 @@ func (s *DebugBarLayerUserTermsOfServiceStore) GetByUser(userID string) (*model.
 	result, err := s.UserTermsOfServiceStore.GetByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserTermsOfServiceStore.GetByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.GetByUser", success, elapsed)
 	return result, err
 }
 
@@ -15187,19 +11168,13 @@ func (s *DebugBarLayerUserTermsOfServiceStore) Save(userTermsOfService *model.Us
 	result, err := s.UserTermsOfServiceStore.Save(userTermsOfService)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "UserTermsOfServiceStore.Save")
-	// event.Add("params", fmt.Sprintf("%v", []any{userTermsOfService}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userTermsOfService}))
+	s.Root.debugBar.SendStoreCall("UserTermsOfServiceStore.Save", success, elapsed)
 	return result, err
 }
 
@@ -15209,19 +11184,13 @@ func (s *DebugBarLayerWebhookStore) AnalyticsIncomingCount(teamID string) (int64
 	result, err := s.WebhookStore.AnalyticsIncomingCount(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.AnalyticsIncomingCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.AnalyticsIncomingCount", success, elapsed)
 	return result, err
 }
 
@@ -15231,19 +11200,13 @@ func (s *DebugBarLayerWebhookStore) AnalyticsOutgoingCount(teamID string) (int64
 	result, err := s.WebhookStore.AnalyticsOutgoingCount(teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.AnalyticsOutgoingCount")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.AnalyticsOutgoingCount", success, elapsed)
 	return result, err
 }
 
@@ -15253,19 +11216,13 @@ func (s *DebugBarLayerWebhookStore) ClearCaches() {
 	s.WebhookStore.ClearCaches()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.ClearCaches")
-	// event.Add("params", fmt.Sprintf("%v", []any{}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.ClearCaches", success, elapsed)
 
 }
 
@@ -15275,19 +11232,13 @@ func (s *DebugBarLayerWebhookStore) DeleteIncoming(webhookID string, timestamp i
 	err := s.WebhookStore.DeleteIncoming(webhookID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.DeleteIncoming")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhookID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhookID, timestamp}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.DeleteIncoming", success, elapsed)
 	return err
 }
 
@@ -15297,19 +11248,13 @@ func (s *DebugBarLayerWebhookStore) DeleteOutgoing(webhookID string, timestamp i
 	err := s.WebhookStore.DeleteOutgoing(webhookID, timestamp)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.DeleteOutgoing")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhookID, timestamp}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhookID, timestamp}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.DeleteOutgoing", success, elapsed)
 	return err
 }
 
@@ -15319,19 +11264,13 @@ func (s *DebugBarLayerWebhookStore) GetIncoming(id string, allowFromCache bool) 
 	result, err := s.WebhookStore.GetIncoming(id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetIncoming")
-	// event.Add("params", fmt.Sprintf("%v", []any{id, allowFromCache}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id, allowFromCache}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncoming", success, elapsed)
 	return result, err
 }
 
@@ -15341,19 +11280,13 @@ func (s *DebugBarLayerWebhookStore) GetIncomingByChannel(channelID string) ([]*m
 	result, err := s.WebhookStore.GetIncomingByChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetIncomingByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByChannel", success, elapsed)
 	return result, err
 }
 
@@ -15363,19 +11296,13 @@ func (s *DebugBarLayerWebhookStore) GetIncomingByTeam(teamID string, offset int,
 	result, err := s.WebhookStore.GetIncomingByTeam(teamID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetIncomingByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByTeam", success, elapsed)
 	return result, err
 }
 
@@ -15385,19 +11312,13 @@ func (s *DebugBarLayerWebhookStore) GetIncomingByTeamByUser(teamID string, userI
 	result, err := s.WebhookStore.GetIncomingByTeamByUser(teamID, userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetIncomingByTeamByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingByTeamByUser", success, elapsed)
 	return result, err
 }
 
@@ -15407,19 +11328,13 @@ func (s *DebugBarLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*m
 	result, err := s.WebhookStore.GetIncomingList(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetIncomingList")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingList", success, elapsed)
 	return result, err
 }
 
@@ -15429,19 +11344,13 @@ func (s *DebugBarLayerWebhookStore) GetIncomingListByUser(userID string, offset 
 	result, err := s.WebhookStore.GetIncomingListByUser(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetIncomingListByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetIncomingListByUser", success, elapsed)
 	return result, err
 }
 
@@ -15451,19 +11360,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebho
 	result, err := s.WebhookStore.GetOutgoing(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoing")
-	// event.Add("params", fmt.Sprintf("%v", []any{id}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{id}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoing", success, elapsed)
 	return result, err
 }
 
@@ -15473,19 +11376,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByChannel(channelID string, offse
 	result, err := s.WebhookStore.GetOutgoingByChannel(channelID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoingByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByChannel", success, elapsed)
 	return result, err
 }
 
@@ -15495,19 +11392,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByChannelByUser(channelID string,
 	result, err := s.WebhookStore.GetOutgoingByChannelByUser(channelID, userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoingByChannelByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID, userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID, userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByChannelByUser", success, elapsed)
 	return result, err
 }
 
@@ -15517,19 +11408,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByTeam(teamID string, offset int,
 	result, err := s.WebhookStore.GetOutgoingByTeam(teamID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoingByTeam")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByTeam", success, elapsed)
 	return result, err
 }
 
@@ -15539,19 +11424,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingByTeamByUser(teamID string, userI
 	result, err := s.WebhookStore.GetOutgoingByTeamByUser(teamID, userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoingByTeamByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{teamID, userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingByTeamByUser", success, elapsed)
 	return result, err
 }
 
@@ -15561,19 +11440,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*m
 	result, err := s.WebhookStore.GetOutgoingList(offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoingList")
-	// event.Add("params", fmt.Sprintf("%v", []any{offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingList", success, elapsed)
 	return result, err
 }
 
@@ -15583,19 +11456,13 @@ func (s *DebugBarLayerWebhookStore) GetOutgoingListByUser(userID string, offset 
 	result, err := s.WebhookStore.GetOutgoingListByUser(userID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.GetOutgoingListByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID, offset, limit}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID, offset, limit}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.GetOutgoingListByUser", success, elapsed)
 	return result, err
 }
 
@@ -15605,19 +11472,13 @@ func (s *DebugBarLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 	s.WebhookStore.InvalidateWebhookCache(webhook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if true {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.InvalidateWebhookCache")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.InvalidateWebhookCache", success, elapsed)
 
 }
 
@@ -15627,19 +11488,13 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteIncomingByChannel(channelID s
 	err := s.WebhookStore.PermanentDeleteIncomingByChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.PermanentDeleteIncomingByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteIncomingByChannel", success, elapsed)
 	return err
 }
 
@@ -15649,19 +11504,13 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteIncomingByUser(userID string)
 	err := s.WebhookStore.PermanentDeleteIncomingByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.PermanentDeleteIncomingByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteIncomingByUser", success, elapsed)
 	return err
 }
 
@@ -15671,19 +11520,13 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelID s
 	err := s.WebhookStore.PermanentDeleteOutgoingByChannel(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.PermanentDeleteOutgoingByChannel")
-	// event.Add("params", fmt.Sprintf("%v", []any{channelID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{channelID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteOutgoingByChannel", success, elapsed)
 	return err
 }
 
@@ -15693,19 +11536,13 @@ func (s *DebugBarLayerWebhookStore) PermanentDeleteOutgoingByUser(userID string)
 	err := s.WebhookStore.PermanentDeleteOutgoingByUser(userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.PermanentDeleteOutgoingByUser")
-	// event.Add("params", fmt.Sprintf("%v", []any{userID}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{userID}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.PermanentDeleteOutgoingByUser", success, elapsed)
 	return err
 }
 
@@ -15715,19 +11552,13 @@ func (s *DebugBarLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook)
 	result, err := s.WebhookStore.SaveIncoming(webhook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.SaveIncoming")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.SaveIncoming", success, elapsed)
 	return result, err
 }
 
@@ -15737,19 +11568,13 @@ func (s *DebugBarLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook)
 	result, err := s.WebhookStore.SaveOutgoing(webhook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.SaveOutgoing")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.SaveOutgoing", success, elapsed)
 	return result, err
 }
 
@@ -15759,19 +11584,13 @@ func (s *DebugBarLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhoo
 	result, err := s.WebhookStore.UpdateIncoming(webhook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.UpdateIncoming")
-	// event.Add("params", fmt.Sprintf("%v", []any{webhook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{webhook}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.UpdateIncoming", success, elapsed)
 	return result, err
 }
 
@@ -15781,19 +11600,13 @@ func (s *DebugBarLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) 
 	result, err := s.WebhookStore.UpdateOutgoing(hook)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-	success := "false"
+	success := false
 	if err == nil {
-		success = "true"
+		success = true
 	}
 
-	event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-	event.Add("time", model.GetMillis())
-	event.Add("type", "store-call")
-	event.Add("method", "WebhookStore.UpdateOutgoing")
-	// event.Add("params", fmt.Sprintf("%v", []any{hook}))
-	event.Add("success", success)
-	event.Add("duration", elapsed)
-	s.Root.eventPublish(event)
+	// TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{hook}))
+	s.Root.debugBar.SendStoreCall("WebhookStore.UpdateOutgoing", success, elapsed)
 	return result, err
 }
 
@@ -15833,15 +11646,10 @@ func (s *DebugBarLayer) UnlockFromMaster() {
 	s.Store.UnlockFromMaster()
 }
 
-func (s *DebugBarLayer) SetCurrentUser(userID string) {
-	s.userID = userID
-}
-
-func New(childStore store.Store, userID string, eventPublish func(event *model.WebSocketEvent)) *DebugBarLayer {
+func New(childStore store.Store, debugBar *debugbar.DebugBar) *DebugBarLayer {
 	newStore := DebugBarLayer{
-		Store:        childStore,
-		userID:       userID,
-		eventPublish: eventPublish,
+		Store:    childStore,
+		debugBar: debugBar,
 	}
 
 	newStore.AuditStore = &DebugBarLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}

@@ -12,12 +12,13 @@ import (
     //"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type {{.Name}} struct {
 	store.Store
-	userID string
+    debugBar *debugbar.DebugBar
     eventPublish func(event *model.WebSocketEvent)
 {{range $index, $element := .SubStores}}	{{$index}}Store store.{{$index}}Store
 {{end}}
@@ -46,19 +47,13 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 	{{genResultsVars $element.Results false }} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 	{{end}}
 	elapsed := float64(time.Since(start)) / float64(time.Second)
-    success := "false"
+    success := false
     if {{$element.Results | errorToBoolean}} {
-        success = "true"
+        success = true
     }
 
-    event := model.NewWebSocketEvent("debug", "", "", s.Root.userID, nil, "")
-    event.Add("time", model.GetMillis())
-    event.Add("type", "store-call")
-    event.Add("method", "{{$substoreName}}Store.{{$index}}")
-    // event.Add("params", fmt.Sprintf("%v", []any{{`{`}}{{$element.Params | joinParams}}{{`}`}}))
-    event.Add("success", success)
-    event.Add("duration", elapsed)
-    s.Root.eventPublish(event)
+    // TODO: Add the parameters information: maybe something like fmt.Sprintf("%v", []any{{`{`}}{{$element.Params | joinParams}}{{`}`}}))
+    s.Root.debugBar.SendStoreCall("{{$substoreName}}Store.{{$index}}", success, elapsed)
 	{{ with (genResultsVars $element.Results false ) -}}
 	return {{ . }}
 	{{- end }}
@@ -73,15 +68,10 @@ func (s *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$ele
 	{{end}}}
 {{end}}
 
-func (s *{{$.Name}}) SetCurrentUser(userID string) {
-	s.userID = userID
-}
-
-func New(childStore store.Store, userID string, eventPublish func(event *model.WebSocketEvent)) *{{.Name}} {
+func New(childStore store.Store, debugBar *debugbar.DebugBar) *{{.Name}} {
 	newStore := {{.Name}}{
 		Store: childStore,
-		userID: userID,
-        eventPublish: eventPublish,
+        debugBar: debugBar,
 	}
 	{{range $substoreName, $substore := .SubStores}}
 	newStore.{{$substoreName}}Store = &{{$.Name}}{{$substoreName}}Store{{"{"}}{{$substoreName}}Store: childStore.{{$substoreName}}(), Root: &newStore}{{end}}
