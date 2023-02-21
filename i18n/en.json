@@ -1495,6 +1495,18 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_templates.desc",
+    "translation": "Open the create from template window"
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "templates"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "The templates command is not supported on your device."
+  },
+  {
     "id": "api.config.client.old_format.app_error",
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
@@ -2580,6 +2592,10 @@
     "translation": "CWS Server is not available."
   },
   {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Service only available in Mattermost Enterprise edition"
+  },
+  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },
@@ -2930,6 +2946,10 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Invalid log filter"
   },
   {
     "id": "api.system.update_notices.clear_failed",
@@ -5724,6 +5744,10 @@
     "translation": "Missing require user property: username."
   },
   {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Invalid auth service: {{.AuthService}}"
+  },
+  {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
     "translation": "Invalid roles for User's Team Membership."
   },
@@ -6476,6 +6500,30 @@
     "translation": "Error clearing team member cache"
   },
   {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "error duplicating board"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "error getting boards templates"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "error no board created"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "error while patching board"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "interface not of expected type"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "product key not found"
+  },
+  {
     "id": "app.team.get.find.app_error",
     "translation": "Unable to find the existing team."
   },
@@ -7056,10 +7104,6 @@
     "translation": "You don't have permissions to create a private playbook."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "You don't have permissions to create a private channel for the playbook run."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "You don't have permissions to create a public board."
   },
@@ -7070,14 +7114,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "You don't have permissions to create a public playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "You don't have permissions to create a public channel for the playbook run."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Unable to find playbook template associated with this work template."
   },
   {
     "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
@@ -7094,6 +7130,10 @@
   {
     "id": "app.worktemplates.execute_work_template.channels.create_error",
     "translation": "Error while creating a channel."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "The name field cannot contain more than 64 characters."
   },
   {
     "id": "app.worktemplates.execute_work_template.playbooks.create_error",
@@ -9737,19 +9777,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 106+"
+    "translation": "Version 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 95+"
+    "translation": "Version 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 91+"
+    "translation": "Version 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 14.1+"
+    "translation": "Version 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -9757,7 +9797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",

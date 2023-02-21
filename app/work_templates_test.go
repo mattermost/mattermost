@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -227,5 +229,11 @@ func TestExecuteWorkTemplate(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		executorMock.AssertExpectations(t)
+	})
+	t.Run("with name too long", func(t *testing.T) {
+		req.Name = strings.Repeat("a", model.ChannelNameMaxLength+1)
+		_, appErr := th.App.executeWorkTemplate(c, req, nil, false)
+		assert.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 }

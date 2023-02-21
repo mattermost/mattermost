@@ -68,14 +68,17 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	AnnualSubscription bool
-
 	// A/B Test on reduced onboarding task list item
 	ReduceOnBoardingTaskList bool
+
+	// A/B Test to control when to show onboarding linked board
+	OnboardingAutoShowLinkedBoard bool
 
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
+
+	OnboardingTourTips bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -100,11 +103,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PostPriority = true
 	f.PeopleProduct = false
 	f.WorkTemplate = false
-	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
+	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingTourTips = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -382,6 +382,82 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after be used")
 	})
+
+	t.Run("Validate inviter user has permissions on channels he is inviting", func(t *testing.T) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := th.BasicChannel.Id + " " + channelIdWithoutPermissions
+		token := model.NewToken(
+			app.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email, "senderId": th.BasicUser.Id, "channels": channelIds}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err, "The token must be deleted after being used")
+
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, teams, "The user must have teams")
+		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
+
+		// Now we get all the channels for the just created user
+		channelList, cErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
+		require.Nil(t, cErr)
+
+		// basicUser has no permissions on BasicPrivateChannel2 so the new invited user should be able to only access
+		// one channel from the two he was invited (plus the two default channels)
+		require.Len(t, channelList, 3)
+	})
+
+	t.Run("Validate inviterUser permissions on channels he is inviting, when inviting guests", func(t *testing.T) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Guest User", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		channelIdWithoutPermissions := th.BasicPrivateChannel2.Id
+		channelIds := th.BasicChannel.Id + " " + channelIdWithoutPermissions
+		token := model.NewToken(
+			app.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"guest": "true", "teamId": th.BasicTeam.Id, "email": user.Email, "senderId": th.BasicUser.Id, "channels": channelIds}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err, "The token must be deleted after being used")
+
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, teams, "The guest must have teams")
+		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The guest joined team must be the team provided.")
+
+		// Now we get all the channels for the just created guest
+		channelList, cErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, ruser.Id, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
+		require.Nil(t, cErr)
+
+		// basicUser has no permissions on BasicPrivateChannel2 so the new invited guest should be able to only access
+		// one channel from the two he was invited (plus the two default channels)
+		require.Len(t, channelList, 3)
+	})
 }
 
 func TestCreateUserWebSocketEvent(t *testing.T) {
@@ -6143,6 +6219,41 @@ func TestGetThreadsForUser(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+	})
+
+	t.Run("Since should return threads with new replies and updated memberships", func(t *testing.T) {
+		client := th.Client
+
+		// Create "thread 1"
+		rootPost1, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1, reply 1", RootId: rootPost1.Id})
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(rootPost1.CreateAt),
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 1)
+
+		// Should not fetch any threads since there are no new replies/new threads since the membership is updated
+		threadMembership, _ := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 0)
+
+		// Create "thread 2"
+		rootPost2, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 2"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 2, reply 1", RootId: rootPost2.Id})
+
+		// Add a reply to "thread 1"
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "Thread 1, Reply 2", RootId: rootPost1.Id})
+
+		// Should fetch "thread 1" & "thread 2"
+		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Equal(t, uss.TotalUnreadThreads, int64(2))
 	})
 }
 

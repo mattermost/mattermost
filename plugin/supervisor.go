@@ -16,6 +16,7 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -70,7 +71,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	// https://mattermost.atlassian.net/browse/MM-49167
 	pluginChecksum, err := getPluginExecutableChecksum(executable)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate a checksum for the plugin %s", pluginInfo.Path)
+		return nil, errors.Wrapf(err, "unable to generate a checksum for the plugin %s", pluginInfo.Path)
 	}
 
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
