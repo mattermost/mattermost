@@ -2588,6 +2588,10 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS Server failed to delete workspace."
+  },
+  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server is not available."
   },
