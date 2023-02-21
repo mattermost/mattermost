@@ -8985,7 +8985,7 @@
   },
   {
     "id": "Playbooks",
-    "translation": "プレイブック"
+    "translation": "Playbooks"
   },
   {
     "id": "Channels",
@@ -8993,7 +8993,7 @@
   },
   {
     "id": "Boards",
-    "translation": "ボード"
+    "translation": "Boards"
   },
   {
     "id": "model.emoji.system_emoji_name.app_error",
@@ -9669,7 +9669,7 @@
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda ボードテンプレート、タスクの進捗管理には Project Task ボードをご利用ください。"
+    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda Boardテンプレート、タスクの進捗管理には Project Task Boardをご利用ください。"
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9892,14 +9892,6 @@
     "translation": "あなたのライセンスは非公開Playbooksをサポートしていません。"
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "この作業テンプレートに関連するPlaybookテンプレートが見つかりませんでした。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Playbookを実行する際の公開チャンネルを作成する権限がありません。"
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "公開Playbookを作成する権限がありません。"
   },
@@ -9910,10 +9902,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "公開Boardを作成する権限がありません。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Playbookを実行する際の非公開チャンネルを作成する権限がありません。"
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
@@ -9954,5 +9942,9 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "サーバーの翻訳を更新できませんでした。"
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "templates"
   }
 ]
