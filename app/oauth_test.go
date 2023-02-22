@@ -624,7 +624,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	assert.Nil(t, dErr)
 
 	uri, uErr := url.Parse(redirectUrl)
-	require.Nil(t, uErr)
+	require.NoError(t, uErr)
 
 	queryParams := uri.Query()
 	code := queryParams.Get("code")
