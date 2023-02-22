@@ -168,10 +168,26 @@ jobs:
           cd mattermost-plugin/webapp
           npm run build:product
           cd ../../../mattermost-server
-          cd ../mattermost-server
           make setup-go-work
       - name: Build
         run: |
           make config-reset
           make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
           make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+      - name: ci/persist-artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: server-artifact
+          path: dist/
+          retention-days: 14
+  upload-s3:
+    name: Upload to S3 bucket
+    runs-on: ubuntu-latest
+    needs: build-mattermost-server
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
+    steps:
+    - name: ci/artifacts-downloads
+      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
+      with:
+        name: server-artifact
