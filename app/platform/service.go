@@ -177,6 +177,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
+	ps.clusterIFace = einterfaces.NewClusterImpl()
+
 	// Step 5: Init Metrics
 	if metricsInterfaceFn != nil && ps.metricsIFace == nil { // if the metrics interface is set by options, do not override it
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
