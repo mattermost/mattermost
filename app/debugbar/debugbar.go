@@ -8,6 +8,10 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 )
 
+const (
+	socketEventName = "debugbar"
+)
+
 type DebugBar struct {
 	publish func(*model.WebSocketEvent)
 	enabled bool
@@ -25,7 +29,7 @@ func (db *DebugBar) IsEnabled() bool {
 }
 
 func (db *DebugBar) SendLogEvent(logLevel string, logMessage string, fields map[string]string) {
-	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
+	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "log-line")
 	event.Add("level", logLevel)
@@ -35,7 +39,7 @@ func (db *DebugBar) SendLogEvent(logLevel string, logMessage string, fields map[
 }
 
 func (db *DebugBar) SendApiCall(endpoint, method, statusCode string, elapsed float64) {
-	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
+	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "api-call")
 	event.Add("endpoint", endpoint)
@@ -46,7 +50,7 @@ func (db *DebugBar) SendApiCall(endpoint, method, statusCode string, elapsed flo
 }
 
 func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64, params map[string]any) {
-	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
+	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "store-call")
 	event.Add("method", method)
@@ -57,7 +61,7 @@ func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64, 
 }
 
 func (db *DebugBar) SendSqlQuery(query string, elapsed float64, args ...any) {
-	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
+	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "sql-query")
 	event.Add("query", query)
@@ -67,7 +71,7 @@ func (db *DebugBar) SendSqlQuery(query string, elapsed float64, args ...any) {
 }
 
 func (db *DebugBar) SendEmailSent(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *mail.SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string, category string, err error) {
-	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
+	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "email-sent")
 	event.Add("to", to)
