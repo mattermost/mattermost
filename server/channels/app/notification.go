@@ -653,6 +653,81 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	return mentionedUsersList, nil
 }
 
+func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel, team *model.Team) error {
+	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
+
+	// CRT is the main issue in this case as notifications indicator are not updated when accessing threads from the sidebar.
+	if isCRTAllowed && post.RootId != "" {
+		pCh := make(chan store.StoreResult, 1)
+		go func() {
+			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+			pCh <- store.StoreResult{Data: props, NErr: err}
+			close(pCh)
+		}()
+
+		cmnCh := make(chan store.StoreResult, 1)
+		go func() {
+			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+			cmnCh <- store.StoreResult{Data: props, NErr: err}
+			close(cmnCh)
+		}()
+
+		var gCh chan store.StoreResult
+		if a.allowGroupMentions(c, post) {
+			gCh = make(chan store.StoreResult, 1)
+			go func() {
+				groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
+				gCh <- store.StoreResult{Data: groupsMap, NErr: err}
+				close(gCh)
+			}()
+		}
+
+		result := <-pCh
+		if result.NErr != nil {
+			return result.NErr
+		}
+		profileMap := result.Data.(map[string]*model.User)
+
+		result = <-cmnCh
+		if result.NErr != nil {
+			return result.NErr
+		}
+		channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
+
+		groups := make(map[string]*model.Group)
+		if gCh != nil {
+			result = <-gCh
+			if result.NErr != nil {
+				return result.NErr
+			}
+			groups = result.Data.(map[string]*model.Group)
+		}
+
+		allowChannelMentions := a.allowChannelMentions(c, post, len(profileMap))
+		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+		mentions := getExplicitMentions(post, keywords, groups)
+
+		for userID := range mentions.Mentions {
+			tm, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
+			if appErr != nil {
+				return appErr
+			}
+
+			if tm.LastViewed > post.CreateAt {
+				continue
+			}
+
+			if tm.UnreadMentions > 0 {
+				tm.UnreadMentions -= 1
+				if _, err := a.Srv().Store().Thread().UpdateMembership(tm); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func max(a, b int64) int64 {
 	if a < b {
 		return b

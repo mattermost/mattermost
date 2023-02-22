@@ -980,6 +980,7 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
+	RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel, team *model.Team) error
 	RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
