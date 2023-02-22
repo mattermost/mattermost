@@ -586,7 +586,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService {
+	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
