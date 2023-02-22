@@ -202,8 +202,17 @@ func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.Com
 
 	args.TriggerId = triggerId
 
-	// Plugins can override built in and custom commands
+	// Plugins can override built in, custom, and product commands
 	cmd, response, appErr := a.tryExecutePluginCommand(c, args)
+	if appErr != nil {
+		return nil, appErr
+	} else if cmd != nil && response != nil {
+		response.TriggerId = clientTriggerId
+		return a.HandleCommandResponse(c, cmd, args, response, true)
+	}
+
+	// Products can override built in and custom commands
+	cmd, response, appErr = a.tryExecuteProductCommand(c, args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
