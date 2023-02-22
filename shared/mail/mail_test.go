@@ -124,7 +124,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, "", "", "", emailCC)
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, "", "", "", emailCC, "")
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -162,7 +162,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		"test1.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 		"test2.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 	}
-	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, "", "", "", emailCC)
+	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, "", "", "", emailCC, "")
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -407,7 +407,7 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references}
+			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references, ""}
 			cfg := getConfig()
 			err = sendMail(mocm, mail, time.Now(), cfg)
 			require.NoError(t, err)

@@ -48,6 +48,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
@@ -324,6 +325,52 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
+}
+
+func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("queryLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("queryLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
+		return
+	}
+
+	var logFilter *model.LogFilter
+	err := json.NewDecoder(r.Body).Decode(&logFilter)
+	if err != nil {
+		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
+	if logerr != nil {
+		c.Err = logerr
+		return
+	}
+
+	logsJSON := make(map[string][]interface{})
+	var result interface{}
+	for node, logLines := range logs {
+		for _, log := range logLines {
+			err2 := json.Unmarshal([]byte(log), &result)
+			if err2 == nil {
+				logsJSON[node] = append(logsJSON[node], result)
+			} else {
+				mlog.Warn("Error parsing log line in Server Logs")
+			}
+		}
+	}
+
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+
+	w.Write(model.ToJSON(logsJSON))
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {

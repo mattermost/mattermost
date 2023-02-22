@@ -4341,11 +4341,11 @@
   },
   {
     "id": "model.post.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht"
+    "translation": "Ongeldig bericht."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -9957,5 +9957,45 @@
   {
     "id": "worktemplate.product_teams.goals_and_okrs.channel",
     "translation": "Duidelijke focus is essentieel voor teamsucces en met dit Project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "De sjablonenopdracht wordt niet ondersteund op jouw toestel."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "sjablonen"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Open het venster Aanmaken van sjabloon"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Het naamveld kan niet meer dan 64 tekens bevatten."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "productsleutel niet gevonden"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "interface niet van het verwachte type"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "fout tijdens het patchen van het bord"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "fout geen bord aangemaakt"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "fout bij het ophalen van de bordsjablonen"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "fout bij het dupliceren van het bord"
   }
 ]
