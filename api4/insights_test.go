@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 // Top Reactions
@@ -153,7 +155,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -197,7 +199,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 				EmojiName: "confused",
 			}
 
-			_, err = th.App.Srv().Store.Reaction().Save(reaction)
+			_, err = th.App.Srv().Store().Reaction().Save(reaction)
 			require.NoError(t, err)
 		}
 
@@ -230,19 +232,31 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-reactions-for-team-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, "7_days", 0, 5)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-reactions-for-team-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("get-top-reactions-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopReactionsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 
@@ -377,7 +391,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -415,6 +429,12 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 		_, resp, err = client.GetTopReactionsForUserSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-reactions-for-user-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForUserSince(teamId, "7_days", 0, 5)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get-top-reactions-for-user-since not a member of team", func(t *testing.T) {
@@ -515,19 +535,31 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-channels-for-team-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, "7_days", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-channels-for-team-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("get-top-channels-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 	userId := th.BasicUser.Id
@@ -590,6 +622,12 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		_, resp, err = client.GetTopChannelsForUserSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-channels-for-user-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForUserSince(teamId, "7_days", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get-top-channels-for-user-since not a member of team", func(t *testing.T) {
@@ -684,12 +722,19 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 	topTeamThreadsByUser2IncludingPrivate, _, _ := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
 	require.Nil(t, appErr)
 	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
+
+	t.Run("get-top-threads-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopThreadsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	th.LoginBasic()
 	client := th.Client
@@ -806,7 +851,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -934,6 +979,14 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
 		}
 	})
+
+	t.Run("get-top-inactive-channels-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopInactiveChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopDMsForUserSince(t *testing.T) {
@@ -946,7 +999,6 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		*c.TeamSettings.EnableUserDeactivation = true
 	})
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	// basicuser1 - bu1, basicuser - bu
 	// create dm channels for  bu-bu, bu1-bu1, bu-bu1, bot-bu
@@ -1107,6 +1159,41 @@ func TestNewTeamMembersSince(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
+	t.Run("includes all data for the user", func(t *testing.T) {
+		checkUser := func(ntm *model.NewTeamMember, hasProfilePicture bool) {
+			require.Equal(t, th.BasicUser.Id, ntm.Id)
+			require.Equal(t, th.BasicUser.Username, ntm.Username)
+			require.Equal(t, th.BasicUser.FirstName, ntm.FirstName)
+			require.Equal(t, th.BasicUser.LastName, ntm.LastName)
+			require.Equal(t, th.BasicUser.Position, ntm.Position)
+			require.Equal(t, th.BasicUser.Nickname, ntm.Nickname)
+			member, err := th.App.GetTeamMember(team.Id, th.BasicUser.Id)
+			require.Nil(t, err)
+			require.Equal(t, member.CreateAt, ntm.CreateAt)
+			if hasProfilePicture {
+				require.Truef(t, ntm.LastPictureUpdate > int64(0), "should be greater than 0, but was %d", ntm.LastPictureUpdate)
+			} else {
+				require.Equal(t, int64(0), ntm.LastPictureUpdate)
+			}
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		checkUser(list.Items[0], false)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		_, err = th.Client.SetProfileImage(th.BasicUser.Id, data)
+		require.NoError(t, err)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		checkUser(list.Items[0], true)
+	})
+
 	t.Run("implements pagination", func(t *testing.T) {
 		// check the first page of results
 		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
@@ -1144,5 +1231,13 @@ func TestNewTeamMembersSince(t *testing.T) {
 		require.Equal(t, int(list.TotalCount), 3)
 		require.Len(t, list.Items, 1)
 		require.False(t, list.HasNext)
+	})
+
+	t.Run("get-new-team-members-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
 	})
 }

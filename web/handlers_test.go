@@ -59,6 +59,44 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	}
 }
 
+func handlerForServeDefaultSecurityHeaders(c *Context, w http.ResponseWriter, r *http.Request) {
+}
+
+func TestHandlerServeDefaultSecurityHeaders(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	web := New(th.Server)
+	handler := web.NewHandler(handlerForServeDefaultSecurityHeaders)
+
+	paths := []string{
+		"/api/v4/test",          // API
+		"/static/manifest.json", // this should always exist. Static files have their own handler
+		// Note that the plugin handler isn't tested, also plugins may support arbitrary functionality
+	}
+
+	for _, path := range paths {
+		request := httptest.NewRequest("GET", path, nil)
+
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		// header.Get returns a "" also if the header doesn't exist so we check that there is at least
+		// one Permissions-Policy header and their value is "". We check with .Values() as it canonicalizes
+		// the key.
+		permissionsPolicyHeader := response.Header().Get("Permissions-Policy")
+		permissionsPolicyHeaderValues := response.Header().Values("Permissions-Policy")
+
+		contentTypeOptionsHeader := response.Header().Get("X-Content-Type-Options")
+		referrerPolicyHeader := response.Header().Get("Referrer-Policy")
+
+		assert.NotEqualf(t, 0, len(permissionsPolicyHeaderValues), "Permissions-Policy header doesn't exist")
+		assert.Equal(t, "", permissionsPolicyHeader, "Permissions-Policy is not empty")
+		assert.Equal(t, "nosniff", contentTypeOptionsHeader)
+		assert.Equal(t, "no-referrer", referrerPolicyHeader)
+	}
+}
+
 func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
@@ -66,7 +104,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -302,6 +340,29 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
+	})
+
+	t.Run("static, without subpath or SelfHostedPurchase, does not allow Stripe in CSP", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SelfHostedPurchase = false })
+		defer th.TearDown()
+
+		web := New(th.Server)
+
+		handler := Handler{
+			Srv:            web.srv,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       true,
+		}
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
 		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
@@ -309,7 +370,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
@@ -343,7 +404,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
@@ -358,7 +419,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
@@ -388,7 +449,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline' http://localhost:9006"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3 'unsafe-eval' 'unsafe-inline' http://localhost:9006"}, response.Header()["Content-Security-Policy"])
 	})
 
 }
@@ -630,7 +691,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}

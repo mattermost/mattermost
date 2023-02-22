@@ -16,7 +16,9 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	s3 "github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/require"
 )
 
@@ -195,4 +197,111 @@ func TestInsecureMakeBucket(t *testing.T) {
 }
 func newTLSProxyServer(backend *url.URL) *httptest.Server {
 	return httptest.NewTLSServer(httputil.NewSingleHostReverseProxy(backend))
+}
+
+func TestS3WithCancel(t *testing.T) {
+	// Some of these tests use time.Sleep to wait for the timeout to expire.
+	// They are run in parallel to reduce wait times.
+
+	t.Run("zero timeout", func(t *testing.T) {
+		t.Parallel()
+		r, ctx := newMockS3WithCancel(0, nil)
+
+		time.Sleep(10 * time.Millisecond) // give the context time to cancel
+
+		require.False(t, r.CancelTimeout())
+		require.Error(t, ctx.Err())
+	})
+
+	t.Run("timeout", func(t *testing.T) {
+		t.Parallel()
+		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
+
+		time.Sleep(100 * time.Millisecond) // give the context time to cancel
+
+		require.False(t, r.CancelTimeout())
+		require.Error(t, ctx.Err())
+	})
+
+	t.Run("timeout cancel", func(t *testing.T) {
+		t.Parallel()
+		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
+
+		time.Sleep(10 * time.Millisecond) // give the context time to cancel
+
+		require.True(t, r.CancelTimeout())
+		require.NoError(t, ctx.Err())
+
+		time.Sleep(100 * time.Millisecond) // wait for the original (canceled) timeout to expire
+
+		require.False(t, r.CancelTimeout())
+		require.NoError(t, ctx.Err())
+		require.NoError(t, r.Close())
+	})
+
+	t.Run("timeout closed", func(t *testing.T) {
+		t.Parallel()
+		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
+
+		time.Sleep(10 * time.Millisecond) // give the context time to cancel
+
+		require.True(t, r.CancelTimeout())
+		require.NoError(t, ctx.Err())
+		require.NoError(t, r.Close())
+
+		time.Sleep(100 * time.Millisecond) // wait for the original (canceled) timeout to expire
+
+		require.False(t, r.CancelTimeout())
+		require.Error(t, ctx.Err())
+		require.NoError(t, r.Close())
+	})
+
+	t.Run("close cancel close", func(t *testing.T) {
+		t.Parallel()
+		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
+
+		time.Sleep(10 * time.Millisecond) // give the context time to cancel
+
+		require.True(t, r.CancelTimeout())
+		require.NoError(t, r.Close())
+		require.Error(t, ctx.Err())
+		require.False(t, r.CancelTimeout())
+		require.Error(t, ctx.Err())
+		require.NoError(t, r.Close())
+	})
+
+	t.Run("close error", func(t *testing.T) {
+		t.Parallel()
+		r, ctx := newMockS3WithCancel(50*time.Millisecond, errors.New("test error"))
+
+		time.Sleep(10 * time.Millisecond) // give the context time to cancel
+
+		require.NoError(t, ctx.Err())
+		require.Error(t, r.Close())
+		require.False(t, r.CancelTimeout())
+		require.Error(t, ctx.Err())
+	})
+}
+
+func newMockS3WithCancel(timeout time.Duration, closeErr error) (*fauxCloser, context.Context) {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &fauxCloser{
+		s3WithCancel: &s3WithCancel{
+			Object: &s3.Object{},
+			timer:  time.AfterFunc(timeout, cancel),
+			cancel: cancel,
+		},
+		closeErr: closeErr,
+	}, ctx
+}
+
+type fauxCloser struct {
+	*s3WithCancel
+	closeErr error
+}
+
+func (fc fauxCloser) Close() error {
+	fc.s3WithCancel.timer.Stop()
+	fc.s3WithCancel.cancel()
+	return fc.closeErr
 }

@@ -9,7 +9,7 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -108,7 +108,11 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	draft                store.DraftStore
 	notifyAdmin          store.NotifyAdminStore
+	postPriority         store.PostPriorityStore
+	postAcknowledgement  store.PostAcknowledgementStore
+	trueUpReview         store.TrueUpReviewStore
 }
 
 type SqlStore struct {
@@ -213,14 +217,20 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.draft = newSqlDraftStore(store, metrics)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
+	store.stores.postPriority = newSqlPostPriorityStore(store)
+	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
+	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
 }
 
-func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
+// SetupConnection sets up the connection to the database and pings it to make sure it's alive.
+// It also applies any database configuration settings that are required.
+func SetupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Fatal("Failed to open SQL connection to err.", mlog.Err(err))
@@ -286,23 +296,29 @@ func (ss *SqlStore) initConnection() {
 		}
 	}
 
-	handle := setupConnection("master", dataSource, ss.settings)
+	handle := SetupConnection("master", dataSource, ss.settings)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
+	if ss.metrics != nil {
+		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			handle := SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
+			}
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.ReplicaXs[i].DB.DB, "replica-"+strconv.Itoa(i))
 			}
 		}
 	}
@@ -310,12 +326,15 @@ func (ss *SqlStore) initConnection() {
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			handle := SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
+			}
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
 			}
 		}
 	}
@@ -326,13 +345,35 @@ func (ss *SqlStore) initConnection() {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i] = setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
 		}
 	}
 }
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// specialSearchChars have special meaning and can be treated as spaces
+func (ss *SqlStore) specialSearchChars() []string {
+	chars := []string{
+		"<",
+		">",
+		"+",
+		"-",
+		"(",
+		")",
+		"~",
+		":",
+	}
+
+	// Postgres can handle "@" without any errors
+	// Also helps postgres in enabling search for EmailAddresses
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		chars = append(chars, "@")
+	}
+
+	return chars
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters
@@ -438,6 +479,15 @@ func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
 	}
 
 	return dbs
+}
+
+func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return ss.GetMasterX().DB.DB
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	return ss.ReplicaXs[rrNum].DB.DB
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -924,6 +974,22 @@ func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
 }
 
+func (ss *SqlStore) PostPriority() store.PostPriorityStore {
+	return ss.stores.postPriority
+}
+
+func (ss *SqlStore) Draft() store.DraftStore {
+	return ss.stores.draft
+}
+
+func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
+	return ss.stores.postAcknowledgement
+}
+
+func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
+	return ss.stores.trueUpReview
+}
+
 func (ss *SqlStore) DropAllTables() {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
@@ -992,7 +1058,7 @@ func (ss *SqlStore) hasLicense() bool {
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
-	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
 	if err != nil {
 		return err
 	}
@@ -1005,7 +1071,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
+			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {
@@ -1024,19 +1090,11 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		if err != nil {
 			return err
 		}
-		db := setupConnection("master", dataSource, ss.settings)
-		driver, err = ms.WithInstance(db, &ms.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		db := SetupConnection("master", dataSource, ss.settings)
+		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
@@ -1047,6 +1105,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
+		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {

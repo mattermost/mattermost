@@ -876,7 +876,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 		}
 
 		if _, err := s.GetMasterX().NamedExec(`UPDATE TeamMembers
-				SET Roles=:Roles, DeleteAt=:DeleteAt, SchemeGuest=:SchemeGuest,
+				SET Roles=:Roles, DeleteAt=:DeleteAt, CreateAt=:CreateAt, SchemeGuest=:SchemeGuest,
 					SchemeUser=:SchemeUser, SchemeAdmin=:SchemeAdmin
 				WHERE TeamId=:TeamId AND UserId=:UserId`, newTeamMember); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
@@ -1675,7 +1675,7 @@ func (s SqlTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset 
 		return nil, 0, errors.Wrap(err, "failed to count team members since")
 	}
 
-	newTeamMembersBuilder := builderF("Users.Id, Users.Username, Users.FirstName, Users.LastName, Users.Position, TeamMembers.CreateAt, Users.Nickname").
+	newTeamMembersBuilder := builderF("Users.Id, Users.Username, Users.FirstName, Users.LastName, Users.Position, Users.LastPictureUpdate, TeamMembers.CreateAt, Users.Nickname").
 		Limit(uint64(limit + 1)).
 		Offset(uint64(offset))
 	query, args, err = newTeamMembersBuilder.ToSql()

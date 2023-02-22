@@ -187,6 +187,22 @@ func (_m *Store) Context() context.Context {
 	return r0
 }
 
+// Draft provides a mock function with given fields:
+func (_m *Store) Draft() store.DraftStore {
+	ret := _m.Called()
+
+	var r0 store.DraftStore
+	if rf, ok := ret.Get(0).(func() store.DraftStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.DraftStore)
+		}
+	}
+
+	return r0
+}
+
 // DropAllTables provides a mock function with given fields:
 func (_m *Store) DropAllTables() {
 	_m.Called()
@@ -291,6 +307,22 @@ func (_m *Store) GetDbVersion(numerical bool) (string, error) {
 
 // GetInternalMasterDB provides a mock function with given fields:
 func (_m *Store) GetInternalMasterDB() *sql.DB {
+	ret := _m.Called()
+
+	var r0 *sql.DB
+	if rf, ok := ret.Get(0).(func() *sql.DB); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.DB)
+		}
+	}
+
+	return r0
+}
+
+// GetInternalReplicaDB provides a mock function with given fields:
+func (_m *Store) GetInternalReplicaDB() *sql.DB {
 	ret := _m.Called()
 
 	var r0 *sql.DB
@@ -453,6 +485,38 @@ func (_m *Store) Post() store.PostStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.PostStore)
+		}
+	}
+
+	return r0
+}
+
+// PostAcknowledgement provides a mock function with given fields:
+func (_m *Store) PostAcknowledgement() store.PostAcknowledgementStore {
+	ret := _m.Called()
+
+	var r0 store.PostAcknowledgementStore
+	if rf, ok := ret.Get(0).(func() store.PostAcknowledgementStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostAcknowledgementStore)
+		}
+	}
+
+	return r0
+}
+
+// PostPriority provides a mock function with given fields:
+func (_m *Store) PostPriority() store.PostPriorityStore {
+	ret := _m.Called()
+
+	var r0 store.PostPriorityStore
+	if rf, ok := ret.Get(0).(func() store.PostPriorityStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostPriorityStore)
 		}
 	}
 
@@ -774,6 +838,22 @@ func (_m *Store) TotalSearchDbConnections() int {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// TrueUpReview provides a mock function with given fields:
+func (_m *Store) TrueUpReview() store.TrueUpReviewStore {
+	ret := _m.Called()
+
+	var r0 store.TrueUpReviewStore
+	if rf, ok := ret.Get(0).(func() store.TrueUpReviewStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TrueUpReviewStore)
+		}
 	}
 
 	return r0

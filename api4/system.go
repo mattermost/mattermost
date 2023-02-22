@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/upgrader"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 )
 
 const (
@@ -47,6 +48,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
@@ -122,7 +124,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Send the zip file back to client
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
+	web.WriteFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -323,6 +325,52 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
+}
+
+func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("queryLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("queryLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
+		return
+	}
+
+	var logFilter *model.LogFilter
+	err := json.NewDecoder(r.Body).Decode(&logFilter)
+	if err != nil {
+		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
+	if logerr != nil {
+		c.Err = logerr
+		return
+	}
+
+	logsJSON := make(map[string][]interface{})
+	var result interface{}
+	for node, logLines := range logs {
+		for _, log := range logLines {
+			err2 := json.Unmarshal([]byte(log), &result)
+			if err2 == nil {
+				logsJSON[node] = append(logsJSON[node], result)
+			} else {
+				mlog.Warn("Error parsing log line in Server Logs")
+			}
+		}
+	}
+
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+
+	w.Write(model.ToJSON(logsJSON))
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -640,7 +688,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("seconds", i)
 
-	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
+	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
 
 	auditRec.Success()
@@ -656,7 +704,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("clearServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	c.App.Srv().Busy.Clear()
+	c.App.Srv().Platform().Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
 
 	auditRec.Success()
@@ -671,7 +719,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We call to ToJSON because it actually returns a different struct
 	// along with doing some computations.
-	sbsJSON, jsonErr := c.App.Srv().Busy.ToJSON()
+	sbsJSON, jsonErr := c.App.Srv().Platform().Busy.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn(jsonErr.Error())
 	}

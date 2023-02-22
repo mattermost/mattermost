@@ -33,9 +33,9 @@ func TestGetPostsUsage(t *testing.T) {
 			th.CreatePost()
 		}
 
-		total, err := th.Server.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
+		total, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
 		require.NoError(t, err)
-		usersOnly, err := th.Server.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true})
+		usersOnly, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true})
 		require.NoError(t, err)
 
 		require.GreaterOrEqual(t, usersOnly, int64(14))
@@ -89,30 +89,5 @@ func TestGetTeamsUsage(t *testing.T) {
 		assert.Equal(t, http.StatusOK, r.StatusCode)
 		assert.NotNil(t, usage)
 		assert.Equal(t, int64(3), usage.Active)
-	})
-}
-
-func TestGetIntegrationsUsage(t *testing.T) {
-	t.Run("unauthenticated users can not access", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		th.Client.Logout()
-
-		usage, r, err := th.Client.GetIntegrationsUsage()
-		assert.Error(t, err)
-		assert.Nil(t, usage)
-		assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
-	})
-
-	t.Run("good request returns response", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		usage, r, err := th.Client.GetIntegrationsUsage()
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, r.StatusCode)
-		assert.NotNil(t, usage)
-		assert.Equal(t, 0, usage.Enabled)
 	})
 }

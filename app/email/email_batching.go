@@ -33,6 +33,7 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
+	MessageAttachments       []*EmailMessageAttachment
 }
 
 func (es *Service) InitEmailBatching() {
@@ -314,6 +315,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
+				MessageAttachments:       ProcessMessageAttachments(notification.post, siteURL),
 			})
 		}
 	}
@@ -344,7 +346,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", ""); nErr != nil {
+	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", "", "BatchedEmailNotification"); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }

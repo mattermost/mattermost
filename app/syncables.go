@@ -18,13 +18,16 @@ import (
 // only that channel's members are created. If channelID is nil all channel memberships are created.
 // If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) createDefaultChannelMemberships(c request.CTX, since int64, channelID *string, includeRemovedMembers bool) error {
-	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+func (a *App) createDefaultChannelMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error {
+	channelMembers, appErr := a.ChannelMembersToAdd(params.Since, params.ScopedChannelID, params.ReAddRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
 
 	for _, userChannel := range channelMembers {
+		if params.ScopedUserID != nil && *params.ScopedUserID != userChannel.UserID {
+			continue
+		}
 		channel, err := a.GetChannel(c, userChannel.ChannelID)
 		if err != nil {
 			return err
@@ -83,13 +86,16 @@ func (a *App) createDefaultChannelMemberships(c request.CTX, since int64, channe
 // only that team's members are created. If teamID is nil all team memberships are created.
 // If includeRemovedMembers is true, then team members who left or were removed from the team will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) createDefaultTeamMemberships(c request.CTX, since int64, teamID *string, includeRemovedMembers bool) error {
-	teamMembers, appErr := a.TeamMembersToAdd(since, teamID, includeRemovedMembers)
+func (a *App) createDefaultTeamMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error {
+	teamMembers, appErr := a.TeamMembersToAdd(params.Since, params.ScopedTeamID, params.ReAddRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
 
 	for _, userTeam := range teamMembers {
+		if params.ScopedUserID != nil && *params.ScopedUserID != userTeam.UserID {
+			continue
+		}
 		_, err := a.AddTeamMember(c, userTeam.TeamID, userTeam.UserID)
 		if err != nil {
 			if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
@@ -115,13 +121,13 @@ func (a *App) createDefaultTeamMemberships(c request.CTX, since int64, teamID *s
 // are configured to sync with teams and channels for group members on or after the given timestamp.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error {
-	err := a.createDefaultTeamMemberships(c, since, nil, includeRemovedMembers)
+func (a *App) CreateDefaultMemberships(c *request.Context, params model.CreateDefaultMembershipParams) error {
+	err := a.createDefaultTeamMemberships(c, params)
 	if err != nil {
 		return err
 	}
 
-	err = a.createDefaultChannelMemberships(c, since, nil, includeRemovedMembers)
+	err = a.createDefaultChannelMemberships(c, params)
 	if err != nil {
 		return err
 	}
@@ -202,7 +208,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(c request.CTX, channelID 
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
 func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
-	permittedAdmins, err := a.Srv().Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
+	permittedAdmins, err := a.Srv().Store().Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
 		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -215,13 +221,13 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
 			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		return nil
 	case model.GroupSyncableTypeChannel:
-		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
 			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -236,21 +242,25 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 func (a *App) SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
-	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
 	if lastJob != nil {
 		since = lastJob.StartAt
 	}
 
+	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}
+
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		a.createDefaultTeamMemberships(c, since, &syncableID, includeRemovedMembers)
+		params.ScopedTeamID = &syncableID
+		a.createDefaultTeamMemberships(c, params)
 		a.deleteGroupConstrainedTeamMemberships(c, &syncableID)
 		if err := a.ClearTeamMembersCache(syncableID); err != nil {
 			c.Logger().Warn("Error clearing team members cache", mlog.Err(err))
 		}
 	case model.GroupSyncableTypeChannel:
-		a.createDefaultChannelMemberships(c, since, &syncableID, includeRemovedMembers)
+		params.ScopedChannelID = &syncableID
+		a.createDefaultChannelMemberships(c, params)
 		a.deleteGroupConstrainedChannelMemberships(c, &syncableID)
 		if err := a.ClearChannelMembersCache(c, syncableID); err != nil {
 			c.Logger().Warn("Error clearing channel members cache", mlog.Err(err))

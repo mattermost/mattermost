@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -32,13 +32,13 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
-	cfg := &app.WebConnConfig{
+	cfg := &platform.WebConnConfig{
 		WebSocket: ws,
 		Session:   *c.AppContext.Session(),
 		TFunc:     c.AppContext.T,
@@ -53,7 +53,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.ConnectionID = model.NewId()
 		// In case of fresh connection id, sequence number is already zero.
 	} else {
-		cfg, err = c.App.PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
+		cfg, err = c.App.Srv().Platform().PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
 		if err != nil {
 			mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
 			ws.Close()
@@ -61,9 +61,9 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	wc := c.App.NewWebConn(cfg)
+	wc := c.App.Srv().Platform().NewWebConn(cfg, c.App, c.App.Srv().Channels())
 	if c.AppContext.Session().UserId != "" {
-		c.App.HubRegister(wc)
+		c.App.Srv().Platform().HubRegister(wc)
 	}
 
 	wc.Pump()

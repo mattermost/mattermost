@@ -4,25 +4,26 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-type MattermostPaidFeature string
+type MattermostFeature string
 
 const (
-	PaidFeatureGuestAccounts           = MattermostPaidFeature("mattermost.feature.guest_accounts")
-	PaidFeatureCustomUsergroups        = MattermostPaidFeature("mattermost.feature.custom_user_groups")
-	PaidFeatureCreateMultipleTeams     = MattermostPaidFeature("mattermost.feature.create_multiple_teams")
-	PaidFeatureStartcall               = MattermostPaidFeature("mattermost.feature.start_call")
-	PaidFeaturePlaybooksRetrospective  = MattermostPaidFeature("mattermost.feature.playbooks_retro")
-	PaidFeatureUnlimitedMessages       = MattermostPaidFeature("mattermost.feature.unlimited_messages")
-	PaidFeatureUnlimitedFileStorage    = MattermostPaidFeature("mattermost.feature.unlimited_file_storage")
-	PaidFeatureUnlimitedIntegrations   = MattermostPaidFeature("mattermost.feature.unlimited_integrations")
-	PaidFeatureUnlimitedBoardcards     = MattermostPaidFeature("mattermost.feature.unlimited_board_cards")
-	PaidFeatureAllProfessionalfeatures = MattermostPaidFeature("mattermost.feature.all_professional")
-	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("mattermost.feature.all_enterprise")
-	UpgradeDowngradedWorkspace         = MattermostPaidFeature("mattermost.feature.upgrade_downgraded_workspace")
+	PaidFeatureGuestAccounts           = MattermostFeature("mattermost.feature.guest_accounts")
+	PaidFeatureCustomUsergroups        = MattermostFeature("mattermost.feature.custom_user_groups")
+	PaidFeatureCreateMultipleTeams     = MattermostFeature("mattermost.feature.create_multiple_teams")
+	PaidFeatureStartcall               = MattermostFeature("mattermost.feature.start_call")
+	PaidFeaturePlaybooksRetrospective  = MattermostFeature("mattermost.feature.playbooks_retro")
+	PaidFeatureUnlimitedMessages       = MattermostFeature("mattermost.feature.unlimited_messages")
+	PaidFeatureUnlimitedFileStorage    = MattermostFeature("mattermost.feature.unlimited_file_storage")
+	PaidFeatureAllProfessionalfeatures = MattermostFeature("mattermost.feature.all_professional")
+	PaidFeatureAllEnterprisefeatures   = MattermostFeature("mattermost.feature.all_enterprise")
+	UpgradeDowngradedWorkspace         = MattermostFeature("mattermost.feature.upgrade_downgraded_workspace")
+	PluginFeature                      = MattermostFeature("mattermost.feature.plugin")
 )
 
 var validSKUs map[string]struct{} = map[string]struct{}{
@@ -31,7 +32,7 @@ var validSKUs map[string]struct{} = map[string]struct{}{
 }
 
 // These are the features a non admin would typically ping an admin about
-var paidFeatures map[MattermostPaidFeature]struct{} = map[MattermostPaidFeature]struct{}{
+var paidFeatures map[MattermostFeature]struct{} = map[MattermostFeature]struct{}{
 	PaidFeatureGuestAccounts:           {},
 	PaidFeatureCustomUsergroups:        {},
 	PaidFeatureCreateMultipleTeams:     {},
@@ -39,28 +40,30 @@ var paidFeatures map[MattermostPaidFeature]struct{} = map[MattermostPaidFeature]
 	PaidFeaturePlaybooksRetrospective:  {},
 	PaidFeatureUnlimitedMessages:       {},
 	PaidFeatureUnlimitedFileStorage:    {},
-	PaidFeatureUnlimitedIntegrations:   {},
-	PaidFeatureUnlimitedBoardcards:     {},
 	PaidFeatureAllProfessionalfeatures: {},
 	PaidFeatureAllEnterprisefeatures:   {},
 	UpgradeDowngradedWorkspace:         {},
 }
 
 type NotifyAdminToUpgradeRequest struct {
-	TrialNotification bool                  `json:"trial_notification"`
-	RequiredPlan      string                `json:"required_plan"`
-	RequiredFeature   MattermostPaidFeature `json:"required_feature"`
+	TrialNotification bool              `json:"trial_notification"`
+	RequiredPlan      string            `json:"required_plan"`
+	RequiredFeature   MattermostFeature `json:"required_feature"`
 }
 
 type NotifyAdminData struct {
-	CreateAt        int64                 `json:"create_at,omitempty"`
-	UserId          string                `json:"user_id"`
-	RequiredPlan    string                `json:"required_plan"`
-	RequiredFeature MattermostPaidFeature `json:"required_feature"`
-	Trial           bool                  `json:"trial"`
+	CreateAt        int64             `json:"create_at,omitempty"`
+	UserId          string            `json:"user_id"`
+	RequiredPlan    string            `json:"required_plan"`
+	RequiredFeature MattermostFeature `json:"required_feature"`
+	Trial           bool              `json:"trial"`
+	SentAt          sql.NullInt64     `json:"sent_at"`
 }
 
 func (nad *NotifyAdminData) IsValid() *AppError {
+	if strings.HasPrefix(string(nad.RequiredFeature), string(PluginFeature)) {
+		return nil
+	}
 	if _, planOk := validSKUs[nad.RequiredPlan]; !planOk {
 		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid plan, %s provided", nad.RequiredPlan), nil, "", http.StatusBadRequest)
 	}

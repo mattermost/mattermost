@@ -40,6 +40,7 @@ func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
 	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
 
+	api.BaseRoutes.LDAP.Handle("/users/{user_id}/group_sync_memberships", api.APISessionRequired(addUserToGroupSyncables)).Methods("POST")
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -413,6 +414,39 @@ func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 
 	if err := c.App.RemoveLdapPrivateCertificate(); err != nil {
 		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+// addUserToGroupSyncables creates memberships—for the given user—to all of their group syncables (i.e. channels or teams).
+// For each group the user is a member of, for each channel and/or team that group is associated with, the user will be added.
+func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
+		return
+	}
+
+	user, appErr := c.App.GetUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if user.AuthService != model.UserAuthServiceLdap {
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.user.add_user_to_group_syncables.not_ldap_user.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("addUserToGroupSyncables", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &user.Id}
+	err := c.App.CreateDefaultMemberships(c.AppContext, params)
+	if err != nil {
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 

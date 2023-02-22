@@ -287,7 +287,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
-	th.Server.Cluster = testCluster
+	th.Server.Platform().SetCluster(testCluster)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -1124,6 +1124,62 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
 	})
+}
+
+func TestGetRemotePluginInMarketplace(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: "www.github.com/example",
+				Manifest: &model.Manifest{
+					Id:               "testplugin2",
+					Name:             "testplugin2",
+					Description:      "a second plugin",
+					Version:          "1.2.2",
+					MinServerVersion: "",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.EnableRemoteMarketplace = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.MarketplaceURL = testServer.URL
+	})
+
+	// Upload one local plugin
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	require.NoError(t, err)
+
+	plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{RemoteOnly: true})
+	require.NoError(t, err)
+
+	require.Len(t, plugins, 1)
+	require.Equal(t, samplePlugins[0], plugins[0])
+
+	_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+	require.NoError(t, err)
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {

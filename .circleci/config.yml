@@ -21,6 +21,10 @@ executors:
 
 jobs:
   setup-multi-product-repositories:
+    parameters:
+      target-branch:
+        type: string
+        default: '$(curl -s $(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//") | jq ".base.ref" | tr -d "\042" )'
     working_directory: /mnt/ramdisk/mattermost-server
     docker:
       - image: cimg/go:1.18
@@ -31,7 +35,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
           cd focalboard
-          git checkout $CIRCLE_BRANCH || git checkout main
+          git checkout $CIRCLE_BRANCH || git checkout <<parameters.target-branch>> || git checkout rolling-stable
           echo $(git rev-parse HEAD)
           cd ../mattermost-server
           make setup-go-work
@@ -66,14 +70,37 @@ jobs:
               sleep 5
           done
           if [[ -f "$FILE_DIST" ]]; then
+            echo "Precompiled version of web app found"
             mkdir dist && tar -xf $FILE_DIST -C dist --strip-components=1
           else
-            npm ci --silent && make build
+            echo "Building web app from source"
+            make dist
           fi
       - persist_to_workspace:
           root: /mnt/ramdisk
           paths:
             - mattermost-webapp
+  setup-focalboard-product:
+    working_directory: /mnt/ramdisk/
+    docker:
+      - image: cimg/go:1.18-node
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: /mnt/ramdisk
+      - run: |
+          cd focalboard
+          echo "Building Boards product for web app"
+          # make prebuild build-product # TODO figure out how to get this to run without bypassing the Makefile
+          make prebuild
+          cd mattermost-plugin/webapp
+          npm run build:product
+          cd ../..
+      - persist_to_workspace:
+          root: /mnt/ramdisk
+          paths:
+            - focalboard/mattermost-plugin/webapp/dist
+
   check-app-layers:
     docker:
       - image: cimg/go:1.18
@@ -87,6 +114,20 @@ jobs:
             cd mattermost-server
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+
+  check-generate-worktemplates:
+    docker:
+      - image: cimg/go:1.18
+    resource_class: medium
+    working_directory: /mnt/ramdisk
+    steps:
+      - attach_workspace:
+          at: /mnt/ramdisk
+      - run:
+          command: |
+            cd mattermost-server
+            make generate-worktemplates
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the worktemplates using make generate-worktemplates"; exit 1; fi
   check-go-mod-tidy:
     docker:
       - image: cimg/go:1.18
@@ -99,7 +140,7 @@ jobs:
           command: |
             cd mattermost-server
             make modules-tidy
-            if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; exit 1; fi  
+            if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   check-store-layers:
     docker:
       - image: cimg/go:1.18
@@ -171,7 +212,7 @@ jobs:
   check-golangci-lint:
     docker:
       # Keep the version in sync with the command in Makefile
-      - image: golangci/golangci-lint:v1.46.2
+      - image: golangci/golangci-lint:v1.50.1
     resource_class: xlarge
     working_directory: /mnt/ramdisk
     steps:
@@ -180,11 +221,12 @@ jobs:
       - run:
           command: |
             cd mattermost-server
+            go vet ./...
             make golangci-lint
   # Dedicate job for mattermost-vet to make more clear when the job fails
   check-mattermost-vet:
     docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+      - image: mattermost/mattermost-build-server:20230118_golang-1.19.5
     resource_class: xlarge
     working_directory: /mnt/ramdisk
     steps:
@@ -214,7 +256,7 @@ jobs:
             make build
   build-focalboard:
     docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+      - image: mattermost/mattermost-build-server:20230118_golang-1.19.5
     resource_class: medium
     working_directory: /mnt/ramdisk
     steps:
@@ -226,7 +268,7 @@ jobs:
             make server-linux
   build-mattermost-server:
     docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+      - image: mattermost/mattermost-build-server:20230118_golang-1.19.5
     resource_class: xlarge
     working_directory: /mnt/ramdisk
     steps:
@@ -342,7 +384,7 @@ jobs:
               --env CIRCLECI=true \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
+              mattermost/mattermost-build-server:20230118_golang-1.19.5 \
               bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
           no_output_timeout: 2h
@@ -407,7 +449,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
+              mattermost/mattermost-build-server:20230118_golang-1.19.5 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -433,7 +475,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
+              mattermost/mattermost-build-server:20230118_golang-1.19.5 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
@@ -449,6 +491,8 @@ workflows:
   untagged-build:
     jobs:
       - setup-multi-product-repositories:
+          context:
+            - matterbuild-github-token
           filters:
             branches:
               ignore:
@@ -460,6 +504,14 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
+      - setup-focalboard-product:
+          filters:
+            branches:
+              ignore:
+                - master
+                - /^release-.*/
+          requires:
+            - setup-multi-product-repositories
       - check-go-mod-tidy:
           requires:
             - setup-multi-product-repositories
@@ -467,6 +519,9 @@ workflows:
           requires:
             - setup-multi-product-repositories
       - check-app-layers:
+          requires:
+            - setup-multi-product-repositories
+      - check-generate-worktemplates:
           requires:
             - setup-multi-product-repositories
       - check-store-layers:
@@ -495,6 +550,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -503,11 +559,13 @@ workflows:
             - check-migrations
             - build-api-spec
             - setup-mattermost-webapp
+            - setup-focalboard-product
       - build-focalboard:
           requires:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -525,6 +583,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -532,7 +591,8 @@ workflows:
             - check-mattermost-vet
             - check-migrations
             - build-api-spec
-            - setup-mattermost-webapp            
+            - setup-mattermost-webapp
+            - setup-focalboard-product
       - test:
           name: test-postgres-normal
           dbdriver: postgres
@@ -542,6 +602,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -549,7 +610,8 @@ workflows:
             - check-mattermost-vet
             - check-migrations
             - build-api-spec
-            - setup-mattermost-webapp            
+            - setup-mattermost-webapp
+            - setup-focalboard-product
       - test:
           name: test-postgres-binary
           dbdriver: postgres
@@ -559,19 +621,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - check-migrations
-            - build-api-spec
-            - setup-mattermost-webapp            
-      - test-schema:
-          requires:
-            - check-go-mod-tidy
-            - check-golangci-lint
-            - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -580,6 +630,22 @@ workflows:
             - check-migrations
             - build-api-spec
             - setup-mattermost-webapp
+            - setup-focalboard-product
+      - test-schema:
+          requires:
+            - check-go-mod-tidy
+            - check-golangci-lint
+            - check-app-layers
+            - check-generate-worktemplates
+            - check-store-layers
+            - check-mocks
+            - check-email-templates
+            - check-gen-serialized
+            - check-mattermost-vet
+            - check-migrations
+            - build-api-spec
+            - setup-mattermost-webapp
+            - setup-focalboard-product
       - upload-artifacts-to-s3:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -592,6 +658,8 @@ workflows:
   release-build:
     jobs:
       - setup-multi-product-repositories:
+          context:
+            - matterbuild-github-token
           filters:
             branches:
               only:
@@ -605,6 +673,15 @@ workflows:
                 - master
                 - /^release-.*/
                 - cloud
+      - setup-focalboard-product:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
+          requires:
+            - setup-multi-product-repositories
       - check-go-mod-tidy:
           requires:
             - setup-multi-product-repositories
@@ -612,6 +689,9 @@ workflows:
           requires:
             - setup-multi-product-repositories
       - check-app-layers:
+          requires:
+            - setup-multi-product-repositories
+      - check-generate-worktemplates:
           requires:
             - setup-multi-product-repositories
       - check-store-layers:
@@ -644,6 +724,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -652,11 +733,13 @@ workflows:
             - check-migrations
             - build-api-spec
             - setup-mattermost-webapp
+            - setup-focalboard-product
       - build-focalboard:
           requires:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -674,6 +757,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -690,6 +774,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -706,6 +791,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates

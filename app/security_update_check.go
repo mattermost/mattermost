@@ -37,7 +37,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		return
 	}
 
-	props, err := s.Store.System().Get()
+	props, err := s.Store().System().Get()
 	if err != nil {
 		return
 	}
@@ -64,20 +64,20 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		systemSecurityLastTime := &model.System{Name: model.SystemLastSecurityTime, Value: strconv.FormatInt(currentTime, 10)}
 		if lastSecurityTime == 0 {
-			s.Store.System().Save(systemSecurityLastTime)
+			s.Store().System().Save(systemSecurityLastTime)
 		} else {
-			s.Store.System().Update(systemSecurityLastTime)
+			s.Store().System().Update(systemSecurityLastTime)
 		}
 
-		if count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		if count, err := s.Store().User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 			v.Set(PropSecurityUserCount, strconv.FormatInt(count, 10))
 		}
 
-		if ucr, err := s.Store.Status().GetTotalActiveUsersCount(); err == nil {
+		if ucr, err := s.Store().Status().GetTotalActiveUsersCount(); err == nil {
 			v.Set(PropSecurityActiveUserCount, strconv.FormatInt(ucr, 10))
 		}
 
-		if teamCount, err := s.Store.Team().AnalyticsTeamCount(nil); err == nil {
+		if teamCount, err := s.Store().Team().AnalyticsTeamCount(nil); err == nil {
 			v.Set(PropSecurityTeamCount, strconv.FormatInt(teamCount, 10))
 		}
 
@@ -98,7 +98,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		for _, bulletin := range bulletins {
 			if bulletin.AppliesToVersion == model.CurrentVersion {
 				if props["SecurityBulletin_"+bulletin.Id] == "" {
-					users, userErr := s.Store.User().GetSystemAdminProfiles()
+					users, userErr := s.Store().User().GetSystemAdminProfiles()
 					if userErr != nil {
 						mlog.Error("Failed to get system admins for security update information from Mattermost.")
 						return
@@ -121,11 +121,11 @@ func (s *Server) DoSecurityUpdateCheck() {
 						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
 						license := s.License()
 						mailConfig := s.MailServiceConfig()
-						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
+						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", "SecurityUpdateCheck")
 					}
 
 					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-					s.Store.System().Save(bulletinSeen)
+					s.Store().System().Save(bulletinSeen)
 				}
 			}
 		}

@@ -92,7 +92,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 		return app.NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
 	require.NoError(t, err)
 
 	require.Equal(t, len(pluginCodes), len(pluginIDs))
@@ -196,6 +196,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -570,7 +571,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
 		th.App.RemoveFile(info.Path)
 	}()
 
@@ -599,7 +600,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo1.Id)
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
@@ -613,7 +614,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo2.Id)
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
@@ -627,7 +628,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo3.Id)
 		th.App.RemoveFile(fileInfo3.Path)
 	}()
 
@@ -848,7 +849,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginIDs := []string{"pluginid1", "pluginid2", "pluginid3"}
@@ -936,7 +937,7 @@ func TestInstallPlugin(t *testing.T) {
 			return app.NewPluginAPI(c, manifest)
 		}
 
-		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
+		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
 		require.NoError(t, err)
 
 		app.ch.SetPluginsEnvironment(env)
@@ -1135,7 +1136,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	if settingsSchema != "" {
 		schema = settingsSchema
 	}
-	th.App.ch.srv.sqlStore = th.GetSqlStore()
+	th.App.ch.srv.platform.SetSqlStore(th.GetSqlStore()) // TODO: platform: check if necessary
 	setupPluginAPITest(t, code,
 		fmt.Sprintf(`{"id": "%v", "server": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App, th.Context)
@@ -1360,7 +1361,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	fileInfo, err := api.UploadFile(data, channelID, filename)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo.Id)
 		th.App.RemoveFile(fileInfo.Path)
 	}()
 
@@ -1381,6 +1382,25 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
 	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
+}
+
+func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	channelID := th.BasicChannel.Id
+	userID := th.BasicUser.Id
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		ChannelId: channelID,
+		UserId:    userID,
+	})
+	require.Nil(t, err)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	assert.Equal(t, "true", actualPost.GetProp("from_plugin"))
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
@@ -1612,7 +1632,7 @@ func TestAPIMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
 		th.App.ch.SetPluginsEnvironment(env)
@@ -1996,4 +2016,182 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	assert.Equal(t, true, api.IsEnterpriseReady())
+}
+
+func TestRegisterCollectionAndTopic(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
+	th := Setup(t)
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ThreadsEverywhere = true
+	})
+	api := th.SetupPluginAPI()
+
+	err := api.RegisterCollectionAndTopic("collection1", "topic1")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection1", "topic1")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection1", "topic2")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection2", "topic3")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection2", "topic1")
+	assert.Error(t, err)
+
+	pluginCode := `
+    package main
+
+    import (
+	  "github.com/pkg/errors"
+      "github.com/mattermost/mattermost-server/v6/plugin"
+    )
+
+    type MyPlugin struct {
+      plugin.MattermostPlugin
+    }
+
+	func (p *MyPlugin) OnActivate() error {
+		if err := p.API.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some topic"); err != nil {
+			return errors.Wrap(err, "cannot register collection")
+		}
+		if err := p.API.RegisterCollectionAndTopic("some collection", "topicToBeRepeated"); err != nil {
+			return errors.Wrap(err, "cannot register collection")
+		}
+		return nil
+	}
+
+    func main() {
+      plugin.ClientMain(&MyPlugin{})
+    }
+  `
+	pluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Directory = pluginDir
+		*cfg.PluginSettings.ClientDirectory = webappPluginDir
+	})
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	err = api.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some other topic")
+	assert.Error(t, err)
+	err = api.RegisterCollectionAndTopic("some other collection", "topicToBeRepeated")
+	assert.Error(t, err)
+}
+
+func TestPluginUploadsAPI(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginCode := fmt.Sprintf(`
+    package main
+
+    import (
+		  "fmt"
+			"bytes"
+
+      "github.com/mattermost/mattermost-server/v6/model"
+      "github.com/mattermost/mattermost-server/v6/plugin"
+    )
+
+    type TestPlugin struct {
+      plugin.MattermostPlugin
+    }
+
+	  func (p *TestPlugin) OnActivate() error {
+		  data := []byte("some content to upload")
+			us, err := p.API.CreateUploadSession(&model.UploadSession{
+			  Id: "%s",
+				UserId: "%s",
+				ChannelId: "%s",
+				Type: model.UploadTypeAttachment,
+			  FileSize: int64(len(data)),
+				Filename: "upload.test",
+			})
+			if err != nil {
+			  return fmt.Errorf("failed to create upload session: %%w", err)
+			}
+
+			us2, err := p.API.GetUploadSession(us.Id)
+			if err != nil {
+			  return fmt.Errorf("failed to get upload session: %%w", err)
+			}
+
+			if us.Id != us2.Id {
+			  return fmt.Errorf("upload sessions should match")
+			}
+
+			fi, err := p.API.UploadData(us, bytes.NewBuffer(data))
+			if err != nil {
+			  return fmt.Errorf("failed to upload data: %%w", err)
+			}
+
+			if fi == nil || fi.Id == "" {
+			  return fmt.Errorf("fileinfo should be set")
+			}
+
+			fileData, appErr := p.API.GetFile(fi.Id)
+			if appErr != nil {
+			  return fmt.Errorf("failed to get file data: %%w", err)
+			}
+
+			if !bytes.Equal(data, fileData) {
+			  return fmt.Errorf("file data should match")
+			}
+
+		  return nil
+	  }
+
+    func main() {
+      plugin.ClientMain(&TestPlugin{})
+    }
+  `, model.NewId(), th.BasicUser.Id, th.BasicChannel.Id)
+
+	pluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
 }

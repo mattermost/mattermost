@@ -38,6 +38,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		return true
 	}
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		importFileName, ok := job.Data["import_file"]
 		if !ok {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_file", nil, "", http.StatusBadRequest)
@@ -60,6 +62,14 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			return appErr
 		}
 		defer importFile.Close()
+
+		// The import is a long running operation, try to cancel any timeouts attached to the reader.
+		type TimeoutCanceler interface{ CancelTimeout() bool }
+		if tc, ok := importFile.(TimeoutCanceler); ok {
+			if !tc.CancelTimeout() {
+				appContext.Logger().Warn("Could not cancel the timeout for the file reader. The import may fail due to a timeout.")
+			}
+		}
 
 		importZipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 		if err != nil {

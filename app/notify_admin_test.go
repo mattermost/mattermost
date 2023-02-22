@@ -15,9 +15,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const PluginIdGithub = "github"
+
 func Test_SendNotifyAdminPosts(t *testing.T) {
 
-	t.Run("no error sending upgrade post when no notifications are available", func(t *testing.T) {
+	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -28,7 +30,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, err)
 	})
 
-	t.Run("no error sending trial post when do notifications are available", func(t *testing.T) {
+	t.Run("no error sending trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -45,7 +47,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		// some some notifications
+		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -76,7 +78,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			if time.Since(begin) > timeout {
 				break
 			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 			if err == nil && channel != nil {
 				break
 			}
@@ -84,7 +86,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -93,13 +95,13 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Equal(t, "2 members of the test workspace have requested a workspace upgrade for: ", post.Message)
 	})
 
-	t.Run("successfully send trial notification", func(t *testing.T) {
+	t.Run("successfully send trial upgrade notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		// some some notifications
+		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -124,7 +126,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			if time.Since(begin) > timeout {
 				break
 			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 			if err == nil && channel != nil {
 				break
 			}
@@ -132,7 +134,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -141,13 +143,128 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Equal(t, "1 member of the test workspace has requested starting the Enterprise trial for access to: ", post.Message)
 	})
 
-	t.Run("error when trying to send post before end of cool off period", func(t *testing.T) {
+	t.Run("successfully send install plugin notification", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// some notifications
+		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser.Id,
+			RequiredPlan:    PluginIdGithub,
+			RequiredFeature: model.PluginFeature,
+			Trial:           false,
+		})
+		require.Nil(t, appErr)
+
+		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		require.Nil(t, appErr)
+
+		bot, appErr := th.App.GetSystemBot()
+		require.Nil(t, appErr)
+
+		var channel *model.Channel
+		var err error
+		var timeout = 5 * time.Second
+		begin := time.Now()
+
+		for {
+			if time.Since(begin) > timeout {
+				break
+			}
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			if err == nil && channel != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		post := postList.Posts[postList.Order[0]]
+
+		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), post.Type)
+		require.Equal(t, bot.UserId, post.UserId)
+	})
+
+	t.Run("persist notify admin data after sending the install plugin notification", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// some notifications
+		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser.Id,
+			RequiredPlan:    PluginIdGithub,
+			RequiredFeature: model.PluginFeature,
+			Trial:           false,
+		})
+		require.Nil(t, appErr)
+
+		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		require.Nil(t, appErr)
+
+		bot, appErr := th.App.GetSystemBot()
+		require.Nil(t, appErr)
+
+		var channel *model.Channel
+		var err error
+		var timeout = 5 * time.Second
+		begin := time.Now()
+
+		for {
+			if time.Since(begin) > timeout {
+				break
+			}
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			if err == nil && channel != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		post := postList.Posts[postList.Order[0]]
+
+		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), post.Type)
+		require.Equal(t, bot.UserId, post.UserId)
+
+		data, err := th.App.Srv().Store().NotifyAdmin().GetDataByUserIdAndFeature(th.BasicUser.Id, model.PluginFeature)
+		require.NoError(t, err)
+		require.Equal(t, len(data), 1)
+	})
+
+	t.Run("error sending more than one notification to the same user and for the same plugin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		err := th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
+			RequiredPlan:      PluginIdGithub,
+			RequiredFeature:   model.PluginFeature,
+			TrialNotification: false,
+		})
+
+		require.Nil(t, err)
+
+		err = th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
+			RequiredPlan:      PluginIdGithub,
+			RequiredFeature:   model.PluginFeature,
+			TrialNotification: false,
+		})
+
+		require.Equal(t, err.Error(), "app.SaveAdminNotification: Already notified admin")
+	})
+
+	t.Run("error when trying to send upgrade post before end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		// some some notifications
+		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -173,7 +290,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Equal(t, appErr.Error(), "SendNotifyAdminPosts: Unable to send notification post., Cannot notify yet")
 	})
 
-	t.Run("can send post at the end of cool off period", func(t *testing.T) {
+	t.Run("can send upgrade post at the end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -182,7 +299,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
 		defer os.Unsetenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
 
-		// some some notifications
+		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -215,7 +332,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		// some some notifications
+		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -248,7 +365,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			if time.Since(begin) > timeout {
 				break
 			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 			if err == nil && channel != nil {
 				break
 			}
@@ -256,12 +373,76 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
 		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
 		require.Equal(t, "1 member of the test workspace has requested a workspace upgrade for: ", post.Message) // expect only one member's notification even though 2 were added
+	})
+
+	t.Run("correctly send upgrade and install plugin post with the correct user request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0")
+		defer os.Unsetenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+
+		// some notifications
+		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser.Id,
+			RequiredPlan:    model.LicenseShortSkuProfessional,
+			RequiredFeature: model.PaidFeatureGuestAccounts,
+			Trial:           false,
+		})
+		require.Nil(t, appErr)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
+		require.Nil(t, appErr)
+
+		// some notifications
+		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser.Id,
+			RequiredPlan:    PluginIdGithub,
+			RequiredFeature: model.PluginFeature,
+			Trial:           false,
+		})
+		require.Nil(t, appErr)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
+		require.Nil(t, appErr)
+
+		bot, appErr := th.App.GetSystemBot()
+		require.Nil(t, appErr)
+
+		var channel *model.Channel
+		var err error
+		var timeout = 5 * time.Second
+		begin := time.Now()
+
+		for {
+			if time.Since(begin) > timeout {
+				break
+			}
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			if err == nil && channel != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 2}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		installPluginPost := postList.Posts[postList.Order[0]]
+		require.Equal(t, fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), installPluginPost.Type)
+		require.Equal(t, bot.UserId, installPluginPost.UserId)
+
+		upgradePost := postList.Posts[postList.Order[1]]
+		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), upgradePost.Type)
+		require.Equal(t, bot.UserId, upgradePost.UserId)
+		require.Equal(t, "1 member of the test workspace has requested a workspace upgrade for: ", upgradePost.Message)
 	})
 }

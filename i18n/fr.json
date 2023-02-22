@@ -4573,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Les conditions d'utilisation de GitLab ont été mises à jour. Veuillez vous rendre sur gitlab.com pour les accepter et réessayez de vous connecter à Mattermost."
+    "translation": "Les conditions d'utilisation de GitLab ont été mises à jour. Veuillez vous rendre sur {{.URL}} pour les accepter et réessayez de vous connecter à Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5584,14 +5584,6 @@
     "translation": "Les canaux présents dans l'invitation doivent faire partie de la même équipe pour laquelle vous êtes invité."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Votre licence ne prend pas en charge les comptes invités."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Les comptes invités sont désactivés"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Une erreur s'est produite lors de l'invalidation des e-mails d'invitation."
   },
@@ -6352,14 +6344,6 @@
     "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Impossible d'interpréter le paramètre ExportFromTimestamp de la tâche d'exportation de messages."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Le nœud d'API cluster est introuvable."
   },
@@ -6598,10 +6582,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "La taille de {{.Filename}} ({{.Width}} sur {{.Height}} pixels) dépasse la limitée autorisée."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Impossible d'envoyer le fichier. Le fichier est trop volumineux."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -8688,10 +8668,6 @@
     "translation": "Impossible de créer l'équipe, car la limite des équipes a été atteinte"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Erreur de mise à jour de l'abonnement à partir du point d'ancrage Web."
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Impossible de vérifier si le magasin de l'utilisateur est vide."
   },
@@ -8756,10 +8732,6 @@
     "translation": "Impossible d'obtenir tous les travaux par type et statuts."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Vous avez atteint la limite maximale de {{.NumIntegrations}} d'intégrations activées. Pour installer un nombre illimité d'intégrations, effectuez une mise à niveau vers l'un de nos plans payants."
-  },
-  {
     "id": "app.insights.feature_disabled",
     "translation": "La fonctionnalité des aperçus est désactivée."
   },
@@ -8822,10 +8794,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "Vous avez été mis à niveau !"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Votre espace de travail {{.WorkspaceName}} a été mis à niveau. Vous serez facturé le {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",

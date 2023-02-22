@@ -49,7 +49,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	for _, username := range users {
 		username = strings.TrimSpace(username)
 		username = strings.TrimPrefix(username, "@")
-		targetUser, nErr := a.Srv().Store.User().GetByUsername(username)
+		targetUser, nErr := a.Srv().Store().User().GetByUsername(username)
 		if nErr != nil {
 			invalidUsernames = append(invalidUsernames, username)
 			continue
@@ -127,7 +127,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 		post.Message = parsedMessage
 		post.ChannelId = groupChannel.Id
 		post.UserId = args.UserId
-		if _, err := a.CreatePostMissingChannel(c, post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(c, post, true, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	}

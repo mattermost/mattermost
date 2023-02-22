@@ -62,7 +62,6 @@ type Channel {
 	totalMsgCount: Float!
 	totalMsgCountRoot: Float!
 	lastRootPostAt: Float!
-	stats: ChannelStats
 	extraUpdateAt: Float!
 	props: StringInterface!
 	policyId: String
@@ -70,21 +69,22 @@ type Channel {
 }
 
 type ChannelMember {
-	channel          : Channel
-	user             : User
-	roles            : [Role]!
-	lastViewedAt     : Float!
-	msgCount         : Float!
-	mentionCount     : Float!
-	mentionCountRoot : Float!
-	msgCountRoot     : Float!
-	notifyProps      : StringMap!
-	lastUpdateAt     : Float!
-	schemeGuest      : Boolean!
-	schemeUser       : Boolean!
-	schemeAdmin      : Boolean!
-	explicitRoles    : String!
-	cursor: String
+	channel           : Channel
+	user              : User
+	roles             : [Role]!
+	lastViewedAt      : Float!
+	msgCount          : Float!
+	mentionCount      : Float!
+	urgentMentionCount: Float!
+	mentionCountRoot  : Float!
+	msgCountRoot      : Float!
+	notifyProps       : StringMap!
+	lastUpdateAt      : Float!
+	schemeGuest       : Boolean!
+	schemeUser        : Boolean!
+	schemeAdmin       : Boolean!
+	explicitRoles     : String!
+	cursor            : String
 }
 
 # Deliberately omitting password, authData, mfaSecret.
@@ -219,11 +219,4 @@ type Session {
 	expiredNotify: Boolean!
 	props: StringMap!
 	local: Boolean!
-}
-
-type ChannelStats {
-	channelId: String!
-	memberCount: Float!
-	guestCount: Float!
-	pinnedPostCount: Float!
 }
