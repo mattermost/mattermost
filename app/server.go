@@ -384,6 +384,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ConfigFn:           s.platform.Config,
 		LicenseFn:          s.License,
 		GoFn:               s.Go,
+		DebugBar:           s.DebugBar,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),

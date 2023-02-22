@@ -1,9 +1,11 @@
 package debugbar
 
 import (
+	"io"
 	"os"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
 )
 
 type DebugBar struct {
@@ -61,5 +63,24 @@ func (db *DebugBar) SendSqlQuery(query string, elapsed float64, args ...any) {
 	event.Add("query", query)
 	event.Add("args", args)
 	event.Add("duration", elapsed)
+	db.publish(event)
+}
+
+func (db *DebugBar) SendEmailSent(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *mail.SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string, category string, err error) {
+	event := model.NewWebSocketEvent("debug", "", "", "", nil, "")
+	event.Add("time", model.GetMillis())
+	event.Add("type", "email-sent")
+	event.Add("to", to)
+	event.Add("subject", subject)
+	event.Add("htmlBody", htmlBody)
+	event.Add("embeddedFiles", embeddedFiles)
+	event.Add("SMTPConfig", config)
+	event.Add("enableComplianceFeatures", enableComplianceFeatures)
+	event.Add("messageID", messageID)
+	event.Add("inReplyTo", inReplyTo)
+	event.Add("references", references)
+	event.Add("cc", ccMail)
+	event.Add("category", category)
+	event.Add("err", err)
 	db.publish(event)
 }

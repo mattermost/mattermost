@@ -12,6 +12,7 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
+	"github.com/mattermost/mattermost-server/v6/app/debugbar"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -41,9 +42,10 @@ func condenseSiteURL(siteURL string) string {
 }
 
 type Service struct {
-	config  func() *model.Config
-	goFn    func(f func())
-	license func() *model.License
+	config   func() *model.Config
+	goFn     func(f func())
+	license  func() *model.License
+	debugBar func() *debugbar.DebugBar
 
 	userService *users.UserService
 	store       store.Store
@@ -58,6 +60,7 @@ type ServiceConfig struct {
 	ConfigFn  func() *model.Config
 	LicenseFn func() *model.License
 	GoFn      func(f func())
+	DebugBar  func() *debugbar.DebugBar
 
 	TemplatesContainer *templates.Container
 	UserService        *users.UserService
@@ -73,6 +76,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		templatesContainer: config.TemplatesContainer,
 		license:            config.LicenseFn,
 		goFn:               config.GoFn,
+		debugBar:           config.DebugBar,
 		store:              config.Store,
 		userService:        config.UserService,
 	}
