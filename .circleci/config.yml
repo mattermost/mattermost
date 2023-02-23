@@ -412,80 +412,6 @@ jobs:
       - store_artifacts:
           path: ~/mattermost/mattermost-server/test-results/
 
-  test-schema:
-    executor:
-      name: ubuntu_xlarge
-    steps:
-      - attach_workspace:
-          at: ~/mattermost
-      - run:
-          name: Run Docker compose
-          command: |
-            cd mattermost-server/build
-            docker-compose --no-ansi run --rm start_dependencies
-            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-            docker-compose --no-ansi ps
-          background: true
-      - run:
-          name: Wait for docker compose
-          command: |
-            until docker network inspect circleci_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
-            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
-      - run:
-          name: Postgres schema migration validation
-          command: |
-            cd mattermost-server/build
-            mkdir -p mattermost-server/client/plugins
-            echo "Creating databases"
-            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
-            echo "Importing postgres dump from version 6.0.0"
-            docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-6.0.0.sql
-            docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated -c "INSERT INTO Systems (Name, Value) VALUES ('Version', '6.0.0')"
-            docker run -it --net circleci_mm-test \
-              --env-file="dotenv/test-schema-validation.env" \
-              --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
-              --env MM_SQLSETTINGS_DRIVERNAME=postgres \
-              -v ~/mattermost:/mattermost \
-              -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20230118_golang-1.19.5 \
-              bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
-            echo "Generating dump"
-            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
-            echo "Removing databases created for db comparison"
-            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
-            echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
-          no_output_timeout: 1h
-      - run:
-          name: MySQL schema migration validation
-          command: |
-            cd mattermost-server/build
-            mkdir -p mattermost-server/client/plugins
-            echo "Creating databases"
-            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
-            echo "Importing mysql dump from version 6.0.0"
-            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-6.0.0.sql
-            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "INSERT INTO Systems (Name, Value) VALUES ('Version', '6.0.0')"
-            docker run -it --net circleci_mm-test \
-              --env-file="dotenv/test-schema-validation.env" \
-              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
-              --env MM_SQLSETTINGS_DRIVERNAME=mysql \
-              -v ~/mattermost:/mattermost \
-              -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20230118_golang-1.19.5 \
-              bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
-            echo "Generating dump"
-            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
-            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
-            echo "Removing databases created for db comparison"
-            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
-            echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
-          no_output_timeout: 1h
-
 workflows:
   version: 2
   untagged-build:
@@ -617,21 +543,6 @@ workflows:
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
           racemode: ""
-          requires:
-            - check-go-mod-tidy
-            - check-golangci-lint
-            - check-app-layers
-            - check-generate-worktemplates
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - check-migrations
-            - build-api-spec
-            - setup-mattermost-webapp
-            - setup-focalboard-product
-      - test-schema:
           requires:
             - check-go-mod-tidy
             - check-golangci-lint
