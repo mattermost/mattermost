@@ -4,7 +4,7 @@
 id: "product_teams/feature_release:v1"
 category: product_teams
 useCase: Manage feature release
-illustration: /static/worktemplates/product_teams/feature_release/feature_release.svg
+illustration: /static/worktemplates/product_teams/feature_release/feature_release.png
 visibility: public
 description:
     channel:
@@ -19,7 +19,7 @@ description:
     integration:
         id: "worktemplate.product_teams.feature_release.description.integration"
         defaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
-        illustration: "/static/worktemplates/product_teams/feature_release/integrations.png"
+        illustration: "/static/worktemplates/integrations.png"
 content:
   - channel:
       id: feature-release
@@ -31,18 +31,18 @@ content:
       template: "54fcf9c610f0ac5e4c522c0657c90602"
       name: Meeting Agenda
       channel: feature-release
-      illustration: "/static/worktemplates/boards/meeting_agenda.svg"
+      illustration: "/static/worktemplates/boards/meeting_agenda.png"
   - board:
       id: "board-project-task"
       template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
       name: Project Task
       channel: feature-release
-      illustration: "/static/worktemplates/boards/project_tasks.svg"
+      illustration: "/static/worktemplates/boards/project_tasks.png"
   - playbook:
       template: "Product Release"
       name: "Feature release"
       id: product-release-playbook
-      illustration: "/static/worktemplates/playbooks/product_release.svg"
+      illustration: "/static/worktemplates/playbooks/product_release.png"
   - integration:
       id: jira
   - integration:
@@ -51,7 +51,7 @@ content:
 id: 'product_teams/goals_and_okrs:v1'
 category: product_teams
 useCase: Set goals and OKR's
-illustration: /static/worktemplates/product_teams/goals_and_okrs/goals_and_okrs.svg
+illustration: /static/worktemplates/product_teams/goals_and_okrs/goals_and_okrs.png
 visibility: public
 description:
   channel:
@@ -72,7 +72,7 @@ description:
       Clear focus is essential to team success and with this Project you can
       document the team’s goals and OKR’s as well as post updates in the
       dedicated channel.
-    illustration: /static/worktemplates/integrations.svg
+    illustration: /static/worktemplates/integrations.png
 content:
   - channel:
       id: channel-1674845108569
@@ -82,13 +82,13 @@ content:
       id: board-1674845139258
       template: 7ba22ccfdfac391d63dea5c4b8cde0de
       name: Goals and OKR
-      illustration: /static/worktemplates/boards/company_goal_and_okrs.svg
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
       channel: channel-1674845108569
   - board:
       id: board-1674845175528
       template: 54fcf9c610f0ac5e4c522c0657c90602
       name: Meeting Agenda
-      illustration: /static/worktemplates/boards/meeting_agenda.svg
+      illustration: /static/worktemplates/boards/meeting_agenda.png
       channel: channel-1674845108569
   - integration:
       id: zoom
@@ -97,7 +97,7 @@ content:
 id: 'product_teams/bug_bash:v1'
 category: product_teams
 useCase: Run a bug bash
-illustration: /static/worktemplates/product_teams/bug_bash/bug_bash.svg
+illustration: /static/worktemplates/product_teams/bug_bash/bug_bash.png
 visibility: public
 description:
   channel:
@@ -120,16 +120,16 @@ description:
     defaultMessage: >-
       Get organized and bash all the bugs with  this project! Build momentum and
       measure progress using included Playbook, Board, and Channel.
-    illustration: /static/worktemplates/integrations.svg
+    illustration: /static/worktemplates/integrations.png
 content:
   - playbook:
       id: playbook-1674844017943
       template: Bug Bash
       name: Bug Bash
-      illustration: /static/worktemplates/playbooks/bug_bash.svg
+      illustration: /static/worktemplates/playbooks/bug_bash.png
   - channel:
       id: channel-1674844017943
-      illustration: /static/worktemplates/product_teams/bug_bash/channel.svg
+      illustration: /static/worktemplates/product_teams/bug_bash/channel.png
       name: Bug Bash
       playbook: playbook-1674844017943
   - integration:
@@ -138,7 +138,7 @@ content:
 id: 'product_teams/sprint_planning:v1'
 category: product_teams
 useCase: Plan sprints
-illustration: /static/worktemplates/product_teams/sprint_planning/sprint_planning.svg
+illustration: /static/worktemplates/product_teams/sprint_planning/sprint_planning.png
 visibility: public
 description:
   channel:
@@ -162,7 +162,7 @@ description:
       conversation and questions focused. The sprint plan keeps everyone on task
       for the week and the Retrospective board brings the team together to
       continuously improve.
-    illustration: /static/worktemplates/integrations.svg
+    illustration: /static/worktemplates/integrations.png
 content:
   - channel:
       id: channel-1674850783500
@@ -172,7 +172,7 @@ content:
       id: board-1674850783973
       template: 99b74e26d2f5d0a9b346d43c0a7bfb09
       name: Sprint planning
-      illustration: /static/worktemplates/boards/sprint_planner.svg
+      illustration: /static/worktemplates/boards/sprint_planner.png
       channel: channel-1674850783500
   - integration:
       id: zoom
@@ -180,7 +180,7 @@ content:
 id: 'product_teams/product_roadmap:v1'
 category: product_teams
 useCase: Create a product roadmap
-illustration: /static/worktemplates/product_teams/product_roadmap/product_roadmap.svg
+illustration: /static/worktemplates/product_teams/product_roadmap/product_roadmap.png
 visibility: public
 description:
   channel:
@@ -198,7 +198,7 @@ content:
       id: board-1674851139759
       template: b728c6ca730e2cfc229741c5a4712b65
       name: Product Roadmap
-      illustration: /static/worktemplates/boards/roadmap.svg
+      illustration: /static/worktemplates/boards/roadmap.png
       channel: channel-1674851139450
 ---
 ######################
@@ -224,7 +224,7 @@ content:
       id: irpb
       template: Incident Resolution
       name: Incident Resolution
-      illustration: /static/worktemplates/playbooks/incident_resolution.svg
+      illustration: /static/worktemplates/playbooks/incident_resolution.png
   - channel:
       id: irc
       illustration: /static/worktemplates/devops/incident_resolution/channel.png
@@ -234,13 +234,13 @@ content:
       id: irb
       template: a4ec399ab4f2088b1051c3cdf1dde4c3
       name: Incident Resolution
-      illustration: /static/worktemplates/boards/project_tasks.svg
+      illustration: /static/worktemplates/boards/project_tasks.png
       channel: irc
 ---
 id: 'devops/product_release:v1'
 category: devops
 useCase: Prepare a product release
-illustration: /static/worktemplates/devops/product_release/product_release.svg
+illustration: /static/worktemplates/devops/product_release/product_release.png
 visibility: public
 description:
   channel:
@@ -257,7 +257,7 @@ content:
       id: playbook-1674851385983
       template: Product Release
       name: Product Release
-      illustration: /static/worktemplates/playbooks/product_release.svg
+      illustration: /static/worktemplates/playbooks/product_release.png
   - channel:
       id: channel-1674851385983
       illustration: /static/worktemplates/devops/product_release/channel.png
@@ -267,7 +267,7 @@ content:
       id: board-1674851386432
       template: a4ec399ab4f2088b1051c3cdf1dde4c3
       name: Product Release
-      illustration: /static/worktemplates/boards/project_tasks.svg
+      illustration: /static/worktemplates/boards/project_tasks.png
       channel: channel-1674851385983
 ---
 ######################
@@ -276,7 +276,7 @@ content:
 id: 'companywide/goals_and_okrs:v1'
 category: companywide
 useCase: Set goals and OKR's
-illustration: /static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.svg
+illustration: /static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.png
 visibility: public
 description:
   channel:
@@ -297,7 +297,7 @@ description:
       Clear focus is essential to team success and with this Project you can
       document the team’s goals and OKR’s as well as post updates in the
       dedicated channel.
-    illustration: /static/worktemplates/integrations.svg
+    illustration: /static/worktemplates/integrations.png
 content:
   - channel:
       id: channel-1674845108569
@@ -307,7 +307,7 @@ content:
       id: board-1674845139258
       template: 7ba22ccfdfac391d63dea5c4b8cde0de
       name: Goals and OKR
-      illustration: /static/worktemplates/boards/company_goal_and_okrs.svg
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
       channel: channel-1674845108569
   - integration:
       id: zoom
@@ -333,7 +333,7 @@ description:
     defaultMessage: >-
       Plan a Roadmap using this Project Board and collaborate on topic in the
       channel created with this template.
-    illustration: /static/worktemplates/integrations.svg
+    illustration: /static/worktemplates/integrations.png
 content:
   - channel:
       id: channel-1674851940114
@@ -344,7 +344,7 @@ content:
       id: board-1674851940548
       template: a4ec399ab4f2088b1051c3cdf1dde4c3
       name: Create Project
-      illustration: /static/worktemplates/boards/project_tasks.svg
+      illustration: /static/worktemplates/boards/project_tasks.png
       channel: channel-1674851940114
   - integration:
       id: jira
@@ -359,7 +359,7 @@ content:
 id: 'leadership/goals_and_okrs:v1'
 category: leadership
 useCase: Set goals and OKR's
-illustration: /static/worktemplates/leadership/goals_and_okrs/goals_and_okrs.svg
+illustration: /static/worktemplates/leadership/goals_and_okrs/goals_and_okrs.png
 visibility: public
 description:
   channel:
@@ -380,7 +380,7 @@ description:
       Clear focus is essential to team success and with this Project you can
       document the team’s goals and OKR’s as well as post updates in the
       dedicated channel.
-    illustration: /static/worktemplates/integrations.svg
+    illustration: /static/worktemplates/integrations.png
 content:
   - channel:
       id: channel-1674845108569
@@ -390,7 +390,7 @@ content:
       id: board-1674845139258
       template: 7ba22ccfdfac391d63dea5c4b8cde0de
       name: Goals and OKR
-      illustration: /static/worktemplates/boards/company_goal_and_okrs.svg
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
       channel: channel-1674845108569
   - integration:
       id: zoom

@@ -4017,6 +4017,27 @@ func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
 	return list, BuildResponse(r), nil
 }
 
+// GetEditHistoryForPost gets a list of posts by taking a post ids
+func (c *Client4) GetEditHistoryForPost(postId string) ([]*Post, *Response, error) {
+	js, err := json.Marshal(postId)
+	if err != nil {
+		return nil, nil, NewAppError("GetEditHistoryForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/edit_history", string(js))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Post
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEditHistoryForPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

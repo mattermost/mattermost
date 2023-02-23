@@ -68,6 +68,12 @@ func (a *App) executeWorkTemplate(
 		ChannelIDs:             []string{},
 	}
 
+	if wtcr.Name != "" {
+		if len(wtcr.Name) > model.ChannelNameMaxLength {
+			return res, model.NewAppError("ExecuteWorkTemplate", "app.worktemplates.execute_work_template.name_too_long", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	contentByType := map[string][]model.WorkTemplateContent{
 		"channel":     {},
 		"board":       {},

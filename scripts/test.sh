@@ -14,6 +14,7 @@ COVERMODE=$8
 
 PACKAGES_COMMA=$(echo $PACKAGES | tr ' ' ',')
 export MM_SERVER_PATH=$PWD
+export MM_FEATUREFLAGS_BoardsProduct=false
 
 echo "Packages to test: $PACKAGES"
 echo "GOFLAGS: $GOFLAGS"

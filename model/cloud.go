@@ -264,10 +264,10 @@ type CloudWorkspaceOwner struct {
 }
 
 type SubscriptionChange struct {
-	ProductID         string             `json:"product_id"`
-	Seats             int                `json:"seats"`
-	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
-	ShippingAddress   *Address           `json:"shipping_address"`
+	ProductID       string    `json:"product_id"`
+	Seats           int       `json:"seats"`
+	Feedback        *Feedback `json:"downgrade_feedback"`
+	ShippingAddress *Address  `json:"shipping_address"`
 }
 
 // TODO remove BoardsLimits.
@@ -314,9 +314,14 @@ type CreateSubscriptionRequest struct {
 	DiscountID            string   `json:"discount_id"`
 }
 
-type DowngradeFeedback struct {
+type Feedback struct {
 	Reason   string `json:"reason"`
 	Comments string `json:"comments"`
+}
+
+type WorkspaceDeletionRequest struct {
+	SubscriptionID string    `json:"subscription_id"`
+	Feedback       *Feedback `json:"delete_feedback"`
 }
 
 func (p *Product) IsYearly() bool {
@@ -327,7 +332,7 @@ func (p *Product) IsMonthly() bool {
 	return p.RecurringInterval == RecurringIntervalMonthly
 }
 
-func (df *DowngradeFeedback) ToMap() map[string]any {
+func (df *Feedback) ToMap() map[string]any {
 	var res map[string]any
 	feedback, err := json.Marshal(df)
 	if err != nil {
