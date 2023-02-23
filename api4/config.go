@@ -157,9 +157,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
-	if cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable && cfg.FeatureFlags.BoardsProduct {
-		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
-		return
+	// Do not allow Focalboard plugin to be enabled if Boards
+	// is running as a product.
+	if cfg.FeatureFlags.BoardsProduct {
+		cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable = false
 	}
 
 	// There are some settings that cannot be changed in a cloud env
