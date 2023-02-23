@@ -56,6 +56,8 @@ func (api *API) InitCloud() {
 
 	// GET /api/v4/cloud/cws-health-check
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
+
+	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired(selfServeDeleteWorkspace)).Methods(http.MethodDelete)
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -142,8 +144,8 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if subscriptionChange.DowngradeFeedback != nil {
-		c.App.Srv().GetTelemetryService().SendTelemetry("downgrade_feedback", subscriptionChange.DowngradeFeedback.ToMap())
+	if subscriptionChange.Feedback != nil {
+		c.App.Srv().GetTelemetryService().SendTelemetry("downgrade_feedback", subscriptionChange.Feedback.ToMap())
 	}
 
 	json, err := json.Marshal(changedSub)
@@ -773,4 +775,29 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	ReturnStatusOK(w)
+}
+
+func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var deleteRequest *model.WorkspaceDeletionRequest
+	if err = json.Unmarshal(bodyBytes, &deleteRequest); err != nil {
+		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := c.App.Cloud().SelfServeDeleteWorkspace(c.AppContext.Session().UserId, deleteRequest); err != nil {
+		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.server.cws.delete_workspace.app_error", nil, "CWS Server failed to delete workspace.", http.StatusInternalServerError)
+		return
+	}
+
+	c.App.Srv().GetTelemetryService().SendTelemetry("delete_workspace_feedback", deleteRequest.Feedback.ToMap())
+
+	ReturnStatusOK(w)
+
 }

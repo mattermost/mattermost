@@ -68,8 +68,6 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	AnnualSubscription bool
-
 	// A/B Test on reduced onboarding task list item
 	ReduceOnBoardingTaskList bool
 
@@ -105,7 +103,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PostPriority = true
 	f.PeopleProduct = false
 	f.WorkTemplate = false
-	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
