@@ -91,7 +91,7 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 		seen[CmdCustomStatusTrigger] = true
 	}
 
-	for _, cmd := range a.PluginCommandsForTeam(teamID) {
+	for _, cmd := range a.CommandsForTeam(teamID) {
 		if cmd.AutoComplete && !seen[cmd.Trigger] {
 			seen[cmd.Trigger] = true
 			commands = append(commands, cmd)
@@ -154,7 +154,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 		}
 	}
 
-	for _, cmd := range a.PluginCommandsForTeam(teamID) {
+	for _, cmd := range a.CommandsForTeam(teamID) {
 		if !seen[cmd.Trigger] {
 			seen[cmd.Trigger] = true
 			commands = append(commands, cmd)
