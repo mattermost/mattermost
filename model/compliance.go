@@ -33,6 +33,22 @@ type Compliance struct {
 	Emails   string `json:"emails"`
 }
 
+func (c *Compliance) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        c.Id,
+		"create_at": c.CreateAt,
+		"user_id":   c.UserId,
+		"status":    c.Status,
+		"count":     c.Count,
+		"desc":      c.Desc,
+		"type":      c.Type,
+		"start_at":  c.StartAt,
+		"end_at":    c.EndAt,
+		"keywords":  c.Keywords,
+		"emails":    c.Emails,
+	}
+}
+
 type Compliances []Compliance
 
 // ComplianceExportCursor is used for paginated iteration of posts

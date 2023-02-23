@@ -30,6 +30,26 @@ type OutgoingWebhook struct {
 	IconURL      string      `json:"icon_url"`
 }
 
+func (o *OutgoingWebhook) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":            o.Id,
+		"create_at":     o.CreateAt,
+		"update_at":     o.UpdateAt,
+		"delete_at":     o.DeleteAt,
+		"creator_id":    o.CreatorId,
+		"channel_id":    o.ChannelId,
+		"team_id":       o.TeamId,
+		"trigger_words": o.TriggerWords,
+		"trigger_when":  o.TriggerWhen,
+		"callback_urls": o.CallbackURLs,
+		"display_name":  o.DisplayName,
+		"description":   o.Description,
+		"content_type":  o.ContentType,
+		"username":      o.Username,
+		"icon_url":      o.IconURL,
+	}
+}
+
 type OutgoingWebhookPayload struct {
 	Token       string `json:"token"`
 	TeamId      string `json:"team_id"`

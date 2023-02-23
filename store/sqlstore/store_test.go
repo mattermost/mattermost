@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/searchtest"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -708,84 +709,50 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 
 	for _, driver := range testDrivers {
-		settings := makeSqlSettings(driver)
-		var query string
-		var tableName string
-		// Just any random query which returns a row in (string, int) format.
-		switch driver {
-		case model.DatabaseDriverPostgres:
-			query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
-			tableName = "posts"
-		case model.DatabaseDriverMysql:
-			query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
-			tableName = "Posts"
-		}
+		t.Run(driver, func(t *testing.T) {
+			settings := makeSqlSettings(driver)
+			var query string
+			var tableName string
+			// Just any random query which returns a row in (string, int) format.
+			switch driver {
+			case model.DatabaseDriverPostgres:
+				query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
+				tableName = "posts"
+			case model.DatabaseDriverMysql:
+				query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
+				tableName = "Posts"
+			}
 
-		settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-			DataSource:       model.NewString(*settings.DataSource),
-			QueryAbsoluteLag: model.NewString(query),
-			QueryTimeLag:     model.NewString(query),
-		}}
+			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
+				DataSource:       model.NewString(*settings.DataSource),
+				QueryAbsoluteLag: model.NewString(query),
+				QueryTimeLag:     model.NewString(query),
+			}}
 
-		mockMetrics := &mocks.MetricsInterface{}
-		defer mockMetrics.AssertExpectations(t)
-		mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
-		mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
+			mockMetrics := &mocks.MetricsInterface{}
+			mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
+			mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
+			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
-		store := &SqlStore{
-			rrCounter: 0,
-			srCounter: 0,
-			settings:  settings,
-			metrics:   mockMetrics,
-		}
+			store := &SqlStore{
+				rrCounter: 0,
+				srCounter: 0,
+				settings:  settings,
+				metrics:   mockMetrics,
+			}
 
-		store.initConnection()
-		store.stores.post = newSqlPostStore(store, mockMetrics)
-		err := store.migrate(migrationsDirectionUp)
-		require.NoError(t, err)
-
-		defer store.Close()
-
-		err = store.ReplicaLagAbs()
-		require.NoError(t, err)
-		err = store.ReplicaLagTime()
-		require.NoError(t, err)
-	}
-}
-
-func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
-	testCases := []struct {
-		Scenario    string
-		DSN         string
-		ExpectedDSN string
-		Driver      string
-	}{
-		{
-			"Should append multiStatements param to the DSN path with existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
-			model.DatabaseDriverMysql,
-		},
-		{
-			"Should append multiStatements param to the DSN path with no existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
-			model.DatabaseDriverMysql,
-		},
-		{
-			"Should not multiStatements param to the DSN when driver is not MySQL",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			model.DatabaseDriverPostgres,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Scenario, func(t *testing.T) {
-			store := &SqlStore{settings: &model.SqlSettings{DriverName: &tc.Driver, DataSource: &tc.DSN}}
-			res, err := store.appendMultipleStatementsFlag(*store.settings.DataSource)
+			store.initConnection()
+			store.stores.post = newSqlPostStore(store, mockMetrics)
+			err := store.migrate(migrationsDirectionUp)
 			require.NoError(t, err)
-			assert.Equal(t, tc.ExpectedDSN, res)
+
+			defer store.Close()
+
+			err = store.ReplicaLagAbs()
+			require.NoError(t, err)
+			err = store.ReplicaLagTime()
+			require.NoError(t, err)
+			mockMetrics.AssertExpectations(t)
 		})
 	}
 }

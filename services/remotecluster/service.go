@@ -46,7 +46,7 @@ type ServerIface interface {
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
-	GetLogger() mlog.LoggerIFace
+	Log() *mlog.Logger
 	GetMetrics() einterfaces.MetricsInterface
 }
 
@@ -79,7 +79,7 @@ type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 type Service struct {
 	server     ServerIface
 	httpClient *http.Client
-	send       []chan interface{}
+	send       []chan any
 
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
@@ -120,9 +120,9 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		connectionStateListeners: make(map[string]ConnectionStateListener),
 	}
 
-	service.send = make([]chan interface{}, MaxConcurrentSends)
+	service.send = make([]chan any, MaxConcurrentSends)
 	for i := range service.send {
-		service.send[i] = make(chan interface{}, SendChanBuffer)
+		service.send[i] = make(chan any, SendChanBuffer)
 	}
 
 	return service, nil
@@ -244,7 +244,7 @@ func (rcs *Service) resume() {
 		go rcs.sendLoop(i, rcs.done)
 	}
 
-	rcs.server.GetLogger().Debug("Remote Cluster Service active")
+	rcs.server.Log().Debug("Remote Cluster Service active")
 }
 
 func (rcs *Service) pause() {
@@ -258,5 +258,5 @@ func (rcs *Service) pause() {
 	close(rcs.done)
 	rcs.done = nil
 
-	rcs.server.GetLogger().Debug("Remote Cluster Service inactive")
+	rcs.server.Log().Debug("Remote Cluster Service inactive")
 }

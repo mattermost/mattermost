@@ -34,12 +34,17 @@ func (h *HelpProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (h *HelpProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *HelpProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {
 		helpLink = model.SupportSettingsDefaultHelpLink
 	}
 
-	return &model.CommandResponse{GotoLocation: helpLink}
+	return &model.CommandResponse{
+		ResponseType: model.CommandResponseTypeEphemeral,
+		Text: args.T("api.command_help.success", map[string]any{
+			"HelpLink": helpLink,
+		}),
+	}
 }

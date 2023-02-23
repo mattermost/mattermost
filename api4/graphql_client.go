@@ -44,7 +44,7 @@ func (c *graphQLClient) login(loginId string, password string) (*model.User, *mo
 
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		return nil, nil, model.NewAppError("login", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("login", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	return &user, model.BuildResponse(r), nil
 }

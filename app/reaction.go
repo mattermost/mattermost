@@ -15,12 +15,12 @@ import (
 )
 
 func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	post, err := a.GetSinglePost(reaction.PostId)
+	post, err := a.GetSinglePost(reaction.PostId, false)
 	if err != nil {
 		return nil, err
 	}
 
-	channel, err := a.GetChannel(post.ChannelId)
+	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return nil, err
 	}
@@ -29,29 +29,27 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		return nil, model.NewAppError("deleteReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	reaction, nErr := a.Srv().Store.Reaction().Save(reaction)
+	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ReactionHasBeenAdded(pluginContext, reaction)
-				return true
-			}, plugin.ReactionHasBeenAddedID)
-		})
-	}
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ReactionHasBeenAdded(pluginContext, reaction)
+			return true
+		}, plugin.ReactionHasBeenAddedID)
+	})
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
@@ -61,9 +59,9 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 }
 
 func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppError) {
-	reactions, err := a.Srv().Store.Reaction().GetForPost(postID, true)
+	reactions, err := a.Srv().Store().Reaction().GetForPost(postID, true)
 	if err != nil {
-		return nil, model.NewAppError("GetReactionsForPost", "app.reaction.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetReactionsForPost", "app.reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return reactions, nil
 }
@@ -71,9 +69,9 @@ func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppE
 func (a *App) GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
 
-	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIDs)
+	allReactions, err := a.Srv().Store().Reaction().BulkGetForPosts(postIDs)
 	if err != nil {
-		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, reaction := range allReactions {
@@ -101,9 +99,9 @@ func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *mo
 		return nil, model.NewAppError("GetTopReactionsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	topReactionList, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	topReactionList, err := a.Srv().Store().Reaction().GetTopForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopReactionsForTeamSince", "app.reaction.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopReactionsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topReactionList, nil
 }
@@ -113,20 +111,20 @@ func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *mo
 		return nil, model.NewAppError("GetTopReactionsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	topReactionList, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	topReactionList, err := a.Srv().Store().Reaction().GetTopForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopReactionsForUserSince", "app.reaction.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopReactionsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topReactionList, nil
 }
 
 func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
-	post, err := a.GetSinglePost(reaction.PostId)
+	post, err := a.GetSinglePost(reaction.PostId, false)
 	if err != nil {
 		return err
 	}
 
-	channel, err := a.GetChannel(post.ChannelId)
+	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -135,22 +133,20 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 		return model.NewAppError("DeleteReactionForPost", "api.reaction.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
-		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if _, err := a.Srv().Store().Reaction().Delete(reaction); err != nil {
+		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
-				return true
-			}, plugin.ReactionHasBeenRemovedID)
-		})
-	}
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ReactionHasBeenRemoved(pluginContext, reaction)
+			return true
+		}, plugin.ReactionHasBeenRemovedID)
+	})
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
@@ -161,10 +157,10 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 
 func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
-	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
-	reactionJSON, jsonErr := json.Marshal(reaction)
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode reaction to JSON")
+	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
+	reactionJSON, err := json.Marshal(reaction)
+	if err != nil {
+		a.Log().Warn("Failed to encode reaction to JSON", mlog.Err(err))
 	}
 	message.Add("reaction", string(reactionJSON))
 	a.Publish(message)

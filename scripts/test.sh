@@ -13,12 +13,19 @@ TIMEOUT=$7
 COVERMODE=$8
 
 PACKAGES_COMMA=$(echo $PACKAGES | tr ' ' ',')
+export MM_SERVER_PATH=$PWD
+export MM_FEATUREFLAGS_BoardsProduct=false
 
 echo "Packages to test: $PACKAGES"
 echo "GOFLAGS: $GOFLAGS"
 
+if [[ $GOFLAGS == "-race " && $IS_CI == "true" ]] ;
+then
+	export GOMAXPROCS=4
+fi
+
 find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-find . -type d -name data -not -path './vendor/*' -not -path './data' | xargs rm -rf
+find . -type d -name data -not -path './data' | xargs rm -rf
 
 $GO test $GOFLAGS -run=$TESTS $TESTFLAGS -v -timeout=$TIMEOUT -covermode=$COVERMODE -coverpkg=$PACKAGES_COMMA -exec $DIR/test-xprog.sh $PACKAGES 2>&1 > >( tee output )
 EXIT_STATUS=$?

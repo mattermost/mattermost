@@ -16,13 +16,13 @@ type EmojiStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: emoji, time
-func (_m *EmojiStore) Delete(emoji *model.Emoji, time int64) error {
-	ret := _m.Called(emoji, time)
+// Delete provides a mock function with given fields: emoji, timestamp
+func (_m *EmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
+	ret := _m.Called(emoji, timestamp)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.Emoji, int64) error); ok {
-		r0 = rf(emoji, time)
+		r0 = rf(emoji, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}

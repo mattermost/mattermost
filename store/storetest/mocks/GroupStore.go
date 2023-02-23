@@ -372,6 +372,27 @@ func (_m *GroupStore) DistinctGroupMemberCount() (int64, error) {
 	return r0, r1
 }
 
+// DistinctGroupMemberCountForSource provides a mock function with given fields: source
+func (_m *GroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	ret := _m.Called(source)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(model.GroupSource) int64); ok {
+		r0 = rf(source)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GroupSource) error); ok {
+		r1 = rf(source)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: groupID
 func (_m *GroupStore) Get(groupID string) (*model.Group, error) {
 	ret := _m.Called(groupID)
@@ -556,13 +577,13 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 	return r0, r1
 }
 
-// GetGroups provides a mock function with given fields: page, perPage, opts
-func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
-	ret := _m.Called(page, perPage, opts)
+// GetGroups provides a mock function with given fields: page, perPage, opts, viewRestrictions
+func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+	ret := _m.Called(page, perPage, opts, viewRestrictions)
 
 	var r0 []*model.Group
-	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts) []*model.Group); ok {
-		r0 = rf(page, perPage, opts)
+	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) []*model.Group); ok {
+		r0 = rf(page, perPage, opts, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Group)
@@ -570,8 +591,8 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts) error); ok {
-		r1 = rf(page, perPage, opts)
+	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) error); ok {
+		r1 = rf(page, perPage, opts, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -692,6 +713,27 @@ func (_m *GroupStore) GetMemberCount(groupID string) (int64, error) {
 	return r0, r1
 }
 
+// GetMemberCountWithRestrictions provides a mock function with given fields: groupID, viewRestrictions
+func (_m *GroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+	ret := _m.Called(groupID, viewRestrictions)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, *model.ViewUsersRestrictions) int64); ok {
+		r0 = rf(groupID, viewRestrictions)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.ViewUsersRestrictions) error); ok {
+		r1 = rf(groupID, viewRestrictions)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMemberUsers provides a mock function with given fields: groupID
 func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	ret := _m.Called(groupID)
@@ -761,13 +803,13 @@ func (_m *GroupStore) GetMemberUsersNotInChannel(groupID string, channelID strin
 	return r0, r1
 }
 
-// GetMemberUsersPage provides a mock function with given fields: groupID, page, perPage
-func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
-	ret := _m.Called(groupID, page, perPage)
+// GetMemberUsersPage provides a mock function with given fields: groupID, page, perPage, viewRestrictions
+func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(groupID, page, perPage, viewRestrictions)
 
 	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(groupID, page, perPage)
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
+		r0 = rf(groupID, page, perPage, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -775,8 +817,8 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(groupID, page, perPage)
+	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions) error); ok {
+		r1 = rf(groupID, page, perPage, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -784,13 +826,13 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 	return r0, r1
 }
 
-// GetNonMemberUsersPage provides a mock function with given fields: groupID, page, perPage
-func (_m *GroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
-	ret := _m.Called(groupID, page, perPage)
+// GetMemberUsersSortedPage provides a mock function with given fields: groupID, page, perPage, viewRestrictions, teammateNameDisplay
+func (_m *GroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
+	ret := _m.Called(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
 
 	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(groupID, page, perPage)
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions, string) []*model.User); ok {
+		r0 = rf(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -798,8 +840,31 @@ func (_m *GroupStore) GetNonMemberUsersPage(groupID string, page int, perPage in
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(groupID, page, perPage)
+	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions, string) error); ok {
+		r1 = rf(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetNonMemberUsersPage provides a mock function with given fields: groupID, page, perPage, viewRestrictions
+func (_m *GroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(groupID, page, perPage, viewRestrictions)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
+		r0 = rf(groupID, page, perPage, viewRestrictions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions) error); ok {
+		r1 = rf(groupID, page, perPage, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -963,6 +1028,29 @@ func (_m *GroupStore) PermittedSyncableAdmins(syncableID string, syncableType mo
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) error); ok {
 		r1 = rf(syncableID, syncableType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Restore provides a mock function with given fields: groupID
+func (_m *GroupStore) Restore(groupID string) (*model.Group, error) {
+	ret := _m.Called(groupID)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(groupID)
 	} else {
 		r1 = ret.Error(1)
 	}

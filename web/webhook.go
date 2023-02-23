@@ -50,8 +50,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {
 			if c.Err != nil {
-				payload, _ := json.Marshal(incomingWebhookPayload)
-				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId()), mlog.String("payload", string(payload)))
+				fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
+				payload, err := json.Marshal(incomingWebhookPayload)
+				if err != nil {
+					fields = append(fields, mlog.NamedErr("encoding_err", err))
+				} else {
+					fields = append(fields, mlog.String("payload", string(payload)))
+				}
+
+				mlog.Debug("Incoming webhook received", fields...)
 			}
 		}
 	}()
@@ -103,7 +110,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	response, err := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

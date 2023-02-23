@@ -92,6 +92,20 @@ func TestCreateEmoji(t *testing.T) {
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "gif")
 
+	// try to create a valid webp emoji
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	path, _ := fileutils.FindDir("tests")
+	bytes, err := os.ReadFile(filepath.Join(path, "testwebp.webp"))
+	require.NoError(t, err)
+	newEmoji, _, err = client.CreateEmoji(emoji, bytes, "image.webp")
+	require.NoError(t, err)
+	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from webp to png
+
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,

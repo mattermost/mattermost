@@ -65,11 +65,11 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	debug.SetTraceback("crash")
 
 	options := []app.Option{
+		// The option order is important as app.Config option reads app.StartMetrics option.
+		app.StartMetrics,
 		app.ConfigStore(configStore),
 		app.RunEssentialJobs,
 		app.JoinCluster,
-		app.StartSearchEngine,
-		app.StartMetrics,
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {

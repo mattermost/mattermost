@@ -58,7 +58,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	byteReader := bytes.NewReader(imageProfile)
 	img2, _, err2 := image.Decode(byteReader)
 	if err2 != nil {
-		return nil, err.Error()
+		return nil, err2.Error()
 	}
 	if img2.At(2, 3) != colorful {
 		return nil, fmt.Sprintf("color mismatch %v != %v", img2.At(2, 3), colorful)

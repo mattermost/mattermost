@@ -36,7 +36,8 @@
         "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
-        "SessionLengthSSOInDays": 30,
+        "SessionLengthSSOInDays": -1,
+        "SessionLengthSSOInHours": 720,
         "SessionCacheInMinutes": 10,
         "SessionIdleTimeoutInMinutes": 0,
         "WebsocketSecurePort": 443,
@@ -59,6 +60,7 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "EnableAPITeamDeletion": false,
+        "EnableAPITriggerAdminNotifications": false,
         "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {

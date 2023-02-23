@@ -6,7 +6,6 @@ package slashcommands
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 	"regexp"
@@ -31,34 +30,52 @@ var usage = `Mattermost testing commands to help configure the system
 		/test setup [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>
 
 		Example:
-		/test setup teams fuzz 10 20 50
+			/test setup teams fuzz 10 20 50
 
-	Users - Add a specified number of random users with fuzz text to current team.
-		/test users [fuzz] <Min Users> <Max Users>
+	Users - Add a specified number of random users with fuzz text to current team, at the specified Unix timestamp in milliseconds.
+		/test users [fuzz] [range=min[,max]] [time=user_join_timestamp]
+
+		Default: range=2,5 time=
+
+		Examples:
+			/test users fuzz range=3,8 time=1565076128000
+			/test users range=1
+
+	Channels - Add a specified number of random public (o) or private (p) channels with fuzz text to current team, at the specified Unix timestamp in milliseconds.
+		/test channels [fuzz] [range=min[,max]] [type=(o|p)] [time=channel_create_timestamp]
+
+		Default: range=2,5 type=o time=
+
+		Examples:
+			/test channels fuzz range=5,10 type=p time=1565076128000
+			/test channels range=1
+
+	DMs - Add a specified number of random DM messages between the current user and a specified user, at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
+		/test dms u=@username [range=min[,max]] [time=dm_create_timestamp]
+
+		Default: range=2,5 time=
+
+		Examples:
+			/test dms u=@user range=5,10 time=1565076128000
+			/test dms u=@user range=2
+
+	ThreadedPost - Create a threaded post with a specified number of replies at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
+        /test threaded_post [range=min[,max]] [time=post_timestamp]
+
+		Default: range=1000 time=
+
+		Examples:
+			/test threaded_post
+			/test threaded_post range=100,200 time=1565076128000
+
+	Posts - Add some random posts with fuzz text to current channel, at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
+		/test posts [fuzz] [range=min[,max]] [images=max_images] [time=post_timestamp]
+
+		Default: range=2,5 images=0 time=
 
 		Example:
-			/test users fuzz 5 10
-
-	Channels - Add a specified number of random channels with fuzz text to current team.
-		/test channels [fuzz] <Min Channels> <Max Channels>
-
-		Example:
-			/test channels fuzz 5 10
-
-	DMs - Add a specified number of DMs for current user. Requires enough users to be loaded.
-			/test dms <Min DMs> <Max DMs>
-
-			Example:
-				/test dms 5 10
-
-	ThreadedPost - create a large threaded post
-        /test threaded_post
-
-	Posts - Add some random posts with fuzz text to current channel.
-		/test posts [fuzz] <Min Posts> <Max Posts> <Max Images>
-
-		Example:
-			/test posts fuzz 5 10 3
+			/test posts fuzz range=5,10 images=3 time=1565076128000
+			/test posts range=2
 
 	Post - Add post to a channel as another user.
 		/test post u=@username p=passwd c=~channelname t=teamname "message"
@@ -73,10 +90,10 @@ var usage = `Mattermost testing commands to help configure the system
 			/test http://www.example.com/sample_file.md
 
 	Json - Add a post using the JSON file as payload to the current channel.
-	        /test json url
+	    /test json url
 
-		Example
-		/test json http://www.example.com/sample_body.json
+		Example:
+			/test json http://www.example.com/sample_body.json
 
 `
 
@@ -85,11 +102,16 @@ const (
 )
 
 var (
-	userRE    = regexp.MustCompile(`u=@([^\s]+)`)
+	userRE    = regexp.MustCompile(`u=@?([^\s]+)`)
 	passwdRE  = regexp.MustCompile(`p=([^\s]+)`)
 	teamRE    = regexp.MustCompile(`t=([^\s]+)`)
 	channelRE = regexp.MustCompile(`c=~([^\s]+)`)
 	messageRE = regexp.MustCompile(`"(.*)"`)
+	fuzzRE    = regexp.MustCompile(`fuzz`)
+	rangeRE   = regexp.MustCompile(`range=([^\s]+)`)
+	timeRE    = regexp.MustCompile(`time=([^\s]+)`)
+	imagesRE  = regexp.MustCompile(`images=([^\s]+)`)
+	typeRE    = regexp.MustCompile(`type=([^\s])+`)
 )
 
 type LoadTestProvider struct {
@@ -116,16 +138,16 @@ func (*LoadTestProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 	}
 }
 
-func (lt *LoadTestProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (lt *LoadTestProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	commandResponse, err := lt.doCommand(a, c, args, message)
 	if err != nil {
-		mlog.Error("failed command /"+CmdTest, mlog.Err(err))
+		c.Logger().Error("failed command /"+CmdTest, mlog.Err(err))
 	}
 
 	return commandResponse
 }
 
-func (lt *LoadTestProvider) doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (lt *LoadTestProvider) doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	//This command is only available when EnableTesting is true
 	if !*a.Config().ServiceSettings.EnableTesting {
 		return &model.CommandResponse{}, nil
@@ -160,7 +182,7 @@ func (lt *LoadTestProvider) doCommand(a *app.App, c *request.Context, args *mode
 	}
 
 	if strings.HasPrefix(message, "post") {
-		return lt.PostCommand(a, args, message)
+		return lt.PostCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "threaded_post") {
@@ -182,7 +204,7 @@ func (*LoadTestProvider) HelpCommand(args *model.CommandArgs, message string) *m
 	return &model.CommandResponse{Text: usage, ResponseType: model.CommandResponseTypeEphemeral}
 }
 
-func (*LoadTestProvider) SetupCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) SetupCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	tokens := strings.Fields(strings.TrimPrefix(message, "setup"))
 	doTeams := contains(tokens, "teams")
 	doFuzz := contains(tokens, "fuzz")
@@ -243,13 +265,13 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c *request.Context, args *mode
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 
-		mlog.Info("Testing environment created")
+		c.Logger().Info("Testing environment created")
 		for i := 0; i < len(environment.Teams); i++ {
-			mlog.Info("Team Created: " + environment.Teams[i].Name)
-			mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + UserPassword)
+			c.Logger().Info("Team Created: " + environment.Teams[i].Name)
+			c.Logger().Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + UserPassword)
 		}
 	} else {
-		team, err := a.Srv().Store.Team().Get(args.TeamId)
+		team, err := a.Srv().Store().Team().Get(args.TeamId)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -268,7 +290,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c *request.Context, args *mode
 	return &model.CommandResponse{Text: "Created environment", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) ActivateUserCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) ActivateUserCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	user_id := strings.TrimSpace(strings.TrimPrefix(message, "activate_user"))
 	if err := a.UpdateUserActive(c, user_id, true); err != nil {
 		return &model.CommandResponse{Text: "Failed to activate user", ResponseType: model.CommandResponseTypeEphemeral}, err
@@ -277,7 +299,7 @@ func (*LoadTestProvider) ActivateUserCommand(a *app.App, c *request.Context, arg
 	return &model.CommandResponse{Text: "Activated user", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) DeActivateUserCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) DeActivateUserCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	user_id := strings.TrimSpace(strings.TrimPrefix(message, "deactivate_user"))
 	if err := a.UpdateUserActive(c, user_id, false); err != nil {
 		return &model.CommandResponse{Text: "Failed to deactivate user", ResponseType: model.CommandResponseTypeEphemeral}, err
@@ -286,83 +308,177 @@ func (*LoadTestProvider) DeActivateUserCommand(a *app.App, c *request.Context, a
 	return &model.CommandResponse{Text: "DeActivated user", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) UsersCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) UsersCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "users"))
 
 	doFuzz := false
-	if strings.Index(cmd, "fuzz") == 0 {
+	if fuzzRE.MatchString(cmd) {
 		doFuzz = true
-		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	usersr, ok := parseRange(cmd, "")
-	if !ok {
-		usersr = utils.Range{Begin: 2, End: 5}
+	var err error
+	rng := utils.Range{Begin: 2, End: 5}
+	rangeParam := getMatch(rangeRE, cmd)
+	if rangeParam != "" {
+		rng, err = parseRange(rangeParam)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
+
 	}
 
-	team, err := a.Srv().Store.Team().Get(args.TeamId)
+	team, err := a.Srv().Store().Team().Get(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to add users", ResponseType: model.CommandResponseTypeEphemeral}, err
+	}
+
+	time := int64(0)
+	timeParam := getMatch(timeRE, cmd)
+	if timeParam != "" {
+		time, err = strconv.ParseInt(timeParam, 10, 64)
+		if err != nil || time < 0 {
+			return &model.CommandResponse{Text: "Failed to add users: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
+		}
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
-	if _, err := userCreator.CreateTestUsers(c, usersr); err != nil {
+	userCreator.JoinTime = time
+	if _, err := userCreator.CreateTestUsers(c, rng); err != nil {
 		return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	return &model.CommandResponse{Text: "Added users", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) ChannelsCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "channels"))
 
 	doFuzz := false
-	if strings.Index(cmd, "fuzz") == 0 {
+	if fuzzRE.MatchString(cmd) {
 		doFuzz = true
-		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	channelsr, ok := parseRange(cmd, "")
-	if !ok {
-		channelsr = utils.Range{Begin: 2, End: 5}
+	var err error
+	rng := utils.Range{Begin: 2, End: 5}
+	rangeParam := getMatch(rangeRE, cmd)
+	if rangeParam != "" {
+		rng, err = parseRange(rangeParam)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to add channels: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
+
 	}
 
-	team, err := a.Srv().Store.Team().Get(args.TeamId)
+	team, err := a.Srv().Store().Team().Get(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
+	typ := model.ChannelTypeOpen
+	typeParam := getMatch(typeRE, cmd)
+	if typeParam != "" {
+		switch strings.ToUpper(typeParam) {
+		case "O":
+		case "P":
+			typ = model.ChannelTypePrivate
+		default:
+			return &model.CommandResponse{Text: "Failed to add channels: Invalid type parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid type parameter")
+		}
+	}
+
+	time := int64(0)
+	timeParam := getMatch(timeRE, cmd)
+	if timeParam != "" {
+		time, err = strconv.ParseInt(timeParam, 10, 64)
+		if err != nil || time < 0 {
+			return &model.CommandResponse{Text: "Failed to add channels: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
+		}
+	}
+
 	channelCreator := NewAutoChannelCreator(a, team, args.UserId)
 	channelCreator.Fuzzy = doFuzz
-	if _, err := channelCreator.CreateTestChannels(c, channelsr); err != nil {
+	channelCreator.CreateTime = time
+	channelCreator.ChannelType = typ
+	if _, err := channelCreator.CreateTestChannels(c, rng); err != nil {
 		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	return &model.CommandResponse{Text: "Added channels", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) DMsCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) DMsCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "dms"))
 
-	channelsr, ok := parseRange(cmd, "")
-	if !ok {
-		channelsr = utils.Range{Begin: 2, End: 5}
+	var err error
+
+	username := getMatch(userRE, message)
+	user, appErr := a.GetUserByUsername(username)
+	if appErr != nil {
+		return &model.CommandResponse{Text: "Failed to add DMS: Invalid username", ResponseType: model.CommandResponseTypeEphemeral}, appErr
 	}
 
-	channelCreator := NewAutoChannelCreator(a, nil, args.UserId)
-	if _, err := channelCreator.CreateTestDMs(c, channelsr); err != nil {
-		return &model.CommandResponse{Text: "Failed to create test DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+	rng := utils.Range{Begin: 2, End: 5}
+	rangeParam := getMatch(rangeRE, cmd)
+	if rangeParam != "" {
+		rng, err = parseRange(rangeParam)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to add DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
+
+	}
+
+	time := int64(0)
+	timeParam := getMatch(timeRE, cmd)
+	if timeParam != "" {
+		time, err = strconv.ParseInt(timeParam, 10, 64)
+		if err != nil || time < 0 {
+			return &model.CommandResponse{Text: "Failed to add DMs: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
+		}
+	}
+
+	channel, err := a.GetOrCreateDirectChannel(c, args.UserId, user.Id)
+
+	postCreator := NewAutoPostCreator(a, channel.Id, args.UserId)
+	postCreator.CreateTime = time
+	postCreator.UsersToPostFrom = []string{user.Id}
+	numPosts := utils.RandIntFromRange(rng)
+	for i := 0; i < numPosts; i++ {
+		if _, err := postCreator.CreateRandomPost(c); err != nil {
+			return &model.CommandResponse{Text: "Failed to create test DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
 	}
 
 	return &model.CommandResponse{Text: "Added DMs", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+	cmd := strings.TrimSpace(strings.TrimPrefix(message, "threaded_post"))
+
+	var err error
+	rng := utils.Range{Begin: 1000, End: 1000}
+	rangeParam := getMatch(rangeRE, cmd)
+	if rangeParam != "" {
+		rng, err = parseRange(rangeParam)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to create post: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
+
+	}
+
+	time := int64(0)
+	timeParam := getMatch(timeRE, cmd)
+	if timeParam != "" {
+		time, err = strconv.ParseInt(timeParam, 10, 64)
+		if err != nil || time < 0 {
+			return &model.CommandResponse{Text: "Failed to create post: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
+		}
+	}
+
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store.User().GetProfiles(options); err == nil {
+	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
@@ -374,42 +490,59 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c *request.Context, arg
 	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
+	testPoster.CreateTime = time
 	rpost, err2 := testPoster.CreateRandomPost(c)
 	if err2 != nil {
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, err2
 	}
-	for i := 0; i < 1000; i++ {
+	numPosts := utils.RandIntFromRange(rng)
+	for i := 0; i < numPosts; i++ {
 		testPoster.CreateRandomPostNested(c, rpost.Id)
 	}
 
 	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) PostsCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "posts"))
 
 	doFuzz := false
-	if strings.Index(cmd, "fuzz") == 0 {
+	if fuzzRE.MatchString(cmd) {
 		doFuzz = true
-		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	postsr, ok := parseRange(cmd, "")
-	if !ok {
-		postsr = utils.Range{Begin: 20, End: 30}
+	var err error
+	rng := utils.Range{Begin: 2, End: 5}
+	rangeParam := getMatch(rangeRE, cmd)
+	if rangeParam != "" {
+		rng, err = parseRange(rangeParam)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to add posts: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
+
 	}
 
-	tokens := strings.Fields(cmd)
-	rimages := utils.Range{Begin: 0, End: 0}
-	if len(tokens) >= 3 {
-		if numImages, err := strconv.Atoi(tokens[2]); err == nil {
-			rimages = utils.Range{Begin: numImages, End: numImages}
+	maxImages := 0
+	imagesParam := getMatch(imagesRE, cmd)
+	if imagesParam != "" {
+		maxImages, err = strconv.Atoi(imagesParam)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to add posts: Invalid images parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid images parameter")
+		}
+	}
+
+	time := int64(0)
+	timeParam := getMatch(timeRE, cmd)
+	if timeParam != "" {
+		time, err = strconv.ParseInt(timeParam, 10, 64)
+		if err != nil || time < 0 {
+			return &model.CommandResponse{Text: "Failed to add posts: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
 		}
 	}
 
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store.User().GetProfiles(options); err == nil {
+	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
@@ -421,9 +554,10 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c *request.Context, args *mode
 	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = doFuzz
 	testPoster.Users = usernames
+	testPoster.CreateTime = time
 
-	numImages := utils.RandIntFromRange(rimages)
-	numPosts := utils.RandIntFromRange(postsr)
+	numImages := utils.RandIntFromRange(utils.Range{Begin: 0, End: maxImages})
+	numPosts := utils.RandIntFromRange(rng)
 	for i := 0; i < numPosts; i++ {
 		testPoster.HasImage = (i < numImages)
 		_, err := testPoster.CreateRandomPost(c)
@@ -444,7 +578,7 @@ func getMatch(re *regexp.Regexp, text string) string {
 	return ""
 }
 
-func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) PostCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	textMessage := getMatch(messageRE, message)
 	if textMessage == "" {
 		return &model.CommandResponse{Text: "No message to post", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -457,7 +591,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 	}
 
 	channelName := getMatch(channelRE, message)
-	channel, err := a.GetChannelByName(channelName, team.Id, true)
+	channel, err := a.GetChannelByName(c, channelName, team.Id, true)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to get a channel", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
@@ -487,7 +621,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 	return &model.CommandResponse{Text: "Added a post to " + channel.DisplayName, ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) URLCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "url"))
 	if url == "" {
 		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -507,7 +641,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, r.Body)
+		io.Copy(io.Discard, r.Body)
 		r.Body.Close()
 	}()
 
@@ -533,7 +667,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.
 		post.ChannelId = args.ChannelId
 		post.UserId = args.UserId
 
-		if _, err := a.CreatePostMissingChannel(c, post, false); err != nil {
+		if _, err := a.CreatePostMissingChannel(c, post, false, true); err != nil {
 			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 	}
@@ -541,7 +675,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) JsonCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "json"))
 	if url == "" {
 		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -565,13 +699,13 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, r.Body)
+		io.Copy(io.Discard, r.Body)
 		r.Body.Close()
 	}()
 
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("could not decode post from json")
+		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Wrapf(jsonErr, "could not decode post from json")
 	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
@@ -579,15 +713,15 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model
 		post.Message = message
 	}
 
-	if _, err := a.CreatePostMissingChannel(c, &post, false); err != nil {
+	if _, err := a.CreatePostMissingChannel(c, &post, false, true); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func parseRange(command string, cmd string) (utils.Range, bool) {
-	tokens := strings.Fields(strings.TrimPrefix(command, cmd))
+func parseRange(rng string) (utils.Range, error) {
+	tokens := strings.Split(rng, ",")
 	var begin int
 	var end int
 	var err1 error
@@ -595,20 +729,20 @@ func parseRange(command string, cmd string) (utils.Range, bool) {
 	switch {
 	case len(tokens) == 1:
 		begin, err1 = strconv.Atoi(tokens[0])
-		end = begin
-		if err1 != nil {
-			return utils.Range{Begin: 0, End: 0}, false
+		if err1 != nil || begin < 0 {
+			return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 		}
-	case len(tokens) >= 2:
+		end = begin
+	case len(tokens) == 2:
 		begin, err1 = strconv.Atoi(tokens[0])
 		end, err2 = strconv.Atoi(tokens[1])
-		if err1 != nil || err2 != nil {
-			return utils.Range{Begin: 0, End: 0}, false
+		if err1 != nil || err2 != nil || begin < 0 || end < begin {
+			return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 		}
 	default:
-		return utils.Range{Begin: 0, End: 0}, false
+		return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 	}
-	return utils.Range{Begin: begin, End: end}, true
+	return utils.Range{Begin: begin, End: end}, nil
 }
 
 func contains(items []string, token string) bool {

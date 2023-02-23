@@ -6,7 +6,6 @@ package mlog_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -25,7 +24,6 @@ func TestLoggingBeforeInitialized(t *testing.T) {
 		mlog.Debug("debug log")
 		mlog.Warn("warning log")
 		mlog.Error("error log")
-		mlog.Critical("critical log")
 	})
 }
 
@@ -41,14 +39,13 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				Type:          "file",
 				Format:        "json",
 				FormatOptions: json.RawMessage(`{"enable_caller":true}`),
-				Levels:        []mlog.Level{mlog.LvlCritical, mlog.LvlError, mlog.LvlWarn, mlog.LvlInfo, mlog.LvlDebug},
+				Levels:        []mlog.Level{mlog.LvlError, mlog.LvlWarn, mlog.LvlInfo, mlog.LvlDebug},
 			},
 			[]string{
 				`{"timestamp":0,"level":"debug","msg":"real debug log","caller":"mlog/global_test.go:0"}`,
 				`{"timestamp":0,"level":"info","msg":"real info log","caller":"mlog/global_test.go:0"}`,
 				`{"timestamp":0,"level":"warn","msg":"real warning log","caller":"mlog/global_test.go:0"}`,
 				`{"timestamp":0,"level":"error","msg":"real error log","caller":"mlog/global_test.go:0"}`,
-				`{"timestamp":0,"level":"critical","msg":"real critical log","caller":"mlog/global_test.go:0"}`,
 			},
 		},
 		{
@@ -57,11 +54,10 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				Type:          "file",
 				Format:        "json",
 				FormatOptions: json.RawMessage(`{"enable_caller":true}`),
-				Levels:        []mlog.Level{mlog.LvlCritical, mlog.LvlError},
+				Levels:        []mlog.Level{mlog.LvlError},
 			},
 			[]string{
 				`{"timestamp":0,"level":"error","msg":"real error log","caller":"mlog/global_test.go:0"}`,
-				`{"timestamp":0,"level":"critical","msg":"real critical log","caller":"mlog/global_test.go:0"}`,
 			},
 		},
 		{
@@ -70,14 +66,13 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				Type:          "file",
 				Format:        "plain",
 				FormatOptions: json.RawMessage(`{"delim":" | ", "enable_caller":true}`),
-				Levels:        []mlog.Level{mlog.LvlCritical, mlog.LvlError, mlog.LvlWarn, mlog.LvlInfo, mlog.LvlDebug},
+				Levels:        []mlog.Level{mlog.LvlError, mlog.LvlWarn, mlog.LvlInfo, mlog.LvlDebug},
 			},
 			[]string{
 				`debug | TIME | real debug log | caller="mlog/global_test.go:0"`,
 				`info | TIME | real info log | caller="mlog/global_test.go:0"`,
 				`warn | TIME | real warning log | caller="mlog/global_test.go:0"`,
 				`error | TIME | real error log | caller="mlog/global_test.go:0"`,
-				`critical | TIME | real critical log | caller="mlog/global_test.go:0"`,
 			},
 		},
 		{
@@ -86,11 +81,10 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				Type:          "file",
 				Format:        "plain",
 				FormatOptions: json.RawMessage(`{"delim":" | ", "enable_caller":true}`),
-				Levels:        []mlog.Level{mlog.LvlCritical, mlog.LvlError},
+				Levels:        []mlog.Level{mlog.LvlError},
 			},
 			[]string{
 				`error | TIME | real error log | caller="mlog/global_test.go:0"`,
-				`critical | TIME | real critical log | caller="mlog/global_test.go:0"`,
 			},
 		},
 	}
@@ -99,7 +93,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 		t.Run(testCase.description, func(t *testing.T) {
 			var filePath string
 			if testCase.cfg.Type == "file" {
-				tempDir, err := ioutil.TempDir(os.TempDir(), "TestLoggingAfterInitialized")
+				tempDir, err := os.MkdirTemp(os.TempDir(), "TestLoggingAfterInitialized")
 				require.NoError(t, err)
 				defer os.Remove(tempDir)
 
@@ -117,23 +111,22 @@ func TestLoggingAfterInitialized(t *testing.T) {
 			mlog.Info("real info log")
 			mlog.Warn("real warning log")
 			mlog.Error("real error log")
-			mlog.Critical("real critical log")
 
 			logger.Shutdown()
 
 			if testCase.cfg.Type == "file" {
-				logs, err := ioutil.ReadFile(filePath)
+				logs, err := os.ReadFile(filePath)
 				require.NoError(t, err)
 
 				actual := strings.TrimSpace(string(logs))
 
 				if testCase.cfg.Format == "json" {
-					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\:\sZ]+"`)
+					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\+\:\sZ]+"`)
 					reCaller := regexp.MustCompile(`"caller":"([^"]+):[0-9\.]+"`)
 					actual = reTs.ReplaceAllString(actual, `"timestamp":0`)
 					actual = reCaller.ReplaceAllString(actual, `"caller":"$1:0"`)
 				} else {
-					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-Z]+\]`)
+					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-\+Z]+\]`)
 					reCaller := regexp.MustCompile(`caller="([^"]+):[0-9\.]+"`)
 					actual = reTs.ReplaceAllString(actual, "TIME")
 					actual = reCaller.ReplaceAllString(actual, `caller="$1:0"`)

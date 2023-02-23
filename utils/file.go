@@ -4,9 +4,9 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -84,7 +84,7 @@ func CopyDir(src string, dst string) (err error) {
 		return
 	}
 
-	items, err := ioutil.ReadDir(src)
+	items, err := os.ReadDir(src)
 	if err != nil {
 		return
 	}
@@ -99,7 +99,12 @@ func CopyDir(src string, dst string) (err error) {
 				return
 			}
 		} else {
-			if item.Mode()&os.ModeSymlink != 0 {
+			info, ierr := item.Info()
+			if ierr != nil {
+				continue
+			}
+
+			if info.Mode()&os.ModeSymlink != 0 {
 				continue
 			}
 
@@ -111,4 +116,24 @@ func CopyDir(src string, dst string) (err error) {
 	}
 
 	return
+}
+
+var SizeLimitExceeded = errors.New("Size limit exceeded")
+
+type LimitedReaderWithError struct {
+	limitedReader *io.LimitedReader
+}
+
+func NewLimitedReaderWithError(reader io.Reader, maxBytes int64) *LimitedReaderWithError {
+	return &LimitedReaderWithError{
+		limitedReader: &io.LimitedReader{R: reader, N: maxBytes + 1},
+	}
+}
+
+func (l *LimitedReaderWithError) Read(p []byte) (int, error) {
+	n, err := l.limitedReader.Read(p)
+	if l.limitedReader.N <= 0 && err == io.EOF {
+		return n, SizeLimitExceeded
+	}
+	return n, err
 }

@@ -10,7 +10,6 @@ package docextractor
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"path"
@@ -63,7 +62,7 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker) (str
 	if resp.StatusCode != 200 {
 		return "", errors.New("Unable to generate file preview using mmpreview (The server has replied with an error)")
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", errors.Wrap(err, "unable to read the response from mmpreview")
 	}

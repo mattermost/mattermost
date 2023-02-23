@@ -129,8 +129,8 @@ func TestBroadcastMsg(t *testing.T) {
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Log(fmt.Sprintf("%d callbacks counted;  %d web requests counted;  %d expected",
-			atomic.LoadInt32(&countCallbacks), atomic.LoadInt32(&countWebReq), NumRemotes))
+		t.Logf("%d callbacks counted;  %d web requests counted;  %d expected",
+			atomic.LoadInt32(&countCallbacks), atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 
 	t.Run("HTTP error", func(t *testing.T) {

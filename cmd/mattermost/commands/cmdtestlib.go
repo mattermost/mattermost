@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -71,8 +70,8 @@ func SetupWithStoreMock(t testing.TB) *testHelper {
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	licenseStore := mocks.LicenseStore{}
 	licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
-	api4TestHelper.App.Srv().Store.(*mocks.Store).On("System").Return(&systemStore)
-	api4TestHelper.App.Srv().Store.(*mocks.Store).On("License").Return(&licenseStore)
+	api4TestHelper.App.Srv().Store().(*mocks.Store).On("System").Return(&systemStore)
+	api4TestHelper.App.Srv().Store().(*mocks.Store).On("License").Return(&licenseStore)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
@@ -127,7 +126,7 @@ func (h *testHelper) SetConfig(config *model.Config) {
 	if err != nil {
 		panic("failed to marshal config: " + err.Error())
 	}
-	if err := ioutil.WriteFile(h.configFilePath, buf, 0600); err != nil {
+	if err := os.WriteFile(h.configFilePath, buf, 0600); err != nil {
 		panic("failed to write file " + h.configFilePath + ": " + err.Error())
 	}
 }

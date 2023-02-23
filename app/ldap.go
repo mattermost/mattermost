@@ -4,7 +4,7 @@
 package app
 
 import (
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -19,12 +19,18 @@ import (
 func (a *App) SyncLdap(includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 
-		if license := a.Srv().License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
-			if ldapI := a.Ldap(); ldapI != nil {
-				ldapI.StartSynchronizeJob(false, includeRemovedMembers)
-			} else {
-				mlog.Error("Not executing ldap sync because ldap is not available")
+		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
+			if !*a.Config().LdapSettings.EnableSync {
+				mlog.Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
+				return
 			}
+
+			ldapI := a.Ldap()
+			if ldapI == nil {
+				mlog.Error("Not executing ldap sync because ldap is not available")
+				return
+			}
+			ldapI.StartSynchronizeJob(false, includeRemovedMembers)
 		}
 	})
 }
@@ -55,7 +61,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", map[string]interface{}{"ldap_group_id": ldapGroupID}, "", http.StatusNotImplemented)
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", map[string]any{"ldap_group_id": ldapGroupID}, "", http.StatusNotImplemented)
 		return nil, ae
 	}
 
@@ -171,7 +177,7 @@ func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 			case *model.AppError:
 				return err
 			default:
-				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 		return nil
@@ -182,18 +188,18 @@ func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *model.AppError {
 	file, err := fileData.Open()
 	if err != nil {
-		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer file.Close()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
-		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().configStore.SetFile(filename, data)
+	err = a.Srv().platform.SetConfigFile(filename, data)
 	if err != nil {
-		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -234,8 +240,8 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 }
 
 func (a *App) removeLdapFile(filename string) *model.AppError {
-	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
+		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }

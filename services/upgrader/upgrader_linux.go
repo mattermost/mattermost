@@ -7,9 +7,9 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -17,6 +17,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 
@@ -27,46 +28,63 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-const mattermostBuildPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+//go:embed pubkey.gpg
+var mattermostBuildPublicKeys []byte
 
-mQENBFjZQxwBCAC6kNn3zDlq/aY83M9V7MHVPoK2jnZ3BfH7sA+ibQXsijCkPSR4
-5bCUJ9qVA4XKGK+cpO9vkolSNs10igCaaemaUZNB6ksu3gT737/SZcCAfRO+cLX7
-Q2la+jwTvu1YeT/M5xDZ1KHTFxsGskeIenz2rZHeuZwBl9qep34QszWtRX40eRts
-fl6WltLrepiExTp6NMZ50k+Em4JGM6CWBMo22ucy0jYjZXO5hEGb3o6NGiG+Dx2z
-b2J78LksCKGsSrn0F1rLJeA933bFL4g9ozv9asBlzmpgG77ESg6YE1N/Rh7WDzVA
-prIR0MuB5JjElASw5LDVxDV6RZsxEVQr7ETLABEBAAG0KU1hdHRlcm1vc3QgQnVp
-bGQgPGRldi1vcHNAbWF0dGVybW9zdC5jb20+iQFUBBMBCAA+AhsDBQsJCAcCBhUI
-CQoLAgQWAgMBAh4BAheAFiEEobMdRvDzoQsCzy1E+PLDF0R3SygFAl6HYr0FCQlw
-hqEACgkQ+PLDF0R3SyheNQgAnkiT2vFMCtU5FmC16HVYXzDpYMtdCQPh/gmeEkiI
-80rFRg/cn6f0BNnaTfDu6r6cepmhLNpDAowjQ7uBnv8fL2dzCydIGFv2r7FfmcOJ
-zhEQ3zXPwP6mYlxPCCgxAozsLv9Yv41KGCHIlzYwkAazc0BhpAW/h8L3VGkE+b+g
-x6lKVoufm4rKnT49Dgly6fVOxuR/BqZo87B5jksV3izLTHt5hiY8Pc5GW8WwO/tr
-pNAw+6HRXq1Dr/JRz5PIOr5KP5tVLBed4IteZ1xaTRd4++07ZbiZjhXY8WKpVp3y
-iN7Om24jQpxbJI9+KKJ3+yhcwhr8/PJ8ZVuhJo3BNv1PcQ==
-=9Qk8
------END PGP PUBLIC KEY BLOCK-----`
-
-var upgradePercentage int64
-var upgradeError error
-var upgrading int32
+var (
+	upgradePercentage int64
+	m                 sync.Mutex
+	upgradeError      error
+	upgrading         int32
+)
 
 type writeCounter struct {
-	total  int64
-	readed int64
+	total int64
+	read  int64
 }
 
 func (wc *writeCounter) Write(p []byte) (int, error) {
 	n := len(p)
-	wc.readed += int64(n)
-	percentage := (wc.readed * 100) / wc.total
-	if percentage == 0 {
-		upgradePercentage = 1
-	} else if percentage == 100 {
-		upgradePercentage = 99
-	} else {
-		upgradePercentage = percentage
+	wc.read += int64(n)
+
+	if wc.total <= 0 {
+		// skip the percentage calculation for invalid totals
+		setUpgradePercentage(50)
+		return n, nil
 	}
+
+	percentage := (wc.read * 100) / wc.total
+	if percentage == 0 {
+		percentage = 1
+	} else if percentage >= 100 {
+		percentage = 99
+	}
+
+	setUpgradePercentage(percentage)
+
 	return n, nil
+}
+
+func getUpgradePercentage() int64 {
+	return atomic.LoadInt64(&upgradePercentage)
+}
+
+func setUpgradePercentage(to int64) {
+	atomic.StoreInt64(&upgradePercentage, to)
+}
+
+func getUpgradeError() error {
+	m.Lock()
+	defer m.Unlock()
+
+	return upgradeError
+}
+
+func setUpgradeError(err error) {
+	m.Lock()
+	defer m.Unlock()
+
+	upgradeError = err
 }
 
 func getCurrentVersionTgzURL() string {
@@ -78,8 +96,8 @@ func getCurrentVersionTgzURL() string {
 	return "https://releases.mattermost.com/" + version + "/mattermost-" + version + "-linux-amd64.tar.gz"
 }
 
-func verifySignature(filename string, sigfilename string, publicKey string) error {
-	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader([]byte(publicKey)))
+func verifySignature(filename string, sigfilename string, publicKey []byte) error {
+	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(publicKey))
 	if err != nil {
 		mlog.Debug("Unable to load the public key to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
@@ -173,79 +191,90 @@ func UpgradeToE0() error {
 	}
 	defer atomic.CompareAndSwapInt32(&upgrading, 1, 0)
 
-	upgradePercentage = 1
-	upgradeError = nil
+	setUpgradePercentage(1)
+	setUpgradeError(nil)
 
 	executablePath, err := os.Executable()
 	if err != nil {
-		upgradePercentage = 0
-		upgradeError = errors.New("error getting the executable path")
+		setUpgradeError(errors.New("error getting the executable path"))
 		mlog.Error("Unable to get the path of the Mattermost executable", mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
 
-	filename, err := download(getCurrentVersionTgzURL(), 1024*1024*300)
+	filename, err := download(getCurrentVersionTgzURL())
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
 		}
-		upgradeError = fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", upgradePercentage)
-		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
-		upgradePercentage = 0
+		setUpgradeError(fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", getUpgradePercentage()))
+		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", getUpgradePercentage()), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
 	defer os.Remove(filename)
-	sigfilename, err := download(getCurrentVersionTgzURL()+".sig", 1024)
+
+	sigfilename, err := download(getCurrentVersionTgzURL() + ".sig")
 	if err != nil {
 		if sigfilename != "" {
 			os.Remove(sigfilename)
 		}
-		upgradeError = errors.New("error downloading the signature file of the new server")
+		setUpgradeError(errors.New("error downloading the signature file of the new server"))
 		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzURL()+".sig"), mlog.Err(err))
-		upgradePercentage = 0
+		setUpgradePercentage(0)
 		return err
 	}
 	defer os.Remove(sigfilename)
 
-	err = verifySignature(filename, sigfilename, mattermostBuildPublicKey)
+	err = verifySignature(filename, sigfilename, mattermostBuildPublicKeys)
 	if err != nil {
-		upgradePercentage = 0
-		upgradeError = errors.New("unable to verify the signature of the downloaded file")
+		setUpgradeError(errors.New("unable to verify the signature of the downloaded file"))
 		mlog.Error("Unable to verify the signature of the downloaded file", mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
 
 	err = extractBinary(executablePath, filename)
 	if err != nil {
-		upgradePercentage = 0
-		upgradeError = err
+		setUpgradeError(err)
 		mlog.Error("Unable to extract the binary from the downloaded file", mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
-	upgradePercentage = 100
+
+	setUpgradePercentage(100)
 	return nil
 }
 
 func UpgradeToE0Status() (int64, error) {
-	return upgradePercentage, upgradeError
+	return getUpgradePercentage(), getUpgradeError()
 }
 
-func download(url string, limit int64) (string, error) {
+func download(url string) (string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	out, err := ioutil.TempFile("", "*_mattermost.tar.gz")
+	if resp.StatusCode != http.StatusOK {
+		io.Copy(io.Discard, resp.Body)
+		return "", errors.Errorf("error downloading file %s: %s", url, resp.Status)
+	}
+
+	out, err := os.CreateTemp("", "*_mattermost.tar.gz")
 	if err != nil {
 		return "", err
 	}
 	defer out.Close()
 
 	counter := &writeCounter{total: resp.ContentLength}
-	_, err = io.Copy(out, io.TeeReader(&io.LimitedReader{R: resp.Body, N: limit}, counter))
-	return out.Name(), err
+	_, err = io.Copy(out, io.TeeReader(resp.Body, counter))
+	if err != nil {
+		return "", err
+	}
+
+	return out.Name(), nil
 }
 
 func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
@@ -290,7 +319,7 @@ func extractBinary(executablePath string, filename string) error {
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
 			permissions := getFilePermissionsOrDefault(executablePath, 0755)
-			tmpFile, err := ioutil.TempFile(path.Dir(executablePath), "*")
+			tmpFile, err := os.CreateTemp(path.Dir(executablePath), "*")
 			if err != nil {
 				return err
 			}
@@ -304,7 +333,7 @@ func extractBinary(executablePath string, filename string) error {
 			if err != nil {
 				err2 := os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
+					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 				return err
@@ -313,13 +342,13 @@ func extractBinary(executablePath string, filename string) error {
 			if _, err = io.Copy(outFile, tarReader); err != nil {
 				err2 := os.Remove(executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
+					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 
 				err2 = os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
+					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 				return err

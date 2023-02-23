@@ -9,15 +9,15 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/morph"
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
@@ -64,6 +64,8 @@ const (
 	migrationsDirectionDown migrationDirection = "down"
 
 	replicaLagPrefix = "replica-lag"
+
+	RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 )
 
 var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
@@ -106,6 +108,11 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	draft                store.DraftStore
+	notifyAdmin          store.NotifyAdminStore
+	postPriority         store.PostPriorityStore
+	postAcknowledgement  store.PostAcknowledgementStore
+	trueUpReview         store.TrueUpReviewStore
 }
 
 type SqlStore struct {
@@ -129,7 +136,8 @@ type SqlStore struct {
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
 
-	isBinaryParam bool
+	isBinaryParam             bool
+	pgDefaultTextSearchConfig string
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -165,6 +173,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
 		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
+	}
+
+	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
+	if err != nil {
+		mlog.Fatal("Failed to compute default text search config", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -204,18 +217,20 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
-
-	err = upgradeDatabase(store, model.CurrentVersion)
-	if err != nil {
-		mlog.Fatal("Failed to upgrade database.", mlog.Err(err))
-	}
+	store.stores.draft = newSqlDraftStore(store, metrics)
+	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
+	store.stores.postPriority = newSqlPostPriorityStore(store)
+	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
+	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
 }
 
-func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
+// SetupConnection sets up the connection to the database and pings it to make sure it's alive.
+// It also applies any database configuration settings that are required.
+func SetupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Fatal("Failed to open SQL connection to err.", mlog.Err(err))
@@ -275,29 +290,35 @@ func (ss *SqlStore) initConnection() {
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = resetReadTimeout(dataSource)
+		dataSource, err = ResetReadTimeout(dataSource)
 		if err != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
 	}
 
-	handle := setupConnection("master", dataSource, ss.settings)
+	handle := SetupConnection("master", dataSource, ss.settings)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
+	if ss.metrics != nil {
+		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			handle := SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
+			}
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.ReplicaXs[i].DB.DB, "replica-"+strconv.Itoa(i))
 			}
 		}
 	}
@@ -305,12 +326,15 @@ func (ss *SqlStore) initConnection() {
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			handle := SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
+			}
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
 			}
 		}
 	}
@@ -321,13 +345,35 @@ func (ss *SqlStore) initConnection() {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i] = setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
 		}
 	}
 }
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// specialSearchChars have special meaning and can be treated as spaces
+func (ss *SqlStore) specialSearchChars() []string {
+	chars := []string{
+		"<",
+		">",
+		"+",
+		"-",
+		"(",
+		")",
+		"~",
+		":",
+	}
+
+	// Postgres can handle "@" without any errors
+	// Also helps postgres in enabling search for EmailAddresses
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		chars = append(chars, "@")
+	}
+
+	return chars
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters
@@ -340,14 +386,18 @@ func (ss *SqlStore) computeBinaryParam() (bool, error) {
 	return DSNHasBinaryParam(*ss.settings.DataSource)
 }
 
-func (ss *SqlStore) IsBinaryParamEnabled() bool {
-	return ss.isBinaryParam
+func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return "", nil
+	}
+
+	var defaultTextSearchConfig string
+	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
+	return defaultTextSearchConfig, err
 }
 
-func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
-	var version string
-	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
-	return version, err
+func (ss *SqlStore) IsBinaryParamEnabled() bool {
+	return ss.isBinaryParam
 }
 
 // GetDbVersion returns the version of the database being used.
@@ -390,11 +440,12 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	}
 }
 
+func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
+	return ss.GetMasterX().DB.DB
+}
+
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if license == nil {
+	if !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
@@ -407,15 +458,36 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 }
 
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 	return ss.ReplicaXs[rrNum]
+}
+
+func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return []*sql.DB{
+			ss.GetMasterX().DB.DB,
+		}
+	}
+
+	dbs := make([]*sql.DB, len(ss.ReplicaXs))
+	for i, rx := range ss.ReplicaXs {
+		dbs[i] = rx.DB.DB
+	}
+
+	return dbs
+}
+
+func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return ss.GetMasterX().DB.DB
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	return ss.ReplicaXs[rrNum].DB.DB
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -894,8 +966,28 @@ func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
 }
 
+func (ss *SqlStore) NotifyAdmin() store.NotifyAdminStore {
+	return ss.stores.notifyAdmin
+}
+
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
+}
+
+func (ss *SqlStore) PostPriority() store.PostPriorityStore {
+	return ss.stores.postPriority
+}
+
+func (ss *SqlStore) Draft() store.DraftStore {
+	return ss.stores.draft
+}
+
+func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
+	return ss.stores.postAcknowledgement
+}
+
+func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
+	return ss.stores.trueUpReview
 }
 
 func (ss *SqlStore) DropAllTables() {
@@ -955,10 +1047,18 @@ func (ss *SqlStore) GetLicense() *model.License {
 	return ss.license
 }
 
+func (ss *SqlStore) hasLicense() bool {
+	ss.licenseMutex.Lock()
+	hasLicense := ss.license != nil
+	ss.licenseMutex.Unlock()
+
+	return hasLicense
+}
+
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
-	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
 	if err != nil {
 		return err
 	}
@@ -971,7 +1071,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
+			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {
@@ -981,28 +1081,20 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(*ss.settings.DataSource)
+		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
 			return rErr
 		}
-		dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+		dataSource, err = AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
-		db := setupConnection("master", dataSource, ss.settings)
-		driver, err = ms.WithInstance(db, &ms.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		db := SetupConnection("master", dataSource, ss.settings)
+		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
@@ -1013,6 +1105,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
+		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
@@ -1027,35 +1120,6 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	default:
 		return engine.ApplyAll()
 	}
-}
-
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
-	// We need to tell the MySQL driver that we want to use multiStatements
-	// in order to make migrations work.
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		config, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-
-		if config.Params == nil {
-			config.Params = map[string]string{}
-		}
-
-		config.Params["multiStatements"] = "true"
-		return config.FormatDSN(), nil
-	}
-
-	return dataSource, nil
-}
-
-func resetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
@@ -1105,7 +1169,7 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 	case model.DatabaseDriverMysql:
 		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
 		if strings.Contains(strings.ToLower(ver), "maria") {
-			mlog.Debug("MariaDB detected. Skipping version check.")
+			mlog.Warn("MariaDB detected. You are using an unsupported database. Please consider using MySQL or Postgres.")
 			return true, nil
 		}
 		parts := strings.Split(ver, "-")
@@ -1119,15 +1183,15 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 		majorVer, err2 := strconv.Atoi(versions[0])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		minorVer, err2 := strconv.Atoi(versions[1])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		patchVer, err2 := strconv.Atoi(versions[2])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
 		if intVer < minimumRequiredMySQLVersion {
@@ -1168,7 +1232,7 @@ func (ss *SqlStore) ensureDatabaseCollation() error {
 		}
 
 		if tableCollation != connCollation.Value {
-			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("expected", connCollation.Value), mlog.String("found", tableCollation))
+			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("connection_collation", connCollation.Value), mlog.String("table_collation", tableCollation))
 		}
 	}
 

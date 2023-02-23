@@ -33,6 +33,7 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
+	MessageAttachments       []*EmailMessageAttachment
 }
 
 func (es *Service) InitEmailBatching() {
@@ -241,9 +242,10 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	}
 
 	// check if user has CRT set to ON
-	threadsEnabled := false
-	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
-		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+	appCRT := *es.config().ServiceSettings.CollapsedThreads
+	threadsEnabled := appCRT == model.CollapsedThreadsAlwaysOn
+	if !threadsEnabled && appCRT != model.CollapsedThreadsDisabled {
+		threadsEnabled = appCRT == model.CollapsedThreadsDefaultOn
 		// check if a participant has overridden collapsed threads settings
 		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
 			threadsEnabled = preference.Value == "on"
@@ -275,7 +277,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 			tm := time.Unix(notification.post.CreateAt/1000, 0)
 			timezone, _ := tm.Zone()
 
-			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]interface{}{
+			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]any{
 				"Hour":     tm.Hour(),
 				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
 				"Month":    translateFunc(tm.Month().String()),
@@ -291,7 +293,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 			otherChannelMembersCount := 0
 
 			if threadsEnabled && notification.post.RootId != "" {
-				props := map[string]interface{}{"channelName": channelDisplayName}
+				props := map[string]any{"channelName": channelDisplayName}
 				channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads", props)
 				if channel.Type == model.ChannelTypeDirect {
 					channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads_dm")
@@ -313,13 +315,14 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
+				MessageAttachments:       ProcessMessageAttachments(notification.post, siteURL),
 			})
 		}
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
 
-	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]interface{}{
+	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]any{
 		"SiteName": es.config().TeamSettings.SiteName,
 		"Year":     tm.Year(),
 		"Month":    translateFunc(tm.Month().String()),
@@ -343,7 +346,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles); nErr != nil {
+	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", "", "BatchedEmailNotification"); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }

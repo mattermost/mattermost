@@ -23,8 +23,13 @@ type Thread struct {
 	// to newest. Note that the root post author is not included in this list until they reply.
 	Participants StringArray `json:"participants"`
 
-	// DeleteAt is a denormalized copy of the root posts's DeleteAt.
+	// DeleteAt is a denormalized copy of the root posts's DeleteAt. In the database, it's
+	// named ThreadDeleteAt to avoid introducing a query conflict with older server versions.
 	DeleteAt int64 `json:"delete_at"`
+
+	// TeamId is a denormalized copy of the Channel's teamId. In the database, it's
+	// named ThreadTeamId to avoid introducing a query conflict with older server versions.
+	TeamId string `json:"team_id"`
 }
 
 type ThreadResponse struct {
@@ -36,14 +41,16 @@ type ThreadResponse struct {
 	Post           *Post   `json:"post"`
 	UnreadReplies  int64   `json:"unread_replies"`
 	UnreadMentions int64   `json:"unread_mentions"`
+	IsUrgent       bool    `json:"is_urgent"`
 	DeleteAt       int64   `json:"delete_at"`
 }
 
 type Threads struct {
-	Total               int64             `json:"total"`
-	TotalUnreadThreads  int64             `json:"total_unread_threads"`
-	TotalUnreadMentions int64             `json:"total_unread_mentions"`
-	Threads             []*ThreadResponse `json:"threads"`
+	Total                     int64             `json:"total"`
+	TotalUnreadThreads        int64             `json:"total_unread_threads"`
+	TotalUnreadMentions       int64             `json:"total_unread_mentions"`
+	TotalUnreadUrgentMentions int64             `json:"total_unread_urgent_mentions"`
+	Threads                   []*ThreadResponse `json:"threads"`
 }
 
 type GetUserThreadsOpts struct {
@@ -76,6 +83,9 @@ type GetUserThreadsOpts struct {
 
 	// TeamOnly will only fetch threads and unreads for the specified team and excludes DMs/GMs
 	TeamOnly bool
+
+	// IncludeIsUrgent will return IsUrgent field as well to assert is the thread is urgent or not
+	IncludeIsUrgent bool
 }
 
 func (o *Thread) Etag() string {

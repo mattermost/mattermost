@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
+    "translation": "Kanalda yalnızca siz kaldınız. Kanaldan ayrılmak yerine özel kanalı kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Bütünleştirme işlemlerini yalnız sistem yöneticileri yapabilir."
+    "translation": "Bütünleştirme işlemlerini yalnızca sistem yöneticileri yapabilir."
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
@@ -620,7 +620,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermost yardım sayfasını açar"
+    "translation": "Mattermost yardım iletisini görüntüle"
   },
   {
     "id": "api.command_help.name",
@@ -648,15 +648,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[kullanıcıadı] ~[kanal]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Kullanıcı adı ya da kanal eksik."
+    "translation": "Kullanıcı adı ve/veya kanal eksik."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kullanıcı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
+    "translation": "{{.User}} kullanıcısı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -668,7 +668,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için kanal kısaltması kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltmasını](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_invite.success",
@@ -999,7 +999,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Emoji eklenemedi. Görsel boyutu 1 MB değerinden küçük olmalıdır."
+    "translation": "Emoji eklenemedi. Görsel 512 KiB boyutundan küçük olmalıdır."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -1080,10 +1080,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Dosyalar yüklenemedi. {{.NumFiles}} dosya için {{.NumClientIds}} istemci kodu var."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Belirtilen dosya sayısı hatalı olduğundan dosyalar yüklenemedi."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1167,7 +1163,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Lisansta yalnız {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site raporları -> İstatistikleri görüntüle bölümünden görebilirsiniz."
+    "translation": "Lisansta yalnızca {{.Users}} kullanıcı destekleniyor. Ancak sisteminizde {{.Count}} tekil kullanıcı var. Tekil kullanıcı sayısı farklı e-posta adreslerine göre belirlenir. Toplam kullanıcı sayısını Site raporları -> İstatistikleri görüntüle bölümünden görebilirsiniz."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -1857,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "İletiyi görüntüle"
+    "translation": "Mattermost içinde yanıtla"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2289,7 +2285,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Giden web bağlantıları yalnız herkese açık kanallara eklenebilir."
+    "translation": "Giden web bağlantıları yalnızca herkese açık kanallara eklenebilir."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
@@ -2541,7 +2537,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Doğrudan kanal yalnız üyeleri tarafından sık kullanılanlara eklenebilir. \"{{.Username}}\" bir üye değil."
+    "translation": "Doğrudan kanal yalnızca üyeleri tarafından sık kullanılanlara eklenebilir. \"{{.Username}}\" bir üye değil."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -2573,7 +2569,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Doğrudan ileti yalnız kanal üyeleri tarafından işaretlenebilir. \"{{.Username}}\" bir üye değil."
+    "translation": "Doğrudan ileti yalnızca kanal üyeleri tarafından işaretlenebilir. \"{{.Username}}\" bir üye değil."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -2642,10 +2638,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Zorunlu tepki özelliği eksik: Kullanıcı."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Yanıt oluşturulma zamanı özelliği üst iletinin oluşturulma zamanından sonra olmalıdır."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -2733,7 +2725,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Takım adında ayrılmış bir sözcük var."
+    "translation": "Takım adında sistem kullanımına ayrılmış bir sözcük var."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
@@ -2965,7 +2957,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı artırması için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3057,7 +3049,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "Geçerli lisansta uygunluk özelliğini bulunmuyor. Lütfen lisansın Enterprise sürümüne yükseltilmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta uygunluk özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
@@ -3160,10 +3152,6 @@
     "translation": "Elasticsearch zaten durdurulmuş."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearch sunucusuna bağlanılamadı."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch devre dışı."
   },
@@ -3197,7 +3185,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen lisansın Enterprise sürüme yükseltilmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -3745,7 +3733,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "{{.Scheme}} özel adres biçimi geçersiz. Özel adres biçimleri bir harf ile başlamalı ve yalnız harf, rakam, artı (+), nokta (.) ve tire (-) karakterlerini içermelidir."
+    "translation": "{{.Scheme}} özel adres biçimi geçersiz. Özel adres biçimleri bir harf ile başlamalı ve yalnızca harf, rakam, artı (+), nokta (.) ve tire (-) karakterlerini içermelidir."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -3889,7 +3877,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "İleti dışa aktarma görevi ExportFromTimestamp değeri bir zaman damgası olmalıdır (Unix Epoch başlangıcından itibaren saniye olarak). Yalnız bu zaman damgasından sonra gönderilmiş iletiler dışa aktarılır."
+    "translation": "İleti dışa aktarma görevi ExportFromTimestamp değeri bir zaman damgası olmalıdır (Unix Epoch başlangıcından itibaren saniye olarak). Yalnızca bu zaman damgasından sonra gönderilmiş iletiler dışa aktarılır."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
@@ -4581,7 +4569,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab hizmet koşulları güncellendi. Lütfen gitlab.com adresine giderek yeni hizmet koşullarını onayladıktan sonra yeniden Mattermost oturumu açmayı deneyin."
+    "translation": "GitLab hizmet koşulları güncellendi. Lütfen {{.URL}} adresine giderek yeni hizmet koşullarını onayladıktan sonra Mattermost oturumunu yeniden açmayı deneyin."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4989,7 +4977,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "zip dosyası oluşturulamadı"
+    "translation": "Zip dosyası oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
@@ -5249,7 +5237,7 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": "Yalnız kişisel takımlar aranırken sayfalandırma yapılmaz."
+    "translation": "Yalnızca kişisel takımlar aranırken sayfalandırma yapılmaz."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5417,7 +5405,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Kanal adı geçersiz. Doğrudan olmayan ileti kanallarında, kanal adı içinde kullanıcı kodları kullanılamaz."
+    "translation": "Kanal adları onaltılık biçimde olamaz. Lütfen başka bir kanal adı yazın."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -5481,7 +5469,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.daysCount}} günde bir dolacak şekilde ayarlanmış."
+    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya sürdürmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -5589,7 +5577,7 @@
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "aynı adlı bir grup zaten ayrılmış bir ad olarak var"
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
@@ -5668,14 +5656,6 @@
     "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Lisansınızda konuk hesaplarını kullanma özelliği yok"
-  },
-  {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Çağrılan kanallar çağrı yapılan takımın bir parçası olmalıdır."
   },
@@ -5685,7 +5665,7 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Yalnız herkese açık takımlar aranırken sayfalandırma yapılmaz."
+    "translation": "Yalnızca herkese açık takımlar aranırken sayfalandırma yapılmaz."
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
@@ -5861,11 +5841,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 89+"
+    "translation": "Sürüm 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 44+"
+    "translation": "Sürüm 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5877,7 +5857,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -5964,10 +5944,6 @@
     "translation": "Denetimler aranırken bir sorun çıktı."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Deneme isteği yapılamadı. Lütfen Mattermost sistem panosundaki web sunucu bölümünden bir site adresi yapılandırın."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Tepki kaydedilemedi."
   },
@@ -5985,7 +5961,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesini kabul etmelisiniz."
+    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesi metinlerini kabul etmelisiniz."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -6545,15 +6521,15 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
-    "translation": "Takım üye sayısı sınırına ulaşıldığından yeni takım üyeliği oluşturulamadı"
+    "translation": "Takım üye sayısı sınırına ulaşıldığından yeni takım üyeliği eklenemedi"
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
-    "translation": "Zaten var olduğundan yeni takım üyeliği oluşturulamadı"
+    "translation": "Zaten var olduğundan yeni takım üyeliği eklenemedi"
   },
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
-    "translation": "Yeni takım üyeliği oluşturulamadı"
+    "translation": "Yeni takım üyeliği eklenemedi"
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
@@ -6626,14 +6602,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "İleti dışa aktarma görevinde BatchSize değeri çözümlenemedi."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6757,7 +6725,7 @@
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": "Belirtilen tarihten sonraki ileti sayıları hesaplanamadı."
+    "translation": "Belirtilen tarihten sonraki ileti sayıları belirlenemedi."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
@@ -6765,7 +6733,7 @@
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
-    "translation": "Yalnız sistem yöneticileri önceden karılmış parolalar ayarlayabilir."
+    "translation": "Yalnızca sistem yöneticileri önceden karılmış parolalar ayarlayabilir."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -6806,10 +6774,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} boyutları ({{.Width}} x {{.Height}} piksel) sınırını aşıyor."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Dosya yüklenemedi. Dosya çok büyük."
   },
   {
     "id": "app.team.get_by_scheme.app_error",
@@ -7165,43 +7129,43 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "Mattermost Enterprise sürümüne yükseltilemedi. İndirilen dosyanın sayısal imzası doğrulanamadı."
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. İndirilen dosyanın sayısal imzası doğrulanamadı."
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "Mattermost Enterprise sürümüne yükseltilemedi."
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi."
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": "Mattermost Enterprise sürümüne yükseltilemedi. Bu özellik yalnız x86-64 mimarisine sahip Linux sistemleri üzerinde kullanılabilir."
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. Bu özellik yalnızca x86-64 mimarisine sahip Linux sistemleri üzerinde kullanılabilir."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "Mattermost Enterprise sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemi tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost üst tarifesine geçmeyi yeniden deneyin. Geçiş işlemi tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Mattermost Enterprise sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost üst tarifesine geçmeyi yeniden deneyin. Geçiş işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost üst tarifesine geçmeyi yeniden deneyin. Geçiş işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
-    "translation": "Mattermost Enterprise sürümüne yükseltilemedi."
+    "translation": "Mattermost Enterprise üst tarifesine geçilemedi."
   },
   {
     "id": "api.upgrade_to_enterprise.app_error",
-    "translation": "Mattermost Enterprise Sürümü için bir yükseltme işlemi zaten yapılıyor."
+    "translation": "Zaten bir Mattermost Enterprise üst tarifesine geçme işlemi yapılıyor."
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
-    "translation": "Zaten Mattermost Enterprise Sürümünü kullandığınız için yükseltme yapamazsınız."
+    "translation": "Zaten Mattermost Enterprise üst tarifesini kullandığınız için tarife geçişi yapamazsınız."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": "Mattermost Enterprise Sürümüne zaten yükseltmişsiniz. Lütfen yükseltme işlemini tamamlamak için sunucuyu yeniden başlatın."
+    "translation": "Zaten Mattermost Enterprise üst tarifesine geçmişsiniz. Lütfen geçiş işlemini tamamlamak için sunucuyu yeniden başlatın."
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
@@ -7257,7 +7221,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veritabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veritabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -7533,7 +7497,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde artık birkaç takım var. Takımların çoğu, kanalların nasıl oluşturulacağı, kimlerin yeni takım arkadaşları çağırabileceği ve bütünleştirmelerin nasıl yönetilebileceği gibi yönetim ve işbirliği yollarını kendisine göre belirler. Takım değişikliği şemaları, her takımın kullanıcı izinlerini kendi özel gereksinimlerine göre özelleştirebilmenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde artık birkaç takım var. Takımların çoğu, kanalların nasıl oluşturulacağı, kimlerin yeni takım arkadaşları çağırabileceği ve bütünleştirmelerin nasıl yönetilebileceği gibi yönetim ve işbirliği yollarını kendisine göre belirler. Takım değişikliği şemaları, her takımın kullanıcı izinlerini kendi özel gereksinimlerine göre özelleştirebilmenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
@@ -7549,7 +7513,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
@@ -7557,7 +7521,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelimiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
@@ -7565,27 +7529,27 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mattermost üzerinde bu kadar çok görüşme gerçekleşirken, önemli bilgileri nerede arayacağınızı bilmek zor olabilir. Geniş bir topluluğa bir ileti yayınlamak istiyorsanız, herkesin katılabileceği ancak yalnızca kanal yöneticilerinin ileti gönderebileceği salt okunur Duyuru Kanalları oluşturabilirsiniz.\n\n[Salt okunur duyuru kanalları oluşturmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost üzerinde bu kadar çok görüşme gerçekleşirken, önemli bilgileri nerede arayacağınızı bilmek zor olabilir. Geniş bir topluluğa bir ileti yayınlamak istiyorsanız, herkesin katılabileceği ancak yalnızca kanal yöneticilerinin ileti gönderebileceği salt okunur Duyuru Kanalları oluşturabilirsiniz.\n\n[Salt okunur duyuru kanalları oluşturmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok aşamalı kimlik doğrulaması etkinleştirildi. Kullanıcılar parolanın yanında ek kimlik doğrulama araçları ile hesap güvenliğini arttırabilir. Sistem genelinde güvenliği artırmak için tüm Mattermost hesaplarının çok aşamalı kimlik doğrulaması kullanmasını zorunlu kılabilirsiniz.\n\n[Çok aşamalı kimlik doğrulamasını zorunlu kılmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde çok aşamalı kimlik doğrulaması etkinleştirildi. Kullanıcılar parolanın yanında ek kimlik doğrulama araçları ile hesap güvenliğini arttırabilir. Sistem genelinde güvenliği artırmak için tüm Mattermost hesaplarının çok aşamalı kimlik doğrulaması kullanmasını zorunlu kılabilirsiniz.\n\n[Çok aşamalı kimlik doğrulamasını zorunlu kılmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk Hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk Hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesini](https://mattermost.com/software-evaluation-agreement/), [Kişisel verilerin gizliliği ilkesini](https://mattermost.com/privacy-policy/) ve ürün e-postalarını almayı kabul ediyorum."
+    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk Hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Yalnız kanal yöneticilerinin ileti gönderebilmesini sağlamak için **Sistem panosu > Kullanıcı yönetimi > Kanallar** bölümüne gidin."
+    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Yalnızca kanal yöneticilerinin ileti gönderebilmesini sağlamak için **Sistem panosu > Kullanıcı yönetimi > Kanallar** bölümüne gidin."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7652,10 +7616,6 @@
     "translation": "Kullanıcı konuları alınamadı"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Şimdi düzelt"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
   },
@@ -7717,11 +7677,11 @@
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "İşlem gerekli: Mattermost Cloud ödemesi alınamadı"
+    "translation": "İşlem gerekli: Mattermost {{.Plan}} ödemesi alınamadı"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost Cloud aboneliğinizin kesintiye uğramaması için sorunu çözmesi için bankanızla görüşün ya da ödeme bilgilerinizi güncelleyin. Ödeme bilgileri güncellendikten sonra Mattermost kalan ödemeyi almayı deneyecek."
+    "translation": "Mattermost {{.Plan}} erişiminizin kesintiye uğramaması için sorunu çözmek amacıyla bankanızla görüşün ya da ödeme bilgilerinizi güncelleyin. Ödeme bilgileri güncellendikten sonra Mattermost kalan ödemeyi almayı deneyecek."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7758,10 +7718,6 @@
   {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "İçe aktarılamadı: Dosya bulunamadı."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Yanıt iletilemedi."
   },
   {
     "id": "app.upload.upload_data.move_file.app_error",
@@ -8101,7 +8057,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Bize istediğiniz zaman şu adresten e-posta gönderebilirsiniz "
+    "translation": "Yardım ister misiniz ya da sorularınız mı var? Bize şu adresten e-posta gönderebilirsiniz "
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -8189,7 +8145,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "14 gün süreyle kullanabileceğiniz {{.WorkSpace}} çalışma alanınız hazır!"
+    "translation": "Çalışma alanınız hazır!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8516,22 +8472,6 @@
     "translation": "Doğrudan paylaşılmış bir kanal eklenirken bir sorun çıktı."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "14 günlük Mattermost deneme süreniz yakında sona erecek"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Mattermost Cloud özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloud deneme süresi sona eriyor"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Ödeme yöntemi ekle"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "Aynı adresi kullanan bir güvenli bağlantı zaten var."
   },
@@ -8704,22 +8644,6 @@
     "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz. 30 gün içinde ödeme bilgilerinizi eklemezseniz Cloud çalışma alanınız ve ilgili verileri kalıcı olarak silinecek."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "14 günlük Mattermost deneme süreniz bugün sona erdi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloud deneme süresi sona erdi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Aboneliği başlat"
-  },
-  {
     "id": "api.command_channel_purpose.update_channel.max_length",
     "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
   },
@@ -8848,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Mattermost Enterprise sürümünün deneme süresi sona ermiş olduğundan artık kullanılamaz. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+    "translation": "Yeni deneme lisansı kullanılamadı. Bu Mattermost kopyasında daha önce deneme lisansı kullanmışsınız. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -8900,7 +8824,7 @@
   },
   {
     "id": "api.license.upgrade_needed.app_error",
-    "translation": "Bu özellik Enterprise sürüme yükseltmesi ile kullanılabilir."
+    "translation": "Bu özellik Enterprise üst tarifesine geçerek kullanılabilir."
   },
   {
     "id": "app.user.store_is_empty.app_error",
@@ -8957,10 +8881,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " bir konuyu yanıtladı."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Ek dosyalar toplu olarak içe aktarılırken sorun çıktı."
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
@@ -9043,40 +8963,16 @@
     "translation": "SAML yanıtı çok uzun"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": "Başlamaya hazırlık işlemi yalnız bir sistem yöneticisi tarafından tamamlanabilir."
+    "translation": "Başlamaya hazırlık işlemi yalnızca bir sistem yöneticisi tarafından tamamlanabilir."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Başlamaya hazırlık isteğinin tamamının şifresi çözülemedi."
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Bu ad, var olan bir sistem emojisi adıyla çakışıyor."
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -9160,7 +9056,7 @@
   },
   {
     "id": "Playbooks",
-    "translation": "Oyun kitapları"
+    "translation": "Senaryolar"
   },
   {
     "id": "Channels",
@@ -9187,22 +9083,6 @@
     "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
   },
@@ -9220,7 +9100,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "İçgörtüler etkinleştirilmemiş bir özellik işaretinin arkasında."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9263,20 +9143,8 @@
     "translation": "Kanal adı geçersiz"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Post_id geçersiz"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
@@ -9289,5 +9157,805 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Ambargo uygulanan ülkelerdeki sınırlamalar nedeniyle isteği işleyemedik. [Belgelerimizden ayrıntılı bilgi alın](https://mattermost.com/pl/limitations-for-embargoed-countries) ya da ihracat sınırlamalarıyla ilgili sorularınız için legal@mattermost.com adresine yazın."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Üst tarifeye geçtiniz!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost üst tarifeye geçme onayı"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Bu bir kerelik e-posta Mattermost sunucunuz {{.Hours}} saatten uzun süredir etkin olmadığı için gönderildi. Bu e-posta Mattermost sunucunuz tarafından otomatik olarak oluşturuldu."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Son aramalar alınırken sorun çıktı"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Takım sayısı alınamadı"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Takımların kullanım bilgisi alınamadı"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Takım sayısı sınırına ulaşıldığından takım geri yüklenemedi"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Takım sayısı sınırına ulaşıldığından takım eklenemedi"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Depolama alanı kullanımı alınamadı."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "{{.Value}} kod çözücü eşzamanlılığı geçersiz. Pozitif bir sayı ya da -1 olmalıdır."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Kullanıcının önde gelen konuları alınamadı."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Takımın önde gelen konuları alınamadı."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "İçgörü özelliği devre dışı bırakılmış."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Yönetici zaten bilgilendirilmiş"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Değer işlenemedi:{{.Value}} int64 olarak"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından ileti alınamadı."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Erişilebilen son ileti alınırken sorun çıktı"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Yüklenen verilerden dosya bilgileri oluşturulamadı."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "{{.Value}} zaman aşımı değeri geçersiz. Bir pozitif tamsayı olmalıdır."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Merhaba, @{{.Username}} tarafından gönderilmiş {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} iletisinin hatırlatıcısı"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Takım üyesi ön belleği temizlenirken sorun çıktı"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Kullanıcının en fazla doğrudan iletileri alınamadı."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost, sağladığı araçlar ile takımların güvenli iletişim, işbirliği ve birlikte çalışmasını sağlayan açık kaynaklı bir platformdur.\nMattermost üç temel araç sunar:\n\n**Kanallar** - Takımınızla toplu olarak ve üyeleriyle birebir iletişim kurabilirsiniz.\n**[Senaryolar](/playbooks)** - Yinelenen işlemlere özel yapılandırmalar oluşturarak öngörülebilir sonuçlar alabilirsiniz.\n**[Panolar](/boards)** - Projeleri ve görevlerini Kanban panosu yapısında yöneterek takımınızın hedeflere ulaşmasına yardımcı olabilirsiniz.\n\n[İlgili belgeler ve rehberler]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Aygıtınızda marketplace komutu desteklenmiyor."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Mağazayı aç"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Aboneliğin ödeme süresi geçmemiş"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Cloud ürünlerinin bilgileri alınamadı"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Cloud aboneliğinin bilgileri alınamadı"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Mattermost çalışma alanınız alt tarifeye geçirildi"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Verilerinizi arşivden çıkarmak ve ücretli özellikleri kullanmayı sürdürmek için ödeme bilgilerinizi güncelleyin."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "İşinizin önemli işlemleri için Cloud Professional ya da Enterprise tarifesi özelliklerini kullanıyorsanız, artık bu özellikleri kullanamayacaksınız ve başarımınız düşecek."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Mattermost Cloud çalışma alanınız alt tarifeye geçirildi"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Tarifelere ve fiyatlarına bakın"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Ödeme bilgilerini güncelleyin"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Çalışma alanınız 15 gün sonra alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Free alt tarifesine geçebilirsiniz."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Çalışma alanınız Cloud Free alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Bu son uyarıdır. Mattermost Cloud çalışma alanınızın ödemesini {{.DelinquencyDate}} tarihinden beri alamadık."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "{{.Plan}} tarifenizi Kullanmayı Sürdürmek için bankanızla görüşün ve ödeme bilgilerinizi doğru şekilde güncelleyin."
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Mattermost {{.Plan}} tarifeniz 15 gün sonra alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Ödeme bilgilerini güncelleyin"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Ödemeniz yapılmadı"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Son ödemenizi alamadık."
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Ödeme bilgilerini güncelleyin"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Mattermost çalışma alanınız 30 gün sonra alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Free alt tarifesine geçebilirsiniz."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Ödemenizi alamazsak 30 gün sonra otomatik olarak çalışma alanınızı alt tarifeye geçireceğiz."
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Çalışma alanınız yakında alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "{{.DelinquencyDate}} tarihinden beri ödenmemiş faturaların ödemesini alamadık. Çalışma alanınızın alt tarifeye geçirilme riski var."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Uyarı: Mattermost {{.Plan}} tarifeniz yakında alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Çalışma alanınız yakında alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "Herhangi bir işlem yapmazsanız, çalışma alanınız alt tarifeye geçirilecek ve şu veriler arşive kaldırılabilecek:"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Free alt tarifesine geçirilme riski var."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Lütfen süresi geçmiş faturalarınızı ödeyebilmek için ödeme bilgilerinizi güncelleyin."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "İşlem yapılması gerekli: Çalışma alanı 30 gün sonra alt tarifeye geçirilecek"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Ödeme bilgilerini güncelle"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Kredi kartı bilgilerinizi hemen güncelleyin."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Ödeme gecikmesi e-postasını göndermek için gerekli alanlar eksik."
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Ödeme bilgilerini güncelle"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Mattermost {{.Plan}} tarifenizi korumak için zamanınız var. Ancak ödeme yönteminizle ilgili sorunları çözmeniz gerekiyor."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Mattermost {{.Plan}} özelliklerinizi korumak için harekete geçin"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Tüm sınırlama belgelerini görüntüle."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Ödeme bilgilerini güncelle"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "İleti geçmişi"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Dosyalar"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Ödeme alınamadı"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Sorunu çözmek için lütfen bankanızla görüşün. Ardından ödeme bilgilerinizi doğru şekilde güncelleyin."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Mattermost {{.Plan}} tarifenizin ödeme süresi geçmiş"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Ödemeyi güncelle"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Bildirim iletisi gönderilemedi."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Bildirim verileri kaydedilemedi."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şuraya erişmek için Enterprise sürümü deneme süresinin başlatılmasını istedi: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şuraya erişmek için Enterprise sürümü deneme süresinin başlatılmasını istedi: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Geçerli tarifenin adı alınamadı"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML, herkese açık kimlik hizmeti sağlayıcı sertifikasını yükleyemedi. Lütfen sistem yöneticinizle görüşün."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Kullanıcının nişan sayısını alamadık."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Görev yürütülürken sorun çıktı."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Erişilebilen son dosya alınırken sorun çıktı"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından dosya alınamadı."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konuk hesapları devre dışı bırakılmış"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Zaman aralığı geçersiz."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Konu türü zaten var."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Derleme türü zaten var."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Taslaklar özelliği devre dışı."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Taslak silinmiş kanala kaydedilemedi"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "kullanıcı group-teams ve group-channels üzerine eklenemedi"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalda onay veremezsiniz."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Bir onayı, verilmesinden 5 dakika geçtikten sonra kaldıramazsınız."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanaldaki bir onayı kaldıramazsınız."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Özellik geliştirme sürecinizin sorunsuz olmasını sağlamak için geliştirme ekipleri arasında şeffaf iş akışları oluşturun."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Bir Jira botu ve Github botu ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bu botlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Panolarınıza, senaryolarınıza ve uygulama botlarınıza kolayca bağlanan bir özellik yayını kanalında ekibinizle sohbet edin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Ayaküstü gibi yinelenen toplantılar için toplantı gündemi panosu kalıbımızı ve yol boyunca görevlerin ilerleyişini yönetmek için proje görevleri panomuzu kullanın."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Ürün takımları"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Kök kodu geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Özellikler geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Öncelik geçersiz"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "İleti geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Dosya kodları geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Kanal kodu geçersiz."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "İleti kodu geçersiz."
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Çalışma kalıpları alınamadı"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Çalışma kalıbı kategorileri alınamadı"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "İletinin önceliği alınamadı"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Taslak güncellenemedi."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Kullanıcının taslakları alınamadı."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Taslak kaydedilemedi."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Taslağın dosyaları alınamadı."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Taslak alınamadı."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Taslaklar özelliği devre dışı."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Taslak silinemedi."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "İletilerin önceliği alınamadı"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Belirtilen tarihten sonraki acil iletilerin sayısı belirlenemedi."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "İletinin onayı kaydedilemedi."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "İletinin onayı alınamadı."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Onay alınamadı."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Onay silinemedi."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "bir LDAP kullanıcısı değil"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Dosya yüklenemedi. Dosya çok büyük."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Doğrulama sırasında roller alınırken sorun çıktı."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Faturanızı görüntüleyin"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "{{.WorkspaceName}} çalışma alanınız güncellendi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Elasticsearch için istemci anahtar dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Elasticsearch için istemci sertifika dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Elasticsearch için istemci sertifikasının kodu çözülemedi"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Elasticsearch için CA dosyası açılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Elasticsearch için CA kodu çözülemedi"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS sunucusu kullanılamıyor."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Toplam giden web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Toplam gelen web bağlantısı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Toplam etkin kullanıcı sayısı alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Bulut kopyalarında lisans artırımı değerlendirmesi yapılamaz"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Lisans artırımı değerlendirmesi için bir lisans gereklidir"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Lisans artırımı durumu kayıtları alınamadı"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Lisans artırımı durumu kaydı oluşturulamadı"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "Herkese açık bir kanal oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "Herkese açık bir pano oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "Özel bir senaryo oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "Özel bir kanal oluşturma izniniz yok."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "Özel bir pano oluşturma izniniz yok."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Çalışma kalıpları devre dışı bırakıldı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Kanal ile ilişkilendirilmiş bir senaryo bulunamadı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Bir senaryo oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Bir kanal oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Bir pano oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Bir çalışma kalıbı yürütülürken sorun çıktı."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "Herkese açık bir senaryo oluşturma izniniz yok."
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Kurum geneli"
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Lisansınızda kişisel senaryo desteği yok."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Sunucu çevirileri güncellenemedi."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Liderlik"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Geliştirme işlemleri"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Kimlik doğrulama hizmeti geçersiz: {{.AuthService}}"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Bu hizmet yalnızca Mattermost Enterprise sürümüyle kullanılabilir"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Kanallara neden gerek duyulduğunun açıklaması"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Panolara neden gerek duyulduğunun açıklaması"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
   }
 ]

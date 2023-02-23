@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -48,7 +46,7 @@ type TestHelper struct {
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, options []Option, tb testing.TB) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
 	}
@@ -69,13 +67,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	options = append(options, ConfigStore(configStore))
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		options = append(options, StoreOverride(func(s *Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
-			if err2 != nil {
-				panic(err2)
-			}
-			return lcl
-		}))
+		options = append(options, StoreOverrideWithCache(dbStore))
 	} else {
 		options = append(options, StoreOverride(dbStore))
 	}
@@ -99,12 +91,13 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               New(ServerConnector(s.Channels())),
-		Context:           &request.Context{},
+		Context:           request.EmptyContext(testLogger),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 	}
+	th.Context.SetLogger(testLogger)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
@@ -117,9 +110,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	th.App.Srv().SearchEngine = mainHelper.SearchEngine
+	th.App.Srv().Platform().SearchEngine = mainHelper.SearchEngine
 
-	th.App.Srv().Store.MarkSystemRanUnitTests()
+	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -179,7 +172,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -194,7 +187,7 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -207,7 +200,7 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, true, true, []Option{setCluster(cluster)}, tb)
+	return setupTestHelper(dbStore, true, true, []Option{SetCluster(cluster)}, tb)
 }
 
 var initBasicOnce sync.Once
@@ -221,7 +214,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
@@ -245,7 +238,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.BasicChannel = th.CreateChannel(th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(th.Context, th.BasicTeam)
 	th.BasicPost = th.CreatePost(th.BasicChannel)
 	return th
 }
@@ -327,15 +320,21 @@ func WithShared(v bool) ChannelOption {
 	}
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
-	return th.createChannel(team, model.ChannelTypeOpen, options...)
+func WithCreateAt(v int64) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.CreateAt = *model.NewInt64(v)
+	}
 }
 
-func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.ChannelTypePrivate)
+func (th *TestHelper) CreateChannel(c request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(c, team, model.ChannelTypeOpen, options...)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) CreatePrivateChannel(c request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(c, team, model.ChannelTypePrivate, options...)
+}
+
+func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -357,7 +356,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+		_, err := th.App.SaveSharedChannel(c, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -383,10 +382,10 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	return channel
 }
 
-func (th *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
+func (th *TestHelper) CreateGroupChannel(c request.CTX, user1 *model.User, user2 *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
+	if channel, err = th.App.CreateGroupChannel(c, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
 		panic(err)
 	}
 	return channel
@@ -439,7 +438,7 @@ func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(user, channel, false)
+	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 	if err != nil {
 		panic(err)
 	}
@@ -500,7 +499,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 }
 
 func (th *TestHelper) CreateEmoji() *model.Emoji {
-	emoji, err := th.App.Srv().Store.Emoji().Save(&model.Emoji{
+	emoji, err := th.App.Srv().Store().Emoji().Save(&model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
@@ -603,13 +602,13 @@ func (*TestHelper) ResetEmojisMigration() {
 }
 
 func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(nil)
+	teamCount, err := th.App.Srv().Store().Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
+	count, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	require.NoError(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }

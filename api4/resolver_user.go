@@ -32,16 +32,17 @@ func getGraphQLUser(ctx context.Context, id string) (*user, error) {
 		return nil, web.NewInvalidParamError("user_id")
 	}
 
-	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, id)
-	if appErr != nil || !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return nil, c.Err
+	loader, err := getUsersLoader(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	usr, appErr := c.App.GetUser(id)
-	if appErr != nil {
-		return nil, appErr
+	thunk := loader.Load(ctx, dataloader.StringKey(id))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
 	}
+	usr := result.(*model.User)
 
 	if c.IsSystemAdmin() || c.AppContext.Session().UserId == usr.Id {
 		userTermsOfService, appErr := c.App.GetUserTermsOfService(usr.Id)
@@ -55,12 +56,7 @@ func getGraphQLUser(ctx context.Context, id string) (*user, error) {
 		}
 	}
 
-	if c.AppContext.Session().UserId == usr.Id {
-		usr.Sanitize(map[string]bool{})
-	} else {
-		c.App.SanitizeProfile(usr, c.IsSystemAdmin())
-	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
 	return &user{*usr}, nil
 }
@@ -152,4 +148,74 @@ func (u *user) Sessions(ctx context.Context) ([]*model.Session, error) {
 	}
 
 	return sessions, nil
+}
+
+func graphQLUsersLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	stringKeys := keys.Keys()
+	result := make([]*dataloader.Result, len(stringKeys))
+
+	c, err := getCtx(ctx)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	users, err := getGraphQLUsers(c, stringKeys)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	for i, user := range users {
+		result[i] = &dataloader.Result{Data: user}
+	}
+
+	return result
+}
+
+func getGraphQLUsers(c *web.Context, userIDs []string) ([]*model.User, error) {
+	// Usually this will be called only for one user
+	// and cached for the rest of the query. So it's not an issue
+	// to run this in a loop.
+	for _, id := range userIDs {
+		canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, id)
+		if appErr != nil || !canSee {
+			c.SetPermissionError(model.PermissionViewMembers)
+			return nil, c.Err
+		}
+	}
+
+	users, appErr := c.App.GetUsers(userIDs)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Same as earlier, we want to pre-compute this only once
+	// because otherwise the resolvers run in multiple goroutines
+	// and *User.Sanitize causes a race, and we want to avoid
+	// deep-copying every user in all goroutines.
+	for _, user := range users {
+		if c.AppContext.Session().UserId == user.Id {
+			user.Sanitize(map[string]bool{})
+		} else {
+			c.App.SanitizeProfile(user, c.IsSystemAdmin())
+		}
+	}
+
+	// The users need to be in the exact same order as the input slice.
+	tmp := make(map[string]*model.User)
+	for _, u := range users {
+		tmp[u.Id] = u
+	}
+
+	// We reuse the same slice and just rewrite the roles.
+	for i, uID := range userIDs {
+		users[i] = tmp[uID]
+	}
+
+	return users, nil
 }

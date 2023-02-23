@@ -150,6 +150,182 @@ func TestGetClientConfig(t *testing.T) {
 				"ShowFullName": "true",
 			},
 		},
+		{
+			"Insights professional license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"InsightsEnabled": "true",
+			},
+		},
+		{
+			"Insights enterprise license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"InsightsEnabled": "true",
+			},
+		},
+		{
+			"Insights other license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"InsightsEnabled": "true",
+			},
+		},
+		{
+			"Insights professional license, feature flag disabled",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: false,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"InsightsEnabled": "false",
+			},
+		},
+		{
+			"Custom groups professional license",
+			&model.Config{},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"EnableCustomGroups": "true",
+			},
+		},
+		{
+			"Custom groups enterprise license",
+			&model.Config{},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"EnableCustomGroups": "true",
+			},
+		},
+		{
+			"Custom groups other license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"EnableCustomGroups": "false",
+			},
+		},
+		{
+			"Shared channels other license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "false",
+			},
+		},
+		{
+			"licensed for shared channels",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels professional license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels enterprise license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

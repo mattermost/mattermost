@@ -391,6 +391,29 @@ func (_m *API) CreateTeamMembersGracefully(teamID string, userIds []string, requ
 	return r0, r1
 }
 
+// CreateUploadSession provides a mock function with given fields: us
+func (_m *API) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {
+	ret := _m.Called(us)
+
+	var r0 *model.UploadSession
+	if rf, ok := ret.Get(0).(func(*model.UploadSession) *model.UploadSession); ok {
+		r0 = rf(us)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UploadSession)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.UploadSession) error); ok {
+		r1 = rf(us)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateUser provides a mock function with given fields: user
 func (_m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	ret := _m.Called(user)
@@ -618,6 +641,27 @@ func (_m *API) EnablePlugin(id string) *model.AppError {
 	}
 
 	return r0
+}
+
+// EnsureBotUser provides a mock function with given fields: bot
+func (_m *API) EnsureBotUser(bot *model.Bot) (string, error) {
+	ret := _m.Called(bot)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.Bot) string); ok {
+		r0 = rf(bot)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
+		r1 = rf(bot)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ExecuteSlashCommand provides a mock function with given fields: commandArgs
@@ -975,6 +1019,29 @@ func (_m *API) GetChannelsForTeamForUser(teamID string, userID string, includeDe
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// GetCloudLimits provides a mock function with given fields:
+func (_m *API) GetCloudLimits() (*model.ProductLimits, error) {
+	ret := _m.Called()
+
+	var r0 *model.ProductLimits
+	if rf, ok := ret.Get(0).(func() *model.ProductLimits); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ProductLimits)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2137,6 +2204,29 @@ func (_m *API) GetUnsanitizedConfig() *model.Config {
 	return r0
 }
 
+// GetUploadSession provides a mock function with given fields: uploadID
+func (_m *API) GetUploadSession(uploadID string) (*model.UploadSession, error) {
+	ret := _m.Called(uploadID)
+
+	var r0 *model.UploadSession
+	if rf, ok := ret.Get(0).(func(string) *model.UploadSession); ok {
+		r0 = rf(uploadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UploadSession)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(uploadID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUser provides a mock function with given fields: userID
 func (_m *API) GetUser(userID string) (*model.User, *model.AppError) {
 	ret := _m.Called(userID)
@@ -2897,6 +2987,20 @@ func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
+// RegisterCollectionAndTopic provides a mock function with given fields: collectionType, topicType
+func (_m *API) RegisterCollectionAndTopic(collectionType string, topicType string) error {
+	ret := _m.Called(collectionType, topicType)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(collectionType, topicType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterCommand provides a mock function with given fields: command
 func (_m *API) RegisterCommand(command *model.Command) error {
 	ret := _m.Called(command)
@@ -3654,6 +3758,29 @@ func (_m *API) UpdateUserStatus(userID string, status string) (*model.Status, *m
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// UploadData provides a mock function with given fields: us, rd
+func (_m *API) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error) {
+	ret := _m.Called(us, rd)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(*model.UploadSession, io.Reader) *model.FileInfo); ok {
+		r0 = rf(us, rd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.UploadSession, io.Reader) error); ok {
+		r1 = rf(us, rd)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

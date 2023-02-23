@@ -19,7 +19,7 @@ type GithubReleaseInfo struct {
 
 func (g *GithubReleaseInfo) IsValid() *AppError {
 	if g.Id == 0 {
-		return NewAppError("GithubReleaseInfo.IsValid", "model.github_release_info.is_valid.id.app_error", nil, "", http.StatusInternalServerError)
+		return NewAppError("GithubReleaseInfo.IsValid", NoTranslation, nil, "empty ID", http.StatusInternalServerError)
 	}
 
 	return nil

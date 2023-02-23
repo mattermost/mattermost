@@ -41,8 +41,10 @@ const (
 	ChannelMembersCountsCacheSize = model.ChannelCacheSize
 	ChannelMembersCountsCacheSec  = 30 * 60
 
-	LastPostsCacheSize = 20000
-	LastPostsCacheSec  = 30 * 60
+	LastPostsCacheSize  = 20000
+	LastPostsCacheSec   = 30 * 60
+	PostsUsageCacheSize = 1
+	PostsUsageCacheSec  = 30 * 60
 
 	TermsOfServiceCacheSize = 20000
 	TermsOfServiceCacheSec  = 30 * 60
@@ -97,6 +99,7 @@ type LocalCacheStore struct {
 	post               LocalCachePostStore
 	postLastPostsCache cache.Cache
 	lastPostTimeCache  cache.Cache
+	postsUsageCache    cache.Cache
 
 	user                   *LocalCacheUserStore
 	userProfileByIdsCache  cache.Cache
@@ -256,6 +259,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+	if localCacheStore.postsUsageCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   PostsUsageCacheSize,
+		Name:                   "PostsUsage",
+		DefaultExpiry:          PostsUsageCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForPostsUsage,
+	}); err != nil {
+		return
+	}
 	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
 
 	// TOS
@@ -312,6 +323,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForSchemes, localCacheStore.scheme.handleClusterInvalidateScheme)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForFileInfos, localCacheStore.fileInfo.handleClusterInvalidateFileInfo)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForLastPostTime, localCacheStore.post.handleClusterInvalidateLastPostTime)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPostsUsage, localCacheStore.post.handleClusterInvalidatePostsUsage)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForWebhooks, localCacheStore.webhook.handleClusterInvalidateWebhook)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForEmojisById, localCacheStore.emoji.handleClusterInvalidateEmojiById)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForEmojisIdByName, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
@@ -396,11 +408,11 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 	}
 }
 
-func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value interface{}) {
+func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
 	cache.SetWithDefaultExpiry(key, value)
 }
 
-func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value interface{}) error {
+func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value any) error {
 	err := cache.Get(key, value)
 	if err == nil {
 		if s.metrics != nil {

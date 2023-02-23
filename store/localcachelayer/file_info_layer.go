@@ -67,3 +67,33 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
 	}
 }
+
+func (s LocalCacheFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {
+	storageUsageKey := "storage_usage"
+	if includeDeleted {
+		storageUsageKey += "_deleted"
+	}
+
+	if !allowFromCache {
+		usage, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+		if err != nil {
+			return 0, err
+		}
+
+		s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
+		return usage, nil
+	}
+
+	var usage int64
+	if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, storageUsageKey, &usage); err == nil {
+		return usage, nil
+	}
+
+	usage, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+	if err != nil {
+		return 0, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
+	return usage, nil
+}

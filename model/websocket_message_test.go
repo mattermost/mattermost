@@ -13,7 +13,7 @@ import (
 
 func TestWebSocketEvent(t *testing.T) {
 	userId := NewId()
-	m := NewWebSocketEvent("some_event", NewId(), NewId(), userId, nil)
+	m := NewWebSocketEvent("some_event", NewId(), NewId(), userId, nil, "")
 	m.Add("RootId", NewId())
 	user := &User{
 		Id: userId,
@@ -32,7 +32,7 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestWebSocketEventImmutable(t *testing.T) {
-	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil)
+	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil, "")
 
 	new := m.SetEvent("new_event")
 	if new == m {
@@ -56,7 +56,7 @@ func TestWebSocketEventImmutable(t *testing.T) {
 	require.NotEqual(t, m.GetBroadcast(), new.GetBroadcast())
 	require.Equal(t, new.GetBroadcast(), broadcast)
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"key":  "val",
 		"key2": "val2",
 	}
@@ -85,12 +85,12 @@ func TestWebSocketEventFromJSON(t *testing.T) {
 	require.NotNil(t, ev, "should have parsed")
 	require.Equal(t, ev.EventType(), "test")
 	require.Equal(t, ev.GetSequence(), int64(45))
-	require.Equal(t, ev.data, map[string]interface{}{"key": "val"})
+	require.Equal(t, ev.data, map[string]any{"key": "val"})
 	require.Equal(t, ev.GetBroadcast(), &WebsocketBroadcast{UserId: "userid"})
 }
 
 func TestWebSocketResponse(t *testing.T) {
-	m := NewWebSocketResponse("OK", 1, map[string]interface{}{})
+	m := NewWebSocketResponse("OK", 1, map[string]any{})
 	e := NewWebSocketError(1, &AppError{})
 	m.Add("RootId", NewId())
 	json, err := m.ToJSON()
@@ -111,7 +111,7 @@ func TestWebSocketResponse(t *testing.T) {
 }
 
 func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
-	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
+	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil, "")
 	event = event.SetSequence(7)
 
 	before, err := event.ToJSON()
@@ -126,7 +126,7 @@ func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
 var stringSink []byte
 
 func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {
-	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil)
+	event := NewWebSocketEvent(WebsocketEventPosted, "foo", "bar", "baz", nil, "")
 	for i := 0; i < 100; i++ {
 		event.GetData()[NewId()] = NewId()
 	}
@@ -215,9 +215,10 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 		TeamId:                "ccc",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		OmitConnectionId:      "ddd",
 	}
 
-	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers)
+	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "ddd")
 
 	ev.Add("post", &Post{})
 	ev.SetBroadcast(broadcast)

@@ -101,7 +101,7 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 }
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
-	var link = redirectURL
+	var link = template.HTMLEscapeString(redirectURL)
 	var invalidSchemes = map[string]bool{
 		"data":       true,
 		"javascript": true,
@@ -119,7 +119,7 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
 		<a href="`+link+`">
-			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
+			`+i18n.T("api.back_to_app", map[string]any{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
 }

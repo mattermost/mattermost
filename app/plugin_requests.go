@@ -5,8 +5,7 @@ package app
 
 import (
 	"bytes"
-	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -21,6 +20,14 @@ import (
 )
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	if handler, ok := ch.routerSvc.getHandler(params["plugin_id"]); ok {
+		ch.servePluginRequest(w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
+			handler.ServeHTTP(w, r)
+		})
+		return
+	}
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
@@ -31,7 +38,6 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := mux.Vars(r)
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
 		mlog.Debug("Access to route for non-existent plugin",
@@ -86,7 +92,7 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Should be in the form of /$PLUGIN_ID/public/{anything} by the time we get here
+	// Should be in the form of /(subpath/)?/plugins/{plugin_id}/public/* by the time we get here
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
@@ -104,8 +110,13 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	subpath, err := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 	publicFilePath := path.Clean(r.URL.Path)
-	prefix := fmt.Sprintf("/plugins/%s/public/", pluginID)
+	prefix := path.Join(subpath, "plugins", pluginID, "public")
 	if !strings.HasPrefix(publicFilePath, prefix) {
 		http.NotFound(w, r)
 		return
@@ -142,7 +153,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := New(ServerConnector(ch)).GetSession(token)
-		defer ch.srv.userService.ReturnSessionToPool(session)
+		defer ch.srv.platform.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
 
@@ -150,11 +161,11 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 			sentToken := ""
 
 			if r.Header.Get(model.HeaderCsrfToken) == "" {
-				bodyBytes, _ := ioutil.ReadAll(r.Body)
-				r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+				bodyBytes, _ := io.ReadAll(r.Body)
+				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 				r.ParseForm()
 				sentToken = r.FormValue("csrf")
-				r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			} else {
 				sentToken = r.Header.Get(model.HeaderCsrfToken)
 			}
