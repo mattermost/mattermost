@@ -221,8 +221,8 @@ func TestUpdateConfig(t *testing.T) {
 			th.App.Config().FeatureFlags.BoardsProduct = true
 
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
-			updatedConfig, _, err := client.UpdateConfig(cfg)
-			require.NoError(t, err)
+			updatedConfig, _, updateErr := client.UpdateConfig(cfg)
+			require.NoError(t, updateErr)
 			require.False(t, updatedConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
 		})
 	})
