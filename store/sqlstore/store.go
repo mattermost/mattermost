@@ -1294,3 +1294,12 @@ func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 
 	return migrations, nil
 }
+
+func (ss *SqlStore) Explain(query string, args []any) (string, error) {
+	var explain []string
+	if err := ss.GetMasterX().Select(&explain, "EXPLAIN "+query, args...); err != nil {
+		return "", errors.Wrap(err, "unable to run the explain query")
+	}
+
+	return strings.Join(explain, "\n"), nil
+}

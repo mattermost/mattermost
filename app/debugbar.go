@@ -77,3 +77,11 @@ func (a *App) GetDebugBarInfo() (*model.DebugBarInfo, *model.AppError) {
 
 	return &info, nil
 }
+
+func (a *App) GetQueryExplain(query string, args []interface{}) (string, *model.AppError) {
+	explain, err := a.Srv().Store().Explain(query, args)
+	if err != nil {
+		return "", model.NewAppError("GetQueryExplain", "debugbar.query_explain.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return explain, nil
+}
