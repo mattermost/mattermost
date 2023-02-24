@@ -1293,7 +1293,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	status, err := s.Cloud.GetLicenseExpandStatus("", tokenToBeUsedForRenew)
+	status, err := s.Cloud.GetLicenseStatus("", tokenToBeUsedForRenew)
 	if err != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1386,7 +1386,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	status, err := s.Cloud.GetLicenseExpandStatus("", tokenToBeUsedForRenew)
+	status, err := s.Cloud.GetLicenseStatus("", tokenToBeUsedForRenew)
 	if err != nil {
 		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err).Error())
 		return

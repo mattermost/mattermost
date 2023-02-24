@@ -650,7 +650,7 @@ func TestGetCloudProducts(t *testing.T) {
 }
 
 func Test_GetExpandStatsForSubscription(t *testing.T) {
-	isExpandable := &model.SubscriptionExpandStatus{
+	checks := &model.SubscriptionChecksMadeResponse{
 		IsExpandable: true,
 	}
 
@@ -664,7 +664,7 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 
-		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
+		cloud.Mock.On("GetLicenseStatus", mock.Anything).Return(checks, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -672,9 +672,9 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionExpandable, r, err := th.Client.GetExpandStats(licenseId)
+		checksMade, r, err := th.Client.GetSubscriptionStatus(licenseId)
 		require.Error(t, err)
-		require.Nil(t, subscriptionExpandable)
+		require.Nil(t, checksMade)
 		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")
 	})
 
@@ -686,7 +686,7 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 
-		cloud.Mock.On("GetLicenseExpandStatus", mock.Anything).Return(isExpandable, nil)
+		cloud.Mock.On("GetLicenseStatus", mock.Anything).Return(checks, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -694,9 +694,9 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionExpandable, r, err := th.Client.GetExpandStats("")
+		checks, r, err := th.Client.GetSubscriptionStatus("")
 		require.Error(t, err)
-		require.Nil(t, subscriptionExpandable)
+		require.Nil(t, checks)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "400 Bad Request")
 	})
 }

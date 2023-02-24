@@ -8235,14 +8235,14 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	return cloudCustomer, BuildResponse(r), nil
 }
 
-func (c *Client4) GetExpandStats(licenseId string) (*SubscriptionExpandStatus, *Response, error) {
-	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/expand", licenseId), "")
+func (c *Client4) GetSubscriptionStatus(licenseId string) (*SubscriptionChecksMadeResponse, *Response, error) {
+	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/checks", licenseId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	var subscriptionExpandable *SubscriptionExpandStatus
+	var subscriptionExpandable *SubscriptionChecksMadeResponse
 	json.NewDecoder(r.Body).Decode(&subscriptionExpandable)
 
 	return subscriptionExpandable, BuildResponse(r), nil

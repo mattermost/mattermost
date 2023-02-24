@@ -339,16 +339,16 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	return r0, r1
 }
 
-// GetLicenseExpandStatus provides a mock function with given fields: userID, token
-func (_m *CloudInterface) GetLicenseExpandStatus(userID string, token string) (*model.SubscriptionExpandStatus, error) {
+// GetLicenseStatus provides a mock function with given fields: userID, token
+func (_m *CloudInterface) GetLicenseStatus(userID string, token string) (*model.SubscriptionChecksMadeResponse, error) {
 	ret := _m.Called(userID, token)
 
-	var r0 *model.SubscriptionExpandStatus
-	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionExpandStatus); ok {
+	var r0 *model.SubscriptionChecksMadeResponse
+	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionChecksMadeResponse); ok {
 		r0 = rf(userID, token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.SubscriptionExpandStatus)
+			r0 = ret.Get(0).(*model.SubscriptionChecksMadeResponse)
 		}
 	}
 
@@ -360,20 +360,6 @@ func (_m *CloudInterface) GetLicenseExpandStatus(userID string, token string) (*
 	}
 
 	return r0, r1
-}
-
-// GetLicenseRenewalStatus provides a mock function with given fields: userID, token
-func (_m *CloudInterface) GetLicenseRenewalStatus(userID string, token string) error {
-	ret := _m.Called(userID, token)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userID, token)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // GetSelfHostedInvoicePDF provides a mock function with given fields: invoiceID
