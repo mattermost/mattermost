@@ -3,6 +3,7 @@ package debugbar
 import (
 	"io"
 	"os"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
@@ -39,6 +40,9 @@ func (db *DebugBar) SendLogEvent(logLevel string, logMessage string, fields map[
 }
 
 func (db *DebugBar) SendApiCall(endpoint, method, statusCode string, elapsed float64) {
+	if endpoint == "getSystemInfo" || endpoint == "getQueryExplain" {
+		return
+	}
 	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "api-call")
@@ -61,6 +65,9 @@ func (db *DebugBar) SendStoreCall(method string, success bool, elapsed float64, 
 }
 
 func (db *DebugBar) SendSqlQuery(query string, elapsed float64, args ...any) {
+	if strings.HasPrefix(query, "EXPLAIN ") {
+		return
+	}
 	event := model.NewWebSocketEvent(socketEventName, "", "", "", nil, "")
 	event.Add("time", model.GetMillis())
 	event.Add("type", "sql-query")
