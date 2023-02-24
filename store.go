@@ -89,6 +89,10 @@ func (s *StoreService) initialize() error {
 		return nil
 	}
 
+	if s.driver == nil {
+		return errors.New("no db driver was provided")
+	}
+
 	config := s.api.GetUnsanitizedConfig()
 
 	// Set up master db
