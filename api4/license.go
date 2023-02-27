@@ -268,7 +268,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !status.IsRenewable {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, e.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "License is not self-serve renewable", http.StatusBadRequest)
 		return
 	}
 
