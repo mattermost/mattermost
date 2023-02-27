@@ -218,8 +218,7 @@ func TestUpdateConfig(t *testing.T) {
 		})
 
 		t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
-			th.App.Config().FeatureFlags.BoardsProduct = true
-
+			cfg.FeatureFlags.BoardsProduct = true
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 			updatedConfig, _, updateErr := client.UpdateConfig(cfg)
 			require.NoError(t, updateErr)
