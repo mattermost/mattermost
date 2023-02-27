@@ -41,7 +41,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/checks", api.APISessionRequired(getLicenseStatus)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/checks", api.APISessionRequired(getLicenseSelfServeStatus)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// GET /api/v4/cloud/request-trial
@@ -430,8 +430,8 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
-// getLicenseStatus makes check for the license in the CWS self-serve portal and establishes if the license is renewable, expandable etc.
-func getLicenseStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+// getLicenseSelfServeStatus makes check for the license in the CWS self-serve portal and establishes if the license is renewable, expandable etc.
+func getLicenseSelfServeStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
 		return
@@ -444,15 +444,15 @@ func getLicenseStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, cloudErr := c.App.Cloud().GetLicenseStatus(c.AppContext.Session().UserId, token)
+	res, cloudErr := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
 	if cloudErr != nil {
-		c.Err = model.NewAppError("Api4.getLicenseStatus", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
+		c.Err = model.NewAppError("Api4.getLicenseSelfServeStatus", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
 		return
 	}
 
 	json, jsonErr := json.Marshal(res)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("Api4.getLicenseStatus", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		c.Err = model.NewAppError("Api4.getLicenseSelfServeStatus", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 

@@ -17,7 +17,7 @@ type CloudInterface interface {
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
 
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
-	GetLicenseStatus(userID string, token string) (*model.SubscriptionChecksMadeResponse, error)
+	GetLicenseSelfServeStatus(userID string, token string) (*model.SubscriptionChecksMadeResponse, error)
 	UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error)
 	UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error)
 

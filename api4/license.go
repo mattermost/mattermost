@@ -261,7 +261,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if it is possible to renew license on the portal with generated token
-	status, e := c.App.Cloud().GetLicenseStatus(c.AppContext.Session().UserId, token)
+	status, e := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
 	if e != nil {
 		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, e.Error(), http.StatusInternalServerError)
 		return
