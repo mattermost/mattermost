@@ -216,14 +216,14 @@ func TestUpdateConfig(t *testing.T) {
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 		})
+	})
 
-		t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
-			cfg.FeatureFlags.BoardsProduct = true
-			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
-			updatedConfig, _, updateErr := client.UpdateConfig(cfg)
-			require.NoError(t, updateErr)
-			require.False(t, updatedConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
-		})
+	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
+		cfg.FeatureFlags.BoardsProduct = true
+		cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		updatedConfig, _, updateErr := th.SystemAdminClient.UpdateConfig(cfg)
+		require.NoError(t, updateErr)
+		require.False(t, updatedConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
 	})
 
 	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
