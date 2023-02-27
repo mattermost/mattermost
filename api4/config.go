@@ -160,7 +160,23 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow Focalboard plugin to be enabled if Boards
 	// is running as a product.
 	if cfg.FeatureFlags.BoardsProduct {
-		cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable = false
+		existingValue := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+		newValue := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+
+		// enabling Focalboard plugin is not allowed in product mode
+		if existingValue == false && newValue == true {
+			c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
+			return
+		}
+
+		// Before product mode, if Focalboard plugin was enabled and then we upgraded
+		// to product mode, the config still indicates focalboard plugin as enabled.
+		// Because the plugin can't run when in product more, we auto-fix this setting
+		// to avoid furthur issues.
+		if existingValue == true && newValue == true {
+			mlog.Warn("Incorrect Focalboard status setting detected. Marking Focalboard plugin state to disabled.")
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable = false
+		}
 	}
 
 	// There are some settings that cannot be changed in a cloud env
