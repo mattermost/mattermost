@@ -1,43 +1,46 @@
 name: mattermost-build
 on:
   push
+defaults:
+  run:
+    shell: bash
 jobs:
   check-mocks:
     name: Check mocks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
     name: Check go mod tidy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   check-gen-serialized:
     name: Check serialization methods for hot structs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Checkout focalboard
         run: |
           cd ..
@@ -55,20 +58,20 @@ jobs:
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   check-migrations:
     name: Check migration files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   build-api-spec:
     name: Build API specification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -80,20 +83,20 @@ jobs:
           cd ../mattermost-server
   check-generate-work-templates:
     name: Generate work templates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate work templates
         run: make generate-worktemplates
       - name: Check generated work templates
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the worktemplates using make generate-worktemplates"; exit 1; fi
   check-email-templates:
     name: Generate email templates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate email templates
         run: |
           sudo npm install -g mjml@4.9.0
@@ -102,20 +105,20 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
   check-store-layers:
     name: Check store layers
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
   check-app-layers:
     name: Check app layers
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -143,11 +146,11 @@ jobs:
       drivername: mysql
   build-mattermost-server:
     name: Build mattermost-server
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: check-mattermost-vet
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Checkout mattermost-webapp
         run: |
           cd ..
@@ -209,7 +212,7 @@ jobs:
           retention-days: 14 
   upload-s3:
     name: Upload to S3 bucket
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: 
       - build-mattermost-server
       - test-mysql
