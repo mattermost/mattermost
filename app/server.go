@@ -1401,7 +1401,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		}
 
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaText := T("api.templates.license_up_for_renewal_renew_now")
+		ctaText := T("api.templates.remove_expired_license.body.renew_button")
 		if !status.IsRenewable {
 			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
 			ctaLink = "https://mattermost.com/contact-sales/"
