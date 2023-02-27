@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"html"
+	"regexp"
 	"strings"
 
 	"github.com/yuin/goldmark"
@@ -31,6 +33,34 @@ func StripMarkdown(markdown string) (string, error) {
 	}
 
 	return strings.TrimSpace(buf.String()), nil
+}
+
+var relLinkReg = regexp.MustCompile(`\[(.*)]\((/.*)\)`)
+var blockquoteReg = regexp.MustCompile(`^|\n(&gt;)`)
+
+// MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
+func MarkdownToHTML(markdown, siteURL string) (string, error) {
+	// Turn relative links into absolute links
+	absLinkMarkdown := relLinkReg.ReplaceAllStringFunc(markdown, func(s string) string {
+		return relLinkReg.ReplaceAllString(s, "[$1]("+siteURL+"$2)")
+	})
+
+	// Unescape any blockquote text to be parsed by the markdown parser.
+	markdownClean := blockquoteReg.ReplaceAllStringFunc(absLinkMarkdown, func(s string) string {
+		return html.UnescapeString(s)
+	})
+
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+	)
+
+	var b strings.Builder
+
+	err := md.Convert([]byte(markdownClean), &b)
+	if err != nil {
+		return "", err
+	}
+	return b.String(), nil
 }
 
 type notificationRenderer struct {
@@ -117,7 +147,7 @@ func (r *notificationRenderer) renderText(w util.BufWriter, source []byte, node 
 
 func (r *notificationRenderer) renderTextBlock(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
-		if _, ok := node.NextSibling().(ast.Node); ok && node.FirstChild() != nil {
+		if node.NextSibling() != nil && node.FirstChild() != nil {
 			_ = w.WriteByte(' ')
 		}
 	}

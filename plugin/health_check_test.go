@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,9 +11,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
@@ -27,7 +26,7 @@ func TestPluginHealthCheck(t *testing.T) {
 }
 
 func testPluginHealthCheckSuccess(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -36,7 +35,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -48,16 +47,12 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.NoError(t, err)
@@ -69,7 +64,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 }
 
 func testPluginHealthCheckPanic(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -78,8 +73,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/model"
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -95,16 +90,12 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		}
 	`, backend)
 
-	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.NoError(t, err)

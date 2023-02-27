@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -184,6 +184,8 @@ func testHasSharedChannel(t *testing.T, ss store.Store) {
 
 func testGetSharedChannels(t *testing.T, ss store.Store) {
 	require.NoError(t, clearSharedChannels(ss))
+	user, err := createTestUser(ss, "gary.goodspeed")
+	require.NoError(t, err)
 
 	creator := model.NewId()
 	team1 := model.NewId()
@@ -203,7 +205,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	}
 
 	for i, sc := range data {
-		channel, err := createTestChannel(ss, "test_get2_"+strconv.Itoa(i))
+		channel, err := createTestChannelWithUser(ss, "test_get2_"+strconv.Itoa(i), user)
 		require.NoError(t, err)
 
 		sc.ChannelId = channel.Id
@@ -276,7 +278,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 		}
 	})
 
-	t.Run("Get shared channels invalid pagnation", func(t *testing.T) {
+	t.Run("Get shared channels invalid pagination", func(t *testing.T) {
 		opts := model.SharedChannelFilterOpts{
 			TeamId: team1,
 		}
@@ -286,6 +288,41 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 
 		_, err = ss.SharedChannel().GetAll(0, -100, opts)
 		require.Error(t, err)
+	})
+
+	t.Run("Get shared channels for member", func(t *testing.T) {
+		opts := model.SharedChannelFilterOpts{
+			TeamId:   team1,
+			MemberId: user.Id,
+		}
+
+		count, err := ss.SharedChannel().GetAllCount(opts)
+		require.NoError(t, err, "error getting shared channels count")
+
+		remotes, err := ss.SharedChannel().GetAll(0, 100, opts)
+		require.NoError(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 4, "should be 4 matching channels")
+		for _, sc := range remotes {
+			require.Equal(t, team1, sc.TeamId)
+		}
+	})
+
+	t.Run("Get shared channels for non-member", func(t *testing.T) {
+		opts := model.SharedChannelFilterOpts{
+			TeamId:   team1,
+			MemberId: model.NewId(),
+		}
+
+		count, err := ss.SharedChannel().GetAllCount(opts)
+		require.NoError(t, err, "error getting shared channels count")
+
+		remotes, err := ss.SharedChannel().GetAll(0, 100, opts)
+		require.NoError(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 0, "should be 0 matching channels")
 	})
 }
 
@@ -661,22 +698,20 @@ func testHasRemote(t *testing.T, ss store.Store) {
 func testGetRemoteForUser(t *testing.T, ss store.Store) {
 	// add remotes, and users to simulated shared channels.
 	teamId := model.NewId()
-	channel, err := createSharedTestChannel(ss, "share_test_channel", true)
+	channel, err := createSharedTestChannel(ss, "share_test_channel", true, nil)
 	require.NoError(t, err)
 	remotes := []*model.RemoteCluster{
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_1"},
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_2"},
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_3"},
 	}
-	var channelRemotes []*model.SharedChannelRemote
 	for _, rc := range remotes {
 		_, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
 		scr := &model.SharedChannelRemote{Id: model.NewId(), CreatorId: rc.CreatorId, ChannelId: channel.Id, RemoteId: rc.RemoteId}
-		scr, err = ss.SharedChannel().SaveRemote(scr)
+		_, err = ss.SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
-		channelRemotes = append(channelRemotes, scr)
 	}
 	users := []string{model.NewId(), model.NewId(), model.NewId()}
 	for _, id := range users {
@@ -783,15 +818,28 @@ func testDeleteSharedChannelRemote(t *testing.T, ss store.Store) {
 	})
 }
 
+func createTestUser(ss store.Store, username string) (*model.User, error) {
+	user := &model.User{
+		Username: username,
+		Email:    "gary@example.com",
+	}
+	return ss.User().Save(user)
+}
+
 func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
-	channel, err := createSharedTestChannel(ss, name, false)
+	channel, err := createSharedTestChannel(ss, name, false, nil)
 	return channel, err
 }
 
-func createSharedTestChannel(ss store.Store, name string, shared bool) (*model.Channel, error) {
+func createTestChannelWithUser(ss store.Store, name string, member *model.User) (*model.Channel, error) {
+	channel, err := createSharedTestChannel(ss, name, false, member)
+	return channel, err
+}
+
+func createSharedTestChannel(ss store.Store, name string, shared bool, member *model.User) (*model.Channel, error) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		Name:        name,
 		DisplayName: name + " display name",
 		Header:      name + " header",
@@ -802,6 +850,21 @@ func createSharedTestChannel(ss store.Store, name string, shared bool) (*model.C
 	channel, err := ss.Channel().Save(channel, 10000)
 	if err != nil {
 		return nil, err
+	}
+
+	if member != nil {
+		newMember := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      member.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: member.IsGuest(),
+			SchemeUser:  !member.IsGuest(),
+		}
+
+		_, err = ss.Channel().SaveMember(newMember)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if shared {
@@ -1126,7 +1189,7 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 		require.NoError(t, err, "couldn't save shared channel attachment", err)
 
 		// make sure enough time passed that GetMillis returns a different value
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 
 		_, err = ss.SharedChannel().UpsertAttachment(saved)
 		require.NoError(t, err, "couldn't upsert shared channel attachment", err)

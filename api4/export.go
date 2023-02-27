@@ -9,19 +9,19 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitExport() {
-	api.BaseRoutes.Exports.Handle("", api.ApiSessionRequired(listExports)).Methods("GET")
-	api.BaseRoutes.Export.Handle("", api.ApiSessionRequired(deleteExport)).Methods("DELETE")
-	api.BaseRoutes.Export.Handle("", api.ApiSessionRequired(downloadExport)).Methods("GET")
+	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods("GET")
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods("DELETE")
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods("GET")
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -33,7 +33,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(exports)
 	if err != nil {
-		c.Err = model.NewAppError("listImports", "app.export.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("listImports", "app.export.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -43,10 +43,10 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteExport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("export_name", c.Params.ExportName)
+	auditRec.AddEventParameter("export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -61,7 +61,7 @@ func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 

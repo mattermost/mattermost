@@ -1,3 +1,4 @@
+//go:build gofuzz
 // +build gofuzz
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
@@ -5,7 +6,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -18,9 +18,9 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 // This is a file used to fuzz test the web_hub code.
@@ -41,7 +41,7 @@ import (
 // 1. go get -u github.com/dvyukov/go-fuzz/go-fuzz github.com/dvyukov/go-fuzz/go-fuzz-build
 // 2. mv app/helper_test.go app/helper.go
 // (Also reduce the number of push notification workers to 1 to debug stack traces easily.)
-// 3. go-fuzz-build github.com/mattermost/mattermost-server/v5/app
+// 3. go-fuzz-build github.com/mattermost/mattermost-server/v6/app
 // 4. Generate a corpus dir. It's just a directory with files containing random data
 // for go-fuzz to use as an initial seed. Use the generateInitialCorpus function for that.
 // 5. go-fuzz -bin=app-fuzz.zip -workdir=./workdir
@@ -100,22 +100,22 @@ type actionData struct {
 	selectTeamID         string
 	invalidateConnUserID string
 	updateConnUserID     string
-	attachment           map[string]interface{}
+	attachment           map[string]any
 }
 
 func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionData {
 	// Some sample events
 	events := []string{
-		model.WEBSOCKET_EVENT_CHANNEL_CREATED,
-		model.WEBSOCKET_EVENT_CHANNEL_DELETED,
-		model.WEBSOCKET_EVENT_USER_ADDED,
-		model.WEBSOCKET_EVENT_USER_UPDATED,
-		model.WEBSOCKET_EVENT_STATUS_CHANGE,
-		model.WEBSOCKET_EVENT_HELLO,
-		model.WEBSOCKET_AUTHENTICATION_CHALLENGE,
-		model.WEBSOCKET_EVENT_REACTION_ADDED,
-		model.WEBSOCKET_EVENT_REACTION_REMOVED,
-		model.WEBSOCKET_EVENT_RESPONSE,
+		model.WebsocketEventChannelCreated,
+		model.WebsocketEventChannelDeleted,
+		model.WebsocketEventUserAdded,
+		model.WebsocketEventUserUpdated,
+		model.WebsocketEventStatusChange,
+		model.WebsocketEventHello,
+		model.WebsocketAuthenticationChallenge,
+		model.WebsocketEventReactionAdded,
+		model.WebsocketEventReactionRemoved,
+		model.WebsocketEventResponse,
 	}
 	// We need atleast 10 bytes to get all the data we need
 	if len(data) < 10 {
@@ -130,7 +130,7 @@ func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionDa
 	input.updateConnUserID = userIDs[int(data[4])%len(userIDs)]
 	input.event = events[int(data[5])%len(events)]
 	data = data[6:]
-	input.attachment = make(map[string]interface{})
+	input.attachment = make(map[string]any)
 	for len(data) >= 4 { // 2 bytes key, 2 bytes value
 		k := data[:2]
 		v := data[2:4]
@@ -153,7 +153,7 @@ func Fuzz(data []byte) int {
 
 		s := httptest.NewServer(dummyWebsocketHandler())
 
-		th.App.HubStart()
+		th.Server.HubStart()
 
 		u1 := th.CreateUser()
 		u2 := th.CreateUser()
@@ -229,7 +229,7 @@ func Fuzz(data []byte) int {
 					msg := model.NewWebSocketEvent(input.event,
 						input.selectTeamID,
 						input.selectChannelID,
-						input.createUserID, nil)
+						input.createUserID, nil, "")
 					for k, v := range input.attachment {
 						msg.Add(k, v)
 					}
@@ -272,7 +272,7 @@ func generateInitialCorpus() error {
 		if err != nil {
 			return err
 		}
-		err = ioutil.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
+		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err
 		}

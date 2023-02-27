@@ -8,72 +8,72 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store.RemoteCluster().Save(rc)
+	rc, err := a.Srv().Store().RemoteCluster().Save(rc)
 	if err != nil {
 		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {
-			return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save_not_unique.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return rc, nil
 }
 
 func (a *App) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store.RemoteCluster().Update(rc)
+	rc, err := a.Srv().Store().RemoteCluster().Update(rc)
 	if err != nil {
 		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {
-			return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.update_not_unique.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.update_not_unique.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return rc, nil
 }
 
 func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError) {
-	deleted, err := a.Srv().Store.RemoteCluster().Delete(remoteClusterId)
+	deleted, err := a.Srv().Store().RemoteCluster().Delete(remoteClusterId)
 	if err != nil {
-		return false, model.NewAppError("DeleteRemoteCluster", "api.remote_cluster.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("DeleteRemoteCluster", "api.remote_cluster.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return deleted, nil
 }
 
 func (a *App) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store.RemoteCluster().Get(remoteClusterId)
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteClusterId)
 	if err != nil {
-		return nil, model.NewAppError("GetRemoteCluster", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetRemoteCluster", "api.remote_cluster.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return rc, nil
 }
 
 func (a *App) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
-	list, err := a.Srv().Store.RemoteCluster().GetAll(filter)
+	list, err := a.Srv().Store().RemoteCluster().GetAll(filter)
 	if err != nil {
-		return nil, model.NewAppError("GetAllRemoteClusters", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetAllRemoteClusters", "api.remote_cluster.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return list, nil
 }
 
 func (a *App) UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError) {
-	rc, err := a.Srv().Store.RemoteCluster().UpdateTopics(remoteClusterId, topics)
+	rc, err := a.Srv().Store().RemoteCluster().UpdateTopics(remoteClusterId, topics)
 	if err != nil {
-		return nil, model.NewAppError("UpdateRemoteClusterTopics", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateRemoteClusterTopics", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return rc, nil
 }
 
 func (a *App) SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError {
-	err := a.Srv().Store.RemoteCluster().SetLastPingAt(remoteClusterId)
+	err := a.Srv().Store().RemoteCluster().SetLastPingAt(remoteClusterId)
 	if err != nil {
-		return model.NewAppError("SetRemoteClusterLastPingAt", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetRemoteClusterLastPingAt", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }

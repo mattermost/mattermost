@@ -10,103 +10,19 @@ import (
 	"testing"
 )
 
-func TestStructToMap(t *testing.T) {
-	cases := []struct {
-		Name     string
-		Input    interface{}
-		Expected map[string]interface{}
-	}{
-		{
-			Name: "Struct with one string field",
-			Input: struct {
-				Test string
-			}{
-				Test: "test",
-			},
-			Expected: map[string]interface{}{
-				"Test": "test",
-			},
-		},
-		{
-			Name: "String with multiple fields of different ",
-			Input: struct {
-				Test1 string
-				Test2 int
-				Test3 string
-				Test4 bool
-			}{
-				Test1: "test1",
-				Test2: 21,
-				Test3: "test2",
-				Test4: false,
-			},
-			Expected: map[string]interface{}{
-				"Test1": "test1",
-				"Test2": 21,
-				"Test3": "test2",
-				"Test4": false,
-			},
-		},
-		{
-			Name: "Nested fields",
-			Input: TestConfig{
-				TestServiceSettings{"abc", "def", "ghi"},
-				TestTeamSettings{"abc", 1},
-				TestClientRequirements{"abc", "def", "ghi"},
-				TestMessageExportSettings{true, "abc", TestGlobalRelaySettings{"abc", "def", "ghi"}},
-			},
-			Expected: map[string]interface{}{
-				"TestServiceSettings": map[string]interface{}{
-					"Siteurl":               "abc",
-					"Websocketurl":          "def",
-					"Licensedfieldlocation": "ghi",
-				},
-				"TestTeamSettings": map[string]interface{}{
-					"Sitename":       "abc",
-					"Maxuserperteam": 1,
-				},
-				"TestClientRequirements": map[string]interface{}{
-					"Androidlatestversion": "abc",
-					"Androidminversion":    "def",
-					"Desktoplatestversion": "ghi",
-				},
-				"TestMessageExportSettings": map[string]interface{}{
-					"Enableexport": true,
-					"Exportformat": "abc",
-					"TestGlobalRelaySettings": map[string]interface{}{
-						"Customertype": "abc",
-						"Smtpusername": "def",
-						"Smtppassword": "ghi",
-					},
-				},
-			},
-		},
-	}
-
-	for _, test := range cases {
-		t.Run(test.Name, func(t *testing.T) {
-			res := structToMap(test.Input)
-
-			if !reflect.DeepEqual(res, test.Expected) {
-				t.Errorf("got %v want %v ", res, test.Expected)
-			}
-		})
-	}
-}
-
 func TestPrintMap(t *testing.T) {
-	inputCases := []interface{}{
-		map[string]interface{}{
+	inputCases := []any{
+		map[string]any{
 			"CustomerType": "A9",
 			"SmtpUsername": "",
 			"SmtpPassword": "",
 			"EmailAddress": "",
 		},
-		map[string]interface{}{
+		map[string]any{
 			"EnableExport": false,
 			"ExportFormat": "actiance",
 			"DailyRunTime": "01:00",
-			"GlobalRelaySettings": map[string]interface{}{
+			"GlobalRelaySettings": map[string]any{
 				"CustomerType": "A9",
 				"SmtpUsername": "",
 				"SmtpPassword": "",

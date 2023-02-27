@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 type storeType struct {
@@ -61,7 +61,7 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, st.SqlStore)
+			f(t, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
 		})
 	}
 }
@@ -76,13 +76,13 @@ func initStores() {
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DATABASE_DRIVER_MYSQL))
+			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql))
 		case "postgres":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 		}
 	} else {
-		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DATABASE_DRIVER_MYSQL),
-			newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql),
+			newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 	}
 
 	defer func() {

@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type AutoChannelCreator struct {
@@ -19,7 +19,8 @@ type AutoChannelCreator struct {
 	DisplayNameCharset string
 	NameLen            utils.Range
 	NameCharset        string
-	ChannelType        string
+	ChannelType        model.ChannelType
+	CreateTime         int64
 }
 
 func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoChannelCreator {
@@ -33,10 +34,11 @@ func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoCha
 		NameLen:            ChannelNameLen,
 		NameCharset:        utils.LOWERCASE,
 		ChannelType:        ChannelType,
+		CreateTime:         0,
 	}
 }
 
-func (cfg *AutoChannelCreator) createRandomChannel(c *request.Context) (*model.Channel, error) {
+func (cfg *AutoChannelCreator) createRandomChannel(c request.CTX) (*model.Channel, error) {
 	var displayName string
 	if cfg.Fuzzy {
 		displayName = utils.FuzzName()
@@ -51,6 +53,7 @@ func (cfg *AutoChannelCreator) createRandomChannel(c *request.Context) (*model.C
 		Name:        name,
 		Type:        cfg.ChannelType,
 		CreatorId:   cfg.userID,
+		CreateAt:    cfg.CreateTime,
 	}
 
 	channel, err := cfg.a.CreateChannel(c, channel, true)
@@ -60,7 +63,7 @@ func (cfg *AutoChannelCreator) createRandomChannel(c *request.Context) (*model.C
 	return channel, nil
 }
 
-func (cfg *AutoChannelCreator) CreateTestChannels(c *request.Context, num utils.Range) ([]*model.Channel, error) {
+func (cfg *AutoChannelCreator) CreateTestChannels(c request.CTX, num utils.Range) ([]*model.Channel, error) {
 	numChannels := utils.RandIntFromRange(num)
 	channels := make([]*model.Channel, numChannels)
 

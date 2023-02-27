@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,7 +35,7 @@ func TestMapStringsToQueryParams(t *testing.T) {
 }
 
 var keys string
-var params map[string]interface{}
+var params map[string]any
 
 func BenchmarkMapStringsToQueryParams(b *testing.B) {
 	b.Run("one item", func(b *testing.B) {
@@ -100,6 +101,62 @@ func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got := removeNonAlphaNumericUnquotedTerms(test.term, sep)
 			require.Equal(t, test.want, got)
+		})
+	}
+}
+
+func TestMySQLJSONArgs(t *testing.T) {
+	tests := []struct {
+		props     map[string]string
+		args      []any
+		argString string
+	}{
+		{
+			props: map[string]string{
+				"desktop": "linux",
+				"mobile":  "android",
+				"notify":  "always",
+			},
+			args:      []any{"$.desktop", "linux", "$.mobile", "android", "$.notify", "always"},
+			argString: "?, ?, ?, ?, ?, ?",
+		},
+		{
+			props:     map[string]string{},
+			args:      nil,
+			argString: "",
+		},
+	}
+
+	for _, test := range tests {
+		args, argString := constructMySQLJSONArgs(test.props)
+		assert.ElementsMatch(t, test.args, args)
+		assert.Equal(t, test.argString, argString)
+	}
+}
+
+func TestAppendMultipleStatementsFlag(t *testing.T) {
+	testCases := []struct {
+		Scenario    string
+		DSN         string
+		ExpectedDSN string
+	}{
+		{
+			"Should append multiStatements param to the DSN path with existing params",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
+		},
+		{
+			"Should append multiStatements param to the DSN path with no existing params",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Scenario, func(t *testing.T) {
+			res, err := AppendMultipleStatementsFlag(tc.DSN)
+			require.NoError(t, err)
+			assert.Equal(t, tc.ExpectedDSN, res)
 		})
 	}
 }

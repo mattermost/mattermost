@@ -9,8 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,8 +28,11 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
 	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, ss) })
 	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, ss) })
+	t.Run("FileInfoUpdateMinipreview", func(t *testing.T) { testFileInfoUpdateMinipreview(t, ss) })
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
+	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
+	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, ss store.Store) {
@@ -357,7 +361,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortBy:         model.FileinfoSortByCreated,
 			},
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
@@ -367,7 +371,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				UserIds:        []string{userId1},
-				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortBy:         model.FileinfoSortByCreated,
 				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
@@ -378,7 +382,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 3,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortBy:         model.FileinfoSortByCreated,
 				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_2.Id, file1_1.Id},
@@ -605,19 +609,52 @@ func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
+func testFileInfoUpdateMinipreview(t *testing.T, ss store.Store) {
+	info := &model.FileInfo{
+		CreatorId: model.NewId(),
+		Path:      "image.png",
+	}
+
+	info, err := ss.FileInfo().Save(info)
+	require.NoError(t, err)
+	require.NotEqual(t, len(info.Id), 0)
+
+	defer func() {
+		ss.FileInfo().PermanentDelete(info.Id)
+	}()
+
+	rinfo, err := ss.FileInfo().Get(info.Id)
+	require.NoError(t, err)
+	require.Equal(t, info.Id, rinfo.Id)
+	require.Nil(t, rinfo.MiniPreview)
+
+	miniPreview := []byte{0x0, 0x1, 0x2}
+
+	rinfo.MiniPreview = &miniPreview
+
+	rinfo, err = ss.FileInfo().Upsert(rinfo)
+	require.NoError(t, err)
+	require.Equal(t, info.Id, rinfo.Id)
+
+	tinfo, err := ss.FileInfo().Get(info.Id)
+	require.NoError(t, err)
+	require.Equal(t, info.Id, tinfo.Id)
+	require.Equal(t, *tinfo.MiniPreview, miniPreview)
+}
+
 func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	c1, _ = ss.Channel().Save(c1, -1)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
-	c2.Type = model.CHANNEL_OPEN
+	c2.Type = model.ChannelTypeOpen
 	c2, _ = ss.Channel().Save(c2, -1)
 
 	o1 := &model.Post{}
@@ -635,7 +672,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	defer func() {
 		ss.FileInfo().PermanentDelete(f1.Id)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c2.Id
@@ -653,12 +690,11 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	defer func() {
 		ss.FileInfo().PermanentDelete(f2.Id)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	o3 := &model.Post{}
 	o3.ChannelId = c1.Id
 	o3.UserId = model.NewId()
-	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3, err = ss.Post().Save(o3)
@@ -674,42 +710,23 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 		ss.FileInfo().PermanentDelete(f3.Id)
 	}()
 
-	t.Run("get all files", func(t *testing.T) {
-		r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt, model.GetMillis()+100000, 100)
-		require.NoError(t, err)
-		require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
-		for _, f := range r {
-			if f.Id == f1.Id {
-				require.Equal(t, f.ChannelId, o1.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file1.txt", "Unexpected filename")
-			} else if f.Id == f2.Id {
-				require.Equal(t, f.ChannelId, o2.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file2.txt", "Unexpected filename")
-			} else if f.Id == f3.Id {
-				require.Equal(t, f.ChannelId, o3.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file3.txt", "Unexpected filename")
-			} else {
-				require.Fail(t, "unexpected file returned")
-			}
-		}
-	})
+	// Getting all
+	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 100)
+	require.NoError(t, err)
+	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
 
-	t.Run("get files after certain date", func(t *testing.T) {
-		r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt+1, model.GetMillis()+100000, 100)
-		require.NoError(t, err)
-		require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
-		for _, f := range r {
-			if f.Id == f2.Id {
-				require.Equal(t, f.ChannelId, o2.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file2.txt", "Unexpected filename")
-			} else if f.Id == f3.Id {
-				require.Equal(t, f.ChannelId, o3.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file3.txt", "Unexpected filename")
-			} else {
-				require.Fail(t, "unexpected file returned")
-			}
-		}
-	})
+	// Testing pagination
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 2)
+	require.NoError(t, err)
+	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 0, "Expected 0 posts in results. Got %v", len(r))
 }
 
 func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
@@ -744,4 +761,119 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 	count, err = ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
+}
+
+func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
+	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
+	require.NoError(t, err)
+
+	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), usage)
+
+	f1, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+	})
+	require.NoError(t, err)
+
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file2.txt",
+	})
+	require.NoError(t, err)
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file3.txt",
+	})
+	require.NoError(t, err)
+
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(30), usage)
+
+	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
+	require.NoError(t, err)
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(20), usage)
+
+	usage, err = ss.FileInfo().GetStorageUsage(false, true)
+	require.NoError(t, err)
+	require.Equal(t, int64(30), usage)
+}
+
+func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
+	t.Skip("MM-48627")
+	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
+	assert.Error(t, err)
+	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
+	assert.Error(t, err)
+
+	_, err = ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
+	require.NoError(t, err)
+
+	diff := int64(10000)
+	now := utils.MillisFromTime(time.Now()) + diff
+
+	f1, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+	now = now + diff
+	f2, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file2.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+	now = now + diff
+	f3, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file3.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+	now = now + diff
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file4.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+
+	createAt, err := ss.FileInfo().GetUptoNSizeFileTime(20)
+	require.NoError(t, err)
+	assert.Equal(t, f3.CreateAt, createAt)
+
+	_, err = ss.FileInfo().GetUptoNSizeFileTime(5)
+	assert.Error(t, err)
+	assert.IsType(t, &store.ErrNotFound{}, err)
+
+	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(1000)
+	require.NoError(t, err)
+	assert.Equal(t, f1.CreateAt, createAt)
+
+	_, err = ss.FileInfo().DeleteForPost(f3.PostId)
+	require.NoError(t, err)
+
+	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(20)
+	require.NoError(t, err)
+	assert.Equal(t, f2.CreateAt, createAt)
 }

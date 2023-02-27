@@ -11,9 +11,10 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type sendSyncMsgResultFunc func(syncResp SyncResponse, err error)
@@ -128,7 +129,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}
 
 	if sd.isEmpty() {
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Not sending sync data; everything filtered out",
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Not sending sync data; everything filtered out",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("channel_id", task.channelID),
 			mlog.Bool("repeat", sd.resultRepeat),
@@ -139,7 +140,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return nil
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sending sync data",
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sending sync data",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("channel_id", task.channelID),
 		mlog.Bool("repeat", sd.resultRepeat),
@@ -271,7 +272,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		userIDs[post.UserId] = p2mm{}
 
 		// get mentions and users for each mention
-		mentionMap := scs.app.MentionsToTeamMembers(post.Message, sc.TeamId)
+		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 		for _, userID := range mentionMap {
 			userIDs[userID] = p2mm{
 				post:       post,
@@ -296,11 +297,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		}
 
 		if sync {
-			sd.users[user.Id] = sanitizeUserForSync(user)
+			sd.users[user.Id] = user
 		}
 
 		if syncImage {
-			sd.profileImages[user.Id] = sanitizeUserForSync(user)
+			sd.profileImages[user.Id] = user
 		}
 
 		// if this was a mention then put the real username in place of the username+remotename, but only
@@ -369,6 +370,8 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 func (scs *Service) sendSyncData(sd *syncData) error {
 	merr := merror.New()
 
+	sanitizeSyncData(sd)
+
 	// send users
 	if len(sd.users) != 0 {
 		if err := scs.sendUserSyncData(sd); err != nil {
@@ -413,7 +416,7 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
 		for _, userID := range syncResp.UsersSyncd {
 			if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, sd.task.channelID, sd.rc.RemoteId); err != nil {
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Cannot update shared channel user LastSyncAt",
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot update shared channel user LastSyncAt",
 					mlog.String("user_id", userID),
 					mlog.String("channel_id", sd.task.channelID),
 					mlog.String("remote_id", sd.rc.RemoteId),
@@ -422,7 +425,7 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 			}
 		}
 		if len(syncResp.UserErrors) != 0 {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for user(s) sync",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for user(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
 				mlog.Any("users", syncResp.UserErrors),
@@ -436,7 +439,7 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 func (scs *Service) sendAttachmentSyncData(sd *syncData) {
 	for _, a := range sd.attachments {
 		if err := scs.sendAttachmentForRemote(a.fi, a.post, sd.rc); err != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Cannot sync post attachment",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot sync post attachment",
 				mlog.String("post_id", a.post.Id),
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
@@ -454,7 +457,7 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
 		if len(syncResp.PostErrors) != 0 {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for post(s) sync",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for post(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
 				mlog.Any("posts", syncResp.PostErrors),
@@ -475,7 +478,7 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
 		if len(syncResp.ReactionErrors) != 0 {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for reactions(s) sync",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for reactions(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
 				mlog.Any("reaction_posts", syncResp.ReactionErrors),
@@ -515,7 +518,7 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 
 		var syncResp SyncResponse
 		if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", msg.ChannelId),
 				mlog.Err(err2),
@@ -530,4 +533,13 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 
 	wg.Wait()
 	return err
+}
+
+func sanitizeSyncData(sd *syncData) {
+	for id, user := range sd.users {
+		sd.users[id] = sanitizeUserForSync(user)
+	}
+	for id, user := range sd.profileImages {
+		sd.profileImages[id] = sanitizeUserForSync(user)
+	}
 }

@@ -126,7 +126,7 @@ func TestLicenseIsExpired(t *testing.T) {
 
 func TestLicenseIsPastGracePeriod(t *testing.T) {
 	l1 := License{}
-	l1.ExpiresAt = GetMillis() - LICENSE_GRACE_PERIOD - 1000
+	l1.ExpiresAt = GetMillis() - LicenseGracePeriod - 1000
 	assert.True(t, l1.IsPastGracePeriod())
 
 	l1.ExpiresAt = GetMillis() + 1000
@@ -143,68 +143,26 @@ func TestLicenseIsStarted(t *testing.T) {
 	assert.False(t, l1.IsStarted())
 }
 
-func TestLicenseToFromJson(t *testing.T) {
-	f := Features{}
-	f.SetDefaults()
+func TestIsCloud(t *testing.T) {
+	l1 := License{}
+	l1.Features = &Features{}
+	l1.Features.SetDefaults()
+	assert.False(t, l1.IsCloud())
 
-	l := License{
-		Id:        NewId(),
-		IssuedAt:  GetMillis(),
-		StartsAt:  GetMillis(),
-		ExpiresAt: GetMillis(),
-		Customer: &Customer{
-			Id:      NewId(),
-			Name:    NewId(),
-			Email:   NewId(),
-			Company: NewId(),
-		},
-		Features: &f,
-		IsTrial:  true,
-	}
+	boolTrue := true
+	l1.Features.Cloud = &boolTrue
+	assert.True(t, l1.IsCloud())
 
-	j := l.ToJson()
+	var license *License
+	assert.False(t, license.IsCloud())
 
-	l1 := LicenseFromJson(strings.NewReader(j))
-	assert.NotNil(t, l1)
+	l1.Features = nil
+	assert.False(t, l1.IsCloud())
 
-	CheckString(t, l1.Id, l.Id)
-	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
-	CheckInt64(t, l1.StartsAt, l.StartsAt)
-	CheckInt64(t, l1.ExpiresAt, l.ExpiresAt)
-	CheckBool(t, l1.IsTrial, l.IsTrial)
-
-	CheckString(t, l1.Customer.Id, l.Customer.Id)
-	CheckString(t, l1.Customer.Name, l.Customer.Name)
-	CheckString(t, l1.Customer.Email, l.Customer.Email)
-	CheckString(t, l1.Customer.Company, l.Customer.Company)
-
-	f1 := l1.Features
-
-	CheckInt(t, *f1.Users, *f.Users)
-	CheckBool(t, *f1.LDAP, *f.LDAP)
-	CheckBool(t, *f1.LDAPGroups, *f.LDAPGroups)
-	CheckBool(t, *f1.MFA, *f.MFA)
-	CheckBool(t, *f1.GoogleOAuth, *f.GoogleOAuth)
-	CheckBool(t, *f1.Office365OAuth, *f.Office365OAuth)
-	CheckBool(t, *f1.Compliance, *f.Compliance)
-	CheckBool(t, *f1.Cluster, *f.Cluster)
-	CheckBool(t, *f1.Metrics, *f.Metrics)
-	CheckBool(t, *f1.MHPNS, *f.MHPNS)
-	CheckBool(t, *f1.SAML, *f.SAML)
-	CheckBool(t, *f1.Elasticsearch, *f.Elasticsearch)
-	CheckBool(t, *f1.DataRetention, *f.DataRetention)
-	CheckBool(t, *f1.MessageExport, *f.MessageExport)
-	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
-	CheckBool(t, *f1.GuestAccounts, *f.GuestAccounts)
-	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
-	CheckBool(t, *f1.IDLoadedPushNotifications, *f.IDLoadedPushNotifications)
-	CheckBool(t, *f1.SharedChannels, *f.SharedChannels)
-	CheckBool(t, *f1.RemoteClusterService, *f.RemoteClusterService)
-	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
-
-	invalid := `{"asdf`
-	l2 := LicenseFromJson(strings.NewReader(invalid))
-	assert.Nil(t, l2)
+	t.Run("false if license is nil", func(t *testing.T) {
+		var license *License
+		assert.False(t, license.IsCloud())
+	})
 }
 
 func TestLicenseRecordIsValid(t *testing.T) {
@@ -213,26 +171,26 @@ func TestLicenseRecordIsValid(t *testing.T) {
 		Bytes:    "asdfghjkl;",
 	}
 
-	err := lr.IsValid()
-	assert.NotNil(t, err)
+	appErr := lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Id = NewId()
 	lr.CreateAt = 0
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.CreateAt = GetMillis()
 	lr.Bytes = ""
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Bytes = strings.Repeat("0123456789", 1001)
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Bytes = "ASDFGHJKL;"
-	err = lr.IsValid()
-	assert.Nil(t, err)
+	appErr = lr.IsValid()
+	assert.Nil(t, appErr)
 }
 
 func TestLicenseRecordPreSave(t *testing.T) {
@@ -384,4 +342,54 @@ func TestLicense_IsSanctionedTrial(t *testing.T) {
 		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
 		assert.True(t, license.IsSanctionedTrial())
 	})
+}
+
+func TestLicenseHasSharedChannels(t *testing.T) {
+
+	testCases := []struct {
+		description   string
+		license       License
+		expectedValue bool
+	}{
+		{
+			"licensed for shared channels",
+			License{
+				Features: &Features{
+					SharedChannels: NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			true,
+		},
+		{
+			"not licensed for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: "other",
+			},
+			false,
+		},
+		{
+			"professional license for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			true,
+		},
+		{
+			"enterprise license for shared channels",
+			License{
+				Features:     &Features{},
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, testCase.license.HasSharedChannels())
+		})
+	}
 }

@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 type MockScheduler struct {
@@ -22,14 +22,6 @@ type MockScheduler struct {
 
 func (scheduler *MockScheduler) Enabled(cfg *model.Config) bool {
 	return true
-}
-
-func (scheduler *MockScheduler) Name() string {
-	return "MockScheduler"
-}
-
-func (scheduler *MockScheduler) JobType() string {
-	return model.JOB_TYPE_DATA_RETENTION
 }
 
 func (scheduler *MockScheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
@@ -48,8 +40,8 @@ func TestScheduler(t *testing.T) {
 	job := &model.Job{
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
-		Status:   model.JOB_STATUS_PENDING,
-		Type:     model.JOB_TYPE_MESSAGE_EXPORT,
+		Status:   model.JobStatusPending,
+		Type:     model.JobTypeMessageExport,
 	}
 	// mock job store doesn't return a previously successful job, forcing fallback to config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", mock.AnythingOfType("[]string"), mock.AnythingOfType("string")).Return(job, nil)
@@ -60,26 +52,21 @@ func TestScheduler(t *testing.T) {
 		ConfigService: &testutils.StaticConfigService{
 			Cfg: &model.Config{
 				// mock config
-				DataRetentionSettings: *&model.DataRetentionSettings{
+				DataRetentionSettings: model.DataRetentionSettings{
 					EnableMessageDeletion: model.NewBool(true),
 				},
-				MessageExportSettings: *&model.MessageExportSettings{
+				MessageExportSettings: model.MessageExportSettings{
 					EnableExport: model.NewBool(true),
 				},
 			},
 		},
 	}
 
-	jobInterface := new(mocks.DataRetentionJobInterface)
-	jobInterface.On("MakeScheduler").Return(new(MockScheduler))
-	jobServer.DataRetentionJob = jobInterface
-
-	exportInterface := new(mocks.MessageExportJobInterface)
-	exportInterface.On("MakeScheduler").Return(new(MockScheduler))
-	jobServer.MessageExportJob = exportInterface
+	jobServer.initSchedulers()
+	jobServer.RegisterJobType(model.JobTypeDataRetention, nil, new(MockScheduler))
+	jobServer.RegisterJobType(model.JobTypeMessageExport, nil, new(MockScheduler))
 
 	t.Run("Base", func(t *testing.T) {
-		jobServer.InitSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 
@@ -91,7 +78,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ClusterLeaderChanged", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 		jobServer.HandleClusterLeaderChange(false)
@@ -103,7 +90,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ClusterLeaderChangedBeforeStart", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
@@ -114,7 +101,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("DoubleClusterLeaderChangedBeforeStart", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.HandleClusterLeaderChange(true)
 		jobServer.StartSchedulers()
@@ -126,7 +113,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ConfigChanged", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 		jobServer.HandleClusterLeaderChange(false)
@@ -139,7 +126,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ConfigChangedDeadlock", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 
@@ -156,4 +143,12 @@ func TestScheduler(t *testing.T) {
 
 		wg.Wait()
 	})
+}
+
+func TestRandomDelay(t *testing.T) {
+	cases := []int64{5, 10, 100}
+	for _, c := range cases {
+		out := getRandomDelay(c)
+		require.Less(t, out.Milliseconds(), c)
+	}
 }

@@ -4,14 +4,13 @@
 package testlib
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"testing"
 )
 
 // AssertLog asserts that a JSON-encoded buffer of logs contains one with the given level and message.
-func AssertLog(t *testing.T, logs *bytes.Buffer, level, message string) {
+func AssertLog(t *testing.T, logs io.Reader, level, message string) {
 	dec := json.NewDecoder(logs)
 	for {
 		var log struct {
@@ -21,6 +20,7 @@ func AssertLog(t *testing.T, logs *bytes.Buffer, level, message string) {
 		if err := dec.Decode(&log); err == io.EOF {
 			break
 		} else if err != nil {
+			t.Logf("Error decoding log entry: %s", err)
 			continue
 		}
 
@@ -33,7 +33,7 @@ func AssertLog(t *testing.T, logs *bytes.Buffer, level, message string) {
 }
 
 // AssertNoLog asserts that a JSON-encoded buffer of logs does not contains one with the given level and message.
-func AssertNoLog(t *testing.T, logs *bytes.Buffer, level, message string) {
+func AssertNoLog(t *testing.T, logs io.Reader, level, message string) {
 	dec := json.NewDecoder(logs)
 	for {
 		var log struct {
@@ -43,6 +43,7 @@ func AssertNoLog(t *testing.T, logs *bytes.Buffer, level, message string) {
 		if err := dec.Decode(&log); err == io.EOF {
 			break
 		} else if err != nil {
+			t.Logf("Error decoding log entry: %s", err)
 			continue
 		}
 

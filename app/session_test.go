@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
@@ -35,7 +35,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
-	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr := th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -53,7 +53,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr = th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -64,11 +64,11 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session = &model.Session{
 		UserId: model.NewId(),
 	}
-	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
+	session.AddProp(model.SessionPropType, model.SessionTypeUserAccessToken)
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr = th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -86,7 +86,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	nErr = th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, time)
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
@@ -103,48 +103,48 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
 		guest := th.CreateGuest()
 
-		session, err := th.App.CreateSession(&model.Session{UserId: guest.Id, Props: model.StringMap{model.SESSION_PROP_IS_GUEST: "true"}})
+		session, err := th.App.CreateSession(&model.Session{UserId: guest.Id, Props: model.StringMap{model.SessionPropIsGuest: "true"}})
 		require.Nil(t, err)
 
 		rsession, err := th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
 		th.App.ClearSessionCacheForUser(session.UserId)
 
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 	})
 
 	t.Run("Demote User to Guest updates the session", func(t *testing.T) {
 		user := th.CreateUser()
 
-		session, err := th.App.CreateSession(&model.Session{UserId: user.Id, Props: model.StringMap{model.SESSION_PROP_IS_GUEST: "false"}})
+		session, err := th.App.CreateSession(&model.Session{UserId: user.Id, Props: model.StringMap{model.SessionPropIsGuest: "false"}})
 		require.Nil(t, err)
 
 		rsession, err := th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 
 		th.App.ClearSessionCacheForUser(session.UserId)
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 	})
 }
 
@@ -155,9 +155,9 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInHours = 24 })
 
 	t.Run("get session length mobile", func(t *testing.T) {
 		session := &model.Session{
@@ -175,7 +175,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+				model.UserAuthServiceIsMobile: "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -189,8 +189,8 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
-				model.USER_AUTH_SERVICE_IS_SAML:   "true",
+				model.UserAuthServiceIsMobile: "true",
+				model.UserAuthServiceIsSaml:   "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -204,7 +204,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_OAUTH: "true",
+				model.UserAuthServiceIsOAuth: "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -218,7 +218,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_SAML: "true",
+				model.UserAuthServiceIsSaml: "true",
 			}}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
@@ -244,9 +244,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInHours = 24 })
 
 	t.Run("expired session should not be extended", func(t *testing.T) {
 		expires := model.GetMillis() - hourMillis
@@ -317,12 +317,12 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.False(t, session.IsExpired())
 
 			// check cache was updated
-			cachedSession, errGet := th.App.srv.userService.GetSession(session.Token)
+			cachedSession, errGet := th.App.ch.srv.platform.GetSession(session.Token)
 			require.NoError(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
+			storedSession, nErr := th.App.Srv().Store().Session().Get(context.Background(), session.Token)
 			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})

@@ -4,9 +4,8 @@
 package api4
 
 import (
-	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type testHandler struct {
@@ -22,10 +21,12 @@ type testHandler struct {
 }
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	bb, err := ioutil.ReadAll(r.Body)
+	bb, err := io.ReadAll(r.Body)
 	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
-	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
+	var poir model.PostActionIntegrationRequest
+	jsonErr := json.Unmarshal(bb, &poir)
+	assert.NoError(th.t, jsonErr)
 	assert.NotEmpty(th.t, poir.UserId)
 	assert.NotEmpty(th.t, poir.UserName)
 	assert.NotEmpty(th.t, poir.ChannelId)
@@ -43,7 +44,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func TestPostActionCookies(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -54,64 +55,64 @@ func TestPostActionCookies(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		Action             model.PostAction
-		ExpectedSucess     bool
+		ExpectedSuccess    bool
 		ExpectedStatusCode int
 	}{
 		"32 character ID": {
 			Action: model.PostAction{
 				Id:   model.NewId(),
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
 			},
-			ExpectedSucess:     true,
+			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		"6 character ID": {
 			Action: model.PostAction{
 				Id:   "someID",
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
 			},
-			ExpectedSucess:     true,
+			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		"Empty ID": {
 			Action: model.PostAction{
 				Id:   "",
 				Name: "Test-action",
-				Type: model.POST_ACTION_TYPE_BUTTON,
+				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
 			},
-			ExpectedSucess:     false,
+			ExpectedSuccess:    false,
 			ExpectedStatusCode: http.StatusNotFound,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			post := &model.Post{
 				Id:        model.NewId(),
-				Type:      model.POST_EPHEMERAL,
+				Type:      model.PostTypeEphemeral,
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
-				Props: map[string]interface{}{
+				Props: map[string]any{
 					"attachments": []*model.SlackAttachment{
 						{
 							Title:     "some-title",
@@ -127,14 +128,12 @@ func TestPostActionCookies(t *testing.T) {
 			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
 
-			ok, resp := Client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
+			resp, err := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
 			require.NotNil(t, resp)
-			if test.ExpectedSucess {
-				assert.True(t, ok)
-				assert.Nil(t, resp.Error)
+			if test.ExpectedSuccess {
+				assert.NoError(t, err)
 			} else {
-				assert.False(t, ok)
-				assert.NotNil(t, resp.Error)
+				assert.Error(t, err)
 			}
 			assert.Equal(t, test.ExpectedStatusCode, resp.StatusCode)
 			assert.NotNil(t, resp.RequestId)
@@ -146,14 +145,14 @@ func TestPostActionCookies(t *testing.T) {
 func TestOpenDialog(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
-	require.Nil(t, err)
+	_, triggerId, appErr := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+	require.Nil(t, appErr)
 
 	request := model.OpenDialogRequest{
 		TriggerId: triggerId,
@@ -175,51 +174,47 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	pass, resp := Client.OpenInteractiveDialog(request)
-	CheckNoError(t, resp)
-	assert.True(t, pass)
+	_, err := client.OpenInteractiveDialog(request)
+	require.NoError(t, err)
 
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
-	pass, resp = Client.OpenInteractiveDialog(request)
+	resp, err := client.OpenInteractiveDialog(request)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
 
 	// URL is required
 	request.TriggerId = triggerId
 	request.URL = ""
-	pass, resp = Client.OpenInteractiveDialog(request)
+	resp, err = client.OpenInteractiveDialog(request)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
 
 	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
 	request.Dialog.IntroductionText = "**Some** _introduction text"
-	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckNoError(t, resp)
-	assert.True(t, pass)
+	_, err = client.OpenInteractiveDialog(request)
+	require.NoError(t, err)
 
 	// Should pass with empty introduction text
 	request.Dialog.IntroductionText = ""
-	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckNoError(t, resp)
-	assert.True(t, pass)
+	_, err = client.OpenInteractiveDialog(request)
+	require.NoError(t, err)
 
 	// Should pass with no elements
 	request.Dialog.Elements = nil
-	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckNoError(t, resp)
-	assert.True(t, pass)
+	_, err = client.OpenInteractiveDialog(request)
+	require.NoError(t, err)
+
 	request.Dialog.Elements = []model.DialogElement{}
-	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckNoError(t, resp)
-	assert.True(t, pass)
+	_, err = client.OpenInteractiveDialog(request)
+	require.NoError(t, err)
 }
 
 func TestSubmitDialog(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -231,7 +226,7 @@ func TestSubmitDialog(t *testing.T) {
 		UserId:     th.BasicUser.Id,
 		ChannelId:  th.BasicChannel.Id,
 		TeamId:     th.BasicTeam.Id,
-		Submission: map[string]interface{}{"somename": "somevalue"},
+		Submission: map[string]any{"somename": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -253,25 +248,28 @@ func TestSubmitDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 
-	submitResp, resp := Client.SubmitInteractiveDialog(submit)
-	CheckNoError(t, resp)
+	submitResp, _, err := client.SubmitInteractiveDialog(submit)
+	require.NoError(t, err)
 	assert.NotNil(t, submitResp)
 
 	submit.URL = ""
-	submitResp, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err := client.SubmitInteractiveDialog(submit)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = model.NewId()
-	submitResp, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = th.BasicChannel.Id
 	submit.TeamId = model.NewId()
-	submitResp, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
 }

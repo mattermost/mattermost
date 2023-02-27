@@ -36,8 +36,8 @@ services:
     restart: 'no'
     container_name: mattermost-inbucket
     ports:
+      - "9001:9001"
       - "10025:10025"
-      - "10080:10080"
       - "10110:10110"
     extends:
         file: build/docker-compose.common.yml

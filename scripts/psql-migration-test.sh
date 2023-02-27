@@ -1,33 +1,41 @@
+./scripts/jq-dep-check.sh
+
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpConfigDir'`
 DUMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dumpDir'`
-
-cp config/config.json $TMPDIR
+SCHEMA_VERSION=$1
 
 echo "Creating databases"
 docker exec mattermost-postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
-echo "Importing postgres dump from version 5.0"
-docker exec -i mattermost-postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-5.0.sql
+echo "Importing postgres dump from version ${SCHEMA_VERSION}"
+docker exec -i mattermost-postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-$SCHEMA_VERSION.sql
+
+docker exec -i mattermost-postgres psql -U mmuser -d migrated -c "INSERT INTO Systems (Name, Value) VALUES ('Version', '$SCHEMA_VERSION')"
 
 echo "Setting up config for db migration"
-make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10' --config $TMPDIR/config.json" run-cli
-make ARGS="config set SqlSettings.DriverName 'postgres' --config $TMPDIR/config.json" run-cli
+cat config/config.json | \
+    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10"'| \
+    jq '.SqlSettings.DriverName = "postgres"' > $TMPDIR/config.json
 
 echo "Running the migration"
-make ARGS="version --config $TMPDIR/config.json" run-cli
+make ARGS="db migrate --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
-make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10' --config $TMPDIR/config.json" run-cli
+cat config/config.json | \
+    jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10"'| \
+    jq '.SqlSettings.DriverName = "postgres"' > $TMPDIR/config.json
 
 echo "Setting up fresh db"
-make ARGS="version --config $TMPDIR/config.json" run-cli
+make ARGS="db migrate --config $TMPDIR/config.json" run-cli
 
-for i in "ChannelMembers MentionCountRoot" "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
+if [ "$SCHEMA_VERSION" == "5.0.0" ]; then
+  for i in "ChannelMembers MentionCountRoot" "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
     a=( $i );
     echo "Ignoring known Postgres mismatch: ${a[0]}.${a[1]}"
     docker exec mattermost-postgres psql -U mmuser -d migrated -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
     docker exec mattermost-postgres psql -U mmuser -d latest -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
-done
+  done
+fi
 
 echo "Generating dump"
 docker exec mattermost-postgres pg_dump --schema-only -d migrated -U mmuser > $DUMPDIR/migrated.sql

@@ -16,7 +16,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -71,15 +71,15 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 // The database name is generated randomly and must be created before use.
 func PostgreSQLSettings() *model.SqlSettings {
 	dsn := getEnv("TEST_DATABASE_POSTGRESQL_DSN", defaultPostgresqlDSN)
-	dsnUrl, err := url.Parse(dsn)
+	dsnURL, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
 
 	// Generate a random database name
-	dsnUrl.Path = "db" + model.NewId()
+	dsnURL.Path = "db" + model.NewId()
 
-	return databaseSettings("postgres", dsnUrl.String())
+	return databaseSettings("postgres", dsnURL.String())
 }
 
 func mySQLRootDSN(dsn string) string {
@@ -97,7 +97,7 @@ func mySQLRootDSN(dsn string) string {
 }
 
 func postgreSQLRootDSN(dsn string) string {
-	dsnUrl, err := url.Parse(dsn)
+	dsnURL, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
@@ -109,9 +109,9 @@ func postgreSQLRootDSN(dsn string) string {
 	// }
 
 	// dsnUrl.User = url.UserPassword("", password)
-	dsnUrl.Path = "postgres"
+	dsnURL.Path = "postgres"
 
-	return dsnUrl.String()
+	return dsnURL.String()
 }
 
 func mySQLDSNDatabase(dsn string) string {
@@ -124,33 +124,35 @@ func mySQLDSNDatabase(dsn string) string {
 }
 
 func postgreSQLDSNDatabase(dsn string) string {
-	dsnUrl, err := url.Parse(dsn)
+	dsnURL, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
 
-	return path.Base(dsnUrl.Path)
+	return path.Base(dsnURL.Path)
 }
 
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	settings := &model.SqlSettings{
-		DriverName:                  &driver,
-		DataSource:                  &dataSource,
-		DataSourceReplicas:          []string{},
-		DataSourceSearchReplicas:    []string{},
-		MaxIdleConns:                new(int),
-		ConnMaxLifetimeMilliseconds: new(int),
-		ConnMaxIdleTimeMilliseconds: new(int),
-		MaxOpenConns:                new(int),
-		Trace:                       model.NewBool(false),
-		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
-		QueryTimeout:                new(int),
+		DriverName:                        &driver,
+		DataSource:                        &dataSource,
+		DataSourceReplicas:                []string{},
+		DataSourceSearchReplicas:          []string{},
+		MaxIdleConns:                      new(int),
+		ConnMaxLifetimeMilliseconds:       new(int),
+		ConnMaxIdleTimeMilliseconds:       new(int),
+		MaxOpenConns:                      new(int),
+		Trace:                             model.NewBool(false),
+		AtRestEncryptKey:                  model.NewString(model.NewRandomString(32)),
+		QueryTimeout:                      new(int),
+		MigrationsStatementTimeoutSeconds: new(int),
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
 	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
+	*settings.MigrationsStatementTimeoutSeconds = 10
 
 	return settings
 }
@@ -161,9 +163,9 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	var driver = *settings.DriverName
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		dsn = mySQLRootDSN(*settings.DataSource)
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		dsn = postgreSQLRootDSN(*settings.DataSource)
 	default:
 		return fmt.Errorf("unsupported driver %s", driver)
@@ -196,7 +198,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	var dbName string
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		settings = MySQLSettings(withReplica)
 		dbName = mySQLDSNDatabase(*settings.DataSource)
 		newDSRs := []string{}
@@ -204,7 +206,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 			newDSRs = append(newDSRs, replaceMySQLDatabaseName(dataSource, dbName))
 		}
 		settings.DataSourceReplicas = newDSRs
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		settings = PostgreSQLSettings()
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
 	default:
@@ -216,11 +218,11 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	}
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON "+dbName+".* TO 'mmuser'"); err != nil {
 			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
 		}
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
 			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
 		}
@@ -238,9 +240,9 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	var dbName string
 
 	switch driver {
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		dbName = mySQLDSNDatabase(*settings.DataSource)
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
 	default:
 		panic("unsupported driver " + driver)

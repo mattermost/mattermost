@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -40,26 +38,4 @@ func (t *UserAccessToken) IsValid() *AppError {
 func (t *UserAccessToken) PreSave() {
 	t.Id = NewId()
 	t.IsActive = true
-}
-
-func (t *UserAccessToken) ToJson() string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func UserAccessTokenFromJson(data io.Reader) *UserAccessToken {
-	var t *UserAccessToken
-	json.NewDecoder(data).Decode(&t)
-	return t
-}
-
-func UserAccessTokenListToJson(t []*UserAccessToken) string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func UserAccessTokenListFromJson(data io.Reader) []*UserAccessToken {
-	var t []*UserAccessToken
-	json.NewDecoder(data).Decode(&t)
-	return t
 }

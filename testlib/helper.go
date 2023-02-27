@@ -6,7 +6,6 @@ package testlib
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,14 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type MainHelper struct {
@@ -52,16 +50,6 @@ func NewMainHelper() *MainHelper {
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	var mainHelper MainHelper
 	flag.Parse()
-
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initializing but that's fine for testing.
-	// Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
 
 	utils.TranslationsPreInit()
 
@@ -104,7 +92,7 @@ func (h *MainHelper) Main(m *testing.M) {
 func (h *MainHelper) setupStore(withReadReplica bool) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
+		driverName = model.DatabaseDriverPostgres
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
@@ -113,7 +101,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	h.SearchEngine = searchengine.NewBroker(config, nil)
+	h.SearchEngine = searchengine.NewBroker(config)
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
@@ -168,30 +156,30 @@ func (h *MainHelper) PreloadMigrations() {
 	basePath := os.Getenv("MM_SERVER_PATH")
 	relPath := "testlib/testdata"
 	switch *h.Settings.DriverName {
-	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DatabaseDriverPostgres:
 		var finalPath string
 		if basePath != "" {
 			finalPath = filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
 		} else {
 			finalPath = filepath.Join("mattermost-server", relPath, "postgres_migration_warmup.sql")
 		}
-		buf, err = ioutil.ReadFile(finalPath)
+		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
-	case model.DATABASE_DRIVER_MYSQL:
+	case model.DatabaseDriverMysql:
 		var finalPath string
 		if basePath != "" {
 			finalPath = filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
 		} else {
 			finalPath = filepath.Join("mattermost-server", relPath, "mysql_migration_warmup.sql")
 		}
-		buf, err = ioutil.ReadFile(finalPath)
+		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	}
-	handle := h.SQLStore.GetMaster()
+	handle := h.SQLStore.GetMasterX()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
@@ -259,8 +247,8 @@ func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
 }
 
 func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
-	if dn := h.SQLStore.DriverName(); dn != model.DATABASE_DRIVER_MYSQL {
-		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DATABASE_DRIVER_MYSQL)
+	if dn := h.SQLStore.DriverName(); dn != model.DatabaseDriverMysql {
+		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DatabaseDriverMysql)
 	}
 
 	err := h.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")
@@ -281,8 +269,8 @@ func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
 	return nil
 }
 
-func (h *MainHelper) execOnEachReplica(query string, args ...interface{}) error {
-	for _, replica := range h.SQLStore.Replicas {
+func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
+	for _, replica := range h.SQLStore.ReplicaXs {
 		_, err := replica.Exec(query, args...)
 		if err != nil {
 			return err

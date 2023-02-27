@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
@@ -16,30 +14,19 @@ import (
 // If "home" is false, then the shared channel is homed remotely, and "RemoteId"
 // field points to the remote cluster connection in "RemoteClusters" table.
 type SharedChannel struct {
-	ChannelId        string `json:"id"`
-	TeamId           string `json:"team_id"`
-	Home             bool   `json:"home"`
-	ReadOnly         bool   `json:"readonly"`
-	ShareName        string `json:"name"`
-	ShareDisplayName string `json:"display_name"`
-	SharePurpose     string `json:"purpose"`
-	ShareHeader      string `json:"header"`
-	CreatorId        string `json:"creator_id"`
-	CreateAt         int64  `json:"create_at"`
-	UpdateAt         int64  `json:"update_at"`
-	RemoteId         string `json:"remote_id,omitempty"` // if not "home"
-	Type             string `db:"-"`
-}
-
-func (sc *SharedChannel) ToJson() string {
-	b, _ := json.Marshal(sc)
-	return string(b)
-}
-
-func SharedChannelFromJson(data io.Reader) (*SharedChannel, error) {
-	var sc *SharedChannel
-	err := json.NewDecoder(data).Decode(&sc)
-	return sc, err
+	ChannelId        string      `json:"id"`
+	TeamId           string      `json:"team_id"`
+	Home             bool        `json:"home"`
+	ReadOnly         bool        `json:"readonly"`
+	ShareName        string      `json:"name"`
+	ShareDisplayName string      `json:"display_name"`
+	SharePurpose     string      `json:"purpose"`
+	ShareHeader      string      `json:"header"`
+	CreatorId        string      `json:"creator_id"`
+	CreateAt         int64       `json:"create_at"`
+	UpdateAt         int64       `json:"update_at"`
+	RemoteId         string      `json:"remote_id,omitempty"` // if not "home"
+	Type             ChannelType `db:"-"`
 }
 
 func (sc *SharedChannel) IsValid() *AppError {
@@ -47,7 +34,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if sc.Type != CHANNEL_DIRECT && !IsValidId(sc.TeamId) {
+	if sc.Type != ChannelTypeDirect && !IsValidId(sc.TeamId) {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "TeamId="+sc.TeamId, http.StatusBadRequest)
 	}
 
@@ -59,19 +46,19 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.ShareDisplayName) > CHANNEL_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(sc.ShareDisplayName) > ChannelDisplayNameMaxRunes {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
 	if !IsValidChannelIdentifier(sc.ShareName) {
-		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
+		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.ShareHeader) > CHANNEL_HEADER_MAX_RUNES {
+	if utf8.RuneCountInString(sc.ShareHeader) > ChannelHeaderMaxRunes {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.header.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(sc.SharePurpose) > CHANNEL_PURPOSE_MAX_RUNES {
+	if utf8.RuneCountInString(sc.SharePurpose) > ChannelPurposeMaxRunes {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.purpose.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
@@ -114,17 +101,6 @@ type SharedChannelRemote struct {
 	RemoteId          string `json:"remote_id"`
 	LastPostUpdateAt  int64  `json:"last_post_update_at"`
 	LastPostId        string `json:"last_post_id"`
-}
-
-func (sc *SharedChannelRemote) ToJson() string {
-	b, _ := json.Marshal(sc)
-	return string(b)
-}
-
-func SharedChannelRemoteFromJson(data io.Reader) (*SharedChannelRemote, error) {
-	var sc *SharedChannelRemote
-	err := json.NewDecoder(data).Decode(&sc)
-	return sc, err
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
@@ -262,6 +238,7 @@ func (scf *SharedChannelAttachment) IsValid() *AppError {
 type SharedChannelFilterOpts struct {
 	TeamId        string
 	CreatorId     string
+	MemberId      string
 	ExcludeHome   bool
 	ExcludeRemote bool
 }

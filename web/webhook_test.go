@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestIncomingWebhook(t *testing.T) {
@@ -21,7 +21,7 @@ func TestIncomingWebhook(t *testing.T) {
 	defer th.TearDown()
 
 	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
-		_, err := http.Post(ApiClient.Url+"/hooks/123", "", strings.NewReader("123"))
+		_, err := http.Post(apiClient.URL+"/hooks/123", "", strings.NewReader("123"))
 		assert.Error(t, err, "should have errored - webhooks turned off")
 		return
 	}
@@ -29,7 +29,7 @@ func TestIncomingWebhook(t *testing.T) {
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, err)
 
-	url := ApiClient.Url + "/hooks/" + hook.Id
+	url := apiClient.URL + "/hooks/" + hook.Id
 
 	tooLongText := ""
 	for i := 0; i < 8200; i++ {
@@ -53,7 +53,7 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.NotEqual(t, http.StatusOK, resp.StatusCode, "should have errored - bad channel")
 
 		payload = "payload={\"text\": \"test text\"}"
-		resp, err = http.Post(ApiClient.Url+"/hooks/abc123", "application/x-www-form-urlencoded", strings.NewReader(payload))
+		resp, err = http.Post(apiClient.URL+"/hooks/abc123", "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.NoError(t, err)
 		assert.NotEqual(t, http.StatusOK, resp.StatusCode, "should have errored - bad hook")
 
@@ -116,7 +116,7 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
-		resp, err = http.Post(ApiClient.Url+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
+		resp, err = http.Post(apiClient.URL+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -127,32 +127,6 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err = http.Post(url, "", strings.NewReader("{\"text\":\""+text+"\"}"))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-	})
-
-	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-
-		// Read only default channel should fail.
-		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
-		require.NoError(t, err)
-		assert.True(t, resp.StatusCode != http.StatusOK)
-
-		// None-default channel should still work.
-		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
-		require.NoError(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
-
-		// System-Admin Owned Hook
-		adminHook, appErr := th.App.CreateIncomingWebhookForChannel(th.SystemAdminUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
-		require.Nil(t, appErr)
-		adminUrl := ApiClient.Url + "/hooks/" + adminHook.Id
-
-		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
-		require.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
 	t.Run("WebhookAttachments", func(t *testing.T) {
@@ -232,25 +206,25 @@ func TestIncomingWebhook(t *testing.T) {
 	})
 
 	t.Run("ChannelLockedWebhook", func(t *testing.T) {
-		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.CHANNEL_OPEN, CreatorId: th.BasicUser.Id}, true)
+		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.ChannelTypeOpen, CreatorId: th.BasicUser.Id}, true)
 		require.Nil(t, err)
 
 		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
 		require.Nil(t, err)
 		require.NotNil(t, hook)
 
-		apiHookUrl := ApiClient.Url + "/hooks/" + hook.Id
+		apiHookURL := apiClient.URL + "/hooks/" + hook.Id
 
 		payload := "payload={\"text\": \"test text\"}"
-		resp, err2 := http.Post(apiHookUrl, "application/x-www-form-urlencoded", strings.NewReader(payload))
+		resp, err2 := http.Post(apiHookURL, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.NoError(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		resp, err2 = http.Post(apiHookUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
+		resp, err2 = http.Post(apiHookURL, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
 		require.NoError(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		resp, err2 = http.Post(apiHookUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
+		resp, err2 = http.Post(apiHookURL, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
 		require.NoError(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusForbidden)
 	})
@@ -271,7 +245,7 @@ func TestCommandWebhooks(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "delayed"})
 	require.Nil(t, appErr)
 
@@ -284,20 +258,20 @@ func TestCommandWebhooks(t *testing.T) {
 	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
 	require.Nil(t, appErr)
 
-	resp, err := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	resp, err := http.Post(apiClient.URL+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "expected not-found for non-existent hook")
 
-	resp, err = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`))
+	resp, err = http.Post(apiClient.URL+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`))
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		response, err2 := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+		response, err2 := http.Post(apiClient.URL+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 		require.NoError(t, err2)
 		require.Equal(t, http.StatusOK, response.StatusCode)
 	}
 
-	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	resp, _ = http.Post(apiClient.URL+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

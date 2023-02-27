@@ -8,11 +8,11 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type CustomStatusProvider struct {
@@ -41,34 +41,34 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		return nil
 	}
 
 	message = strings.TrimSpace(message)
 	if message == CmdCustomStatusClear {
-		if err := a.RemoveCustomStatus(args.UserId); err != nil {
+		if err := a.RemoveCustomStatus(c, args.UserId); err != nil {
 			mlog.Debug(err.Error())
-			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 
 		return &model.CommandResponse{
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 			Text:         args.T("api.command_custom_status.clear.success"),
 		}
 	}
 
 	customStatus := GetCustomStatus(message)
 	customStatus.PreSave()
-	if err := a.SetCustomStatus(args.UserId, customStatus); err != nil {
+	if err := a.SetCustomStatus(c, args.UserId, customStatus); err != nil {
 		mlog.Debug(err.Error())
-		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	return &model.CommandResponse{
-		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-		Text: args.T("api.command_custom_status.success", map[string]interface{}{
+		ResponseType: model.CommandResponseTypeEphemeral,
+		Text: args.T("api.command_custom_status.success", map[string]any{
 			"EmojiName":     ":" + customStatus.Emoji + ":",
 			"StatusMessage": customStatus.Text,
 		}),
@@ -81,7 +81,7 @@ func GetCustomStatus(message string) *model.CustomStatus {
 		Text:  message,
 	}
 
-	firstEmojiLocations := model.EMOJI_PATTERN.FindIndex([]byte(message))
+	firstEmojiLocations := model.EmojiPattern.FindIndex([]byte(message))
 	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
 		// emoji found at starting index
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]

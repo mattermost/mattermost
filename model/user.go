@@ -7,57 +7,61 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/services/timezones"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	ME                                 = "me"
-	USER_NOTIFY_ALL                    = "all"
-	USER_NOTIFY_HERE                   = "here"
-	USER_NOTIFY_MENTION                = "mention"
-	USER_NOTIFY_NONE                   = "none"
-	DESKTOP_NOTIFY_PROP                = "desktop"
-	DESKTOP_SOUND_NOTIFY_PROP          = "desktop_sound"
-	MARK_UNREAD_NOTIFY_PROP            = "mark_unread"
-	PUSH_NOTIFY_PROP                   = "push"
-	PUSH_STATUS_NOTIFY_PROP            = "push_status"
-	EMAIL_NOTIFY_PROP                  = "email"
-	CHANNEL_MENTIONS_NOTIFY_PROP       = "channel"
-	COMMENTS_NOTIFY_PROP               = "comments"
-	MENTION_KEYS_NOTIFY_PROP           = "mention_keys"
-	COMMENTS_NOTIFY_NEVER              = "never"
-	COMMENTS_NOTIFY_ROOT               = "root"
-	COMMENTS_NOTIFY_ANY                = "any"
-	FIRST_NAME_NOTIFY_PROP             = "first_name"
-	AUTO_RESPONDER_ACTIVE_NOTIFY_PROP  = "auto_responder_active"
-	AUTO_RESPONDER_MESSAGE_NOTIFY_PROP = "auto_responder_message"
+	Me                             = "me"
+	UserNotifyAll                  = "all"
+	UserNotifyHere                 = "here"
+	UserNotifyMention              = "mention"
+	UserNotifyNone                 = "none"
+	DesktopNotifyProp              = "desktop"
+	DesktopSoundNotifyProp         = "desktop_sound"
+	MarkUnreadNotifyProp           = "mark_unread"
+	PushNotifyProp                 = "push"
+	PushStatusNotifyProp           = "push_status"
+	EmailNotifyProp                = "email"
+	ChannelMentionsNotifyProp      = "channel"
+	CommentsNotifyProp             = "comments"
+	MentionKeysNotifyProp          = "mention_keys"
+	CommentsNotifyNever            = "never"
+	CommentsNotifyRoot             = "root"
+	CommentsNotifyAny              = "any"
+	CommentsNotifyCRT              = "crt"
+	FirstNameNotifyProp            = "first_name"
+	AutoResponderActiveNotifyProp  = "auto_responder_active"
+	AutoResponderMessageNotifyProp = "auto_responder_message"
+	DesktopThreadsNotifyProp       = "desktop_threads"
+	PushThreadsNotifyProp          = "push_threads"
+	EmailThreadsNotifyProp         = "email_threads"
 
-	DEFAULT_LOCALE          = "en"
-	USER_AUTH_SERVICE_EMAIL = "email"
+	DefaultLocale        = "en"
+	UserAuthServiceEmail = "email"
 
-	USER_EMAIL_MAX_LENGTH     = 128
-	USER_NICKNAME_MAX_RUNES   = 64
-	USER_POSITION_MAX_RUNES   = 128
-	USER_FIRST_NAME_MAX_RUNES = 64
-	USER_LAST_NAME_MAX_RUNES  = 64
-	USER_AUTH_DATA_MAX_LENGTH = 128
-	USER_NAME_MAX_LENGTH      = 64
-	USER_NAME_MIN_LENGTH      = 1
-	USER_PASSWORD_MAX_LENGTH  = 72
-	USER_LOCALE_MAX_LENGTH    = 5
-	USER_TIMEZONE_MAX_RUNES   = 256
+	UserEmailMaxLength    = 128
+	UserNicknameMaxRunes  = 64
+	UserPositionMaxRunes  = 128
+	UserFirstNameMaxRunes = 64
+	UserLastNameMaxRunes  = 64
+	UserAuthDataMaxLength = 128
+	UserNameMaxLength     = 64
+	UserNameMinLength     = 1
+	UserPasswordMaxLength = 72
+	UserLocaleMaxLength   = 5
+	UserTimezoneMaxRunes  = 256
+	UserRolesMaxLength    = 256
 )
 
 //msgp:tuple User
@@ -92,13 +96,45 @@ type User struct {
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
 	RemoteId               *string   `json:"remote_id,omitempty"`
-	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
-	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
-	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
-	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
-	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
-	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
-	DisableWelcomeEmail    bool      `db:"-" json:"disable_welcome_email"`
+	LastActivityAt         int64     `json:"last_activity_at,omitempty"`
+	IsBot                  bool      `json:"is_bot,omitempty"`
+	BotDescription         string    `json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64     `json:"bot_last_icon_update,omitempty"`
+	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
+	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
+	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+}
+
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                         u.Id,
+		"create_at":                  u.CreateAt,
+		"update_at":                  u.UpdateAt,
+		"delete_at":                  u.DeleteAt,
+		"username":                   u.Username,
+		"auth_service":               u.AuthService,
+		"email":                      u.Email,
+		"email_verified":             u.EmailVerified,
+		"position":                   u.Position,
+		"roles":                      u.Roles,
+		"allow_marketing":            u.AllowMarketing,
+		"props":                      u.Props,
+		"notify_props":               u.NotifyProps,
+		"last_password_update":       u.LastPasswordUpdate,
+		"last_picture_update":        u.LastPictureUpdate,
+		"failed_attempts":            u.FailedAttempts,
+		"locale":                     u.Locale,
+		"timezone":                   u.Timezone,
+		"mfa_active":                 u.MfaActive,
+		"remote_id":                  u.RemoteId,
+		"last_activity_at":           u.LastActivityAt,
+		"is_bot":                     u.IsBot,
+		"bot_description":            u.BotDescription,
+		"bot_last_icon_update":       u.BotLastIconUpdate,
+		"terms_of_service_id":        u.TermsOfServiceId,
+		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
+		"disable_welcome_email":      u.DisableWelcomeEmail,
+	}
 }
 
 //msgp UserMap
@@ -129,11 +165,33 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
+func (u *UserPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"username":     u.Username,
+		"nickname":     u.Nickname,
+		"first_name":   u.FirstName,
+		"last_name":    u.LastName,
+		"position":     u.Position,
+		"email":        u.Email,
+		"props":        u.Props,
+		"notify_props": u.NotifyProps,
+		"locale":       u.Locale,
+		"timezone":     u.Timezone,
+		"remote_id":    u.RemoteId,
+	}
+}
+
 //msgp:ignore UserAuth
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *UserAuth) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"auth_service": u.AuthService,
+	}
 }
 
 //msgp:ignore UserForIndexing
@@ -259,86 +317,91 @@ func (u *User) DeepCopy() *User {
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
-
 	if !IsValidId(u.Id) {
-		return InvalidUserError("id", "")
+		return InvalidUserError("id", "", u.Id)
 	}
 
 	if u.CreateAt == 0 {
-		return InvalidUserError("create_at", u.Id)
+		return InvalidUserError("create_at", u.Id, u.CreateAt)
 	}
 
 	if u.UpdateAt == 0 {
-		return InvalidUserError("update_at", u.Id)
+		return InvalidUserError("update_at", u.Id, u.UpdateAt)
 	}
 
 	if u.IsRemote() {
 		if !IsValidUsernameAllowRemote(u.Username) {
-			return InvalidUserError("username", u.Id)
+			return InvalidUserError("username", u.Id, u.Username)
 		}
 	} else {
 		if !IsValidUsername(u.Username) {
-			return InvalidUserError("username", u.Id)
+			return InvalidUserError("username", u.Id, u.Username)
 		}
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
-		return InvalidUserError("email", u.Id)
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+		return InvalidUserError("email", u.Id, u.Email)
 	}
 
-	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
-		return InvalidUserError("nickname", u.Id)
+	if utf8.RuneCountInString(u.Nickname) > UserNicknameMaxRunes {
+		return InvalidUserError("nickname", u.Id, u.Nickname)
 	}
 
-	if utf8.RuneCountInString(u.Position) > USER_POSITION_MAX_RUNES {
-		return InvalidUserError("position", u.Id)
+	if utf8.RuneCountInString(u.Position) > UserPositionMaxRunes {
+		return InvalidUserError("position", u.Id, u.Position)
 	}
 
-	if utf8.RuneCountInString(u.FirstName) > USER_FIRST_NAME_MAX_RUNES {
-		return InvalidUserError("first_name", u.Id)
+	if utf8.RuneCountInString(u.FirstName) > UserFirstNameMaxRunes {
+		return InvalidUserError("first_name", u.Id, u.FirstName)
 	}
 
-	if utf8.RuneCountInString(u.LastName) > USER_LAST_NAME_MAX_RUNES {
-		return InvalidUserError("last_name", u.Id)
+	if utf8.RuneCountInString(u.LastName) > UserLastNameMaxRunes {
+		return InvalidUserError("last_name", u.Id, u.LastName)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > USER_AUTH_DATA_MAX_LENGTH {
-		return InvalidUserError("auth_data", u.Id)
+	if u.AuthData != nil && len(*u.AuthData) > UserAuthDataMaxLength {
+		return InvalidUserError("auth_data", u.Id, u.AuthData)
 	}
 
 	if u.AuthData != nil && *u.AuthData != "" && u.AuthService == "" {
-		return InvalidUserError("auth_data_type", u.Id)
+		return InvalidUserError("auth_data_type", u.Id, *u.AuthData+" "+u.AuthService)
 	}
 
 	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
-		return InvalidUserError("auth_data_pwd", u.Id)
+		return InvalidUserError("auth_data_pwd", u.Id, *u.AuthData)
 	}
 
-	if len(u.Password) > USER_PASSWORD_MAX_LENGTH {
-		return InvalidUserError("password_limit", u.Id)
+	if len(u.Password) > UserPasswordMaxLength {
+		return InvalidUserError("password_limit", u.Id, "")
 	}
 
 	if !IsValidLocale(u.Locale) {
-		return InvalidUserError("locale", u.Id)
+		return InvalidUserError("locale", u.Id, u.Locale)
 	}
 
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
-			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if utf8.RuneCount(tzJSON) > USER_TIMEZONE_MAX_RUNES {
-			return InvalidUserError("timezone_limit", u.Id)
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
+			return InvalidUserError("timezone_limit", u.Id, u.Timezone)
 		}
+	}
+
+	if len(u.Roles) > UserRolesMaxLength {
+		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
+			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id+" roles_limit="+u.Roles, http.StatusBadRequest)
 	}
 
 	return nil
 }
 
-func InvalidUserError(fieldName string, userId string) *AppError {
+func InvalidUserError(fieldName, userId string, fieldValue any) *AppError {
 	id := fmt.Sprintf("model.user.is_valid.%s.app_error", fieldName)
 	details := ""
 	if userId != "" {
 		details = "user_id=" + userId
 	}
+	details += fmt.Sprintf(" %s=%v", fieldName, fieldValue)
 	return NewAppError("User.IsValid", id, nil, details, http.StatusBadRequest)
 }
 
@@ -374,7 +437,9 @@ func (u *User) PreSave() {
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
-	u.CreateAt = GetMillis()
+	if u.CreateAt == 0 {
+		u.CreateAt = GetMillis()
+	}
 	u.UpdateAt = u.CreateAt
 
 	u.LastPasswordUpdate = u.CreateAt
@@ -382,7 +447,7 @@ func (u *User) PreSave() {
 	u.MfaActive = false
 
 	if u.Locale == "" {
-		u.Locale = DEFAULT_LOCALE
+		u.Locale = DefaultLocale
 	}
 
 	if u.Props == nil {
@@ -400,6 +465,47 @@ func (u *User) PreSave() {
 	if u.Password != "" {
 		u.Password = HashPassword(u.Password)
 	}
+}
+
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (u *User) CreateAt_() float64 {
+	return float64(u.CreateAt)
+}
+
+func (u *User) DeleteAt_() float64 {
+	return float64(u.DeleteAt)
+}
+
+func (u *User) UpdateAt_() float64 {
+	return float64(u.UpdateAt)
+}
+
+func (u *User) LastPictureUpdate_() float64 {
+	return float64(u.LastPictureUpdate)
+}
+
+func (u *User) LastPasswordUpdate_() float64 {
+	return float64(u.LastPasswordUpdate)
+}
+
+func (u *User) FailedAttempts_() float64 {
+	return float64(u.FailedAttempts)
+}
+
+func (u *User) LastActivityAt_() float64 {
+	return float64(u.LastActivityAt)
+}
+
+func (u *User) BotLastIconUpdate_() float64 {
+	return float64(u.BotLastIconUpdate)
+}
+
+func (u *User) TermsOfServiceCreateAt_() float64 {
+	return float64(u.TermsOfServiceCreateAt)
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -425,30 +531,33 @@ func (u *User) PreUpdate() {
 
 	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
-	} else if _, ok := u.NotifyProps[MENTION_KEYS_NOTIFY_PROP]; ok {
+	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
 		// Remove any blank mention keys
-		splitKeys := strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
+		splitKeys := strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",")
 		goodKeys := []string{}
 		for _, key := range splitKeys {
 			if key != "" {
 				goodKeys = append(goodKeys, strings.ToLower(key))
 			}
 		}
-		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = strings.Join(goodKeys, ",")
+		u.NotifyProps[MentionKeysNotifyProp] = strings.Join(goodKeys, ",")
 	}
 }
 
 func (u *User) SetDefaultNotifications() {
 	u.NotifyProps = make(map[string]string)
-	u.NotifyProps[EMAIL_NOTIFY_PROP] = "true"
-	u.NotifyProps[PUSH_NOTIFY_PROP] = USER_NOTIFY_MENTION
-	u.NotifyProps[DESKTOP_NOTIFY_PROP] = USER_NOTIFY_MENTION
-	u.NotifyProps[DESKTOP_SOUND_NOTIFY_PROP] = "true"
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
-	u.NotifyProps[CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
-	u.NotifyProps[PUSH_STATUS_NOTIFY_PROP] = STATUS_AWAY
-	u.NotifyProps[COMMENTS_NOTIFY_PROP] = COMMENTS_NOTIFY_NEVER
-	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
+	u.NotifyProps[EmailNotifyProp] = "true"
+	u.NotifyProps[PushNotifyProp] = UserNotifyMention
+	u.NotifyProps[DesktopNotifyProp] = UserNotifyMention
+	u.NotifyProps[DesktopSoundNotifyProp] = "true"
+	u.NotifyProps[MentionKeysNotifyProp] = ""
+	u.NotifyProps[ChannelMentionsNotifyProp] = "true"
+	u.NotifyProps[PushStatusNotifyProp] = StatusAway
+	u.NotifyProps[CommentsNotifyProp] = CommentsNotifyNever
+	u.NotifyProps[FirstNameNotifyProp] = "false"
+	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[EmailThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[PushThreadsNotifyProp] = UserNotifyAll
 }
 
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
@@ -459,16 +568,16 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 		}
 	}
 
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
+	u.NotifyProps[MentionKeysNotifyProp] = ""
 	if len(nonUsernameKeys) > 0 {
-		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
+		u.NotifyProps[MentionKeysNotifyProp] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 
 func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+	for _, key := range strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -525,22 +634,6 @@ func (u *User) Patch(patch *UserPatch) {
 	if patch.RemoteId != nil {
 		u.RemoteId = patch.RemoteId
 	}
-}
-
-// ToJson convert a User to a json string
-func (u *User) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func (u *UserPatch) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func (u *UserAuth) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
 }
 
 // Generate a valid strong etag so the browser can cache the results
@@ -617,9 +710,32 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
-func (u *User) SetCustomStatus(cs *CustomStatus) {
+func (u *User) SetCustomStatus(cs *CustomStatus) error {
 	u.MakeNonNil()
-	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+	statusJSON, jsonErr := json.Marshal(cs)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	u.Props[UserPropsKeyCustomStatus] = string(statusJSON)
+	return nil
+}
+
+func (u *User) GetCustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
+}
+
+func (u *User) CustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
 }
 
 func (u *User) ClearCustomStatus() {
@@ -642,13 +758,13 @@ func (u *User) GetFullName() string {
 func (u *User) getDisplayName(baseName, nameFormat string) string {
 	displayName := baseName
 
-	if nameFormat == SHOW_NICKNAME_FULLNAME {
+	if nameFormat == ShowNicknameFullName {
 		if u.Nickname != "" {
 			displayName = u.Nickname
 		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
-	} else if nameFormat == SHOW_FULLNAME {
+	} else if nameFormat == ShowFullName {
 		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
@@ -695,23 +811,23 @@ func IsValidUserRoles(userRoles string) bool {
 	return true
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
-	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
+	return IsInRole(u.Roles, SystemGuestRoleId)
 }
 
 func (u *User) IsSystemAdmin() bool {
-	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
+	return IsInRole(u.Roles, SystemAdminRoleId)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsInRole(inRole string) bool {
 	return IsInRole(u.Roles, inRole)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
@@ -726,26 +842,34 @@ func IsInRole(userRoles string, inRole string) bool {
 }
 
 func (u *User) IsSSOUser() bool {
-	return u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL
+	return u.AuthService != "" && u.AuthService != UserAuthServiceEmail
 }
 
 func (u *User) IsOAuthUser() bool {
-	return u.AuthService == SERVICE_GITLAB ||
-		u.AuthService == SERVICE_GOOGLE ||
-		u.AuthService == SERVICE_OFFICE365 ||
-		u.AuthService == SERVICE_OPENID
+	return u.AuthService == ServiceGitlab ||
+		u.AuthService == ServiceGoogle ||
+		u.AuthService == ServiceOffice365 ||
+		u.AuthService == ServiceOpenid
 }
 
 func (u *User) IsLDAPUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_LDAP
+	return u.AuthService == UserAuthServiceLdap
 }
 
 func (u *User) IsSAMLUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_SAML
+	return u.AuthService == UserAuthServiceSaml
 }
 
 func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
+}
+
+func (u *User) GetTimezoneLocation() *time.Location {
+	loc, _ := time.LoadLocation(u.GetPreferredTimezone())
+	if loc == nil {
+		loc = time.Now().UTC().Location()
+	}
+	return loc
 }
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
@@ -803,47 +927,6 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	}
 }
 
-// UserFromJson will decode the input and return a User
-func UserFromJson(data io.Reader) *User {
-	var user *User
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserPatchFromJson(data io.Reader) *UserPatch {
-	var user *UserPatch
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserAuthFromJson(data io.Reader) *UserAuth {
-	var user *UserAuth
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserMapToJson(u map[string]*User) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func UserMapFromJson(data io.Reader) map[string]*User {
-	var users map[string]*User
-	json.NewDecoder(data).Decode(&users)
-	return users
-}
-
-func UserListToJson(u []*User) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func UserListFromJson(data io.Reader) []*User {
-	var users []*User
-	json.NewDecoder(data).Decode(&users)
-	return users
-}
-
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -852,18 +935,6 @@ func HashPassword(password string) string {
 	}
 
 	return string(hash)
-}
-
-// ComparePassword compares the hash
-// This function is deprecated and will be removed in a future release.
-func ComparePassword(hash string, password string) bool {
-
-	if password == "" || hash == "" {
-		return false
-	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
@@ -877,7 +948,7 @@ var restrictedUsernames = map[string]struct{}{
 }
 
 func IsValidUsername(s string) bool {
-	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
+	if len(s) < UserNameMinLength || len(s) > UserNameMaxLength {
 		return false
 	}
 
@@ -890,7 +961,7 @@ func IsValidUsername(s string) bool {
 }
 
 func IsValidUsernameAllowRemote(s string) bool {
-	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
+	if len(s) < UserNameMinLength || len(s) > UserNameMaxLength {
 		return false
 	}
 
@@ -931,33 +1002,9 @@ func CleanUsername(username string) string {
 	return s
 }
 
-func IsValidUserNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == CHANNEL_NOTIFY_ALL ||
-		notifyLevel == CHANNEL_NOTIFY_MENTION ||
-		notifyLevel == CHANNEL_NOTIFY_NONE
-}
-
-func IsValidPushStatusNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == STATUS_ONLINE ||
-		notifyLevel == STATUS_AWAY ||
-		notifyLevel == STATUS_OFFLINE
-}
-
-func IsValidCommentsNotifyLevel(notifyLevel string) bool {
-	return notifyLevel == COMMENTS_NOTIFY_ANY ||
-		notifyLevel == COMMENTS_NOTIFY_ROOT ||
-		notifyLevel == COMMENTS_NOTIFY_NEVER
-}
-
-func IsValidEmailBatchingInterval(emailInterval string) bool {
-	return emailInterval == PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY ||
-		emailInterval == PREFERENCE_EMAIL_INTERVAL_FIFTEEN ||
-		emailInterval == PREFERENCE_EMAIL_INTERVAL_HOUR
-}
-
 func IsValidLocale(locale string) bool {
 	if locale != "" {
-		if len(locale) > USER_LOCALE_MAX_LENGTH {
+		if len(locale) > UserLocaleMaxLength {
 			return false
 		} else if _, err := language.Parse(locale); err != nil {
 			return false
@@ -992,11 +1039,4 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
-}
-
-func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
-	uwg := &UsersWithGroupsAndCount{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, uwg)
-	return uwg
 }

@@ -3,12 +3,7 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
-const CHANNEL_SEARCH_DEFAULT_LIMIT = 50
+const ChannelSearchDefaultLimit = 50
 
 type ChannelSearch struct {
 	Term                     string   `json:"term"`
@@ -21,20 +16,8 @@ type ChannelSearch struct {
 	Public                   bool     `json:"public"`
 	Private                  bool     `json:"private"`
 	IncludeDeleted           bool     `json:"include_deleted"`
+	IncludeSearchById        bool     `json:"include_search_by_id"`
 	Deleted                  bool     `json:"deleted"`
 	Page                     *int     `json:"page,omitempty"`
 	PerPage                  *int     `json:"per_page,omitempty"`
-}
-
-// ToJson convert a Channel to a json string
-func (c *ChannelSearch) ToJson() string {
-	b, _ := json.Marshal(c)
-	return string(b)
-}
-
-// ChannelSearchFromJson will decode the input and return a Channel
-func ChannelSearchFromJson(data io.Reader) *ChannelSearch {
-	var cs *ChannelSearch
-	json.NewDecoder(data).Decode(&cs)
-	return cs
 }

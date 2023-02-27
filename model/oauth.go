@@ -4,33 +4,48 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
 
 const (
-	OAUTH_ACTION_SIGNUP       = "signup"
-	OAUTH_ACTION_LOGIN        = "login"
-	OAUTH_ACTION_EMAIL_TO_SSO = "email_to_sso"
-	OAUTH_ACTION_SSO_TO_EMAIL = "sso_to_email"
-	OAUTH_ACTION_MOBILE       = "mobile"
+	OAuthActionSignup     = "signup"
+	OAuthActionLogin      = "login"
+	OAuthActionEmailToSSO = "email_to_sso"
+	OAuthActionSSOToEmail = "sso_to_email"
+	OAuthActionMobile     = "mobile"
 )
 
 type OAuthApp struct {
-	Id           string      `json:"id"`
-	CreatorId    string      `json:"creator_id"`
-	CreateAt     int64       `json:"create_at"`
-	UpdateAt     int64       `json:"update_at"`
-	ClientSecret string      `json:"client_secret"`
-	Name         string      `json:"name"`
-	Description  string      `json:"description"`
-	IconURL      string      `json:"icon_url"`
-	CallbackUrls StringArray `json:"callback_urls"`
-	Homepage     string      `json:"homepage"`
-	IsTrusted    bool        `json:"is_trusted"`
+	Id              string      `json:"id"`
+	CreatorId       string      `json:"creator_id"`
+	CreateAt        int64       `json:"create_at"`
+	UpdateAt        int64       `json:"update_at"`
+	ClientSecret    string      `json:"client_secret"`
+	Name            string      `json:"name"`
+	Description     string      `json:"description"`
+	IconURL         string      `json:"icon_url"`
+	CallbackUrls    StringArray `json:"callback_urls"`
+	Homepage        string      `json:"homepage"`
+	IsTrusted       bool        `json:"is_trusted"`
+	MattermostAppID string      `json:"mattermost_app_id"`
+}
+
+func (a *OAuthApp) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                a.Id,
+		"creator_id":        a.CreatorId,
+		"create_at":         a.CreateAt,
+		"update_at":         a.UpdateAt,
+		"name":              a.Name,
+		"description":       a.Description,
+		"icon_url":          a.IconURL,
+		"callback_urls:":    a.CallbackUrls,
+		"homepage":          a.Homepage,
+		"is_trusted":        a.IsTrusted,
+		"mattermost_app_id": a.MattermostAppID,
+	}
 }
 
 // IsValid validates the app and returns an error if it isn't configured
@@ -66,12 +81,12 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	for _, callback := range a.CallbackUrls {
-		if !IsValidHttpUrl(callback) {
+		if !IsValidHTTPURL(callback) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
+	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHTTPURL(a.Homepage) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -80,9 +95,13 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	if a.IconURL != "" {
-		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
+		if len(a.IconURL) > 512 || !IsValidHTTPURL(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
+	}
+
+	if len(a.MattermostAppID) > 32 {
+		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.mattermost_app_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -108,11 +127,6 @@ func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
-func (a *OAuthApp) ToJson() string {
-	b, _ := json.Marshal(a)
-	return string(b)
-}
-
 // Generate a valid strong etag so the browser can cache the results
 func (a *OAuthApp) Etag() string {
 	return Etag(a.Id, a.UpdateAt)
@@ -131,21 +145,4 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	}
 
 	return false
-}
-
-func OAuthAppFromJson(data io.Reader) *OAuthApp {
-	var app *OAuthApp
-	json.NewDecoder(data).Decode(&app)
-	return app
-}
-
-func OAuthAppListToJson(l []*OAuthApp) string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-func OAuthAppListFromJson(data io.Reader) []*OAuthApp {
-	var o []*OAuthApp
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

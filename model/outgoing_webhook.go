@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -30,6 +28,26 @@ type OutgoingWebhook struct {
 	ContentType  string      `json:"content_type"`
 	Username     string      `json:"username"`
 	IconURL      string      `json:"icon_url"`
+}
+
+func (o *OutgoingWebhook) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":            o.Id,
+		"create_at":     o.CreateAt,
+		"update_at":     o.UpdateAt,
+		"delete_at":     o.DeleteAt,
+		"creator_id":    o.CreatorId,
+		"channel_id":    o.ChannelId,
+		"team_id":       o.TeamId,
+		"trigger_words": o.TriggerWords,
+		"trigger_when":  o.TriggerWhen,
+		"callback_urls": o.CallbackURLs,
+		"display_name":  o.DisplayName,
+		"description":   o.Description,
+		"content_type":  o.ContentType,
+		"username":      o.Username,
+		"icon_url":      o.IconURL,
+	}
 }
 
 type OutgoingWebhookPayload struct {
@@ -57,12 +75,7 @@ type OutgoingWebhookResponse struct {
 	ResponseType string             `json:"response_type"`
 }
 
-const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
-
-func (o *OutgoingWebhookPayload) ToJSON() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
+const OutgoingHookResponseTypeComment = "comment"
 
 func (o *OutgoingWebhookPayload) ToFormValues() string {
 	v := url.Values{}
@@ -80,42 +93,6 @@ func (o *OutgoingWebhookPayload) ToFormValues() string {
 	v.Set("file_ids", o.FileIds)
 
 	return v.Encode()
-}
-
-func (o *OutgoingWebhook) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func OutgoingWebhookFromJson(data io.Reader) *OutgoingWebhook {
-	var o *OutgoingWebhook
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func OutgoingWebhookListToJson(l []*OutgoingWebhook) string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-func OutgoingWebhookListFromJson(data io.Reader) []*OutgoingWebhook {
-	var o []*OutgoingWebhook
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func (o *OutgoingWebhookResponse) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func OutgoingWebhookResponseFromJson(data io.Reader) (*OutgoingWebhookResponse, error) {
-	var o *OutgoingWebhookResponse
-	err := json.NewDecoder(data).Decode(&o)
-	if err == io.EOF {
-		return nil, nil
-	}
-	return o, err
 }
 
 func (o *OutgoingWebhook) IsValid() *AppError {
@@ -165,7 +142,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	for _, callback := range o.CallbackURLs {
-		if !IsValidHttpUrl(callback) {
+		if !IsValidHTTPURL(callback) {
 			return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

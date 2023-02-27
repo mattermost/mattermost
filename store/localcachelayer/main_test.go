@@ -10,14 +10,13 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	cachemocks "github.com/mattermost/mattermost-server/v5/services/cache/mocks"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
+	cachemocks "github.com/mattermost/mattermost-server/v6/services/cache/mocks"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 var mainHelper *testlib.MainHelper
@@ -105,8 +104,8 @@ func getMockStore() *mocks.Store {
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
-	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", fakeOptions, true, map[string]bool{}).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", fakeOptions, false, map[string]bool{}).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
 
 	mockPostStoreOptions := model.GetPostsSinceOptions{
@@ -120,8 +119,8 @@ func getMockStore() *mocks.Store {
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
 	mockPostStore.On("GetEtag", "channelId", true, false).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetEtag", "channelId", false, false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
@@ -172,7 +171,6 @@ func getMockStore() *mocks.Store {
 }
 
 func TestMain(m *testing.M) {
-	mlog.DisableZap()
 	mainHelper = testlib.NewMainHelperWithOptions(nil)
 	defer mainHelper.Close()
 

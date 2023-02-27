@@ -7,16 +7,19 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
-func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
+func dummyWebsocketHandler(t *testing.T, wg *sync.WaitGroup) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		defer wg.Done()
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -25,6 +28,10 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 		require.NoError(t, err)
 		var buf []byte
 		for {
+			err = conn.SetReadDeadline(time.Now().Add(time.Second))
+			if err != nil {
+				break
+			}
 			_, buf, err = conn.ReadMessage()
 			if err != nil {
 				break
@@ -41,12 +48,17 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 // TestWebSocketRace needs to be run with -race to verify that
 // there is no race.
 func TestWebSocketRace(t *testing.T) {
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	s := httptest.NewServer(dummyWebsocketHandler(t, &wg))
+	defer func() {
+		s.Close()
+		wg.Wait()
+	}()
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 	cli, err := NewWebSocketClient4(url, "authToken")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	cli.Listen()
 
@@ -62,8 +74,13 @@ func TestWebSocketClose(t *testing.T) {
 	// Therefore, it is still racy and can panic. There is no use chasing this
 	// again because it will be completely overhauled in v6.
 	t.Skip("Skipping the test. Will be changed in v6.")
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	s := httptest.NewServer(dummyWebsocketHandler(t, &wg))
+	defer func() {
+		s.Close()
+		wg.Wait()
+	}()
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 
@@ -110,7 +127,7 @@ func TestWebSocketClose(t *testing.T) {
 
 	t.Run("SuddenClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		cli.Listen()
 
@@ -132,7 +149,7 @@ func TestWebSocketClose(t *testing.T) {
 
 	t.Run("ExplicitClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		cli.Listen()
 
@@ -148,4 +165,57 @@ func TestWebSocketClose(t *testing.T) {
 		// Check whether the write channel was closed or not.
 		checkWriteChan(cli.writeChan)
 	})
+}
+
+func binaryWebsocketHandler(t *testing.T, clientData map[string]any, doneCh chan struct{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		defer close(doneCh)
+		upgrader := &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		}
+		conn, err := upgrader.Upgrade(w, req, nil)
+		require.NoError(t, err)
+		defer conn.Close()
+
+		for {
+			msgType, buf, err := conn.ReadMessage()
+			require.NoError(t, err)
+			if msgType == websocket.BinaryMessage {
+				require.Equal(t, msgType, websocket.BinaryMessage)
+				wsReq := &WebSocketRequest{}
+				err = msgpack.Unmarshal(buf, wsReq)
+				require.NoError(t, err)
+				require.Equal(t, clientData, wsReq.Data)
+				break
+			}
+		}
+	}
+}
+
+func TestWebSocketSendBinaryMessage(t *testing.T) {
+	clientData := map[string]any{
+		"data": []byte("some data to send as binary"),
+	}
+
+	doneCh := make(chan struct{})
+	s := httptest.NewServer(binaryWebsocketHandler(t, clientData, doneCh))
+	defer s.Close()
+
+	url := strings.Replace(s.URL, "http://", "ws://", 1)
+	cli, err := NewWebSocketClient4(url, "authToken")
+	require.NoError(t, err)
+	cli.Listen()
+	defer cli.Close()
+
+	err = cli.SendBinaryMessage("binaryAction", map[string]any{
+		"unmarshable": func() {},
+	})
+	require.Error(t, err)
+
+	err = cli.SendBinaryMessage("binaryAction", clientData)
+	require.NoError(t, err)
+
+	// This is to make sure the message is handled prior to exiting.
+	<-doneCh
 }

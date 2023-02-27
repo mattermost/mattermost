@@ -11,9 +11,8 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 var mainHelper *testlib.MainHelper
@@ -22,8 +21,6 @@ func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
 		EnableStore: true,
 	}
-
-	mlog.DisableZap()
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
@@ -38,8 +35,8 @@ func truncateTable(t *testing.T, table string) {
 	sqlStore := mainHelper.GetSQLStore()
 
 	switch *sqlSetting.DriverName {
-	case model.DATABASE_DRIVER_MYSQL:
-		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+	case model.DatabaseDriverMysql:
+		_, err := sqlStore.GetMasterX().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok {
 				// Ignore if the Configurations table does not exist.
@@ -50,8 +47,8 @@ func truncateTable(t *testing.T, table string) {
 		}
 		require.NoError(t, err)
 
-	case model.DATABASE_DRIVER_POSTGRES:
-		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+	case model.DatabaseDriverPostgres:
+		_, err := sqlStore.GetMasterX().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*pq.Error); ok {
 				// Ignore if the Configurations table does not exist.
@@ -73,4 +70,5 @@ func truncateTables(t *testing.T) {
 
 	truncateTable(t, "Configurations")
 	truncateTable(t, "ConfigurationFiles")
+	truncateTable(t, migrationsTableName)
 }

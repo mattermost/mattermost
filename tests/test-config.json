@@ -19,10 +19,10 @@
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
         "EnableCommands": true,
-        "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableLinkPreviews": false,
+        "EnablePermalinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
@@ -36,7 +36,8 @@
         "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
-        "SessionLengthSSOInDays": 30,
+        "SessionLengthSSOInDays": -1,
+        "SessionLengthSSOInHours": 720,
         "SessionCacheInMinutes": 10,
         "SessionIdleTimeoutInMinutes": 0,
         "WebsocketSecurePort": 443,
@@ -44,9 +45,6 @@
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
         "EnableEmojiPicker": true,
-        "RestrictCustomEmojiCreation": "all",
-        "RestrictPostDelete": "all",
-        "AllowEditPost": "always",
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
@@ -56,21 +54,18 @@
         "EnableUserStatuses": true,
         "ExperimentalEnableAuthenticationTransfer": true,
         "ClusterLogTimeoutMilliseconds": 2000,
-        "CloseUnusedDirectMessages": false,
         "EnablePreviewFeatures": true,
         "EnableTutorial": true,
+        "EnableOnboardingFlow": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
-        "ImageProxyType": "",
-        "ImageProxyURL": "",
-        "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
-        "ExperimentalEnableHardenedMode": false,
+        "EnableAPITriggerAdminNotifications": false,
+        "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
         "MaxUsersPerTeam": 50,
-        "EnableTeamCreation": true,
         "EnableUserCreation": true,
         "EnableOpenServer": false,
         "EnableUserDeactivation": false,
@@ -79,30 +74,17 @@
         "CustomBrandText": "",
         "CustomDescriptionText": "",
         "RestrictDirectMessage": "any",
-        "RestrictTeamInvite": "all",
-        "RestrictPublicChannelManagement": "all",
-        "RestrictPrivateChannelManagement": "all",
-        "RestrictPublicChannelCreation": "all",
-        "RestrictPrivateChannelCreation": "all",
-        "RestrictPublicChannelDeletion": "all",
-        "RestrictPrivateChannelDeletion": "all",
-        "RestrictPrivateChannelManageMembers": "all",
-        "EnableXToLeaveChannelsFromLHS": false,
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
         "ExperimentalEnableAutomaticReplies": false,
-        "ExperimentalHideTownSquareinLHS": false,
-        "ExperimentalTownSquareIsReadOnly": false,
         "ExperimentalPrimaryTeam": ""
     },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
         "AndroidMinVersion": "",
-        "DesktopLatestVersion": "",
-        "DesktopMinVersion": "",
         "IosLatestVersion": "",
         "IosMinVersion": ""
     },
@@ -140,6 +122,7 @@
         "EnableMobileUpload": true,
         "EnableMobileDownload": true,
         "MaxFileSize": 52428800,
+        "MaxImageResolution": 33177600,
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
@@ -183,7 +166,8 @@
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonTextColor": "",
+        "EnableInactivityEmail": true
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -199,11 +183,11 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "https://about.mattermost.com/default-terms/",
-        "PrivacyPolicyLink": "https://about.mattermost.com/default-privacy-policy/",
-        "AboutLink": "https://about.mattermost.com/default-about/",
-        "HelpLink": "https://about.mattermost.com/default-help/",
-        "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
+        "TermsOfServiceLink": "https://mattermost.com/terms-of-use/",
+        "PrivacyPolicyLink": "https://mattermost.com/privacy-policy/",
+        "AboutLink": "https://mattermost.com/default-about/",
+        "HelpLink": "https://mattermost.com/default-help/",
+        "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {
@@ -311,15 +295,15 @@
         "LoginButtonTextColor": ""
     },
     "NativeAppSettings": {
-        "AppDownloadLink": "https://about.mattermost.com/downloads/",
-        "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
-        "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
+        "AppDownloadLink": "https://mattermost.com/download/",
+        "AndroidAppDownloadLink": "https://mattermost.com/mattermost-android-app/",
+        "IosAppDownloadLink": "https://mattermost.com/mattermost-ios-app/"
     },
     "ClusterSettings": {
         "Enable": false,
         "ClusterName": "",
         "OverrideHostname": "",
-        "UseIpAddress": true,
+        "UseIPAddress": true,
         "UseExperimentalGossip": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074,
@@ -358,7 +342,7 @@
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
         "LiveIndexingBatchSize": 1,
-        "BulkIndexingTimeWindowSeconds": 3600,
+        "BatchSize": 10000,
         "RequestTimeoutSeconds": 30
     },
     "DataRetentionSettings": {
@@ -376,8 +360,8 @@
         "BatchSize": 10000,
         "GlobalRelaySettings": {
             "CustomerType": "A9",
-            "SmtpUsername": "",
-            "SmtpPassword": "",
+            "SMTPUsername": "",
+            "SMTPPassword": "",
             "EmailAddress": ""
         }
     },

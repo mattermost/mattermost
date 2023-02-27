@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // LRUStriped keeps LRU caches in buckets in order to lower mutex contention.
@@ -27,9 +29,9 @@ import (
 // cache where a simple LRU wouldn't have. Example:
 //
 // Two buckets B1 and B2, of max size 2 each, meaning, theoretically, a max size of 4:
-//  * Say you have a set of 3 keys, they could fill an entire LRU cache.
-//  * But if all those keys are assigned to a single bucket B1, the first key will be evicted from B1
-//  * B2 will remain empty, even though there was enough memory allocated
+//   - Say you have a set of 3 keys, they could fill an entire LRU cache.
+//   - But if all those keys are assigned to a single bucket B1, the first key will be evicted from B1
+//   - B2 will remain empty, even though there was enough memory allocated
 //
 // With 4 buckets and random UUIDs as keys, the amount of false evictions is around 5%.
 //
@@ -39,7 +41,7 @@ import (
 type LRUStriped struct {
 	buckets                []*LRU
 	name                   string
-	invalidateClusterEvent string
+	invalidateClusterEvent model.ClusterEvent
 }
 
 func (L LRUStriped) hashkeyMapHash(key string) uint64 {
@@ -61,22 +63,22 @@ func (L LRUStriped) Purge() error {
 }
 
 // Set does the same as LRU.Set
-func (L LRUStriped) Set(key string, value interface{}) error {
+func (L LRUStriped) Set(key string, value any) error {
 	return L.keyBucket(key).Set(key, value)
 }
 
 // SetWithDefaultExpiry does the same as LRU.SetWithDefaultExpiry
-func (L LRUStriped) SetWithDefaultExpiry(key string, value interface{}) error {
+func (L LRUStriped) SetWithDefaultExpiry(key string, value any) error {
 	return L.keyBucket(key).SetWithDefaultExpiry(key, value)
 }
 
 // SetWithExpiry does the same as LRU.SetWithExpiry
-func (L LRUStriped) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
+func (L LRUStriped) SetWithExpiry(key string, value any, ttl time.Duration) error {
 	return L.keyBucket(key).SetWithExpiry(key, value, ttl)
 }
 
 // Get does the same as LRU.Get
-func (L LRUStriped) Get(key string, value interface{}) error {
+func (L LRUStriped) Get(key string, value any) error {
 	return L.keyBucket(key).Get(key, value)
 }
 
@@ -108,7 +110,7 @@ func (L LRUStriped) Len() (int, error) {
 }
 
 // GetInvalidateClusterEvent does the same as LRU.GetInvalidateClusterEvent
-func (L LRUStriped) GetInvalidateClusterEvent() string {
+func (L LRUStriped) GetInvalidateClusterEvent() model.ClusterEvent {
 	return L.invalidateClusterEvent
 }
 

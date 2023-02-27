@@ -4,19 +4,21 @@
 package wsapi
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 )
 
 type API struct {
 	App    *app.App
-	Router *app.WebSocketRouter
+	Router *platform.WebSocketRouter
 }
 
 func Init(s *app.Server) {
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
+	router := s.Platform().WebSocketRouter
 	api := &API{
 		App:    a,
-		Router: s.WebSocketRouter,
+		Router: router,
 	}
 
 	api.InitUser()

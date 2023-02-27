@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/searchtest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 func TestChannelStore(t *testing.T) {
@@ -41,12 +41,12 @@ func TestChannelSearchQuerySQLInjection(t *testing.T) {
 }
 
 func TestChannelStoreInternalDataTypes(t *testing.T) {
-	t.Run("NewChannelMemberFromModel", func(t *testing.T) { testNewChannelMemberFromModel(t) })
+	t.Run("NewMapFromChannelMemberModel", func(t *testing.T) { testNewMapFromChannelMemberModel(t) })
 	t.Run("ChannelMemberWithSchemeRolesToModel", func(t *testing.T) { testChannelMemberWithSchemeRolesToModel(t) })
 	t.Run("AllChannelMemberProcess", func(t *testing.T) { testAllChannelMemberProcess(t) })
 }
 
-func testNewChannelMemberFromModel(t *testing.T) {
+func testNewMapFromChannelMemberModel(t *testing.T) {
 	m := model.ChannelMember{
 		ChannelId:     model.NewId(),
 		UserId:        model.NewId(),
@@ -62,23 +62,20 @@ func testNewChannelMemberFromModel(t *testing.T) {
 		ExplicitRoles: "custom_role",
 	}
 
-	db := NewChannelMemberFromModel(&m)
+	db := NewMapFromChannelMemberModel(&m)
 
-	assert.Equal(t, m.ChannelId, db.ChannelId)
-	assert.Equal(t, m.UserId, db.UserId)
-	assert.Equal(t, m.LastViewedAt, db.LastViewedAt)
-	assert.Equal(t, m.MsgCount, db.MsgCount)
-	assert.Equal(t, m.MentionCount, db.MentionCount)
+	assert.Equal(t, m.ChannelId, db["ChannelId"])
+	assert.Equal(t, m.UserId, db["UserId"])
+	assert.Equal(t, m.LastViewedAt, db["LastViewedAt"])
+	assert.Equal(t, m.MsgCount, db["MsgCount"])
+	assert.Equal(t, m.MentionCount, db["MentionCount"])
 	assert.Equal(t, int64(0), m.MentionCountRoot)
-	assert.Equal(t, m.NotifyProps, db.NotifyProps)
-	assert.Equal(t, m.LastUpdateAt, db.LastUpdateAt)
-	assert.Equal(t, true, db.SchemeGuest.Valid)
-	assert.Equal(t, true, db.SchemeUser.Valid)
-	assert.Equal(t, true, db.SchemeAdmin.Valid)
-	assert.Equal(t, m.SchemeGuest, db.SchemeGuest.Bool)
-	assert.Equal(t, m.SchemeUser, db.SchemeUser.Bool)
-	assert.Equal(t, m.SchemeAdmin, db.SchemeAdmin.Bool)
-	assert.Equal(t, m.ExplicitRoles, db.Roles)
+	assert.Equal(t, m.NotifyProps, db["NotifyProps"])
+	assert.Equal(t, m.LastUpdateAt, db["LastUpdateAt"])
+	assert.Equal(t, sql.NullBool{Bool: false, Valid: true}, db["SchemeGuest"])
+	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeUser"])
+	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeAdmin"])
+	assert.Equal(t, m.ExplicitRoles, db["Roles"])
 }
 
 func testChannelMemberWithSchemeRolesToModel(t *testing.T) {

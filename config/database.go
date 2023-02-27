@@ -5,8 +5,14 @@ package config
 
 import (
 	"bytes"
+	"context"
+	"crypto/sha256"
 	"database/sql"
+	"embed"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -17,15 +23,31 @@ import (
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/morph"
+
+	"github.com/mattermost/morph/drivers"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 )
+
+//go:embed migrations
+var assets embed.FS
 
 // MaxWriteLength defines the maximum length accepted for write to the Configurations or
 // ConfigurationFiles table.
 //
 // It is imposed by MySQL's default max_allowed_packet value of 4Mb.
 const MaxWriteLength = 4 * 1024 * 1024
+
+// We use the something different from the default migration table name of morph
+const migrationsTableName = "db_config_migrations"
+
+// The timeout value for each migration file to run.
+const migrationsTimeoutInSeconds = 100000
 
 // DatabaseStore is a config store backed by a database.
 // Not to be used directly. Only to be used as a backing store for config.Store
@@ -63,7 +85,7 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		dataSourceName: dataSourceName,
 		db:             db,
 	}
-	if err = initializeConfigurationsTable(ds.db); err != nil {
+	if err = ds.initializeConfigurationsTable(); err != nil {
 		err = errors.Wrap(err, "failed to initialize")
 		return nil, err
 	}
@@ -74,68 +96,80 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 // initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
-func initializeConfigurationsTable(db *sqlx.DB) error {
-	mysqlCharset := ""
-	if db.DriverName() == "mysql" {
-		mysqlCharset = "DEFAULT CHARACTER SET utf8mb4"
-	}
-
-	_, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS Configurations (
-		    Id VARCHAR(26) PRIMARY KEY,
-		    Value TEXT NOT NULL,
-		    CreateAt BIGINT NOT NULL,
-		    Active BOOLEAN NULL UNIQUE
-		)
-	` + mysqlCharset)
-
+func (ds *DatabaseStore) initializeConfigurationsTable() error {
+	assetsList, err := assets.ReadDir(filepath.Join("migrations", ds.driverName))
 	if err != nil {
-		return errors.Wrap(err, "failed to create Configurations table")
+		return err
 	}
 
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS ConfigurationFiles (
-		    Name VARCHAR(64) PRIMARY KEY,
-		    Data TEXT NOT NULL,
-		    CreateAt BIGINT NOT NULL,
-		    UpdateAt BIGINT NOT NULL
-		)
-	` + mysqlCharset)
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
+	}
+
+	src, err := mbindata.WithInstance(&mbindata.AssetSource{
+		Names: assetNamesForDriver,
+		AssetFunc: func(name string) ([]byte, error) {
+			return assets.ReadFile(filepath.Join("migrations", ds.driverName, name))
+		},
+	})
 	if err != nil {
-		return errors.Wrap(err, "failed to create ConfigurationFiles table")
+		return err
 	}
 
-	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
-	// backwards-compatible migration for any existing schema.
-	// Also fix using the wrong encoding initially
-	if db.DriverName() == "mysql" {
-		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
-		if err != nil {
-			return errors.Wrap(err, "failed to alter Configurations table")
-		}
-		_, err = db.Exec(`ALTER TABLE Configurations CONVERT TO CHARACTER SET utf8mb4`)
-		if err != nil {
-			return errors.Wrap(err, "failed to alter Configurations table character set")
+	var driver drivers.Driver
+	switch ds.driverName {
+	case model.DatabaseDriverMysql:
+		dataSource, rErr := sqlstore.ResetReadTimeout(ds.dataSourceName)
+		if rErr != nil {
+			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		_, err = db.Exec(`ALTER TABLE ConfigurationFiles MODIFY Data MEDIUMTEXT`)
+		dataSource, err = sqlstore.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
-			return errors.Wrap(err, "failed to alter ConfigurationFiles table")
+			return err
 		}
-		_, err = db.Exec(`ALTER TABLE ConfigurationFiles CONVERT TO CHARACTER SET utf8mb4`)
+
+		var db *sqlx.DB
+		db, err = sqlx.Open(ds.driverName, dataSource)
 		if err != nil {
-			return errors.Wrap(err, "failed to alter ConfigurationFiles table character set")
+			return errors.Wrapf(err, "failed to connect to %s database", ds.driverName)
 		}
+
+		driver, err = ms.WithInstance(db.DB)
+
+		defer db.Close()
+	case model.DatabaseDriverPostgres:
+		driver, err = ps.WithInstance(ds.db.DB)
+	default:
+		err = fmt.Errorf("unsupported database type %s for migration", ds.driverName)
+	}
+	if err != nil {
+		return err
 	}
 
-	return nil
+	opts := []morph.EngineOption{
+		morph.WithLock("mm-config-lock-key"),
+		morph.SetMigrationTableName(migrationsTableName),
+		morph.SetStatementTimeoutInSeconds(migrationsTimeoutInSeconds),
+	}
+	engine, err := morph.New(context.Background(), driver, src, opts...)
+	if err != nil {
+		return err
+	}
+	defer engine.Close()
+
+	return engine.ApplyAll()
 }
 
 // parseDSN splits up a connection string into a driver name and data source name.
 //
 // For example:
+//
 //	mysql://mmuser:mostest@localhost:5432/mattermost_test
+//
 // returns
+//
 //	driverName = mysql
 //	dataSourceName = mmuser:mostest@localhost:5432/mattermost_test
 //
@@ -153,7 +187,7 @@ func parseDSN(dsn string) (string, string, error) {
 		// Strip off the mysql:// for the dsn with which to connect.
 		dsn = s[1]
 
-	case "postgres":
+	case "postgres", "postgresql":
 		// No changes required
 
 	default:
@@ -184,13 +218,39 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	id := model.NewId()
 	value := string(b)
-	createAt := model.GetMillis()
-
 	err = ds.checkLength(len(value))
 	if err != nil {
 		return errors.Wrap(err, "marshalled configuration failed length check")
+	}
+
+	sum := sha256.Sum256(b)
+
+	// Skip the persist altogether if we're effectively writing the same configuration.
+	var oldValue string
+	var row *sql.Row
+	if ds.driverName == model.DatabaseDriverMysql {
+		// We use a sub-query to get the Id first because selecting the Id column using
+		// active uses the index, but selecting SHA column using active does not use the index.
+		// The sub-query uses the active index, and then the top-level query uses the primary key.
+		// This takes 2 queries, but it is actually faster than one slow query for MySQL
+		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Id = (select Id from Configurations Where Active)")
+	} else {
+		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
+	}
+	if err = row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
+		return errors.Wrap(err, "failed to query active configuration")
+	}
+
+	// postgres retruns blank-padded therefore we trim the space
+	oldSum, err := hex.DecodeString(strings.TrimSpace(oldValue))
+	if err != nil {
+		return errors.Wrap(err, "could not encode value")
+	}
+
+	// compare checksums, it's more efficient rather than comparing entire config itself
+	if bytes.Equal(oldSum, sum[0:]) {
+		return nil
 	}
 
 	tx, err := ds.db.Beginx()
@@ -199,33 +259,40 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	}
 	defer func() {
 		// Rollback after Commit just returns sql.ErrTxDone.
-		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+		if err = tx.Rollback(); err != nil && err != sql.ErrTxDone {
 			mlog.Error("Failed to rollback configuration transaction", mlog.Err(err))
 		}
 	}()
 
-	params := map[string]interface{}{
-		"id":        id,
+	var oldId string
+	if ds.driverName == model.DatabaseDriverMysql {
+		// the query doesn't use active index if we query for value (mysql, no surprise)
+		// we select Id column which triggers using index hence we do quicker reads
+		// that's the reason we select id first then query against id to get the value.
+		row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
+		if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
+			return errors.Wrap(err, "failed to query active configuration")
+		}
+		if oldId != "" {
+			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldId}); err != nil {
+				return errors.Wrap(err, "failed to deactivate current configuration")
+			}
+		}
+	} else {
+		if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
+			return errors.Wrap(err, "failed to deactivate current configuration")
+		}
+	}
+
+	params := map[string]any{
+		"id":        model.NewId(),
 		"value":     value,
-		"create_at": createAt,
+		"create_at": model.GetMillis(),
 		"key":       "ConfigurationId",
+		"sha":       hex.EncodeToString(sum[0:]),
 	}
 
-	// Skip the persist altogether if we're effectively writing the same configuration.
-	var oldValue []byte
-	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
-	if err := row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
-		return errors.Wrap(err, "failed to query active configuration")
-	}
-	if bytes.Equal(oldValue, b) {
-		return nil
-	}
-
-	if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
-		return errors.Wrap(err, "failed to deactivate current configuration")
-	}
-
-	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES (:id, :value, :create_at, TRUE)", params); err != nil {
+	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active, SHA) VALUES (:id, :value, :create_at, TRUE, :sha)", params); err != nil {
 		return errors.Wrap(err, "failed to record new configuration")
 	}
 
@@ -258,7 +325,7 @@ func (ds *DatabaseStore) Load() ([]byte, error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
-	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -280,7 +347,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "file data failed length check")
 	}
-	params := map[string]interface{}{
+	params := map[string]any{
 		"name":      name,
 		"data":      data,
 		"create_at": model.GetMillis(),
@@ -309,7 +376,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 
 // HasFile returns true if the given file was previously persisted.
 func (ds *DatabaseStore) HasFile(name string) (bool, error) {
-	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -327,7 +394,7 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 
 // RemoveFile remoevs a previously persisted configuration file.
 func (ds *DatabaseStore) RemoveFile(name string) error {
-	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -347,7 +414,11 @@ func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
 }
 
-// Watch nothing on memory store
-func (ds *DatabaseStore) Watch(_ func()) error {
+// removes configurations from database if they are older than threshold.
+func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
+	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]any{"timestamp": thresholdCreatAt}); err != nil {
+		return errors.Wrap(err, "unable to clean Configurations table")
+	}
+
 	return nil
 }

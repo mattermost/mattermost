@@ -6,6 +6,8 @@ package cache
 import (
 	"errors"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // ErrKeyNotFound is the error when the given key is not found
@@ -18,19 +20,19 @@ type Cache interface {
 
 	// Set adds the given key and value to the store without an expiry. If the key already exists,
 	// it will overwrite the previous value.
-	Set(key string, value interface{}) error
+	Set(key string, value any) error
 
 	// SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
-	// the key already exists, it will overwrite the previoous value
-	SetWithDefaultExpiry(key string, value interface{}) error
+	// the key already exists, it will overwrite the previous value
+	SetWithDefaultExpiry(key string, value any) error
 
 	// SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
-	// already exists, it will overwrite the previoous value
-	SetWithExpiry(key string, value interface{}, ttl time.Duration) error
+	// already exists, it will overwrite the previous value
+	SetWithExpiry(key string, value any, ttl time.Duration) error
 
 	// Get the content stored in the cache for the given key, and decode it into the value interface.
 	// Return ErrKeyNotFound if the key is missing from the cache
-	Get(key string, value interface{}) error
+	Get(key string, value any) error
 
 	// Remove deletes the value for a given key.
 	Remove(key string) error
@@ -42,7 +44,7 @@ type Cache interface {
 	Len() (int, error)
 
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
-	GetInvalidateClusterEvent() string
+	GetInvalidateClusterEvent() model.ClusterEvent
 
 	// Name returns the name of the cache
 	Name() string

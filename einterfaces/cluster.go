@@ -4,7 +4,7 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type ClusterMessageHandler func(msg *model.ClusterMessage)
@@ -12,7 +12,7 @@ type ClusterMessageHandler func(msg *model.ClusterMessage)
 type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
-	RegisterClusterMessageHandler(event string, crm ClusterMessageHandler)
+	RegisterClusterMessageHandler(event model.ClusterEvent, crm ClusterMessageHandler)
 	GetClusterId() string
 	IsLeader() bool
 	// HealthScore returns a number which is indicative of how well an instance is meeting
@@ -26,6 +26,7 @@ type ClusterInterface interface {
 	NotifyMsg(buf []byte)
 	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)
+	QueryLogs(page, perPage int) (map[string][]string, *model.AppError)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
 }

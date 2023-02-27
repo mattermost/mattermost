@@ -4,39 +4,40 @@
 package web
 
 import (
+	"encoding/json"
 	"html"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func (w *Web) InitOAuth() {
 	// API version independent OAuth 2.0 as a service provider endpoints
-	w.MainRouter.Handle("/oauth/authorize", w.ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
-	w.MainRouter.Handle("/oauth/authorize", w.ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
-	w.MainRouter.Handle("/oauth/deauthorize", w.ApiSessionRequired(deauthorizeOAuthApp)).Methods("POST")
-	w.MainRouter.Handle("/oauth/access_token", w.ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
+	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
+	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp)).Methods("POST")
+	w.MainRouter.Handle("/oauth/deauthorize", w.APISessionRequired(deauthorizeOAuthApp)).Methods("POST")
+	w.MainRouter.Handle("/oauth/access_token", w.APIHandlerTrustRequester(getAccessToken)).Methods("POST")
 
 	// API version independent OAuth as a client endpoints
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.ApiHandler(loginWithOAuth)).Methods("GET")
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.ApiHandler(mobileLoginWithOAuth)).Methods("GET")
-	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.ApiHandler(signupWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.APIHandler(loginWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods("GET")
+	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods("GET")
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
-	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.ApiHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/api/v4/oauth_test", w.ApiSessionRequired(testHandler)).Methods("GET")
+	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
+	w.MainRouter.Handle("/api/v4/oauth_test", w.APISessionRequired(testHandler)).Methods("GET")
 }
 
 func testHandler(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -44,9 +45,10 @@ func testHandler(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
-	authRequest := model.AuthorizeRequestFromJson(r.Body)
-	if authRequest == nil {
-		c.SetInvalidParam("authorize_request")
+	var authRequest *model.AuthorizeRequest
+	err := json.NewDecoder(r.Body).Decode(&authRequest)
+	if err != nil || authRequest == nil {
+		c.SetInvalidParamWithErr("authorize_request", err)
 		return
 	}
 
@@ -56,7 +58,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.AppContext.Session().IsOAuth {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
@@ -65,21 +67,20 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
-
-	if err != nil {
-		c.Err = err
+	redirectURL, appErr := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
 	c.LogAudit("")
 
-	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectUrl})))
+	w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
 }
 
 func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
-	requestData := model.MapFromJson(r.Body)
+	requestData := model.MapFromJSON(r.Body)
 	clientId := requestData["client_id"]
 
 	if !model.IsValidId(clientId) {
@@ -112,7 +113,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: r.URL.Query().Get("response_type"),
 		ClientId:     r.URL.Query().Get("client_id"),
-		RedirectUri:  r.URL.Query().Get("redirect_uri"),
+		RedirectURI:  r.URL.Query().Get("redirect_uri"),
 		Scope:        r.URL.Query().Get("scope"),
 		State:        r.URL.Query().Get("state"),
 	}
@@ -136,7 +137,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// here we should check if the user is logged in
 	if c.AppContext.Session().UserId == "" {
-		if loginHint == model.USER_AUTH_SERVICE_SAML {
+		if loginHint == model.UserAuthServiceSaml {
 			http.Redirect(w, r, c.GetSiteURLHeader()+"/login/sso/saml?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
 		} else {
 			http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
@@ -144,7 +145,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !oauthApp.IsValidRedirectURL(authRequest.RedirectUri) {
+	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
 		err := model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
 			url.Values{
@@ -156,21 +157,21 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOAuthApp, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
 
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
-		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+		redirectURL, err := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
 
 		if err != nil {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 			return
 		}
 
-		http.Redirect(w, r, redirectUrl, http.StatusFound)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
 
@@ -179,7 +180,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926")
 
-	staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
+	staticDir, _ := fileutils.FindDir(model.ClientDir)
 	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 
@@ -191,12 +192,12 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	grantType := r.FormValue("grant_type")
 	switch grantType {
-	case model.ACCESS_TOKEN_GRANT_TYPE:
+	case model.AccessTokenGrantType:
 		if code == "" {
 			c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.missing_code.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-	case model.REFRESH_TOKEN_GRANT_TYPE:
+	case model.RefreshTokenGrantType:
 		if refreshToken == "" {
 			c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.missing_refresh_token.app_error", nil, "", http.StatusBadRequest)
 			return
@@ -218,7 +219,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectUri := r.FormValue("redirect_uri")
+	redirectURI := r.FormValue("redirect_uri")
 
 	auditRec := c.MakeAuditRecord("getAccessToken", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -226,7 +227,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("client_id", clientId)
 	c.LogAudit("attempt")
 
-	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
+	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, code, secret, refreshToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -239,7 +240,9 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(accessRsp.ToJson()))
+	if err := json.NewEncoder(w).Encode(accessRsp); err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -280,12 +283,13 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := ""
 	if props != nil {
 		action = props["action"]
-		isMobile = action == model.OAUTH_ACTION_MOBILE
+		isMobile = action == model.OAuthActionMobile
 		if val, ok := props["redirect_to"]; ok {
 			redirectURL = val
 			hasRedirectURL = redirectURL != ""
 		}
 	}
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -310,9 +314,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
+	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
-	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
+	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
 		err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
@@ -331,18 +335,13 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		// New mobile version
 		if isMobile && hasRedirectURL {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SESSION_COOKIE_TOKEN: c.AppContext.Session().Token,
-				model.SESSION_COOKIE_CSRF:  c.AppContext.Session().GetCSRF(),
+				model.SessionCookieToken: c.AppContext.Session().Token,
+				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
 		} else { // For web
 			c.App.AttachSessionCookies(c.AppContext, w, r)
-
-			// If no redirect url is passed, get the default one
-			if !hasRedirectURL {
-				redirectURL = c.GetSiteURLHeader()
-			}
 		}
 	}
 
@@ -370,13 +369,13 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectURL, loginHint, false)
+	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	http.Redirect(w, r, authUrl, http.StatusFound)
+	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
 func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -399,13 +398,13 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, redirectURL, "", true)
+	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	http.Redirect(w, r, authUrl, http.StatusFound)
+	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
 func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -427,11 +426,23 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId)
+	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	http.Redirect(w, r, authUrl, http.StatusFound)
+	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
+	parsed, _ := url.Parse(targetURL)
+	if parsed == nil || parsed.Scheme != "" || parsed.Host != "" {
+		return targetURL
+	}
+
+	if targetURL != "" && targetURL[0] != '/' {
+		targetURL = "/" + targetURL
+	}
+	return siteURLPrefix + targetURL
 }

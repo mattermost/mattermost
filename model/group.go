@@ -4,14 +4,13 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 )
 
 const (
-	GroupSourceLdap GroupSource = "ldap"
+	GroupSourceLdap   GroupSource = "ldap"
+	GroupSourceCustom GroupSource = "custom"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -24,6 +23,7 @@ type GroupSource string
 
 var allGroupSources = []GroupSource{
 	GroupSourceLdap,
+	GroupSourceCustom,
 }
 
 var groupSourcesRequiringRemoteID = []GroupSource{
@@ -31,18 +31,39 @@ var groupSourcesRequiringRemoteID = []GroupSource{
 }
 
 type Group struct {
-	Id             string      `json:"id"`
-	Name           *string     `json:"name,omitempty"`
-	DisplayName    string      `json:"display_name"`
-	Description    string      `json:"description"`
-	Source         GroupSource `json:"source"`
-	RemoteId       string      `json:"remote_id"`
-	CreateAt       int64       `json:"create_at"`
-	UpdateAt       int64       `json:"update_at"`
-	DeleteAt       int64       `json:"delete_at"`
-	HasSyncables   bool        `db:"-" json:"has_syncables"`
-	MemberCount    *int        `db:"-" json:"member_count,omitempty"`
-	AllowReference bool        `json:"allow_reference"`
+	Id                          string      `json:"id"`
+	Name                        *string     `json:"name,omitempty"`
+	DisplayName                 string      `json:"display_name"`
+	Description                 string      `json:"description"`
+	Source                      GroupSource `json:"source"`
+	RemoteId                    *string     `json:"remote_id"`
+	CreateAt                    int64       `json:"create_at"`
+	UpdateAt                    int64       `json:"update_at"`
+	DeleteAt                    int64       `json:"delete_at"`
+	HasSyncables                bool        `db:"-" json:"has_syncables"`
+	MemberCount                 *int        `db:"-" json:"member_count,omitempty"`
+	AllowReference              bool        `json:"allow_reference"`
+	ChannelMemberCount          *int        `db:"-" json:"channel_member_count,omitempty"`
+	ChannelMemberTimezonesCount *int        `db:"-" json:"channel_member_timezones_count,omitempty"`
+}
+
+func (group *Group) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":              group.Id,
+		"source":          group.Source,
+		"remote_id":       group.RemoteId,
+		"create_at":       group.CreateAt,
+		"update_at":       group.UpdateAt,
+		"delete_at":       group.DeleteAt,
+		"has_syncables":   group.HasSyncables,
+		"member_count":    group.MemberCount,
+		"allow_reference": group.AllowReference,
+	}
+}
+
+type GroupWithUserIds struct {
+	Group
+	UserIds []string `json:"user_ids"`
 }
 
 type GroupWithSchemeAdmin struct {
@@ -65,6 +86,8 @@ type GroupPatch struct {
 	DisplayName    *string `json:"display_name"`
 	Description    *string `json:"description"`
 	AllowReference *bool   `json:"allow_reference"`
+	// For security reasons (including preventing unintended LDAP group synchronization) do no allow a Group's RemoteId or Source field to be
+	// included in patches.
 }
 
 type LdapGroupSearchOpts struct {
@@ -81,12 +104,24 @@ type GroupSearchOpts struct {
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
 	Since                  int64
+	Source                 GroupSource
 
 	// FilterParentTeamPermitted filters the groups to the intersect of the
 	// set associated to the parent team and those returned by the query.
 	// If the parent team is not group-constrained or if NotAssociatedToChannel
 	// is not set then this option is ignored.
 	FilterParentTeamPermitted bool
+
+	// FilterHasMember filters the groups to the intersect of the
+	// set returned by the query and those that have the given user as a member.
+	FilterHasMember string
+
+	IncludeChannelMemberCount string
+	IncludeTimezones          bool
+}
+
+type GetGroupOpts struct {
+	IncludeMemberCount bool
 }
 
 type PageOpts struct {
@@ -97,6 +132,10 @@ type PageOpts struct {
 type GroupStats struct {
 	GroupID          string `json:"group_id"`
 	TotalMemberCount int64  `json:"total_member_count"`
+}
+
+type GroupModifyMembers struct {
+	UserIds []string `json:"user_ids"`
 }
 
 func (group *Group) Patch(patch *GroupPatch) {
@@ -115,17 +154,17 @@ func (group *Group) Patch(patch *GroupPatch) {
 }
 
 func (group *Group) IsValidForCreate() *AppError {
-	err := group.IsValidName()
-	if err != nil {
-		return err
+	appErr := group.IsValidName()
+	if appErr != nil {
+		return appErr
 	}
 
 	if l := len(group.DisplayName); l == 0 || l > GroupDisplayNameMaxLength {
-		return NewAppError("Group.IsValidForCreate", "model.group.display_name.app_error", map[string]interface{}{"GroupDisplayNameMaxLength": GroupDisplayNameMaxLength}, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForCreate", "model.group.display_name.app_error", map[string]any{"GroupDisplayNameMaxLength": GroupDisplayNameMaxLength}, "", http.StatusBadRequest)
 	}
 
 	if len(group.Description) > GroupDescriptionMaxLength {
-		return NewAppError("Group.IsValidForCreate", "model.group.description.app_error", map[string]interface{}{"GroupDescriptionMaxLength": GroupDescriptionMaxLength}, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForCreate", "model.group.description.app_error", map[string]any{"GroupDescriptionMaxLength": GroupDescriptionMaxLength}, "", http.StatusBadRequest)
 	}
 
 	isValidSource := false
@@ -139,7 +178,7 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIDMaxLength || (group.RemoteId == "" && group.requiresRemoteId()) {
+	if (group.GetRemoteId() == "" && group.requiresRemoteId()) || len(group.GetRemoteId()) > GroupRemoteIDMaxLength {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -165,15 +204,10 @@ func (group *Group) IsValidForUpdate() *AppError {
 	if group.UpdateAt == 0 {
 		return NewAppError("Group.IsValidForUpdate", "model.group.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
-	if err := group.IsValidForCreate(); err != nil {
-		return err
+	if appErr := group.IsValidForCreate(); appErr != nil {
+		return appErr
 	}
 	return nil
-}
-
-func (group *Group) ToJson() string {
-	b, _ := json.Marshal(group)
-	return string(b)
 }
 
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
@@ -182,11 +216,15 @@ func (group *Group) IsValidName() *AppError {
 
 	if group.Name == nil {
 		if group.AllowReference {
-			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
 		}
 	} else {
 		if l := len(*group.Name); l == 0 || l > GroupNameMaxLength {
-			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+		}
+
+		if *group.Name == UserNotifyAll || *group.Name == ChannelMentionsNotifyProp || *group.Name == UserNotifyHere {
+			return NewAppError("IsValidName", "model.group.name.reserved_name.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if !validGroupnameChars.MatchString(*group.Name) {
@@ -196,26 +234,29 @@ func (group *Group) IsValidName() *AppError {
 	return nil
 }
 
-func GroupFromJson(data io.Reader) *Group {
-	var group *Group
-	json.NewDecoder(data).Decode(&group)
-	return group
+func (group *Group) GetName() string {
+	if group.Name == nil {
+		return ""
+	}
+	return *group.Name
 }
 
-func GroupsFromJson(data io.Reader) []*Group {
-	var groups []*Group
-	json.NewDecoder(data).Decode(&groups)
-	return groups
+func (group *Group) GetRemoteId() string {
+	if group.RemoteId == nil {
+		return ""
+	}
+	return *group.RemoteId
 }
 
-func GroupPatchFromJson(data io.Reader) *GroupPatch {
-	var groupPatch *GroupPatch
-	json.NewDecoder(data).Decode(&groupPatch)
-	return groupPatch
+type GroupsWithCount struct {
+	Groups     []*Group `json:"groups"`
+	TotalCount int64    `json:"total_count"`
 }
 
-func GroupStatsFromJson(data io.Reader) *GroupStats {
-	var groupStats *GroupStats
-	json.NewDecoder(data).Decode(&groupStats)
-	return groupStats
+type CreateDefaultMembershipParams struct {
+	Since               int64
+	ReAddRemovedMembers bool
+	ScopedUserID        *string
+	ScopedTeamID        *string
+	ScopedChannelID     *string
 }

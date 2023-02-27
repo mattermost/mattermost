@@ -4,12 +4,10 @@
 package slashcommands
 
 import (
-	"context"
-
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type HeaderProvider struct {
@@ -37,54 +35,54 @@ func (*HeaderProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := a.GetChannel(args.ChannelId)
+func (*HeaderProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.channel.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	switch channel.Type {
-	case model.CHANNEL_OPEN:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+	case model.ChannelTypeOpen:
+		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 
-	case model.CHANNEL_PRIVATE:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+	case model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 
-	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		var channelMember *model.ChannelMember
-		channelMember, err = a.GetChannelMember(context.Background(), args.ChannelId, args.UserId)
+		channelMember, err = a.GetChannelMember(c, args.ChannelId, args.UserId)
 		if err != nil || channelMember == nil {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 
 	default:
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.permission.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.message.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -97,14 +95,14 @@ func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	if err != nil {
 		text := args.T("api.command_channel_header.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.header.app_error" {
-			text = args.T("api.command_channel_header.update_channel.max_length", map[string]interface{}{
-				"MaxLength": model.CHANNEL_HEADER_MAX_RUNES,
+			text = args.T("api.command_channel_header.update_channel.max_length", map[string]any{
+				"MaxLength": model.ChannelHeaderMaxRunes,
 			})
 		}
 
 		return &model.CommandResponse{
 			Text:         text,
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 

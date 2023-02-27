@@ -5,76 +5,84 @@ package imgutils
 
 import (
 	"bytes"
+	"image"
+	_ "image/gif"
+	"io"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
-func TestCountFrames(t *testing.T) {
-	header := []byte{
-		'G', 'I', 'F', '8', '9', 'a', // header
-		1, 0, 1, 0, // width and height of 1 by 1
-		128, 0, 0, // other header information
-		0, 0, 0, 1, 1, 1, // color table
+func readTestFile(t *testing.T, name string) ([]byte, error) {
+	t.Helper()
+	path, _ := fileutils.FindDir("tests")
+	file, err := os.Open(filepath.Join(path, name))
+	if err != nil {
+		return nil, err
 	}
-	frame := []byte{
-		0x2c,                   // block introducer
-		0, 0, 0, 0, 1, 0, 1, 0, // position and dimensions of the frame
-		0,                      // other frame information
-		0x2, 0x2, 0x4c, 0x1, 0, // encoded pixel data
-	}
-	trailer := []byte{0x3b}
+	defer file.Close()
 
+	data := &bytes.Buffer{}
+	if _, err := io.Copy(data, file); err != nil {
+		return nil, err
+	}
+	return data.Bytes(), nil
+}
+
+func TestGenGIFData(t *testing.T) {
+	data := GenGIFData(600, 400, 1)
+	img, format, err := image.DecodeConfig(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Equal(t, 600, img.Width)
+	require.Equal(t, 400, img.Height)
+	require.Equal(t, "gif", format)
+}
+
+func TestCountGIFFrames(t *testing.T) {
 	t.Run("should count the frames of a static gif", func(t *testing.T) {
-		var b []byte
-		b = append(b, header...)
-		b = append(b, frame...)
-		b = append(b, trailer...)
+		gifData := GenGIFData(400, 400, 1)
 
-		count, err := CountFrames(bytes.NewReader(b))
+		count, err := CountGIFFrames(bytes.NewReader(gifData))
 
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
 
 	t.Run("should count the frames of an animated gif", func(t *testing.T) {
-		var b []byte
-		b = append(b, header...)
-		for i := 0; i < 100; i++ {
-			b = append(b, frame...)
-		}
-		b = append(b, trailer...)
+		gifData := GenGIFData(400, 400, 100)
 
-		count, err := CountFrames(bytes.NewReader(b))
+		count, err := CountGIFFrames(bytes.NewReader(gifData))
 
 		assert.NoError(t, err)
 		assert.Equal(t, 100, count)
 	})
 
 	t.Run("should count the frames of an actual animated gif", func(t *testing.T) {
-		b, err := testutils.ReadTestFile("testgif.gif")
+		b, err := readTestFile(t, "testgif.gif")
 		require.NoError(t, err)
 
-		count, err := CountFrames(bytes.NewReader(b))
+		count, err := CountGIFFrames(bytes.NewReader(b))
 
 		assert.NoError(t, err)
 		assert.Equal(t, 4, count)
 	})
 
 	t.Run("should return an error for a non-gif image", func(t *testing.T) {
-		b, err := testutils.ReadTestFile("test.png")
+		b, err := readTestFile(t, "test.png")
 		require.NoError(t, err)
 
-		_, err = CountFrames(bytes.NewReader(b))
+		_, err = CountGIFFrames(bytes.NewReader(b))
 
 		assert.Error(t, err)
 	})
 
 	t.Run("should return an error for garbage data", func(t *testing.T) {
-		_, err := CountFrames(bytes.NewReader([]byte("garbage data")))
+		_, err := CountGIFFrames(bytes.NewReader([]byte("garbage data")))
 
 		assert.Error(t, err)
 	})

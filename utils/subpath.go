@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -17,9 +16,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
@@ -63,7 +62,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	}
 
 	rootHTMLPath := filepath.Join(staticDir, "root.html")
-	oldRootHTML, err := ioutil.ReadFile(rootHTMLPath)
+	oldRootHTML, err := os.ReadFile(rootHTMLPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to open root.html")
 	}
@@ -113,19 +112,19 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	}
 
 	// Write out the updated root.html.
-	if err = ioutil.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
+	if err = os.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
 		return errors.Wrapf(err, "failed to update root.html with subpath %s", subpath)
 	}
 
 	// Rewrite the manifest.json and *.css references to `/static/*` (or a previously rewritten subpath).
 	err = filepath.Walk(staticDir, func(walkPath string, info os.FileInfo, err error) error {
 		if filepath.Base(walkPath) == "manifest.json" || filepath.Ext(walkPath) == ".css" {
-			old, err := ioutil.ReadFile(walkPath)
+			old, err := os.ReadFile(walkPath)
 			if err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
 			}
 			new := strings.Replace(string(old), pathToReplace, newPath, -1)
-			if err = ioutil.WriteFile(walkPath, []byte(new), 0); err != nil {
+			if err = os.WriteFile(walkPath, []byte(new), 0); err != nil {
 				return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
 			}
 		}
@@ -142,7 +141,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
 // at the given subpath instead of at the root. No changes are written unless necessary.
 func UpdateAssetsSubpath(subpath string) error {
-	return UpdateAssetsSubpathInDir(subpath, model.CLIENT_DIR)
+	return UpdateAssetsSubpathInDir(subpath, model.ClientDir)
 }
 
 // UpdateAssetsSubpathFromConfig uses UpdateAssetsSubpath and any path defined in the SiteURL.

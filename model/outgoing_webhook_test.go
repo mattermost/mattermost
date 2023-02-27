@@ -11,14 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOutgoingWebhookJson(t *testing.T) {
-	o := OutgoingWebhook{Id: NewId()}
-	json := o.ToJson()
-	ro := OutgoingWebhookFromJson(strings.NewReader(json))
-
-	assert.Equal(t, o.Id, ro.Id, "Ids do not match")
-}
-
 func TestOutgoingWebhookIsValid(t *testing.T) {
 	o := OutgoingWebhook{}
 	assert.NotNil(t, o.IsValid(), "empty declaration should be invalid")
@@ -141,14 +133,4 @@ func TestOutgoingWebhookTriggerWordStartsWith(t *testing.T) {
 	o.TriggerWords = append(o.TriggerWords, "foo")
 	assert.True(t, o.TriggerWordStartsWith("foobar"), "Should return true")
 	assert.False(t, o.TriggerWordStartsWith("barfoo"), "Should return false")
-}
-
-func TestOutgoingWebhookResponseJson(t *testing.T) {
-	o := OutgoingWebhookResponse{}
-	o.Text = NewString("some text")
-
-	json := o.ToJson()
-	ro, _ := OutgoingWebhookResponseFromJson(strings.NewReader(json))
-
-	assert.Equal(t, *o.Text, *ro.Text, "Text does not match")
 }

@@ -5,10 +5,10 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,10 +17,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 var coverprofileCounters map[string]int = make(map[string]int)
@@ -70,8 +70,8 @@ func SetupWithStoreMock(t testing.TB) *testHelper {
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	licenseStore := mocks.LicenseStore{}
 	licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
-	api4TestHelper.App.Srv().Store.(*mocks.Store).On("System").Return(&systemStore)
-	api4TestHelper.App.Srv().Store.(*mocks.Store).On("License").Return(&licenseStore)
+	api4TestHelper.App.Srv().Store().(*mocks.Store).On("System").Return(&systemStore)
+	api4TestHelper.App.Srv().Store().(*mocks.Store).On("License").Return(&licenseStore)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
@@ -122,7 +122,11 @@ func (h *testHelper) SetConfig(config *model.Config) {
 
 	h.config = config
 
-	if err := ioutil.WriteFile(h.configFilePath, []byte(config.ToJson()), 0600); err != nil {
+	buf, err := json.Marshal(config)
+	if err != nil {
+		panic("failed to marshal config: " + err.Error())
+	}
+	if err := os.WriteFile(h.configFilePath, buf, 0600); err != nil {
 		panic("failed to write file " + h.configFilePath + ": " + err.Error())
 	}
 }
@@ -150,7 +154,7 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 		ret = append(ret, "-test.coverprofile", filepath.Join(dir, strings.Join(baseParts, ".")))
 	}
 
-	ret = append(ret, "--", "--disableconfigwatch")
+	ret = append(ret, "--")
 
 	// Unless the test passes a `--config` of its own, create a temporary one from the default
 	// configuration with the current test database applied.

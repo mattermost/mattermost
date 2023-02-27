@@ -16,8 +16,8 @@ func TestGetProxiedImageURL(t *testing.T) {
 	parsedURL, err := url.Parse(siteURL)
 	require.NoError(t, err)
 
-	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
-	proxiedURL := "https://mattermost.example.com/api/v4/image?url=http%3A%2F%2Fwww.mattermost.org%2Fwp-content%2Fuploads%2F2016%2F03%2FlogoHorizontal.png"
+	imageURL := "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png"
+	proxiedURL := "https://mattermost.example.com/api/v4/image?url=https%3A%2F%2Fmattermost.com%2Fwp-content%2Fuploads%2F2022%2F02%2FlogoHorizontal.png"
 
 	proxy := ImageProxy{siteURL: parsedURL}
 
@@ -53,8 +53,8 @@ func TestGetProxiedImageURL(t *testing.T) {
 		},
 		{
 			Name:     "should not bypass protocol relative URLs",
-			Input:    "//mattermost.org/static/logo.png",
-			Expected: "https://mattermost.example.com/api/v4/image?url=https%3A%2F%2Fmattermost.org%2Fstatic%2Flogo.png",
+			Input:    "//mattermost.com/static/logo.png",
+			Expected: "https://mattermost.example.com/api/v4/image?url=https%3A%2F%2Fmattermost.com%2Fstatic%2Flogo.png",
 		},
 		{
 			Name:     "should not bypass if the host prefix is same",
@@ -76,8 +76,8 @@ func TestGetProxiedImageURL(t *testing.T) {
 func TestGetUnproxiedImageURL(t *testing.T) {
 	siteURL := "https://mattermost.example.com"
 
-	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
-	proxiedURL := "https://mattermost.example.com/api/v4/image?url=http%3A%2F%2Fwww.mattermost.org%2Fwp-content%2Fuploads%2F2016%2F03%2FlogoHorizontal.png"
+	imageURL := "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png"
+	proxiedURL := "https://mattermost.example.com/api/v4/image?url=https%3A%2F%2Fmattermost.com%2Fwp-content%2Fuploads%2F2022%2F02%2FlogoHorizontal.png"
 
 	for _, test := range []struct {
 		Name     string

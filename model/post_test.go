@@ -4,7 +4,8 @@
 package model
 
 import (
-	"io/ioutil"
+	"encoding/json"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -13,77 +14,64 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostToJson(t *testing.T) {
+func TestPostToJSON(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
-	j := o.ToJson()
-	ro := PostFromJson(strings.NewReader(j))
-
-	assert.NotNil(t, ro)
+	j, err := o.ToJSON()
+	assert.NoError(t, err)
+	var ro Post
+	err = json.Unmarshal([]byte(j), &ro)
+	assert.NoError(t, err)
 	assert.Equal(t, &o, ro.Clone())
-}
-
-func TestPostFromJsonError(t *testing.T) {
-	ro := PostFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
 }
 
 func TestPostIsValid(t *testing.T) {
 	o := Post{}
 	maxPostSize := 10000
 
-	err := o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr := o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Id = NewId()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.CreateAt = GetMillis()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.UpdateAt = GetMillis()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.UserId = NewId()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.ChannelId = NewId()
 	o.RootId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.RootId = ""
-	o.ParentId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
 
-	o.ParentId = NewId()
-	o.RootId = ""
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
-
-	o.ParentId = ""
 	o.Message = strings.Repeat("0", maxPostSize+1)
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Message = strings.Repeat("0", maxPostSize)
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 
 	o.Message = "test"
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 	o.Type = "junk"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
-	o.Type = POST_CUSTOM_TYPE_PREFIX + "type"
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	o.Type = PostCustomTypePrefix + "type"
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 }
 
 func TestPostPreSave(t *testing.T) {
@@ -107,7 +95,7 @@ func TestPostIsSystemMessage(t *testing.T) {
 
 	require.False(t, post1.IsSystemMessage())
 
-	post2 := Post{Message: "test_2", Type: POST_JOIN_LEAVE}
+	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
 	post2.PreSave()
 
 	require.True(t, post2.IsSystemMessage())
@@ -125,30 +113,30 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post1.SanitizeProps()
 
-	require.Nil(t, post1.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post1.GetProp(PropsAddChannelMember))
 
 	post2 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PROPS_ADD_CHANNEL_MEMBER: "test",
+			PropsAddChannelMember: "test",
 		},
 	}
 
 	post2.SanitizeProps()
 
-	require.Nil(t, post2.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post2.GetProp(PropsAddChannelMember))
 
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PROPS_ADD_CHANNEL_MEMBER: "no good",
-			"attachments":            "good",
+			PropsAddChannelMember: "no good",
+			"attachments":         "good",
 		},
 	}
 
 	post3.SanitizeProps()
 
-	require.Nil(t, post3.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post3.GetProp(PropsAddChannelMember))
 
 	require.NotNil(t, post3.GetProp("attachments"))
 }
@@ -289,7 +277,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    123,
 								},
@@ -311,7 +299,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    123,
 								},
@@ -336,7 +324,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    "mattermost",
 								},
@@ -358,7 +346,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    123,
 								},
@@ -381,13 +369,13 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 var markdownSample, markdownSampleWithRewrittenImageURLs string
 
 func init() {
-	bytes, err := ioutil.ReadFile("testdata/markdown-sample.md")
+	bytes, err := os.ReadFile("testdata/markdown-sample.md")
 	if err != nil {
 		panic(err)
 	}
 	markdownSample = string(bytes)
 
-	bytes, err = ioutil.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
+	bytes, err = os.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
 	if err != nil {
 		panic(err)
 	}
@@ -778,21 +766,21 @@ func TestPostDisableMentionHighlights(t *testing.T) {
 			"",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @here",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@here",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @channel",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@channel",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @all",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@all",
 		},
 	}
@@ -821,19 +809,19 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 			nil,
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @here",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @channel",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @all",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 	}
 	for _, tc := range testCases {
@@ -858,37 +846,9 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 	})
 }
 
-func TestSearchParameterFromJson(t *testing.T) {
-	t.Run("empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader(""))
-		require.Nil(t, params)
-		require.Error(t, err)
-	})
-
-	t.Run("invalid json", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("invalid"))
-		require.Nil(t, params)
-		require.Error(t, err)
-	})
-
-	t.Run("valid empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("{}"))
-		require.NoError(t, err)
-		require.NotNil(t, params)
-		require.Equal(t, &SearchParameter{}, params)
-	})
-
-	t.Run("valid non-empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("{\"terms\": \"test\"}"))
-		require.NoError(t, err)
-		require.NotNil(t, params)
-		require.Equal(t, "test", *params.Terms)
-	})
-}
-
 func TestPostAttachments(t *testing.T) {
 	p := &Post{
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": []byte(`[{
 				"actions" : {null}
 			}]
@@ -897,17 +857,17 @@ func TestPostAttachments(t *testing.T) {
 	}
 
 	t.Run("empty actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"actions": []interface{}{}},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{}},
 		}
 		attachments := p.Attachments()
 		require.Empty(t, attachments[0].Actions)
 	})
 
 	t.Run("a couple of actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"actions": []interface{}{
-				map[string]interface{}{"id": "test1"}, map[string]interface{}{"id": "test2"}},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{
+				map[string]any{"id": "test1"}, map[string]any{"id": "test2"}},
 			},
 		}
 
@@ -918,9 +878,9 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("should ignore null actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"actions": []interface{}{
-				map[string]interface{}{"id": "test1"}, nil, map[string]interface{}{"id": "test2"}, nil, nil},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{
+				map[string]any{"id": "test1"}, nil, map[string]any{"id": "test2"}, nil, nil},
 			},
 		}
 
@@ -928,5 +888,21 @@ func TestPostAttachments(t *testing.T) {
 		require.Len(t, attachments[0].Actions, 2)
 		require.Equal(t, attachments[0].Actions[0].Id, "test1")
 		require.Equal(t, attachments[0].Actions[1].Id, "test2")
+	})
+
+	t.Run("nil fields", func(t *testing.T) {
+		p.Props["attachments"] = []any{
+			map[string]any{"fields": []any{
+				map[string]any{"value": ":emoji1:"},
+				nil,
+				map[string]any{"value": ":emoji2:"},
+			},
+			},
+		}
+
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Fields, 2)
+		assert.Equal(t, attachments[0].Fields[0].Value, ":emoji1:")
+		assert.Equal(t, attachments[0].Fields[1].Value, ":emoji2:")
 	})
 }

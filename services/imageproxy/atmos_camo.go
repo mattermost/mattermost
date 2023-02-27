@@ -16,6 +16,7 @@ type AtmosCamoBackend struct {
 	proxy     *ImageProxy
 	siteURL   *url.URL
 	remoteURL *url.URL
+	client    *http.Client
 }
 
 func makeAtmosCamoBackend(proxy *ImageProxy) *AtmosCamoBackend {
@@ -28,6 +29,7 @@ func makeAtmosCamoBackend(proxy *ImageProxy) *AtmosCamoBackend {
 		proxy:     proxy,
 		siteURL:   siteURL,
 		remoteURL: remoteURL,
+		client:    proxy.HTTPService.MakeClient(false),
 	}
 }
 
@@ -41,9 +43,7 @@ func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser,
 		return nil, "", Error{err}
 	}
 
-	client := backend.proxy.HTTPService.MakeClient(false)
-
-	resp, err := client.Do(req)
+	resp, err := backend.client.Do(req)
 	if err != nil {
 		return nil, "", Error{err}
 	}

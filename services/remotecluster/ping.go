@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // pingLoop periodically sends a ping to all remote clusters.
@@ -33,7 +33,7 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		// get all remotes, including any previously offline.
 		remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(model.RemoteClusterQueryFilter{})
 		if err != nil {
-			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Ping remote cluster failed (could not get list of remotes)", mlog.Err(err))
+			rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Ping remote cluster failed (could not get list of remotes)", mlog.Err(err))
 			select {
 			case <-time.After(PingFreq):
 				continue
@@ -74,7 +74,7 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			online := rc.IsOnline()
 
 			if err := rcs.pingRemote(rc); err != nil {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
+				rcs.server.Log().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
 					mlog.String("remote", rc.DisplayName),
 					mlog.String("remoteId", rc.RemoteId),
 					mlog.Err(err),
@@ -114,7 +114,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 
 	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.Err(err),
@@ -132,7 +132,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 		metrics.ObserveRemoteClusterClockSkew(rc.RemoteId, skew)
 	}
 
-	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
+	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("remoteId", rc.RemoteId),
 		mlog.Int64("SentAt", ping.SentAt),

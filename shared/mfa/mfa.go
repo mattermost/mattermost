@@ -44,14 +44,14 @@ func newRandomBase32String(size int) string {
 	return base32.StdEncoding.EncodeToString(data)
 }
 
-func getIssuerFromUrl(uri string) string {
+func getIssuerFromURL(uri string) string {
 	issuer := "Mattermost"
-	siteUrl := strings.TrimSpace(uri)
+	siteURL := strings.TrimSpace(uri)
 
-	if siteUrl != "" {
-		siteUrl = strings.TrimPrefix(siteUrl, "https://")
-		siteUrl = strings.TrimPrefix(siteUrl, "http://")
-		issuer = strings.TrimPrefix(siteUrl, "www.")
+	if siteURL != "" {
+		siteURL = strings.TrimPrefix(siteURL, "https://")
+		siteURL = strings.TrimPrefix(siteURL, "http://")
+		issuer = strings.TrimPrefix(siteURL, "www.")
 	}
 
 	return url.QueryEscape(issuer)
@@ -59,7 +59,7 @@ func getIssuerFromUrl(uri string) string {
 
 // GenerateSecret generates a new user mfa secret and store it with the StoreSecret function provided
 func (m *MFA) GenerateSecret(siteURL, userEmail, userID string) (string, []byte, error) {
-	issuer := getIssuerFromUrl(siteURL)
+	issuer := getIssuerFromURL(siteURL)
 
 	secret := newRandomBase32String(mfaSecretSize)
 
@@ -106,7 +106,7 @@ func (m *MFA) Activate(userMfaSecret, userID string, token string) error {
 	return nil
 }
 
-// Deactivate set the mfa as deactive, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
+// Deactivate set the mfa as deactivated, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
 func (m *MFA) Deactivate(userId string) error {
 	if err := m.store.UpdateMfaActive(userId, false); err != nil {
 		return errors.Wrap(err, "unable to store mfa active")

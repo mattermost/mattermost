@@ -6,8 +6,8 @@ package testlib
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type FakeClusterInterface struct {
@@ -20,7 +20,7 @@ func (c *FakeClusterInterface) StartInterNodeCommunication() {}
 
 func (c *FakeClusterInterface) StopInterNodeCommunication() {}
 
-func (c *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
+func (c *FakeClusterInterface) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 	c.clusterMessageHandler = crm
 }
 
@@ -59,6 +59,10 @@ func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppE
 	return []string{}, nil
 }
 
+func (c *FakeClusterInterface) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	return make(map[string][]string), nil
+}
+
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
@@ -66,7 +70,7 @@ func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newCo
 func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
 	if c.clusterMessageHandler != nil {
 		c.clusterMessageHandler(&model.ClusterMessage{
-			Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
+			Event: model.ClusterEventInvalidateCacheForRoles,
 		})
 	}
 }

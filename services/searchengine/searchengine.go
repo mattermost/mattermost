@@ -4,14 +4,12 @@
 package searchengine
 
 import (
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func NewBroker(cfg *model.Config, jobServer *jobs.JobServer) *Broker {
+func NewBroker(cfg *model.Config) *Broker {
 	return &Broker{
-		cfg:       cfg,
-		jobServer: jobServer,
+		cfg: cfg,
 	}
 }
 
@@ -25,7 +23,6 @@ func (seb *Broker) RegisterBleveEngine(be SearchEngineInterface) {
 
 type Broker struct {
 	cfg                 *model.Config
-	jobServer           *jobs.JobServer
 	ElasticsearchEngine SearchEngineInterface
 	BleveEngine         SearchEngineInterface
 }

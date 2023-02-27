@@ -4,54 +4,59 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitScheme() {
-	api.BaseRoutes.Schemes.Handle("", api.ApiSessionRequired(getSchemes)).Methods("GET")
-	api.BaseRoutes.Schemes.Handle("", api.ApiSessionRequired(createScheme)).Methods("POST")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteScheme)).Methods("DELETE")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getScheme)).Methods("GET")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/patch", api.ApiSessionRequired(patchScheme)).Methods("PUT")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequiredTrustRequester(getTeamsForScheme)).Methods("GET")
-	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequiredTrustRequester(getChannelsForScheme)).Methods("GET")
+	api.BaseRoutes.Schemes.Handle("", api.APISessionRequired(getSchemes)).Methods("GET")
+	api.BaseRoutes.Schemes.Handle("", api.APISessionRequired(createScheme)).Methods("POST")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteScheme)).Methods("DELETE")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getScheme)).Methods("GET")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchScheme)).Methods("PUT")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/teams", api.APISessionRequiredTrustRequester(getTeamsForScheme)).Methods("GET")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/channels", api.APISessionRequiredTrustRequester(getChannelsForScheme)).Methods("GET")
 }
 
 func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
-	scheme := model.SchemeFromJson(r.Body)
-	if scheme == nil {
-		c.SetInvalidParam("scheme")
+	var scheme model.Scheme
+	if jsonErr := json.NewDecoder(r.Body).Decode(&scheme); jsonErr != nil {
+		c.SetInvalidParamWithErr("scheme", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("createScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("scheme", scheme)
+	auditRec.AddEventParameter("scheme", scheme)
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.CustomPermissionsSchemes {
+	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
 
-	scheme, err := c.App.CreateScheme(scheme)
+	returnedScheme, err := c.App.CreateScheme(&scheme)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("scheme", scheme) // overwrite meta
+	auditRec.AddEventResultState(returnedScheme)
+	auditRec.AddEventObjectType("scheme")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(returnedScheme); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -60,8 +65,8 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
 		return
 	}
 
@@ -71,28 +76,36 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
 		return
 	}
 
 	scope := c.Params.Scope
-	if scope != "" && scope != model.SCHEME_SCOPE_TEAM && scope != model.SCHEME_SCOPE_CHANNEL {
+	if scope != "" && scope != model.SchemeScopeTeam && scope != model.SchemeScopeChannel {
 		c.SetInvalidParam("scope")
 		return
 	}
 
-	schemes, err := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	schemes, appErr := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.SchemesToJson(schemes)))
+	js, err := json.Marshal(schemes)
+	if err != nil {
+		c.Err = model.NewAppError("getSchemes", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -101,29 +114,35 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementTeams) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementTeams)
 		return
 	}
 
-	scheme, err := c.App.GetScheme(c.Params.SchemeId)
-	if err != nil {
-		c.Err = err
+	scheme, appErr := c.App.GetScheme(c.Params.SchemeId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+	if scheme.Scope != model.SchemeScopeTeam {
 		c.Err = model.NewAppError("Api4.GetTeamsForScheme", "api.scheme.get_teams_for_scheme.scope.error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	teams, err := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	teams, appErr := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	js, err := json.Marshal(teams)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamsForScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -132,8 +151,8 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
 
@@ -143,7 +162,7 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if scheme.Scope != model.SCHEME_SCOPE_CHANNEL {
+	if scheme.Scope != model.SchemeScopeChannel {
 		c.Err = model.NewAppError("Api4.GetChannelsForScheme", "api.scheme.get_channels_for_scheme.scope.error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -154,7 +173,9 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -163,43 +184,49 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch := model.SchemePatchFromJson(r.Body)
-	if patch == nil {
-		c.SetInvalidParam("scheme")
+	var patch model.SchemePatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
+		c.SetInvalidParamWithErr("scheme", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("patchScheme", audit.Fail)
+	auditRec.AddEventParameter("scheme_patch", patch)
 	defer c.LogAuditRec(auditRec)
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.CustomPermissionsSchemes {
+	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
 		c.Err = model.NewAppError("Api4.PatchScheme", "api.scheme.patch_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
+
+	auditRec.AddEventParameter("scheme_id", c.Params.SchemeId)
 
 	scheme, err := c.App.GetScheme(c.Params.SchemeId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("scheme", scheme)
+	auditRec.AddEventPriorState(scheme)
+	auditRec.AddEventObjectType("scheme")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
 
-	scheme, err = c.App.PatchScheme(scheme, patch)
+	scheme, err = c.App.PatchScheme(scheme, &patch)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("patch", scheme)
+	auditRec.AddEventResultState(scheme)
 
 	auditRec.Success()
 	c.LogAudit("")
 
-	w.Write([]byte(scheme.ToJson()))
+	if err := json.NewEncoder(w).Encode(scheme); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -209,15 +236,16 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteScheme", audit.Fail)
+	auditRec.AddEventParameter("scheme_id", c.Params.SchemeId)
 	defer c.LogAuditRec(auditRec)
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.CustomPermissionsSchemes {
+	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
 		c.Err = model.NewAppError("Api4.DeleteScheme", "api.scheme.delete_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
 
@@ -227,8 +255,9 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(scheme)
+	auditRec.AddEventObjectType("scheme")
 	auditRec.Success()
-	auditRec.AddMeta("scheme", scheme)
 
 	ReturnStatusOK(w)
 }

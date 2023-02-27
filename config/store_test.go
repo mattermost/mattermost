@@ -4,7 +4,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -18,7 +17,7 @@ func TestNewStoreFromDSN(t *testing.T) {
 	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
-	tempDir, err := ioutil.TempDir("", "TestNewStore")
+	tempDir, err := os.MkdirTemp("", "TestNewStore")
 	require.NoError(t, err)
 
 	err = os.Chdir(tempDir)
@@ -27,25 +26,14 @@ func TestNewStoreFromDSN(t *testing.T) {
 	require.NoError(t, os.Mkdir(filepath.Join(tempDir, "config"), 0700))
 
 	t.Run("database dsn", func(t *testing.T) {
-		ds, err := NewStoreFromDSN(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), false, false, nil)
-		require.NoError(t, err)
-		ds.Close()
-	})
-
-	t.Run("database dsn, watch ignored", func(t *testing.T) {
-		ds, err := NewStoreFromDSN(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), true, false, nil)
-		require.NoError(t, err)
+		ds, err2 := NewStoreFromDSN(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), false, nil, false)
+		require.NoError(t, err2)
 		ds.Close()
 	})
 
 	t.Run("file dsn", func(t *testing.T) {
-		fs, err := NewStoreFromDSN("config.json", false, false, nil)
-		require.NoError(t, err)
-		fs.Close()
-	})
-
-	t.Run("file dsn, watch", func(t *testing.T) {
-		fs, err := NewStoreFromDSN("config.json", true, false, nil)
+		defer os.Remove("config_test.json")
+		fs, err := NewStoreFromDSN("config_test.json", false, nil, true)
 		require.NoError(t, err)
 		fs.Close()
 	})
@@ -57,23 +45,23 @@ func TestNewStoreReadOnly(t *testing.T) {
 	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
-	tempDir, err := ioutil.TempDir("", "TestNewStore")
-	require.NoError(t, err)
+	tempDir, tErr := os.MkdirTemp("", "TestNewStore")
+	require.NoError(t, tErr)
 
-	err = os.Chdir(tempDir)
-	require.NoError(t, err)
+	tErr = os.Chdir(tempDir)
+	require.NoError(t, tErr)
 
 	require.NoError(t, os.Mkdir(filepath.Join(tempDir, "config"), 0700))
 
 	t.Run("database dsn", func(t *testing.T) {
-		ds, err := NewStoreFromDSN(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), false, true, nil)
+		ds, err := NewStoreFromDSN(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), true, nil, false)
 		require.NoError(t, err)
 
 		t.Run("Set", func(t *testing.T) {
-			oldCfg, newCfg, err := ds.Set(emptyConfig)
+			oldCfg, newCfg, err2 := ds.Set(emptyConfig)
 			require.Nil(t, oldCfg)
 			require.Nil(t, newCfg)
-			require.Equal(t, ErrReadOnlyStore, err)
+			require.Equal(t, ErrReadOnlyStore, err2)
 		})
 
 		t.Run("SetFile", func(t *testing.T) {
@@ -90,7 +78,7 @@ func TestNewStoreReadOnly(t *testing.T) {
 	})
 
 	t.Run("file dsn", func(t *testing.T) {
-		fs, err := NewStoreFromDSN("config.json", false, true, nil)
+		fs, err := NewStoreFromDSN("config_test.json", true, nil, true)
 		require.NoError(t, err)
 
 		t.Run("Set", func(t *testing.T) {
@@ -101,12 +89,12 @@ func TestNewStoreReadOnly(t *testing.T) {
 		})
 
 		t.Run("SetFile", func(t *testing.T) {
-			err := fs.SetFile("config.json", []byte{})
+			err := fs.SetFile("config_test.json", []byte{})
 			require.Equal(t, ErrReadOnlyStore, err)
 		})
 
 		t.Run("RemoveFile", func(t *testing.T) {
-			err := fs.RemoveFile("config.json")
+			err := fs.RemoveFile("config_test.json")
 			require.Equal(t, ErrReadOnlyStore, err)
 		})
 

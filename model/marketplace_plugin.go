@@ -89,6 +89,7 @@ type MarketplacePluginFilter struct {
 	Platform             string
 	PluginId             string
 	ReturnAllVersions    bool
+	RemoteOnly           bool
 }
 
 // ApplyToURL modifies the given url to include query string parameters for the request.
@@ -104,6 +105,7 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	q.Add("enterprise_plugins", strconv.FormatBool(filter.EnterprisePlugins))
 	q.Add("cloud", strconv.FormatBool(filter.Cloud))
 	q.Add("local_only", strconv.FormatBool(filter.LocalOnly))
+	q.Add("remote_only", strconv.FormatBool(filter.RemoteOnly))
 	q.Add("platform", filter.Platform)
 	q.Add("plugin_id", filter.PluginId)
 	q.Add("return_all_versions", strconv.FormatBool(filter.ReturnAllVersions))
@@ -124,13 +126,4 @@ func PluginRequestFromReader(reader io.Reader) (*InstallMarketplacePluginRequest
 		return nil, err
 	}
 	return r, nil
-}
-
-// ToJson method will return json from plugin request.
-func (r *InstallMarketplacePluginRequest) ToJson() (string, error) {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
 }

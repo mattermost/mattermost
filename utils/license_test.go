@@ -4,7 +4,8 @@
 package utils
 
 import (
-	"io/ioutil"
+	"bytes"
+	"encoding/base64"
 	"os"
 	"testing"
 
@@ -13,13 +14,54 @@ import (
 )
 
 func TestValidateLicense(t *testing.T) {
-	b1 := []byte("junk")
-	ok, _ := LicenseValidator.ValidateLicense(b1)
-	require.False(t, ok, "should have failed - bad license")
+	t.Run("should fail with junk data", func(t *testing.T) {
+		b1 := []byte("junk")
+		ok, _ := LicenseValidator.ValidateLicense(b1)
+		require.False(t, ok, "should have failed - bad license")
 
-	b2 := []byte("junkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunk")
-	ok, _ = LicenseValidator.ValidateLicense(b2)
-	require.False(t, ok, "should have failed - bad license")
+		b2 := []byte("junkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunk")
+		ok, _ = LicenseValidator.ValidateLicense(b2)
+		require.False(t, ok, "should have failed - bad license")
+	})
+
+	t.Run("should not panic on shorted than expected input", func(t *testing.T) {
+		var licenseData bytes.Buffer
+		var inputData []byte
+
+		for i := 0; i < 255; i++ {
+			inputData = append(inputData, 'A')
+		}
+		inputData = append(inputData, 0x00)
+
+		encoder := base64.NewEncoder(base64.StdEncoding, &licenseData)
+		_, err := encoder.Write(inputData)
+		require.NoError(t, err)
+		err = encoder.Close()
+		require.NoError(t, err)
+
+		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		require.False(t, ok)
+		require.Empty(t, str)
+	})
+
+	t.Run("should not panic with input filled of null terminators", func(t *testing.T) {
+		var licenseData bytes.Buffer
+		var inputData []byte
+
+		for i := 0; i < 256; i++ {
+			inputData = append(inputData, 0x00)
+		}
+
+		encoder := base64.NewEncoder(base64.StdEncoding, &licenseData)
+		_, err := encoder.Write(inputData)
+		require.NoError(t, err)
+		err = encoder.Close()
+		require.NoError(t, err)
+
+		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		require.False(t, ok)
+		require.Empty(t, str)
+	})
 }
 
 func TestGetLicenseFileLocation(t *testing.T) {
@@ -37,10 +79,10 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 	})
 
 	t.Run("not a license file", func(t *testing.T) {
-		f, err := ioutil.TempFile("", "TestGetLicenseFileFromDisk")
+		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
-		ioutil.WriteFile(f.Name(), []byte("not a license"), 0777)
+		os.WriteFile(f.Name(), []byte("not a license"), 0777)
 
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")

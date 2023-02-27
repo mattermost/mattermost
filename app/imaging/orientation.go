@@ -4,6 +4,7 @@
 package imaging
 
 import (
+	"fmt"
 	"image"
 	"io"
 
@@ -59,17 +60,17 @@ func MakeImageUpright(img image.Image, orientation int) image.Image {
 func GetImageOrientation(input io.Reader) (int, error) {
 	exifData, err := exif.Decode(input)
 	if err != nil {
-		return Upright, err
+		return Upright, fmt.Errorf("failed to decode exif data: %w", err)
 	}
 
 	tag, err := exifData.Get("Orientation")
 	if err != nil {
-		return Upright, err
+		return Upright, fmt.Errorf("failed to get orientation field from exif data: %w", err)
 	}
 
 	orientation, err := tag.Int(0)
 	if err != nil {
-		return Upright, err
+		return Upright, fmt.Errorf("failed to get value from exif tag: %w", err)
 	}
 
 	return orientation, nil

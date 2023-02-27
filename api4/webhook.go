@@ -4,35 +4,37 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitWebhook() {
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiSessionRequired(createIncomingHook)).Methods("POST")
-	api.BaseRoutes.IncomingHooks.Handle("", api.ApiSessionRequired(getIncomingHooks)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(getIncomingHook)).Methods("GET")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(updateIncomingHook)).Methods("PUT")
-	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(deleteIncomingHook)).Methods("DELETE")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequired(createIncomingHook)).Methods("POST")
+	api.BaseRoutes.IncomingHooks.Handle("", api.APISessionRequired(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(getIncomingHook)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(updateIncomingHook)).Methods("PUT")
+	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(deleteIncomingHook)).Methods("DELETE")
 
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiSessionRequired(createOutgoingHook)).Methods("POST")
-	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiSessionRequired(getOutgoingHooks)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(getOutgoingHook)).Methods("GET")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
-	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
-	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(createOutgoingHook)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(getOutgoingHook)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(updateOutgoingHook)).Methods("PUT")
+	api.BaseRoutes.OutgoingHook.Handle("", api.APISessionRequired(deleteOutgoingHook)).Methods("DELETE")
+	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.APISessionRequired(regenOutgoingHookToken)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.IncomingWebhookFromJson(r.Body)
-	if hook == nil {
-		c.SetInvalidParam("incoming_webhook")
+	var hook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
-	channel, err := c.App.GetChannel(hook.ChannelId)
+	channel, err := c.App.GetChannel(c.AppContext, hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -40,25 +42,26 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("incoming_webhook", hook)
 	auditRec.AddMeta("channel", channel)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageIncomingWebhooks) {
+		c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 		return
 	}
 
-	if channel.Type != model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
 		c.LogAudit("fail - bad channel permissions")
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
 	userId := c.AppContext.Session().UserId
 	if hook.UserId != "" && hook.UserId != userId {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
-			c.LogAudit("fail - innapropriate permissions")
-			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageOthersIncomingWebhooks) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
 			return
 		}
 
@@ -70,18 +73,21 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		userId = hook.UserId
 	}
 
-	incomingHook, err := c.App.CreateIncomingWebhookForChannel(userId, channel, hook)
+	incomingHook, err := c.App.CreateIncomingWebhookForChannel(userId, channel, &hook)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("hook", incomingHook)
+	auditRec.AddEventResultState(incomingHook)
+	auditRec.AddEventObjectType("hook")
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(incomingHook.ToJson()))
+	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -90,9 +96,9 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook := model.IncomingWebhookFromJson(r.Body)
-	if updatedHook == nil {
-		c.SetInvalidParam("incoming_webhook")
+	var updatedHook model.IncomingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -103,8 +109,9 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateIncomingHook", audit.Fail)
+	auditRec.AddEventParameter("hook_id", c.Params.HookId)
+	auditRec.AddEventParameter("updated_hook", updatedHook)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("hook_id", c.Params.HookId)
 	c.LogAudit("attempt")
 
 	oldHook, err := c.App.GetIncomingWebhook(c.Params.HookId)
@@ -112,7 +119,8 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("team_id", oldHook.TeamId)
+	auditRec.AddEventPriorState(oldHook)
+	auditRec.AddEventObjectType("incoming_webhook")
 
 	if updatedHook.TeamId == "" {
 		updatedHook.TeamId = oldHook.TeamId
@@ -123,7 +131,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := c.App.GetChannel(updatedHook.ChannelId)
+	channel, err := c.App.GetChannel(c.AppContext, updatedHook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -136,75 +144,86 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageIncomingWebhooks) {
+		c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != oldHook.UserId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != oldHook.UserId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageOthersIncomingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
 		return
 	}
 
-	if channel.Type != model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
 		c.LogAudit("fail - bad channel permissions")
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	incomingHook, err := c.App.UpdateIncomingWebhook(oldHook, updatedHook)
+	incomingHook, err := c.App.UpdateIncomingWebhook(oldHook, &updatedHook)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.AddEventResultState(incomingHook)
 	auditRec.Success()
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(incomingHook.ToJson()))
+	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	teamId := r.URL.Query().Get("team_id")
-	userId := c.AppContext.Session().UserId
+	var (
+		teamID = r.URL.Query().Get("team_id")
+		userID = c.AppContext.Session().UserId
 
-	var hooks []*model.IncomingWebhook
-	var err *model.AppError
+		hooks  []*model.IncomingWebhook
+		appErr *model.AppError
+	)
 
-	if teamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
+	if teamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageIncomingWebhooks) {
+			c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
-			userId = ""
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageOthersIncomingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetIncomingWebhooksForTeamPageByUser(teamID, userID, c.Params.Page, c.Params.PerPage)
 	} else {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageIncomingWebhooks) {
+			c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
-			userId = ""
+		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOthersIncomingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetIncomingWebhooksPageByUser(userID, c.Params.Page, c.Params.PerPage)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.IncomingWebhookListToJson(hooks)))
+	js, err := json.Marshal(hooks)
+	if err != nil {
+		c.Err = model.NewAppError("getIncomingHooks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -227,35 +246,38 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("getIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
 	auditRec.AddMeta("hook_display", hook.DisplayName)
 	auditRec.AddMeta("channel_id", hook.ChannelId)
 	auditRec.AddMeta("team_id", hook.TeamId)
 	c.LogAudit("attempt")
 
-	channel, err = c.App.GetChannel(hook.ChannelId)
+	channel, err = c.App.GetChannel(c.AppContext, hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) ||
-		(channel.Type != model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), hook.ChannelId, model.PERMISSION_READ_CHANNEL)) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageIncomingWebhooks) ||
+		(channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), hook.ChannelId, model.PermissionReadChannel)) {
 		c.LogAudit("fail - bad permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersIncomingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
 		return
 	}
 
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(hook.ToJson()))
+	if err := json.NewEncoder(w).Encode(hook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -276,7 +298,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err = c.App.GetChannel(hook.ChannelId)
+	channel, err = c.App.GetChannel(c.AppContext, hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -284,22 +306,23 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
 	auditRec.AddMeta("hook_display", hook.DisplayName)
 	auditRec.AddMeta("channel_id", channel.Id)
 	auditRec.AddMeta("channel_name", channel.Name)
 	auditRec.AddMeta("team_id", hook.TeamId)
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) ||
-		(channel.Type != model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), hook.ChannelId, model.PERMISSION_READ_CHANNEL)) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageIncomingWebhooks) ||
+		(channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), hook.ChannelId, model.PermissionReadChannel)) {
 		c.LogAudit("fail - bad permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersIncomingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
 		return
 	}
 
@@ -308,6 +331,8 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventPriorState(hook)
+	auditRec.AddEventObjectType("incoming_webhook")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
@@ -318,9 +343,9 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook := model.OutgoingWebhookFromJson(r.Body)
-	if updatedHook == nil {
-		c.SetInvalidParam("outgoing_webhook")
+	var updatedHook model.OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
@@ -332,10 +357,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateOutgoingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("hook_id", updatedHook.Id)
-	auditRec.AddMeta("hook_display", updatedHook.DisplayName)
-	auditRec.AddMeta("channel_id", updatedHook.ChannelId)
-	auditRec.AddMeta("team_id", updatedHook.TeamId)
+	auditRec.AddEventParameter("updated_hook", updatedHook)
 	c.LogAudit("attempt")
 
 	oldHook, err := c.App.GetOutgoingWebhook(c.Params.HookId)
@@ -353,20 +375,20 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), updatedHook.TeamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), updatedHook.TeamId, model.PermissionManageOutgoingWebhooks) {
+		c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != oldHook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != oldHook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), updatedHook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
 		return
 	}
 
 	updatedHook.CreatorId = c.AppContext.Session().UserId
 
-	rhook, err := c.App.UpdateOutgoingWebhook(oldHook, updatedHook)
+	rhook, err := c.App.UpdateOutgoingWebhook(c.AppContext, oldHook, &updatedHook)
 	if err != nil {
 		c.Err = err
 		return
@@ -375,32 +397,34 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(rhook.ToJson()))
+	if err := json.NewEncoder(w).Encode(rhook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	hook := model.OutgoingWebhookFromJson(r.Body)
-	if hook == nil {
-		c.SetInvalidParam("outgoing_webhook")
+	var hook model.OutgoingWebhook
+	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("createOutgoingHook", audit.Fail)
+	auditRec.AddEventParameter("hook", hook)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("hook_id", hook.Id)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOutgoingWebhooks) {
+		c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 		return
 	}
 
 	if hook.CreatorId == "" {
 		hook.CreatorId = c.AppContext.Session().UserId
 	} else {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
-			c.LogAudit("fail - innapropriate permissions")
-			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS)
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
 			return
 		}
 
@@ -411,7 +435,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rhook, err := c.App.CreateOutgoingWebhook(hook)
+	rhook, err := c.App.CreateOutgoingWebhook(&hook)
 	if err != nil {
 		c.LogAudit("fail")
 		c.Err = err
@@ -419,67 +443,77 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("hook_display", rhook.DisplayName)
-	auditRec.AddMeta("channel_id", rhook.ChannelId)
-	auditRec.AddMeta("team_id", rhook.TeamId)
+	auditRec.AddEventResultState(rhook)
+	auditRec.AddEventObjectType("outgoing_webhook")
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(rhook.ToJson()))
+	if err := json.NewEncoder(w).Encode(rhook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelId := r.URL.Query().Get("channel_id")
-	teamId := r.URL.Query().Get("team_id")
-	userId := c.AppContext.Session().UserId
+	var (
+		query     = r.URL.Query()
+		channelID = query.Get("channel_id")
+		teamID    = query.Get("team_id")
+		userID    = c.AppContext.Session().UserId
 
-	var hooks []*model.OutgoingWebhook
-	var err *model.AppError
+		hooks  []*model.OutgoingWebhook
+		appErr *model.AppError
+	)
 
-	if channelId != "" {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+	if channelID != "" {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOutgoingWebhooks) {
+			c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
-			userId = ""
+		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOthersOutgoingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, c.Params.Page, c.Params.PerPage)
-	} else if teamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+		hooks, appErr = c.App.GetOutgoingWebhooksForChannelPageByUser(channelID, userID, c.Params.Page, c.Params.PerPage)
+	} else if teamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageOutgoingWebhooks) {
+			c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
-			userId = ""
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageOthersOutgoingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetOutgoingWebhooksForTeamPageByUser(teamID, userID, c.Params.Page, c.Params.PerPage)
 	} else {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingWebhooks) {
+			c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
-			userId = ""
+		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOthersOutgoingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetOutgoingWebhooksPageByUser(userID, c.Params.Page, c.Params.PerPage)
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.OutgoingWebhookListToJson(hooks)))
+	js, err := json.Marshal(hooks)
+	if err != nil {
+		c.Err = model.NewAppError("getOutgoingHooks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -496,27 +530,30 @@ func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("getOutgoingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
 	auditRec.AddMeta("hook_display", hook.DisplayName)
 	auditRec.AddMeta("channel_id", hook.ChannelId)
 	auditRec.AddMeta("team_id", hook.TeamId)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOutgoingWebhooks) {
+		c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != hook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != hook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
 		return
 	}
 
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(hook.ToJson()))
+	if err := json.NewEncoder(w).Encode(hook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -539,14 +576,14 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("team_id", hook.TeamId)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOutgoingWebhooks) {
+		c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != hook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != hook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
 		return
 	}
 
@@ -556,10 +593,14 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	auditRec.AddEventResultState(rhook)
+	auditRec.AddEventObjectType("outgoing_webhook")
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(rhook.ToJson()))
+	if err := json.NewEncoder(w).Encode(rhook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -576,20 +617,21 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteOutgoingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("hook_id", c.Params.HookId)
 	auditRec.AddMeta("hook_id", hook.Id)
 	auditRec.AddMeta("hook_display", hook.DisplayName)
 	auditRec.AddMeta("channel_id", hook.ChannelId)
 	auditRec.AddMeta("team_id", hook.TeamId)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOutgoingWebhooks) {
+		c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 		return
 	}
 
-	if c.AppContext.Session().UserId != hook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+	if c.AppContext.Session().UserId != hook.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS)
+		c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
 		return
 	}
 

@@ -4,18 +4,20 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitPreference() {
-	api.BaseRoutes.Preferences.Handle("", api.ApiSessionRequired(getPreferences)).Methods("GET")
-	api.BaseRoutes.Preferences.Handle("", api.ApiSessionRequired(updatePreferences)).Methods("PUT")
-	api.BaseRoutes.Preferences.Handle("/delete", api.ApiSessionRequired(deletePreferences)).Methods("POST")
-	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.ApiSessionRequired(getPreferencesByCategory)).Methods("GET")
-	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.ApiSessionRequired(getPreferenceByCategoryAndName)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(getPreferences)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(updatePreferences)).Methods("PUT")
+	api.BaseRoutes.Preferences.Handle("/delete", api.APISessionRequired(deletePreferences)).Methods("POST")
+	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferencesByCategory)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferenceByCategoryAndName)).Methods("GET")
 }
 
 func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -25,7 +27,7 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -35,7 +37,9 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(preferences.ToJson()))
+	if err := json.NewEncoder(w).Encode(preferences); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -45,7 +49,7 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -55,7 +59,9 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write([]byte(preferences.ToJson()))
+	if err := json.NewEncoder(w).Encode(preferences); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -65,7 +71,7 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -75,7 +81,9 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Write([]byte(preferences.ToJson()))
+	if err := json.NewEncoder(w).Encode(preferences); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -88,28 +96,28 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	preferences, err := model.PreferencesFromJson(r.Body)
-	if err != nil {
-		c.SetInvalidParam("preferences")
+	var preferences model.Preferences
+	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
+		c.SetInvalidParamWithErr("preferences", jsonErr)
 		return
 	}
 
 	var sanitizedPreferences model.Preferences
 
 	for _, pref := range preferences {
-		if pref.Category == model.PREFERENCE_CATEGORY_FLAGGED_POST {
-			post, err := c.App.GetSinglePost(pref.Name)
+		if pref.Category == model.PreferenceCategoryFlaggedPost {
+			post, err := c.App.GetSinglePost(pref.Name, false)
 			if err != nil {
 				c.SetInvalidParam("preference.name")
 				return
 			}
 
-			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PERMISSION_READ_CHANNEL) {
-				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadChannel)
 				return
 			}
 		}
@@ -136,13 +144,13 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	preferences, err := model.PreferencesFromJson(r.Body)
-	if err != nil {
-		c.SetInvalidParam("preferences")
+	var preferences model.Preferences
+	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
+		c.SetInvalidParamWithErr("preferences", jsonErr)
 		return
 	}
 

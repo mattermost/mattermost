@@ -9,8 +9,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func handlerForGzip(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -23,7 +24,7 @@ func testAPIHandlerGzipMode(t *testing.T, name string, h http.Handler, token str
 	t.Run("Handler: "+name+" No Accept-Encoding", func(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Equal(t, "", resp.Header().Get("Content-Encoding"))
@@ -33,7 +34,7 @@ func testAPIHandlerGzipMode(t *testing.T, name string, h http.Handler, token str
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
 		req.Header.Set("Accept-Encoding", "gzip")
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
@@ -45,7 +46,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 	t.Run("Handler: "+name+" No Accept-Encoding", func(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
@@ -56,7 +57,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/v4/test", nil)
 		req.Header.Set("Accept-Encoding", "gzip")
-		req.Header.Set(model.HEADER_AUTH, "Bearer "+token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+token)
 
 		h.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
@@ -68,26 +69,27 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	api := Init(th.App, th.Server.Router)
+	api, err := Init(th.Server)
+	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	t.Run("with WebserverMode == \"gzip\"", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "gzip" })
 
-		testAPIHandlerGzipMode(t, "ApiHandler", api.ApiHandler(handlerForGzip), "")
-		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.ApiSessionRequired(handlerForGzip), session.Token)
-		testAPIHandlerGzipMode(t, "ApiSessionRequiredMfa", api.ApiSessionRequiredMfa(handlerForGzip), session.Token)
-		testAPIHandlerGzipMode(t, "ApiHandlerTrustRequester", api.ApiHandlerTrustRequester(handlerForGzip), "")
-		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.ApiSessionRequiredTrustRequester(handlerForGzip), session.Token)
+		testAPIHandlerGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip), "")
+		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip), session.Token)
+		testAPIHandlerGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip), session.Token)
+		testAPIHandlerGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip), "")
+		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip), session.Token)
 	})
 
 	t.Run("with WebserverMode == \"nogzip\"", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "nogzip" })
 
-		testAPIHandlerNoGzipMode(t, "ApiHandler", api.ApiHandler(handlerForGzip), "")
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.ApiSessionRequired(handlerForGzip), session.Token)
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredMfa", api.ApiSessionRequiredMfa(handlerForGzip), session.Token)
-		testAPIHandlerNoGzipMode(t, "ApiHandlerTrustRequester", api.ApiHandlerTrustRequester(handlerForGzip), "")
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.ApiSessionRequiredTrustRequester(handlerForGzip), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip), "")
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip), "")
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip), session.Token)
 	})
 }

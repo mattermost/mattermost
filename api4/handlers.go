@@ -8,16 +8,19 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
-	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 type Context = web.Context
 
-// ApiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+type handlerFunc func(*Context, http.ResponseWriter, *http.Request)
+
+// APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
-func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APIHandler(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -26,17 +29,17 @@ func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request))
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
 }
 
-// ApiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequired(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -45,17 +48,17 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
 
 }
 
-// CloudApiKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
-func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+// CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
+func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:             api.app,
+		Srv:             api.srv,
 		HandleFunc:      h,
 		HandlerName:     web.GetHandlerName(h),
 		RequireSession:  false,
@@ -65,7 +68,7 @@ func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.
 		IsStatic:        false,
 		IsLocal:         false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -73,9 +76,9 @@ func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
-func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:                       api.app,
+		Srv:                       api.srv,
 		HandleFunc:                h,
 		HandlerName:               web.GetHandlerName(h),
 		RequireSession:            false,
@@ -86,18 +89,18 @@ func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter,
 		IsStatic:                  false,
 		IsLocal:                   false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
 }
 
-// ApiSessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
+// APISessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
 // if MFA is enabled, the MFA process is not yet complete, and therefore the requirement to have completed the MFA
 // authentication must be waived.
-func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -106,19 +109,19 @@ func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
 
 }
 
-// ApiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
 // allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
 // websocket.
-func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -127,18 +130,18 @@ func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
 
 }
 
-// ApiSessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
+// APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
-func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -147,7 +150,7 @@ func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseW
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -156,9 +159,9 @@ func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseW
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
-func (api *API) ApiSessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:             api.app,
+		Srv:             api.srv,
 		HandleFunc:      h,
 		HandlerName:     web.GetHandlerName(h),
 		RequireSession:  true,
@@ -168,20 +171,20 @@ func (api *API) ApiSessionRequiredDisableWhenBusy(h func(*Context, http.Response
 		IsLocal:         false,
 		DisableWhenBusy: true,
 	}
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
 
 }
 
-// ApiLocal provides a handler for API endpoints to be used in local
+// APILocal provides a handler for API endpoints to be used in local
 // mode, this is, through a UNIX socket and without an authenticated
 // session, but with one that has no user set and no permission
 // restrictions
-func (api *API) ApiLocal(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APILocal(h handlerFunc) http.Handler {
 	handler := &web.Handler{
-		App:            api.app,
+		Srv:            api.srv,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: false,
@@ -191,8 +194,33 @@ func (api *API) ApiLocal(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        true,
 	}
 
-	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
+}
+
+func requireLicense(c *Context) *model.AppError {
+	if c.App.Channels().License() == nil {
+		err := model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)
+		return err
+	}
+	return nil
+}
+
+func minimumProfessionalLicense(c *Context) *model.AppError {
+	lic := c.App.Srv().License()
+	if lic == nil || (lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise) {
+		err := model.NewAppError("", model.NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
+		return err
+	}
+	return nil
+}
+
+func rejectGuests(c *Context) *model.AppError {
+	if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
+		err := model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)
+		return err
+	}
+	return nil
 }

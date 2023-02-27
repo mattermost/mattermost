@@ -94,17 +94,17 @@ func TestSplitWords(t *testing.T) {
 			Output: []string{"\"quoted multiple words\""},
 		},
 		{
-			Name:   "string has a mix of qouted words and non quoted words, output should contain 5 entries, quoted words should not be split",
+			Name:   "string has a mix of quoted words and non quoted words, output should contain 5 entries, quoted words should not be split",
 			Input:  "some stuff \"quoted multiple words\" more stuff",
 			Output: []string{"some", "stuff", "\"quoted multiple words\"", "more", "stuff"},
 		},
 		{
-			Name:   "string has a mix of qouted words with a - prefix and non quoted words, output should contain 5 entries, quoted words should not be split, - should be kept",
+			Name:   "string has a mix of quoted words with a - prefix and non quoted words, output should contain 5 entries, quoted words should not be split, - should be kept",
 			Input:  "some stuff -\"quoted multiple words\" more stuff",
 			Output: []string{"some", "stuff", "-\"quoted multiple words\"", "more", "stuff"},
 		},
 		{
-			Name:   "string has a mix of multiple qouted words with a - prefix and non quoted words including a # character, output should contain 5 entries, quoted words should not be split, # and - should be kept",
+			Name:   "string has a mix of multiple quoted words with a - prefix and non quoted words including a # character, output should contain 5 entries, quoted words should not be split, # and - should be kept",
 			Input:  "some \"stuff\" \"quoted multiple words\" #some \"more stuff\"",
 			Output: []string{"some", "\"stuff\"", "\"quoted multiple words\"", "#some", "\"more stuff\""},
 		},
@@ -393,7 +393,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string with a non-floag followed by :",
+			Name:  "string with a non-flag followed by :",
 			Input: "fruit: cherry",
 			Words: []searchWord{
 				{
@@ -1418,7 +1418,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is a wilrdcar with a *, should result in one term with a *",
+			Name:  "input is a wildcard with a *, should result in one term with a *",
 			Input: "wildcar*",
 			Output: []*SearchParams{
 				{
@@ -1784,17 +1784,17 @@ func TestGetAfterDateMillis(t *testing.T) {
 }
 
 func TestIsSearchParamsListValid(t *testing.T) {
-	var err *AppError
+	var appErr *AppError
 
-	err = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: true}})
-	assert.Nil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: true}})
+	assert.Nil(t, appErr)
 
-	err = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: false}})
-	assert.NotNil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: false}})
+	assert.NotNil(t, appErr)
 
-	err = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}})
-	assert.Nil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}})
+	assert.Nil(t, appErr)
 
-	err = IsSearchParamsListValid([]*SearchParams{})
-	assert.Nil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{})
+	assert.Nil(t, appErr)
 }

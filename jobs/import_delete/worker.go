@@ -8,166 +8,97 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/wiggin77/merror"
 )
 
-func init() {
-	app.RegisterJobsImportDeleteInterface(func(s *app.Server) tjobs.ImportDeleteInterface {
-		a := app.New(app.ServerConnector(s))
-		return &ImportDeleteInterfaceImpl{a}
-	})
+const jobName = "ImportDelete"
+
+type AppIface interface {
+	configservice.ConfigService
+	ListDirectory(path string) ([]string, *model.AppError)
+	FileModTime(path string) (time.Time, *model.AppError)
+	RemoveFile(path string) *model.AppError
 }
 
-type ImportDeleteInterfaceImpl struct {
-	app *app.App
-}
-
-type ImportDeleteWorker struct {
-	name        string
-	stopChan    chan struct{}
-	stoppedChan chan struct{}
-	jobsChan    chan model.Job
-	jobServer   *jobs.JobServer
-	app         *app.App
-}
-
-func (i *ImportDeleteInterfaceImpl) MakeWorker() model.Worker {
-	return &ImportDeleteWorker{
-		name:        "ImportDelete",
-		stopChan:    make(chan struct{}),
-		stoppedChan: make(chan struct{}),
-		jobsChan:    make(chan model.Job),
-		jobServer:   i.app.Srv().Jobs,
-		app:         i.app,
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) model.Worker {
+	isEnabled := func(cfg *model.Config) bool {
+		return *cfg.ImportSettings.Directory != "" && *cfg.ImportSettings.RetentionDays > 0
 	}
-}
+	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
 
-func (w *ImportDeleteWorker) JobChannel() chan<- model.Job {
-	return w.jobsChan
-}
-
-func (w *ImportDeleteWorker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", w.name))
-
-	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", w.name))
-		close(w.stoppedChan)
-	}()
-
-	for {
-		select {
-		case <-w.stopChan:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", w.name))
-			return
-		case job := <-w.jobsChan:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", w.name))
-			w.doJob(&job)
-		}
-	}
-}
-
-func (w *ImportDeleteWorker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", w.name))
-	close(w.stopChan)
-	<-w.stoppedChan
-}
-
-func (w *ImportDeleteWorker) doJob(job *model.Job) {
-	if claimed, err := w.jobServer.ClaimJob(job); err != nil {
-		mlog.Warn("Worker experienced an error while trying to claim job",
-			mlog.String("worker", w.name),
-			mlog.String("job_id", job.Id),
-			mlog.String("error", err.Error()))
-		return
-	} else if !claimed {
-		return
-	}
-
-	importPath := *w.app.Config().ImportSettings.Directory
-	retentionTime := time.Duration(*w.app.Config().ImportSettings.RetentionDays) * 24 * time.Hour
-	imports, appErr := w.app.ListDirectory(importPath)
-	if appErr != nil {
-		w.setJobError(job, appErr)
-		return
-	}
-
-	var hasErrs bool
-	for i := range imports {
-		filename := filepath.Base(imports[i])
-		modTime, appErr := w.app.FileModTime(filepath.Join(importPath, filename))
+		importPath := *app.Config().ImportSettings.Directory
+		retentionTime := time.Duration(*app.Config().ImportSettings.RetentionDays) * 24 * time.Hour
+		imports, appErr := app.ListDirectory(importPath)
 		if appErr != nil {
-			mlog.Debug("Worker: Failed to get file modification time",
-				mlog.Err(appErr), mlog.String("import", imports[i]))
-			hasErrs = true
-			continue
+			return appErr
 		}
 
-		if time.Now().After(modTime.Add(retentionTime)) {
-			// expected format if uploaded through the API is
-			// ${uploadID}_${filename}${app.IncompleteUploadSuffix}
-			minLen := 26 + 1 + len(app.IncompleteUploadSuffix)
-
-			// check if it's an incomplete upload and attempt to delete its session.
-			if len(filename) > minLen && filepath.Ext(filename) == app.IncompleteUploadSuffix {
-				uploadID := filename[:26]
-				if storeErr := w.app.Srv().Store.UploadSession().Delete(uploadID); storeErr != nil {
-					mlog.Debug("Worker: Failed to delete UploadSession",
-						mlog.Err(storeErr), mlog.String("upload_id", uploadID))
-					hasErrs = true
-					continue
-				}
-			} else {
-				// check if fileinfo exists and if so delete it.
-				filePath := filepath.Join(imports[i])
-				info, storeErr := w.app.Srv().Store.FileInfo().GetByPath(filePath)
-				var nfErr *store.ErrNotFound
-				if storeErr != nil && !errors.As(storeErr, &nfErr) {
-					mlog.Debug("Worker: Failed to get FileInfo",
-						mlog.Err(storeErr), mlog.String("path", filePath))
-					hasErrs = true
-					continue
-				} else if storeErr == nil {
-					if storeErr = w.app.Srv().Store.FileInfo().PermanentDelete(info.Id); storeErr != nil {
-						mlog.Debug("Worker: Failed to delete FileInfo",
-							mlog.Err(storeErr), mlog.String("file_id", info.Id))
-						hasErrs = true
-						continue
-					}
-				}
-			}
-
-			// remove file data from storage.
-			if appErr := w.app.RemoveFile(imports[i]); appErr != nil {
-				mlog.Debug("Worker: Failed to remove file",
+		multipleErrors := merror.New()
+		for i := range imports {
+			filename := filepath.Base(imports[i])
+			modTime, appErr := app.FileModTime(filepath.Join(importPath, filename))
+			if appErr != nil {
+				mlog.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("import", imports[i]))
-				hasErrs = true
+				multipleErrors.Append(appErr)
 				continue
 			}
+
+			if time.Now().After(modTime.Add(retentionTime)) {
+				// expected format if uploaded through the API is
+				// ${uploadID}_${filename}${model.IncompleteUploadSuffix}
+				minLen := 26 + 1 + len(model.IncompleteUploadSuffix)
+
+				// check if it's an incomplete upload and attempt to delete its session.
+				if len(filename) > minLen && filepath.Ext(filename) == model.IncompleteUploadSuffix {
+					uploadID := filename[:26]
+					if storeErr := s.UploadSession().Delete(uploadID); storeErr != nil {
+						mlog.Debug("Worker: Failed to delete UploadSession",
+							mlog.Err(storeErr), mlog.String("upload_id", uploadID))
+						multipleErrors.Append(storeErr)
+						continue
+					}
+				} else {
+					// check if fileinfo exists and if so delete it.
+					filePath := filepath.Join(imports[i])
+					info, storeErr := s.FileInfo().GetByPath(filePath)
+					var nfErr *store.ErrNotFound
+					if storeErr != nil && !errors.As(storeErr, &nfErr) {
+						mlog.Debug("Worker: Failed to get FileInfo",
+							mlog.Err(storeErr), mlog.String("path", filePath))
+						multipleErrors.Append(storeErr)
+						continue
+					} else if storeErr == nil {
+						if storeErr = s.FileInfo().PermanentDelete(info.Id); storeErr != nil {
+							mlog.Debug("Worker: Failed to delete FileInfo",
+								mlog.Err(storeErr), mlog.String("file_id", info.Id))
+							multipleErrors.Append(storeErr)
+							continue
+						}
+					}
+				}
+
+				// remove file data from storage.
+				if appErr := app.RemoveFile(imports[i]); appErr != nil {
+					mlog.Debug("Worker: Failed to remove file",
+						mlog.Err(appErr), mlog.String("import", imports[i]))
+					multipleErrors.Append(appErr)
+					continue
+				}
+			}
 		}
-	}
 
-	if hasErrs {
-		mlog.Warn("Worker: errors occurred")
+		if err := multipleErrors.ErrorOrNil(); err != nil {
+			mlog.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
+		}
+		return nil
 	}
-
-	mlog.Info("Worker: Job is complete", mlog.String("worker", w.name), mlog.String("job_id", job.Id))
-	w.setJobSuccess(job)
-}
-
-func (w *ImportDeleteWorker) setJobSuccess(job *model.Job) {
-	if err := w.app.Srv().Jobs.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		w.setJobError(job, err)
-	}
-}
-
-func (w *ImportDeleteWorker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := w.app.Srv().Jobs.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-	}
+	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	return worker
 }

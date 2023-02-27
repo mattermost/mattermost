@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -71,9 +72,13 @@ func init() {
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	CsvExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
+
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
@@ -89,7 +94,7 @@ func init() {
 }
 
 func scheduleExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
 	if err != nil {
 		return err
 	}
@@ -133,7 +138,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		}
 
 		job, err := messageExportI.StartSynchronizeJob(ctx, startTime)
-		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
+		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
@@ -149,7 +154,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
-		a, err := InitDBCommandContextCobra(command)
+		a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
 		license := a.Srv().License()
 		if err != nil {
 			return err
@@ -164,18 +169,23 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
+		limit, err := command.Flags().GetInt("limit")
+		if err != nil {
+			return errors.New("limit flag error")
+		}
+
 		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime)
+		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}
 		if warningsCount == 0 {
 			CommandPrettyPrintln("SUCCESS: Your data was exported.")
 		} else {
-			if format == model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY || format == model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY_ZIP {
+			if format == model.ComplianceExportTypeGlobalrelay || format == model.ComplianceExportTypeGlobalrelayZip {
 				CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see logs for details.", warningsCount))
 			} else {
 				CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
@@ -192,7 +202,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 }
 
 func bulkExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
 	if err != nil {
 		return err
 	}
@@ -227,10 +237,10 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	var opts app.BulkExportOpts
+	var opts model.BulkExportOpts
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
-	if err := a.BulkExport(fileWriter, filepath.Dir(outPath), opts); err != nil {
+	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}

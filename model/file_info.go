@@ -4,19 +4,19 @@
 package model
 
 import (
-	"encoding/json"
 	"image"
-	"image/gif"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
 )
 
 const (
-	FILEINFO_SORT_BY_CREATED = "CreateAt"
-	FILEINFO_SORT_BY_SIZE    = "Size"
+	FileinfoSortByCreated = "CreateAt"
+	FileinfoSortBySize    = "Size"
 )
 
 // GetFileInfosOptions contains options for getting FileInfos
@@ -56,36 +56,7 @@ type FileInfo struct {
 	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
-}
-
-func (fi *FileInfo) ToJson() string {
-	b, _ := json.Marshal(fi)
-	return string(b)
-}
-
-func FileInfoFromJson(data io.Reader) *FileInfo {
-	decoder := json.NewDecoder(data)
-
-	var fi FileInfo
-	if err := decoder.Decode(&fi); err != nil {
-		return nil
-	}
-	return &fi
-}
-
-func FileInfosToJson(infos []*FileInfo) string {
-	b, _ := json.Marshal(infos)
-	return string(b)
-}
-
-func FileInfosFromJson(data io.Reader) []*FileInfo {
-	decoder := json.NewDecoder(data)
-
-	var infos []*FileInfo
-	if err := decoder.Decode(&infos); err != nil {
-		return nil
-	}
-	return infos
+	Archived        bool    `json:"archived"`
 }
 
 func (fi *FileInfo) PreSave() {
@@ -138,6 +109,10 @@ func (fi *FileInfo) IsImage() bool {
 	return strings.HasPrefix(fi.MimeType, "image")
 }
 
+func (fi *FileInfo) IsSvg() bool {
+	return fi.MimeType == "image/svg+xml"
+}
+
 func NewInfo(name string) *FileInfo {
 	info := &FileInfo{
 		Name: name,
@@ -166,7 +141,7 @@ func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *App
 	extension := strings.ToLower(filepath.Ext(name))
 	info.MimeType = mime.TypeByExtension(extension)
 
-	if extension != "" && extension[0] == '.' {
+	if extension != "" {
 		// The client expects a file extension without the leading period
 		info.Extension = extension[1:]
 	} else {
@@ -182,13 +157,13 @@ func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *App
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
 				data.Seek(0, io.SeekStart)
-				gifConfig, err := gif.DecodeAll(data)
+				frameCount, err := imgutils.CountGIFFrames(data)
 				if err != nil {
 					// Still return the rest of the info even though it doesn't appear to be an actual gif
 					info.HasPreviewImage = true
-					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, err.Error(), http.StatusBadRequest)
+					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
-				info.HasPreviewImage = len(gifConfig.Image) == 1
+				info.HasPreviewImage = frameCount == 1
 			} else {
 				info.HasPreviewImage = true
 			}
@@ -212,4 +187,18 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 	}
 
 	return Etag(infos[0].PostId, maxUpdateAt)
+}
+
+func (fi *FileInfo) MakeContentInaccessible() {
+	if fi == nil {
+		return
+	}
+
+	fi.Archived = true
+	fi.Content = ""
+	fi.HasPreviewImage = false
+	fi.MiniPreview = nil
+	fi.Path = ""
+	fi.PreviewPath = ""
+	fi.ThumbnailPath = ""
 }

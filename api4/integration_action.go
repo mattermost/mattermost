@@ -7,14 +7,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitAction() {
-	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.ApiSessionRequired(doPostAction)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods("POST")
 
-	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/open", api.ApiHandler(openDialog)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/submit", api.ApiSessionRequired(submitDialog)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods("POST")
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -23,31 +24,33 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actionRequest := model.DoPostActionRequestFromJson(r.Body)
-	if actionRequest == nil {
-		actionRequest = &model.DoPostActionRequest{}
+	var actionRequest model.DoPostActionRequest
+	err := json.NewDecoder(r.Body).Decode(&actionRequest)
+	if err != nil {
+		c.Logger.Warn("Error decoding the action request", mlog.Err(err))
 	}
 
 	var cookie *model.PostActionCookie
 	if actionRequest.Cookie != "" {
 		cookie = &model.PostActionCookie{}
-		cookieStr, err := model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
+		cookieStr := ""
+		cookieStr, err = model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
 		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
 		err = json.Unmarshal([]byte(cookieStr), &cookie)
 		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), cookie.ChannelId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), cookie.ChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}
@@ -62,15 +65,17 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(resp)
-	w.Write(b)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	var dialog model.OpenDialogRequest
 	err := json.NewDecoder(r.Body).Decode(&dialog)
 	if err != nil {
-		c.SetInvalidParam("dialog")
+		c.SetInvalidParamWithErr("dialog", err)
 		return
 	}
 
@@ -79,8 +84,8 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.OpenInteractiveDialog(dialog); err != nil {
-		c.Err = err
+	if appErr := c.App.OpenInteractiveDialog(dialog); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -92,7 +97,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&submit)
 	if jsonErr != nil {
-		c.SetInvalidParam("dialog")
+		c.SetInvalidParamWithErr("dialog", jsonErr)
 		return
 	}
 
@@ -103,13 +108,13 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	submit.UserId = c.AppContext.Session().UserId
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), submit.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), submit.TeamId, model.PERMISSION_VIEW_TEAM) {
-		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), submit.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
 

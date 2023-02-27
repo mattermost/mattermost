@@ -4,31 +4,39 @@
 package app
 
 import (
-	"strings"
+	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
-	s.installPluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+	var data model.PluginEventData
+	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
+	s.Channels().installPluginFromData(data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
-	s.removePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+	var data model.PluginEventData
+	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
+	s.Channels().removePluginFromData(data)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
-	env := s.GetPluginsEnvironment()
-	if env == nil {
-		return
-	}
 	if msg.Props == nil {
 		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
 		return
 	}
 	pluginID := msg.Props["PluginID"]
+	// if the plugin key is empty, the message might be coming from a product.
+	if pluginID == "" {
+		pluginID = msg.Props["ProductID"]
+	}
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
 		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
@@ -36,7 +44,12 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	hooks, err := env.HooksForPlugin(pluginID)
+	channels, ok := s.products["channels"].(*Channels)
+	if !ok {
+		return
+	}
+
+	hooks, err := channels.HooksForPluginOrProduct(pluginID)
 	if err != nil {
 		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return
@@ -44,7 +57,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 
 	hooks.OnPluginClusterEvent(&plugin.Context{}, model.PluginClusterEvent{
 		Id:   eventID,
-		Data: []byte(msg.Data),
+		Data: msg.Data,
 	})
 }
 
@@ -53,96 +66,10 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
 // Be careful to not have duplicated handlers here and there.
 func (s *Server) registerClusterHandlers() {
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PUBLISH, s.clusterPublishHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_UPDATE_STATUS, s.clusterUpdateStatusHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES, s.clusterInvalidateAllCachesHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS, s.clusterInvalidateCacheForChannelMembersNotifyPropHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, s.clusterInvalidateCacheForChannelByNameHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER, s.clusterInvalidateCacheForUserHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS, s.clusterInvalidateCacheForUserTeamsHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_BUSY_STATE_CHANGED, s.clusterBusyStateChgHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER, s.clusterClearSessionCacheForUserHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS, s.clusterClearSessionCacheForAllUsersHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, s.clusterInstallPluginHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, s.clusterRemovePluginHandler)
-	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PLUGIN_EVENT, s.clusterPluginEventHandler)
-}
 
-func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
-	event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
-	if event == nil {
-		return
-	}
-	s.PublishSkipClusterSend(event)
-}
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventInstallPlugin, s.clusterInstallPluginHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
 
-func (s *Server) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
-	status := model.StatusFromJson(strings.NewReader(msg.Data))
-	s.statusCache.Set(status.UserId, status)
-}
-
-func (s *Server) clusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
-	s.InvalidateAllCachesSkipSend()
-}
-
-func (s *Server) clusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
-	s.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(msg.Data)
-}
-
-func (s *Server) clusterInvalidateCacheForChannelByNameHandler(msg *model.ClusterMessage) {
-	s.invalidateCacheForChannelByNameSkipClusterSend(msg.Props["id"], msg.Props["name"])
-}
-
-func (s *Server) clusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
-	s.invalidateCacheForUserSkipClusterSend(msg.Data)
-}
-
-func (s *Server) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
-	s.invalidateWebConnSessionCacheForUser(msg.Data)
-}
-
-func (s *Server) clearSessionCacheForUserSkipClusterSend(userID string) {
-	s.userService.ClearUserSessionCacheLocal(userID)
-	s.invalidateWebConnSessionCacheForUser(userID)
-}
-
-func (s *Server) clearSessionCacheForAllUsersSkipClusterSend() {
-	mlog.Info("Purging sessions cache")
-	s.userService.ClearAllUsersSessionCacheLocal()
-}
-
-func (s *Server) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
-	s.clearSessionCacheForUserSkipClusterSend(msg.Data)
-}
-
-func (s *Server) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessage) {
-	s.clearSessionCacheForAllUsersSkipClusterSend()
-}
-
-func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
-	s.serverBusyStateChanged(model.ServerBusyStateFromJson(strings.NewReader(msg.Data)))
-}
-
-func (s *Server) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {
-	s.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
-}
-
-func (s *Server) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
-	if teamID == "" {
-		teamID = "dm"
-	}
-
-	s.Store.Channel().InvalidateChannelByName(teamID, name)
-}
-
-func (s *Server) invalidateCacheForUserSkipClusterSend(userID string) {
-	s.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	s.invalidateWebConnSessionCacheForUser(userID)
-}
-
-func (s *Server) invalidateWebConnSessionCacheForUser(userID string) {
-	hub := s.GetHubForUserId(userID)
-	if hub != nil {
-		hub.InvalidateUser(userID)
-	}
+	s.platform.RegisterClusterHandlers()
 }

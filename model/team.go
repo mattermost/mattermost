@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -14,44 +12,62 @@ import (
 )
 
 const (
-	TEAM_OPEN                       = "O"
-	TEAM_INVITE                     = "I"
-	TEAM_ALLOWED_DOMAINS_MAX_LENGTH = 500
-	TEAM_COMPANY_NAME_MAX_LENGTH    = 64
-	TEAM_DESCRIPTION_MAX_LENGTH     = 255
-	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
-	TEAM_EMAIL_MAX_LENGTH           = 128
-	TEAM_NAME_MAX_LENGTH            = 64
-	TEAM_NAME_MIN_LENGTH            = 2
+	TeamOpen                    = "O"
+	TeamInvite                  = "I"
+	TeamAllowedDomainsMaxLength = 500
+	TeamCompanyNameMaxLength    = 64
+	TeamDescriptionMaxLength    = 255
+	TeamDisplayNameMaxRunes     = 64
+	TeamEmailMaxLength          = 128
+	TeamNameMaxLength           = 64
+	TeamNameMinLength           = 2
 )
 
 type Team struct {
-	Id                 string  `json:"id"`
-	CreateAt           int64   `json:"create_at"`
-	UpdateAt           int64   `json:"update_at"`
-	DeleteAt           int64   `json:"delete_at"`
-	DisplayName        string  `json:"display_name"`
-	Name               string  `json:"name"`
-	Description        string  `json:"description"`
-	Email              string  `json:"email"`
-	Type               string  `json:"type"`
-	CompanyName        string  `json:"company_name"`
-	AllowedDomains     string  `json:"allowed_domains"`
-	InviteId           string  `json:"invite_id"`
-	AllowOpenInvite    bool    `json:"allow_open_invite"`
-	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
-	SchemeId           *string `json:"scheme_id"`
-	GroupConstrained   *bool   `json:"group_constrained"`
-	PolicyID           *string `json:"policy_id" db:"-"`
+	Id                  string  `json:"id"`
+	CreateAt            int64   `json:"create_at"`
+	UpdateAt            int64   `json:"update_at"`
+	DeleteAt            int64   `json:"delete_at"`
+	DisplayName         string  `json:"display_name"`
+	Name                string  `json:"name"`
+	Description         string  `json:"description"`
+	Email               string  `json:"email"`
+	Type                string  `json:"type"`
+	CompanyName         string  `json:"company_name"`
+	AllowedDomains      string  `json:"allowed_domains"`
+	InviteId            string  `json:"invite_id"`
+	AllowOpenInvite     bool    `json:"allow_open_invite"`
+	LastTeamIconUpdate  int64   `json:"last_team_icon_update,omitempty"`
+	SchemeId            *string `json:"scheme_id"`
+	GroupConstrained    *bool   `json:"group_constrained"`
+	PolicyID            *string `json:"policy_id"`
+	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
+}
+
+func (o *Team) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    o.Id,
+		"create_at":             o.CreateAt,
+		"update_at":             o.UpdateAt,
+		"delete_at":             o.DeleteAt,
+		"type":                  o.Type,
+		"invite_id":             o.InviteId,
+		"allow_open_invite":     o.AllowOpenInvite,
+		"scheme_id":             o.SchemeId,
+		"group_constrained":     o.GroupConstrained,
+		"policy_id":             o.PolicyID,
+		"cloud_limits_archived": o.CloudLimitsArchived,
+	}
 }
 
 type TeamPatch struct {
-	DisplayName      *string `json:"display_name"`
-	Description      *string `json:"description"`
-	CompanyName      *string `json:"company_name"`
-	AllowedDomains   *string `json:"allowed_domains"`
-	AllowOpenInvite  *bool   `json:"allow_open_invite"`
-	GroupConstrained *bool   `json:"group_constrained"`
+	DisplayName         *string `json:"display_name"`
+	Description         *string `json:"description"`
+	CompanyName         *string `json:"company_name"`
+	AllowedDomains      *string `json:"allowed_domains"`
+	AllowOpenInvite     *bool   `json:"allow_open_invite"`
+	GroupConstrained    *bool   `json:"group_constrained"`
+	CloudLimitsArchived *bool   `json:"cloud_limits_archived"`
 }
 
 type TeamForExport struct {
@@ -68,12 +84,6 @@ type TeamsWithCount struct {
 	TotalCount int64   `json:"total_count"`
 }
 
-func InvitesFromJson(data io.Reader) *Invites {
-	var o *Invites
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *Invites) ToEmailList() []string {
 	emailList := make([]string, len(o.Invites))
 	for _, invite := range o.Invites {
@@ -82,61 +92,11 @@ func (o *Invites) ToEmailList() []string {
 	return emailList
 }
 
-func (o *Invites) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *Team) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func TeamFromJson(data io.Reader) *Team {
-	var o *Team
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamMapToJson(u map[string]*Team) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func TeamMapFromJson(data io.Reader) map[string]*Team {
-	var teams map[string]*Team
-	json.NewDecoder(data).Decode(&teams)
-	return teams
-}
-
-func TeamListToJson(t []*Team) string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func TeamsWithCountToJson(tlc *TeamsWithCount) []byte {
-	b, _ := json.Marshal(tlc)
-	return b
-}
-
-func TeamsWithCountFromJson(data io.Reader) *TeamsWithCount {
-	var twc *TeamsWithCount
-	json.NewDecoder(data).Decode(&twc)
-	return twc
-}
-
-func TeamListFromJson(data io.Reader) []*Team {
-	var teams []*Team
-	json.NewDecoder(data).Decode(&teams)
-	return teams
-}
-
 func (o *Team) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Team) IsValid() *AppError {
-
 	if !IsValidId(o.Id) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -149,7 +109,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Email) > TEAM_EMAIL_MAX_LENGTH {
+	if len(o.Email) > TeamEmailMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -157,15 +117,15 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TEAM_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TeamDisplayNameMaxRunes {
 		return NewAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Name) > TEAM_NAME_MAX_LENGTH {
+	if len(o.Name) > TeamNameMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
+	if len(o.Description) > TeamDescriptionMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -181,15 +141,15 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
+	if !(o.Type == TeamOpen || o.Type == TeamInvite) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.CompanyName) > TEAM_COMPANY_NAME_MAX_LENGTH {
+	if len(o.CompanyName) > TeamCompanyNameMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.AllowedDomains) > TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
+	if len(o.AllowedDomains) > TeamAllowedDomainsMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -235,11 +195,11 @@ func IsReservedTeamName(s string) bool {
 }
 
 func IsValidTeamName(s string) bool {
-	if !IsValidAlphaNum(s) {
+	if !isValidAlphaNum(s) {
 		return false
 	}
 
-	if len(s) < TEAM_NAME_MIN_LENGTH {
+	if len(s) < TeamNameMinLength {
 		return false
 	}
 
@@ -304,28 +264,39 @@ func (o *Team) Patch(patch *TeamPatch) {
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
 	}
+
+	if patch.CloudLimitsArchived != nil {
+		o.CloudLimitsArchived = *patch.CloudLimitsArchived
+	}
 }
 
 func (o *Team) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
-func (t *TeamPatch) ToJson() string {
-	b, err := json.Marshal(t)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
+// ShallowCopy returns a shallow copy of team.
+func (o *Team) ShallowCopy() *Team {
+	c := *o
+	return &c
 }
 
-func TeamPatchFromJson(data io.Reader) *TeamPatch {
-	decoder := json.NewDecoder(data)
-	var team TeamPatch
-	err := decoder.Decode(&team)
-	if err != nil {
-		return nil
-	}
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
 
-	return &team
+func (o *Team) CreateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Team) UpdateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Team) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
+}
+
+func (o *Team) LastTeamIconUpdate_() float64 {
+	return float64(o.LastTeamIconUpdate)
 }

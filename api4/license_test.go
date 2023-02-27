@@ -6,46 +6,48 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	mocks2 "github.com/mattermost/mattermost-server/v5/utils/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	mocks2 "github.com/mattermost/mattermost-server/v6/utils/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
-	license, resp := Client.GetOldClientLicense("")
-	CheckNoError(t, resp)
+	license, _, err := client.GetOldClientLicense("")
+	require.NoError(t, err)
 
 	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
 
-	Client.Logout()
+	client.Logout()
 
-	_, resp = Client.GetOldClientLicense("")
-	CheckNoError(t, resp)
+	_, _, err = client.GetOldClientLicense("")
+	require.NoError(t, err)
 
-	_, err := Client.DoApiGet("/license/client", "")
-	require.NotNil(t, err, "get /license/client did not return an error")
-	require.Equal(t, err.StatusCode, http.StatusNotImplemented,
-		"expected 501 Not Implemented")
+	resp, err := client.DoAPIGet("/license/client", "")
+	require.Error(t, err, "get /license/client did not return an error")
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
+		"expected 400 bad request")
 
-	_, err = Client.DoApiGet("/license/client?format=junk", "")
-	require.NotNil(t, err, "get /license/client?format=junk did not return an error")
-	require.Equal(t, err.StatusCode, http.StatusBadRequest,
+	resp, err = client.DoAPIGet("/license/client?format=junk", "")
+	require.Error(t, err, "get /license/client?format=junk did not return an error")
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
 		"expected 400 Bad Request")
 
-	license, resp = th.SystemAdminClient.GetOldClientLicense("")
-	CheckNoError(t, resp)
+	license, _, err = th.SystemAdminClient.GetOldClientLicense("")
+	require.NoError(t, err)
 
 	require.NotEmpty(t, license["IsLicensed"], "license not returned correctly")
 }
@@ -53,43 +55,40 @@ func TestGetOldClientLicense(t *testing.T) {
 func TestUploadLicenseFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp := Client.UploadLicenseFile([]byte{})
+		resp, err := client.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, resp := c.UploadLicenseFile([]byte{})
+		resp, err := c.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
-		require.False(t, ok)
 	}, "as system admin user")
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok)
 	})
 
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		ok, resp := LocalClient.UploadLicenseFile([]byte{})
+		resp, err := LocalClient.UploadLicenseFile([]byte{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
-		require.False(t, ok)
 	})
 
 	t.Run("server has already gone through trial", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
-
-		//startTimestamp, err := time.Parse("2 Jan 2006 3:04 pm", "1 Jan 2021 12:00 am")
-		//require.Nil(t, err)
 
 		userCount := 100
 		mills := model.GetMillis()
@@ -115,12 +114,42 @@ func TestUploadLicenseFile(t *testing.T) {
 
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
-		th.App.Srv().LicenseManager = licenseManagerMock
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
-		require.False(t, ok)
+		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
+		CheckErrorID(t, err, "api.license.request-trial.can-start-trial.not-allowed")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		require.Equal(t, "api.license.request-trial.can-start-trial.not-allowed", resp.Error.Id)
+	})
+
+	t.Run("try to get gone through trial, with TE build", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
+		th.App.Srv().Platform().SetLicenseManager(nil)
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		license := model.License{
+			Id: model.NewId(),
+			Features: &model.Features{
+				Users: model.NewInt(100),
+			},
+			Customer: &model.Customer{
+				Name: "Test",
+			},
+			StartsAt:  model.GetMillis() + 100,
+			ExpiresAt: model.GetMillis() + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
+		}
+
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		licenseBytes, err := json.Marshal(license)
+		require.NoError(t, err)
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseBytes))
+		utils.LicenseValidator = &mockLicenseValidator
+
+		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte(""))
+		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
+		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
 
 	t.Run("allow uploading sanctioned trials even if server already gone through trial", func(t *testing.T) {
@@ -154,47 +183,44 @@ func TestUploadLicenseFile(t *testing.T) {
 
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
-		th.App.Srv().LicenseManager = licenseManagerMock
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
-		require.False(t, ok)
+		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
+		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.Nil(t, resp.Error)
 	})
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp := Client.RemoveLicenseFile()
+		resp, err := client.RemoveLicenseFile()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		ok, resp := c.RemoveLicenseFile()
-		CheckNoError(t, resp)
-		require.True(t, ok)
+		_, err := c.RemoveLicenseFile()
+		require.NoError(t, err)
 	}, "as system admin user")
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		resp, err := th.SystemAdminClient.RemoveLicenseFile()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok)
 	})
 
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		ok, resp := LocalClient.RemoveLicenseFile()
-		CheckNoError(t, resp)
-		require.True(t, ok)
+		_, err := LocalClient.RemoveLicenseFile()
+		require.NoError(t, err)
 	})
 }
 
@@ -204,29 +230,175 @@ func TestRequestTrialLicense(t *testing.T) {
 
 	licenseManagerMock := &mocks.LicenseInterface{}
 	licenseManagerMock.On("CanStartTrial").Return(true, nil)
-	th.App.Srv().LicenseManager = licenseManagerMock
+	th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 
 	t.Run("permission denied", func(t *testing.T) {
-		ok, resp := th.Client.RequestTrialLicense(1000)
+		resp, err := th.Client.RequestTrialLicense(1000)
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok)
-	})
-
-	t.Run("blank site url", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
-		ok, resp := th.SystemAdminClient.RequestTrialLicense(1000)
-		CheckBadRequestStatus(t, resp)
-		require.Equal(t, "api.license.request_trial_license.no-site-url.app_error", resp.Error.Id)
-		require.False(t, ok)
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
+		nUsers := 1
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewInt(nUsers)
+		licenseJSON, jsonErr := json.Marshal(license)
+		require.NoError(t, jsonErr)
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			response := map[string]string{
+				"license": string(licenseJSON),
+			}
+			err := json.NewEncoder(res).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer testServer.Close()
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		utils.LicenseValidator = &mockLicenseValidator
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		defer func(requestTrialURL string) {
+			platform.RequestTrialURL = requestTrialURL
+		}(platform.RequestTrialURL)
+		platform.RequestTrialURL = testServer.URL
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
+		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
 		CheckBadRequestStatus(t, resp)
-		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
-		require.False(t, ok)
+	})
+
+	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		nUsers := 1
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewInt(nUsers)
+		licenseJSON, jsonErr := json.Marshal(license)
+		require.NoError(t, jsonErr)
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusUnavailableForLegalReasons)
+		}))
+		defer testServer.Close()
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		utils.LicenseValidator = &mockLicenseValidator
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		defer func(requestTrialURL string) {
+			platform.RequestTrialURL = requestTrialURL
+		}(platform.RequestTrialURL)
+		platform.RequestTrialURL = testServer.URL
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
+		require.Error(t, err)
+		require.Equal(t, resp.StatusCode, 451)
+	})
+
+	th.App.Srv().Platform().SetLicenseManager(nil)
+	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.RequestTrialLicense(1)
+		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestRequestRenewalLink(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	require.NotPanics(t, func() {
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = nil
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/renewal", "")
+		CheckErrorID(t, err, "app.license.generate_renewal_token.no_license")
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+func TestRequestTrueUpReview(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+}
+
+func TestTrueUpReviewStatus(t *testing.T) {
+	th := Setup(t)
+
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	t.Run("returns 200 when status retrieved", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 }

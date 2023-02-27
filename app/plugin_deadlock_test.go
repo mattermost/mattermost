@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestPluginDeadlock(t *testing.T) {
@@ -24,8 +24,8 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
-				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
 			)
 
 			type MyPlugin struct {
@@ -54,7 +54,7 @@ func TestPluginDeadlock(t *testing.T) {
 					UserId: "{{.User.Id}}",
 					ChannelId: "{{.Channel.Id}}",
 					Message:   "message",
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"from_plugin": true,
 					},
 				})
@@ -112,8 +112,8 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
-				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
 			)
 
 			type MyPlugin struct {
@@ -129,7 +129,7 @@ func TestPluginDeadlock(t *testing.T) {
 					UserId: "{{.User.Id}}",
 					ChannelId: "{{.Channel.Id}}",
 					Message:   "message",
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"from_plugin": true,
 					},
 				})
@@ -147,8 +147,8 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
-				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
 			)
 
 			type MyPlugin struct {
@@ -218,8 +218,8 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
-				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
 			)
 
 			type MyPlugin struct {
@@ -244,7 +244,7 @@ func TestPluginDeadlock(t *testing.T) {
 					UserId: "{{.User.Id}}",
 					ChannelId: "{{.Channel.Id}}",
 					Message:   "messageUpdated",
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"from_plugin": true,
 					},
 				}

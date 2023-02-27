@@ -1,7 +1,8 @@
-// +build !race
-
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
+//go:build !race
+// +build !race
 
 package api4
 
@@ -11,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // TestWebSocket is intentionally made to skip -race mode
@@ -21,20 +22,20 @@ func TestWebSocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer WebSocketClient.Close()
 
 	time.Sleep(300 * time.Millisecond)
 
 	// Test closing and reconnecting
 	WebSocketClient.Close()
-	err = WebSocketClient.Connect()
-	require.Nil(t, err)
+	appErr := WebSocketClient.Connect()
+	require.Nil(t, appErr)
 
 	WebSocketClient.Listen()
 
 	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
+	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	WebSocketClient.SendMessage("ping", nil)
 	resp = <-WebSocketClient.ResponseChannel

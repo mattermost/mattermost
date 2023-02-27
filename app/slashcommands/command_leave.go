@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type LeaveProvider struct {
@@ -34,24 +34,24 @@ func (*LeaveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LeaveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
-	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	if channel, noChannelErr = a.GetChannel(c, args.ChannelId); noChannelErr != nil {
+		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	team, err := a.GetTeam(args.TeamId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	err = a.LeaveChannel(c, args.ChannelId, args.UserId)
 	if err != nil {
-		if channel.Name == model.DEFAULT_CHANNEL {
-			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		if channel.Name == model.DefaultChannelName {
+			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]any{"Channel": model.DefaultChannelName}), ResponseType: model.CommandResponseTypeEphemeral}
 		}
-		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	member, err := a.GetTeamMember(team.Id, args.UserId)
@@ -61,20 +61,20 @@ func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.Comm
 
 	user, err := a.GetUser(args.UserId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if user.IsGuest() {
-		members, err := a.GetChannelMembersForUser(team.Id, args.UserId)
-		if err != nil || len(*members) == 0 {
-			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		members, err := a.GetChannelMembersForUser(c, team.Id, args.UserId)
+		if err != nil || len(members) == 0 {
+			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
-		channel, err := a.GetChannel((*members)[0].ChannelId)
+		channel, err := a.GetChannel(c, members[0].ChannelId)
 		if err != nil {
-			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 		return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channel.Name}
 	}
 
-	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + model.DEFAULT_CHANNEL}
+	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + model.DefaultChannelName}
 }

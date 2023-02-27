@@ -5,8 +5,6 @@ package sqlstore
 
 import (
 	"context"
-
-	"github.com/mattermost/gorp"
 )
 
 // storeContextKey is the base type for all context keys for the store.
@@ -35,10 +33,10 @@ func hasMaster(ctx context.Context) bool {
 	return false
 }
 
-// DBFromContext is a helper utility that returns the DB handle from a given context.
-func (ss *SqlStore) DBFromContext(ctx context.Context) *gorp.DbMap {
+// DBXFromContext is a helper utility that returns the sqlx DB handle from a given context.
+func (ss *SqlStore) DBXFromContext(ctx context.Context) *sqlxDBWrapper {
 	if hasMaster(ctx) {
-		return ss.GetMaster()
+		return ss.GetMasterX()
 	}
-	return ss.GetReplica()
+	return ss.GetReplicaX()
 }

@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
@@ -18,14 +18,17 @@ import (
 // only that channel's members are created. If channelID is nil all channel memberships are created.
 // If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, channelID *string, includeRemovedMembers bool) error {
-	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+func (a *App) createDefaultChannelMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error {
+	channelMembers, appErr := a.ChannelMembersToAdd(params.Since, params.ScopedChannelID, params.ReAddRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
 
 	for _, userChannel := range channelMembers {
-		channel, err := a.GetChannel(userChannel.ChannelID)
+		if params.ScopedUserID != nil && *params.ScopedUserID != userChannel.UserID {
+			continue
+		}
+		channel, err := a.GetChannel(c, userChannel.ChannelID)
 		if err != nil {
 			return err
 		}
@@ -40,7 +43,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 			_, err = a.AddTeamMember(c, channel.TeamId, userChannel.UserID)
 			if err != nil {
 				if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
-					a.Log().Info("User not added to channel - the domain associated with the user is not in the list of allowed team domains",
+					c.Logger().Info("User not added to channel - the domain associated with the user is not in the list of allowed team domains",
 						mlog.String("user_id", userChannel.UserID),
 						mlog.String("channel_id", userChannel.ChannelID),
 						mlog.String("team_id", channel.TeamId),
@@ -49,7 +52,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 				}
 				return err
 			}
-			a.Log().Info("added teammember",
+			c.Logger().Info("added teammember",
 				mlog.String("user_id", userChannel.UserID),
 				mlog.String("team_id", channel.TeamId),
 			)
@@ -60,7 +63,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 		})
 		if err != nil {
 			if err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
-				a.Log().Info("Not adding user to channel because they have already left the team",
+				c.Logger().Info("Not adding user to channel because they have already left the team",
 					mlog.String("user_id", userChannel.UserID),
 					mlog.String("channel_id", userChannel.ChannelID),
 				)
@@ -69,7 +72,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 			}
 		}
 
-		a.Log().Info("added channelmember",
+		c.Logger().Info("added channelmember",
 			mlog.String("user_id", userChannel.UserID),
 			mlog.String("channel_id", userChannel.ChannelID),
 		)
@@ -83,17 +86,20 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 // only that team's members are created. If teamID is nil all team memberships are created.
 // If includeRemovedMembers is true, then team members who left or were removed from the team will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, teamID *string, includeRemovedMembers bool) error {
-	teamMembers, appErr := a.TeamMembersToAdd(since, teamID, includeRemovedMembers)
+func (a *App) createDefaultTeamMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error {
+	teamMembers, appErr := a.TeamMembersToAdd(params.Since, params.ScopedTeamID, params.ReAddRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
 
 	for _, userTeam := range teamMembers {
+		if params.ScopedUserID != nil && *params.ScopedUserID != userTeam.UserID {
+			continue
+		}
 		_, err := a.AddTeamMember(c, userTeam.TeamID, userTeam.UserID)
 		if err != nil {
 			if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
-				a.Log().Info("User not added to team - the domain associated with the user is not in the list of allowed team domains",
+				c.Logger().Info("User not added to team - the domain associated with the user is not in the list of allowed team domains",
 					mlog.String("user_id", userTeam.UserID),
 					mlog.String("team_id", userTeam.TeamID),
 				)
@@ -102,7 +108,7 @@ func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, team
 			return err
 		}
 
-		a.Log().Info("added teammember",
+		c.Logger().Info("added teammember",
 			mlog.String("user_id", userTeam.UserID),
 			mlog.String("team_id", userTeam.TeamID),
 		)
@@ -115,13 +121,13 @@ func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, team
 // are configured to sync with teams and channels for group members on or after the given timestamp.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error {
-	err := a.createDefaultTeamMemberships(c, since, nil, includeRemovedMembers)
+func (a *App) CreateDefaultMemberships(c *request.Context, params model.CreateDefaultMembershipParams) error {
+	err := a.createDefaultTeamMemberships(c, params)
 	if err != nil {
 		return err
 	}
 
-	err = a.createDefaultChannelMemberships(c, since, nil, includeRemovedMembers)
+	err = a.createDefaultChannelMemberships(c, params)
 	if err != nil {
 		return err
 	}
@@ -148,7 +154,7 @@ func (a *App) DeleteGroupConstrainedMemberships(c *request.Context) error {
 // deleteGroupConstrainedTeamMemberships deletes team memberships of users who aren't members of the allowed
 // groups of the given group-constrained team. If a teamID is given then the procedure is scoped to the given team,
 // if teamID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedTeamMemberships(c *request.Context, teamID *string) error {
+func (a *App) deleteGroupConstrainedTeamMemberships(c request.CTX, teamID *string) error {
 	teamMembers, appErr := a.TeamMembersToRemove(teamID)
 	if appErr != nil {
 		return appErr
@@ -160,7 +166,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(c *request.Context, teamID *
 			return err
 		}
 
-		a.Log().Info("removed teammember",
+		c.Logger().Info("removed teammember",
 			mlog.String("user_id", userTeam.UserId),
 			mlog.String("team_id", userTeam.TeamId),
 		)
@@ -172,14 +178,14 @@ func (a *App) deleteGroupConstrainedTeamMemberships(c *request.Context, teamID *
 // deleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
 // groups of the given group-constrained channel. If a channelID is given then the procedure is scoped to the given team,
 // if channelID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedChannelMemberships(c *request.Context, channelID *string) error {
+func (a *App) deleteGroupConstrainedChannelMemberships(c request.CTX, channelID *string) error {
 	channelMembers, appErr := a.ChannelMembersToRemove(channelID)
 	if appErr != nil {
 		return appErr
 	}
 
 	for _, userChannel := range channelMembers {
-		channel, err := a.GetChannel(userChannel.ChannelId)
+		channel, err := a.GetChannel(c, userChannel.ChannelId)
 		if err != nil {
 			return err
 		}
@@ -202,9 +208,9 @@ func (a *App) deleteGroupConstrainedChannelMemberships(c *request.Context, chann
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
 func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
-	permittedAdmins, err := a.Srv().Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
+	permittedAdmins, err := a.Srv().Store().Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
-		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Log().Info(
@@ -215,41 +221,49 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		return nil
 	case model.GroupSyncableTypeChannel:
-		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		return nil
 	default:
-		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
+		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]any{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
 }
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
+func (a *App) SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
-	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, model.JOB_TYPE_LDAP_SYNC)
+	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
 	if lastJob != nil {
 		since = lastJob.StartAt
 	}
 
+	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}
+
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		a.createDefaultTeamMemberships(c, since, &syncableID, includeRemovedMembers)
+		params.ScopedTeamID = &syncableID
+		a.createDefaultTeamMemberships(c, params)
 		a.deleteGroupConstrainedTeamMemberships(c, &syncableID)
-		a.ClearTeamMembersCache(syncableID)
+		if err := a.ClearTeamMembersCache(syncableID); err != nil {
+			c.Logger().Warn("Error clearing team members cache", mlog.Err(err))
+		}
 	case model.GroupSyncableTypeChannel:
-		a.createDefaultChannelMemberships(c, since, &syncableID, includeRemovedMembers)
+		params.ScopedChannelID = &syncableID
+		a.createDefaultChannelMemberships(c, params)
 		a.deleteGroupConstrainedChannelMemberships(c, &syncableID)
-		a.ClearChannelMembersCache(syncableID)
+		if err := a.ClearChannelMembersCache(c, syncableID); err != nil {
+			c.Logger().Warn("Error clearing channel members cache", mlog.Err(err))
+		}
 	}
 }

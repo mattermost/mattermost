@@ -4,7 +4,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -12,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type cleanUpFn func(store *Store)
@@ -39,7 +38,7 @@ func TestMigrate(t *testing.T) {
 		os.Clearenv()
 		t.Helper()
 
-		tempDir, err := ioutil.TempDir("", "TestMigrate")
+		tempDir, err := os.MkdirTemp("", "TestMigrate")
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			os.RemoveAll(tempDir)
@@ -141,7 +140,7 @@ func TestMigrate(t *testing.T) {
 		sourceDSN := path.Join(pwd, "config-custom.json")
 		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		sourcefile, err := NewFileStore(sourceDSN, false)
+		sourcefile, err := NewFileStore(sourceDSN, true)
 		require.NoError(t, err)
 		source, err := NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)

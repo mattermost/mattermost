@@ -4,15 +4,21 @@
 package app
 
 import (
+	"context"
+	"encoding/csv"
 	"fmt"
+	"io"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
@@ -24,14 +30,14 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		permissionId string
 		shouldGrant  bool
 	}{
-		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
-		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, "non-existent-permission", false},
-		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_READ_CHANNEL.Id, true},
-		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, false},
-		{[]string{model.SYSTEM_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
-		{[]string{model.CHANNEL_USER_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
-		{[]string{model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
-		{[]string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
+		{[]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
+		{[]string{model.SystemAdminRoleId}, "non-existent-permission", false},
+		{[]string{model.ChannelUserRoleId}, model.PermissionReadChannel.Id, true},
+		{[]string{model.ChannelUserRoleId}, model.PermissionManageSystem.Id, false},
+		{[]string{model.SystemAdminRoleId, model.ChannelUserRoleId}, model.PermissionManageSystem.Id, true},
+		{[]string{model.ChannelUserRoleId, model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
+		{[]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionManageSlashCommands.Id, true},
+		{[]string{model.TeamAdminRoleId, model.TeamUserRoleId}, model.PermissionManageSlashCommands.Id, true},
 	}
 
 	for _, testcase := range cases {
@@ -50,17 +56,17 @@ func TestHasPermissionToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
+	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
+	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
+	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
-	th.RemovePermissionFromRole(model.PERMISSION_LIST_TEAM_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
+	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
+	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
+	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
@@ -72,7 +78,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 	}
 
 	t.Run("basic user can access basic channel", func(t *testing.T) {
-		assert.True(t, th.App.SessionHasPermissionToChannel(session, th.BasicChannel.Id, model.PERMISSION_ADD_REACTION))
+		assert.True(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicChannel.Id, model.PermissionAddReaction))
 	})
 
 	t.Run("does not panic if fetching channel causes an error", func(t *testing.T) {
@@ -81,23 +87,23 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockStore := mocks.Store{}
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
-		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store.Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
+		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
 		mockChannelStore.On("ClearCaches").Return()
 		mockStore.On("Channel").Return(&mockChannelStore)
-		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
-		mockStore.On("License").Return(th.App.Srv().Store.License())
-		mockStore.On("Post").Return(th.App.Srv().Store.Post())
-		mockStore.On("Role").Return(th.App.Srv().Store.Role())
-		mockStore.On("System").Return(th.App.Srv().Store.System())
-		mockStore.On("Team").Return(th.App.Srv().Store.Team())
-		mockStore.On("User").Return(th.App.Srv().Store.User())
-		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
 		mockStore.On("Close").Return(nil)
-		th.App.Srv().Store = &mockStore
+		th.App.Srv().SetStore(&mockStore)
 
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
 		// are no session level permissions in this test case, the permission should be denied.
-		assert.False(t, th.App.SessionHasPermissionToChannel(session, th.BasicUser.Id, model.PERMISSION_ADD_REACTION))
+		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
 	})
 }
 
@@ -107,14 +113,98 @@ func TestHasPermissionToCategory(t *testing.T) {
 	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
-	categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)
 	require.Nil(t, err)
-	require.True(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
+	require.True(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
 
-	categories2, err := th.App.GetSidebarCategories(th.BasicUser2.Id, th.BasicTeam.Id)
+	categories2, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
-	require.False(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
+	require.False(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
+}
+
+func TestSessionHasPermissionToGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	file, e := os.Open("tests/group-role-has-permission.csv")
+	require.NoError(t, e)
+	defer file.Close()
+
+	b, e := io.ReadAll(file)
+	require.NoError(t, e)
+
+	r := csv.NewReader(strings.NewReader(string(b)))
+	records, e := r.ReadAll()
+	require.NoError(t, e)
+
+	systemRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	require.Nil(t, err)
+
+	groupRole, err := th.App.GetRoleByName(context.Background(), model.CustomGroupUserRoleId)
+	require.Nil(t, err)
+
+	group, err := th.App.CreateGroup(&model.Group{
+		Name:           model.NewString(model.NewId()),
+		DisplayName:    model.NewId(),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	})
+	require.Nil(t, err)
+
+	permission := model.PermissionDeleteCustomGroup
+
+	for i, row := range records {
+		// skip csv header
+		if i == 0 {
+			continue
+		}
+
+		systemRoleHasPermission, e := strconv.ParseBool(row[0])
+		require.NoError(t, e)
+
+		isGroupMember, e := strconv.ParseBool(row[1])
+		require.NoError(t, e)
+
+		groupRoleHasPermission, e := strconv.ParseBool(row[2])
+		require.NoError(t, e)
+
+		permissionShouldBeGranted, e := strconv.ParseBool(row[3])
+		require.NoError(t, e)
+
+		if systemRoleHasPermission {
+			th.AddPermissionToRole(permission.Id, systemRole.Name)
+		} else {
+			th.RemovePermissionFromRole(permission.Id, systemRole.Name)
+		}
+
+		if isGroupMember {
+			_, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+			require.Nil(t, err)
+		} else {
+			_, err := th.App.DeleteGroupMember(group.Id, th.BasicUser.Id)
+			if err != nil && err.Id != "app.group.no_rows" {
+				t.Error(err)
+			}
+		}
+
+		if groupRoleHasPermission {
+			th.AddPermissionToRole(permission.Id, groupRole.Name)
+		} else {
+			th.RemovePermissionFromRole(permission.Id, groupRole.Name)
+		}
+
+		session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
+		require.Nil(t, err)
+
+		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)
+
+		if permissionShouldBeGranted {
+			require.True(t, result, fmt.Sprintf("row: %v", row))
+		} else {
+			require.False(t, result, fmt.Sprintf("row: %v", row))
+		}
+	}
 }

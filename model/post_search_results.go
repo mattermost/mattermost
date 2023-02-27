@@ -22,18 +22,20 @@ func MakePostSearchResults(posts *PostList, matches PostSearchMatches) *PostSear
 	}
 }
 
-func (o *PostSearchResults) ToJson() string {
+func (o *PostSearchResults) ToJSON() (string, error) {
 	copy := *o
 	copy.PostList.StripActionIntegrations()
 	b, err := json.Marshal(&copy)
-	if err != nil {
-		return ""
-	}
-	return string(b)
+	return string(b), err
 }
 
-func PostSearchResultsFromJson(data io.Reader) *PostSearchResults {
-	var o *PostSearchResults
-	json.NewDecoder(data).Decode(&o)
-	return o
+func (o *PostSearchResults) EncodeJSON(w io.Writer) error {
+	o.PostList.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
+}
+
+func (o *PostSearchResults) ForPlugin() *PostSearchResults {
+	copy := *o
+	copy.PostList = copy.PostList.ForPlugin()
+	return &copy
 }

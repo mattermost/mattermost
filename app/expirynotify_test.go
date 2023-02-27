@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestNotifySessionsExpired(t *testing.T) {
@@ -34,7 +34,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 
 		err := th.App.NotifySessionsExpired()
 		// no error, but also no requests sent
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, 0, handler.numReqs())
 	})
 
@@ -65,16 +65,15 @@ func TestNotifySessionsExpired(t *testing.T) {
 		}
 
 		err := th.App.NotifySessionsExpired()
-
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, 2, handler.numReqs())
 
 		expected := []string{"22222", "33333"}
-		require.Equal(t, model.PUSH_TYPE_SESSION, handler.notifications()[0].Type)
+		require.Equal(t, model.PushTypeSession, handler.notifications()[0].Type)
 		require.Contains(t, expected, handler.notifications()[0].DeviceId)
 		require.Contains(t, handler.notifications()[0].Message, "Session Expired")
 
-		require.Equal(t, model.PUSH_TYPE_SESSION, handler.notifications()[1].Type)
+		require.Equal(t, model.PushTypeSession, handler.notifications()[1].Type)
 		require.Contains(t, expected, handler.notifications()[1].DeviceId)
 		require.Contains(t, handler.notifications()[1].Message, "Session Expired")
 	})

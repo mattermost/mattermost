@@ -6,14 +6,13 @@ package utils
 import (
 	"archive/zip"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestSanitizePath(t *testing.T) {
@@ -90,7 +89,7 @@ func TestUnzipToPath(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 	require.NotEmpty(t, testDir)
 
-	dir, err := ioutil.TempDir("", "unzip")
+	dir, err := os.MkdirTemp("", "unzip")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 

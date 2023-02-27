@@ -4,21 +4,19 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 )
 
 const (
-	COMPLIANCE_STATUS_CREATED  = "created"
-	COMPLIANCE_STATUS_RUNNING  = "running"
-	COMPLIANCE_STATUS_FINISHED = "finished"
-	COMPLIANCE_STATUS_FAILED   = "failed"
-	COMPLIANCE_STATUS_REMOVED  = "removed"
+	ComplianceStatusCreated  = "created"
+	ComplianceStatusRunning  = "running"
+	ComplianceStatusFinished = "finished"
+	ComplianceStatusFailed   = "failed"
+	ComplianceStatusRemoved  = "removed"
 
-	COMPLIANCE_TYPE_DAILY = "daily"
-	COMPLIANCE_TYPE_ADHOC = "adhoc"
+	ComplianceTypeDaily = "daily"
+	ComplianceTypeAdhoc = "adhoc"
 )
 
 type Compliance struct {
@@ -33,6 +31,22 @@ type Compliance struct {
 	EndAt    int64  `json:"end_at"`
 	Keywords string `json:"keywords"`
 	Emails   string `json:"emails"`
+}
+
+func (c *Compliance) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        c.Id,
+		"create_at": c.CreateAt,
+		"user_id":   c.UserId,
+		"status":    c.Status,
+		"count":     c.Count,
+		"desc":      c.Desc,
+		"type":      c.Type,
+		"start_at":  c.StartAt,
+		"end_at":    c.EndAt,
+		"keywords":  c.Keywords,
+		"emails":    c.Emails,
+	}
 }
 
 type Compliances []Compliance
@@ -50,18 +64,13 @@ type ComplianceExportCursor struct {
 	DirectMessagesQueryCompleted        bool
 }
 
-func (c *Compliance) ToJson() string {
-	b, _ := json.Marshal(c)
-	return string(b)
-}
-
 func (c *Compliance) PreSave() {
 	if c.Id == "" {
 		c.Id = NewId()
 	}
 
 	if c.Status == "" {
-		c.Status = COMPLIANCE_STATUS_CREATED
+		c.Status = ComplianceStatusCreated
 	}
 
 	c.Count = 0
@@ -78,7 +87,7 @@ func (c *Compliance) DeepCopy() *Compliance {
 
 func (c *Compliance) JobName() string {
 	jobName := c.Type
-	if c.Type == COMPLIANCE_TYPE_DAILY {
+	if c.Type == ComplianceTypeDaily {
 		jobName += "-" + c.Desc
 	}
 
@@ -88,7 +97,6 @@ func (c *Compliance) JobName() string {
 }
 
 func (c *Compliance) IsValid() *AppError {
-
 	if !IsValidId(c.Id) {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -114,24 +122,4 @@ func (c *Compliance) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func ComplianceFromJson(data io.Reader) *Compliance {
-	var c *Compliance
-	json.NewDecoder(data).Decode(&c)
-	return c
-}
-
-func (c Compliances) ToJson() string {
-	b, err := json.Marshal(c)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func CompliancesFromJson(data io.Reader) Compliances {
-	var o Compliances
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

@@ -9,34 +9,34 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func TestResctrictedViewMembers(t *testing.T) {
+func TestRestrictedViewMembers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
 	user1.Nickname = "test user1"
 	user1.Username = "test-user-1"
-	th.App.UpdateUser(user1, false)
+	th.App.UpdateUser(th.Context, user1, false)
 	user2 := th.CreateUser()
 	user2.Username = "test-user-2"
 	user2.Nickname = "test user2"
-	th.App.UpdateUser(user2, false)
+	th.App.UpdateUser(th.Context, user2, false)
 	user3 := th.CreateUser()
 	user3.Username = "test-user-3"
 	user3.Nickname = "test user3"
-	th.App.UpdateUser(user3, false)
+	th.App.UpdateUser(th.Context, user3, false)
 	user4 := th.CreateUser()
 	user4.Username = "test-user-4"
 	user4.Nickname = "test user4"
-	th.App.UpdateUser(user4, false)
+	th.App.UpdateUser(th.Context, user4, false)
 	user5 := th.CreateUser()
 	user5.Username = "test-user-5"
 	user5.Nickname = "test user5"
-	th.App.UpdateUser(user5, false)
+	th.App.UpdateUser(th.Context, user5, false)
 
 	// user1 is member of all the channels and teams because is the creator
 	th.BasicUser = user1
@@ -44,9 +44,9 @@ func TestResctrictedViewMembers(t *testing.T) {
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
 
-	channel1 := th.CreateChannel(team1)
-	channel2 := th.CreateChannel(team1)
-	channel3 := th.CreateChannel(team2)
+	channel1 := th.CreateChannel(th.Context, team1)
+	channel2 := th.CreateChannel(th.Context, team1)
+	channel3 := th.CreateChannel(th.Context, team2)
 
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user2, team1)
@@ -574,7 +574,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.GetUsers(&options)
+				results, err := th.App.GetUsersFromProfiles(&options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {

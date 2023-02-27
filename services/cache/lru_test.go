@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestLRU(t *testing.T) {
@@ -112,7 +112,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 		InvalidateClusterEvent: "",
 	})
 
-	value1 := map[string]interface{}{
+	value1 := map[string]any{
 		"key1": 1,
 		"key2": "value2",
 	}
@@ -120,7 +120,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 
 	require.NoError(t, err)
 
-	var value2 map[string]interface{}
+	var value2 map[string]any
 	err = l.Get("test", &value2)
 	require.NoError(t, err)
 	assert.EqualValues(t, 1, value2["key1"])
@@ -139,12 +139,11 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 		UserId:        "UserId",
 		ChannelId:     "ChannelId",
 		RootId:        "RootId",
-		ParentId:      "ParentId",
 		OriginalId:    "OriginalId",
 		Message:       "OriginalId",
 		MessageSource: "MessageSource",
 		Type:          "Type",
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"key": "val",
 		},
 		Hashtags:      "Hashtags",
@@ -487,12 +486,11 @@ func BenchmarkLRU(b *testing.B) {
 		UserId:        "UserId",
 		ChannelId:     "ChannelId",
 		RootId:        "RootId",
-		ParentId:      "ParentId",
 		OriginalId:    "OriginalId",
 		Message:       "OriginalId",
 		MessageSource: "MessageSource",
 		Type:          "Type",
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"key": "val",
 		},
 		Hashtags:      "Hashtags",

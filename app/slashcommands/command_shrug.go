@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type ShrugProvider struct {
@@ -35,11 +35,11 @@ func (*ShrugProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*ShrugProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ShrugProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
 	if message != "" {
 		rmsg = message + " " + rmsg
 	}
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeInChannel, Text: rmsg}
 }

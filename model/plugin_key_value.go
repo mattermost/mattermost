@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	KEY_VALUE_PLUGIN_ID_MAX_RUNES = 190
-	KEY_VALUE_KEY_MAX_RUNES       = 50
+	KeyValuePluginIdMaxRunes = 190
+	KeyValueKeyMaxRunes      = 150
 )
 
 type PluginKeyValue struct {
@@ -21,12 +21,12 @@ type PluginKeyValue struct {
 }
 
 func (kv *PluginKeyValue) IsValid() *AppError {
-	if kv.PluginId == "" || utf8.RuneCountInString(kv.PluginId) > KEY_VALUE_PLUGIN_ID_MAX_RUNES {
-		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.plugin_id.app_error", map[string]interface{}{"Max": KEY_VALUE_KEY_MAX_RUNES, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
+	if kv.PluginId == "" || utf8.RuneCountInString(kv.PluginId) > KeyValuePluginIdMaxRunes {
+		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.plugin_id.app_error", map[string]any{"Max": KeyValueKeyMaxRunes, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
 	}
 
-	if kv.Key == "" || utf8.RuneCountInString(kv.Key) > KEY_VALUE_KEY_MAX_RUNES {
-		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.key.app_error", map[string]interface{}{"Max": KEY_VALUE_KEY_MAX_RUNES, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
+	if kv.Key == "" || utf8.RuneCountInString(kv.Key) > KeyValueKeyMaxRunes {
+		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.key.app_error", map[string]any{"Max": KeyValueKeyMaxRunes, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
 	}
 
 	return nil

@@ -6,8 +6,9 @@ package request
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Context struct {
@@ -18,6 +19,8 @@ type Context struct {
 	path           string
 	userAgent      string
 	acceptLanguage string
+	logger         mlog.LoggerIFace
+	err            *model.AppError
 
 	context context.Context
 }
@@ -35,14 +38,15 @@ func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acce
 	}
 }
 
-func EmptyContext() *Context {
+func EmptyContext(logger mlog.LoggerIFace) *Context {
 	return &Context{
 		t:       i18n.T,
+		logger:  logger,
 		context: context.Background(),
 	}
 }
 
-func (c *Context) T(translationID string, args ...interface{}) string {
+func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
 func (c *Context) Session() *model.Session {
@@ -51,7 +55,7 @@ func (c *Context) Session() *model.Session {
 func (c *Context) RequestId() string {
 	return c.requestId
 }
-func (c *Context) IpAddress() string {
+func (c *Context) IPAddress() string {
 	return c.ipAddress
 }
 func (c *Context) Path() string {
@@ -78,7 +82,7 @@ func (c *Context) SetT(t i18n.TranslateFunc) {
 func (c *Context) SetRequestId(s string) {
 	c.requestId = s
 }
-func (c *Context) SetIpAddress(s string) {
+func (c *Context) SetIPAddress(s string) {
 	c.ipAddress = s
 }
 func (c *Context) SetUserAgent(s string) {
@@ -96,4 +100,44 @@ func (c *Context) SetContext(ctx context.Context) {
 
 func (c *Context) GetT() i18n.TranslateFunc {
 	return c.t
+}
+
+func (c *Context) SetLogger(logger mlog.LoggerIFace) {
+	c.logger = logger
+}
+
+func (c *Context) Logger() mlog.LoggerIFace {
+	return c.logger
+}
+
+func (c *Context) SetAppError(err *model.AppError) {
+	c.err = err
+}
+
+func (c *Context) AppError() *model.AppError {
+	return c.err
+}
+
+type CTX interface {
+	T(string, ...interface{}) string
+	Session() *model.Session
+	RequestId() string
+	IPAddress() string
+	Path() string
+	UserAgent() string
+	AcceptLanguage() string
+	Context() context.Context
+	SetSession(s *model.Session)
+	SetT(i18n.TranslateFunc)
+	SetRequestId(string)
+	SetIPAddress(string)
+	SetUserAgent(string)
+	SetAcceptLanguage(string)
+	SetPath(string)
+	SetContext(ctx context.Context)
+	GetT() i18n.TranslateFunc
+	SetLogger(mlog.LoggerIFace)
+	Logger() mlog.LoggerIFace
+	SetAppError(*model.AppError)
+	AppError() *model.AppError
 }

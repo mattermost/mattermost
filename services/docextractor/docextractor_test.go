@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestExtract(t *testing.T) {
@@ -150,7 +150,7 @@ func TestExtract(t *testing.T) {
 		require.Equal(t, "", text)
 	})
 
-	t.Run("Wrong extension", func(t *testing.T) {
+	t.Run("Wrong docx extension", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 		text, err := Extract("sample-doc.docx", bytes.NewReader(data), ExtractSettings{})
@@ -180,7 +180,7 @@ func (te *failingExtractor) Extract(filename string, r io.ReadSeeker) (string, e
 }
 
 func TestExtractWithExtraExtractors(t *testing.T) {
-	t.Run("overrite existing extractor", func(t *testing.T) {
+	t.Run("override existing extractor", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 

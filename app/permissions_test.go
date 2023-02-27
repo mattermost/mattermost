@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type testWriter struct {
@@ -54,7 +54,7 @@ func TestExportPermissions(t *testing.T) {
 
 	firstResult := results[0]
 
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal(firstResult, &row)
 	if err != nil {
 		t.Error(err)
@@ -99,7 +99,7 @@ func TestImportPermissions(t *testing.T) {
 	name := model.NewId()
 	displayName := model.NewId()
 	description := "my test description"
-	scope := model.SCHEME_SCOPE_CHANNEL
+	scope := model.SchemeScopeChannel
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
@@ -179,7 +179,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	name := model.NewId()
 	displayName := model.NewId()
 	description := "my test description"
-	scope := model.SCHEME_SCOPE_CHANNEL
+	scope := model.SchemeScopeChannel
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
@@ -191,7 +191,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	var expected int
 	withMigrationMarkedComplete(th, func() {
 		var appErr *model.AppError
-		results, appErr = th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -202,7 +202,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 			t.Error(err)
 		}
 
-		results, appErr = th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -233,7 +233,7 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 	var expected int
 	withMigrationMarkedComplete(th, func() {
 		var appErr *model.AppError
-		results, appErr = th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -244,7 +244,7 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 			t.Error(err)
 		}
 
-		results, appErr = th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -261,30 +261,30 @@ func TestMigration(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	role, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
+	role, err := th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	require.Nil(t, err)
-	assert.Contains(t, role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id)
-	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_EMOJIS.Id)
-	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
-	assert.Contains(t, role.Permissions, model.PERMISSION_USE_GROUP_MENTIONS.Id)
+	assert.Contains(t, role.Permissions, model.PermissionCreateEmojis.Id)
+	assert.Contains(t, role.Permissions, model.PermissionDeleteEmojis.Id)
+	assert.Contains(t, role.Permissions, model.PermissionDeleteOthersEmojis.Id)
+	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 
 	th.App.ResetPermissionsSystem()
 
-	role, err = th.App.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
+	role, err = th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	require.Nil(t, err)
-	assert.Contains(t, role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id)
-	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_EMOJIS.Id)
-	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
-	assert.Contains(t, role.Permissions, model.PERMISSION_USE_GROUP_MENTIONS.Id)
+	assert.Contains(t, role.Permissions, model.PermissionCreateEmojis.Id)
+	assert.Contains(t, role.Permissions, model.PermissionDeleteEmojis.Id)
+	assert.Contains(t, role.Permissions, model.PermissionDeleteOthersEmojis.Id)
+	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 }
 
 func withMigrationMarkedComplete(th *TestHelper, f func()) {
 	// Mark the migration as done.
-	th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 	// Un-mark the migration at the end of the test.
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 	f()
 }

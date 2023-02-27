@@ -13,6 +13,26 @@ import (
 // It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"7.9.0",
+	"7.8.0",
+	"7.7.0",
+	"7.6.0",
+	"7.5.0",
+	"7.4.0",
+	"7.3.0",
+	"7.2.0",
+	"7.1.0",
+	"7.0.0",
+	"6.7.0",
+	"6.6.0",
+	"6.5.0",
+	"6.4.0",
+	"6.3.0",
+	"6.2.0",
+	"6.1.0",
+	"6.0.0",
+	"5.39.0",
+	"5.38.0",
 	"5.37.0",
 	"5.36.0",
 	"5.35.0",
@@ -97,6 +117,9 @@ var BuildDate string
 var BuildHash string
 var BuildHashEnterprise string
 var BuildEnterpriseReady string
+var BuildHashBoards string
+var BuildBoards string
+var BuildHashPlaybooks string
 var versionsWithoutHotFixes []string
 
 func init() {

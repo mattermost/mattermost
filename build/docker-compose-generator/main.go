@@ -28,14 +28,14 @@ func main() {
 		"mysql":              3306,
 		"postgres":           5432,
 		"minio":              9000,
-		"inbucket":           10080,
+		"inbucket":           9001,
 		"openldap":           389,
 		"elasticsearch":      9200,
 		"dejavu":             1358,
 		"keycloak":           8080,
 		"prometheus":         9090,
 		"grafana":            3000,
-		"mysql-read-replica": 3306, // FIXME: not recorgnizing the successfully running service on port 3307.
+		"mysql-read-replica": 3306, // FIXME: not recognizing the successfully running service on port 3307.
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {

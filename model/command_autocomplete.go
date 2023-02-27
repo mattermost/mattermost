@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/url"
 	"path"
 	"reflect"
@@ -55,7 +54,7 @@ type AutocompleteArg struct {
 	// Required determines if argument is optional or not.
 	Required bool
 	// Actual data of the argument (depends on the Type)
-	Data interface{}
+	Data any
 }
 
 // AutocompleteTextArg describes text user can input as an argument.
@@ -109,7 +108,7 @@ func NewAutocompleteData(trigger, hint, helpText string) *AutocompleteData {
 		Trigger:     trigger,
 		Hint:        hint,
 		HelpText:    helpText,
-		RoleID:      SYSTEM_USER_ROLE_ID,
+		RoleID:      SystemUserRoleId,
 		Arguments:   []*AutocompleteArg{},
 		SubCommands: []*AutocompleteData{},
 	}
@@ -234,7 +233,7 @@ func (ad *AutocompleteData) IsValid() error {
 	if strings.ToLower(ad.Trigger) != ad.Trigger {
 		return errors.New("Command should be lowercase")
 	}
-	roles := []string{SYSTEM_ADMIN_ROLE_ID, SYSTEM_USER_ROLE_ID, ""}
+	roles := []string{SystemAdminRoleId, SystemUserRoleId, ""}
 	if stringNotInSlice(ad.RoleID, roles) {
 		return errors.New("Wrong role in the autocomplete data")
 	}
@@ -291,24 +290,6 @@ func (ad *AutocompleteData) IsValid() error {
 	return nil
 }
 
-// ToJSON encodes AutocompleteData struct to the json
-func (ad *AutocompleteData) ToJSON() ([]byte, error) {
-	b, err := json.Marshal(ad)
-	if err != nil {
-		return nil, errors.Wrapf(err, "can't marshal slash command %s", ad.Trigger)
-	}
-	return b, nil
-}
-
-// AutocompleteDataFromJSON decodes AutocompleteData struct from the json
-func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
-	var ad AutocompleteData
-	if err := json.Unmarshal(data, &ad); err != nil {
-		return nil, errors.Wrap(err, "can't unmarshal AutocompleteData")
-	}
-	return &ad, nil
-}
-
 // Equals method checks if argument is the same.
 func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
 	if a.Name != arg.Name ||
@@ -323,7 +304,7 @@ func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
 
 // UnmarshalJSON will unmarshal argument
 func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
-	var arg map[string]interface{}
+	var arg map[string]any
 	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
 	}
@@ -355,7 +336,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	}
 
 	if a.Type == AutocompleteArgTypeText {
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return errors.Errorf("Wrong Data type in the TextInput argument %s", string(b))
 		}
@@ -369,18 +350,18 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		}
 		a.Data = &AutocompleteTextArg{Hint: hint, Pattern: pattern}
 	} else if a.Type == AutocompleteArgTypeStaticList {
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return errors.Errorf("Wrong Data type in the StaticList argument %s", string(b))
 		}
-		list, ok := m["PossibleArguments"].([]interface{})
+		list, ok := m["PossibleArguments"].([]any)
 		if !ok {
 			return errors.Errorf("No field PossibleArguments in the StaticList argument %s", string(b))
 		}
 
 		possibleArguments := []AutocompleteListItem{}
 		for i := range list {
-			args, ok := list[i].(map[string]interface{})
+			args, ok := list[i].(map[string]any)
 			if !ok {
 				return errors.Errorf("Wrong AutocompleteStaticListItem type in the StaticList argument %s", string(b))
 			}
@@ -406,7 +387,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		}
 		a.Data = &AutocompleteStaticListArg{PossibleArguments: possibleArguments}
 	} else if a.Type == AutocompleteArgTypeDynamicList {
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return errors.Errorf("Wrong type in the DynamicList argument %s", string(b))
 		}
@@ -417,32 +398,6 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		a.Data = &AutocompleteDynamicListArg{FetchURL: url}
 	}
 	return nil
-}
-
-// AutocompleteSuggestionsToJSON returns json for a list of AutocompleteSuggestion objects
-func AutocompleteSuggestionsToJSON(suggestions []AutocompleteSuggestion) []byte {
-	b, _ := json.Marshal(suggestions)
-	return b
-}
-
-// AutocompleteSuggestionsFromJSON returns list of AutocompleteSuggestions from json.
-func AutocompleteSuggestionsFromJSON(data io.Reader) []AutocompleteSuggestion {
-	var o []AutocompleteSuggestion
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-// AutocompleteStaticListItemsToJSON returns json for a list of AutocompleteStaticListItem objects
-func AutocompleteStaticListItemsToJSON(items []AutocompleteListItem) []byte {
-	b, _ := json.Marshal(items)
-	return b
-}
-
-// AutocompleteStaticListItemsFromJSON returns list of AutocompleteStaticListItem from json.
-func AutocompleteStaticListItemsFromJSON(data io.Reader) []AutocompleteListItem {
-	var o []AutocompleteListItem
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func stringNotInSlice(a string, slice []string) bool {

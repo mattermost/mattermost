@@ -3,20 +3,7 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type ChannelList []*Channel
-
-func (o *ChannelList) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
 
 func (o *ChannelList) Etag() string {
 
@@ -40,27 +27,7 @@ func (o *ChannelList) Etag() string {
 	return Etag(id, t, delta, len(*o))
 }
 
-func ChannelListFromJson(data io.Reader) *ChannelList {
-	var o *ChannelList
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func ChannelSliceFromJson(data io.Reader) []*Channel {
-	var o []*Channel
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 type ChannelListWithTeamData []*ChannelWithTeamData
-
-func (o *ChannelListWithTeamData) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
 
 func (o *ChannelListWithTeamData) Etag() string {
 
@@ -86,10 +53,4 @@ func (o *ChannelListWithTeamData) Etag() string {
 	}
 
 	return Etag(id, t, delta, len(*o))
-}
-
-func ChannelListWithTeamDataFromJson(data io.Reader) *ChannelListWithTeamData {
-	var o *ChannelListWithTeamData
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

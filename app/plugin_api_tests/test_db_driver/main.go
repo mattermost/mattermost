@@ -7,12 +7,12 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/driver"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/app/plugin_api_tests"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/driver"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 type MyPlugin struct {
@@ -29,22 +29,24 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-	store := sqlstore.New(p.API.GetUnsanitizedConfig().SqlSettings, nil)
-	store.GetMaster().Db.Close()
+	settings := p.API.GetUnsanitizedConfig().SqlSettings
+	settings.Trace = model.NewBool(false)
+	store := sqlstore.New(settings, nil)
+	store.GetMasterX().Close()
 
 	for _, isMaster := range []bool{true, false} {
-		// We replace the master DB with master and replica both just to make
-		// gorp APIs work.
-		store.GetMaster().Db = sql.OpenDB(driver.NewConnector(p.Driver, isMaster))
+		handle := sql.OpenDB(driver.NewConnector(p.Driver, isMaster))
+		store.SetMasterX(handle)
 
+		wrapper := sqlstore.NewStoreTestWrapper(store)
 		// Testing with a handful of stores
-		storetest.TestPostStore(p.t, store, store)
-		storetest.TestUserStore(p.t, store, store)
+		storetest.TestPostStore(p.t, store, wrapper)
+		storetest.TestUserStore(p.t, store, wrapper)
 		storetest.TestTeamStore(p.t, store)
-		storetest.TestChannelStore(p.t, store, store)
-		storetest.TestBotStore(p.t, store, store)
+		storetest.TestChannelStore(p.t, store, wrapper)
+		storetest.TestBotStore(p.t, store, wrapper)
 
-		store.GetMaster().Db.Close()
+		store.GetMasterX().Close()
 	}
 
 	// Use the API to instantiate the driver

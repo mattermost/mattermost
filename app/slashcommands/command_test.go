@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 )
 
 type InfiniteReader struct {
@@ -41,7 +41,7 @@ func TestMoveCommand(t *testing.T) {
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
-	command.Method = model.COMMAND_METHOD_POST
+	command.Method = model.CommandMethodPost
 	command.TeamId = sourceTeam.Id
 	command.URL = "http://nowhere.com/"
 	command.Trigger = "trigger1"
@@ -50,8 +50,8 @@ func TestMoveCommand(t *testing.T) {
 	assert.Nil(t, err)
 
 	defer func() {
-		th.App.PermanentDeleteTeam(sourceTeam)
-		th.App.PermanentDeleteTeam(targetTeam)
+		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
+		th.App.PermanentDeleteTeam(th.Context, targetTeam)
 	}()
 
 	// Move a command and check the team is updated.
@@ -74,7 +74,7 @@ func TestCreateCommandPost(t *testing.T) {
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
-		Type:      model.POST_SYSTEM_GENERIC,
+		Type:      model.PostTypeSystemGeneric,
 	}
 
 	resp := &model.CommandResponse{
@@ -106,7 +106,7 @@ func TestExecuteCommand(t *testing.T) {
 				TeamId:    th.BasicTeam.Id,
 				ChannelId: th.BasicChannel.Id,
 				UserId:    th.BasicUser.Id,
-				T:         func(s string, args ...interface{}) string { return s },
+				T:         func(s string, args ...any) string { return s },
 			}
 			resp, err := th.App.ExecuteCommand(th.Context, args)
 			require.Nil(t, err)
@@ -119,7 +119,7 @@ func TestExecuteCommand(t *testing.T) {
 	t.Run("missing slash character", func(t *testing.T) {
 		argsMissingSlashCharacter := &model.CommandArgs{
 			Command: "missing leading slash character",
-			T:       func(s string, args ...interface{}) string { return s },
+			T:       func(s string, args ...any) string { return s },
 		}
 		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
@@ -128,7 +128,7 @@ func TestExecuteCommand(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		argsMissingSlashCharacter := &model.CommandArgs{
 			Command: "",
-			T:       func(s string, args ...interface{}) string { return s },
+			T:       func(s string, args ...any) string { return s },
 		}
 		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
@@ -145,12 +145,11 @@ func TestHandleCommandResponsePost(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,
 		RootId:    "",
-		ParentId:  "",
 	}
 
 	resp := &model.CommandResponse{
-		Type:         model.POST_DEFAULT,
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         model.PostTypeDefault,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Props:        model.StringInterface{"some_key": "some value"},
 		Text:         "some message",
 	}
@@ -161,7 +160,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, args.ChannelId, post.ChannelId)
 	assert.Equal(t, args.RootId, post.RootId)
-	assert.Equal(t, args.ParentId, post.ParentId)
 	assert.Equal(t, args.UserId, post.UserId)
 	assert.Equal(t, resp.Type, post.Type)
 	assert.Equal(t, resp.Props, post.GetProps())
@@ -267,7 +265,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
-	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")
@@ -306,7 +304,7 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp := &model.CommandResponse{
 		Text: "message 1",
-		Type: model.POST_SYSTEM_GENERIC,
+		Type: model.PostTypeSystemGeneric,
 	}
 
 	builtIn := true
@@ -329,7 +327,7 @@ func TestHandleCommandResponse(t *testing.T) {
 				Text: "message 2",
 			},
 			{
-				Type: model.POST_SYSTEM_GENERIC,
+				Type: model.PostTypeSystemGeneric,
 				Text: "message 3",
 			},
 		},
@@ -527,7 +525,7 @@ func TestMentionsToTeamMembers(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualMap := th.App.MentionsToTeamMembers(data.message, data.inTeam)
+		actualMap := th.App.MentionsToTeamMembers(th.Context, data.message, data.inTeam)
 		require.Equal(t, actualMap, data.expectedMap)
 	}
 }
@@ -612,7 +610,7 @@ func TestMentionsToPublicChannels(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualMap := th.App.MentionsToPublicChannels(data.message, data.inTeam)
+		actualMap := th.App.MentionsToPublicChannels(th.Context, data.message, data.inTeam)
 		require.Equal(t, actualMap, data.expectedMap)
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -65,7 +64,7 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	}
 
 	defer func() {
-		io.Copy(ioutil.Discard, resp.Body)
+		io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 	}()
 
@@ -75,11 +74,8 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 
 	var record JSONMessageHeaderInbucket
 	err = json.NewDecoder(resp.Body).Decode(&record)
-	switch {
-	case err == io.EOF:
-		return nil, fmt.Errorf("error: %s", err)
-	case err != nil:
-		return nil, fmt.Errorf("error: %s", err)
+	if err != nil {
+		return nil, fmt.Errorf("error: %w", err)
 	}
 	if len(record) == 0 {
 		return nil, fmt.Errorf("no mailbox")
@@ -99,7 +95,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 		return record, err
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, emailResponse.Body)
+		io.Copy(io.Discard, emailResponse.Body)
 		emailResponse.Body.Close()
 	}()
 
@@ -183,7 +179,7 @@ func getInbucketHost() (host string) {
 
 	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
 	if inbucket_port == "" {
-		inbucket_port = "10080"
+		inbucket_port = "9001"
 	}
 	return fmt.Sprintf("http://%s:%s", inbucket_host, inbucket_port)
 }

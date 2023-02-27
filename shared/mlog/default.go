@@ -4,26 +4,32 @@
 package mlog
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
-
-	"github.com/mattermost/logr"
 )
 
 // defaultLog manually encodes the log to STDERR, providing a basic, default logging implementation
 // before mlog is fully configured.
-func defaultLog(level, msg string, fields ...Field) {
+func defaultLog(level Level, msg string, fields ...Field) {
+	mFields := make(map[string]string)
+	buf := &bytes.Buffer{}
+
+	for _, fld := range fields {
+		buf.Reset()
+		fld.ValueString(buf, shouldQuote)
+		mFields[fld.Key] = buf.String()
+	}
+
 	log := struct {
-		Level   string  `json:"level"`
-		Message string  `json:"msg"`
-		Fields  []Field `json:"fields,omitempty"`
+		Level   string            `json:"level"`
+		Message string            `json:"msg"`
+		Fields  map[string]string `json:"fields,omitempty"`
 	}{
-		level,
+		level.Name,
 		msg,
-		fields,
+		mFields,
 	}
 
 	if b, err := json.Marshal(log); err != nil {
@@ -33,67 +39,25 @@ func defaultLog(level, msg string, fields ...Field) {
 	}
 }
 
-func defaultIsLevelEnabled(level LogLevel) bool {
+func defaultIsLevelEnabled(level Level) bool {
 	return true
 }
 
-func defaultDebugLog(msg string, fields ...Field) {
-	defaultLog("debug", msg, fields...)
+func defaultCustomMultiLog(lvl []Level, msg string, fields ...Field) {
+	for _, level := range lvl {
+		defaultLog(level, msg, fields...)
+	}
 }
 
-func defaultInfoLog(msg string, fields ...Field) {
-	defaultLog("info", msg, fields...)
-}
-
-func defaultWarnLog(msg string, fields ...Field) {
-	defaultLog("warn", msg, fields...)
-}
-
-func defaultErrorLog(msg string, fields ...Field) {
-	defaultLog("error", msg, fields...)
-}
-
-func defaultCriticalLog(msg string, fields ...Field) {
-	// We map critical to error in zap, so be consistent.
-	defaultLog("error", msg, fields...)
-}
-
-func defaultCustomLog(lvl LogLevel, msg string, fields ...Field) {
-	// custom log levels are only output once log targets are configured.
-}
-
-func defaultCustomMultiLog(lvl []LogLevel, msg string, fields ...Field) {
-	// custom log levels are only output once log targets are configured.
-}
-
-func defaultFlush(ctx context.Context) error {
-	return nil
-}
-
-func defaultAdvancedConfig(cfg LogTargetCfg) error {
-	// mlog.ConfigAdvancedConfig should not be called until default
-	// logger is replaced with mlog.Logger instance.
-	return errors.New("cannot config advanced logging on default logger")
-}
-
-func defaultAdvancedShutdown(ctx context.Context) error {
-	return nil
-}
-
-func defaultAddTarget(targets ...logr.Target) error {
-	// mlog.AddTarget should not be called until default
-	// logger is replaced with mlog.Logger instance.
-	return errors.New("cannot AddTarget on default logger")
-}
-
-func defaultRemoveTargets(ctx context.Context, f func(TargetInfo) bool) error {
-	// mlog.RemoveTargets should not be called until default
-	// logger is replaced with mlog.Logger instance.
-	return errors.New("cannot RemoveTargets on default logger")
-}
-
-func defaultEnableMetrics(collector logr.MetricsCollector) error {
-	// mlog.EnableMetrics should not be called until default
-	// logger is replaced with mlog.Logger instance.
-	return errors.New("cannot EnableMetrics on default logger")
+// shouldQuote returns true if val contains any characters that require quotations.
+func shouldQuote(val string) bool {
+	for _, c := range val {
+		if !((c >= '0' && c <= '9') ||
+			(c >= 'a' && c <= 'z') ||
+			(c >= 'A' && c <= 'Z') ||
+			c == '-' || c == '.' || c == '_' || c == '/' || c == '@' || c == '^' || c == '+') {
+			return true
+		}
+	}
+	return false
 }

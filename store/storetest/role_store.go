@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestRoleStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -368,7 +368,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	teamScheme1, err := ss.Scheme().Save(teamScheme1)
 	require.NoError(t, err)
@@ -378,7 +378,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	teamScheme2, err = ss.Scheme().Save(teamScheme2)
 	require.NoError(t, err)
@@ -388,7 +388,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	channelScheme1, err = ss.Scheme().Save(channelScheme1)
 	require.NoError(t, err)
@@ -398,7 +398,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	channelScheme2, err = ss.Scheme().Save(channelScheme2)
 	require.NoError(t, err)
@@ -408,7 +408,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		SchemeId:    &teamScheme1.Id,
 	}
 	team1, err = ss.Team().Save(team1)
@@ -419,7 +419,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		SchemeId:    &teamScheme2.Id,
 	}
 	team2, err = ss.Team().Save(team2)
@@ -430,7 +430,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		TeamId:      team1.Id,
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme1.Id,
 	}
 	channel1, nErr := ss.Channel().Save(channel1, -1)
@@ -441,7 +441,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		TeamId:      team2.Id,
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme2.Id,
 	}
 	channel2, nErr = ss.Channel().Save(channel2, -1)
@@ -522,7 +522,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	teamScheme, err := ss.Scheme().Save(teamScheme)
 	require.NoError(t, err)
@@ -532,7 +532,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	channelScheme, err = ss.Scheme().Save(channelScheme)
 	require.NoError(t, err)
@@ -542,7 +542,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		DisplayName: "Name",
 		Name:        "zz" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		SchemeId:    &teamScheme.Id,
 	}
 	team, err = ss.Team().Save(team)
@@ -553,7 +553,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		TeamId:      team.Id,
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme.Id,
 	}
 	channel, nErr := ss.Channel().Save(channel, -1)
@@ -568,7 +568,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 
 	teamSchemeUserRole, err := ss.Role().GetByName(context.Background(), teamScheme.DefaultChannelUserRole)
 	require.NoError(t, err)
-	teamSchemeUserRole.Permissions = []string{model.PERMISSION_UPLOAD_FILE.Id}
+	teamSchemeUserRole.Permissions = []string{model.PermissionUploadFile.Id}
 	_, err = ss.Role().Save(teamSchemeUserRole)
 	require.NoError(t, err)
 
@@ -578,7 +578,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 	require.NoError(t, err)
 
 	// blank-out the guest role to simulate an old team scheme, ensure it's blank
-	result, sqlErr := s.GetMaster().Exec(fmt.Sprintf("UPDATE Schemes SET DefaultChannelGuestRole = '' WHERE Id = '%s'", teamScheme.Id))
+	result, sqlErr := s.GetMasterX().Exec(fmt.Sprintf("UPDATE Schemes SET DefaultChannelGuestRole = '' WHERE Id = '%s'", teamScheme.Id))
 	require.NoError(t, sqlErr)
 	rows, serr := result.RowsAffected()
 	require.NoError(t, serr)

@@ -26,16 +26,17 @@ type MergeConfig struct {
 //   - maps and slices are treated as pointers, and merged as a single value
 //
 // Note that callers need to cast the returned interface back into the original type:
-// func mergeTestStruct(base, patch *testStruct) (*testStruct, error) {
-//     ret, err := merge(base, patch)
-//     if err != nil {
-//         return nil, err
-//     }
 //
-//     retTS := ret.(testStruct)
-//     return &retTS, nil
-// }
-func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (interface{}, error) {
+//	func mergeTestStruct(base, patch *testStruct) (*testStruct, error) {
+//	    ret, err := merge(base, patch)
+//	    if err != nil {
+//	        return nil, err
+//	    }
+//
+//	    retTS := ret.(testStruct)
+//	    return &retTS, nil
+//	}
+func Merge(base any, patch any, mergeConfig *MergeConfig) (any, error) {
 	if reflect.TypeOf(base) != reflect.TypeOf(patch) {
 		return nil, fmt.Errorf(
 			"cannot merge different types. base type: %s, patch type: %s",

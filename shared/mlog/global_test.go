@@ -4,7 +4,8 @@
 package mlog_test
 
 import (
-	"io/ioutil"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func TestLoggingBeforeInitialized(t *testing.T) {
@@ -23,123 +24,114 @@ func TestLoggingBeforeInitialized(t *testing.T) {
 		mlog.Debug("debug log")
 		mlog.Warn("warning log")
 		mlog.Error("error log")
-		mlog.Critical("critical log")
 	})
 }
 
 func TestLoggingAfterInitialized(t *testing.T) {
 	testCases := []struct {
-		Description         string
-		LoggerConfiguration *mlog.LoggerConfiguration
-		ExpectedLogs        []string
+		description  string
+		cfg          mlog.TargetCfg
+		expectedLogs []string
 	}{
 		{
 			"file logging, json, debug",
-			&mlog.LoggerConfiguration{
-				EnableConsole: false,
-				EnableFile:    true,
-				FileJson:      true,
-				FileLevel:     mlog.LevelDebug,
+			mlog.TargetCfg{
+				Type:          "file",
+				Format:        "json",
+				FormatOptions: json.RawMessage(`{"enable_caller":true}`),
+				Levels:        []mlog.Level{mlog.LvlError, mlog.LvlWarn, mlog.LvlInfo, mlog.LvlDebug},
 			},
 			[]string{
-				`{"level":"debug","ts":0,"caller":"mlog/global_test.go:0","msg":"real debug log"}`,
-				`{"level":"info","ts":0,"caller":"mlog/global_test.go:0","msg":"real info log"}`,
-				`{"level":"warn","ts":0,"caller":"mlog/global_test.go:0","msg":"real warning log"}`,
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real error log"}`,
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real critical log"}`,
+				`{"timestamp":0,"level":"debug","msg":"real debug log","caller":"mlog/global_test.go:0"}`,
+				`{"timestamp":0,"level":"info","msg":"real info log","caller":"mlog/global_test.go:0"}`,
+				`{"timestamp":0,"level":"warn","msg":"real warning log","caller":"mlog/global_test.go:0"}`,
+				`{"timestamp":0,"level":"error","msg":"real error log","caller":"mlog/global_test.go:0"}`,
 			},
 		},
 		{
 			"file logging, json, error",
-			&mlog.LoggerConfiguration{
-				EnableConsole: false,
-				EnableFile:    true,
-				FileJson:      true,
-				FileLevel:     mlog.LevelError,
+			mlog.TargetCfg{
+				Type:          "file",
+				Format:        "json",
+				FormatOptions: json.RawMessage(`{"enable_caller":true}`),
+				Levels:        []mlog.Level{mlog.LvlError},
 			},
 			[]string{
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real error log"}`,
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real critical log"}`,
+				`{"timestamp":0,"level":"error","msg":"real error log","caller":"mlog/global_test.go:0"}`,
 			},
 		},
 		{
 			"file logging, non-json, debug",
-			&mlog.LoggerConfiguration{
-				EnableConsole: false,
-				EnableFile:    true,
-				FileJson:      false,
-				FileLevel:     mlog.LevelDebug,
+			mlog.TargetCfg{
+				Type:          "file",
+				Format:        "plain",
+				FormatOptions: json.RawMessage(`{"delim":" | ", "enable_caller":true}`),
+				Levels:        []mlog.Level{mlog.LvlError, mlog.LvlWarn, mlog.LvlInfo, mlog.LvlDebug},
 			},
 			[]string{
-				`TIME	debug	mlog/global_test.go:0	real debug log`,
-				`TIME	info	mlog/global_test.go:0	real info log`,
-				`TIME	warn	mlog/global_test.go:0	real warning log`,
-				`TIME	error	mlog/global_test.go:0	real error log`,
-				`TIME	error	mlog/global_test.go:0	real critical log`,
+				`debug | TIME | real debug log | caller="mlog/global_test.go:0"`,
+				`info | TIME | real info log | caller="mlog/global_test.go:0"`,
+				`warn | TIME | real warning log | caller="mlog/global_test.go:0"`,
+				`error | TIME | real error log | caller="mlog/global_test.go:0"`,
 			},
 		},
 		{
 			"file logging, non-json, error",
-			&mlog.LoggerConfiguration{
-				EnableConsole: false,
-				EnableFile:    true,
-				FileJson:      false,
-				FileLevel:     mlog.LevelError,
+			mlog.TargetCfg{
+				Type:          "file",
+				Format:        "plain",
+				FormatOptions: json.RawMessage(`{"delim":" | ", "enable_caller":true}`),
+				Levels:        []mlog.Level{mlog.LvlError},
 			},
 			[]string{
-				`TIME	error	mlog/global_test.go:0	real error log`,
-				`TIME	error	mlog/global_test.go:0	real critical log`,
+				`error | TIME | real error log | caller="mlog/global_test.go:0"`,
 			},
 		},
 	}
 
 	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
+		t.Run(testCase.description, func(t *testing.T) {
 			var filePath string
-			if testCase.LoggerConfiguration.EnableFile {
-				tempDir, err := ioutil.TempDir(os.TempDir(), "TestLoggingAfterInitialized")
+			if testCase.cfg.Type == "file" {
+				tempDir, err := os.MkdirTemp(os.TempDir(), "TestLoggingAfterInitialized")
 				require.NoError(t, err)
 				defer os.Remove(tempDir)
 
 				filePath = filepath.Join(tempDir, "file.log")
-				testCase.LoggerConfiguration.FileLocation = filePath
+				testCase.cfg.Options = json.RawMessage(fmt.Sprintf(`{"filename": "%s"}`, filePath))
 			}
 
-			logger := mlog.NewLogger(testCase.LoggerConfiguration)
+			logger, _ := mlog.NewLogger()
+			err := logger.ConfigureTargets(map[string]mlog.TargetCfg{testCase.description: testCase.cfg}, nil)
+			require.NoError(t, err)
+
 			mlog.InitGlobalLogger(logger)
 
 			mlog.Debug("real debug log")
 			mlog.Info("real info log")
 			mlog.Warn("real warning log")
 			mlog.Error("real error log")
-			mlog.Critical("real critical log")
 
-			if testCase.LoggerConfiguration.EnableFile {
-				logs, err := ioutil.ReadFile(filePath)
+			logger.Shutdown()
+
+			if testCase.cfg.Type == "file" {
+				logs, err := os.ReadFile(filePath)
 				require.NoError(t, err)
 
 				actual := strings.TrimSpace(string(logs))
 
-				if testCase.LoggerConfiguration.FileJson {
-					reTs := regexp.MustCompile(`"ts":[0-9\.]+`)
+				if testCase.cfg.Format == "json" {
+					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\+\:\sZ]+"`)
 					reCaller := regexp.MustCompile(`"caller":"([^"]+):[0-9\.]+"`)
-					actual = reTs.ReplaceAllString(actual, `"ts":0`)
+					actual = reTs.ReplaceAllString(actual, `"timestamp":0`)
 					actual = reCaller.ReplaceAllString(actual, `"caller":"$1:0"`)
 				} else {
-					actualRows := strings.Split(actual, "\n")
-					for i, actualRow := range actualRows {
-						actualFields := strings.Split(actualRow, "\t")
-						if len(actualFields) > 3 {
-							actualFields[0] = "TIME"
-							reCaller := regexp.MustCompile(`([^"]+):[0-9\.]+`)
-							actualFields[2] = reCaller.ReplaceAllString(actualFields[2], "$1:0")
-							actualRows[i] = strings.Join(actualFields, "\t")
-						}
-					}
-
-					actual = strings.Join(actualRows, "\n")
+					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-\+Z]+\]`)
+					reCaller := regexp.MustCompile(`caller="([^"]+):[0-9\.]+"`)
+					actual = reTs.ReplaceAllString(actual, "TIME")
+					actual = reCaller.ReplaceAllString(actual, `caller="$1:0"`)
 				}
-				require.ElementsMatch(t, testCase.ExpectedLogs, strings.Split(actual, "\n"))
+				require.ElementsMatch(t, testCase.expectedLogs, strings.Split(actual, "\n"))
 			}
 		})
 	}

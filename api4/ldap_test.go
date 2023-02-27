@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 )
 
 var spPrivateKey = `-----BEGIN PRIVATE KEY-----
@@ -104,23 +104,24 @@ func TestTestLdap(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.TestLdap()
+		resp, err := client.TestLdap()
 		CheckNotImplementedStatus(t, resp)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.ldap_groups.license_error")
 	})
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
-	_, resp := th.Client.TestLdap()
+	resp, err := th.Client.TestLdap()
 	CheckForbiddenStatus(t, resp)
-	require.NotNil(t, resp.Error)
-	require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+	require.Error(t, err)
+	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp = client.TestLdap()
+		resp, err = client.TestLdap()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "ent.ldap.disabled.app_error", resp.Error.Id)
+		require.Error(t, err)
+		CheckErrorID(t, err, "ent.ldap.disabled.app_error")
 	})
 }
 
@@ -129,10 +130,10 @@ func TestSyncLdap(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.TestLdap()
+		resp, err := client.TestLdap()
 		CheckNotImplementedStatus(t, resp)
-		require.NotNil(t, resp.Error)
-		require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.ldap_groups.license_error")
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
@@ -152,21 +153,22 @@ func TestSyncLdap(t *testing.T) {
 		includeRemovedMembers = args[1].(bool)
 		ready <- true
 	}
-	th.App.Srv().Ldap = ldapMock
+	th.App.Channels().Ldap = ldapMock
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.SyncLdap(false)
+		_, err := client.SyncLdap(false)
 		<-ready
-		CheckNoError(t, resp)
-		require.Equal(t, false, includeRemovedMembers)
+		require.NoError(t, err)
+		require.False(t, includeRemovedMembers)
 
-		_, resp = client.SyncLdap(true)
+		_, err = client.SyncLdap(true)
 		<-ready
-		CheckNoError(t, resp)
-		require.Equal(t, true, includeRemovedMembers)
+		require.NoError(t, err)
+		require.True(t, includeRemovedMembers)
 	})
 
-	_, resp := th.Client.SyncLdap(false)
+	resp, err := th.Client.SyncLdap(false)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -174,11 +176,13 @@ func TestGetLdapGroups(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.GetLdapGroups()
+	_, resp, err := th.Client.GetLdapGroups()
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.GetLdapGroups()
+		_, resp, err := client.GetLdapGroups()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 }
@@ -189,10 +193,12 @@ func TestLinkLdapGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.LinkLdapGroup(entryUUID)
+	_, resp, err := th.Client.LinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.LinkLdapGroup(entryUUID)
+	_, resp, err = th.SystemAdminClient.LinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -202,10 +208,12 @@ func TestUnlinkLdapGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.UnlinkLdapGroup(entryUUID)
+	_, resp, err := th.Client.UnlinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
+	_, resp, err = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
@@ -213,14 +221,17 @@ func TestMigrateIdLdap(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.MigrateIdLdap("objectGUID")
+	resp, err := th.Client.MigrateIdLdap("objectGUID")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp = client.MigrateIdLdap("")
+		resp, err = client.MigrateIdLdap("")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp = client.MigrateIdLdap("objectGUID")
+		resp, err = client.MigrateIdLdap("objectGUID")
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 }
@@ -229,20 +240,20 @@ func TestUploadPublicCertificate(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.UploadLdapPublicCertificate([]byte(spPublicCertificate))
-	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
+	_, err := th.Client.UploadLdapPublicCertificate([]byte(spPublicCertificate))
+	require.Error(t, err, "Should have failed. No System Admin privileges")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp = client.UploadLdapPublicCertificate([]byte(spPrivateKey))
-		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+		_, err = client.UploadLdapPublicCertificate([]byte(spPrivateKey))
+		require.NoErrorf(t, err, "Should have passed. System Admin privileges %v", err)
 	})
 
-	_, resp = th.Client.DeleteLdapPublicCertificate()
-	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
+	_, err = th.Client.DeleteLdapPublicCertificate()
+	require.Error(t, err, "Should have failed. No System Admin privileges")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.DeleteLdapPublicCertificate()
-		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+		_, err := client.DeleteLdapPublicCertificate()
+		require.NoError(t, err, "Should have passed. System Admin privileges")
 	})
 }
 
@@ -250,19 +261,50 @@ func TestUploadPrivateCertificate(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_, resp := th.Client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
-	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
+	_, err := th.Client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
+	require.Error(t, err, "Should have failed. No System Admin privileges")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp = client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
-		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+		_, err = client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
+		require.NoErrorf(t, err, "Should have passed. System Admin privileges %v", err)
 	})
 
-	_, resp = th.Client.DeleteLdapPrivateCertificate()
-	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
+	_, err = th.Client.DeleteLdapPrivateCertificate()
+	require.Error(t, err, "Should have failed. No System Admin privileges")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.DeleteLdapPrivateCertificate()
-		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+		_, err := client.DeleteLdapPrivateCertificate()
+		require.NoErrorf(t, err, "Should have passed. System Admin privileges %v", err)
 	})
+}
+
+func TestAddUserToGroupSyncables(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	resp, err := th.Client.AddUserToGroupSyncables(th.BasicUser.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.AddUserToGroupSyncables("invalid-user-id")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(th.BasicUser.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	id := model.NewId()
+	user := &model.User{
+		Email:       "test@localhost",
+		Username:    model.NewId(),
+		AuthData:    &id,
+		AuthService: model.UserAuthServiceLdap,
+	}
+	user, err = th.App.Srv().Store().User().Save(user)
+	require.NoError(t, err)
+
+	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(user.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 }

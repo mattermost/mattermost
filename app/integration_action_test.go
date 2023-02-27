@@ -6,7 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
@@ -29,8 +29,9 @@ func TestPostActionInvalidURL(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 	}))
 	defer ts.Close()
 
@@ -69,6 +70,59 @@ func TestPostActionInvalidURL(t *testing.T) {
 	require.True(t, strings.Contains(err.Error(), "missing protocol scheme"))
 }
 
+func TestPostActionEmptyResponse(t *testing.T) {
+	t.Run("Empty response on post action", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channel := th.BasicChannel
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+		defer ts.Close()
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     channel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Integration: &model.PostActionIntegration{
+									Context: model.StringInterface{
+										"s": "foo",
+										"n": 3,
+									},
+									URL: ts.URL,
+								},
+								Name:       "action",
+								Type:       "some_type",
+								DataSource: "some_source",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		require.Nil(t, err)
+
+		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		require.True(t, ok)
+
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+	})
+}
+
 func TestPostAction(t *testing.T) {
 	testCases := []struct {
 		Description string
@@ -86,7 +140,7 @@ func TestPostAction(t *testing.T) {
 			user1 := th.CreateUser()
 			user2 := th.CreateUser()
 
-			return th.CreateGroupChannel(user1, user2)
+			return th.CreateGroupChannel(th.Context, user1, user2)
 		}},
 	}
 
@@ -102,14 +156,15 @@ func TestPostAction(t *testing.T) {
 			})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				request := model.PostActionIntegrationRequestFromJson(r.Body)
-				assert.NotNil(t, request)
+				var request model.PostActionIntegrationRequest
+				jsonErr := json.NewDecoder(r.Body).Decode(&request)
+				assert.NoError(t, jsonErr)
 
 				assert.Equal(t, request.UserId, th.BasicUser.Id)
 				assert.Equal(t, request.UserName, th.BasicUser.Username)
 				assert.Equal(t, request.ChannelId, channel.Id)
 				assert.Equal(t, request.ChannelName, channel.Name)
-				if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+				if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 					assert.Empty(t, request.TeamId)
 					assert.Empty(t, request.TeamName)
 				} else {
@@ -117,7 +172,7 @@ func TestPostAction(t *testing.T) {
 					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 				}
 				assert.True(t, request.TriggerId != "")
-				if request.Type == model.POST_ACTION_TYPE_SELECT {
+				if request.Type == model.PostActionTypeSelect {
 					assert.Equal(t, request.DataSource, "some_source")
 					assert.Equal(t, request.Context["selected_option"], "selected")
 				} else {
@@ -185,7 +240,7 @@ func TestPostAction(t *testing.T) {
 										URL: ts.URL,
 									},
 									Name:       "action",
-									Type:       model.POST_ACTION_TYPE_SELECT,
+									Type:       model.PostActionTypeSelect,
 									DataSource: "some_source",
 								},
 							},
@@ -357,8 +412,9 @@ func TestPostActionProps(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 
 		fmt.Fprintf(w, `{
 			"update": {
@@ -419,7 +475,7 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
-	newPost, nErr := th.App.Srv().Store.Post().GetSingle(post.Id, false)
+	newPost, nErr := th.App.Srv().Store().Post().GetSingle(post.Id, false)
 	require.NoError(t, nErr)
 
 	assert.True(t, newPost.IsPinned)
@@ -445,7 +501,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		TeamId:     th.BasicTeam.Id,
 		CallbackId: "someid",
 		State:      "somestate",
-		Submission: map[string]interface{}{
+		Submission: map[string]any{
 			"name1": "value1",
 		},
 	}
@@ -477,14 +533,16 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
 		import (
 			"net/http"
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"encoding/json"
+
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -500,13 +558,14 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 				Errors: map[string]string{"name1": errReply},
 			}
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(response.ToJson())
+			responseJSON, _ := json.Marshal(response)
+			_, _ = w.Write(responseJSON)
 		}
 
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -553,8 +612,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 	defer th.TearDown()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 		fmt.Fprintf(w, `{"post": {"message": "updated"}, "ephemeral_text": "foo"}`)
 	}))
 	defer ts.Close()
@@ -765,14 +825,16 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
 		import (
 			"net/http"
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"encoding/json" 
+
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -782,13 +844,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 			response := &model.PostActionIntegrationResponse{}
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(response.ToJson())
+			responseJSON, _ := json.Marshal(response)
+			_, _ = w.Write(responseJSON)
 		}
 
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -963,7 +1026,7 @@ func TestDoPluginRequest(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
@@ -972,7 +1035,7 @@ func TestDoPluginRequest(t *testing.T) {
 			"reflect"
 			"sort"
 
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -1007,7 +1070,7 @@ func TestDoPluginRequest(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -1016,47 +1079,47 @@ func TestDoPluginRequest(t *testing.T) {
 	resp, err := th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin", nil, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, "could not find param abc=xyz", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz", nil, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "param multiple should have 3 values", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin",
 		url.Values{"abc": []string{"xyz"}, "multiple": []string{"1 first", "2 second", "3 third"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz&multiple=1%20first",
 		url.Values{"multiple": []string{"2 second", "3 third"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz&multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"2 second"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"2 second"}, "abc": []string{"xyz"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"4 fourth"}, "abc": []string{"xyz"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "param multiple not correct", string(body))
 }

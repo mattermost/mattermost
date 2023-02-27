@@ -14,6 +14,10 @@ type PostList struct {
 	Posts      map[string]*Post `json:"posts"`
 	NextPostId string           `json:"next_post_id"`
 	PrevPostId string           `json:"prev_post_id"`
+	// HasNext indicates whether there are more items to be fetched or not.
+	HasNext bool `json:"has_next"`
+	// If there are inaccessible posts, FirstInaccessiblePostTime is the time of the latest inaccessible post
+	FirstInaccessiblePostTime int64 `json:"first_inaccessible_post_time"`
 }
 
 func NewPostList() *PostList {
@@ -23,6 +27,31 @@ func NewPostList() *PostList {
 		NextPostId: "",
 		PrevPostId: "",
 	}
+}
+
+func (o *PostList) Clone() *PostList {
+	orderCopy := make([]string, len(o.Order))
+	postsCopy := make(map[string]*Post)
+	copy(orderCopy, o.Order)
+	for k, v := range o.Posts {
+		postsCopy[k] = v.Clone()
+	}
+	return &PostList{
+		Order:                     orderCopy,
+		Posts:                     postsCopy,
+		NextPostId:                o.NextPostId,
+		PrevPostId:                o.PrevPostId,
+		HasNext:                   o.HasNext,
+		FirstInaccessiblePostTime: o.FirstInaccessiblePostTime,
+	}
+}
+
+func (o *PostList) ForPlugin() *PostList {
+	copy := o.Clone()
+	for k, p := range copy.Posts {
+		copy.Posts[k] = p.ForPlugin()
+	}
+	return copy
 }
 
 func (o *PostList) ToSlice() []*Post {
@@ -57,14 +86,16 @@ func (o *PostList) StripActionIntegrations() {
 	}
 }
 
-func (o *PostList) ToJson() string {
+func (o *PostList) ToJSON() (string, error) {
 	copy := *o
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(&copy)
-	if err != nil {
-		return ""
-	}
-	return string(b)
+	return string(b), err
+}
+
+func (o *PostList) EncodeJSON(w io.Writer) error {
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }
 
 func (o *PostList) MakeNonNil() {
@@ -161,10 +192,4 @@ func (o *PostList) IsChannelId(channelId string) bool {
 	}
 
 	return true
-}
-
-func PostListFromJson(data io.Reader) *PostList {
-	var o *PostList
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 
-	channel1 := th.CreateChannel(th.BasicTeam)
-	channel2 := th.CreateChannel(th.BasicTeam)
-	channel3 := th.CreateChannel(th.BasicTeam)
+	channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel3 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	data := []struct {
 		channelId string
@@ -38,22 +38,22 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 			CreatorId: th.BasicUser.Id,
 			RemoteId:  d.remoteId,
 		}
-		_, err := th.App.SaveSharedChannel(sc)
+		_, err := th.App.SaveSharedChannel(th.Context, sc)
 		require.NoError(t, err)
 	}
 
 	t.Run("Test checkChannelNotShared: not yet shared channel", func(t *testing.T) {
-		err := th.App.checkChannelNotShared(channel3.Id)
+		err := th.App.checkChannelNotShared(th.Context, channel3.Id)
 		assert.NoError(t, err, "unshared channel should not error")
 	})
 
 	t.Run("Test checkChannelNotShared: already shared channel", func(t *testing.T) {
-		err := th.App.checkChannelNotShared(channel1.Id)
+		err := th.App.checkChannelNotShared(th.Context, channel1.Id)
 		assert.Error(t, err, "already shared channel should error")
 	})
 
 	t.Run("Test checkChannelNotShared: invalid channel", func(t *testing.T) {
-		err := th.App.checkChannelNotShared(model.NewId())
+		err := th.App.checkChannelNotShared(th.Context, model.NewId())
 		assert.Error(t, err, "invalid channel should error")
 	})
 

@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +16,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,12 +24,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
@@ -60,81 +60,6 @@ func TestStartServerSuccess(t *testing.T) {
 	require.NoError(t, serverErr)
 }
 
-func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
-	t.Skip("TODO: fix flaky test")
-	cfg := model.Config{}
-	cfg.SetDefaults()
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
-	}
-	dsn := ""
-	if driverName == model.DATABASE_DRIVER_POSTGRES {
-		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
-	} else {
-		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
-	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
-	if dsn != "" {
-		cfg.SqlSettings.DataSource = &dsn
-	}
-	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
-	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
-
-	t.Run("Read Replicas with no License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = configStore
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
-		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
-	})
-
-	t.Run("Read Replicas With License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
-		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
-	})
-
-	t.Run("Search Replicas with no License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = configStore
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
-		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
-	})
-
-	t.Run("Search Replicas With License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = configStore
-			server.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
-		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
-	})
-}
-
 func TestStartServerPortUnavailable(t *testing.T) {
 	s, err := NewServer()
 	require.NoError(t, err)
@@ -144,7 +69,7 @@ func TestStartServerPortUnavailable(t *testing.T) {
 	require.NoError(t, err)
 
 	// Attempt to listen on the port used above.
-	s.UpdateConfig(func(cfg *model.Config) {
+	s.platform.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
 	})
 
@@ -165,31 +90,40 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+	configStore, _ := config.NewFileStore("config.json", true)
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+
+	cfg := store.Get()
+	cfg.FileSettings = model.FileSettings{
+		DriverName:              model.NewString(model.ImageDriverS3),
+		AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
+		AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
+		AmazonS3Bucket:          model.NewString("nosuchbucket"),
+		AmazonS3Endpoint:        model.NewString(s3Endpoint),
+		AmazonS3Region:          model.NewString(""),
+		AmazonS3PathPrefix:      model.NewString(""),
+		AmazonS3SSL:             model.NewBool(false),
+	}
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	_, _, err := store.Set(cfg)
+	require.NoError(t, err)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		server.configStore = store
-		server.UpdateConfig(func(cfg *model.Config) {
-			cfg.FileSettings = model.FileSettings{
-				DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-				AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
-				AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
-				AmazonS3Bucket:          model.NewString("nosuchbucket"),
-				AmazonS3Endpoint:        model.NewString(s3Endpoint),
-				AmazonS3Region:          model.NewString(""),
-				AmazonS3PathPrefix:      model.NewString(""),
-				AmazonS3SSL:             model.NewBool(false),
-			}
-		})
+		var err2 error
+		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
+		require.NoError(t, err2)
+
 		return nil
 	})
 	require.NoError(t, err)
 
+	require.NoError(t, s.Start())
+	defer s.Shutdown()
+
 	// ensure that a new bucket was created
-	backend, appErr := s.FileBackend()
-	require.Nil(t, appErr)
-	err = backend.(*filestore.S3FileBackend).TestConnection()
+	require.IsType(t, &filestore.S3FileBackend{}, s.FileBackend())
+
+	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
 	require.NoError(t, err)
 }
 
@@ -231,173 +165,18 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
+	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
 	assert.Equal(t, "postgres", databaseType)
-	assert.Equal(t, "5.31.0", mattermostVersion)
+	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndMattermostVersion()
+	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
 	assert.Equal(t, "mysql", databaseType)
-	assert.Equal(t, "5.31.0", mattermostVersion)
-}
-
-func TestGenerateSupportPacket(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("mattermost.log", d1, 0777)
-	require.NoError(t, err)
-	err = ioutil.WriteFile("notifications.log", d1, 0777)
-	require.NoError(t, err)
-
-	fileDatas := th.App.GenerateSupportPacket()
-	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
-	for i, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Equal(t, testFiles[i], fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-	}
-
-	// Remove these two files and ensure that warning.txt file is generated
-	err = os.Remove("notifications.log")
-	require.NoError(t, err)
-	err = os.Remove("mattermost.log")
-	require.NoError(t, err)
-	fileDatas = th.App.GenerateSupportPacket()
-	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
-	for i, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Equal(t, testFiles[i], fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-	}
-}
-
-func TestGetNotificationsLog(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Disable notifications file to get an error
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = false
-	})
-
-	fileData, warning := th.App.getNotificationsLog()
-	assert.Nil(t, fileData)
-	assert.Equal(t, warning, "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json")
-
-	// Enable notifications file but delete any notifications file to get an error trying to read the file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = true
-	})
-
-	// If any previous notifications.log file, lets delete it
-	os.Remove("notifications.log")
-
-	fileData, warning = th.App.getNotificationsLog()
-	assert.Nil(t, fileData)
-	assert.Contains(t, warning, "ioutil.ReadFile(notificationsLog) Error:")
-
-	// Happy path where we have file and no warning
-	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("notifications.log", d1, 0777)
-	defer os.Remove("notifications.log")
-	require.NoError(t, err)
-
-	fileData, warning = th.App.getNotificationsLog()
-	require.NotNil(t, fileData)
-	assert.Equal(t, "notifications.log", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.Empty(t, warning)
-}
-
-func TestGetMattermostLog(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// disable mattermost log file setting in config so we should get an warning
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.LogSettings.EnableFile = false
-	})
-
-	fileData, warning := th.App.getMattermostLog()
-	assert.Nil(t, fileData)
-	assert.Equal(t, "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json", warning)
-
-	// We enable the setting but delete any mattermost log file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.LogSettings.EnableFile = true
-	})
-
-	// If any previous mattermost.log file, lets delete it
-	os.Remove("mattermost.log")
-
-	fileData, warning = th.App.getMattermostLog()
-	assert.Nil(t, fileData)
-	assert.Contains(t, warning, "ioutil.ReadFile(mattermostLog) Error:")
-
-	// Happy path where we get a log file and no warning
-	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("mattermost.log", d1, 0777)
-	defer os.Remove("mattermost.log")
-	require.NoError(t, err)
-
-	fileData, warning = th.App.getMattermostLog()
-	require.NotNil(t, fileData)
-	assert.Equal(t, "mattermost.log", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.Empty(t, warning)
-}
-
-func TestCreateSanitizedConfigFile(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Happy path where we have a sanitized config file with no warning
-	fileData, warning := th.App.createSanitizedConfigFile()
-	require.NotNil(t, fileData)
-	assert.Equal(t, "sanitized_config.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.Empty(t, warning)
-}
-
-func TestCreatePluginsFile(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Happy path where we have a plugins file with no warning
-	fileData, warning := th.App.createPluginsFile()
-	require.NotNil(t, fileData)
-	assert.Equal(t, "plugins.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.Empty(t, warning)
-
-	// Turn off plugins so we can get an error
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
-	})
-
-	// Plugins off in settings so no fileData and we get a warning instead
-	fileData, warning = th.App.createPluginsFile()
-	assert.Nil(t, fileData)
-	assert.Contains(t, warning, "c.App.GetPlugins() Error:")
-}
-
-func TestGenerateSupportPacketYaml(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Happy path where we have a support packet yaml file without any warnings
-	fileData, warning := th.App.generateSupportPacketYaml()
-	require.NotNil(t, fileData)
-	assert.Equal(t, "support_packet.yaml", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.Empty(t, warning)
-
+	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
@@ -428,10 +207,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
-
-	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
-		t.Errorf("Expected protocol version error, got %s", err)
-	}
+	require.Error(t, err)
 
 	client.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -515,42 +291,43 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
-	// Creating a temp file to collect logs
-	tmpfile, err := ioutil.TempFile("", "mlog")
-	if err != nil {
-		require.NoError(t, err)
-	}
-
+	// Creating a temp dir for log
+	tmpDir, err := os.MkdirTemp("", "mlog-test")
+	require.NoError(t, err, "cannot create tmp dir for log file")
 	defer func() {
-		require.NoError(t, tmpfile.Close())
-		require.NoError(t, os.Remove(tmpfile.Name()))
+		err2 := os.RemoveAll(tmpDir)
+		assert.NoError(t, err2)
 	}()
 
-	// This test requires Zap file target for now.
-	mlog.EnableZap()
-	defer mlog.DisableZap()
-
 	// Creating logger to log to console and temp file
-	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		EnableFile:    true,
-		FileLocation:  tmpfile.Name(),
-		FileLevel:     mlog.LevelInfo,
-	})
+	logger, _ := mlog.NewLogger()
+
+	logSettings := model.NewLogSettings()
+	logSettings.EnableConsole = model.NewBool(true)
+	logSettings.ConsoleJson = model.NewBool(true)
+	logSettings.EnableFile = model.NewBool(true)
+	logSettings.FileLocation = &tmpDir
+	logSettings.FileLevel = &mlog.LvlInfo.Name
+
+	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
+	require.NoError(t, err)
+	err = logger.ConfigureTargets(cfg, nil)
+	require.NoError(t, err)
+	logger.LockConfiguration()
 
 	// Creating a server with logger
-	s, err := NewServer(SetLogger(logger))
+	s, err := NewServer()
 	require.NoError(t, err)
+	s.Platform().SetLogger(logger)
 
-	// Route for just panicing
+	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		s.Log.Info("inside panic handler")
+		s.Log().Info("inside panic handler")
 		panic("log this panic")
 	})
 
 	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
+	s.platform.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
@@ -566,16 +343,22 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+
+	err = logger.Flush()
+	assert.NoError(t, err, "flush should succeed")
 	s.Shutdown()
 
 	// Checking whether panic was logged
 	var panicLogged = false
 	var infoLogged = false
 
-	_, err = tmpfile.Seek(0, 0)
+	logFile, err := os.Open(config.GetLogFileLocation(tmpDir))
+	require.NoError(t, err, "cannot open log file")
+
+	_, err = logFile.Seek(0, 0)
 	require.NoError(t, err)
 
-	scanner := bufio.NewScanner(tmpfile)
+	scanner := bufio.NewScanner(logFile)
 	for scanner.Scan() {
 		if !infoLogged && strings.Contains(scanner.Text(), "inside panic handler") {
 			infoLogged = true
@@ -674,7 +457,7 @@ func TestSentry(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Route for just panicing
+		// Route for just panicking
 		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
 			panic("log this panic")
 		})
@@ -696,60 +479,11 @@ func TestSentry(t *testing.T) {
 	})
 }
 
-func TestAdminAdvisor(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// creating a system user to whole admin advisor will send post
-	user := model.User{
-		Email:       strings.ToLower(model.NewId()) + "success+test@example.com",
-		Nickname:    "Darth Vader",
-		Username:    "vader" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
-		Roles:       model.SYSTEM_ADMIN_ROLE_ID,
-	}
-	ruser, err := th.App.CreateUser(th.Context, &user)
-	assert.Nil(t, err, "User should be created")
-	defer th.App.PermanentDeleteUser(th.Context, &user)
-
-	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
-		doCheckAdminSupportStatus(th.App, th.Context)
-
-		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
-		assert.NotNil(t, bot, "Bot should have been created now")
-		assert.Nil(t, err, "No error should be generated")
-
-		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-		assert.Nil(t, err, "No error should be generated")
-	})
-
-	t.Run("Should NOT notify admin when support email is configured", func(t *testing.T) {
-		th.App.UpdateConfig(func(m *model.Config) {
-			email := "success+test@example.com"
-			m.SupportSettings.SupportEmail = &email
-		})
-
-		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
-		assert.NotNil(t, bot, "Bot should be already created")
-		assert.Nil(t, err, "No error should be generated")
-
-		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should already exist")
-		assert.Nil(t, err, "No error should be generated")
-
-		err = th.App.PermanentDeleteChannel(channel)
-		assert.Nil(t, err, "No error should be generated")
-
-		doCheckAdminSupportStatus(th.App, th.Context)
-
-		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-		assert.Nil(t, err, "No error should be generated")
-
-		posts, err := th.App.GetPosts(channel.Id, 0, 100)
-		assert.Nil(t, err, "No error should be generated")
-		assert.Equal(t, 0, len(posts.Posts))
-	})
+func TestCancelTaskSetsTaskToNil(t *testing.T) {
+	var taskMut sync.Mutex
+	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
+	require.NotNil(t, task)
+	cancelTask(&taskMut, &task)
+	require.Nil(t, task)
+	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }

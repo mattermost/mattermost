@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 var searchFileInfoStoreTests = []searchTest{
@@ -90,7 +90,7 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
-		Name: "Should be able to exclude messages that contain a serch term",
+		Name: "Should be able to exclude messages that contain a search term",
 		Fn:   testFileInfoFilterFilesWithATerm,
 		Tags: []string{EngineMySql, EnginePostgres},
 	},
@@ -200,11 +200,11 @@ func testFileInfoSearchFileInfosIncludingDMs(t *testing.T, th *SearchTestHelper)
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
-	post, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "dm test", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "dm test", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 
 	p1, err := th.createFileInfo(th.User.Id, post.Id, "dm test filename", "dm contenttest filename", "jpg", "image/jpeg", 0, 1)
@@ -241,11 +241,11 @@ func testFileInfoSearchFileInfosWithPagination(t *testing.T, th *SearchTestHelpe
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
-	post, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.POST_DEFAULT, 10000, false)
+	post, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.PostTypeDefault, 10000, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "dm test", "", model.POST_DEFAULT, 20000, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "dm test", "", model.PostTypeDefault, 20000, false)
 	require.NoError(t, err)
 
 	p1, err := th.createFileInfo(th.User.Id, post.Id, "dm test filename", "dm contenttest filename", "jpg", "image/jpeg", 10000, 0)
@@ -288,7 +288,7 @@ func testFileInfoSearchFileInfosWithPagination(t *testing.T, th *SearchTestHelpe
 }
 
 func testFileInfoSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -318,7 +318,7 @@ func testFileInfoSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -369,7 +369,7 @@ func testFileInfoSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -415,7 +415,7 @@ func testFileInfoSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -546,7 +546,7 @@ func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchAlternativeSpellings(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -574,7 +574,7 @@ func testFileInfoSearchAlternativeSpellings(t *testing.T, th *SearchTestHelper) 
 }
 
 func testFileInfoSearchAlternativeSpellingsAccents(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -608,7 +608,7 @@ func testFileInfoSearchAlternativeSpellingsAccents(t *testing.T, th *SearchTestH
 }
 
 func testFileInfoSearchOrExcludeFileInfosBySpecificUser(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -628,10 +628,10 @@ func testFileInfoSearchOrExcludeFileInfosBySpecificUser(t *testing.T, th *Search
 }
 
 func testFileInfoSearchOrExcludeFileInfosInChannel(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -659,9 +659,9 @@ func testFileInfoSearchOrExcludeFileInfosInDMGM(t *testing.T, th *SearchTestHelp
 	require.NoError(t, err)
 	defer th.deleteChannel(group)
 
-	post1, err := th.createPost(th.User.Id, direct.Id, "test fromuser", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, direct.Id, "test fromuser", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	post2, err := th.createPost(th.User2.Id, group.Id, "test fromuser 2", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User2.Id, group.Id, "test fromuser 2", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 	defer th.deleteUserPosts(th.User2.Id)
@@ -712,7 +712,7 @@ func testFileInfoSearchOrExcludeFileInfosInDMGM(t *testing.T, th *SearchTestHelp
 }
 
 func testFileInfoSearchOrExcludeByExtensions(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -780,9 +780,9 @@ func testFileInfoSearchOrExcludeByExtensions(t *testing.T, th *SearchTestHelper)
 }
 
 func testFileInfoFilterFilesInSpecificDate(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -823,9 +823,9 @@ func testFileInfoFilterFilesInSpecificDate(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoFilterFilesBeforeSpecificDate(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -867,9 +867,9 @@ func testFileInfoFilterFilesBeforeSpecificDate(t *testing.T, th *SearchTestHelpe
 }
 
 func testFileInfoFilterFilesAfterSpecificDate(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -911,9 +911,9 @@ func testFileInfoFilterFilesAfterSpecificDate(t *testing.T, th *SearchTestHelper
 }
 
 func testFileInfoFilterFilesWithATerm(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -952,7 +952,7 @@ func testFileInfoFilterFilesWithATerm(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchUsingBooleanOperators(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -991,9 +991,9 @@ func testFileInfoSearchUsingBooleanOperators(t *testing.T, th *SearchTestHelper)
 }
 
 func testFileInfoSearchUsingCombinedFilters(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1063,7 +1063,7 @@ func testFileInfoSearchUsingCombinedFilters(t *testing.T, th *SearchTestHelper) 
 }
 
 func testFileInfoSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1125,7 +1125,7 @@ func testFileInfoSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSupportStemming(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1149,7 +1149,7 @@ func testFileInfoSupportStemming(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSupportWildcards(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1186,7 +1186,7 @@ func testFileInfoSupportWildcards(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1208,7 +1208,7 @@ func testFileInfoNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper
 }
 
 func testFileInfoSearchDiscardWildcardAlone(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1229,7 +1229,7 @@ func testFileInfoSearchDiscardWildcardAlone(t *testing.T, th *SearchTestHelper) 
 }
 
 func testFileInfoSupportTermsWithDash(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1263,7 +1263,7 @@ func testFileInfoSupportTermsWithDash(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSupportTermsWithUnderscore(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1297,13 +1297,13 @@ func testFileInfoSupportTermsWithUnderscore(t *testing.T, th *SearchTestHelper) 
 }
 
 func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelDeleted.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelDeleted.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
-	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
-	post3, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post3, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1378,7 +1378,7 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 }
 
 func testFileInfoSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1427,7 +1427,7 @@ func testFileInfoSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchTermsWithDots(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1476,7 +1476,7 @@ func testFileInfoSearchTermsWithDots(t *testing.T, th *SearchTestHelper) {
 }
 
 func testFileInfoSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1525,10 +1525,10 @@ func testFileInfoSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) 
 }
 
 func testFileInfoSupportStemmingAndWildcards(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 
 	defer th.deleteUserPosts(th.User.Id)
@@ -1562,10 +1562,10 @@ func testFileInfoSupportStemmingAndWildcards(t *testing.T, th *SearchTestHelper)
 }
 
 func testFileInfoSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper) {
-	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
-	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 
 	p1, err := th.createFileInfo(th.User.Id, post1.Id, "hello world", "hello world", "jpg", "image/jpeg", 0, 0)
@@ -1596,7 +1596,7 @@ func testFileInfoSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper
 }
 
 func testFileInfoSlashShouldNotBeCharSeparator(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1627,7 +1627,7 @@ func testFileInfoSlashShouldNotBeCharSeparator(t *testing.T, th *SearchTestHelpe
 }
 
 func testFileInfoSearchEmailsWithoutQuotes(t *testing.T, th *SearchTestHelper) {
-	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.POST_DEFAULT, 0, false)
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 

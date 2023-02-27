@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestParseAuthTokenFromRequest(t *testing.T) {
@@ -26,6 +26,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 		{"token mytoken", "", "", "mytoken", TokenLocationHeader},
 		{"BEARER mytoken", "", "", "mytoken", TokenLocationHeader},
 		{"", "mytoken", "", "mytoken", TokenLocationCookie},
+		{"", "a very large token to test out tokentokentokentokentokentokentokentokentokentokentokentokentoken", "", "a very large token to test out tokentokentokentoke", TokenLocationCookie},
 		{"", "", "mytoken", "mytoken", TokenLocationQueryString},
 		{"mytoken", "", "", "mytoken", TokenLocationCloudHeader},
 	}
@@ -38,12 +39,12 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 		req := httptest.NewRequest("GET", pathname, nil)
 		switch tc.expectedLocation {
 		case TokenLocationHeader:
-			req.Header.Add(model.HEADER_AUTH, tc.header)
+			req.Header.Add(model.HeaderAuth, tc.header)
 		case TokenLocationCloudHeader:
-			req.Header.Add(model.HEADER_CLOUD_TOKEN, tc.header)
+			req.Header.Add(model.HeaderCloudToken, tc.header)
 		case TokenLocationCookie:
 			req.AddCookie(&http.Cookie{
-				Name:  model.SESSION_COOKIE_TOKEN,
+				Name:  model.SessionCookieToken,
 				Value: tc.cookie,
 			})
 		}

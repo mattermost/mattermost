@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SearchPostStore struct {
@@ -32,7 +32,6 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 					mlog.Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Indexed post in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
 		}
 	}
@@ -46,7 +45,6 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 					mlog.Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed post from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
 		}
 	}
@@ -110,7 +108,10 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 	err := s.PostStore.Delete(postId, date, deletedByID)
 
 	if err == nil {
-		postList, err2 := s.PostStore.Get(context.Background(), postId, true, false, false, "")
+		opts := model.GetPostsOptions{
+			SkipFetchThreads: true,
+		}
+		postList, err2 := s.PostStore.Get(context.Background(), postId, opts, "", map[string]bool{})
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
@@ -136,13 +137,17 @@ func (s SearchPostStore) PermanentDeleteByChannel(channelID string) error {
 	return err
 }
 
-func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	if err := model.IsSearchParamsListValid(paramsList); err != nil {
 		return nil, err
 	}
 
 	// We only allow the user to search in channels they are a member of.
-	userChannels, err2 := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
+	userChannels, err2 := s.rootStore.Channel().GetChannels(teamId, userId,
+		&model.ChannelSearchOpts{
+			IncludeDeleted: paramsList[0].IncludeDeletedChannels,
+			LastDeleteAt:   0,
+		})
 	if err2 != nil {
 		return nil, errors.Wrap(err2, "error getting channel for user")
 	}
@@ -170,24 +175,21 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 	return model.MakePostSearchResults(postList, matches), nil
 }
 
-func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s SearchPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
-			results, err := s.searchPostsInTeamForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
+			results, err := s.searchPostsForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
 			if err != nil {
 				mlog.Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
-			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			return results, err
 		}
 	}
 
 	if *s.rootStore.getConfig().SqlSettings.DisableDatabaseSearch {
-		mlog.Debug("Returning empty results for post SearchPostsInTeam as the database search is disabled")
 		return &model.PostSearchResults{PostList: model.NewPostList(), Matches: model.PostSearchMatches{}}, nil
 	}
 
-	mlog.Debug("Using database search because no other search engine is available")
-	return s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, page, perPage)
+	return s.PostStore.SearchPostsForUser(paramsList, userId, teamId, page, perPage)
 }

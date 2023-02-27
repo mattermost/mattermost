@@ -127,14 +127,6 @@ func (rc *RemoteCluster) fixTopics() {
 	rc.Topics = sb.String()
 }
 
-func (rc *RemoteCluster) ToJSON() (string, error) {
-	b, err := json.Marshal(rc)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
 func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 	return RemoteClusterInfo{
 		Name:        rc.Name,
@@ -146,15 +138,6 @@ func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 
 func NormalizeRemoteName(name string) string {
 	return strings.ToLower(name)
-}
-
-func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
-	var rc RemoteCluster
-	err := json.NewDecoder(data).Decode(&rc)
-	if err != nil {
-		return nil, NewAppError("RemoteClusterFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return &rc, nil
 }
 
 // RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
@@ -176,20 +159,11 @@ func (f *RemoteClusterFrame) IsValid() *AppError {
 		return NewAppError("RemoteClusterFrame.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "RemoteId="+f.RemoteId, http.StatusBadRequest)
 	}
 
-	if err := f.Msg.IsValid(); err != nil {
-		return err
+	if appErr := f.Msg.IsValid(); appErr != nil {
+		return appErr
 	}
 
 	return nil
-}
-
-func RemoteClusterFrameFromJSON(data io.Reader) (*RemoteClusterFrame, *AppError) {
-	var frame RemoteClusterFrame
-	err := json.NewDecoder(data).Decode(&frame)
-	if err != nil {
-		return nil, NewAppError("RemoteClusterFrameFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return &frame, nil
 }
 
 // RemoteClusterMsg represents a message that is sent and received between clusters.
@@ -220,19 +194,10 @@ func (m RemoteClusterMsg) IsValid() *AppError {
 	}
 
 	if len(m.Payload) == 0 {
-		return NewAppError("RemoteClusterMsg.IsValid", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "PayLoad"}, "", http.StatusBadRequest)
+		return NewAppError("RemoteClusterMsg.IsValid", "api.context.invalid_body_param.app_error", map[string]any{"Name": "PayLoad"}, "", http.StatusBadRequest)
 	}
 
 	return nil
-}
-
-func RemoteClusterMsgFromJSON(data io.Reader) (RemoteClusterMsg, *AppError) {
-	var msg RemoteClusterMsg
-	err := json.NewDecoder(data).Decode(&msg)
-	if err != nil {
-		return RemoteClusterMsg{}, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return msg, nil
 }
 
 // RemoteClusterPing represents a ping that is sent and received between clusters
@@ -242,30 +207,12 @@ type RemoteClusterPing struct {
 	RecvAt int64 `json:"recv_at"`
 }
 
-func RemoteClusterPingFromRawJSON(raw json.RawMessage) (RemoteClusterPing, *AppError) {
-	var ping RemoteClusterPing
-	err := json.Unmarshal(raw, &ping)
-	if err != nil {
-		return RemoteClusterPing{}, NewAppError("RemoteClusterPingFromRawJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return ping, nil
-}
-
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
 	RemoteId     string `json:"remote_id"`
 	RemoteTeamId string `json:"remote_team_id"`
 	SiteURL      string `json:"site_url"`
 	Token        string `json:"token"`
-}
-
-func RemoteClusterInviteFromRawJSON(raw json.RawMessage) (*RemoteClusterInvite, *AppError) {
-	var invite RemoteClusterInvite
-	err := json.Unmarshal(raw, &invite)
-	if err != nil {
-		return nil, NewAppError("RemoteClusterInviteFromRawJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return &invite, nil
 }
 
 func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {

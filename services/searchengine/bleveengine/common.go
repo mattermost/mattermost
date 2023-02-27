@@ -6,14 +6,17 @@ package bleveengine
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 )
 
 type BLVChannel struct {
-	Id          string
-	TeamId      []string
-	NameSuggest []string
+	Id            string
+	Type          model.ChannelType
+	UserIDs       []string
+	TeamId        []string
+	TeamMemberIDs []string
+	NameSuggest   []string
 }
 
 type BLVUser struct {
@@ -46,14 +49,17 @@ type BLVFile struct {
 	Extension string
 }
 
-func BLVChannelFromChannel(channel *model.Channel) *BLVChannel {
+func BLVChannelFromChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *BLVChannel {
 	displayNameInputs := searchengine.GetSuggestionInputsSplitBy(channel.DisplayName, " ")
 	nameInputs := searchengine.GetSuggestionInputsSplitByMultiple(channel.Name, []string{"-", "_"})
 
 	return &BLVChannel{
-		Id:          channel.Id,
-		TeamId:      []string{channel.TeamId},
-		NameSuggest: append(displayNameInputs, nameInputs...),
+		Id:            channel.Id,
+		Type:          channel.Type,
+		TeamId:        []string{channel.TeamId},
+		NameSuggest:   append(displayNameInputs, nameInputs...),
+		UserIDs:       userIDs,
+		TeamMemberIDs: teamMemberIDs,
 	}
 }
 
@@ -74,12 +80,12 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 		fullnameSuggestions = searchengine.GetSuggestionInputsSplitBy(fullname, " ")
 	}
 
-	nicknameSuggesitons := []string{}
+	nicknameSuggestions := []string{}
 	if user.Nickname != "" {
-		nicknameSuggesitons = searchengine.GetSuggestionInputsSplitBy(user.Nickname, " ")
+		nicknameSuggestions = searchengine.GetSuggestionInputsSplitBy(user.Nickname, " ")
 	}
 
-	usernameAndNicknameSuggestions := append(usernameSuggestions, nicknameSuggesitons...)
+	usernameAndNicknameSuggestions := append(usernameSuggestions, nicknameSuggestions...)
 
 	return &BLVUser{
 		Id:                         user.Id,

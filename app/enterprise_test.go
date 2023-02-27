@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestSAMLSettings(t *testing.T) {
@@ -57,7 +57,7 @@ func TestSAMLSettings(t *testing.T) {
 			saml2.Mock.On("ConfigureSP").Return(nil)
 			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(s *Server) einterfaces.SamlInterface {
+				RegisterNewSamlInterface(func(_ *App) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
@@ -68,7 +68,7 @@ func TestSAMLSettings(t *testing.T) {
 
 			defer th.TearDown()
 
-			mockStore := th.App.Srv().Store.(*storemocks.Store)
+			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 			mockPostStore := storemocks.PostStore{}
@@ -77,6 +77,7 @@ func TestSAMLSettings(t *testing.T) {
 			mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 			mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 			mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+			mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 			mockStore.On("User").Return(&mockUserStore)
 			mockStore.On("Post").Return(&mockPostStore)
@@ -89,10 +90,10 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			if tc.isNil {
-				assert.Nil(t, th.App.Srv().Saml)
+				assert.Nil(t, th.App.Channels().Saml)
 			} else {
-				assert.NotNil(t, th.App.Srv().Saml)
-				metadata, err := th.App.Srv().Saml.GetMetadata()
+				assert.NotNil(t, th.App.Channels().Saml)
+				metadata, err := th.App.Channels().Saml.GetMetadata()
 				assert.Nil(t, err)
 				assert.Equal(t, tc.metadata, metadata)
 			}

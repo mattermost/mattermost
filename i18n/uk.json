@@ -148,14 +148,6 @@
     "translation": "Канал перетворений в приватний."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Цей стандартний канал не може бути конвертований в приватний."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Канал, що потрібно конвертувати, вже приватний."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
   },
@@ -429,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Помилка оновлення поточного каналу."
+    "translation": "Помилка оновлення заголовка каналу."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +453,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Помилка оновлення поточного каналу."
+    "translation": "Помилка оновлення цілі каналу."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -629,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Відкрийте сторінку за допомогою Mattermost"
+    "translation": "Показати довідкове повідомлення Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -641,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів."
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
     "id": "api.command_invite.desc",
@@ -657,15 +649,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@ [Ім'я користувача] ~ [канал]"
+    "translation": "@ [Ім'я користувача]... ~[канал]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Відсутнє ім'я користувача і канал."
+    "translation": "Відсутнє ім’я користувача та/або канал."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Ми не змогли знайти користувача. Можливо він заблокований Системним адміністратором."
+    "translation": "Ми не змогли знайти користувача {{.User}}. Можливо він заблокований Системним адміністратором."
   },
   {
     "id": "api.command_invite.name",
@@ -677,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Не вдалося знайти канал {{.Channel}}. Для ідентифікації каналів використовуйте ручку каналу."
+    "translation": "Не вдалося знайти канал {{.Channel}}. Використовуйте [дескриптор каналу](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), щоб ідентифікувати канали."
   },
   {
     "id": "api.command_invite.success",
@@ -785,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.hint",
@@ -797,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1092,10 +1084,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не вдається завантажити файли. Неправильне число вказаних файлів."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Не вдалося завантажити файл над максимальними розмірами: {{.Filename}}"
   },
@@ -1320,16 +1308,8 @@
     "translation": "Недійсний параметр ChannelId для параметра RootId"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Недійсний параметр ParentId"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Недійсний параметр RootId"
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1390,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1474,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Ви не можете зберегти реакцію для іншого користувача."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Реагування на повідомлення неможливе у каналах лише для читання."
   },
   {
     "id": "api.restricted_system_admin",
@@ -2184,24 +2156,8 @@
     "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не вдалося надіслати електронне повідомлення про зміну електронної пошти успішно"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не вдалося успішно відправити повідомлення про зміну імені користувача "
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не вдалося успішно надіслати лист підтвердження змін електронною поштою"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Неможливо відправити email повідомлення для зміни MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не вдалося успішно надіслати пару електронних листів оновлення"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2172,8 @@
     "translation": "Не вдалося відправити лист про оновлення пароля"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не вдалося успішно надіслати \"Доданий токен особистого доступу\""
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не вдалося успішно надіслати електронний лист для підтвердження"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не вдалося успішно надіслати вітальний лист"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2540,10 +2488,6 @@
     "translation": "Ім'я дисплея каналу не в межах дозволених обмежень довжини."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Відсутнє необхідне властивість каналу: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Заголовок каналу задовгий."
   },
@@ -2698,10 +2642,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Відсутня необхідна властивість Реакція: користувач."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Відповідь властивості CreateAt має бути більшим, ніж батьківський запис CreateAt."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -3048,10 +2988,6 @@
     "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Функція вимагає оновлення Enterprise Edition та включення ліцензійного ключа. Будь ласка, зв'яжіться зі своїм системним адміністратором."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Не вдається отримати повідомлення "
   },
@@ -3218,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Еластичний пошук не запускається"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не вдалося підключитися до сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3596,10 +3528,6 @@
     "translation": "Невірне ім'я користувача."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Ім'я повинно складатися з 2 або більше малих літер і цифр"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Створити в\" повинно бути коректним часом"
   },
@@ -3748,10 +3676,6 @@
     "translation": "Недійсний ідентифікатор командного крюка"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
   },
@@ -3818,10 +3742,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Параметр Elasticsearch AggregatePostsAfterDays повинен бути числом, більшим або рівним 1"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4436,20 +4356,12 @@
     "translation": "Некоректний оригінальний ідентифікатор"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Неправильні властивості"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Необхідно встановити неправильний кореневий ідентифікатор, якщо встановлено батьківський"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4686,18 +4598,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Missing TO address."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Неможливо перетворити StringArray в * string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Неможливо перетворити StringInterface в * string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Неможливо перетворити StringMap в * string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -5044,10 +4944,6 @@
     "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Invalid AutocompleteData"
   },
@@ -5158,10 +5054,6 @@
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "Неможливо створити файл eml."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5692,14 +5584,6 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -5774,10 +5658,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5900,38 +5780,6 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не вдається відкрити файл зображення"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Порожній масив 'image' в запиті"
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Не вдається прочитати файл зображення піктограми."
-  },
-  {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
-  },
-  {
     "id": "api.bot.create_disabled",
     "translation": "Створення ботів вимкнено."
   },
@@ -5974,10 +5822,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "Unable to delete brand image, not found."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6196,10 +6040,6 @@
     "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не вдалося очистити записи"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Не вдається зберегти смайли"
   },
@@ -6258,10 +6098,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6500,14 +6336,6 @@
     "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Не знайдена кінцева точка API кластера."
   },
@@ -6542,10 +6370,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -6624,20 +6448,12 @@
     "translation": "Не вдалося оновити заголовок прямого каналу"
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Забезпечити багатофакторну автентифікацію:"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -6760,10 +6576,6 @@
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Неможливо розмістити публікацію на видаленому каналі."
   },
@@ -6786,10 +6598,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Не вдається збільшити кількість згадок"
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
@@ -6976,10 +6784,6 @@
     "translation": "Кількість запитаних користувачів невірна."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Оновити"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
     "translation": "Масштабування за допомогою Mattermost"
   },
@@ -7034,5 +6838,189 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Помилка синтаксісу багато-форматного запиту"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Помилка валідації кешу"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Повернутися до {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "Канали"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Подія Webhook не оброблена. Або вона відсутня, або недійсна."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Неможливо створити прямий канал між цими користувачами, оскільки вони не мають спільної команди."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "не вдалося додати користувача до group-teams та group-channels"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Не вдалося скинути поле AuthData в Email."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Підтвердження в архівному каналі неможливо."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Ви не можете видалити підтвердження після закінчення 5 хвилин."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Ви не можете видалити підтвердження в заархівованому каналі."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Сценарії"
+  },
+  {
+    "id": "Boards",
+    "translation": "Дошки"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Запросіть безпечне з'єднання"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Запрошення створено."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Зашифроване запрошення від безпечного з'єднання"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Запрошення від безпечного з'єднання"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Не вдалося розшифрувати запрошення. Неправильний пароль або зіпсоване запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[дія]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Не вдалося отримати безпечні з'єднання: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Не вдалося зашифрувати запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Відображуване ім’я для безпечного з’єднання"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Відображуване ім’я безпечного з’єднання"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Створіть безпечні з'єднання між екземплярами Mattermost."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Не вдалося розкодувати запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Безпечне з'єднання {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Не вдалося додати безпечне з'єднання: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Не вдалося прийняти запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Запрошення прийнято та підтверджено.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Прийміть запрошення від зовнішнього екземпляра Mattermost"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Команда marketplace не підтримується на вашому пристрої."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "магазин плагінів"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Відкрити Магазин плагінів"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost – це платформа з відкритим вихідним кодом для безпечного спілкування, співробітництва та організації роботи між командами з використанням різноманітних інструментів.\nMattermost складається з трьох ключових інструментів:\n\n**Channels** - Залишайтеся на зв’язку зі своєю командою за допомогою індивідуальних і групових повідомлень.\n**[Playbooks](/playbooks)** - Створіть і налаштуйте повторювані процеси для досягнення конкретних і передбачуваних результатів.\n**[Boards](/boards)** - Керуйте проектами та завданнями в структурі дошки Kanban, щоб допомогти вашій команді досягти ключових віх.\n\n[Переглянути документацію та посібники]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Ваш статус встановлено на “{{.EmojiName}} {{.StatusMessage}}”. Ви можете змінити свій статус у спливаючому вікні статусу в заголовку бічної панелі каналу."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "статус"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] чи скинути"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Встановити чи скинути ваш статус"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Ваш статус очищено."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Помилка очищення статусу."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Помилка встановлення статусу."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Введений текст перевищує ліміт символів. Призначення каналу обмежено символами {{.MaxLength}}."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Введений текст перевищує ліміт символів. Максимальна кількість символів у заголовку каналу: {{.MaxLength}}."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Неможливо відновити команду, тому що досягнуто ліміту команд"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Не вдалося створити команду, оскільки досягнуто ліміту команд"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Адміністратору вже повідомлено"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Відсутні обов’язкові поля для надсилання електронного листа про прострочення."
   }
 ]

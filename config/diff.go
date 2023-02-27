@@ -7,15 +7,86 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type ConfigDiffs []ConfigDiff
 
 type ConfigDiff struct {
-	Path      string      `json:"path"`
-	BaseVal   interface{} `json:"base_val"`
-	ActualVal interface{} `json:"actual_val"`
+	Path      string `json:"path"`
+	BaseVal   any    `json:"base_val"`
+	ActualVal any    `json:"actual_val"`
+}
+
+func (c *ConfigDiff) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"path":       c.Path,
+		"base_val":   c.BaseVal,
+		"actual_val": c.ActualVal,
+	}
+}
+
+func (cd *ConfigDiffs) Auditable() map[string]interface{} {
+	var s []interface{}
+	for _, d := range cd.Sanitize() {
+		s = append(s, d.Auditable())
+	}
+	return map[string]interface{}{
+		"config_diffs": s,
+	}
+}
+
+var configSensitivePaths = map[string]bool{
+	"LdapSettings.BindPassword":                              true,
+	"FileSettings.PublicLinkSalt":                            true,
+	"FileSettings.AmazonS3SecretAccessKey":                   true,
+	"SqlSettings.DataSource":                                 true,
+	"SqlSettings.AtRestEncryptKey":                           true,
+	"SqlSettings.DataSourceReplicas":                         true,
+	"SqlSettings.DataSourceSearchReplicas":                   true,
+	"EmailSettings.SMTPPassword":                             true,
+	"GitLabSettings.Secret":                                  true,
+	"GoogleSettings.Secret":                                  true,
+	"Office365Settings.Secret":                               true,
+	"OpenIdSettings.Secret":                                  true,
+	"ElasticsearchSettings.Password":                         true,
+	"MessageExportSettings.GlobalRelaySettings.SMTPUsername": true,
+	"MessageExportSettings.GlobalRelaySettings.SMTPPassword": true,
+	"MessageExportSettings.GlobalRelaySettings.EmailAddress": true,
+	"ServiceSettings.GfycatAPISecret":                        true,
+	"ServiceSettings.SplitKey":                               true,
+	"PluginSettings.Plugins":                                 true,
+}
+
+// Sanitize replaces sensitive config values in the diff with asterisks filled strings.
+func (cd ConfigDiffs) Sanitize() ConfigDiffs {
+	if len(cd) == 1 {
+		cfgPtr, ok := cd[0].BaseVal.(*model.Config)
+		if ok {
+			cfgPtr.Sanitize()
+		}
+		cfgPtr, ok = cd[0].ActualVal.(*model.Config)
+		if ok {
+			cfgPtr.Sanitize()
+		}
+		cfgVal, ok := cd[0].BaseVal.(model.Config)
+		if ok {
+			cfgVal.Sanitize()
+		}
+		cfgVal, ok = cd[0].ActualVal.(model.Config)
+		if ok {
+			cfgVal.Sanitize()
+		}
+	}
+
+	for i := range cd {
+		if configSensitivePaths[cd[i].Path] {
+			cd[i].BaseVal = model.FakeSetting
+			cd[i].ActualVal = model.FakeSetting
+		}
+	}
+
+	return cd
 }
 
 func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {

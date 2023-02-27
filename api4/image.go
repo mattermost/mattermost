@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitImage() {
-	api.BaseRoutes.Image.Handle("", api.ApiSessionRequiredTrustRequester(getImage)).Methods("GET")
+	api.BaseRoutes.Image.Handle("", api.APISessionRequiredTrustRequester(getImage)).Methods("GET")
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -32,27 +32,27 @@ type ProductNotice struct {
 }
 
 func (n *ProductNotice) SysAdminOnly() bool {
-	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudience_Sysadmin
+	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudienceSysadmin
 }
 
 func (n *ProductNotice) TeamAdminOnly() bool {
-	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudience_TeamAdmin
+	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudienceTeamAdmin
 }
 
 type Conditions struct {
-	Audience              *NoticeAudience        `json:"audience,omitempty"`
-	ClientType            *NoticeClientType      `json:"clientType,omitempty"`     // Only show the notice on specific clients. Defaults to 'all'
-	DesktopVersion        []string               `json:"desktopVersion,omitempty"` // What desktop client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	DisplayDate           *string                `json:"displayDate,omitempty"`    // When to display the notice.; Examples:; "2020-03-01T00:00:00Z" - show on specified date; ">= 2020-03-01T00:00:00Z" - show after specified date; "< 2020-03-01T00:00:00Z" - show before the specified date; "> 2020-03-01T00:00:00Z <= 2020-04-01T00:00:00Z" - show only between the specified dates
-	InstanceType          *NoticeInstanceType    `json:"instanceType,omitempty"`
-	MobileVersion         []string               `json:"mobileVersion,omitempty"` // What mobile client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	NumberOfPosts         *int64                 `json:"numberOfPosts,omitempty"` // Only show the notice when server has more than specified number of posts
-	NumberOfUsers         *int64                 `json:"numberOfUsers,omitempty"` // Only show the notice when server has more than specified number of users
-	ServerConfig          map[string]interface{} `json:"serverConfig,omitempty"`  // Map of mattermost server config paths and their values. Notice will be displayed only if; the values match the target server config; Example: serverConfig: { "PluginSettings.Enable": true, "GuestAccountsSettings.Enable":; false }
-	ServerVersion         []string               `json:"serverVersion,omitempty"` // What server versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	Sku                   *NoticeSKU             `json:"sku,omitempty"`
-	UserConfig            map[string]interface{} `json:"userConfig,omitempty"`             // Map of user's settings and their values. Notice will be displayed only if the values; match the viewing users' config; Example: userConfig: { "new_sidebar.disabled": true }
-	DeprecatingDependency *ExternalDependency    `json:"deprecating_dependency,omitempty"` // External dependency which is going to be deprecated
+	Audience              *NoticeAudience     `json:"audience,omitempty"`
+	ClientType            *NoticeClientType   `json:"clientType,omitempty"`     // Only show the notice on specific clients. Defaults to 'all'
+	DesktopVersion        []string            `json:"desktopVersion,omitempty"` // What desktop client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
+	DisplayDate           *string             `json:"displayDate,omitempty"`    // When to display the notice.; Examples:; "2020-03-01T00:00:00Z" - show on specified date; ">= 2020-03-01T00:00:00Z" - show after specified date; "< 2020-03-01T00:00:00Z" - show before the specified date; "> 2020-03-01T00:00:00Z <= 2020-04-01T00:00:00Z" - show only between the specified dates
+	InstanceType          *NoticeInstanceType `json:"instanceType,omitempty"`
+	MobileVersion         []string            `json:"mobileVersion,omitempty"` // What mobile client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
+	NumberOfPosts         *int64              `json:"numberOfPosts,omitempty"` // Only show the notice when server has more than specified number of posts
+	NumberOfUsers         *int64              `json:"numberOfUsers,omitempty"` // Only show the notice when server has more than specified number of users
+	ServerConfig          map[string]any      `json:"serverConfig,omitempty"`  // Map of mattermost server config paths and their values. Notice will be displayed only if; the values match the target server config; Example: serverConfig: { "PluginSettings.Enable": true, "GuestAccountsSettings.Enable":; false }
+	ServerVersion         []string            `json:"serverVersion,omitempty"` // What server versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
+	Sku                   *NoticeSKU          `json:"sku,omitempty"`
+	UserConfig            map[string]any      `json:"userConfig,omitempty"`             // Map of user's settings and their values. Notice will be displayed only if the values; match the viewing users' config; Example: userConfig: { "new_sidebar.disabled": true }
+	DeprecatingDependency *ExternalDependency `json:"deprecating_dependency,omitempty"` // External dependency which is going to be deprecated
 }
 
 type NoticeMessageInternal struct {
@@ -91,23 +91,23 @@ func NewNoticeAudience(s NoticeAudience) *NoticeAudience {
 
 func (a *NoticeAudience) Matches(sysAdmin bool, teamAdmin bool) bool {
 	switch *a {
-	case NoticeAudience_All:
+	case NoticeAudienceAll:
 		return true
-	case NoticeAudience_Member:
+	case NoticeAudienceMember:
 		return !sysAdmin && !teamAdmin
-	case NoticeAudience_Sysadmin:
+	case NoticeAudienceSysadmin:
 		return sysAdmin
-	case NoticeAudience_TeamAdmin:
+	case NoticeAudienceTeamAdmin:
 		return teamAdmin
 	}
 	return false
 }
 
 const (
-	NoticeAudience_All       NoticeAudience = "all"
-	NoticeAudience_Member    NoticeAudience = "member"
-	NoticeAudience_Sysadmin  NoticeAudience = "sysadmin"
-	NoticeAudience_TeamAdmin NoticeAudience = "teamadmin"
+	NoticeAudienceAll       NoticeAudience = "all"
+	NoticeAudienceMember    NoticeAudience = "member"
+	NoticeAudienceSysadmin  NoticeAudience = "sysadmin"
+	NoticeAudienceTeamAdmin NoticeAudience = "teamadmin"
 )
 
 // Only show the notice on specific clients. Defaults to 'all'
@@ -119,36 +119,36 @@ func NewNoticeClientType(s NoticeClientType) *NoticeClientType { return &s }
 
 func (c *NoticeClientType) Matches(other NoticeClientType) bool {
 	switch *c {
-	case NoticeClientType_All:
+	case NoticeClientTypeAll:
 		return true
-	case NoticeClientType_Mobile:
-		return other == NoticeClientType_MobileIos || other == NoticeClientType_MobileAndroid
+	case NoticeClientTypeMobile:
+		return other == NoticeClientTypeMobileIos || other == NoticeClientTypeMobileAndroid
 	default:
 		return *c == other
 	}
 }
 
 const (
-	NoticeClientType_All           NoticeClientType = "all"
-	NoticeClientType_Desktop       NoticeClientType = "desktop"
-	NoticeClientType_Mobile        NoticeClientType = "mobile"
-	NoticeClientType_MobileAndroid NoticeClientType = "mobile-android"
-	NoticeClientType_MobileIos     NoticeClientType = "mobile-ios"
-	NoticeClientType_Web           NoticeClientType = "web"
+	NoticeClientTypeAll           NoticeClientType = "all"
+	NoticeClientTypeDesktop       NoticeClientType = "desktop"
+	NoticeClientTypeMobile        NoticeClientType = "mobile"
+	NoticeClientTypeMobileAndroid NoticeClientType = "mobile-android"
+	NoticeClientTypeMobileIos     NoticeClientType = "mobile-ios"
+	NoticeClientTypeWeb           NoticeClientType = "web"
 )
 
 func NoticeClientTypeFromString(s string) (NoticeClientType, error) {
 	switch s {
 	case "web":
-		return NoticeClientType_Web, nil
+		return NoticeClientTypeWeb, nil
 	case "mobile-ios":
-		return NoticeClientType_MobileIos, nil
+		return NoticeClientTypeMobileIos, nil
 	case "mobile-android":
-		return NoticeClientType_MobileAndroid, nil
+		return NoticeClientTypeMobileAndroid, nil
 	case "desktop":
-		return NoticeClientType_Desktop, nil
+		return NoticeClientTypeDesktop, nil
 	}
-	return NoticeClientType_All, errors.New("Invalid client type supplied")
+	return NoticeClientTypeAll, errors.New("Invalid client type supplied")
 }
 
 // Instance type. Defaults to "both"
@@ -156,22 +156,22 @@ type NoticeInstanceType string
 
 func NewNoticeInstanceType(n NoticeInstanceType) *NoticeInstanceType { return &n }
 func (t *NoticeInstanceType) Matches(isCloud bool) bool {
-	if *t == NoticeInstanceType_Both {
+	if *t == NoticeInstanceTypeBoth {
 		return true
 	}
-	if *t == NoticeInstanceType_Cloud && !isCloud {
+	if *t == NoticeInstanceTypeCloud && !isCloud {
 		return false
 	}
-	if *t == NoticeInstanceType_OnPrem && isCloud {
+	if *t == NoticeInstanceTypeOnPrem && isCloud {
 		return false
 	}
 	return true
 }
 
 const (
-	NoticeInstanceType_Both   NoticeInstanceType = "both"
-	NoticeInstanceType_Cloud  NoticeInstanceType = "cloud"
-	NoticeInstanceType_OnPrem NoticeInstanceType = "onprem"
+	NoticeInstanceTypeBoth   NoticeInstanceType = "both"
+	NoticeInstanceTypeCloud  NoticeInstanceType = "cloud"
+	NoticeInstanceTypeOnPrem NoticeInstanceType = "onprem"
 )
 
 // SKU. Defaults to "all"
@@ -180,9 +180,9 @@ type NoticeSKU string
 func NewNoticeSKU(s NoticeSKU) *NoticeSKU { return &s }
 func (c *NoticeSKU) Matches(s string) bool {
 	switch *c {
-	case NoticeSKU_All:
+	case NoticeSKUAll:
 		return true
-	case NoticeSKU_E0, NoticeSKU_Team:
+	case NoticeSKUE0, NoticeSKUTeam:
 		return s == ""
 	default:
 		return s == string(*c)
@@ -190,11 +190,11 @@ func (c *NoticeSKU) Matches(s string) bool {
 }
 
 const (
-	NoticeSKU_E0   NoticeSKU = "e0"
-	NoticeSKU_E10  NoticeSKU = "e10"
-	NoticeSKU_E20  NoticeSKU = "e20"
-	NoticeSKU_All  NoticeSKU = "all"
-	NoticeSKU_Team NoticeSKU = "team"
+	NoticeSKUE0   NoticeSKU = "e0"
+	NoticeSKUE10  NoticeSKU = "e10"
+	NoticeSKUE20  NoticeSKU = "e20"
+	NoticeSKUAll  NoticeSKU = "all"
+	NoticeSKUTeam NoticeSKU = "team"
 )
 
 // Optional action to perform on action button click. (defaults to closing the notice)

@@ -4,55 +4,101 @@
 package model
 
 import (
+	"strings"
+
 	"github.com/francoispqt/gojay"
 )
 
 // AuditModelTypeConv converts key model types to something better suited for audit output.
-func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
+func AuditModelTypeConv(val any) (newVal any, converted bool) {
 	if val == nil {
 		return nil, false
 	}
 	switch v := val.(type) {
 	case *Channel:
 		return newAuditChannel(v), true
+	case Channel:
+		return newAuditChannel(&v), true
 	case *Team:
 		return newAuditTeam(v), true
+	case Team:
+		return newAuditTeam(&v), true
 	case *User:
 		return newAuditUser(v), true
+	case User:
+		return newAuditUser(&v), true
+	case *UserPatch:
+		return newAuditUserPatch(v), true
+	case UserPatch:
+		return newAuditUserPatch(&v), true
 	case *Command:
 		return newAuditCommand(v), true
+	case Command:
+		return newAuditCommand(&v), true
 	case *CommandArgs:
 		return newAuditCommandArgs(v), true
+	case CommandArgs:
+		return newAuditCommandArgs(&v), true
 	case *Bot:
 		return newAuditBot(v), true
+	case Bot:
+		return newAuditBot(&v), true
 	case *ChannelModerationPatch:
 		return newAuditChannelModerationPatch(v), true
+	case ChannelModerationPatch:
+		return newAuditChannelModerationPatch(&v), true
 	case *Emoji:
 		return newAuditEmoji(v), true
+	case Emoji:
+		return newAuditEmoji(&v), true
 	case *FileInfo:
 		return newAuditFileInfo(v), true
+	case FileInfo:
+		return newAuditFileInfo(&v), true
 	case *Group:
 		return newAuditGroup(v), true
+	case Group:
+		return newAuditGroup(&v), true
 	case *Job:
 		return newAuditJob(v), true
+	case Job:
+		return newAuditJob(&v), true
 	case *OAuthApp:
 		return newAuditOAuthApp(v), true
+	case OAuthApp:
+		return newAuditOAuthApp(&v), true
 	case *Post:
 		return newAuditPost(v), true
+	case Post:
+		return newAuditPost(&v), true
 	case *Role:
 		return newAuditRole(v), true
+	case Role:
+		return newAuditRole(&v), true
 	case *Scheme:
 		return newAuditScheme(v), true
+	case Scheme:
+		return newAuditScheme(&v), true
 	case *SchemeRoles:
 		return newAuditSchemeRoles(v), true
+	case SchemeRoles:
+		return newAuditSchemeRoles(&v), true
 	case *Session:
 		return newAuditSession(v), true
+	case Session:
+		return newAuditSession(&v), true
 	case *IncomingWebhook:
 		return newAuditIncomingWebhook(v), true
+	case IncomingWebhook:
+		return newAuditIncomingWebhook(&v), true
 	case *OutgoingWebhook:
 		return newAuditOutgoingWebhook(v), true
+	case OutgoingWebhook:
+		return newAuditOutgoingWebhook(&v), true
 	case *RemoteCluster:
 		return newRemoteCluster(v), true
+	case RemoteCluster:
+		return newRemoteCluster(&v), true
 	}
 	return val, false
 }
@@ -60,7 +106,7 @@ func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
 type auditChannel struct {
 	ID   string
 	Name string
-	Type string
+	Type ChannelType
 }
 
 // newAuditChannel creates a simplified representation of Channel for output to audit log.
@@ -77,7 +123,7 @@ func newAuditChannel(c *Channel) auditChannel {
 func (c auditChannel) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("id", c.ID)
 	enc.StringKey("name", c.Name)
-	enc.StringKey("type", c.Type)
+	enc.StringKey("type", string(c.Type))
 }
 
 func (c auditChannel) IsNil() bool {
@@ -126,6 +172,21 @@ func newAuditUser(u *User) auditUser {
 		user.Roles = u.Roles
 	}
 	return user
+}
+
+type auditUserPatch struct {
+	Name string
+}
+
+// newAuditUserPatch creates a simplified representation of UserPatch for output to audit log.
+func newAuditUserPatch(up *UserPatch) auditUserPatch {
+	var userPatch auditUserPatch
+	if up != nil {
+		if up.Username != nil {
+			userPatch.Name = *up.Username
+		}
+	}
+	return userPatch
 }
 
 func (u auditUser) MarshalJSONObject(enc *gojay.Encoder) {
@@ -209,7 +270,10 @@ func newAuditCommandArgs(ca *CommandArgs) auditCommandArgs {
 		cmdargs.ChannelID = ca.ChannelId
 		cmdargs.TeamID = ca.TeamId
 		cmdargs.TriggerID = ca.TriggerId
-		cmdargs.Command = ca.Command
+		cmdFields := strings.Fields(ca.Command)
+		if len(cmdFields) > 0 {
+			cmdargs.Command = cmdFields[0]
+		}
 	}
 	return cmdargs
 }

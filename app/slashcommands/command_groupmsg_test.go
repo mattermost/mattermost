@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 func TestGroupMsgUsernames(t *testing.T) {
@@ -64,7 +64,7 @@ func TestGroupMsgProvider(t *testing.T) {
 	th.linkUserToTeam(th.BasicUser, team)
 	cmd := &groupmsgProvider{}
 
-	th.removePermissionFromRole(model.PERMISSION_CREATE_GROUP_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 
 	t.Run("Check without permission to create a GM channel.", func(t *testing.T) {
 		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
@@ -78,11 +78,11 @@ func TestGroupMsgProvider(t *testing.T) {
 		assert.Equal(t, "", resp.GotoLocation)
 	})
 
-	th.addPermissionToRole(model.PERMISSION_CREATE_GROUP_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
+	th.addPermissionToRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 
 	t.Run("Check without permissions to view a user in the list.", func(t *testing.T) {
-		th.removePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.addPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.removePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		defer th.addPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",

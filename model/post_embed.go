@@ -4,10 +4,12 @@
 package model
 
 const (
-	POST_EMBED_IMAGE              PostEmbedType = "image"
-	POST_EMBED_MESSAGE_ATTACHMENT PostEmbedType = "message_attachment"
-	POST_EMBED_OPENGRAPH          PostEmbedType = "opengraph"
-	POST_EMBED_LINK               PostEmbedType = "link"
+	PostEmbedImage             PostEmbedType = "image"
+	PostEmbedMessageAttachment PostEmbedType = "message_attachment"
+	PostEmbedOpengraph         PostEmbedType = "opengraph"
+	PostEmbedLink              PostEmbedType = "link"
+	PostEmbedPermalink         PostEmbedType = "permalink"
+	PostEmbedBoards            PostEmbedType = "boards"
 )
 
 type PostEmbedType string
@@ -19,5 +21,5 @@ type PostEmbed struct {
 	URL string `json:"url,omitempty"`
 
 	// Any additional data for the embedded content. Only used for OpenGraph embeds.
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 }

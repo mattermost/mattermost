@@ -11,14 +11,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
@@ -50,7 +50,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}))
 
-	for _, data := range [](map[string]interface{}){
+	for _, data := range [](map[string]any){
 		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 1},
 		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
 
@@ -59,8 +59,8 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
 	} {
 
-		openGraph, resp := Client.OpenGraph(ts.URL + data["path"].(string))
-		CheckNoError(t, resp)
+		openGraph, _, err := client.OpenGraph(ts.URL + data["path"].(string))
+		require.NoError(t, err)
 
 		require.Equalf(t, openGraph["title"], data["title"].(string),
 			"OG data title mismatch for path \"%s\".")
@@ -70,6 +70,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
-	_, resp := Client.OpenGraph(ts.URL + "/og-data/")
+	_, resp, err := client.OpenGraph(ts.URL + "/og-data/")
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }

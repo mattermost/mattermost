@@ -4,15 +4,16 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
@@ -54,7 +55,7 @@ func (a *App) getSuggestions(c *request.Context, commandArgs *model.CommandArgs,
 
 	if index == -1 { // no space in input
 		for _, command := range commands {
-			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SystemAdminRoleId || roleID == "") {
 				s := model.AutocompleteSuggestion{
 					Complete:    inputParsed + command.Trigger,
 					Suggestion:  command.Trigger,
@@ -71,7 +72,7 @@ func (a *App) getSuggestions(c *request.Context, commandArgs *model.CommandArgs,
 		if command.Trigger != strings.ToLower(inputToBeParsed[:index]) {
 			continue
 		}
-		if roleID != "" && roleID != model.SYSTEM_ADMIN_ROLE_ID && roleID != command.RoleID {
+		if roleID != "" && roleID != model.SystemAdminRoleId && roleID != command.RoleID {
 			continue
 		}
 		toBeParsed := inputToBeParsed[index+1:]
@@ -259,7 +260,7 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 	pluginContext := pluginContext(c)
 	params.Add("request_id", pluginContext.RequestId)
 	params.Add("session_id", pluginContext.SessionId)
-	params.Add("ip_address", pluginContext.IpAddress)
+	params.Add("ip_address", pluginContext.IPAddress)
 	params.Add("accept_language", pluginContext.AcceptLanguage)
 	params.Add("user_agent", pluginContext.UserAgent)
 
@@ -267,7 +268,6 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 	params.Add("channel_id", commandArgs.ChannelId)
 	params.Add("team_id", commandArgs.TeamId)
 	params.Add("root_id", commandArgs.RootId)
-	params.Add("parent_id", commandArgs.ParentId)
 	params.Add("user_id", commandArgs.UserId)
 	params.Add("site_url", commandArgs.SiteURL)
 
@@ -278,7 +278,10 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 		return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
 	}
 
-	listItems := model.AutocompleteStaticListItemsFromJSON(resp.Body)
+	var listItems []model.AutocompleteListItem
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&listItems); jsonErr != nil {
+		c.Logger().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
 
 	return parseListItems(listItems, parsed, toBeParsed)
 }

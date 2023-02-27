@@ -4,16 +4,19 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"encoding/json"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func (s *Server) notifyClusterPluginEvent(event string, data model.PluginEventData) {
-	if s.Cluster != nil {
-		s.Cluster.SendClusterMessage(&model.ClusterMessage{
+func (ch *Channels) notifyClusterPluginEvent(event model.ClusterEvent, data model.PluginEventData) {
+	buf, _ := json.Marshal(data)
+	if ch.srv.platform.Cluster() != nil {
+		ch.srv.platform.Cluster().SendClusterMessage(&model.ClusterMessage{
 			Event:            event,
-			SendType:         model.CLUSTER_SEND_RELIABLE,
+			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,
-			Data:             data.ToJson(),
+			Data:             buf,
 		})
 	}
 }

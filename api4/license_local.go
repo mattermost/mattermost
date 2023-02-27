@@ -5,16 +5,18 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitLicenseLocal() {
-	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiLocal(localAddLicense)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiLocal(localRemoveLicense)).Methods("DELETE")
+	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localRemoveLicense)).Methods("DELETE")
 }
 
 func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -42,7 +44,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
-	auditRec.AddMeta("filename", fileData.Filename)
+	auditRec.AddEventParameter("filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {
@@ -56,9 +58,9 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
-		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
+		if appErr.Id == model.ExpiredLicenseError {
 			c.LogAudit("failed - expired or non-started license")
-		} else if appErr.Id == model.INVALID_LICENSE_ERROR {
+		} else if appErr.Id == model.InvalidLicenseError {
 			c.LogAudit("failed - invalid license")
 		} else {
 			c.LogAudit("failed - unable to save license")
@@ -70,7 +72,9 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(license.ToJson()))
+	if err := json.NewEncoder(w).Encode(license); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {

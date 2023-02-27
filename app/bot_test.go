@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -30,7 +30,7 @@ func TestCreateBot(t *testing.T) {
 				OwnerId:     th.BasicUser.Id,
 			})
 			require.NotNil(t, err)
-			require.Equal(t, "model.user.is_valid.username.app_error", err.Id)
+			require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
 		})
 
 		t.Run("relative to bot", func(t *testing.T) {
@@ -58,6 +58,18 @@ func TestCreateBot(t *testing.T) {
 			require.NotNil(t, err)
 			require.Nil(t, bot)
 			require.Equal(t, "model.user.is_valid.email.app_error", err.Id)
+		})
+
+		t.Run("username missing", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+			bot, err := th.App.CreateBot(th.Context, &model.Bot{
+				Description: "a bot",
+				OwnerId:     th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Nil(t, bot)
+			require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
 		})
 	})
 
@@ -87,7 +99,7 @@ func TestCreateBot(t *testing.T) {
 
 		postArray := posts.ToSlice()
 		assert.Len(t, postArray, 1)
-		assert.Equal(t, postArray[0].Type, model.POST_ADD_BOT_TEAMS_CHANNELS)
+		assert.Equal(t, postArray[0].Type, model.PostTypeAddBotTeamsChannels)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
@@ -557,7 +569,7 @@ func TestDisableUserBots(t *testing.T) {
 	err = th.App.disableUserBots(th.Context, ownerId1)
 	require.Nil(t, err)
 
-	// Check all bots and corrensponding users are disabled for creator 1
+	// Check all bots and corresponding users are disabled for creator 1
 	for _, bot := range bots {
 		retbot, err2 := th.App.GetBot(bot.UserId, true)
 		require.Nil(t, err2)
@@ -595,20 +607,20 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin1",
 		Password: "hello1",
 		Username: "un_sysadmin1",
-		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin1.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
 		Nickname: "nn_sysadmin2",
 		Password: "hello1",
 		Username: "un_sysadmin2",
-		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin2.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	// create user to be disabled
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -943,23 +955,23 @@ func TestGetSystemBot(t *testing.T) {
 
 	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {
 		// assert no bot with username exists
-		_, err := th.App.GetUserByUsername(model.BOT_SYSTEM_BOT_USERNAME)
+		_, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.NotNil(t, err)
 
 		bot, err := th.App.GetSystemBot()
 		require.Nil(t, err)
-		require.Equal(t, bot.Username, model.BOT_SYSTEM_BOT_USERNAME)
+		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 	})
 
 	t.Run("The bot should be correctly retrieved if it exists already", func(t *testing.T) {
 		// assert that the bot is now present
-		botUser, err := th.App.GetUserByUsername(model.BOT_SYSTEM_BOT_USERNAME)
+		botUser, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.Nil(t, err)
 		require.True(t, botUser.IsBot)
 
 		bot, err := th.App.GetSystemBot()
 		require.Nil(t, err)
-		require.Equal(t, bot.Username, model.BOT_SYSTEM_BOT_USERNAME)
+		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
 }

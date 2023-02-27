@@ -4,14 +4,13 @@
 package model
 
 import (
-	"strings"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPostListJson(t *testing.T) {
-
 	pl := PostList{}
 	p1 := &Post{Id: NewId(), Message: NewId()}
 	pl.AddPost(p1)
@@ -21,8 +20,12 @@ func TestPostListJson(t *testing.T) {
 	pl.AddOrder(p1.Id)
 	pl.AddOrder(p2.Id)
 
-	json := pl.ToJson()
-	rpl := PostListFromJson(strings.NewReader(json))
+	js, err := pl.ToJSON()
+	assert.NoError(t, err)
+
+	var rpl PostList
+	err = json.Unmarshal([]byte(js), &rpl)
+	assert.NoError(t, err)
 
 	assert.Equal(t, p1.Message, rpl.Posts[p1.Id].Message, "failed to serialize p1 message")
 	assert.Equal(t, p2.Message, rpl.Posts[p2.Id].Message, "failed to serialize p2 message")

@@ -5,37 +5,18 @@ package jobs
 
 import (
 	"sync"
+	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
 	metrics       einterfaces.MetricsInterface
-
-	DataRetentionJob        ejobs.DataRetentionJobInterface
-	MessageExportJob        ejobs.MessageExportJobInterface
-	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
-	ElasticsearchIndexer    tjobs.IndexerJobInterface
-	LdapSync                ejobs.LdapSyncInterface
-	Migrations              tjobs.MigrationsJobInterface
-	Plugins                 tjobs.PluginsJobInterface
-	BleveIndexer            tjobs.IndexerJobInterface
-	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
-	ProductNotices          tjobs.ProductNoticesJobInterface
-	ActiveUsers             tjobs.ActiveUsersJobInterface
-	ImportProcess           tjobs.ImportProcessInterface
-	ImportDelete            tjobs.ImportDeleteInterface
-	ExportProcess           tjobs.ExportProcessInterface
-	ExportDelete            tjobs.ExportDeleteInterface
-	Cloud                   ejobs.CloudJobInterface
-	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
@@ -44,15 +25,48 @@ type JobServer struct {
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
-	return &JobServer{
+	srv := &JobServer{
 		ConfigService: configService,
 		Store:         store,
 		metrics:       metrics,
 	}
+	srv.initWorkers()
+	srv.initSchedulers()
+	return srv
+}
+
+func (srv *JobServer) initWorkers() {
+	workers := NewWorkers(srv.ConfigService)
+	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
+	srv.workers = workers
+}
+
+func (srv *JobServer) initSchedulers() {
+	schedulers := &Schedulers{
+		configChanged:        make(chan *model.Config),
+		clusterLeaderChanged: make(chan bool, 1),
+		jobs:                 srv,
+		isLeader:             true,
+		schedulers:           make(map[string]model.Scheduler),
+		nextRunTimes:         make(map[string]*time.Time),
+	}
+
+	srv.schedulers = schedulers
 }
 
 func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
+}
+
+func (srv *JobServer) RegisterJobType(name string, worker model.Worker, scheduler model.Scheduler) {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if worker != nil {
+		srv.workers.AddWorker(name, worker)
+	}
+	if scheduler != nil {
+		srv.schedulers.AddScheduler(name, scheduler)
+	}
 }
 
 func (srv *JobServer) StartWorkers() error {

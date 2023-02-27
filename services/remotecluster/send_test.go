@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -55,9 +55,10 @@ func TestBroadcastMsg(t *testing.T) {
 
 			atomic.AddInt32(&countWebReq, 1)
 
-			frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
-			if appErr != nil {
-				merr.Append(appErr)
+			var frame model.RemoteClusterFrame
+			jsonErr := json.NewDecoder(r.Body).Decode(&frame)
+			if jsonErr != nil {
+				merr.Append(jsonErr)
 				return
 			}
 			if len(frame.Msg.Payload) == 0 {
@@ -81,7 +82,7 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
 		defer mockServer.Shutdown()
 
 		service, err := NewRemoteClusterService(mockServer)
@@ -128,8 +129,8 @@ func TestBroadcastMsg(t *testing.T) {
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Log(fmt.Sprintf("%d callbacks counted;  %d web requests counted;  %d expected",
-			atomic.LoadInt32(&countCallbacks), atomic.LoadInt32(&countWebReq), NumRemotes))
+		t.Logf("%d callbacks counted;  %d web requests counted;  %d expected",
+			atomic.LoadInt32(&countCallbacks), atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 
 	t.Run("HTTP error", func(t *testing.T) {
@@ -138,7 +139,7 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
 		defer mockServer.Shutdown()
 
 		service, err := NewRemoteClusterService(mockServer)

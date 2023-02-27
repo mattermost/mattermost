@@ -3,10 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -18,7 +14,7 @@ type PostMetadata struct {
 	// Files holds information about the file attachments on the post.
 	Files []*FileInfo `json:"files,omitempty"`
 
-	// Images holds the dimensions of all external images in the post as a map of the image URL to its diemsnions.
+	// Images holds the dimensions of all external images in the post as a map of the image URL to its dimensions.
 	// This includes image embeds (when the message contains a plaintext link to an image), Markdown images, images
 	// contained in the OpenGraph metadata, and images contained in message attachments. It does not contain
 	// the dimensions of any file attachments as those are stored in FileInfos.
@@ -26,6 +22,12 @@ type PostMetadata struct {
 
 	// Reactions holds reactions made to the post.
 	Reactions []*Reaction `json:"reactions,omitempty"`
+
+	// Priority holds info about priority settings for the post.
+	Priority *PostPriority `json:"priority,omitempty"`
+
+	// Acknowledgements holds acknowledgements made by users to the post
+	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
 type PostImage struct {
@@ -39,7 +41,46 @@ type PostImage struct {
 	FrameCount int `json:"frame_count"`
 }
 
-func (o *PostImage) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+// Copy does a deep copy
+func (p *PostMetadata) Copy() *PostMetadata {
+	embedsCopy := make([]*PostEmbed, len(p.Embeds))
+	copy(embedsCopy, p.Embeds)
+
+	emojisCopy := make([]*Emoji, len(p.Emojis))
+	copy(emojisCopy, p.Emojis)
+
+	filesCopy := make([]*FileInfo, len(p.Files))
+	copy(filesCopy, p.Files)
+
+	imagesCopy := map[string]*PostImage{}
+	for k, v := range p.Images {
+		imagesCopy[k] = v
+	}
+
+	reactionsCopy := make([]*Reaction, len(p.Reactions))
+	copy(reactionsCopy, p.Reactions)
+
+	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
+	copy(acknowledgementsCopy, p.Acknowledgements)
+
+	var postPriorityCopy *PostPriority
+	if p.Priority != nil {
+		postPriorityCopy = &PostPriority{
+			Priority:                p.Priority.Priority,
+			RequestedAck:            p.Priority.RequestedAck,
+			PersistentNotifications: p.Priority.PersistentNotifications,
+			PostId:                  p.Priority.PostId,
+			ChannelId:               p.Priority.ChannelId,
+		}
+	}
+
+	return &PostMetadata{
+		Embeds:           embedsCopy,
+		Emojis:           emojisCopy,
+		Files:            filesCopy,
+		Images:           imagesCopy,
+		Reactions:        reactionsCopy,
+		Priority:         postPriorityCopy,
+		Acknowledgements: acknowledgementsCopy,
+	}
 }

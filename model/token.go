@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	TOKEN_SIZE            = 64
-	MAX_TOKEN_EXIPRY_TIME = 1000 * 60 * 60 * 48 // 48 hour
-	TOKEN_TYPE_OAUTH      = "oauth"
+	TokenSize          = 64
+	MaxTokenExipryTime = 1000 * 60 * 60 * 48 // 48 hour
+	TokenTypeOAuth     = "oauth"
 )
 
 type Token struct {
@@ -22,7 +22,7 @@ type Token struct {
 
 func NewToken(tokentype, extra string) *Token {
 	return &Token{
-		Token:    NewRandomString(TOKEN_SIZE),
+		Token:    NewRandomString(TokenSize),
 		CreateAt: GetMillis(),
 		Type:     tokentype,
 		Extra:    extra,
@@ -30,7 +30,7 @@ func NewToken(tokentype, extra string) *Token {
 }
 
 func (t *Token) IsValid() *AppError {
-	if len(t.Token) != TOKEN_SIZE {
+	if len(t.Token) != TokenSize {
 		return NewAppError("Token.IsValid", "model.token.is_valid.size", nil, "", http.StatusInternalServerError)
 	}
 

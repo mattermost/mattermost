@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // extractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
@@ -39,7 +39,7 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 			return errors.Wrap(err, "failed to read next file from archive")
 		}
 
-		// Pre-emptively check type flag to avoid reporting a misleading error in
+		// Preemptively check type flag to avoid reporting a misleading error in
 		// trying to sanitize the header name.
 		switch header.Typeflag {
 		case tar.TypeDir:

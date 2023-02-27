@@ -4,95 +4,126 @@
 package mlog
 
 import (
-	"context"
-	"log"
-	"sync/atomic"
-
-	"github.com/mattermost/logr"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"sync"
 )
 
-var globalLogger *Logger
+var (
+	globalLogger    *Logger
+	muxGlobalLogger sync.RWMutex
+)
 
 func InitGlobalLogger(logger *Logger) {
-	// Clean up previous instance.
-	if globalLogger != nil && globalLogger.logrLogger != nil {
-		globalLogger.logrLogger.Logr().Shutdown()
+	muxGlobalLogger.Lock()
+	defer muxGlobalLogger.Unlock()
+
+	globalLogger = logger
+}
+
+func getGlobalLogger() *Logger {
+	muxGlobalLogger.RLock()
+	defer muxGlobalLogger.RUnlock()
+
+	return globalLogger
+}
+
+// IsLevelEnabled returns true only if at least one log target is
+// configured to emit the specified log level. Use this check when
+// gathering the log info may be expensive.
+//
+// Note, transformations and serializations done via fields are already
+// lazily evaluated and don't require this check beforehand.
+func IsLevelEnabled(level Level) bool {
+	logger := getGlobalLogger()
+	if logger == nil {
+		return defaultIsLevelEnabled(level)
 	}
-	glob := *logger
-	glob.zap = glob.zap.WithOptions(zap.AddCallerSkip(1))
-	globalLogger = &glob
-	IsLevelEnabled = globalLogger.IsLevelEnabled
-	Debug = globalLogger.Debug
-	Info = globalLogger.Info
-	Warn = globalLogger.Warn
-	Error = globalLogger.Error
-	Critical = globalLogger.Critical
-	Log = globalLogger.Log
-	LogM = globalLogger.LogM
-	Flush = globalLogger.Flush
-	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
-	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
-	AddTarget = globalLogger.AddTarget
-	RemoveTargets = globalLogger.RemoveTargets
-	EnableMetrics = globalLogger.EnableMetrics
+	return logger.IsLevelEnabled(level)
 }
 
-// logWriterFunc provides access to mlog via io.Writer, so the standard logger
-// can be redirected to use mlog and whatever targets are defined.
-type logWriterFunc func([]byte) (int, error)
-
-func (lw logWriterFunc) Write(p []byte) (int, error) {
-	return lw(p)
-}
-
-func RedirectStdLog(logger *Logger) {
-	if atomic.LoadInt32(&disableZap) == 0 {
-		zap.RedirectStdLogAt(logger.zap.With(zap.String("source", "stdlog")).WithOptions(zap.AddCallerSkip(-2)), zapcore.ErrorLevel)
+// Log emits the log record for any targets configured for the specified level.
+func Log(level Level, msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(level, msg, fields...)
 		return
 	}
+	logger.Log(level, msg, fields...)
+}
 
-	writer := func(p []byte) (int, error) {
-		Log(LvlStdLog, string(p))
-		return len(p), nil
+// LogM emits the log record for any targets configured for the specified levels.
+// Equivalent to calling `Log` once for each level.
+func LogM(levels []Level, msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultCustomMultiLog(levels, msg, fields...)
+		return
 	}
-	log.SetOutput(logWriterFunc(writer))
+	logger.LogM(levels, msg, fields...)
 }
 
-type IsLevelEnabledFunc func(LogLevel) bool
-type LogFunc func(string, ...Field)
-type LogFuncCustom func(LogLevel, string, ...Field)
-type LogFuncCustomMulti func([]LogLevel, string, ...Field)
-type FlushFunc func(context.Context) error
-type ConfigFunc func(cfg LogTargetCfg) error
-type ShutdownFunc func(context.Context) error
-type AddTargetFunc func(...logr.Target) error
-type RemoveTargetsFunc func(context.Context, func(TargetInfo) bool) error
-type EnableMetricsFunc func(logr.MetricsCollector) error
-
-// DON'T USE THIS Modify the level on the app logger
-func GloballyDisableDebugLogForTest() {
-	globalLogger.consoleLevel.SetLevel(zapcore.ErrorLevel)
+// Convenience method equivalent to calling `Log` with the `Trace` level.
+func Trace(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlTrace, msg, fields...)
+		return
+	}
+	logger.Trace(msg, fields...)
 }
 
-// DON'T USE THIS Modify the level on the app logger
-func GloballyEnableDebugLogForTest() {
-	globalLogger.consoleLevel.SetLevel(zapcore.DebugLevel)
+// Convenience method equivalent to calling `Log` with the `Debug` level.
+func Debug(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlDebug, msg, fields...)
+		return
+	}
+	logger.Debug(msg, fields...)
 }
 
-var IsLevelEnabled IsLevelEnabledFunc = defaultIsLevelEnabled
-var Debug LogFunc = defaultDebugLog
-var Info LogFunc = defaultInfoLog
-var Warn LogFunc = defaultWarnLog
-var Error LogFunc = defaultErrorLog
-var Critical LogFunc = defaultCriticalLog
-var Log LogFuncCustom = defaultCustomLog
-var LogM LogFuncCustomMulti = defaultCustomMultiLog
-var Flush FlushFunc = defaultFlush
+// Convenience method equivalent to calling `Log` with the `Info` level.
+func Info(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlInfo, msg, fields...)
+		return
+	}
+	logger.Info(msg, fields...)
+}
 
-var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
-var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
-var AddTarget AddTargetFunc = defaultAddTarget
-var RemoveTargets RemoveTargetsFunc = defaultRemoveTargets
-var EnableMetrics EnableMetricsFunc = defaultEnableMetrics
+// Convenience method equivalent to calling `Log` with the `Warn` level.
+func Warn(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlWarn, msg, fields...)
+		return
+	}
+	logger.Warn(msg, fields...)
+}
+
+// Convenience method equivalent to calling `Log` with the `Error` level.
+func Error(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlError, msg, fields...)
+		return
+	}
+	logger.Error(msg, fields...)
+}
+
+// Convenience method equivalent to calling `Log` with the `Critical` level.
+// DEPRECATED: Either use Error or Fatal.
+// Critical level isn't added in mlog/levels.go:StdAll so calling this doesn't
+// really work. For now we just call Fatal to atleast print something.
+func Critical(msg string, fields ...Field) {
+	Fatal(msg, fields...)
+}
+
+func Fatal(msg string, fields ...Field) {
+	logger := getGlobalLogger()
+	if logger == nil {
+		defaultLog(LvlFatal, msg, fields...)
+		return
+	}
+	logger.Fatal(msg, fields...)
+}

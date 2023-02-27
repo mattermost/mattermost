@@ -6,13 +6,13 @@ package slashcommands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCodeProviderDoCommand(t *testing.T) {
 	cp := CodeProvider{}
 	args := &model.CommandArgs{
-		T: func(s string, args ...interface{}) string { return s },
+		T: func(s string, args ...any) string { return s },
 	}
 
 	for msg, expected := range map[string]string{

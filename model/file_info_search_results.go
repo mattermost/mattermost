@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type FileInfoSearchMatches map[string][]string
 
 type FileInfoSearchResults struct {
@@ -20,18 +15,4 @@ func MakeFileInfoSearchResults(fileInfos *FileInfoList, matches FileInfoSearchMa
 		fileInfos,
 		matches,
 	}
-}
-
-func (o *FileInfoSearchResults) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-	return string(b)
-}
-
-func FileInfoSearchResultsFromJson(data io.Reader) *FileInfoSearchResults {
-	var o *FileInfoSearchResults
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

@@ -6,11 +6,10 @@ package imaging
 import (
 	"bytes"
 	"image/color"
-	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 
 	"github.com/stretchr/testify/require"
 )
@@ -77,7 +76,7 @@ func TestFillImageTransparency(t *testing.T) {
 			require.NotNil(t, inputImg)
 			require.Equal(t, "png", format)
 
-			expectedBytes, err := ioutil.ReadFile(imgDir + "/" + tc.outputName)
+			expectedBytes, err := os.ReadFile(imgDir + "/" + tc.outputName)
 			require.NoError(t, err)
 
 			FillImageTransparency(inputImg, tc.fillColor)

@@ -4,14 +4,14 @@
 package app
 
 import (
-	"strings"
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestBusySet(t *testing.T) {
@@ -24,11 +24,12 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 100)
+	busy.Set(time.Millisecond * 500)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
-	// should automatically expire after 100ms.
-	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*20)
+
+	// should automatically expire after 500ms.
+	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
 
@@ -100,11 +101,15 @@ func TestBusyRace(t *testing.T) {
 func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 	t.Helper()
 	if busy1.IsBusy() != busy2.IsBusy() {
-		t.Logf("busy1:%s;  busy2:%s\n", busy1.ToJson(), busy2.ToJson())
+		busy1JSON, _ := busy1.ToJSON()
+		busy2JSON, _ := busy2.ToJSON()
+		t.Logf("busy1:%s;  busy2:%s\n", busy1JSON, busy2JSON)
 		return false
 	}
 	if busy1.Expires().Unix() != busy2.Expires().Unix() {
-		t.Logf("busy1:%s;  busy2:%s\n", busy1.ToJson(), busy2.ToJson())
+		busy1JSON, _ := busy1.ToJSON()
+		busy2JSON, _ := busy2.ToJSON()
+		t.Logf("busy1:%s;  busy2:%s\n", busy1JSON, busy2JSON)
 		return false
 	}
 	return true
@@ -116,8 +121,9 @@ type ClusterMock struct {
 }
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
-	sbs := model.ServerBusyStateFromJson(strings.NewReader(msg.Data))
-	c.Busy.ClusterEventChanged(sbs)
+	var sbs model.ServerBusyState
+	json.Unmarshal(msg.Data, &sbs)
+	c.Busy.ClusterEventChanged(&sbs)
 }
 
 func (c *ClusterMock) SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error {
@@ -126,15 +132,20 @@ func (c *ClusterMock) SendClusterMessageToNode(nodeID string, msg *model.Cluster
 
 func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
-func (c *ClusterMock) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
+func (c *ClusterMock) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 }
-func (c *ClusterMock) GetClusterId() string                                       { return "cluster_mock" }
-func (c *ClusterMock) IsLeader() bool                                             { return false }
-func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo                       { return nil }
-func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo                      { return nil }
-func (c *ClusterMock) NotifyMsg(buf []byte)                                       {}
-func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError)  { return nil, nil }
-func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError)      { return nil, nil }
+func (c *ClusterMock) GetClusterId() string                                      { return "cluster_mock" }
+func (c *ClusterMock) IsLeader() bool                                            { return false }
+func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo                      { return nil }
+func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo                     { return nil }
+func (c *ClusterMock) NotifyMsg(buf []byte)                                      {}
+func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError) { return nil, nil }
+func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return nil, nil
+}
+func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	return nil, nil
+}
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil

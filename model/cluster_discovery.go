@@ -4,15 +4,13 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"os"
 )
 
 const (
-	CDS_OFFLINE_AFTER_MILLIS = 1000 * 60 * 30 // 30 minutes
-	CDS_TYPE_APP             = "mattermost_app"
+	CDSOfflineAfterMillis = 1000 * 60 * 30 // 30 minutes
+	CDSTypeApp            = "mattermost_app"
 )
 
 type ClusterDiscovery struct {
@@ -46,13 +44,13 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 	}
 }
 
-func (o *ClusterDiscovery) AutoFillIpAddress(iface string, ipAddress string) {
+func (o *ClusterDiscovery) AutoFillIPAddress(iface string, ipAddress string) {
 	// attempt to set the hostname to the first non-local IP address
 	if o.Hostname == "" {
 		if ipAddress != "" {
 			o.Hostname = ipAddress
 		} else {
-			o.Hostname = GetServerIpAddress(iface)
+			o.Hostname = GetServerIPAddress(iface)
 		}
 	}
 }
@@ -111,26 +109,6 @@ func (o *ClusterDiscovery) IsValid() *AppError {
 
 	if o.LastPingAt == 0 {
 		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.last_ping_at.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	return nil
-}
-
-func (o *ClusterDiscovery) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func ClusterDiscoveryFromJson(data io.Reader) *ClusterDiscovery {
-	decoder := json.NewDecoder(data)
-	var me ClusterDiscovery
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
 	}
 
 	return nil

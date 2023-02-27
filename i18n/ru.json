@@ -145,15 +145,7 @@
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "Канал преобразован в приватный."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Этот канал по умолчанию не может быть преобразован в приватный."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Канал, запрошенный для преобразования, уже является приватным каналом."
+    "translation": "Канал преобразован в частный."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -217,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить приватный канал вместо того, чтобы покинуть."
+    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
   },
   {
     "id": "api.channel.leave.left",
@@ -629,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Открыть страницу помощи Mattermost"
+    "translation": "Показать справку Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -641,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.desc",
@@ -657,15 +649,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[имя пользователя] ~[канал]"
+    "translation": "@[имя пользователя]... ~[канал]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Отсутствует имя пользователя и канал."
+    "translation": "Отсутствует имя пользователя и/или канал."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Мы не смогли найти пользователя. Вероятно он заблокирован Системным администратором."
+    "translation": "Мы не смогли найти пользователя {{.User}}. Вероятно он заблокирован Системным администратором."
   },
   {
     "id": "api.command_invite.name",
@@ -677,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Невозможно найти канал {{.Channel}}. Пожалуйста, используйте управление каналом для идентификации."
+    "translation": "Невозможно найти канал {{.Channel}}. Пожалуйста, используйте [управление каналом](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации."
   },
   {
     "id": "api.command_invite.success",
@@ -781,11 +773,11 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Отключить уведомления на рабочем столе, электронной почте и push для текущего или указанного канала [канала]."
+    "translation": "Отключить уведомления на рабочем столе, электронной почте и push-уведомления для текущего канала или указанного [канала]."
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.hint",
@@ -797,11 +789,11 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала] (https://about.mattermost.com/default-channel-handle-documentation) для идентификации каналов."
+    "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его членом."
+    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его участником."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -813,7 +805,7 @@
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} больше не отключен."
+    "translation": "Уведомления в {{.Channel}} включены."
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
@@ -897,7 +889,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Открыть диалог настроек учётной записи"
+    "translation": "Открыть диалог настроек"
   },
   {
     "id": "api.command_settings.name",
@@ -1009,7 +1001,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Невозможно создать смайлик. Изображение должно быть не более 1 MB."
+    "translation": "Невозможно создать смайлик. Изображение должно быть не более 512 КБ."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -1090,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Не удалось загрузить файл(ы). Есть {{.NumClientIds}} client_id для {{.NumFiles}} файлов."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не удалось загрузить файлы. Неверное количество указанных файлов."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1185,7 +1173,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "ошибка маршалирования"
+    "translation": "Не удалось упорядочить."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1320,16 +1308,8 @@
     "translation": "Неверный ChannelId для параметра RootId."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Неправильный ParentId параметр."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Ошибочный RouteId параметр."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Этот канал доступен только для чтения. Только участники с разрешениями могут писать сюда сообщения."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1390,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Нельзя обновить сообщение в удаленном канале."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Этот канал доступен только для чтения. Только участники с соответствующими правами могут прикреплять здесь сообщения."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1474,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Вы не можете сохранить реакцию для другого пользователя."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Невозможно реагировать на сообщения в каналах \"только для чтения\"."
   },
   {
     "id": "api.restricted_system_admin",
@@ -1809,7 +1781,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Вы обновили свой email"
+    "translation": "Вы успешно обновили свой email"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1817,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Чтобы изменить настройки уведомлений, войдите в свою команду и перейдите в Настройки учетной записи > Уведомления."
+    "translation": "Чтобы изменить настройки уведомлений, войдите в свою команду и перейдите в Параметры > Уведомления."
   },
   {
     "id": "api.templates.email_info1",
@@ -1885,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Перейти к сообщению"
+    "translation": "Ответить в Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2184,24 +2156,8 @@
     "translation": "Не удалось отправить сообщение на электронную почту об успешной деактивации аккаунта"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо с уведомленим о смене адреса электронной почты"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не удалось отправить письмо с уведомленим о смене имени пользователя"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Не удалось отправить письмо с подтверждением смены адреса электронной почты"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Невозможно отправить email уведомление для смены MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо об обновлении пароля"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2172,8 @@
     "translation": "Не удалось отправить письмо об обновлении пароля"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Не удалось отправить сообщение «Личный токен доступа добавлен»"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Не удалось отправить письмо с подтверждением"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не удалось отправить приветственное письмо"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2377,7 +2325,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Невозможно переместить канал, если все его участники уже не являются членами Команды."
+    "translation": "Невозможно переместить канал, если все его участники уже не являются участниками Команды."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2540,10 +2488,6 @@
     "translation": "Свойство Channel display_name не находится в пределах допустимых ограничений длины."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Пропущено обязательное свойство канала: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Длина заголовка канала слишком большая."
   },
@@ -2597,7 +2541,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Текущий канал может быть добавлен в избранное только членами команды. \"{{.Username}}\" не является членом данной команды."
+    "translation": "Текущий канал может быть добавлен в избранное только участниками команды. \"{{.Username}}\" не является участником этой команды."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -2629,7 +2573,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Только члены канала могут помечать флагами прямое сообщения в этом канале. \"{{.Username}}\" не учачастник."
+    "translation": "Только участники канала могут помечать флагами прямое сообщения в этом канале. \"{{.Username}}\" не участник."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -2698,10 +2642,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Отсутствует необходимое значение для Reaction: User."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Значение CreateAt в Reply должно быть больше чем родительский CreateAt в Post."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -3048,10 +2988,6 @@
     "translation": "Невозможно записать файл изображения в хранилище файлов. Пожалуйста, проверьте ваше соединение и попробуйте снова."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Функция требует обновления до Корпоративной редакции и включения лицензионного ключа. Пожалуйста, обратитесь к системному администратору."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Не удалось получить пользователей."
   },
@@ -3218,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch уже остановлен."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не удалось подключиться к серверу Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3413,7 +3345,7 @@
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "Попытка входа с использованием SAML не удалась по причине того, что не был обнаружен приватный ключ поставщика службы. Пожалуйста, свяжитесь с системным администратором."
+    "translation": "Попытка входа с использованием SAML не удалась по причине того, что не был обнаружен частный ключ поставщика службы. Пожалуйста, свяжитесь с системным администратором."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -3596,10 +3528,6 @@
     "translation": "Неверное имя пользователя."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Имя должно состоять из 2 или более строчных букв и цифр."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Создано в\" должно быть корректным временем."
   },
@@ -3748,10 +3676,6 @@
     "translation": "Недопустимый идентификатор хука команды."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Некорректный идентификатор родителя."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Некорректный корневой идентификатор."
   },
@@ -3818,10 +3742,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Окно времени массовой индексации Elasticsearch должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4029,7 +3949,7 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Приватный ключ поставщика службы отсутствует. Вы забыли его загрузить?"
+    "translation": "Частный ключ поставщика службы отсутствует. Вы забыли его загрузить?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
@@ -4413,7 +4333,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 5 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
+    "translation": "Неверные ID файлов. Обратите внимание, что загрузка ограничена максимум 10 файлами. Пожалуйста, используйте дополнительные сообщения для отправки большего количества файлов."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4436,20 +4356,12 @@
     "translation": "Некорректный идентификатор оригинала."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Некорректный идентификатор родителя."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Некорректные свойства."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Некорректный корневой идентификатор."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Должен быть установлен неверный корневой идентификатор, если установлен родительский."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4661,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Условия предоставления услуг GitLab обновлены. Пожалуйста, зайдите на gitlab.com, чтобы принять их, а затем попробуйте снова войти в Mattermost."
+    "translation": "Условия предоставления услуг GitLab обновлены. Пожалуйста, зайдите на {{.URL}}, чтобы принять их, а затем попробуйте снова войти в Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4686,18 +4598,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Отсутствует адрес \"Кому\"."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Невозможно преобразовать StringArray в *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Невозможно преобразовать StringInterface в *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Невозможно преобразовать StringMap в *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -4820,22 +4720,6 @@
     "translation": "Отсутствует узел служб SSO Identity Provider в XML."
   },
   {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Невозможно прочитать файл изображения профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Пустой массив 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Нет файла 'image' в запросе."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Невозможно загрузить изображение профиля. Слишком большой файл."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Пожалуйста, добавьте меня в команды и каналы, c которыми мне нужно взаимодействовать. Это можно сделать в браузере или в приложении Mattermost для ПК."
   },
@@ -4896,22 +4780,6 @@
     "translation": "Создание бота было отключено."
   },
   {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Не получилось удалить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Не удалось загрузить изображение профиля."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Не удалось открыть файл изображения."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Не удалось разобрать составную форму."
-  },
-  {
     "id": "api.channel.add_guest.added",
     "translation": "%v добавлен(а) в канал как гость пользователем %v."
   },
@@ -4921,7 +4789,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Членство в канале запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
+    "translation": "Участие в канале запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -5305,7 +5173,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "Пользователь не может быть удален из канала, поскольку он является членом групп, связанных с этим каналом. Чтобы удалить его из этого канала, он должен быть удален из связанных групп."
+    "translation": "Пользователь не может быть удален из канала, поскольку он является участником групп, связанных с этим каналом. Чтобы удалить его из этого канала, он должен быть удален из связанных групп."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -5326,10 +5194,6 @@
   {
     "id": "api.ldap_groups.existing_user_name_error",
     "translation": "имя группы уже существует как имя пользователя"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Произошла ошибка при открытии файла открытого ключа."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -5357,7 +5221,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Время сеанса истекло: войдите в систему, чтобы продолжить получать уведомления. Сеансы для {{.siteName}} настроены вашим системным администратором так, что срок их действия истекает каждые {{.daysCount}} дней."
+    "translation": "Время сеанса истекло: войдите в систему, чтобы продолжить получать уведомления. Сеансы для {{.siteName}} настроены вашим системным администратором так, что срок их действия истекает каждые {{.hoursCount}} час(ов)."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -5369,10 +5233,6 @@
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
     "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
   },
   {
@@ -5588,10 +5448,6 @@
     "translation": "Не удалось закрыть индекс канала."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Исходящий вебхук удален, но не удалось создать новый в связи с какой-то ошибкой."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Произошла ошибка во время маршалирования запроса JSON"
   },
@@ -5637,11 +5493,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Некорректное имя канала. Запрещено использовать идентификаторы пользователей в качестве имени канала (кроме каналов личных сообщений)."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Окно времени массовой индексации Bleve должно составлять не менее 1 секунды."
+    "translation": "Имена каналов не могут быть в шестнадцатеричном формате. Пожалуйста, введите другое имя канала."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -5721,15 +5573,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
     "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не удалось очистить записи."
   },
   {
     "id": "ent.get_users_in_channel_during",
@@ -5822,10 +5670,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Ошибка аннулирования e-mail приглашений."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Гостевые учётные записи отключены"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -5997,23 +5841,23 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 61+"
+    "translation": "Версия 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 44+"
+    "translation": "Версия 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 60+"
+    "translation": "Версия 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 12+"
+    "translation": "Версия 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
@@ -6100,10 +5944,6 @@
     "translation": "Невозможно переместить каналы личных сообщений или групповые каналы"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета реакций."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Не удалось сохранить реакцию."
   },
@@ -6118,10 +5958,6 @@
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Не удалось получить реакции для данного сообщения."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Невозможно запросить пробную лицензию. Пожалуйста, настройте URL сайта в разделе Системная консоль веб-сервера Mattermost."
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -6372,10 +6208,6 @@
     "translation": "Не удалось отправить администратору письмо с подтверждением"
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Связаться с нами"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Спасибо, что связались с Mattermost. Мы свяжемся с вами в ближайшее время."
   },
@@ -6384,20 +6216,8 @@
     "translation": "Не удалось сохранить значение для {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Не удалось найти метрику."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Список админов пуст."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Советник"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Узнайте больше о Mattermost Советник] (https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_contact_header",
@@ -6456,10 +6276,6 @@
     "translation": "Свяжитесь с нами по электронной почте"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Связаться с нами"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
     "translation": "Сообщение не может быть отправлено."
   },
@@ -6510,10 +6326,6 @@
   {
     "id": "api.job.unable_to_download_job",
     "translation": "Невозможно скачать это задание"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой при очистке пакета флагов."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6689,39 +6501,39 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
-    "translation": "Невозможно создать новое членство в команде, потому что команда достигла предела участников"
+    "translation": "Невозможно создать новое участие в команде, потому что команда достигла предела участников"
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
-    "translation": "Невозможно создать новое членство в команде, потому что оно уже существует"
+    "translation": "Невозможно создать новое участие в команде, потому что оно уже существует"
   },
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
-    "translation": "Невозможно создать новое членство в команде"
+    "translation": "Невозможно создать новое участие в команде"
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Невозможно импортировать членство в команде, потому что в этой команде не разрешены дополнительные участники"
+    "translation": "Невозможно импортировать участие в команде, потому что в этой команде не разрешены дополнительные участники"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
-    "translation": "Невозможно импортировать членство в команде"
+    "translation": "Невозможно импортировать участие в команде"
   },
   {
     "id": "app.import.import_user_teams.save_members.conflict.app_error",
-    "translation": "Невозможно импортировать новое членство в команде, потому что оно уже существует"
+    "translation": "Невозможно импортировать новое участие в команде, потому что оно уже существует"
   },
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
-    "translation": "Невозможно создать членство в команде по умолчанию, потому что в этой команде не разрешены дополнительные участники"
+    "translation": "Невозможно создать участие в команде по умолчанию, потому что в этой команде не разрешены дополнительные участники"
   },
   {
     "id": "app.create_basic_user.save_member.conflict.app_error",
-    "translation": "Невозможно создать членство в команде по умолчанию, потому что оно уже существует"
+    "translation": "Невозможно создать участие в команде по умолчанию, потому что оно уже существует"
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
-    "translation": "Невозможно создать членство в команде по умолчанию"
+    "translation": "Невозможно создать участие в команде по умолчанию"
   },
   {
     "id": "app.status.get.missing.app_error",
@@ -6804,14 +6616,6 @@
     "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не удалось разобрать задание экспорта сообщения ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Не найдена конечная точка API кластера."
   },
@@ -6892,10 +6696,6 @@
     "translation": "Не удалось получить задание."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета информации о файлах."
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Не удалось сохранить информацию о файле."
   },
@@ -6930,10 +6730,6 @@
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
     "translation": "Не удалось получить загрузки."
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Вы достигли лимита пользователей бесплатного уровня"
   },
   {
     "id": "api.system.update_notices.validating_failed",
@@ -7012,14 +6808,6 @@
     "translation": "Не удалось получить участников канала."
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Получение пробной версии"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Начать использовать пробную версию"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
     "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
   },
@@ -7046,10 +6834,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Невозможно получить пакет сообщений для индексации."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ошибка перманентного удаления пакета сообщений."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7184,10 +6968,6 @@
     "translation": "Не удалось получить загрузки."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Невозможно загрузить файл. Он слишком большой."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Невозможно создать пост в удаленном канале."
   },
@@ -7209,15 +6989,11 @@
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": "Не удалось найти прикрепленные сообщения."
+    "translation": "Не удалось найти закрепленные сообщения."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Невозможно удалить участника канала."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Не удалось увеличить счетчик упоминаний."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
@@ -7708,10 +7484,6 @@
     "translation": "Невозможно записать csv-файл."
   },
   {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Ошибка получения облачной подписки"
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Не удалось записать экспортный файл."
   },
@@ -7765,15 +7537,15 @@
   },
   {
     "id": "app.user.update_threads_read_for_user.app_error",
-    "translation": "Не удалось пометить все пользовательские треды как прочтённые"
+    "translation": "Не удалось пометить все пользовательские обсуждения как прочтённые"
   },
   {
     "id": "app.user.update_thread_read_for_user.app_error",
-    "translation": "Не удалось обновить статус прочтения для треда"
+    "translation": "Не удалось обновить статус прочтения для обсуждения"
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
-    "translation": "Невозможно обновить состояние отслеживания для треда"
+    "translation": "Невозможно обновить состояние отслеживания для обсуждения"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -7849,11 +7621,11 @@
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": "Тред пользователя не существует или не отслеживается"
+    "translation": "Обсуждение пользователя не существует или не отслеживается"
   },
   {
     "id": "app.user.get_threads_for_user.app_error",
-    "translation": "Не удалось получить треды пользователя"
+    "translation": "Не удалось получить обсуждения пользователя"
   },
   {
     "id": "app.user.get_recently_active_users.app_error",
@@ -7980,10 +7752,6 @@
     "translation": "ошибка insert"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Невозможно организовать ответ."
-  },
-  {
     "id": "app.import.attachment.read_file_data.error",
     "translation": "Не удалось прочитать аттачмент при импорте."
   },
@@ -8037,7 +7805,7 @@
   },
   {
     "id": "app.channel.autofollow.app_error",
-    "translation": "Не удалось обновить членство в треде для указанного пользователя"
+    "translation": "Не удалось обновить участие в обсуждении для указанного пользователя"
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -8046,10 +7814,6 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "В запросе отсутствует либо параметр AuthData, либо параметр AuthService."
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Не удалось отправить администратору email с уведомлением о достижении лимита пользователей"
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -8108,30 +7872,6 @@
     "translation": "Если это были не вы, вы можете смело игнорировать это письмо."
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Новые пользователи не могут присоединиться к вашему рабочему пространству"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} хотел бы пригласить новых членов в ваше рабочее пространство"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Запрос пользователя Mattermost на обновление рабочего пространства"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Недавно кто-то пытался присоединиться к вашему рабочему пространству, но не смог, так как ваше рабочее пространство достигло лимита количества пользователей для бесплатной версии Mattermost Cloud. Обновите подписку, чтобы позволить большему количеству пользователей присоединиться к вашему рабочему пространству."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Поскольку ваше рабочее пространство достигло лимита количества пользователей для бесплатной версии Mattermost Cloud, приглашения не могут быть отправлены. Обновите подписку, чтобы позволить большему количеству пользователей присоединиться к вашему рабочему пространству."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Обновить"
-  },
-  {
     "id": "api.templates.reset_body.subTitle",
     "translation": "Нажмите на кнопку ниже, чтобы сбросить пароль. Если вы не запрашивали его, вы можете безопасно проигнорировать это письмо."
   },
@@ -8145,7 +7885,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Напишите нам в любое время на email "
+    "translation": "Нужна помощь или есть вопросы? Пишите нам на e-mail адрес "
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -8169,15 +7909,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Неудачный платёж"
+    "translation": "Платёж не прошёл"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Требуется действие: Оплата за Mattermost Cloud не произведена"
+    "translation": "Требуется действие: Оплата за Mattermost {{.Plan}} не произведена"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Чтобы обеспечить бесперебойную подписку на Mattermost Cloud, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
+    "translation": "Чтобы обеспечить бесперебойный доступ к Mattermost {{.Plan}}, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8186,122 +7926,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "Ваше рабочее пространство превышает лимит пользователей для бесплатного уровня"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Рабочее пространство Mattermost Cloud заблокировано"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Ваша подписка на Mattermost Cloud была приостановлена"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Свяжитесь с нами, чтобы активировать заново ваше рабочее пространство."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Ваше рабочее пространство Mattermost приостановлено. Все содержимое и данные в вашем рабочем пространстве будут удалены в течение 1-3 месяцев."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Связаться со службой поддержки"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Превышение лимита пользователей в Mattermost Cloud Workspace"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Похоже, что в вашем рабочем пространстве более 10 пользователей, что выходит за рамки бесплатного уровня Mattermost Cloud Professional. Чтобы избежать сбоев в работе Mattermost workspace, пожалуйста, обновите его."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Исправить сейчас"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Приостановка вашего рабочего пространства Mattermost Cloud запланирована на завтра"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Ваша подписка на Mattermost Cloud скоро будет приостановлена"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "После приостановки работы вашего рабочего пространства все содержимое и данные в нем будут удалены в течение 1-3 месяцев."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Как только ваше рабочее пространство будет приостановлено, вы не сможете войти в свой аккаунт или обновить платёжную информацию. Вам необходимо будет связаться с нашей службой поддержки для повторной активации вашего сервиса."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "Чтобы избежать приостановки, добавьте платежную информацию"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Это последнее напоминание о том, что мы не получили оплату за вашу рабочую среду Mattermost Cloud, которая была просрочена с {{ .OverLimitDate }}. Завтра мы приостановим ваш сервис."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Нет способа оплаты в файле"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Оплата за подписку Mattermost Cloud просрочена"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost не удалось обработать ваш последний автоматический платёж. Чтобы ваш сервис оставался активным, пожалуйста, как можно скорее добавьте платёжные реквизиты, иначе он может быть приостановлен."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Приостановка рабочего пространства Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Чтобы сохранить подписку на Mattermost Cloud, требуются действия"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Вы потеряете доступ к истории сообщений"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Вы не можете обновить информацию о деталях оплаты, не обратившись в нашу службу поддержки"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Вы не можете войти в своё рабочее пространство"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Если не будет предпринято никаких действий, ваше рабочее пространство будет приостановлено"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Ещё есть время, чтобы сохранить рабочее пространство Mattermost Cloud в активном состоянии и решить проблемы с вашим методом оплаты. Чтобы избежать остановки сервиса, обновите метод оплаты."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Оплата не получена"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Оплата за подписку Mattermost Cloud просрочена"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Напоминаем, что мы не получили оплату за подписку Mattermost по счёту от {{ .OverLimitDate}}. В ближайшее время мы начнём процесс приостановления вашего обслуживания, если оплата не будет получена."
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8329,7 +7953,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.copyright",
@@ -8337,7 +7961,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Поздравляем - ваше рабочее пространство {{.WorkSpace}} готово к работе!"
+    "translation": "Ваше рабочее пространство готово к работе!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8357,7 +7981,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "для более удобной работы на PC, Mac, iOS и Android."
+    "translation": "для более удобной работы на Windows, Linux Mac, iOS и Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8369,7 +7993,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": "Поделитесь этой ссылкой, чтобы пригласить новых членов присоединиться в {{.WorkSpace}}:"
+    "translation": "Поделитесь этой ссылкой, чтобы пригласить новых участников присоединиться в {{.WorkSpace}}:"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
@@ -8397,39 +8021,15 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Оптимизируйте свою работу с такими инструментами, как Github, Календарь Google и Chrome. Просмотрите все интеграции, которые есть у нас в нашем"
+    "translation": "Оптимизируйте свою работу с такими инструментами, как Github, Jira and Zoom. Просмотрите все интеграции, которые есть у нас в нашем"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Добавить приложения в ваше рабочее пространство"
   },
   {
-    "id": "api.templates.at_limit_title",
-    "translation": "Вы достигли лимита количества пользователей для бесплатного уровня. "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Достигнуто предельное количество пользователей Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Кроме того, вы можете отключить пользователей в системной консоли, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Похоже, что теперь у вас в рабочем пространстве 10 и более пользователей — это здорово! Если вы хотите пригласить больше членов команды, подумайте об обновлении Mattermost Cloud Professional прямо сейчас."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Тело запроса некорректно или отсутствует."
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Ошибка получения облачной подписки"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -8441,7 +8041,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых членов команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -8449,7 +8049,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых членов команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Связаться с нами\", вы поделитесь своей информацией с компанией Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Связаться с нами\", вы поделитесь своей информацией с компанией Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
@@ -8608,14 +8208,6 @@
     "translation": "Ошибка настройки статуса."
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Ошибка получения облачной подписки."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Ошибка получения email администратора."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Событие Webhook не было обработано. Либо оно отсутствует, либо некорректно."
   },
@@ -8665,7 +8257,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Статус для Id канала `{{.ChannelId}}`"
+    "translation": "Статус для идентификатора канала `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.channel_status.help",
@@ -8677,11 +8269,11 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Удалённый id общего канала `{{.RemoteId}}` не существует для этого канала."
+    "translation": "Удалённое безопасное соединение общего канала `{{.RemoteId}}` не существует для этого канала."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Невозможно пригласить удалённый кластер на общий канал, созданный где-то в другом месте."
+    "translation": "Невозможно пригласить безопасное соединение на общий канал, созданный где-то в другом месте."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -8697,39 +8289,39 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Отображает состояние для всех удаленных кластеров"
+    "translation": "Отображает статус для всех безопасных соединений"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL не установлен. Пожалуйста, установите его через системную консоль."
+    "translation": "URL сайта не задан. Установите его в Системной консоли > Окружение > Веб-сервер."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Служба удаленного кластера не включена."
+    "translation": "Служба безопасного соединения не включена."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Служба удаленного кластера отключена."
+    "translation": "Служба безопасного соединения отключена."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Идентификатор удаления удаленного кластера"
+    "translation": "Идентификатор удаляемого безопасного соединения."
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Не смог удалить удалённый кластер: {{.Error}}"
+    "translation": "Не получилось удалить безопасное соединение: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Удаляет удалённый кластер"
+    "translation": "Удаляет безопасное соединение"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Никаких удаленных кластеров не найдено."
+    "translation": "Безопасных подключений не найдено."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Имя | SiteURL | RemoteId | Invite Accepted | Online | Последний пинг |"
+    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | URL сайта | Приглашение принято | Онлайн | Последний пинг |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8741,11 +8333,11 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Уникальное имя для безопасного соединения"
+    "translation": "Уникальное название для безопасного соединения"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Имя защищенного соединения"
+    "translation": "Название защищенного соединения"
   },
   {
     "id": "api.command_remote.name",
@@ -8805,7 +8397,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Пригласите удаленные кластеры Mattermost для межкластерной связи."
+    "translation": "Создайте безопасные соединения для связи между экземплярами Mattermost."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8829,7 +8421,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Принять приглашение от удаленного кластера"
+    "translation": "Принять приглашение от внешнего кластера Mattermost"
   },
   {
     "id": "api.command_share.share_read_only.hint",
@@ -8841,7 +8433,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Remote | SiteURL | Описание | Только для чтения | InviteAccepted | Онлайн | Последняя синхронизация |"
+    "translation": "| Безопасное соединение | URL сайта | Только чтение | Приглашение принято | Онлайн | Последняя синхронизация |"
   },
   {
     "id": "api.command_share.hint",
@@ -8861,11 +8453,11 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Удалённый кластер с таким же URL уже существует."
+    "translation": "Безопасное соединение с таким URL уже существует."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "Возникла ошибка при обновлении удалённого кластера."
+    "translation": "Мы столкнулись с ошибкой при обновлении безопасного соединения."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -8873,11 +8465,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Удалённый кластер уже добавлен."
+    "translation": "Безопасное соединение уже добавлено."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Возникла ошибка при сохранении удалённого кластера."
+    "translation": "Произошла ошибка при сохранении безопасного соединения."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -8889,27 +8481,27 @@
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Возникла ошибка при поиске удалённого кластера."
+    "translation": "Мы столкнулись с ошибкой при получении безопасного соединения."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Возникла ошибка удаления удалённого кластера."
+    "translation": "Возникла ошибка удаления безопасного соединения."
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Отсутствует идентификатор удалённого кластера."
+    "translation": "Отсутствует ID удалённого кластера."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Несоответствие идентификатора удаленного кластера."
+    "translation": "Несоответствие ID удаленного кластера."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Невозможно найти идентификатор удаленного кластера {{.RemoteId}}."
+    "translation": "Невозможно найти безопасный ID подключения {{.RemoteId}}."
   },
   {
     "id": "api.context.json_encoding.app_error",
-    "translation": "Ошибка шифрования JSON."
+    "translation": "Ошибка кодирования JSON."
   },
   {
     "id": "api.context.invitation_expired.error",
@@ -8925,11 +8517,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Идентификатор удалённой инсталляции для отключения."
+    "translation": "Идентификатор безопасного подключения к неприглашенному гостю."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Отключить удалённую инсталляцию от этого общего канала"
+    "translation": "Отмена приглашения на безопасное соединение от этого общего канала"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -8949,23 +8541,23 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Удалённый `{{.RemoteId}}`отключен."
+    "translation": "Безопасное соединение с `{{.RemoteId}}`неприглашенным."
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Для отключения должен быть указан валидный удалённый кластер"
+    "translation": "Для отключения должен быть указано действительное безопасное соединение"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Идентификатор удалённого кластера некорректен: {{.Error}}"
+    "translation": "Идентификатор безопасного соединения некорректен: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id существующей удалённой инсталляции. Смотрите команду `remote` для добавления."
+    "translation": "ID существующего безопасного соединения. См. Команду `secure-connection`, чтобы добавить безопасное соединение."
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "Удаленный кластер уже приглашен."
+    "translation": "Безопасное соединение уже приглашено."
   },
   {
     "id": "api.command_share.permission_required",
@@ -8977,15 +8569,15 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Никакие удалённые объекты в этот общий канал не приглашались."
+    "translation": "Никакие безопасные соединения в этот общий канал не приглашались."
   },
   {
     "id": "api.command_share.name",
-    "translation": "поделиться"
+    "translation": "общий канал"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Должен быть указан действительный идентификатор удаленного кластера для приглашения."
+    "translation": "Должен быть указан действительный идентификатор безопасного соединения для приглашения."
   },
   {
     "id": "api.command_share.missing_action",
@@ -8997,7 +8589,7 @@
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Приглашение канала отправлено `{{.Name}} {{.SiteURL}}`."
+    "translation": "Приглашение общего канала отправлено `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -9005,11 +8597,11 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Не удалось получить статус удалённых объектов: {{.Error}}."
+    "translation": "Не удалось получить статус для безопасных соединений: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Ошибка при извлечении удалённых кластеров: {{.Error}}"
+    "translation": "Ошибка при получении безопасных соединений: {{.Error}}"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -9040,52 +8632,16 @@
     "translation": "Не удалось отправить автоматический ответ от пользователя."
   },
   {
-    "id": "api.user.cloud_trial_ending_email.error",
-    "translation": "Не удалось отправить предупреждение по электронной почте об окончании пробного периода"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Ваша бесплатная 14-дневная пробная подписка на Mattermost скоро закончится"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Завершение пробной подписки на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Добавить способ оплаты"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Отображаемое имя безопасного соединения"
+    "translation": "Отображаемое название безопасного соединения"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Отображаемое имя безопасного соединения"
+    "translation": "Отображаемое название безопасного соединения"
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Не удалось сбросить поле AuthData в Email."
-  },
-  {
-    "id": "api.user.cloud_trial_ended_email.error",
-    "translation": "Не удалось отправить письмо об окончании пробной подписки"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Ваша бесплатная 14-дневная пробная версия Mattermost заканчивается сегодня"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Завершение пробной подписки на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Начать подписку"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Установите email-адрес службы поддержки"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9094,5 +8650,1353 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "Введенный текст превышает лимит символов. Заголовок канала ограничен {{.MaxLength}} символами."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Между этими пользователями невозможно создать прямой канал, потому что у них нет общей команды."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} ответил в обсуждении"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " ответил в чате, на который Вы подписаны."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Количество полученных ID сообщений превышает максимальный размер {{.MaxLength}}"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Если Вы не были перенаправлены автоматически, нажмите <a href='{{.Link}}'>link</a>"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Для этой функции требуется обновление до Enterprise Edition."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "У вас есть новые сообщения"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "См. ниже сводку Ваших новых сообщений."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Посмотреть это сообщение"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Открыть Mattermost"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Не удалось обновить настраиваемый статус. Пожалуйста, добавьте статус эмодзи или произвольный текст, или и то и другое."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Не удалось провести различие конфигураций"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Не удалось перезагрузить конфигурацию."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Не удалось провести различие конфигураций"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Не удалось применить новую пробную лицензию. Вы уже применяли пробную лицензию к этому экземпляру Mattermost. Если вы хотите продлить пробный период, пожалуйста, [свяжитесь с нашим отделом продаж] (https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Не удалось проверить, можно ли запустить пробную версию"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Не удалось проверить, пусто ли хранилище пользователей."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Участие пользователя в обсуждении не существует"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Не удалось получить участие в обсуждении пользователя"
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Нам не удалось получить количество обсуждений для пользователя."
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Не удалось получить IDы команды."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Система"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Невозможно увеличить продолжительность сеанса"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Невозможно получить все роли."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Не удалось упорядочить сообщение."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Хотите изменить параметры уведомлений?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Войти в Mattermost"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " и перейдите в Параметры > Уведомления"
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Пока Вас не было, {{.SenderName}} ответил на обсуждение в Вашей группе."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Пока Вас не было, {{.SenderName}} ответил на обсуждение в Вашем личном сообщении."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Пока Вас не было, {{.SenderName}} ответил в обсуждении, за которым Вы следите на {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Пока Вас не было, {{.SenderName}} ответил в обсуждении, за которым Вы следите."
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} упомянул Вас в сообщении"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Пока Вас не было, {{.SenderName}} упомянул Вас в канале {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} отправил Вам новое сообщение"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Пока вас не было, {{.SenderName}} отправил сообщение Вашей группе."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} отправил вам новое сообщение"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Пока вас не было, {{.SenderName}} отправил вам новое личное сообщение."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Список администраторов пуст."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Список администраторов пуст."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Не удается получить пользователей для архивного канала"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Не удается получить сообщения для архивного канала"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Невозможно проанализировать токен при аннулировании токенов подтверждения электронной почты"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Невозможно удалить токен при аннулировании токенов подтверждения электронной почты"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Невозможно получить токены по типу при аннулировании токенов подтверждения электронной почты"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Адрес электронной почты в токене не совпадает с адресом в информации пользователя."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Не удалось упорядочить."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Ваша подписка Mattermost подлежит продлению"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Войдите в свою учетную запись клиента, чтобы продлить"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, срок действия Вашей подписки истекает через {{.Days}} дней. Мы надеемся, что Вам нравится гибкое и безопасное командное сотрудничество, которое обеспечивает Mattermost. Продлите подписку в ближайшее время, чтобы Ваша команда могла продолжать пользоваться этими преимуществами."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Ваша лицензия подлежит продлению"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Обнови сейчас"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Напоминание"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Не удалось отправить лицензию для обновлений по электронной почте"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Не удалось сгенерировать ссылку для продления лицензии"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Ответить в личном сообщении"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Ответить в {{.channelName}}"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " ответил в обсуждении."
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Продление этой лицензии на портале невозможно"
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Недопустимые роли пользователей длиннее {{.Limit}} символов."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Недопустимые роли участника команды длиннее {{.Limit}} символов."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Недопустимое поле UserId для сеанса."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Недопустимые роли сеанса длиннее {{.Limit}} символов."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Недопустимое поле ID сеанса."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Недопустимое поле CreateAt для сеанса."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "Для включения CollapsedThreads должно быть установлено значение ThreadAutoFollow"
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Недопустимые роли участников канала длиннее {{.Limit}} символов."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Не удалось получить список всех участников команды"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Не удалось получить список всех участников канала"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Сбой задания сохранения данных."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Самый старый объект (пользователь, канал или сообщение) не может быть извлечен из базы данных."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Пароль недействителен"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не лицензировано для пользовательских групп"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функция пользовательских групп отключена"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Сценарии"
+  },
+  {
+    "id": "Channels",
+    "translation": "Каналы"
+  },
+  {
+    "id": "Boards",
+    "translation": "Доски"
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Ошибка при попытке получить первую завершенную настройку администратора из магазина."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id должен быть пустым для пользовательской группы"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference должно быть 'true' для пользовательских групп"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "ошибка подсчета групп"
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Имя конфликтует с существующим системным именем эмодзи."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Не удалось получить статус завершения регистрации."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Подключение может быть выполнено только Системным Администратором."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Не удалось расшифровать полный запрос на подключение."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Предварительно упакованная версия плагина не может быть проанализирована."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "ошибка при получении количества участников"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Не удалось получить все задания по типу и статусу."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Невозможно выполнить операцию для этого типа источника."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "имя группы не уникально"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "Ответ SAML слишком длинный"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Откройте для себя повышенную производительность с помощью этих замечательных функций"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Привет, {{.Name}}, мы заметили, что Ваш сервер Mattermost собирает немного пыли. Взгляните на некоторые функции, которые могут облегчить рабочую нагрузку в Вашей команде."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "Откройте все возможности Mattermost, чтобы повысить производительность вашей команды!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Управляйте задачами с помощью "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Управление рабочим процессом с "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Приходите и проверьте это!"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Открыть Mattermost"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP не настроен в Системной Консоли"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Ошибка при отправке письма"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "для конечной точки API требуется лицензия"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Ошибка при попытке сохранить первую полную настройку администратора в магазине."
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Гостевой доступ к указанному "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Максимальная длина MattermostAppID — 32 символа."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Не удалось получить количество файлов для канала"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Недопустимый post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас присоединиться к {{ .ChannelsLen }} каналам в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} пригласил вас присоединиться к {{ .ChannelsLen }} каналам в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас присоединиться к каналу {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} пригласил вас присоединиться к каналу {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Список адресов электронной почты пуст"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Недопустимое название канала"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Имя должно состоять из 1 или более строчных буквенно-цифровых символов."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Ошибка при анализе данных тела."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Неверный текст запроса."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Нам не удалось обработать запрос из-за ограничений для стран, на которые распространяется эмбарго. [Подробнее читайте в нашей документации](https://mattermost.com/pl/limitations-for-embargoed-countries) или обращайтесь по адресу legal@mattermost.com, если у вас есть вопросы об экспортных ограничениях."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights находится за флагом функции, который не включен."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Параметры OnlyThreads и OnlyTotals для getThreadsForUser являются взаимоисключающими"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "В настройках хранилища файлов есть незаданные значения."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "В настройки электронной почты есть не заданные значения."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Обновление прошло успешно!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Подтверждение обновления Mattermost"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Платеж не получен"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Пожалуйста, свяжитесь с вашим финансовым учреждением для решения возникших вопросов. Затем обновите свои платёжные реквизиты при необходимости."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Просрочена оплата вашего Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Гостевые учётные записи отключены"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Загрузка через mmctl в экземпляр Cloud не поддерживается. Пожалуйста, ознакомьтесь с документацией здесь: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "В настройках Elasticsearch есть неустановленные значения."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Команда marketplace не поддерживается на вашем устройстве."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "магазин плагинов"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Открыть Магазин плагинов"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost - это платформа с открытым исходным кодом для безопасного общения, сотрудничества и организации работы между командами с использованием различных инструментов.\nMattermost состоит из трех ключевых инструментов:\n\n**Channels** - Каналы - оставайтесь всегда на связи со своей командой посредством 1:1 и групповых чатов.\n**[Playbooks](/playbooks)** - Сценарии - создавайте и настраивайте повторяющиеся процессы для достижения конкретных и предсказуемых результатов.\n**[Boards](/boards)** - Доски - управляйте проектами и задачами с использованием досок Kanban, чтобы помочь вашей команде достичь ключевых вех.\n\n[Посмотреть документацию и руководства]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Невозможно восстановить команду, потому что достигнут лимит команд"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Невозможно создать команду, потому что достигнут лимит команд"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Администратор уже уведомлен"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Неверный диапазон времени."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "имя группы уже существует как зарезервированное имя"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Неверный параллелизм декодера {{.Value}}. Должно быть положительное число или -1."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Неверное значение тайм-аута {{.Value}}. Должно быть положительное число."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML не смог успешно загрузить публичный сертификат (Identity Provider Public Certificate), обратитесь к своему системному администратору."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Не удалось разобрать значение:{{.Value}} в int64"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Мы не смогли получить количество бейджей для пользователя."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Не удалось получить данные об использовании хранилища."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Не удалось сгенерировать информацию о файле из загруженных данных."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Невозможно получить количество команд"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Ошибка при очистке кэша участников команды"
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Ошибка при получении результатов недавнего поиска"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Здравствуйте, вот ваше напоминание об этом сообщении от @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Не удалось получить главные темы для пользователя."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Не удалось получить главные темы для команды."
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Невозможно получить топ личных сообщений для пользователя."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Не удается получить сообщение, так как оно превышает лимит облачного плана."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Не удалось получить сведения об использовании команд"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Плагин {{.Name}} не может быть включен в продуктовом режиме."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Невозможно отправить сообщение с уведомлением."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Невозможно сохранить данные уведомления."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Ошибка при получении последнего доступного сообщения"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Ошибка при получении последнего доступного файла"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Ошибка во время выполнения задания."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Функция Insights отключена."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Невозможно получить файл, так как он превысил лимит облачного тарифного плана."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили обновление рабочего пространства для: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили обновление рабочего пространства для: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили включение пробной версии Enterprise для доступа к: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили включение пробной версии Enterprise для доступа к: "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Подписка не просрочена"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Не удалось получить подписку на облако"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Невозможно получить имя текущего тарифного плана"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Не удалось получить облачные продукты"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Вы получили это одноразовое письмо, потому что ваш сервер Mattermost был неактивен более {{.Hours}} часов. Это письмо было автоматически сгенерировано вашим сервером Mattermost."
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Ваше рабочее пространство Mattermost было понижено в статусе"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Чтобы снять архивацию данных и сохранить оплаченные функции, обновите информацию об оплате."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Если вы используете функции Cloud Professional или Enterprise для важных бизнес-операций, они больше не будут доступны, и вы столкнетесь с ухудшением производительности."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Ваше рабочее пространство Mattermost Cloud было понижено"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Посмотреть тарифные планы и цены"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Ваше рабочее пространство будет понижено через 15 дней"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Free. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Это последнее напоминание о том, что мы не получили оплату за ваше рабочее пространство Mattermost Cloud с {{.DelinquencyDate}}."
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Ваш платёж не был завершен"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "Чтобы ваш план {{.Plan}} оставался активным, как можно скорее свяжитесь с вашим финансовым учреждением. Затем, при необходимости, обновите свои платежные реквизиты."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Мы не смогли обработать ваш последний платёж."
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Ваше рабочее пространство Mattermost будет понижено в течение 30 дней"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free ниже."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Мы автоматически понизим уровень вашего рабочего пространства через 30 дней, если не сможем обработать ваш платёж."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Пожалуйста, обновите свою платёжную информацию в ближайшее время, чтобы обработать неоплаченные счета."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Уведомление: В ближайшее время ваш Mattermost {{.Plan}} будет понижен"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "Если не предпринять никаких действий, ваше рабочее пространство будет понижено по тарифной сетке, а следующие данные могут быть заархивированы:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "У вас есть время, чтобы сохранить ваш Mattermost {{.Plan}} активным, но вам нужно решить проблемы с методом оплаты."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Действуйте, чтобы сохранить функционал Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Посмотреть всю документацию по ограничениям."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "История сообщений"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Файлы"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Тип темы уже существует."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Тип коллекции уже существует."
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Понижение статуса до Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Понижение статуса до Cloud Free"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "не является пользователем ldap"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Невозможно загрузить файл. Он слишком большой."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "не удалось добавить пользователя в group-teams и group-channels"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Некорректный user id."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "\"Обновить в\" должно быть корректным временем."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Некорректный идентификатор root."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Некорректные свойства."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Неверное сообщение."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Недопустимые идентификаторы файлов."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "\"Создать\" должно быть корректным временем."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Некорректный идентификатор канала."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Некорректный user id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Неверный идентификатор сообщения."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Невозможно получить приоритет для сообщения"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Невозможно обновить черновик."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Невозможно сохранить черновик."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Невозможно получить файлы для черновика."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Невозможно получить черновики пользователя."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Невозможно получить черновик."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Функция \"Черновики\" отключена."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Невозможно удалить черновик."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Невозможно получить приоритет для сообщений"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Невозможно подсчитать срочные сообщения с указанной даты."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Невозможно сохранить подтверждение для сообщения."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Невозможно получить подтверждение о получении сообщения."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Невозможно получить подтверждение."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Невозможно удалить подтверждение."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Функция \"Черновики\" отключена."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Невозможно сохранить черновик в удаленном канале"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Вы не можете подтвердить в архивированном канале."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Вы не можете удалить подтверждение после того, как прошло 5 минут."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Вы не можете удалить подтверждение в архивированном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Создайте прозрачные рабочие процессы между командами разработчиков, чтобы обеспечить бесперебойный процесс разработки функций."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав бота для Jira и бота для Github. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Общайтесь со своей командой в канале Feature Release, который легко соединяется с вашими досками, сценариями и ботами приложений."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Используйте наш шаблон доски \"Повестка дня совещания\" для повторяющихся совещаний, например, совещаний по подготовке к работе, и доску \"Задачи проекта\" для управления ходом выполнения задач."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Продуктовые команды"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Неверный приоритет"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Невозможно получить рабочие шаблоны"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Невозможно получить категории рабочих шаблонов"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Просмотр счета-фактуры"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} теперь обновлено."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет с {{.Date}}"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Ошибка при получении ролей во время проверки."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Портал недоступен для самостоятельной регистрации."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Не удалось открыть файл клиентского ключа для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Не удалось открыть файл сертификата клиента для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Не удалось декодировать сертификат клиента для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Не удалось открыть файл CA для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Расшифровка CA для Elasticsearch не удалась"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "Сервер CWS не доступен."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Не удалось получить общее количество исходящих вебхуков"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Не удалось получить общее количество входящих вебхуков"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Не удалось получить общее количество активных пользователей"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "Для облачных экземпляров не допускается пересмотр в сторону увеличения"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "Для проверки достоверности требуется лицензия"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "Не удалось получить запись истинного состояния"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Не удалось создать запись истинного состояния"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Невозможно найти канал, связанный с сценарием."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Ошибка при создании сценария."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Ошибка при создании канала."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Ошибка при создании доски."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Ошибка при выполнении рабочего шаблона."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "У вас нет прав на создание публичного сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "У вас нет прав на создание публичного канала."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "У вас нет прав для создания публичной доски."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "У вас нет прав для создания приватного сценария."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "У вас нет прав для создания приватного канала."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "У вас нет прав для создания приватной доски."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Рабочие шаблоны отключены."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Не удалось обновить переводы сервера."
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Ваша лицензия не поддерживает приватные сценарии."
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Масштаб всей компании"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Неверная служба авторизации: {{.AuthService}}"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Описание того, зачем нужен канал(ы)"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Описание того, зачем нужна(ы) доска(и)"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Лидерство"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Услуга доступна только в редакции Mattermost Enterprise"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Команда шаблонов не поддерживается на вашем устройстве."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "шаблоны"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Откройте окно создания из шаблона"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Поле имени не может содержать более 64 символов."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "ключ продукта не найден"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "интерфейс не ожидаемого типа"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "ошибка при подключении доски"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "ошибка при создании доски"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "ошибка при получении шаблонов досок"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "ошибка при дубликации доски"
   }
 ]

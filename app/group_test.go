@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetGroup(t *testing.T) {
@@ -17,13 +17,21 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	group, err := th.App.GetGroup(group.Id)
+	group, err := th.App.GetGroup(group.Id, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	group, err = th.App.GetGroup(model.NewId())
+	nilGroup, err := th.App.GetGroup(model.NewId(), nil, nil)
 	require.NotNil(t, err)
-	require.Nil(t, group)
+	require.Nil(t, nilGroup)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false}, nil)
+	require.Nil(t, err)
+	require.Nil(t, group.MemberCount)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
+	require.Nil(t, err)
+	require.NotNil(t, group.MemberCount)
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
@@ -31,7 +39,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	g, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupSourceLdap)
+	g, err := th.App.GetGroupByRemoteID(*group.RemoteId, model.GroupSourceLdap)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
@@ -65,7 +73,7 @@ func TestCreateGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	g, err := th.App.CreateGroup(group)
@@ -75,6 +83,20 @@ func TestCreateGroup(t *testing.T) {
 	g, err = th.App.CreateGroup(group)
 	require.NotNil(t, err)
 	require.Nil(t, g)
+
+	t.Run("should check if the group mention is in use as a username", func(t *testing.T) {
+		user := th.CreateUser()
+		usernameGroup := &model.Group{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        &user.Username,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    model.NewString(model.NewId()),
+		}
+		g, err = th.App.CreateGroup(usernameGroup)
+		require.NotNil(t, err)
+		require.Equal(t, "app.group.username_conflict", err.Id)
+		require.Nil(t, g)
+	})
 }
 
 func TestUpdateGroup(t *testing.T) {
@@ -86,6 +108,12 @@ func TestUpdateGroup(t *testing.T) {
 	g, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 	require.NotNil(t, g)
+
+	user := th.CreateUser()
+	g.Name = &user.Username
+	g, err = th.App.UpdateGroup(g)
+	require.NotNil(t, err)
+	require.Nil(t, g)
 }
 
 func TestDeleteGroup(t *testing.T) {
@@ -98,6 +126,24 @@ func TestDeleteGroup(t *testing.T) {
 	require.NotNil(t, g)
 
 	g, err = th.App.DeleteGroup(group.Id)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+}
+
+func TestUndeleteGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	g, err := th.App.DeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.RestoreGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.RestoreGroup(group.Id)
 	require.NotNil(t, err)
 	require.Nil(t, g)
 }
@@ -173,7 +219,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(team)
+	channel := th.CreateChannel(th.Context, team)
 
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
 	require.NotNil(t, err)
@@ -344,7 +390,7 @@ func TestGetGroups(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{})
+	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{}, nil)
 	require.Nil(t, err)
 	require.ElementsMatch(t, []*model.Group{group}, groups)
 }

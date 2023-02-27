@@ -43,18 +43,16 @@ func TestCommandWebhookIsValid(t *testing.T) {
 		{func() { h.ChannelId = NewId() }, ""},
 		{func() { h.RootId = "asd" }, "model.command_hook.root_id.app_error"},
 		{func() { h.RootId = NewId() }, ""},
-		{func() { h.ParentId = "asd" }, "model.command_hook.parent_id.app_error"},
-		{func() { h.ParentId = NewId() }, ""},
 	} {
 		tmp := h
 		test.Transform()
-		err := h.IsValid()
+		appErr := h.IsValid()
 
 		if test.ExpectedError == "" {
-			assert.Nil(t, err, "hook should be valid")
+			assert.Nil(t, appErr, "hook should be valid")
 		} else {
-			require.NotNil(t, err)
-			assert.Equal(t, test.ExpectedError, err.Id, "expected "+test.ExpectedError+" error")
+			require.NotNil(t, appErr)
+			assert.Equal(t, test.ExpectedError, appErr.Id, "expected "+test.ExpectedError+" error")
 		}
 
 		h = tmp

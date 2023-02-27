@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/slackimport"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/slackimport"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
@@ -38,24 +38,24 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		},
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
-		InvalidateAllCaches:    func() { a.srv.InvalidateAllCaches() },
-		MaxPostSize:            func() int { return a.srv.MaxPostSize() },
-		PrepareImage: func(fileData []byte) (image.Image, func(), error) {
-			img, release, err := prepareImage(a.srv.imgDecoder, bytes.NewReader(fileData))
+		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
+		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
+		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
+			img, imgType, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
-				return nil, nil, err
+				return nil, "", nil, err
 			}
-			return img, release, err
+			return img, imgType, release, err
 		},
 	}
 
-	importer := slackimport.New(a.srv.Store, actions, a.Config())
-	return importer.SlackImport(fileData, fileSize, teamID)
+	importer := slackimport.New(a.Srv().Store(), actions, a.Config())
+	return importer.SlackImport(c, fileData, fileSize, teamID)
 }
 
 func (a *App) ProcessSlackText(text string) string {
 	text = expandAnnouncement(text)
-	text = replaceUserIds(a.Srv().Store.User(), text)
+	text = replaceUserIds(a.Srv().Store().User(), text)
 
 	return text
 }
@@ -72,7 +72,7 @@ func (a *App) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*m
 		attachment.Title = a.ProcessSlackText(attachment.Title)
 
 		for _, field := range attachment.Fields {
-			if field.Value != nil {
+			if field != nil && field.Value != nil {
 				// Ensure the value is set to a string if it is set
 				field.Value = a.ProcessSlackText(fmt.Sprintf("%v", field.Value))
 			}

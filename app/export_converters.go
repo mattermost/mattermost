@@ -6,13 +6,14 @@ package app
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app/imports"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
-	return &LineImportData{
+func ImportLineFromTeam(team *model.TeamForExport) *imports.LineImportData {
+	return &imports.LineImportData{
 		Type: "team",
-		Team: &TeamImportData{
+		Team: &imports.TeamImportData{
 			Name:            &team.Name,
 			DisplayName:     &team.DisplayName,
 			Type:            &team.Type,
@@ -23,10 +24,10 @@ func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
 	}
 }
 
-func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
-	return &LineImportData{
+func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportData {
+	return &imports.LineImportData{
 		Type: "channel",
-		Channel: &ChannelImportData{
+		Channel: &imports.ChannelImportData{
 			Team:        &channel.TeamName,
 			Name:        &channel.Name,
 			DisplayName: &channel.DisplayName,
@@ -38,30 +39,37 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
-func ImportLineFromDirectChannel(channel *model.DirectChannelForExport) *LineImportData {
+func ImportLineFromDirectChannel(channel *model.DirectChannelForExport, favoritedBy []string) *imports.LineImportData {
 	channelMembers := *channel.Members
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
 	}
-	return &LineImportData{
+
+	line := &imports.LineImportData{
 		Type: "direct_channel",
-		DirectChannel: &DirectChannelImportData{
+		DirectChannel: &imports.DirectChannelImportData{
 			Header:  &channel.Header,
 			Members: &channelMembers,
 		},
 	}
+
+	if len(favoritedBy) != 0 {
+		line.DirectChannel.FavoritedBy = &favoritedBy
+	}
+
+	return line
 }
 
-func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *LineImportData {
+func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imports.LineImportData {
 	// Bulk Importer doesn't accept "empty string" for AuthService.
 	var authService *string
 	if user.AuthService != "" {
 		authService = &user.AuthService
 	}
 
-	return &LineImportData{
+	return &imports.LineImportData{
 		Type: "user",
-		User: &UserImportData{
+		User: &imports.UserImportData{
 			Username:           &user.Username,
 			Email:              &user.Email,
 			AuthService:        authService,
@@ -79,6 +87,7 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *Lin
 			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
 			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
 			MessageDisplay:     exportedPrefs["MessageDisplay"],
+			ColorizeUsernames:  exportedPrefs["ColorizeUsernames"],
 			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
 			TutorialStep:       exportedPrefs["TutorialStep"],
 			EmailInterval:      exportedPrefs["EmailInterval"],
@@ -87,47 +96,47 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *Lin
 	}
 }
 
-func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTeamImportData {
+func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *imports.UserTeamImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
-		rolesList = append(rolesList, model.TEAM_ADMIN_ROLE_ID)
+		rolesList = append(rolesList, model.TeamAdminRoleId)
 	}
 	if member.SchemeUser {
-		rolesList = append(rolesList, model.TEAM_USER_ROLE_ID)
+		rolesList = append(rolesList, model.TeamUserRoleId)
 	}
 	if member.SchemeGuest {
-		rolesList = append(rolesList, model.TEAM_GUEST_ROLE_ID)
+		rolesList = append(rolesList, model.TeamGuestRoleId)
 	}
 	roles := strings.Join(rolesList, " ")
-	return &UserTeamImportData{
+	return &imports.UserTeamImportData{
 		Name:  &member.TeamName,
 		Roles: &roles,
 	}
 }
 
-func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *UserChannelImportData {
+func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *imports.UserChannelImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
-		rolesList = append(rolesList, model.CHANNEL_ADMIN_ROLE_ID)
+		rolesList = append(rolesList, model.ChannelAdminRoleId)
 	}
 	if member.SchemeUser {
-		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
+		rolesList = append(rolesList, model.ChannelUserRoleId)
 	}
 	if member.SchemeGuest {
-		rolesList = append(rolesList, model.CHANNEL_GUEST_ROLE_ID)
+		rolesList = append(rolesList, model.ChannelGuestRoleId)
 	}
 	props := member.NotifyProps
-	notifyProps := UserChannelNotifyPropsImportData{}
+	notifyProps := imports.UserChannelNotifyPropsImportData{}
 
-	desktop, exist := props[model.DESKTOP_NOTIFY_PROP]
+	desktop, exist := props[model.DesktopNotifyProp]
 	if exist {
 		notifyProps.Desktop = &desktop
 	}
-	mobile, exist := props[model.PUSH_NOTIFY_PROP]
+	mobile, exist := props[model.PushNotifyProp]
 	if exist {
 		notifyProps.Mobile = &mobile
 	}
-	markUnread, exist := props[model.MARK_UNREAD_NOTIFY_PROP]
+	markUnread, exist := props[model.MarkUnreadNotifyProp]
 	if exist {
 		notifyProps.MarkUnread = &markUnread
 	}
@@ -140,65 +149,77 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 	}
 
 	roles := strings.Join(rolesList, " ")
-	return &UserChannelImportData{
-		Name:        &member.ChannelName,
-		Roles:       &roles,
-		NotifyProps: &notifyProps,
-		Favorite:    &favorite,
+	return &imports.UserChannelImportData{
+		Name:               &member.ChannelName,
+		Roles:              &roles,
+		NotifyProps:        &notifyProps,
+		Favorite:           &favorite,
+		MentionCount:       &member.MentionCount,
+		MentionCountRoot:   &member.MentionCountRoot,
+		UrgentMentionCount: &member.UrgentMentionCount,
+		MsgCount:           &member.MsgCount,
+		MsgCountRoot:       &member.MsgCountRoot,
+		LastViewedAt:       &member.LastViewedAt,
 	}
 }
 
-func ImportLineForPost(post *model.PostForExport) *LineImportData {
-	return &LineImportData{
+func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
+	return &imports.LineImportData{
 		Type: "post",
-		Post: &PostImportData{
+		Post: &imports.PostImportData{
 			Team:     &post.TeamName,
 			Channel:  &post.ChannelName,
 			User:     &post.Username,
+			Type:     &post.Type,
 			Message:  &post.Message,
 			Props:    &post.Props,
 			CreateAt: &post.CreateAt,
+			EditAt:   &post.EditAt,
 		},
 	}
 }
 
-func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
+func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImportData {
 	channelMembers := *post.ChannelMembers
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
 	}
-	return &LineImportData{
+	return &imports.LineImportData{
 		Type: "direct_post",
-		DirectPost: &DirectPostImportData{
+		DirectPost: &imports.DirectPostImportData{
 			ChannelMembers: &channelMembers,
 			User:           &post.User,
+			Type:           &post.Type,
 			Message:        &post.Message,
 			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
+			EditAt:         &post.EditAt,
 		},
 	}
 }
 
-func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
-	return &ReplyImportData{
+func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
+	return &imports.ReplyImportData{
 		User:     &post.Username,
+		Type:     &post.Type,
 		Message:  &post.Message,
 		CreateAt: &post.CreateAt,
+		EditAt:   &post.EditAt,
 	}
 }
 
-func ImportReactionFromPost(user *model.User, reaction *model.Reaction) *ReactionImportData {
-	return &ReactionImportData{
+func ImportReactionFromPost(user *model.User, reaction *model.Reaction) *imports.ReactionImportData {
+	return &imports.ReactionImportData{
 		User:      &user.Username,
 		EmojiName: &reaction.EmojiName,
 		CreateAt:  &reaction.CreateAt,
 	}
 }
 
-func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *LineImportData {
-	return &LineImportData{
+func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *imports.LineImportData {
+	return &imports.LineImportData{
 		Type: "emoji",
-		Emoji: &EmojiImportData{
+		Emoji: &imports.EmojiImportData{
 			Name:  &emoji.Name,
 			Image: &filePath,
 		},

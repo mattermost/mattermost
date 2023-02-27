@@ -4,20 +4,23 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localGetConfig)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localUpdateConfig)).Methods("PUT")
-	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiLocal(localPatchConfig)).Methods("PUT")
-	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiLocal(migrateConfig)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods("POST")
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -26,13 +29,16 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := c.App.GetSanitizedConfig()
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
-	if cfg == nil {
-		c.SetInvalidParam("config")
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil || cfg == nil {
+		c.SetInvalidParamWithErr("config", err)
 		return
 	}
 
@@ -51,15 +57,15 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
-	err := cfg.IsValid()
-	if err != nil {
-		c.Err = err
+	appErr := cfg.IsValid()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
-	if err != nil {
-		c.Err = err
+	oldCfg, newCfg, appErr := c.App.SaveConfig(cfg, true)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -68,7 +74,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddEventPriorState(&diffs)
 
 	newCfg.Sanitize()
 
@@ -76,13 +82,16 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(newCfg.ToJson()))
+	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
-	if cfg == nil {
-		c.SetInvalidParam("config")
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil || cfg == nil {
+		c.SetInvalidParamWithErr("config", err)
 		return
 	}
 
@@ -107,27 +116,60 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := updatedCfg.IsValid()
-	if err != nil {
-		c.Err = err
+	appErr := updatedCfg.IsValid()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	oldCfg, newCfg, err := c.App.SaveConfig(updatedCfg, true)
-	if err != nil {
-		c.Err = err
+	oldCfg, newCfg, appErr := c.App.SaveConfig(updatedCfg, true)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	diffs, diffErr := config.Diff(oldCfg, newCfg)
-	if diffErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+	diffs, err := config.Diff(oldCfg, newCfg)
+	if err != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddEventPriorState(&diffs)
 
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
+	if err := json.NewEncoder(w).Encode(c.App.GetSanitizedConfig()); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJSON(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	to, ok := props["to"].(string)
+	if !ok {
+		c.SetInvalidParam("to")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("migrateConfig", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	err := config.Migrate(from, to)
+	if err != nil {
+		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

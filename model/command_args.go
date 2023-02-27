@@ -4,10 +4,7 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
-
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type CommandArgs struct {
@@ -27,15 +24,17 @@ type CommandArgs struct {
 	Session Session `json:"-"`
 }
 
-func (o *CommandArgs) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func CommandArgsFromJson(data io.Reader) *CommandArgs {
-	var o *CommandArgs
-	json.NewDecoder(data).Decode(&o)
-	return o
+func (o *CommandArgs) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id":    o.UserId,
+		"channel_id": o.ChannelId,
+		"team_id":    o.TeamId,
+		"root_id":    o.RootId,
+		"parent_id":  o.ParentId,
+		"trigger_id": o.TriggerId,
+		"command":    o.Command,
+		"site_url":   o.SiteURL,
+	}
 }
 
 // AddUserMention adds or overrides an entry in UserMentions with name username

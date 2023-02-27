@@ -10,8 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var ImportCmd = &cobra.Command{
@@ -77,7 +79,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-	importErr, log := a.SlackImport(&request.Context{}, fileReader, fileInfo.Size(), team.Id)
+	importErr, log := a.SlackImport(request.EmptyContext(a.Log()), fileReader, fileInfo.Size(), team.Id)
 
 	if importErr != nil {
 		return err
@@ -150,7 +152,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImportWithPath(&request.Context{}, fileReader, nil, !apply, workers, importPath); err != nil {
+	if err, lineNumber := a.BulkImportWithPath(request.EmptyContext(a.Log()), fileReader, nil, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
@@ -168,4 +170,17 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
+	var team *model.Team
+	team, err := a.Srv().Store().Team().GetByName(teamArg)
+
+	if err != nil {
+		var t *model.Team
+		if t, err = a.Srv().Store().Team().Get(teamArg); err == nil {
+			team = t
+		}
+	}
+	return team
 }

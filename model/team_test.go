@@ -11,51 +11,43 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTeamJson(t *testing.T) {
-	o := Team{Id: NewId(), DisplayName: NewId()}
-	json := o.ToJson()
-	ro := TeamFromJson(strings.NewReader(json))
-
-	require.Equal(t, o.Id, ro.Id, "Ids do not match")
-}
-
 func TestTeamIsValid(t *testing.T) {
 	o := Team{}
 
-	err := o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr := o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.Id = NewId()
-	err = o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr = o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.CreateAt = GetMillis()
-	err = o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr = o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.UpdateAt = GetMillis()
-	err = o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr = o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.Email = strings.Repeat("01234567890", 20)
-	err = o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr = o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.Email = "corey+test@hulen.com"
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	err = o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr = o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	err = o.IsValid()
-	require.NotNil(t, err, "should be invalid")
+	appErr = o.IsValid()
+	require.NotNil(t, appErr, "should be invalid")
 
 	o.Name = "zzzzz"
-	o.Type = TEAM_OPEN
+	o.Type = TeamOpen
 	o.InviteId = NewId()
-	err = o.IsValid()
-	require.Nil(t, err, err)
+	appErr = o.IsValid()
+	require.Nil(t, appErr, appErr)
 }
 
 func TestTeamPreSave(t *testing.T) {
@@ -100,6 +92,8 @@ var tReservedDomains = []struct {
 	{"admin", true},
 	{"Admin-punch", true},
 	{"spin-punch-admin", false},
+	{"playbooks", true},
+	{"boards", true},
 }
 
 func TestReservedTeamName(t *testing.T) {

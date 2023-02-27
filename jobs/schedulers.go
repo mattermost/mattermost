@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Schedulers struct {
@@ -22,8 +22,8 @@ type Schedulers struct {
 	isLeader             bool
 	running              bool
 
-	schedulers   []model.Scheduler
-	nextRunTimes []*time.Time
+	schedulers   map[string]model.Scheduler
+	nextRunTimes map[string]*time.Time
 }
 
 var (
@@ -32,84 +32,15 @@ var (
 	ErrSchedulersUninitialized = errors.New("job schedulers are not initialized")
 )
 
-func (srv *JobServer) InitSchedulers() error {
-	srv.mut.Lock()
-	defer srv.mut.Unlock()
-	if srv.schedulers != nil && srv.schedulers.running {
-		return ErrSchedulersRunning
-	}
-	mlog.Debug("Initialising schedulers.")
-
-	schedulers := &Schedulers{
-		stop:                 make(chan bool),
-		stopped:              make(chan bool),
-		configChanged:        make(chan *model.Config),
-		clusterLeaderChanged: make(chan bool, 1),
-		jobs:                 srv,
-		isLeader:             true,
-	}
-
-	if srv.DataRetentionJob != nil {
-		schedulers.schedulers = append(schedulers.schedulers, srv.DataRetentionJob.MakeScheduler())
-	}
-
-	if srv.MessageExportJob != nil {
-		schedulers.schedulers = append(schedulers.schedulers, srv.MessageExportJob.MakeScheduler())
-	}
-
-	if elasticsearchAggregatorInterface := srv.ElasticsearchAggregator; elasticsearchAggregatorInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, elasticsearchAggregatorInterface.MakeScheduler())
-	}
-
-	if ldapSyncInterface := srv.LdapSync; ldapSyncInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, ldapSyncInterface.MakeScheduler())
-	}
-
-	if migrationsInterface := srv.Migrations; migrationsInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, migrationsInterface.MakeScheduler())
-	}
-
-	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
-	}
-
-	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
-	}
-
-	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, activeUsersInterface.MakeScheduler())
-	}
-
-	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
-	}
-
-	if cloudInterface := srv.Cloud; cloudInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
-	}
-
-	if resendInvitationEmailInterface := srv.ResendInvitationEmails; resendInvitationEmailInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, resendInvitationEmailInterface.MakeScheduler())
-	}
-
-	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, importDeleteInterface.MakeScheduler())
-	}
-
-	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
-	}
-
-	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
-	srv.schedulers = schedulers
-
-	return nil
+func (schedulers *Schedulers) AddScheduler(name string, scheduler model.Scheduler) {
+	schedulers.schedulers[name] = scheduler
 }
 
 // Start starts the schedulers. This call is not safe for concurrent use.
 // Synchronization should be implemented by the caller.
 func (schedulers *Schedulers) Start() {
+	schedulers.stop = make(chan bool)
+	schedulers.stopped = make(chan bool)
 	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {
@@ -121,11 +52,11 @@ func (schedulers *Schedulers) Start() {
 		}()
 
 		now := time.Now()
-		for idx, scheduler := range schedulers.schedulers {
+		for name, scheduler := range schedulers.schedulers {
 			if !scheduler.Enabled(schedulers.jobs.Config()) {
-				schedulers.nextRunTimes[idx] = nil
+				schedulers.nextRunTimes[name] = nil
 			} else {
-				schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
+				schedulers.setNextRunTime(schedulers.jobs.Config(), name, now, false)
 			}
 		}
 
@@ -139,38 +70,38 @@ func (schedulers *Schedulers) Start() {
 			case now = <-timer.C:
 				cfg := schedulers.jobs.Config()
 
-				for idx, nextTime := range schedulers.nextRunTimes {
+				for name, nextTime := range schedulers.nextRunTimes {
 					if nextTime == nil {
 						continue
 					}
 
 					if time.Now().After(*nextTime) {
-						scheduler := schedulers.schedulers[idx]
+						scheduler := schedulers.schedulers[name]
 						if scheduler == nil || !schedulers.isLeader || !scheduler.Enabled(cfg) {
 							continue
 						}
-						if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-							mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
+						if _, err := schedulers.scheduleJob(cfg, name, scheduler); err != nil {
+							mlog.Error("Failed to schedule job", mlog.String("scheduler", name), mlog.Err(err))
 							continue
 						}
-						schedulers.setNextRunTime(cfg, idx, now, true)
+						schedulers.setNextRunTime(cfg, name, now, true)
 					}
 				}
 			case newCfg := <-schedulers.configChanged:
-				for idx, scheduler := range schedulers.schedulers {
+				for name, scheduler := range schedulers.schedulers {
 					if !schedulers.isLeader || !scheduler.Enabled(newCfg) {
-						schedulers.nextRunTimes[idx] = nil
+						schedulers.nextRunTimes[name] = nil
 					} else {
-						schedulers.setNextRunTime(newCfg, idx, now, false)
+						schedulers.setNextRunTime(newCfg, name, now, false)
 					}
 				}
 			case isLeader := <-schedulers.clusterLeaderChanged:
-				for idx := range schedulers.schedulers {
+				for name := range schedulers.schedulers {
 					schedulers.isLeader = isLeader
 					if !isLeader {
-						schedulers.nextRunTimes[idx] = nil
+						schedulers.nextRunTimes[name] = nil
 					} else {
-						schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
+						schedulers.setNextRunTime(schedulers.jobs.Config(), name, now, false)
 					}
 				}
 			}
@@ -192,37 +123,37 @@ func (schedulers *Schedulers) Stop() {
 	schedulers.running = false
 }
 
-func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now time.Time, pendingJobs bool) {
-	scheduler := schedulers.schedulers[idx]
+func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, name string, now time.Time, pendingJobs bool) {
+	scheduler := schedulers.schedulers[name]
 
 	if !pendingJobs {
-		pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+		pj, err := schedulers.jobs.CheckForPendingJobsByType(name)
 		if err != nil {
 			mlog.Error("Failed to set next job run time", mlog.Err(err))
-			schedulers.nextRunTimes[idx] = nil
+			schedulers.nextRunTimes[name] = nil
 			return
 		}
 		pendingJobs = pj
 	}
 
-	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
+	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(name)
 	if err != nil {
 		mlog.Error("Failed to set next job run time", mlog.Err(err))
-		schedulers.nextRunTimes[idx] = nil
+		schedulers.nextRunTimes[name] = nil
 		return
 	}
 
-	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
-	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", scheduler.Name()), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[idx])))
+	schedulers.nextRunTimes[name] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
+	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", name), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[name])))
 }
 
-func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
-	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+func (schedulers *Schedulers) scheduleJob(cfg *model.Config, name string, scheduler model.Scheduler) (*model.Job, *model.AppError) {
+	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(name)
 	if err != nil {
 		return nil, err
 	}
 
-	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
+	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(name)
 	if err2 != nil {
 		return nil, err
 	}

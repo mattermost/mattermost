@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 var searchUserStoreTests = []searchTest{
@@ -114,7 +114,7 @@ var searchUserStoreTests = []searchTest{
 	},
 	{
 		Name: "Should support one or two character usernames and first/last names in search",
-		Fn:   testSearchOneTwoCharUsersnameAndFirstLastNames,
+		Fn:   testSearchOneTwoCharUsernamesAndFirstLastNames,
 		Tags: []string{EngineAll},
 	},
 	{
@@ -167,7 +167,7 @@ func TestSearchUserStore(t *testing.T, s store.Store, testEngine *SearchTestEngi
 func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
 	options := &model.UserSearchOptions{
 		AllowFullNames: true,
-		Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+		Limit:          model.UserSearchDefaultLimit,
 	}
 	users, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 	require.NoError(t, err)
@@ -687,7 +687,7 @@ func testSearchUsersShouldBeCaseInsensitive(t *testing.T, th *SearchTestHelper) 
 	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 }
 
-func testSearchOneTwoCharUsersnameAndFirstLastNames(t *testing.T, th *SearchTestHelper) {
+func testSearchOneTwoCharUsernamesAndFirstLastNames(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("ho", "alternatenickname", "zi", "k")
 	require.NoError(t, err)
 
@@ -870,6 +870,6 @@ func createDefaultOptions(allowFullName, allowEmails, allowInactive bool) *model
 		AllowFullNames: allowFullName,
 		AllowEmails:    allowEmails,
 		AllowInactive:  allowInactive,
-		Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+		Limit:          model.UserSearchDefaultLimit,
 	}
 }

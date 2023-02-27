@@ -4,37 +4,41 @@
 package web
 
 import (
+	"bytes"
+	"fmt"
+	"html"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/gziphandler"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/shared/templates"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/templates"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
 func (w *Web) InitStatic() {
-	if *w.app.Config().ServiceSettings.WebserverMode != "disabled" {
-		if err := utils.UpdateAssetsSubpathFromConfig(w.app.Config()); err != nil {
+	if *w.srv.Config().ServiceSettings.WebserverMode != "disabled" {
+		if err := utils.UpdateAssetsSubpathFromConfig(w.srv.Config()); err != nil {
 			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
 		}
 
-		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
+		staticDir, _ := fileutils.FindDir(model.ClientDir)
 		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
-		subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
+		subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.app.Config().PluginSettings.ClientDirectory))))
+		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 
-		if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
@@ -65,15 +69,29 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if IsApiCall(c.App, r) {
+	if IsAPICall(c.App, r) {
 		Handle404(c.App, w, r)
 		return
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
-	staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
-	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
+	staticDir, _ := fileutils.FindDir(model.ClientDir)
+	contents, err := os.ReadFile(filepath.Join(staticDir, "root.html"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	titleTemplate := "<title>%s</title>"
+	originalHTML := fmt.Sprintf(titleTemplate, html.EscapeString(model.TeamSettingsDefaultSiteName))
+	modifiedHTML := getOpenGraphMetaTags(c)
+	if originalHTML != modifiedHTML {
+		contents = bytes.ReplaceAll(contents, []byte(originalHTML), []byte(modifiedHTML))
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(contents)
 }
 
 func staticFilesHandler(handler http.Handler) http.Handler {
@@ -81,7 +99,16 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 		//wrap our ResponseWriter with our no-cache 404-handler
 		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
 
-		w.Header().Set("Cache-Control", "max-age=31556926, public")
+		if path.Base(r.URL.Path) == "remote_entry.js" {
+			w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
+		} else {
+			w.Header().Set("Cache-Control", "max-age=31556926, public")
+		}
+
+		// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
+		w.Header().Set("Permissions-Policy", "")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Referrer-Policy", "no-referrer")
 
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
@@ -120,4 +147,28 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 
 	templatesDir, _ := templates.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
+}
+
+func getOpenGraphMetaTags(c *Context) string {
+	siteName := model.TeamSettingsDefaultSiteName
+	customSiteName := c.App.Srv().Config().TeamSettings.SiteName
+	if customSiteName != nil && *customSiteName != "" {
+		siteName = *customSiteName
+	}
+
+	siteDescription := model.TeamSettingsDefaultCustomDescriptionText
+	customSiteDescription := c.App.Srv().Config().TeamSettings.CustomDescriptionText
+	if customSiteDescription != nil && *customSiteDescription != "" {
+		siteDescription = *customSiteDescription
+	}
+
+	titleTemplate := "<title>%s</title>"
+	titleHTML := fmt.Sprintf(titleTemplate, html.EscapeString(siteName))
+	descriptionHTML := ""
+	if siteDescription != "" {
+		descriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
+		descriptionHTML = fmt.Sprintf(descriptionTemplate, html.EscapeString(siteDescription))
+	}
+
+	return titleHTML + descriptionHTML
 }

@@ -14,16 +14,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestCreateEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
@@ -58,15 +58,16 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	// try to create an emoji when they're disabled
-	_, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
 	// enable emoji creation for next cases
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	// try to create a valid gif emoji when they're enabled
-	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, emojiWidth, emojiHeight), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, emojiWidth, emojiHeight), "image.gif")
+	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "gif")
 
@@ -75,9 +76,10 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      newEmoji.Name,
 	}
-	_, resp = Client.CreateEmoji(emoji2, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji2, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	CheckErrorMessage(t, resp, "api.emoji.create.duplicate.app_error")
+	CheckErrorID(t, err, "api.emoji.create.duplicate.app_error")
 
 	// try to create a valid animated gif emoji
 	emoji = &model.Emoji{
@@ -85,10 +87,24 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, emojiWidth, emojiHeight, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, emojiWidth, emojiHeight, 10), "image.gif")
+	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "gif")
+
+	// try to create a valid webp emoji
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	path, _ := fileutils.FindDir("tests")
+	bytes, err := os.ReadFile(filepath.Join(path, "testwebp.webp"))
+	require.NoError(t, err)
+	newEmoji, _, err = client.CreateEmoji(emoji, bytes, "image.webp")
+	require.NoError(t, err)
+	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from webp to png
 
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{
@@ -96,8 +112,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, emojiWidth, emojiHeight), "image.jpeg")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestJpeg(t, emojiWidth, emojiHeight), "image.jpeg")
+	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from jpeg to png
 
@@ -107,8 +123,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, emojiWidth, emojiHeight), "image.png")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestPng(t, emojiWidth, emojiHeight), "image.png")
+	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "png")
 
@@ -118,8 +134,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 1000, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 1000, 10), "image.gif")
+	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 
 	// try to create an emoji that's too wide
@@ -128,8 +144,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
-	require.NotNil(t, resp.Error, "should fail - emoji is too wide")
+	_, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
+	require.Error(t, err, "should fail - emoji is too wide")
 
 	// try to create an emoji that's too tall
 	emoji = &model.Emoji{
@@ -137,8 +153,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
-	require.NotNil(t, resp.Error, "should fail - emoji is too tall")
+	_, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
+	require.Error(t, err, "should fail - emoji is too tall")
 
 	// try to create an emoji that's too large
 	emoji = &model.Emoji{
@@ -146,8 +162,8 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, 100, 100, 10000), "image.gif")
-	require.NotNil(t, resp.Error, "should fail - emoji is too big")
+	_, _, err = client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, 100, 100, 10000), "image.gif")
+	require.Error(t, err, "should fail - emoji is too big")
 
 	// try to create an emoji with data that isn't an image
 	emoji = &model.Emoji{
@@ -155,9 +171,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp = Client.CreateEmoji(emoji, make([]byte, 100), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji, make([]byte, 100), "image.gif")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	CheckErrorMessage(t, resp, "api.emoji.upload.image.app_error")
+	CheckErrorID(t, err, "api.emoji.upload.image.app_error")
 
 	// try to create an emoji as another user
 	emoji = &model.Emoji{
@@ -165,36 +182,38 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// try to create an emoji without permissions
-	th.RemovePermissionFromRole(model.PERMISSION_CREATE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionCreateEmojis.Id, model.SystemUserRoleId)
 
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
 
-	_, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	_, resp, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// create an emoji with permissions in one team
-	th.AddPermissionToRole(model.PERMISSION_CREATE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionCreateEmojis.Id, model.TeamUserRoleId)
 
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
 
-	_, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	_, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 }
 
 func TestGetEmojiList(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
@@ -218,13 +237,13 @@ func TestGetEmojiList(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-		CheckNoError(t, resp)
+		newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		require.NoError(t, err)
 		emojis[idx] = newEmoji
 	}
 
-	listEmoji, resp := Client.GetEmojiList(0, 100)
-	CheckNoError(t, resp)
+	listEmoji, _, err := client.GetEmojiList(0, 100)
+	require.NoError(t, err)
 	for _, emoji := range emojis {
 		found := false
 		for _, savedEmoji := range listEmoji {
@@ -236,10 +255,10 @@ func TestGetEmojiList(t *testing.T) {
 		require.Truef(t, found, "failed to get emoji with id %v, %v", emoji.Id, len(listEmoji))
 	}
 
-	_, resp = Client.DeleteEmoji(emojis[0].Id)
-	CheckNoError(t, resp)
-	listEmoji, resp = Client.GetEmojiList(0, 100)
-	CheckNoError(t, resp)
+	_, err = client.DeleteEmoji(emojis[0].Id)
+	require.NoError(t, err)
+	listEmoji, _, err = client.GetEmojiList(0, 100)
+	require.NoError(t, err)
 	found := false
 	for _, savedEmoji := range listEmoji {
 		if savedEmoji.Id == emojis[0].Id {
@@ -249,13 +268,13 @@ func TestGetEmojiList(t *testing.T) {
 	}
 	require.Falsef(t, found, "should not get a deleted emoji %v", emojis[0].Id)
 
-	listEmoji, resp = Client.GetEmojiList(0, 1)
-	CheckNoError(t, resp)
+	listEmoji, _, err = client.GetEmojiList(0, 1)
+	require.NoError(t, err)
 
 	require.Len(t, listEmoji, 1, "should only return 1")
 
-	listEmoji, resp = Client.GetSortedEmojiList(0, 100, model.EMOJI_SORT_BY_NAME)
-	CheckNoError(t, resp)
+	listEmoji, _, err = client.GetSortedEmojiList(0, 100, model.EmojiSortByName)
+	require.NoError(t, err)
 
 	require.Greater(t, len(listEmoji), 0, "should return more than 0")
 }
@@ -263,7 +282,7 @@ func TestGetEmojiList(t *testing.T) {
 func TestDeleteEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
@@ -281,49 +300,49 @@ func TestDeleteEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	ok, resp := Client.DeleteEmoji(newEmoji.Id)
-	CheckNoError(t, resp)
-	require.True(t, ok, "delete did not return OK")
+	_, err = client.DeleteEmoji(newEmoji.Id)
+	require.NoError(t, err)
 
-	_, resp = Client.GetEmoji(newEmoji.Id)
-	require.NotNil(t, resp, "nil response")
-	require.NotNil(t, resp.Error, "expected error fetching deleted emoji")
+	_, _, err = client.GetEmoji(newEmoji.Id)
+	require.Error(t, err, "expected error fetching deleted emoji")
 
 	//Admin can delete other users emoji
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	ok, resp = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
-	CheckNoError(t, resp)
-	require.True(t, ok, "delete did not return OK")
+	_, err = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
+	require.NoError(t, err)
 
-	_, resp = th.SystemAdminClient.GetEmoji(newEmoji.Id)
-	require.NotNil(t, resp, "nil response")
-	require.NotNil(t, resp.Error, "expected error fetching deleted emoji")
+	_, _, err = th.SystemAdminClient.GetEmoji(newEmoji.Id)
+	require.Error(t, err, "expected error fetching deleted emoji")
 
 	// Try to delete just deleted emoji
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
+	resp, err := client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete non-existing emoji
-	_, resp = Client.DeleteEmoji(model.NewId())
+	resp, err = client.DeleteEmoji(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete without Id
-	_, resp = Client.DeleteEmoji("")
+	resp, err = client.DeleteEmoji("")
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	//Try to delete my custom emoji without permissions
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
 	//Try to delete other user's custom emoji without DELETE_EMOJIS permissions
 	emoji = &model.Emoji{
@@ -331,22 +350,23 @@ func TestDeleteEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic2()
 
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
+	resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic()
 
 	//Try to delete other user's custom emoji without DELETE_OTHERS_EMOJIS permissions
@@ -355,16 +375,17 @@ func TestDeleteEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic2()
 
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
+	resp, err = client.DeleteEmoji(newEmoji.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic()
 
 	//Try to delete other user's custom emoji with permissions
@@ -373,31 +394,31 @@ func TestDeleteEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic2()
 
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
-	CheckNoError(t, resp)
+	_, err = client.DeleteEmoji(newEmoji.Id)
+	require.NoError(t, err)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic()
 
 	//Try to delete my custom emoji with permissions at team level
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
-	CheckNoError(t, resp)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
+	_, err = client.DeleteEmoji(newEmoji.Id)
+	require.NoError(t, err)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 
 	//Try to delete other user's custom emoji with permissions at team level
 	emoji = &model.Emoji{
@@ -405,26 +426,26 @@ func TestDeleteEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	th.AddPermissionToRole(model.PERMISSION_DELETE_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_EMOJIS.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.TeamUserRoleId)
 
-	Client.Logout()
+	client.Logout()
 	th.LoginBasic2()
 
-	_, resp = Client.DeleteEmoji(newEmoji.Id)
-	CheckNoError(t, resp)
+	_, err = client.DeleteEmoji(newEmoji.Id)
+	require.NoError(t, err)
 }
 
 func TestGetEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
@@ -437,21 +458,22 @@ func TestGetEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	emoji, resp = Client.GetEmoji(newEmoji.Id)
-	CheckNoError(t, resp)
+	emoji, _, err = client.GetEmoji(newEmoji.Id)
+	require.NoError(t, err)
 	require.Equal(t, newEmoji.Id, emoji.Id, "wrong emoji was returned")
 
-	_, resp = Client.GetEmoji(model.NewId())
+	_, resp, err := client.GetEmoji(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
 
 func TestGetEmojiByName(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -460,25 +482,27 @@ func TestGetEmojiByName(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	emoji, resp = Client.GetEmojiByName(newEmoji.Name)
-	CheckNoError(t, resp)
+	emoji, _, err = client.GetEmojiByName(newEmoji.Name)
+	require.NoError(t, err)
 	assert.Equal(t, newEmoji.Name, emoji.Name)
 
-	_, resp = Client.GetEmojiByName(model.NewId())
+	_, resp, err := client.GetEmojiByName(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetEmojiByName(newEmoji.Name)
+	client.Logout()
+	_, resp, err = client.GetEmojiByName(newEmoji.Name)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetEmojiImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -487,20 +511,21 @@ func TestGetEmojiImage(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	emoji1, resp := Client.CreateEmoji(emoji1, utils.CreateTestGif(t, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	emoji1, _, err := client.CreateEmoji(emoji1, utils.CreateTestGif(t, 10, 10), "image.gif")
+	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
-	_, resp = Client.GetEmojiImage(emoji1.Id)
+	_, resp, err := client.GetEmojiImage(emoji1.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
-	CheckErrorMessage(t, resp, "api.emoji.disabled.app_error")
+	CheckErrorID(t, err, "api.emoji.disabled.app_error")
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = "local" })
 
-	emojiImage, resp := Client.GetEmojiImage(emoji1.Id)
-	CheckNoError(t, resp)
+	emojiImage, _, err := client.GetEmojiImage(emoji1.Id)
+	require.NoError(t, err)
 	require.Greater(t, len(emojiImage), 0, "should return the image")
 
 	_, imageType, err := image.DecodeConfig(bytes.NewReader(emojiImage))
@@ -512,64 +537,67 @@ func TestGetEmojiImage(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	emoji2, resp = Client.CreateEmoji(emoji2, utils.CreateTestAnimatedGif(t, 10, 10, 10), "image.gif")
-	CheckNoError(t, resp)
+	emoji2, _, err = client.CreateEmoji(emoji2, utils.CreateTestAnimatedGif(t, 10, 10, 10), "image.gif")
+	require.NoError(t, err)
 
-	emojiImage, resp = Client.GetEmojiImage(emoji2.Id)
-	CheckNoError(t, resp)
+	emojiImage, _, err = client.GetEmojiImage(emoji2.Id)
+	require.NoError(t, err)
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to indentify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "gif", "expected gif")
 
 	emoji3 := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	emoji3, resp = Client.CreateEmoji(emoji3, utils.CreateTestJpeg(t, 10, 10), "image.jpg")
-	CheckNoError(t, resp)
+	emoji3, _, err = client.CreateEmoji(emoji3, utils.CreateTestJpeg(t, 10, 10), "image.jpg")
+	require.NoError(t, err)
 
-	emojiImage, resp = Client.GetEmojiImage(emoji3.Id)
-	CheckNoError(t, resp)
+	emojiImage, _, err = client.GetEmojiImage(emoji3.Id)
+	require.NoError(t, err)
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to indentify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "jpeg", "expected jpeg")
 
 	emoji4 := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	emoji4, resp = Client.CreateEmoji(emoji4, utils.CreateTestPng(t, 10, 10), "image.png")
-	CheckNoError(t, resp)
+	emoji4, _, err = client.CreateEmoji(emoji4, utils.CreateTestPng(t, 10, 10), "image.png")
+	require.NoError(t, err)
 
-	emojiImage, resp = Client.GetEmojiImage(emoji4.Id)
-	CheckNoError(t, resp)
+	emojiImage, _, err = client.GetEmojiImage(emoji4.Id)
+	require.NoError(t, err)
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to idenitify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "png", "expected png")
 
-	_, resp = Client.DeleteEmoji(emoji4.Id)
-	CheckNoError(t, resp)
+	_, err = client.DeleteEmoji(emoji4.Id)
+	require.NoError(t, err)
 
-	_, resp = Client.GetEmojiImage(emoji4.Id)
+	_, resp, err = client.GetEmojiImage(emoji4.Id)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetEmojiImage(model.NewId())
+	_, resp, err = client.GetEmojiImage(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetEmojiImage("")
+	_, resp, err = client.GetEmojiImage("")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 }
 
 func TestSearchEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -588,14 +616,14 @@ func TestSearchEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-		CheckNoError(t, resp)
+		newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		require.NoError(t, err)
 		emojis[idx] = newEmoji
 	}
 
 	search := &model.EmojiSearch{Term: searchTerm1}
-	remojis, resp := Client.SearchEmoji(search)
-	CheckNoError(t, resp)
+	remojis, resp, err := client.SearchEmoji(search)
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	found := false
@@ -609,8 +637,8 @@ func TestSearchEmoji(t *testing.T) {
 
 	search.Term = searchTerm2
 	search.PrefixOnly = true
-	remojis, resp = Client.SearchEmoji(search)
-	CheckNoError(t, resp)
+	remojis, resp, err = client.SearchEmoji(search)
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	found = false
@@ -623,8 +651,8 @@ func TestSearchEmoji(t *testing.T) {
 	assert.False(t, found)
 
 	search.PrefixOnly = false
-	remojis, resp = Client.SearchEmoji(search)
-	CheckNoError(t, resp)
+	remojis, resp, err = client.SearchEmoji(search)
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	found = false
@@ -637,18 +665,20 @@ func TestSearchEmoji(t *testing.T) {
 	assert.True(t, found)
 
 	search.Term = ""
-	_, resp = Client.SearchEmoji(search)
+	_, resp, err = client.SearchEmoji(search)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.SearchEmoji(search)
+	client.Logout()
+	_, resp, err = client.SearchEmoji(search)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestAutocompleteEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -666,13 +696,13 @@ func TestAutocompleteEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-		CheckNoError(t, resp)
+		newEmoji, _, err := client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		require.NoError(t, err)
 		emojis[idx] = newEmoji
 	}
 
-	remojis, resp := Client.AutocompleteEmoji(searchTerm1, "")
-	CheckNoError(t, resp)
+	remojis, resp, err := client.AutocompleteEmoji(searchTerm1, "")
+	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
 	found1 := false
@@ -690,10 +720,12 @@ func TestAutocompleteEmoji(t *testing.T) {
 	assert.True(t, found1)
 	assert.False(t, found2)
 
-	_, resp = Client.AutocompleteEmoji("", "")
+	_, resp, err = client.AutocompleteEmoji("", "")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.AutocompleteEmoji(searchTerm1, "")
+	client.Logout()
+	_, resp, err = client.AutocompleteEmoji(searchTerm1, "")
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }

@@ -4,12 +4,13 @@
 package app
 
 import (
-	"github.com/pkg/errors"
-
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type Option func(s *Server) error
@@ -18,24 +19,17 @@ type Option func(s *Server) error
 // construct an app with a different store.
 //
 // The override parameter must be either a store.Store or func(App) store.Store().
-func StoreOverride(override interface{}) Option {
+func StoreOverride(override any) Option {
 	return func(s *Server) error {
-		switch o := override.(type) {
-		case store.Store:
-			s.newStore = func() (store.Store, error) {
-				return o, nil
-			}
-			return nil
+		s.platformOptions = append(s.platformOptions, platform.StoreOverride(override))
+		return nil
+	}
+}
 
-		case func(*Server) store.Store:
-			s.newStore = func() (store.Store, error) {
-				return o(s), nil
-			}
-			return nil
-
-		default:
-			return errors.New("invalid StoreOverride")
-		}
+func StoreOverrideWithCache(override store.Store) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.StoreOverrideWithCache(override))
+		return nil
 	}
 }
 
@@ -43,14 +37,9 @@ func StoreOverride(override interface{}) Option {
 // or a database connection string. It receives as well a set of
 // custom defaults that will be applied for any unset property of the
 // config loaded from the dsn on top of the normal defaults
-func Config(dsn string, watch, readOnly bool, configDefaults *model.Config) Option {
+func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStoreFromDSN(dsn, watch, readOnly, configDefaults)
-		if err != nil {
-			return errors.Wrap(err, "failed to apply Config option")
-		}
-
-		s.configStore = configStore
+		s.platformOptions = append(s.platformOptions, platform.Config(dsn, readOnly, configDefaults))
 		return nil
 	}
 }
@@ -58,8 +47,14 @@ func Config(dsn string, watch, readOnly bool, configDefaults *model.Config) Opti
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
-		s.configStore = configStore
+		s.platformOptions = append(s.platformOptions, platform.ConfigStore(configStore))
+		return nil
+	}
+}
 
+func SetFileStore(filestore filestore.FileBackend) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.SetFileStore(filestore))
 		return nil
 	}
 }
@@ -77,25 +72,30 @@ func JoinCluster(s *Server) error {
 }
 
 func StartMetrics(s *Server) error {
-	s.startMetrics = true
-
+	s.platformOptions = append(s.platformOptions, platform.StartMetrics())
 	return nil
 }
 
-func StartSearchEngine(s *Server) error {
-	s.startSearchEngine = true
-
-	return nil
-}
-
-func SetLogger(logger *mlog.Logger) Option {
+func WithLicense(license *model.License) Option {
 	return func(s *Server) error {
-		s.Log = logger
+		s.platformOptions = append(s.platformOptions, func(p *platform.PlatformService) error {
+			p.SetLicense(license)
+			return nil
+		})
 		return nil
 	}
 }
 
-func SkipPostInitializiation() Option {
+// SetLogger requires platform service to be initialized before calling.
+// If not, logger should be set after platform service are initialized.
+func SetLogger(logger *mlog.Logger) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.SetLogger(logger))
+		return nil
+	}
+}
+
+func SkipPostInitialization() Option {
 	return func(s *Server) error {
 		s.skipPostInit = true
 
@@ -106,9 +106,15 @@ func SkipPostInitializiation() Option {
 type AppOption func(a *App)
 type AppOptionCreator func() []AppOption
 
-func ServerConnector(s *Server) AppOption {
+func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {
-		a.srv = s
-		a.searchEngine = s.SearchEngine
+		a.ch = ch
+	}
+}
+
+func SetCluster(impl einterfaces.ClusterInterface) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.SetCluster(impl))
+		return nil
 	}
 }

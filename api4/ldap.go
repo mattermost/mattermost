@@ -8,8 +8,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type mixedUnlinkedGroup struct {
@@ -20,29 +21,30 @@ type mixedUnlinkedGroup struct {
 }
 
 func (api *API) InitLdap() {
-	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/migrateid", api.ApiSessionRequired(migrateIdLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIdLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
-	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getLdapGroups)).Methods("GET")
+	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequired(getLdapGroups)).Methods("GET")
 
 	// POST /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(linkLdapGroup)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(linkLdapGroup)).Methods("POST")
 
 	// DELETE /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(unlinkLdapGroup)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(unlinkLdapGroup)).Methods("DELETE")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.ApiSessionRequired(addLdapPublicCertificate)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.ApiSessionRequired(addLdapPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate)).Methods("POST")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.ApiSessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.ApiSessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
 
+	api.BaseRoutes.LDAP.Handle("/users/{user_id}/group_sync_memberships", api.APISessionRequired(addUserToGroupSyncables)).Methods("POST")
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.syncLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -51,13 +53,16 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeRemovedMembers bool `json:"include_removed_members"`
 	}
 	var opts LdapSyncOptions
-	json.NewDecoder(r.Body).Decode(&opts)
+	err := json.NewDecoder(r.Body).Decode(&opts)
+	if err != nil {
+		c.Logger.Warn("Error decoding LDAP sync options", mlog.Err(err))
+	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_LDAP_SYNC_JOB) {
-		c.SetPermissionError(model.PERMISSION_CREATE_LDAP_SYNC_JOB)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
+		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
 		return
 	}
 
@@ -68,13 +73,13 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.testLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_LDAP) {
-		c.SetPermissionError(model.PERMISSION_TEST_LDAP)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+		c.SetPermissionError(model.PermissionTestLdap)
 		return
 	}
 
@@ -87,12 +92,12 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -107,9 +112,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.IsConfigured = c.Params.IsConfigured
 	}
 
-	groups, total, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
-	if err != nil {
-		c.Err = err
+	groups, total, appErr := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -117,7 +122,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, group := range groups {
 		mug := &mixedUnlinkedGroup{
 			DisplayName: group.DisplayName,
-			RemoteId:    group.RemoteId,
+			RemoteId:    group.GetRemoteId(),
 		}
 		if len(group.Id) == 26 {
 			mug.Id = &group.Id
@@ -126,12 +131,12 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		mugs = append(mugs, mug)
 	}
 
-	b, marshalErr := json.Marshal(struct {
+	b, err := json.Marshal(struct {
 		Count  int                   `json:"count"`
 		Groups []*mixedUnlinkedGroup `json:"groups"`
 	}{Count: total, Groups: mugs})
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -144,25 +149,26 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("linkLdapGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	ldapGroup, err := c.App.GetLdapGroup(c.Params.RemoteId)
-	if err != nil {
-		c.Err = err
+	ldapGroup, appErr := c.App.GetLdapGroup(c.Params.RemoteId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
+
 	auditRec.AddMeta("ldap_group", ldapGroup)
 
 	if ldapGroup == nil {
@@ -170,9 +176,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
-	if err != nil && err.Id != "app.group.no_rows" {
-		c.Err = err
+	group, appErr := c.App.GetGroupByRemoteID(ldapGroup.GetRemoteId(), model.GroupSourceLdap)
+	if appErr != nil && appErr.Id != "app.group.no_rows" {
+		c.Err = appErr
 		return
 	}
 	if group != nil {
@@ -198,11 +204,13 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			group.DeleteAt = 0
 			group.DisplayName = displayName
 			group.RemoteId = ldapGroup.RemoteId
-			newOrUpdatedGroup, err = c.App.UpdateGroup(group)
-			if err != nil {
-				c.Err = err
+			newOrUpdatedGroup, appErr = c.App.UpdateGroup(group)
+			if appErr != nil {
+				c.Err = appErr
 				return
 			}
+			auditRec.AddEventResultState(newOrUpdatedGroup)
+			auditRec.AddEventObjectType("group")
 		}
 		status = http.StatusOK
 	} else {
@@ -215,17 +223,19 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
 		}
-		newOrUpdatedGroup, err = c.App.CreateGroup(newGroup)
-		if err != nil {
-			c.Err = err
+		newOrUpdatedGroup, appErr = c.App.CreateGroup(newGroup)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
+		auditRec.AddEventResultState(newOrUpdatedGroup)
+		auditRec.AddEventObjectType("group")
 		status = http.StatusCreated
 	}
 
-	b, marshalErr := json.Marshal(newOrUpdatedGroup)
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(newOrUpdatedGroup)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -243,14 +253,14 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("unlinkLdapGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -260,14 +270,16 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("group", group)
+	auditRec.AddEventPriorState(group)
+	auditRec.AddEventObjectType("group")
 
 	if group.DeleteAt == 0 {
-		_, err = c.App.DeleteGroup(group.Id)
+		deletedGroup, err := c.App.DeleteGroup(group.Id)
 		if err != nil {
 			c.Err = err
 			return
 		}
+		auditRec.AddEventResultState(deletedGroup)
 	}
 
 	auditRec.Success()
@@ -275,7 +287,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJson(r.Body)
+	props := model.StringInterfaceFromJSON(r.Body)
 	toAttribute, ok := props["toAttribute"].(string)
 	if !ok || toAttribute == "" {
 		c.SetInvalidParam("toAttribute")
@@ -283,14 +295,15 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
+	auditRec.AddEventParameter("props", props)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.idMigrateLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -325,8 +338,8 @@ func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_ADD_LDAP_PUBLIC_CERT) {
-		c.SetPermissionError(model.PERMISSION_ADD_LDAP_PUBLIC_CERT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddLdapPublicCert) {
+		c.SetPermissionError(model.PermissionAddLdapPublicCert)
 		return
 	}
 
@@ -338,7 +351,7 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("addLdapPublicCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("filename", fileData.Filename)
+	auditRec.AddEventParameter("filename", fileData.Filename)
 
 	if err := c.App.AddLdapPublicCertificate(fileData); err != nil {
 		c.Err = err
@@ -349,8 +362,8 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_ADD_LDAP_PRIVATE_CERT) {
-		c.SetPermissionError(model.PERMISSION_ADD_LDAP_PRIVATE_CERT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddLdapPrivateCert) {
+		c.SetPermissionError(model.PermissionAddLdapPrivateCert)
 		return
 	}
 
@@ -362,7 +375,7 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord("addLdapPrivateCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("filename", fileData.Filename)
+	auditRec.AddEventParameter("filename", fileData.Filename)
 
 	if err := c.App.AddLdapPrivateCertificate(fileData); err != nil {
 		c.Err = err
@@ -373,8 +386,8 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT) {
-		c.SetPermissionError(model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveLdapPublicCert) {
+		c.SetPermissionError(model.PermissionRemoveLdapPublicCert)
 		return
 	}
 
@@ -391,8 +404,8 @@ func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT) {
-		c.SetPermissionError(model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveLdapPrivateCert) {
+		c.SetPermissionError(model.PermissionRemoveLdapPrivateCert)
 		return
 	}
 
@@ -401,6 +414,39 @@ func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 
 	if err := c.App.RemoveLdapPrivateCertificate(); err != nil {
 		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+// addUserToGroupSyncables creates memberships—for the given user—to all of their group syncables (i.e. channels or teams).
+// For each group the user is a member of, for each channel and/or team that group is associated with, the user will be added.
+func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
+		return
+	}
+
+	user, appErr := c.App.GetUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if user.AuthService != model.UserAuthServiceLdap {
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.user.add_user_to_group_syncables.not_ldap_user.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("addUserToGroupSyncables", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &user.Id}
+	err := c.App.CreateDefaultMemberships(c.AppContext, params)
+	if err != nil {
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 

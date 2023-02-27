@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func makeBotWithUser(t *testing.T, ss store.Store, bot *model.Bot) (*model.Bot, *model.User) {
@@ -74,7 +74,7 @@ func testBotStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(b2.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
-	_, sqlErr := s.GetMaster().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
+	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
 	require.NoError(t, sqlErr)
 
 	t.Run("get non-existent bot", func(t *testing.T) {
@@ -162,7 +162,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store, s SqlStore) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(b2.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
-	_, sqlErr := s.GetMaster().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
+	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
 	require.NoError(t, sqlErr)
 
 	t.Run("get original bots", func(t *testing.T) {

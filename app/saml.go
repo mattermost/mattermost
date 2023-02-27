@@ -8,12 +8,12 @@ import (
 	"encoding/pem"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -38,18 +38,18 @@ func (a *App) GetSamlMetadata() (string, *model.AppError) {
 func (a *App) writeSamlFile(filename string, fileData *multipart.FileHeader) *model.AppError {
 	file, err := fileData.Open()
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer file.Close()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().configStore.SetFile(filename, data)
+	err = a.Srv().platform.SetConfigFile(filename, data)
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -107,8 +107,8 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 }
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
-	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
+		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -171,24 +171,24 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
 	status := &model.SamlCertificateStatus{}
 
-	status.IdpCertificateFile, _ = a.Srv().configStore.HasFile(*a.Config().SamlSettings.IdpCertificateFile)
-	status.PrivateKeyFile, _ = a.Srv().configStore.HasFile(*a.Config().SamlSettings.PrivateKeyFile)
-	status.PublicCertificateFile, _ = a.Srv().configStore.HasFile(*a.Config().SamlSettings.PublicCertificateFile)
+	status.IdpCertificateFile, _ = a.Srv().platform.HasConfigFile(*a.Config().SamlSettings.IdpCertificateFile)
+	status.PrivateKeyFile, _ = a.Srv().platform.HasConfigFile(*a.Config().SamlSettings.PrivateKeyFile)
+	status.PublicCertificateFile, _ = a.Srv().platform.HasConfigFile(*a.Config().SamlSettings.PublicCertificateFile)
 
 	return status
 }
 
-func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError) {
+func (a *App) GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadataResponse, *model.AppError) {
 	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	if !strings.HasPrefix(idpMetadataUrl, "http://") && !strings.HasPrefix(idpMetadataUrl, "https://") {
-		idpMetadataUrl = "https://" + idpMetadataUrl
+	if !strings.HasPrefix(idpMetadataURL, "http://") && !strings.HasPrefix(idpMetadataURL, "https://") {
+		idpMetadataURL = "https://" + idpMetadataURL
 	}
 
-	idpMetadataRaw, err := a.FetchSamlMetadataFromIdp(idpMetadataUrl)
+	idpMetadataRaw, err := a.FetchSamlMetadataFromIdp(idpMetadataURL)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadata
 func (a *App) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	resp, err := a.HTTPService().MakeClient(false).Get(url)
 	if err != nil {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -212,9 +212,9 @@ func (a *App) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	}
 	defer resp.Body.Close()
 
-	bodyXML, err := ioutil.ReadAll(resp.Body)
+	bodyXML, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body_from_idp.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return bodyXML, nil
@@ -224,11 +224,11 @@ func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataRe
 	entityDescriptor := model.EntityDescriptor{}
 	err := xml.Unmarshal(idpMetadata, &entityDescriptor)
 	if err != nil {
-		return nil, model.NewAppError("BuildSamlMetadataObject", "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BuildSamlMetadataObject", "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	data := &model.SamlMetadataResponse{}
-	data.IdpDescriptorUrl = entityDescriptor.EntityID
+	data.IdpDescriptorURL = entityDescriptor.EntityID
 
 	if entityDescriptor.IDPSSODescriptors == nil || len(entityDescriptor.IDPSSODescriptors) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error", nil, "", http.StatusInternalServerError)
@@ -241,7 +241,7 @@ func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataRe
 		return nil, err
 	}
 
-	data.IdpUrl = idpSSODescriptor.SingleSignOnServices[0].Location
+	data.IdpURL = idpSSODescriptor.SingleSignOnServices[0].Location
 	if idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors == nil || len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", nil, "", http.StatusInternalServerError)
 		return nil, err
@@ -259,7 +259,7 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 
 	block, _ := pem.Decode([]byte(fixedCertTxt))
 	if _, e := x509.ParseCertificate(block.Bytes); e != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, e.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(e)
 	}
 
 	data = pem.EncodeToMemory(&pem.Block{
@@ -267,8 +267,8 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 		Bytes: block.Bytes,
 	})
 
-	if err := a.Srv().configStore.SetFile(SamlIdpCertificateName, data); err != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().platform.SetConfigFile(SamlIdpCertificateName, data); err != nil {
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	cfg := a.Config().Clone()
@@ -288,9 +288,9 @@ func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs
 		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
-	numAffected, err := a.srv.Store.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, userIDs, includeDeleted, dryRun)
+	numAffected, err := a.Srv().Store().User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, userIDs, includeDeleted, dryRun)
 	if err != nil {
-		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.failure_reset_authdata_to_email.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.failure_reset_authdata_to_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	return

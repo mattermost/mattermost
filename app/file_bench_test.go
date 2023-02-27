@@ -9,14 +9,11 @@ import (
 	"image"
 	"image/gif"
 	"image/jpeg"
-	"io"
-	"io/ioutil"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var randomJPEG []byte
@@ -59,8 +56,7 @@ func BenchmarkUploadFile(b *testing.B) {
 	prepareTestImages(b)
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
-	// disable logging in the benchmark, as best we can
-	th.App.Log().SetConsoleLevel(mlog.LevelError)
+
 	teamID := model.NewId()
 	channelID := model.NewId()
 	userID := model.NewId()
@@ -91,7 +87,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if err != nil {
 					b.Fatal(err)
 				}
-				th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 				th.App.RemoveFile(info1.Path)
 
 			},
@@ -110,7 +106,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -128,23 +124,8 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
-			},
-		},
-		{
-			title: "image UploadFiles",
-			f: func(b *testing.B, n int, data []byte, ext string) {
-				resp, err := th.App.UploadFiles(th.Context, teamID, channelID, userID,
-					[]io.ReadCloser{ioutil.NopCloser(bytes.NewReader(data))},
-					[]string{fmt.Sprintf("BenchmarkDoUploadFiles-%d%s", n, ext)},
-					[]string{},
-					time.Now())
-				if err != nil {
-					b.Fatal(err)
-				}
-				th.App.Srv().Store.FileInfo().PermanentDelete(resp.FileInfos[0].Id)
-				th.App.RemoveFile(resp.FileInfos[0].Path)
 			},
 		},
 		{
@@ -160,7 +141,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -177,7 +158,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},

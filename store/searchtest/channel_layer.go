@@ -8,15 +8,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by name",
 		Fn:   testAutocompleteChannelByName,
-		Tags: []string{EngineAll},
+		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+	},
+	{
+		Name: "Should be able to autocomplete a channel by name (Postgres)",
+		Fn:   testAutocompleteChannelByNamePostgres,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by display name",
@@ -26,7 +31,12 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character",
 		Fn:   testAutocompleteChannelByNameSplittedWithDashChar,
-		Tags: []string{EngineAll},
+		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+	},
+	{
+		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character (Postgres)",
+		Fn:   testAutocompleteChannelByNameSplittedWithDashCharPostgres,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by _ character",
@@ -46,12 +56,12 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete channels in a case insensitive manner",
 		Fn:   testSearchChannelsInCaseInsensitiveManner,
-		Tags: []string{EngineAll},
+		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
 	},
 	{
-		Name: "Should autocomplete only returning public channels",
-		Fn:   testSearchOnlyPublicChannels,
-		Tags: []string{EngineAll},
+		Name: "Should be able to autocomplete channels in a case insensitive manner (Postgres)",
+		Fn:   testSearchChannelsInCaseInsensitiveMannerPostgres,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should support to autocomplete having a hyphen as the last character",
@@ -76,94 +86,148 @@ func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestE
 }
 
 func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
+
+	private, err := th.createChannel(th.Team.Id, "channel-altprivate", "Channel AltPrivate", "Channel Private", model.ChannelTypePrivate, th.User, false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	defer th.deleteChannel(private)
+
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id}, res)
+
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel-a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id, th.ChannelAnotherTeam.Id}, res2)
+}
+
+func testAutocompleteChannelByNamePostgres(t *testing.T, th *SearchTestHelper) {
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.ChannelTypeOpen, th.User, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(alternate)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "ChannelA", false)
+
+	private, err := th.createChannel(th.Team.Id, "channel-altprivate", "ChannelAltPrivate", "Channel Private", model.ChannelTypePrivate, th.User, false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	defer th.deleteChannel(private)
+
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "ChannelA", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id}, res)
+
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "ChannelA", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id, th.ChannelAnotherTeam.Id}, res2)
 }
 
 func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
-func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel_alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+func testAutocompleteChannelByNameSplittedWithDashCharPostgres(t *testing.T, th *SearchTestHelper) {
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel_a", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
+}
+
+func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *SearchTestHelper) {
+	alternate, err := th.createChannel(th.Team.Id, "channel_alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(alternate)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel_a", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{alternate.Id}, res)
+
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel_a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatchWithTeamData(t, []string{alternate.Id}, res2)
 }
 
 func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "Channel A", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "Channel A", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{alternate.Id}, res)
 }
 func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
-	other, err := th.createChannel(th.Team.Id, "other-channel", "Other Channel", "", model.CHANNEL_OPEN, false)
+	other, err := th.createChannel(th.Team.Id, "other-channel", "Other Channel", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	defer th.deleteChannel(other)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "", false, false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, other.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id, other.Id}, res)
 }
 
 func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channela", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channela", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
-	res, err = th.Store.Channel().AutocompleteInTeam(th.Team.Id, "ChAnNeL-a", false)
+	res, err = th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "ChAnNeL-a", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channela", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelAnotherTeam.Id, th.ChannelBasic.Id, alternate.Id}, res2)
+	res2, err = th.Store.Channel().Autocomplete(th.User.Id, "ChAnNeL-a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelAnotherTeam.Id, th.ChannelBasic.Id, alternate.Id}, res2)
 }
 
-func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_PRIVATE, false)
+func testSearchChannelsInCaseInsensitiveMannerPostgres(t *testing.T, th *SearchTestHelper) {
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channela", false, false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	res, err = th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "ChAnNeL-a", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, th.User, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-", false)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", false, false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
+
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel-", false, false)
+	require.NoError(t, err)
+	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelAnotherTeam.Id, th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res2)
 }
 
 func testSearchShouldSupportAutocompleteWithArchivedChannels(t *testing.T, th *SearchTestHelper) {
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-", true)
+	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", true, false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelDeleted.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, th.ChannelDeleted.Id}, res)
 }

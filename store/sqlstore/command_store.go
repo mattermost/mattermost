@@ -5,12 +5,13 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlCommandStore struct {
@@ -25,32 +26,7 @@ func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s.commandsQuery = s.getQueryBuilder().
 		Select("*").
 		From("Commands")
-	for _, db := range sqlStore.GetAllConns() {
-		tableo := db.AddTableWithName(model.Command{}, "Commands").SetKeys(false, "Id")
-		tableo.ColMap("Id").SetMaxSize(26)
-		tableo.ColMap("Token").SetMaxSize(26)
-		tableo.ColMap("CreatorId").SetMaxSize(26)
-		tableo.ColMap("TeamId").SetMaxSize(26)
-		tableo.ColMap("Trigger").SetMaxSize(128)
-		tableo.ColMap("URL").SetMaxSize(1024)
-		tableo.ColMap("Method").SetMaxSize(1)
-		tableo.ColMap("Username").SetMaxSize(64)
-		tableo.ColMap("IconURL").SetMaxSize(1024)
-		tableo.ColMap("AutoCompleteDesc").SetMaxSize(1024)
-		tableo.ColMap("AutoCompleteHint").SetMaxSize(1024)
-		tableo.ColMap("DisplayName").SetMaxSize(64)
-		tableo.ColMap("Description").SetMaxSize(128)
-		tableo.ColMap("PluginId").SetMaxSize(190)
-	}
-
 	return s
-}
-
-func (s SqlCommandStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_command_team_id", "Commands", "TeamId")
-	s.CreateIndexIfNotExists("idx_command_update_at", "Commands", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_command_create_at", "Commands", "CreateAt")
-	s.CreateIndexIfNotExists("idx_command_delete_at", "Commands", "DeleteAt")
 }
 
 func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
@@ -63,7 +39,16 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(command); err != nil {
+	// Trigger is a keyword
+	trigger := s.toReserveCase("trigger")
+
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Commands (Id, Token, CreateAt,
+		UpdateAt, DeleteAt, CreatorId, TeamId, `+trigger+`, Method, Username,
+		IconURL, AutoComplete, AutoCompleteDesc, AutoCompleteHint, DisplayName, Description,
+		URL, PluginId)
+	VALUES (:Id, :Token, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :TeamId, :Trigger, :Method,
+		:Username, :IconURL, :AutoComplete, :AutoCompleteDesc, :AutoCompleteHint, :DisplayName,
+		:Description, :URL, :PluginId)`, command); err != nil {
 		return nil, errors.Wrapf(err, "insert: command_id=%s", command.Id)
 	}
 
@@ -78,7 +63,7 @@ func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}
-	if err = s.GetReplica().SelectOne(&command, query, args...); err == sql.ErrNoRows {
+	if err = s.GetReplicaX().Get(&command, query, args...); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Command", id)
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectone: command_id=%s", id)
@@ -88,14 +73,14 @@ func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 }
 
 func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
-	var commands []*model.Command
+	commands := []*model.Command{}
 
 	sql, args, err := s.commandsQuery.
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}
-	if _, err := s.GetReplica().Select(&commands, sql, args...); err != nil {
+	if err := s.GetReplicaX().Select(&commands, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "select: team_id=%s", teamId)
 	}
 
@@ -117,7 +102,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}
 
-	if err := s.GetReplica().SelectOne(&command, query, args...); err == sql.ErrNoRows {
+	if err := s.GetReplicaX().Get(&command, query, args...); err == sql.ErrNoRows {
 		errorId := "teamId=" + teamId + ", trigger=" + trigger
 		return nil, store.NewErrNotFound("Command", errorId)
 	} else if err != nil {
@@ -136,7 +121,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) error {
 		return errors.Wrapf(err, "commands_tosql")
 	}
 
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMasterX().Exec(sql, args...)
 	if err != nil {
 		errors.Wrapf(err, "delete: command_id=%s", commandId)
 	}
@@ -151,7 +136,7 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) error {
 	if err != nil {
 		return errors.Wrapf(err, "commands_tosql")
 	}
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMasterX().Exec(sql, args...)
 	if err != nil {
 		return errors.Wrapf(err, "delete: team_id=%s", teamId)
 	}
@@ -165,7 +150,7 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) error {
 	if err != nil {
 		return errors.Wrapf(err, "commands_tosql")
 	}
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMasterX().Exec(sql, args...)
 	if err != nil {
 		return errors.Wrapf(err, "delete: user_id=%s", userId)
 	}
@@ -180,10 +165,44 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 		return nil, err
 	}
 
-	if _, err := s.GetMaster().Update(cmd); err != nil {
-		return nil, errors.Wrapf(err, "update: command_id=%s", cmd.Id)
+	query := s.getQueryBuilder().
+		Update("Commands").
+		Set("Token", cmd.Token).
+		Set("CreateAt", cmd.CreateAt).
+		Set("UpdateAt", cmd.UpdateAt).
+		Set("CreatorId", cmd.CreatorId).
+		Set("TeamId", cmd.TeamId).
+		Set("Method", cmd.Method).
+		Set("Username", cmd.Username).
+		Set("IconURL", cmd.IconURL).
+		Set("AutoComplete", cmd.AutoComplete).
+		Set("AutoCompleteDesc", cmd.AutoCompleteDesc).
+		Set("AutoCompleteHint", cmd.AutoCompleteHint).
+		Set("DisplayName", cmd.DisplayName).
+		Set("Description", cmd.Description).
+		Set("URL", cmd.URL).
+		Set("PluginId", cmd.PluginId).
+		Where(sq.Eq{"Id": cmd.Id})
+
+	// Trigger is a keyword
+	query = query.Set(s.toReserveCase("trigger"), cmd.Trigger)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "commands_tosql")
 	}
 
+	res, err := s.GetMasterX().Exec(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update commands")
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "error while getting rows_affected")
+	}
+	if count > 1 {
+		return nil, fmt.Errorf("unexpected count while updating commands: count=%d, Id=%s", count, cmd.Id)
+	}
 	return cmd, nil
 }
 
@@ -202,7 +221,8 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 		return 0, errors.Wrapf(err, "commands_tosql")
 	}
 
-	c, err := s.GetReplica().SelectInt(sql, args...)
+	var c int64
+	err = s.GetReplicaX().Get(&c, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to count the commands: team_id=%s", teamId)
 	}

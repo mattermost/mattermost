@@ -2,6 +2,7 @@
 logs
 .DS_Store
 node_modules
+/data
 /dist
 /webapp/dist
 jobserver
@@ -21,8 +22,13 @@ config/config.json
 config/logging.json
 /plugins
 
-# Enterprise imports file
+# Enterprise & products imports files
 imports/imports.go
+imports/boards_imports.go
+
+# go.work file
+go.work
+go.work.sum
 
 #license files
 *.license
@@ -120,3 +126,4 @@ __debug_bin
 report.xml
 go.*.orig
 config.override.mk
+docker-compose.override.yaml

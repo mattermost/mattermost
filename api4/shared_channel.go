@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitSharedChannels() {
-	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getSharedChannels)).Methods("GET")
-	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getRemoteClusterInfo)).Methods("GET")
+	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods("GET")
+	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods("GET")
 }
 
 func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -27,8 +27,19 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// make sure user has access to the team.
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	opts := model.SharedChannelFilterOpts{
 		TeamId: c.Params.TeamId,
+	}
+
+	// only return channels the user is a member of, unless they are a shared channels manager.
+	if !c.App.HasPermissionTo(c.AppContext.Session().UserId, model.PermissionManageSharedChannels) {
+		opts.MemberId = c.AppContext.Session().UserId
 	}
 
 	channels, appErr := c.App.GetSharedChannels(c.Params.Page, c.Params.PerPage, opts)
@@ -39,9 +50,10 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(channels)
 	if err != nil {
-		c.SetJSONEncodingError()
+		c.SetJSONEncodingError(err)
 		return
 	}
+
 	w.Write(b)
 }
 
@@ -69,7 +81,7 @@ func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(remoteInfo)
 	if err != nil {
-		c.SetJSONEncodingError()
+		c.SetJSONEncodingError(err)
 		return
 	}
 	w.Write(b)

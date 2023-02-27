@@ -4,6 +4,7 @@
 package web
 
 import (
+	"encoding/json"
 	"io"
 	"mime"
 	"net/http"
@@ -12,13 +13,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (w *Web) InitWebhooks() {
-	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.NewHandler(commandWebhook)).Methods("POST")
-	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.NewHandler(incomingWebhook)).Methods("POST")
+	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods("POST")
+	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods("POST")
 }
 
 func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -49,7 +50,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {
 			if c.Err != nil {
-				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId()), mlog.String("payload", incomingWebhookPayload.ToJson()))
+				fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
+				payload, err := json.Marshal(incomingWebhookPayload)
+				if err != nil {
+					fields = append(fields, mlog.NamedErr("encoding_err", err))
+				} else {
+					fields = append(fields, mlog.String("payload", string(payload)))
+				}
+
+				mlog.Debug("Incoming webhook received", fields...)
 			}
 		}
 	}()
@@ -101,7 +110,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	response, err := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -116,7 +125,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
-	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJson(payload)
+	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJSON(payload)
 
 	if decodeError != nil {
 		return nil, decodeError

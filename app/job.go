@@ -7,19 +7,19 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
-	job, err := a.Srv().Store.Job().Get(id)
+	job, err := a.Srv().Store().Job().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -31,9 +31,9 @@ func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
 }
 
 func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store.Job().GetAllPage(offset, limit)
+	jobs, err := a.Srv().Store().Job().GetAllPage(offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetJobs", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetJobs", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return jobs, nil
@@ -44,9 +44,9 @@ func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model
 }
 
 func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store.Job().GetAllByTypePage(jobType, offset, limit)
+	jobs, err := a.Srv().Store().Job().GetAllByTypePage(jobType, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return jobs, nil
@@ -57,9 +57,9 @@ func (a *App) GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*mo
 }
 
 func (a *App) GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store.Job().GetAllByTypesPage(jobTypes, offset, limit)
+	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(jobTypes, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
@@ -74,30 +74,31 @@ func (a *App) CancelJob(jobId string) *model.AppError {
 
 func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
 	switch job.Type {
-	case model.JOB_TYPE_BLEVE_POST_INDEXING:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB), model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB
-	case model.JOB_TYPE_DATA_RETENTION:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_DATA_RETENTION_JOB), model.PERMISSION_CREATE_DATA_RETENTION_JOB
-	case model.JOB_TYPE_MESSAGE_EXPORT:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB), model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB
-	case model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB), model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB
-	case model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB), model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB
-	case model.JOB_TYPE_LDAP_SYNC:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_LDAP_SYNC_JOB), model.PERMISSION_CREATE_LDAP_SYNC_JOB
+	case model.JobTypeBlevePostIndexing:
+		return a.SessionHasPermissionTo(session, model.PermissionCreatePostBleveIndexesJob), model.PermissionCreatePostBleveIndexesJob
+	case model.JobTypeDataRetention:
+		return a.SessionHasPermissionTo(session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
+	case model.JobTypeMessageExport:
+		return a.SessionHasPermissionTo(session, model.PermissionCreateComplianceExportJob), model.PermissionCreateComplianceExportJob
+	case model.JobTypeElasticsearchPostIndexing:
+		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostIndexingJob), model.PermissionCreateElasticsearchPostIndexingJob
+	case model.JobTypeElasticsearchPostAggregation:
+		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostAggregationJob), model.PermissionCreateElasticsearchPostAggregationJob
+	case model.JobTypeLdapSync:
+		return a.SessionHasPermissionTo(session, model.PermissionCreateLdapSyncJob), model.PermissionCreateLdapSyncJob
 	case
-		model.JOB_TYPE_MIGRATIONS,
-		model.JOB_TYPE_PLUGINS,
-		model.JOB_TYPE_PRODUCT_NOTICES,
-		model.JOB_TYPE_EXPIRY_NOTIFY,
-		model.JOB_TYPE_ACTIVE_USERS,
-		model.JOB_TYPE_IMPORT_PROCESS,
-		model.JOB_TYPE_IMPORT_DELETE,
-		model.JOB_TYPE_EXPORT_PROCESS,
-		model.JOB_TYPE_EXPORT_DELETE,
-		model.JOB_TYPE_CLOUD:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_JOBS), model.PERMISSION_MANAGE_JOBS
+		model.JobTypeMigrations,
+		model.JobTypePlugins,
+		model.JobTypeProductNotices,
+		model.JobTypeExpiryNotify,
+		model.JobTypeActiveUsers,
+		model.JobTypeImportProcess,
+		model.JobTypeImportDelete,
+		model.JobTypeExportProcess,
+		model.JobTypeExportDelete,
+		model.JobTypeCloud,
+		model.JobTypeExtractContent:
+		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	}
 
 	return false, nil
@@ -105,29 +106,30 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
 	switch jobType {
-	case model.JOB_TYPE_DATA_RETENTION:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_DATA_RETENTION_JOB), model.PERMISSION_READ_DATA_RETENTION_JOB
-	case model.JOB_TYPE_MESSAGE_EXPORT:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB), model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB
-	case model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB), model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB
-	case model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB), model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB
-	case model.JOB_TYPE_LDAP_SYNC:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_LDAP_SYNC_JOB), model.PERMISSION_READ_LDAP_SYNC_JOB
+	case model.JobTypeDataRetention:
+		return a.SessionHasPermissionTo(session, model.PermissionReadDataRetentionJob), model.PermissionReadDataRetentionJob
+	case model.JobTypeMessageExport:
+		return a.SessionHasPermissionTo(session, model.PermissionReadComplianceExportJob), model.PermissionReadComplianceExportJob
+	case model.JobTypeElasticsearchPostIndexing:
+		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostIndexingJob), model.PermissionReadElasticsearchPostIndexingJob
+	case model.JobTypeElasticsearchPostAggregation:
+		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostAggregationJob), model.PermissionReadElasticsearchPostAggregationJob
+	case model.JobTypeLdapSync:
+		return a.SessionHasPermissionTo(session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
 	case
-		model.JOB_TYPE_BLEVE_POST_INDEXING,
-		model.JOB_TYPE_MIGRATIONS,
-		model.JOB_TYPE_PLUGINS,
-		model.JOB_TYPE_PRODUCT_NOTICES,
-		model.JOB_TYPE_EXPIRY_NOTIFY,
-		model.JOB_TYPE_ACTIVE_USERS,
-		model.JOB_TYPE_IMPORT_PROCESS,
-		model.JOB_TYPE_IMPORT_DELETE,
-		model.JOB_TYPE_EXPORT_PROCESS,
-		model.JOB_TYPE_EXPORT_DELETE,
-		model.JOB_TYPE_CLOUD:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_JOBS), model.PERMISSION_READ_JOBS
+		model.JobTypeBlevePostIndexing,
+		model.JobTypeMigrations,
+		model.JobTypePlugins,
+		model.JobTypeProductNotices,
+		model.JobTypeExpiryNotify,
+		model.JobTypeActiveUsers,
+		model.JobTypeImportProcess,
+		model.JobTypeImportDelete,
+		model.JobTypeExportProcess,
+		model.JobTypeExportDelete,
+		model.JobTypeCloud,
+		model.JobTypeExtractContent:
+		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	}
 
 	return false, nil

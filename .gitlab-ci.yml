@@ -12,7 +12,7 @@ include:
 
 variables:
   BUILD: "yes"
-  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20230118_golang-1.19.5
   IMAGE_BUILD_DOCKER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   IMAGE_DIND: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
 
@@ -25,7 +25,6 @@ empty:
   image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.39.0-1
   stage: test
   script:
-    - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
     - make config-reset
     - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   timeout: 60 mins
@@ -122,6 +121,9 @@ test-schema-mysql:
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemamysql"
     - time cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
+  artifacts:
+    paths:
+      - build/logs
   tags:
     - k8s-memory
   rules:
@@ -146,6 +148,9 @@ test-schema-postgres:
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgres"
     - time cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
+  artifacts:
+    paths:
+      - build/logs
   tags:
     - k8s-memory
   rules:

@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGetClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
@@ -53,7 +53,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed, but not for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
@@ -76,7 +76,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					AllowCustomThemes: model.NewBool(false),
@@ -112,37 +112,10 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"experimental channel organization enabled",
-			&model.Config{
-				ServiceSettings: model.ServiceSettings{
-					ExperimentalChannelOrganization: model.NewBool(true),
-				},
-			},
-			"tag1",
-			nil,
-			map[string]string{
-				"ExperimentalChannelOrganization": "true",
-			},
-		},
-		{
-			"experimental channel organization disabled, but experimental group unread channels on",
-			&model.Config{
-				ServiceSettings: model.ServiceSettings{
-					ExperimentalChannelOrganization: model.NewBool(false),
-					ExperimentalGroupUnreadChannels: model.NewString(model.GROUP_UNREAD_CHANNELS_DEFAULT_ON),
-				},
-			},
-			"tag1",
-			nil,
-			map[string]string{
-				"ExperimentalChannelOrganization": "true",
-			},
-		},
-		{
 			"default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: model.NewString(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+					MarketplaceURL: model.NewString(model.PluginSettingsDefaultMarketplaceURL),
 				},
 			},
 			"tag1",
@@ -155,7 +128,7 @@ func TestGetClientConfig(t *testing.T) {
 			"non-default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: model.NewString("http://example.com"),
+					MarketplaceURL: model.NewString("http://example.com"),
 				},
 			},
 			"tag1",
@@ -175,6 +148,182 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"ShowFullName": "true",
+			},
+		},
+		{
+			"Insights professional license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"InsightsEnabled": "true",
+			},
+		},
+		{
+			"Insights enterprise license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"InsightsEnabled": "true",
+			},
+		},
+		{
+			"Insights other license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"InsightsEnabled": "true",
+			},
+		},
+		{
+			"Insights professional license, feature flag disabled",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: false,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"InsightsEnabled": "false",
+			},
+		},
+		{
+			"Custom groups professional license",
+			&model.Config{},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"EnableCustomGroups": "true",
+			},
+		},
+		{
+			"Custom groups enterprise license",
+			&model.Config{},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"EnableCustomGroups": "true",
+			},
+		},
+		{
+			"Custom groups other license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"EnableCustomGroups": "false",
+			},
+		},
+		{
+			"Shared channels other license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "false",
+			},
+		},
+		{
+			"licensed for shared channels",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(true),
+				},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels professional license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Shared channels enterprise license",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableSharedChannels: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					SharedChannels: model.NewBool(false),
+				},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalSharedChannels": "true",
 			},
 		},
 	}
@@ -213,7 +362,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.

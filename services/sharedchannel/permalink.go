@@ -9,9 +9,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var (
@@ -31,13 +31,16 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 		// Extract the postID (This is simple enough not to warrant full-blown URL parsing.)
 		lastSlash := strings.LastIndexByte(msg, '/')
 		postID := msg[lastSlash+1:]
-		postList, err := scs.server.GetStore().Post().Get(context.Background(), postID, true, false, false, "")
+		opts := model.GetPostsOptions{
+			SkipFetchThreads: true,
+		}
+		postList, err := scs.server.GetStore().Post().Get(context.Background(), postID, opts, "", map[string]bool{})
 		if err != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
 			return msg
 		}
 		if len(postList.Order) == 0 {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
 			return msg
 		}
 
@@ -63,7 +66,7 @@ func (scs *Service) processPermalinkFromRemote(p *model.Post, team *model.Team) 
 		// Extract host name
 		parsed, err := url.Parse(remoteLink)
 		if err != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Unable to parse the remote link during replacing permalinks", mlog.Err(err))
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Unable to parse the remote link during replacing permalinks", mlog.Err(err))
 			return remoteLink
 		}
 

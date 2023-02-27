@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DEFAULT_WEBHOOK_USERNAME = "webhook"
+	DefaultWebhookUsername = "webhook"
 )
 
 type IncomingWebhook struct {
@@ -30,6 +30,23 @@ type IncomingWebhook struct {
 	ChannelLocked bool   `json:"channel_locked"`
 }
 
+func (o *IncomingWebhook) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":             o.Id,
+		"create_at":      o.CreateAt,
+		"update_at":      o.UpdateAt,
+		"delete_at":      o.DeleteAt,
+		"user_id":        o.UserId,
+		"channel_id":     o.ChannelId,
+		"team_id":        o.TeamId,
+		"display_name":   o.DisplayName,
+		"description":    o.Description,
+		"username":       o.Username,
+		"icon_url:":      o.IconURL,
+		"channel_locked": o.ChannelLocked,
+	}
+}
+
 type IncomingWebhookRequest struct {
 	Text        string             `json:"text"`
 	Username    string             `json:"username"`
@@ -41,30 +58,7 @@ type IncomingWebhookRequest struct {
 	IconEmoji   string             `json:"icon_emoji"`
 }
 
-func (o *IncomingWebhook) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func IncomingWebhookFromJson(data io.Reader) *IncomingWebhook {
-	var o *IncomingWebhook
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func IncomingWebhookListToJson(l []*IncomingWebhook) string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-func IncomingWebhookListFromJson(data io.Reader) []*IncomingWebhook {
-	var o []*IncomingWebhook
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *IncomingWebhook) IsValid() *AppError {
-
 	if !IsValidId(o.Id) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", nil, "", http.StatusBadRequest)
 
@@ -129,22 +123,24 @@ func (o *IncomingWebhook) PreUpdate() {
 // try to handle that. An example invalid JSON string from an incoming webhook
 // might look like this (strings for both "text" and "fallback" attributes are
 // invalid JSON strings because they contain unescaped newlines and tabs):
-//  `{
-//    "text": "this is a test
-//						 that contains a newline and tabs",
-//    "attachments": [
-//      {
-//        "fallback": "Required plain-text summary of the attachment
-//										that contains a newline and tabs",
-//        "color": "#36a64f",
-//  			...
-//        "text": "Optional text that appears within the attachment
-//								 that contains a newline and tabs",
-//  			...
-//        "thumb_url": "http://example.com/path/to/thumb.png"
-//      }
-//    ]
-//  }`
+//
+//	 `{
+//	   "text": "this is a test
+//							 that contains a newline and tabs",
+//	   "attachments": [
+//	     {
+//	       "fallback": "Required plain-text summary of the attachment
+//											that contains a newline and tabs",
+//	       "color": "#36a64f",
+//	 			...
+//	       "text": "Optional text that appears within the attachment
+//									 that contains a newline and tabs",
+//	 			...
+//	       "thumb_url": "http://example.com/path/to/thumb.png"
+//	     }
+//	   ]
+//	 }`
+//
 // This function will search for `"key": "value"` pairs, and escape \n, \t
 // from the value.
 func escapeControlCharsFromPayload(by []byte) []byte {
@@ -186,7 +182,7 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	return nil, err
 }
 
-func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *AppError) {
+func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *AppError) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
 	by := buf.Bytes()
@@ -197,19 +193,11 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 	if err != nil {
 		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
-			return nil, NewAppError("IncomingWebhookRequestFromJson", "model.incoming_hook.parse_data.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
 	return o, nil
-}
-
-func (o *IncomingWebhookRequest) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	}
-	return string(b)
 }

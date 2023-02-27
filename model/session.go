@@ -4,42 +4,44 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
+	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	SESSION_COOKIE_TOKEN              = "MMAUTHTOKEN"
-	SESSION_COOKIE_USER               = "MMUSERID"
-	SESSION_COOKIE_CSRF               = "MMCSRF"
-	SESSION_CACHE_SIZE                = 35000
-	SESSION_PROP_PLATFORM             = "platform"
-	SESSION_PROP_OS                   = "os"
-	SESSION_PROP_BROWSER              = "browser"
-	SESSION_PROP_TYPE                 = "type"
-	SESSION_PROP_USER_ACCESS_TOKEN_ID = "user_access_token_id"
-	SESSION_PROP_IS_BOT               = "is_bot"
-	SESSION_PROP_IS_BOT_VALUE         = "true"
-	SESSION_TYPE_USER_ACCESS_TOKEN    = "UserAccessToken"
-	SESSION_TYPE_CLOUD_KEY            = "CloudKey"
-	SESSION_TYPE_REMOTECLUSTER_TOKEN  = "RemoteClusterToken"
-	SESSION_PROP_IS_GUEST             = "is_guest"
-	SESSION_ACTIVITY_TIMEOUT          = 1000 * 60 * 5 // 5 minutes
-	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
+	SessionCookieToken                = "MMAUTHTOKEN"
+	SessionCookieUser                 = "MMUSERID"
+	SessionCookieCsrf                 = "MMCSRF"
+	SessionCookieCloudUrl             = "MMCLOUDURL"
+	SessionCacheSize                  = 35000
+	SessionPropPlatform               = "platform"
+	SessionPropOs                     = "os"
+	SessionPropBrowser                = "browser"
+	SessionPropType                   = "type"
+	SessionPropUserAccessTokenId      = "user_access_token_id"
+	SessionPropIsBot                  = "is_bot"
+	SessionPropIsBotValue             = "true"
+	SessionPropOAuthAppID             = "oauth_app_id"
+	SessionPropMattermostAppID        = "mattermost_app_id"
+	SessionTypeUserAccessToken        = "UserAccessToken"
+	SessionTypeCloudKey               = "CloudKey"
+	SessionTypeRemoteclusterToken     = "RemoteClusterToken"
+	SessionPropIsGuest                = "is_guest"
+	SessionActivityTimeout            = 1000 * 60 * 5  // 5 minutes
+	SessionUserAccessTokenExpiryHours = 100 * 365 * 24 // 100 years
 )
 
-//msgp StringMap
+//msgp:tuple StringMap
 type StringMap map[string]string
-
-//msgp:tuple Session
 
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple Session
 type Session struct {
 	Id             string        `json:"id"`
 	Token          string        `json:"token"`
@@ -54,6 +56,22 @@ type Session struct {
 	Props          StringMap     `json:"props"`
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
 	Local          bool          `json:"local" db:"-"`
+}
+
+func (s *Session) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               s.Id,
+		"create_at":        s.CreateAt,
+		"expires_at":       s.ExpiresAt,
+		"last_activity_at": s.LastActivityAt,
+		"user_id":          s.UserId,
+		"device_id":        s.DeviceId,
+		"roles":            s.Roles,
+		"is_oauth":         s.IsOAuth,
+		"expired_notify":   s.ExpiredNotify,
+		"local":            s.Local,
+		// TODO: props and members?
+	}
 }
 
 // Returns true if the session is unrestricted, which should grant it
@@ -80,15 +98,25 @@ func (s *Session) DeepCopy() *Session {
 	return &copySession
 }
 
-func (s *Session) ToJson() string {
-	b, _ := json.Marshal(s)
-	return string(b)
-}
+func (s *Session) IsValid() *AppError {
+	if !IsValidId(s.Id) {
+		return NewAppError("Session.IsValid", "model.session.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+	}
 
-func SessionFromJson(data io.Reader) *Session {
-	var s *Session
-	json.NewDecoder(data).Decode(&s)
-	return s
+	if !IsValidId(s.UserId) {
+		return NewAppError("Session.IsValid", "model.session.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.CreateAt == 0 {
+		return NewAppError("Session.IsValid", "model.session.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(s.Roles) > UserRolesMaxLength {
+		return NewAppError("Session.IsValid", "model.session.is_valid.roles_limit.app_error",
+			map[string]any{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (s *Session) PreSave() {
@@ -125,17 +153,6 @@ func (s *Session) IsExpired() bool {
 	return false
 }
 
-// Deprecated: SetExpireInDays is deprecated and should not be used.
-//             Use (*App).SetSessionExpireInDays instead which handles the
-//			   cases where the new ExpiresAt is not relative to CreateAt.
-func (s *Session) SetExpireInDays(days int) {
-	if s.CreateAt == 0 {
-		s.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
-	} else {
-		s.ExpiresAt = s.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
-	}
-}
-
 func (s *Session) AddProp(key string, value string) {
 
 	if s.Props == nil {
@@ -146,9 +163,9 @@ func (s *Session) AddProp(key string, value string) {
 }
 
 func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range s.TeamMembers {
-		if team.TeamId == teamId {
-			return team
+	for _, tm := range s.TeamMembers {
+		if tm.TeamId == teamId {
+			return tm
 		}
 	}
 
@@ -160,7 +177,7 @@ func (s *Session) IsMobileApp() bool {
 }
 
 func (s *Session) IsMobile() bool {
-	val, ok := s.Props[USER_AUTH_SERVICE_IS_MOBILE]
+	val, ok := s.Props[UserAuthServiceIsMobile]
 	if !ok {
 		return false
 	}
@@ -173,7 +190,7 @@ func (s *Session) IsMobile() bool {
 }
 
 func (s *Session) IsSaml() bool {
-	val, ok := s.Props[USER_AUTH_SERVICE_IS_SAML]
+	val, ok := s.Props[UserAuthServiceIsSaml]
 	if !ok {
 		return false
 	}
@@ -186,7 +203,7 @@ func (s *Session) IsSaml() bool {
 }
 
 func (s *Session) IsOAuthUser() bool {
-	val, ok := s.Props[USER_AUTH_SERVICE_IS_OAUTH]
+	val, ok := s.Props[UserAuthServiceIsOAuth]
 	if !ok {
 		return false
 	}
@@ -220,16 +237,14 @@ func (s *Session) GetCSRF() string {
 	return s.Props["csrf"]
 }
 
-func SessionsToJson(o []*Session) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
+func (s *Session) CreateAt_() float64 {
+	return float64(s.CreateAt)
 }
 
-func SessionsFromJson(data io.Reader) []*Session {
-	var o []*Session
-	json.NewDecoder(data).Decode(&o)
-	return o
+func (s *Session) ExpiresAt_() float64 {
+	return float64(s.ExpiresAt)
+}
+
+func (s *Session) LastActivityAt_() float64 {
+	return float64(s.LastActivityAt)
 }

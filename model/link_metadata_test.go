@@ -11,14 +11,20 @@ import (
 	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/dyatlov/go-opengraph/opengraph/types/article"
+	"github.com/dyatlov/go-opengraph/opengraph/types/audio"
+	"github.com/dyatlov/go-opengraph/opengraph/types/book"
+	"github.com/dyatlov/go-opengraph/opengraph/types/image"
+	"github.com/dyatlov/go-opengraph/opengraph/types/profile"
+	"github.com/dyatlov/go-opengraph/opengraph/types/video"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const BigText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus faucibus ex, vitae placerat neque feugiat ac. Nam tempus libero quis pellentesque feugiat. Cras tristique diam vel condimentum viverra. Proin molestie posuere leo. Nam pulvinar, ex quis tristique cursus, turpis ante commodo elit, a dapibus est ipsum id eros. Mauris tortor dolor, posuere ac velit vitae, faucibus viverra fusce."
 
-func sampleImage(imageName string) *opengraph.Image {
-	return &opengraph.Image{
+func sampleImage(imageName string) *image.Image {
+	return &image.Image{
 		URL:       fmt.Sprintf("http://example.com/%s", imageName),
 		SecureURL: fmt.Sprintf("https://example.com/%s", imageName),
 		Type:      "png",
@@ -38,7 +44,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &PostImage{},
 			},
 			Expected: true,
@@ -48,7 +54,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_OPENGRAPH,
+				Type:      LinkMetadataTypeOpengraph,
 				Data:      &opengraph.OpenGraph{},
 			},
 			Expected: true,
@@ -58,7 +64,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_NONE,
+				Type:      LinkMetadataTypeNone,
 				Data:      nil,
 			},
 			Expected: true,
@@ -67,7 +73,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Name: "should be invalid because of empty URL",
 			Metadata: &LinkMetadata{
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &PostImage{},
 			},
 			Expected: false,
@@ -76,7 +82,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Name: "should be invalid because of empty timestamp",
 			Metadata: &LinkMetadata{
 				URL:  "http://example.com",
-				Type: LINK_METADATA_TYPE_IMAGE,
+				Type: LinkMetadataTypeImage,
 				Data: &PostImage{},
 			},
 			Expected: false,
@@ -86,7 +92,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800001,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &PostImage{},
 			},
 			Expected: false,
@@ -106,7 +112,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 			},
 			Expected: false,
 		},
@@ -115,7 +121,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_IMAGE,
+				Type:      LinkMetadataTypeImage,
 				Data:      &opengraph.OpenGraph{},
 			},
 			Expected: false,
@@ -125,7 +131,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_OPENGRAPH,
+				Type:      LinkMetadataTypeOpengraph,
 				Data:      &PostImage{},
 			},
 			Expected: false,
@@ -135,19 +141,19 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Metadata: &LinkMetadata{
 				URL:       "http://example.com",
 				Timestamp: 1546300800000,
-				Type:      LINK_METADATA_TYPE_OPENGRAPH,
+				Type:      LinkMetadataTypeOpengraph,
 				Data:      &Channel{},
 			},
 			Expected: false,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			err := test.Metadata.IsValid()
+			appErr := test.Metadata.IsValid()
 
 			if test.Expected {
-				assert.Nil(t, err)
+				assert.Nil(t, appErr)
 			} else {
-				assert.NotNil(t, err)
+				assert.NotNil(t, appErr)
 			}
 		})
 	}
@@ -160,14 +166,16 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 			Width:  500,
 		}
 
+		js, err := json.Marshal(image)
+		assert.NoError(t, err)
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_IMAGE,
-			Data: []byte(image.ToJson()),
+			Type: LinkMetadataTypeImage,
+			Data: js,
 		}
 
 		require.IsType(t, []byte{}, metadata.Data)
 
-		err := metadata.DeserializeDataToConcreteType()
+		err = metadata.DeserializeDataToConcreteType()
 
 		assert.NoError(t, err)
 		assert.IsType(t, &PostImage{}, metadata.Data)
@@ -178,7 +186,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 		og := &opengraph.OpenGraph{
 			URL:         "http://example.com",
 			Description: "Hello, world!",
-			Images: []*opengraph.Image{
+			Images: []*image.Image{
 				{
 					URL: "http://example.com/image.png",
 				},
@@ -190,7 +198,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 		require.NoError(t, err)
 
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_OPENGRAPH,
+			Type: LinkMetadataTypeOpengraph,
 			Data: b,
 		}
 
@@ -205,7 +213,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 	t.Run("should ignore data of the correct type", func(t *testing.T) {
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_OPENGRAPH,
+			Type: LinkMetadataTypeOpengraph,
 			Data: 1234,
 		}
 
@@ -227,7 +235,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 	t.Run("should return error for invalid data", func(t *testing.T) {
 		metadata := &LinkMetadata{
-			Type: LINK_METADATA_TYPE_IMAGE,
+			Type: LinkMetadataTypeImage,
 			Data: "garbage",
 		}
 
@@ -251,31 +259,31 @@ func TestTruncateText(t *testing.T) {
 	t.Run("Truncates string to 300 + 5", func(t *testing.T) {
 		assert.Equal(t, utf8.RuneCountInString(truncateText(BigText)), 305, "should be 300 chars + 5")
 	})
-	t.Run("Truncated text ends in elipsis", func(t *testing.T) {
+	t.Run("Truncated text ends in ellipsis", func(t *testing.T) {
 		assert.True(t, strings.HasSuffix(truncateText(BigText), "[...]"))
 	})
 }
 
 func TestFirstNImages(t *testing.T) {
 	t.Run("when empty, return an empty one", func(t *testing.T) {
-		empty := make([]*opengraph.Image, 0)
+		empty := make([]*image.Image, 0)
 		assert.Exactly(t, firstNImages(empty, 1), empty, "Should be the same element")
 	})
 	t.Run("when it contains one element, return the same array", func(t *testing.T) {
-		one := []*opengraph.Image{sampleImage("image.png")}
+		one := []*image.Image{sampleImage("image.png")}
 		assert.Exactly(t, firstNImages(one, 1), one, "Should be the same element")
 	})
 	t.Run("when it contains more than one element and asking for only one, return the first one", func(t *testing.T) {
-		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
+		two := []*image.Image{sampleImage("image.png"), sampleImage("notme.png")}
 		assert.True(t, strings.HasSuffix(firstNImages(two, 1)[0].URL, "image.png"), "Should be the image element")
 	})
 	t.Run("when it contains less than asked, return the original", func(t *testing.T) {
-		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
+		two := []*image.Image{sampleImage("image.png"), sampleImage("notme.png")}
 		assert.Equal(t, two, firstNImages(two, 10), "should be the same pointer")
 	})
 
 	t.Run("asking for negative images", func(t *testing.T) {
-		six := []*opengraph.Image{
+		six := []*image.Image{
 			sampleImage("image.png"),
 			sampleImage("another.png"),
 			sampleImage("yetanother.jpg"),
@@ -283,7 +291,7 @@ func TestFirstNImages(t *testing.T) {
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff"),
 		}
-		assert.Len(t, firstNImages(six, -10), MAX_IMAGES, "On negative, go for defaults")
+		assert.Len(t, firstNImages(six, -10), LinkMetadataMaxImages, "On negative, go for defaults")
 	})
 
 }
@@ -298,18 +306,18 @@ func TestTruncateOpenGraph(t *testing.T) {
 		SiteName:         BigText,
 		Locale:           "[EN-en]",
 		LocalesAlternate: []string{"[EN-ca]", "[ES-es]"},
-		Images: []*opengraph.Image{
+		Images: []*image.Image{
 			sampleImage("image.png"),
 			sampleImage("another.png"),
 			sampleImage("yetanother.jpg"),
 			sampleImage("metoo.gif"),
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff")},
-		Audios:  []*opengraph.Audio{{}},
-		Videos:  []*opengraph.Video{{}},
-		Article: &opengraph.Article{},
-		Book:    &opengraph.Book{},
-		Profile: &opengraph.Profile{},
+		Audios:  []*audio.Audio{{}},
+		Videos:  []*video.Video{{}},
+		Article: &article.Article{},
+		Book:    &book.Book{},
+		Profile: &profile.Profile{},
 	}
 	result := TruncateOpenGraph(&og)
 	assert.Nil(t, result.Article, "No article stored")

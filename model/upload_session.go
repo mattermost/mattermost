@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -14,8 +12,9 @@ import (
 type UploadType string
 
 const (
-	UploadTypeAttachment UploadType = "attachment"
-	UploadTypeImport     UploadType = "import"
+	UploadTypeAttachment   UploadType = "attachment"
+	UploadTypeImport       UploadType = "import"
+	IncompleteUploadSuffix            = ".tmp"
 )
 
 // UploadNoUserID is a "fake" user id used by the API layer when in local mode.
@@ -46,39 +45,6 @@ type UploadSession struct {
 	RemoteId string `json:"remote_id"`
 	// Requested file id if uploading for shared channel
 	ReqFileId string `json:"req_file_id"`
-}
-
-// ToJson serializes the UploadSession into JSON and returns it as string.
-func (us *UploadSession) ToJson() string {
-	b, _ := json.Marshal(us)
-	return string(b)
-}
-
-// UploadSessionsToJson serializes a list of UploadSession into JSON and
-// returns it as string.
-func UploadSessionsToJson(uss []*UploadSession) string {
-	b, _ := json.Marshal(uss)
-	return string(b)
-}
-
-// UploadSessionsFromJson deserializes a list of UploadSession from JSON data.
-func UploadSessionsFromJson(data io.Reader) []*UploadSession {
-	decoder := json.NewDecoder(data)
-	var uss []*UploadSession
-	if err := decoder.Decode(&uss); err != nil {
-		return nil
-	}
-	return uss
-}
-
-// UploadSessionFromJson deserializes the UploadSession from JSON data.
-func UploadSessionFromJson(data io.Reader) *UploadSession {
-	decoder := json.NewDecoder(data)
-	var us UploadSession
-	if err := decoder.Decode(&us); err != nil {
-		return nil
-	}
-	return &us
 }
 
 // PreSave is a utility function used to fill required information.
@@ -113,7 +79,7 @@ func (us *UploadSession) IsValid() *AppError {
 	}
 
 	if err := us.Type.IsValid(); err != nil {
-		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, err.Error(), http.StatusBadRequest)
+		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if !IsValidId(us.UserId) && us.UserId != UploadNoUserID {

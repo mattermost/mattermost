@@ -3,25 +3,22 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type ChannelStats struct {
 	ChannelId       string `json:"channel_id"`
 	MemberCount     int64  `json:"member_count"`
 	GuestCount      int64  `json:"guest_count"`
 	PinnedPostCount int64  `json:"pinnedpost_count"`
+	FilesCount      int64  `json:"files_count"`
 }
 
-func (o *ChannelStats) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+func (o *ChannelStats) MemberCount_() float64 {
+	return float64(o.MemberCount)
 }
 
-func ChannelStatsFromJson(data io.Reader) *ChannelStats {
-	var o *ChannelStats
-	json.NewDecoder(data).Decode(&o)
-	return o
+func (o *ChannelStats) GuestCount_() float64 {
+	return float64(o.GuestCount)
+}
+
+func (o *ChannelStats) PinnedPostCount_() float64 {
+	return float64(o.PinnedPostCount)
 }

@@ -11,45 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
-
-func TestConfigListener(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	originalSiteName := th.App.Config().TeamSettings.SiteName
-
-	listenerCalled := false
-	listener := func(oldConfig *model.Config, newConfig *model.Config) {
-		assert.False(t, listenerCalled, "listener called twice")
-
-		assert.Equal(t, *originalSiteName, *oldConfig.TeamSettings.SiteName, "old config contains incorrect site name")
-		assert.Equal(t, "test123", *newConfig.TeamSettings.SiteName, "new config contains incorrect site name")
-
-		listenerCalled = true
-	}
-	listenerId := th.App.AddConfigListener(listener)
-	defer th.App.RemoveConfigListener(listenerId)
-
-	listener2Called := false
-	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
-		assert.False(t, listener2Called, "listener2 called twice")
-
-		listener2Called = true
-	}
-	listener2Id := th.App.AddConfigListener(listener2)
-	defer th.App.RemoveConfigListener(listener2Id)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.SiteName = "test123"
-	})
-
-	assert.True(t, listenerCalled, "listener should've been called")
-	assert.True(t, listener2Called, "listener 2 should've been called")
-}
 
 func TestAsymmetricSigningKey(t *testing.T) {
 	th := SetupWithStoreMock(t)
@@ -68,7 +33,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -79,12 +44,16 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	config := th.App.ClientConfigWithComputed()
+	config := th.App.Srv().Platform().ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]
 	assert.True(t, ok, "expected NoAccounts in returned config")
 	_, ok = config["MaxPostSize"]
 	assert.True(t, ok, "expected MaxPostSize in returned config")
+	v, ok := config["SchemaVersion"]
+	assert.True(t, ok, "expected SchemaVersion in returned config")
+	assert.Equal(t, "1", v)
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
@@ -126,19 +95,19 @@ func TestEnsureInstallationDate(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			sqlStore := th.GetSqlStore()
-			sqlStore.GetMaster().Exec("DELETE FROM Users")
+			sqlStore.GetMasterX().Exec("DELETE FROM Users")
 
 			for _, createAt := range tc.UsersCreationDates {
 				user := th.CreateUser()
 				user.CreateAt = createAt
-				sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = :CreateAt WHERE Id = :UserId", map[string]interface{}{"CreateAt": createAt, "UserId": user.Id})
+				sqlStore.GetMasterX().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
 			}
 
 			if tc.PrevInstallationDate == nil {
-				th.App.Srv().Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				th.App.Srv().Store().System().PermanentDeleteByName(model.SystemInstallationDateKey)
 			} else {
-				th.App.Srv().Store.System().SaveOrUpdate(&model.System{
-					Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
+				th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+					Name:  model.SystemInstallationDateKey,
 					Value: strconv.FormatInt(*tc.PrevInstallationDate, 10),
 				})
 			}
@@ -150,13 +119,13 @@ func TestEnsureInstallationDate(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				data, err := th.App.Srv().Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				data, err := th.App.Srv().Store().System().GetByName(model.SystemInstallationDateKey)
 				assert.NoError(t, err)
 				value, _ := strconv.ParseInt(data.Value, 10, 64)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}
 
-			sqlStore.GetMaster().Exec("DELETE FROM Users")
+			sqlStore.GetMasterX().Exec("DELETE FROM Users")
 		})
 	}
 }

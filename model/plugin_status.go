@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 const (
 	PluginStateNotRunning          = 0
 	PluginStateStarting            = 1 // unused by server
@@ -23,20 +18,10 @@ type PluginStatus struct {
 	ClusterId   string `json:"cluster_id"`
 	PluginPath  string `json:"plugin_path"`
 	State       int    `json:"state"`
+	Error       string `json:"error"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`
 }
 
 type PluginStatuses []*PluginStatus
-
-func (m *PluginStatuses) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func PluginStatusesFromJson(data io.Reader) PluginStatuses {
-	var m PluginStatuses
-	json.NewDecoder(data).Decode(&m)
-	return m
-}

@@ -4,21 +4,20 @@
 package bleveengine
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
+	"github.com/mattermost/mattermost-server/v6/store/searchtest"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 type BleveEngineTestSuite struct {
@@ -37,7 +36,7 @@ func TestBleveEngineTestSuite(t *testing.T) {
 }
 
 func (s *BleveEngineTestSuite) setupIndexes() {
-	indexDir, err := ioutil.TempDir("", "mmbleve")
+	indexDir, err := os.MkdirTemp("", "mmbleve")
 	if err != nil {
 		s.Require().FailNow("Cannot setup bleveengine tests: %s", err.Error())
 	}
@@ -47,7 +46,7 @@ func (s *BleveEngineTestSuite) setupIndexes() {
 func (s *BleveEngineTestSuite) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
+		driverName = model.DatabaseDriverPostgres
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
 	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)
@@ -60,10 +59,10 @@ func (s *BleveEngineTestSuite) setupStore() {
 	cfg.BleveSettings.IndexDir = model.NewString(s.IndexDir)
 	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
 
-	s.SearchEngine = searchengine.NewBroker(cfg, nil)
+	s.SearchEngine = searchengine.NewBroker(cfg)
 	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLStore}, s.SearchEngine, cfg)
 
-	s.BleveEngine = NewBleveEngine(cfg, nil)
+	s.BleveEngine = NewBleveEngine(cfg)
 	s.BleveEngine.indexSync = true
 	s.SearchEngine.RegisterBleveEngine(s.BleveEngine)
 	if err := s.BleveEngine.Start(); err != nil {
@@ -111,12 +110,10 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		userID := model.NewId()
 		channelID := model.NewId()
 		channelToAvoidID := model.NewId()
-		posts := make([]*model.Post, 0)
 		for i := 0; i < 10; i++ {
 			post := createPost(userID, channelID)
 			appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 			require.Nil(s.T(), appErr)
-			posts = append(posts, post)
 		}
 		postToAvoid := createPost(userID, channelToAvoidID)
 		appErr := s.SearchEngine.BleveEngine.IndexPost(postToAvoid, teamID)
@@ -126,7 +123,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
-		require.Equal(s.T(), postToAvoid.Id, doc.ID)
+		require.Equal(s.T(), postToAvoid.Id, doc.ID())
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
@@ -159,12 +156,10 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		userID := model.NewId()
 		userToAvoidID := model.NewId()
 		channelID := model.NewId()
-		posts := make([]*model.Post, 0)
 		for i := 0; i < 10; i++ {
 			post := createPost(userID, channelID)
 			appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 			require.Nil(s.T(), appErr)
-			posts = append(posts, post)
 		}
 		postToAvoid := createPost(userToAvoidID, channelID)
 		appErr := s.SearchEngine.BleveEngine.IndexPost(postToAvoid, teamID)
@@ -174,7 +169,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
-		require.Equal(s.T(), postToAvoid.Id, doc.ID)
+		require.Equal(s.T(), postToAvoid.Id, doc.ID())
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
@@ -206,12 +201,10 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 	userID := model.NewId()
 	userToAvoidID := model.NewId()
 	channelID := model.NewId()
-	posts := make([]*model.Post, 0)
 	for i := 0; i < 10; i++ {
 		post := createPost(userID, channelID)
 		appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 		require.Nil(s.T(), appErr)
-		posts = append(posts, post)
 	}
 	postToAvoid := createPost(userToAvoidID, channelID)
 	appErr := s.SearchEngine.BleveEngine.IndexPost(postToAvoid, teamID)
@@ -226,7 +219,7 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 
 	doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), postToAvoid.Id, doc.ID)
+	require.Equal(s.T(), postToAvoid.Id, doc.ID())
 	numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, int(numberDocs))

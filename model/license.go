@@ -6,22 +6,27 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 )
 
 const (
-	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
-	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
-	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
-	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
+	DayInSeconds      = 24 * 60 * 60
+	DayInMilliseconds = DayInSeconds * 1000
+
+	ExpiredLicenseError = "api.license.add_license.expired.app_error"
+	InvalidLicenseError = "api.license.add_license.invalid.app_error"
+	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
+	LicenseRenewalLink  = "https://mattermost.com/renew/"
+
+	LicenseShortSkuE10          = "E10"
+	LicenseShortSkuE20          = "E20"
+	LicenseShortSkuProfessional = "professional"
+	LicenseShortSkuEnterprise   = "enterprise"
 )
 
 const (
-	SIXTY_DAYS                        = 60
-	FIFTY_EIGHT                       = 58
-	LICENSE_UP_FOR_RENEWAL_EMAIL_SENT = "LicenseUpForRenewalEmailSent"
+	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
 )
 
 var (
@@ -32,6 +37,15 @@ var (
 	// or less than the lower bound
 	sanctionedTrialDurationLowerBound = 31*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 744 hours (31 days) + 23 hours, 59 mins and 59 seconds
 	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 696 hours (29 days) + 23 hours, 59 mins and 59 seconds
+)
+
+const (
+	TrueUpReviewTelemetryName          = "true_up_review_sent"
+	TrueUpReviewAuthFeaturesMfa        = "multi_factor_authentication"
+	TrueUpReviewAuthFeaturesADLdap     = "ad_ldap_sign_in"
+	TrueUpReviewAuthFeaturesSaml       = "saml_sign_in"
+	TrueUpReviewAuthFeatureOpenId      = "openid_connect"
+	TrueUpReviewAuthFeatureGuestAccess = "guest_access"
 )
 
 type LicenseRecord struct {
@@ -50,6 +64,8 @@ type License struct {
 	SkuName      string    `json:"sku_name"`
 	SkuShortName string    `json:"sku_short_name"`
 	IsTrial      bool      `json:"is_trial"`
+	IsGovSku     bool      `json:"is_gov_sku"`
+	SignupJWT    *string   `json:"signup_jwt"`
 }
 
 type Customer struct {
@@ -68,11 +84,6 @@ type TrialLicenseRequest struct {
 	Users                 int    `json:"users"`
 	TermsAccepted         bool   `json:"terms_accepted"`
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
-}
-
-func (tlr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(tlr)
-	return string(b)
 }
 
 type Features struct {
@@ -110,8 +121,8 @@ type Features struct {
 	FutureFeatures *bool `json:"future_features"`
 }
 
-func (f *Features) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (f *Features) ToMap() map[string]any {
+	return map[string]any{
 		"ldap":                        *f.LDAP,
 		"ldap_groups":                 *f.LDAPGroups,
 		"mfa":                         *f.MFA,
@@ -269,12 +280,12 @@ func (l *License) IsExpired() bool {
 
 func (l *License) IsPastGracePeriod() bool {
 	timeDiff := GetMillis() - l.ExpiresAt
-	return timeDiff > LICENSE_GRACE_PERIOD
+	return timeDiff > LicenseGracePeriod
 }
 
 func (l *License) IsWithinExpirationPeriod() bool {
 	days := l.DaysToExpiration()
-	return days <= SIXTY_DAYS && days >= FIFTY_EIGHT
+	return days <= 60 && days >= 58
 }
 
 func (l *License) DaysToExpiration() int {
@@ -288,9 +299,8 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
-func (l *License) ToJson() string {
-	b, _ := json.Marshal(l)
-	return string(b)
+func (l *License) IsCloud() bool {
+	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
 }
 
 func (l *License) IsTrialLicense() bool {
@@ -304,10 +314,27 @@ func (l *License) IsSanctionedTrial() bool {
 		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
 }
 
+func (l *License) HasEnterpriseMarketplacePlugins() bool {
+	return *l.Features.EnterprisePlugins ||
+		l.SkuShortName == LicenseShortSkuE20 ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
+}
+
+func (l *License) HasSharedChannels() bool {
+	if l == nil {
+		return false
+	}
+
+	return (l.Features != nil && l.Features.SharedChannels != nil && *l.Features.SharedChannels) ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
-		ExpiresAt: GetMillis() + 90*24*60*60*1000,
+		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
 		Customer:  &Customer{},
 		Features:  &Features{},
 	}
@@ -323,10 +350,29 @@ func NewTestLicense(features ...string) *License {
 	return ret
 }
 
-func LicenseFromJson(data io.Reader) *License {
-	var o *License
-	json.NewDecoder(data).Decode(&o)
-	return o
+// NewTestLicense returns a license that expires in the future and set as false the given features.
+func NewTestLicenseWithFalseDefaults(features ...string) *License {
+	ret := &License{
+		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
+		Customer:  &Customer{},
+		Features:  &Features{},
+	}
+	ret.Features.SetDefaults()
+
+	featureMap := map[string]bool{}
+	for _, feature := range features {
+		featureMap[feature] = false
+	}
+	featureJson, _ := json.Marshal(featureMap)
+	json.Unmarshal(featureJson, &ret.Features)
+
+	return ret
+}
+
+func NewTestLicenseSKU(skuShortName string, features ...string) *License {
+	lic := NewTestLicense(features...)
+	lic.SkuShortName = skuShortName
+	return lic
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {

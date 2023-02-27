@@ -5,10 +5,11 @@ package web
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -16,18 +17,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-var ApiClient *model.Client4
+var apiClient *model.Client4
 var URL string
 
 type TestHelper struct {
@@ -45,6 +46,8 @@ type TestHelper struct {
 	tempWorkspace string
 
 	IncludeCacheLayer bool
+
+	TestLogger *mlog.Logger
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -52,10 +55,10 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	th := setupTestHelper(false)
+	th := setupTestHelper(tb, false)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -65,10 +68,10 @@ func Setup(tb testing.TB) *TestHelper {
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	return setupTestHelper(true)
+	return setupTestHelper(tb, true)
 }
 
-func setupTestHelper(includeCacheLayer bool) *TestHelper {
+func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	memoryStore := config.NewTestMemoryStore()
 	newConfig := memoryStore.Get().Clone()
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
@@ -79,7 +82,14 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
-	mlog.DisableZap()
+	testLogger, _ := mlog.NewLogger()
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
+	}
+	// lock logger config so server init cannot override it during testing.
+	testLogger.LockConfiguration()
+	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -87,22 +97,25 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 	}
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+		var st localcachelayer.LocalCacheStore
+		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider())
 		if err != nil {
 			panic(err)
 		}
+		s.SetStore(st)
 	}
 
+	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
-	s.UpdateConfig(func(cfg *model.Config) {
+	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
@@ -110,26 +123,25 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
-	ctx := &request.Context{}
-	a := app.New(app.ServerConnector(s))
-
-	web := New(a, s.Router)
+	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
-	ApiClient = model.NewAPIv4Client(URL)
+	apiClient = model.NewAPIv4Client(URL)
 
-	s.Store.MarkSystemRanUnitTests()
+	s.Store().MarkSystemRanUnitTests()
 
-	s.UpdateConfig(func(cfg *model.Config) {
+	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
 	th := &TestHelper{
 		App:               a,
-		Context:           ctx,
+		Context:           request.EmptyContext(testLogger),
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
+		TestLogger:        testLogger,
 	}
+	th.Context.SetLogger(testLogger)
 
 	return th
 }
@@ -148,15 +160,15 @@ func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
-	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
 
-	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
+	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
 
-	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
+	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TeamOpen})
 
 	th.App.JoinUserToTeam(th.Context, team, user, "")
 
-	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
+	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
 
 	th.BasicUser = user
 	th.BasicChannel = channel
@@ -192,7 +204,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v5/plugin"
+		"github.com/mattermost/mattermost-server/v6/plugin"
 	)
 
 	type MyPlugin struct {
@@ -209,12 +221,12 @@ func TestStaticFilesRequest(t *testing.T) {
 	mainJS := `var x = alert();`
 	mainJSPath := filepath.Join(pluginDir, "main.js")
 	require.NoError(t, err)
-	err = ioutil.WriteFile(mainJSPath, []byte(mainJS), 0777)
+	err = os.WriteFile(mainJSPath, []byte(mainJS), 0777)
 	require.NoError(t, err)
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "webapp": {"bundle_path":"main.js"}, "settings_schema": {"settings": []}}`
-	ioutil.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
+	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
@@ -263,14 +275,14 @@ func TestPublicFilesRequest(t *testing.T) {
 	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
-	pluginDir, err := ioutil.TempDir("", "")
+	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	webappPluginDir, err := ioutil.TempDir("", "")
+	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"
@@ -279,7 +291,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v5/plugin"
+		"github.com/mattermost/mattermost-server/v6/plugin"
 	)
 
 	type MyPlugin struct {
@@ -297,7 +309,7 @@ func TestPublicFilesRequest(t *testing.T) {
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
-	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Write the test public file
 	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
@@ -305,11 +317,11 @@ func TestPublicFilesRequest(t *testing.T) {
 	os.MkdirAll(htmlFolderPath, os.ModePerm)
 	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
 
-	htmlFileErr := ioutil.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
+	htmlFileErr := os.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
 	assert.NoError(t, htmlFileErr)
 
 	nefariousHTML := `You shouldn't be able to get here!`
-	htmlFileErr = ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
+	htmlFileErr = os.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
 	assert.NoError(t, htmlFileErr)
 
 	manifest, activated, reterr := env.Activate(pluginID)
@@ -317,7 +329,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
-	th.App.SetPluginsEnvironment(env)
+	th.App.Channels().SetPluginsEnvironment(env)
 
 	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
 	res := httptest.NewRecorder()
@@ -335,7 +347,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	assert.Equal(t, 301, res.Code)
 }
 
-/* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
+/* Test disabled for now so we don't require the client to build. Maybe re-enable after client gets moved out.
 func TestStatic(t *testing.T) {
 	Setup()
 
@@ -348,6 +360,65 @@ func TestStatic(t *testing.T) {
 	assert.Equalf(t, resp.StatusCode, http.StatusOK, "couldn't get static files %v", resp.StatusCode)
 }
 */
+
+func TestStaticFilesCaching(t *testing.T) {
+	th := Setup(t).InitPlugins()
+	defer th.TearDown()
+
+	wd, _ := os.Getwd()
+	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
+	fakeMainBundleName := "main.1234ab.js"
+	fakeRootHTML := `<html>
+<head>
+	<title>Mattermost</title>
+</head>
+</html>`
+	fakeMainBundle := `module.exports = 'main';`
+	fakeRemoteEntry := `module.exports = 'remote';`
+
+	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/remote_entry.js", []byte(fakeRemoteEntry), 0600)
+	require.NoError(t, err)
+
+	err = os.MkdirAll("./client/products/boards", 0777)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/products/boards/remote_entry.js", []byte(fakeRemoteEntry), 0600)
+	require.NoError(t, err)
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRootHTML, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/"+fakeMainBundleName, nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeMainBundle, res.Body.String())
+	require.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/remote_entry.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRemoteEntry, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/products/boards/remote_entry.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRemoteEntry, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+}
 
 func TestCheckClientCompatability(t *testing.T) {
 	//Browser Name, UA String, expected result (if the browser should fail the test false and if it should pass the true)

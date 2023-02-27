@@ -6,8 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -44,6 +42,24 @@ type GroupSyncable struct {
 	TeamID             string `db:"-" json:"-"`
 }
 
+func (syncable *GroupSyncable) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"group_id":             syncable.GroupId,
+		"syncable_id":          syncable.SyncableId,
+		"auto_add":             syncable.AutoAdd,
+		"scheme_admin":         syncable.SchemeAdmin,
+		"create_at":            syncable.CreateAt,
+		"delete_at":            syncable.DeleteAt,
+		"update_at":            syncable.UpdateAt,
+		"type":                 syncable.Type,
+		"channel_display_name": syncable.ChannelDisplayName,
+		"team_display_name":    syncable.TeamDisplayName,
+		"team_type":            syncable.TeamType,
+		"channel_type":         syncable.ChannelType,
+		"team_id":              syncable.TeamID,
+	}
+}
+
 func (syncable *GroupSyncable) IsValid() *AppError {
 	if !IsValidId(syncable.GroupId) {
 		return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.group_id.app_error", nil, "", http.StatusBadRequest)
@@ -55,7 +71,7 @@ func (syncable *GroupSyncable) IsValid() *AppError {
 }
 
 func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
-	var kvp map[string]interface{}
+	var kvp map[string]any
 	err := json.Unmarshal(b, &kvp)
 	if err != nil {
 		return err
@@ -128,9 +144,7 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			Alias: (*Alias)(syncable),
 		})
 	default:
-		return nil, &json.MarshalerError{
-			Err: fmt.Errorf("unknown syncable type: %s", syncable.Type),
-		}
+		return nil, fmt.Errorf("unknown syncable type: %s", syncable.Type)
 	}
 }
 
@@ -156,20 +170,6 @@ type UserTeamIDPair struct {
 type UserChannelIDPair struct {
 	UserID    string
 	ChannelID string
-}
-
-func GroupSyncableFromJson(data io.Reader) *GroupSyncable {
-	groupSyncable := &GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, groupSyncable)
-	return groupSyncable
-}
-
-func GroupSyncablesFromJson(data io.Reader) []*GroupSyncable {
-	groupSyncables := []*GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, &groupSyncables)
-	return groupSyncables
 }
 
 func NewGroupTeam(groupID, teamID string, autoAdd bool) *GroupSyncable {

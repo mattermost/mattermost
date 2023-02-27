@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -40,26 +40,26 @@ type ServerIface interface {
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
-	GetLogger() mlog.LoggerIFace
+	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 }
 
 type AppIface interface {
-	SendEphemeralPost(userId string, post *model.Post) *model.Post
-	CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
-	GetOrCreateDirectChannel(c *request.Context, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
-	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
+	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
-	PermanentDeleteChannel(channel *model.Channel) *model.AppError
-	CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
+	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
-	DeletePost(postID, deleteByID string) (*model.Post, *model.AppError)
+	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
-	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
-	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
+	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
+	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	InvalidateCacheForUser(userID string)
 	NotifySharedChannelUserUpdate(user *model.User)
@@ -72,7 +72,7 @@ type errNotFound interface {
 
 // errInvalidInput allows checking against Store.ErrInvalidInput errors without making Store a dependency.
 type errInvalidInput interface {
-	InvalidInputInfo() (entity string, field string, value interface{})
+	InvalidInputInfo() (entity string, field string, value any)
 }
 
 // Service provides shared channel synchronization.
@@ -166,7 +166,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 		Message:   text,
 		CreateAt:  model.GetMillis(),
 	}
-	scs.app.SendEphemeralPost(userId, ephemeral)
+	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.Log()), userId, ephemeral)
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
@@ -191,7 +191,7 @@ func (scs *Service) resume() {
 
 	go scs.syncLoop(scs.done)
 
-	scs.server.GetLogger().Debug("Shared Channel Service active")
+	scs.server.Log().Debug("Shared Channel Service active")
 }
 
 func (scs *Service) pause() {
@@ -206,13 +206,13 @@ func (scs *Service) pause() {
 	close(scs.done)
 	scs.done = nil
 
-	scs.server.GetLogger().Debug("Shared Channel Service inactive")
+	scs.server.Log().Debug("Shared Channel Service inactive")
 }
 
 // Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
 func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
-	createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
-	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+	createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
+	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 	updateMap := model.ChannelModeratedRolesPatch{
 		Guests:  model.NewBool(false),
 		Members: model.NewBool(false),
@@ -229,7 +229,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 		},
 	}
 
-	_, err := scs.app.PatchChannelModerationsForChannel(channel, readonlyChannelModerations)
+	_, err := scs.app.PatchChannelModerationsForChannel(request.EmptyContext(scs.server.Log()), channel, readonlyChannelModerations)
 	return err
 }
 
@@ -241,7 +241,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		scs.ForceSyncForRemote(rc)
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("remoteId", rc.RemoteId),
 		mlog.Bool("online", online),

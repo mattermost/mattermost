@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestCommandStore(t *testing.T, ss store.Store) {
@@ -28,7 +28,7 @@ func TestCommandStore(t *testing.T, ss store.Store) {
 func testCommandStoreSave(t *testing.T, ss store.Store) {
 	o1 := model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -43,7 +43,7 @@ func testCommandStoreSave(t *testing.T, ss store.Store) {
 func testCommandStoreGet(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -64,7 +64,7 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -85,14 +85,14 @@ func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger1"
 
 	o2 := &model.Command{}
 	o2.CreatorId = model.NewId()
-	o2.Method = model.COMMAND_METHOD_POST
+	o2.Method = model.CommandMethodPost
 	o2.TeamId = model.NewId()
 	o2.URL = "http://nowhere.com/"
 	o2.Trigger = "trigger1"
@@ -120,7 +120,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 func testCommandStoreDelete(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -144,7 +144,7 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -168,7 +168,7 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -192,7 +192,7 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
@@ -214,7 +214,7 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 func testCommandCount(t *testing.T, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
-	o1.Method = model.COMMAND_METHOD_POST
+	o1.Method = model.CommandMethodPost
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"

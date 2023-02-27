@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestSchemeStore(t *testing.T, ss store.Store) {
@@ -29,54 +29,86 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 
 func createDefaultRoles(ss store.Store) {
 	ss.Role().Save(&model.Role{
-		Name:        model.TEAM_ADMIN_ROLE_ID,
-		DisplayName: model.TEAM_ADMIN_ROLE_ID,
+		Name:        model.TeamAdminRoleId,
+		DisplayName: model.TeamAdminRoleId,
 		Permissions: []string{
-			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+			model.PermissionDeleteOthersPosts.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.TEAM_USER_ROLE_ID,
-		DisplayName: model.TEAM_USER_ROLE_ID,
+		Name:        model.TeamUserRoleId,
+		DisplayName: model.TeamUserRoleId,
 		Permissions: []string{
-			model.PERMISSION_VIEW_TEAM.Id,
-			model.PERMISSION_ADD_USER_TO_TEAM.Id,
+			model.PermissionViewTeam.Id,
+			model.PermissionAddUserToTeam.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.TEAM_GUEST_ROLE_ID,
-		DisplayName: model.TEAM_GUEST_ROLE_ID,
+		Name:        model.TeamGuestRoleId,
+		DisplayName: model.TeamGuestRoleId,
 		Permissions: []string{
-			model.PERMISSION_VIEW_TEAM.Id,
+			model.PermissionViewTeam.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.CHANNEL_ADMIN_ROLE_ID,
-		DisplayName: model.CHANNEL_ADMIN_ROLE_ID,
+		Name:        model.ChannelAdminRoleId,
+		DisplayName: model.ChannelAdminRoleId,
 		Permissions: []string{
-			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
-			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			model.PermissionManagePublicChannelMembers.Id,
+			model.PermissionManagePrivateChannelMembers.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.CHANNEL_USER_ROLE_ID,
-		DisplayName: model.CHANNEL_USER_ROLE_ID,
+		Name:        model.ChannelUserRoleId,
+		DisplayName: model.ChannelUserRoleId,
 		Permissions: []string{
-			model.PERMISSION_READ_CHANNEL.Id,
-			model.PERMISSION_CREATE_POST.Id,
+			model.PermissionReadChannel.Id,
+			model.PermissionCreatePost.Id,
 		},
 	})
 
 	ss.Role().Save(&model.Role{
-		Name:        model.CHANNEL_GUEST_ROLE_ID,
-		DisplayName: model.CHANNEL_GUEST_ROLE_ID,
+		Name:        model.ChannelGuestRoleId,
+		DisplayName: model.ChannelGuestRoleId,
 		Permissions: []string{
-			model.PERMISSION_READ_CHANNEL.Id,
-			model.PERMISSION_CREATE_POST.Id,
+			model.PermissionReadChannel.Id,
+			model.PermissionCreatePost.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.PlaybookAdminRoleId,
+		DisplayName: model.PlaybookAdminRoleId,
+		Permissions: []string{
+			model.PermissionPrivatePlaybookManageMembers.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.PlaybookMemberRoleId,
+		DisplayName: model.PlaybookMemberRoleId,
+		Permissions: []string{
+			model.PermissionPrivatePlaybookManageMembers.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.RunAdminRoleId,
+		DisplayName: model.RunAdminRoleId,
+		Permissions: []string{
+			model.PermissionRunManageMembers.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.RunMemberRoleId,
+		DisplayName: model.RunMemberRoleId,
+		Permissions: []string{
+			model.PermissionRunManageMembers.Id,
 		},
 	})
 }
@@ -87,7 +119,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	// Check all fields saved correctly.
@@ -165,7 +197,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	_, err = ss.Scheme().Save(s3)
@@ -178,7 +210,7 @@ func testSchemeStoreGet(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	d1, err := ss.Scheme().Save(s1)
@@ -214,7 +246,7 @@ func testSchemeStoreGetByName(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	d1, err := ss.Scheme().Save(s1)
@@ -251,25 +283,25 @@ func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		},
 		{
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		},
 		{
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_TEAM,
+			Scope:       model.SchemeScopeTeam,
 		},
 		{
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
-			Scope:       model.SCHEME_SCOPE_CHANNEL,
+			Scope:       model.SchemeScopeChannel,
 		},
 	}
 
@@ -315,7 +347,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	// Check all fields saved correctly.
@@ -406,7 +438,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 	d4, err := ss.Scheme().Save(s4)
 	assert.NoError(t, err)
@@ -415,7 +447,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Name:        "xx" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		SchemeId:    &d4.Id,
 	}
 	t4, err = ss.Team().Save(t4)
@@ -433,7 +465,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 	d5, err := ss.Scheme().Save(s5)
 	assert.NoError(t, err)
@@ -442,7 +474,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		SchemeId:    &d5.Id,
 	}
 	c5, nErr := ss.Channel().Save(c5, -1)
@@ -461,14 +493,14 @@ func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
+		Scope:       model.SchemeScopeTeam,
 	}
 
 	s2 := &model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
+		Scope:       model.SchemeScopeChannel,
 	}
 
 	s1, err := ss.Scheme().Save(s1)
@@ -492,11 +524,11 @@ func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 
 func testSchemeStoreCountByScope(t *testing.T, ss store.Store) {
 	testCounts := func(expectedTeamCount, expectedChannelCount int) {
-		actualCount, err := ss.Scheme().CountByScope(model.SCHEME_SCOPE_TEAM)
+		actualCount, err := ss.Scheme().CountByScope(model.SchemeScopeTeam)
 		require.NoError(t, err)
 		require.Equal(t, int64(expectedTeamCount), actualCount)
 
-		actualCount, err = ss.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
+		actualCount, err = ss.Scheme().CountByScope(model.SchemeScopeChannel)
 		require.NoError(t, err)
 		require.Equal(t, int64(expectedChannelCount), actualCount)
 	}
@@ -514,17 +546,17 @@ func testSchemeStoreCountByScope(t *testing.T, ss store.Store) {
 	err := ss.Scheme().PermanentDeleteAll()
 	require.NoError(t, err)
 
-	createScheme(model.SCHEME_SCOPE_CHANNEL)
-	createScheme(model.SCHEME_SCOPE_TEAM)
+	createScheme(model.SchemeScopeChannel)
+	createScheme(model.SchemeScopeTeam)
 	testCounts(1, 1)
-	createScheme(model.SCHEME_SCOPE_TEAM)
+	createScheme(model.SchemeScopeTeam)
 	testCounts(2, 1)
-	createScheme(model.SCHEME_SCOPE_CHANNEL)
+	createScheme(model.SchemeScopeChannel)
 	testCounts(2, 2)
 }
 
 func testCountWithoutPermission(t *testing.T, ss store.Store) {
-	perm := model.PERMISSION_CREATE_POST.Id
+	perm := model.PermissionCreatePost.Id
 
 	createScheme := func(scope string) *model.Scheme {
 		scheme, err := ss.Scheme().Save(&model.Scheme{
@@ -548,13 +580,13 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 		return
 	}
 
-	teamScheme1 := createScheme(model.SCHEME_SCOPE_TEAM)
+	teamScheme1 := createScheme(model.SchemeScopeTeam)
 	defer ss.Scheme().Delete(teamScheme1.Id)
-	teamScheme2 := createScheme(model.SCHEME_SCOPE_TEAM)
+	teamScheme2 := createScheme(model.SchemeScopeTeam)
 	defer ss.Scheme().Delete(teamScheme2.Id)
-	channelScheme1 := createScheme(model.SCHEME_SCOPE_CHANNEL)
+	channelScheme1 := createScheme(model.SchemeScopeChannel)
 	defer ss.Scheme().Delete(channelScheme1.Id)
-	channelScheme2 := createScheme(model.SCHEME_SCOPE_CHANNEL)
+	channelScheme2 := createScheme(model.SchemeScopeChannel)
 	defer ss.Scheme().Delete(channelScheme2.Id)
 
 	ts1User, ts1Guest := getRoles(teamScheme1)
@@ -573,11 +605,11 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 		cs2Guest,
 	}
 
-	teamUserCount, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeUser)
+	teamUserCount, err := ss.Scheme().CountWithoutPermission(model.SchemeScopeTeam, perm, model.RoleScopeChannel, model.RoleTypeUser)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), teamUserCount)
 
-	teamGuestCount, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeGuest)
+	teamGuestCount, err := ss.Scheme().CountWithoutPermission(model.SchemeScopeTeam, perm, model.RoleScopeChannel, model.RoleTypeGuest)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), teamGuestCount)
 
@@ -614,19 +646,19 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 	for _, test := range tests {
 		removePermission(test.removePermissionFromRole)
 
-		count, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeUser)
+		count, err := ss.Scheme().CountWithoutPermission(model.SchemeScopeTeam, perm, model.RoleScopeChannel, model.RoleTypeUser)
 		require.NoError(t, err)
 		require.Equal(t, int64(test.expectTeamSchemeChannelUserCount), count)
 
-		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeGuest)
+		count, err = ss.Scheme().CountWithoutPermission(model.SchemeScopeTeam, perm, model.RoleScopeChannel, model.RoleTypeGuest)
 		require.NoError(t, err)
 		require.Equal(t, int64(test.expectTeamSchemeChannelGuestCount), count)
 
-		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, perm, model.RoleScopeChannel, model.RoleTypeUser)
+		count, err = ss.Scheme().CountWithoutPermission(model.SchemeScopeChannel, perm, model.RoleScopeChannel, model.RoleTypeUser)
 		require.NoError(t, err)
 		require.Equal(t, int64(test.expectChannelSchemeChannelUserCount), count)
 
-		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, perm, model.RoleScopeChannel, model.RoleTypeGuest)
+		count, err = ss.Scheme().CountWithoutPermission(model.SchemeScopeChannel, perm, model.RoleScopeChannel, model.RoleTypeGuest)
 		require.NoError(t, err)
 		require.Equal(t, int64(test.expectChannelSchemeChannelGuestCount), count)
 	}

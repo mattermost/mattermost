@@ -4,18 +4,19 @@
 package wsapi
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitUser() {
-	api.Router.Handle("user_typing", api.ApiWebSocketHandler(api.userTyping))
-	api.Router.Handle("user_update_active_status", api.ApiWebSocketHandler(api.userUpdateActiveStatus))
+	api.Router.Handle("user_typing", api.APIWebSocketHandler(api.userTyping))
+	api.Router.Handle("user_update_active_status", api.APIWebSocketHandler(api.userUpdateActiveStatus))
 }
 
-func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) userTyping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 	api.App.ExtendSessionExpiryIfNeeded(&req.Session)
 
-	if api.App.Srv().Busy.IsBusy() {
+	if api.App.Srv().Platform().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return nil, NewServerBusyWebSocketError(req.Action)
 	}
@@ -26,7 +27,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
-	if !api.App.SessionHasPermissionToChannel(req.Session, channelId, model.PERMISSION_CREATE_POST) {
+	if !api.App.SessionHasPermissionToChannel(request.EmptyContext(api.App.Log()), req.Session, channelId, model.PermissionCreatePost) {
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
@@ -40,7 +41,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 	return nil, appErr
 }
 
-func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 	var ok bool
 	var userIsActive bool
 	if userIsActive, ok = req.Data["user_is_active"].(bool); !ok {

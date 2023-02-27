@@ -6,14 +6,13 @@ package filestore
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -88,7 +87,7 @@ func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 }
 
 func (b *LocalFileBackend) ReadFile(path string) ([]byte, error) {
-	f, err := ioutil.ReadFile(filepath.Join(b.directory, path))
+	f, err := os.ReadFile(filepath.Join(b.directory, path))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
@@ -188,19 +187,48 @@ func (b *LocalFileBackend) RemoveFile(path string) error {
 	return nil
 }
 
-func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
-	var paths []string
-	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
+// basePath: path to get to the file but won't be added to the end result
+// path: basePath+path current directory we are looking at
+// maxDepth: parameter to prevent infinite recursion, once this is reached we won't look any further
+func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
+	results := []string{}
+	dirEntries, err := os.ReadDir(filepath.Join(basePath, path))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return paths, nil
+			return results, nil
 		}
-		return nil, errors.Wrapf(err, "unable to list the directory %s", path)
+		return results, errors.Wrapf(err, "unable to list the directory %s", path)
 	}
-	for _, fileInfo := range fileInfos {
-		paths = append(paths, filepath.Join(path, fileInfo.Name()))
+	for _, dirEntry := range dirEntries {
+		entryName := dirEntry.Name()
+		entryPath := filepath.Join(path, entryName)
+		if entryName == "." || entryName == ".." || entryPath == path {
+			continue
+		}
+		if dirEntry.IsDir() {
+			if maxDepth <= 0 {
+				mlog.Warn("Max Depth reached", mlog.String("path", entryPath))
+				results = append(results, entryPath)
+				continue // we'll ignore it if max depth is reached.
+			}
+			nestedResults, err := appendRecursively(basePath, entryPath, maxDepth-1)
+			if err != nil {
+				return results, err
+			}
+			results = append(results, nestedResults...)
+		} else {
+			results = append(results, entryPath)
+		}
 	}
-	return paths, nil
+	return results, nil
+}
+
+func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
+	return appendRecursively(b.directory, path, 0)
+}
+
+func (b *LocalFileBackend) ListDirectoryRecursively(path string) ([]string, error) {
+	return appendRecursively(b.directory, path, 10)
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {

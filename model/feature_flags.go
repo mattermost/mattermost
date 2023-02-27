@@ -16,43 +16,99 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
-	CloudDelinquentEmailJobsEnabled bool
-
-	// Toggle on and off support for Collapsed Threads
-	CollapsedThreads bool
-
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
-	// AppsEnabled toggle the Apps framework functionalities both in server and client side
+	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
 	// Feature flags to control plugin versions
-	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
-	PluginApps               string `plugin_id:"com.mattermost.apps"`
-	PluginFocalboard         string `plugin_id:"focalboard"`
+	PluginPlaybooks  string `plugin_id:"playbooks"`
+	PluginApps       string `plugin_id:"com.mattermost.apps"`
+	PluginFocalboard string `plugin_id:"focalboard"`
+	PluginCalls      string `plugin_id:"com.mattermost.calls"`
 
-	// Control support for custom data retention policies
-	CustomDataRetentionEnabled bool
+	PermalinkPreviews bool
 
-	// Enable timed dnd support for user status
-	TimedDND bool
+	// CallsEnabled controls whether or not the Calls plugin should be enabled
+	CallsEnabled bool
+
+	// A dash separated list for feature flags to turn on for Boards
+	BoardsFeatureFlags string
+
+	// Enable DataRetention for Boards
+	BoardsDataRetention bool
+
+	NormalizeLdapDNs bool
+
+	EnableInactivityCheckJob bool
+
+	// Enable special onboarding flow for first admin
+	UseCaseOnboarding bool
+
+	// Enable GraphQL feature
+	GraphQL bool
+
+	InsightsEnabled bool
+
+	CommandPalette bool
+
+	// Enable Boards as a product (multi-product architecture)
+	BoardsProduct bool
+
+	// A/B Test on posting a welcome message
+	SendWelcomePost bool
+
+	WorkTemplate bool
+
+	PostPriority bool
+
+	// Enable WYSIWYG text editor
+	WysiwygEditor bool
+
+	PeopleProduct bool
+
+	// A/B Test on reduced onboarding task list item
+	ReduceOnBoardingTaskList bool
+
+	// A/B Test to control when to show onboarding linked board
+	OnboardingAutoShowLinkedBoard bool
+
+	ThreadsEverywhere bool
+
+	GlobalDrafts bool
+
+	OnboardingTourTips bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CloudDelinquentEmailJobsEnabled = false
-	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = false
-
-	f.PluginIncidentManagement = "1.14.2"
+	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.CustomDataRetentionEnabled = false
-	f.TimedDND = false
+	f.PermalinkPreviews = true
+	f.BoardsFeatureFlags = ""
+	f.BoardsDataRetention = false
+	f.NormalizeLdapDNs = false
+	f.EnableInactivityCheckJob = true
+	f.UseCaseOnboarding = true
+	f.GraphQL = false
+	f.InsightsEnabled = true
+	f.CommandPalette = false
+	f.CallsEnabled = true
+	f.BoardsProduct = true
+	f.SendWelcomePost = true
+	f.PostPriority = true
+	f.PeopleProduct = false
+	f.WorkTemplate = false
+	f.ReduceOnBoardingTaskList = false
+	f.ThreadsEverywhere = false
+	f.GlobalDrafts = true
+	f.WysiwygEditor = false
+	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingTourTips = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

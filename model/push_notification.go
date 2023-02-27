@@ -4,36 +4,34 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
 	"strings"
 )
 
 const (
-	PUSH_NOTIFY_APPLE                = "apple"
-	PUSH_NOTIFY_ANDROID              = "android"
-	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
-	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
+	PushNotifyApple              = "apple"
+	PushNotifyAndroid            = "android"
+	PushNotifyAppleReactNative   = "apple_rn"
+	PushNotifyAndroidReactNative = "android_rn"
 
-	PUSH_TYPE_MESSAGE      = "message"
-	PUSH_TYPE_CLEAR        = "clear"
-	PUSH_TYPE_UPDATE_BADGE = "update_badge"
-	PUSH_TYPE_SESSION      = "session"
-	PUSH_MESSAGE_V2        = "v2"
+	PushTypeMessage     = "message"
+	PushTypeClear       = "clear"
+	PushTypeUpdateBadge = "update_badge"
+	PushTypeSession     = "session"
+	PushTypeTest        = "test"
+	PushMessageV2       = "v2"
 
-	PUSH_SOUND_NONE = "none"
+	PushSoundNone = "none"
 
 	// The category is set to handle a set of interactive Actions
 	// with the push notifications
-	CATEGORY_CAN_REPLY = "CAN_REPLY"
+	CategoryCanReply = "CAN_REPLY"
 
 	MHPNS = "https://push.mattermost.com"
 
-	PUSH_SEND_PREPARE = "Prepared to send"
-	PUSH_SEND_SUCCESS = "Successful"
-	PUSH_NOT_SENT     = "Not Sent due to preferences"
-	PUSH_RECEIVED     = "Received by device"
+	PushSendPrepare = "Prepared to send"
+	PushSendSuccess = "Successful"
+	PushNotSent     = "Not Sent due to preferences"
+	PushReceived    = "Received by device"
 )
 
 type PushNotificationAck struct {
@@ -64,15 +62,11 @@ type PushNotification struct {
 	SenderId         string `json:"sender_id,omitempty"`
 	SenderName       string `json:"sender_name,omitempty"`
 	OverrideUsername string `json:"override_username,omitempty"`
-	OverrideIconUrl  string `json:"override_icon_url,omitempty"`
+	OverrideIconURL  string `json:"override_icon_url,omitempty"`
 	FromWebhook      string `json:"from_webhook,omitempty"`
 	Version          string `json:"version,omitempty"`
+	IsCRTEnabled     bool   `json:"is_crt_enabled"`
 	IsIdLoaded       bool   `json:"is_id_loaded"`
-}
-
-func (pn *PushNotification) ToJson() string {
-	b, _ := json.Marshal(pn)
-	return string(b)
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {
@@ -81,38 +75,10 @@ func (pn *PushNotification) DeepCopy() *PushNotification {
 }
 
 func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-
 	index := strings.Index(deviceId, ":")
 
 	if index > -1 {
 		pn.Platform = deviceId[:index]
 		pn.DeviceId = deviceId[index+1:]
 	}
-}
-
-func PushNotificationFromJson(data io.Reader) (*PushNotification, error) {
-	if data == nil {
-		return nil, errors.New("push notification data can't be nil")
-	}
-	var pn *PushNotification
-	if err := json.NewDecoder(data).Decode(&pn); err != nil {
-		return nil, err
-	}
-	return pn, nil
-}
-
-func PushNotificationAckFromJson(data io.Reader) (*PushNotificationAck, error) {
-	if data == nil {
-		return nil, errors.New("push notification data can't be nil")
-	}
-	var ack *PushNotificationAck
-	if err := json.NewDecoder(data).Decode(&ack); err != nil {
-		return nil, err
-	}
-	return ack, nil
-}
-
-func (ack *PushNotificationAck) ToJson() string {
-	b, _ := json.Marshal(ack)
-	return string(b)
 }

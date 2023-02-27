@@ -6,12 +6,12 @@ package sqlstore
 import (
 	"database/sql"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlCommandWebhookStore struct {
@@ -19,23 +19,7 @@ type SqlCommandWebhookStore struct {
 }
 
 func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
-	s := &SqlCommandWebhookStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		tablec := db.AddTableWithName(model.CommandWebhook{}, "CommandWebhooks").SetKeys(false, "Id")
-		tablec.ColMap("Id").SetMaxSize(26)
-		tablec.ColMap("CommandId").SetMaxSize(26)
-		tablec.ColMap("UserId").SetMaxSize(26)
-		tablec.ColMap("ChannelId").SetMaxSize(26)
-		tablec.ColMap("RootId").SetMaxSize(26)
-		tablec.ColMap("ParentId").SetMaxSize(26)
-	}
-
-	return s
-}
-
-func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
+	return &SqlCommandWebhookStore{sqlStore}
 }
 
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
@@ -48,7 +32,10 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(webhook); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO CommandWebhooks
+		(Id,CreateAt,CommandId,UserId,ChannelId,RootId,UseCount)
+		Values
+		(:Id, :CreateAt, :CommandId, :UserId, :ChannelId, :RootId, :UseCount)`, webhook); err != nil {
 		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
 	}
 
@@ -58,7 +45,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	var webhook model.CommandWebhook
 
-	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().
 		Select("*").
@@ -71,7 +58,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 		return nil, errors.Wrap(err, "get_tosql")
 	}
 
-	if err := s.GetReplica().SelectOne(&webhook, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Get(&webhook, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("CommandWebhook", id)
 		}
@@ -93,10 +80,10 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 		return errors.Wrap(err, "tryuse_tosql")
 	}
 
-	if sqlResult, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if sqlResult, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		return errors.Wrapf(err, "tryuse: id=%s limit=%d", id, limit)
-	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return store.NewErrInvalidInput("CommandWebhook", "id", id)
+	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
+		return store.NewErrInvalidInput("CommandWebhook", "id", id).Wrap(err)
 	}
 
 	return nil
@@ -104,7 +91,7 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 func (s SqlCommandWebhookStore) Cleanup() {
 	mlog.Debug("Cleaning up command webhook store.")
-	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().
 		Delete("CommandWebhooks").
@@ -116,7 +103,7 @@ func (s SqlCommandWebhookStore) Cleanup() {
 		return
 	}
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		mlog.Error("Unable to cleanup command webhook store.")
 	}
 }

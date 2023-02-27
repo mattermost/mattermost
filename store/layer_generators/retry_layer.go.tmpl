@@ -8,10 +8,12 @@ package retrylayer
 
 import (
 	"context"
+	timepkg "time"
+	"time"
 
 	"github.com/lib/pq"
-	"github.com/mattermost/mattermost-server/v5/model"
-    "github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+    "github.com/mattermost/mattermost-server/v6/store"
     "github.com/pkg/errors"
 	"github.com/go-sql-driver/mysql"
 )
@@ -74,6 +76,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
                     {{$element.Results | errorVar}} = errors.Wrap({{$element.Results | errorVar}}, "giving up after 3 consecutive repeatable transaction failures")
                     return {{genResultsVars $element.Results false }}
                 }
+                timepkg.Sleep(100 * timepkg.Millisecond)
             }
         {{else}}
             return s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})

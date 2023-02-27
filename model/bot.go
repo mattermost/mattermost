@@ -4,20 +4,18 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"unicode/utf8"
 )
 
 const (
-	BOT_DISPLAY_NAME_MAX_RUNES   = USER_FIRST_NAME_MAX_RUNES
-	BOT_DESCRIPTION_MAX_RUNES    = 1024
-	BOT_CREATOR_ID_MAX_RUNES     = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
-	BOT_WARN_METRIC_BOT_USERNAME = "mattermost-advisor"
-	BOT_SYSTEM_BOT_USERNAME      = "system-bot"
+	BotDisplayNameMaxRunes   = UserFirstNameMaxRunes
+	BotDescriptionMaxRunes   = 1024
+	BotCreatorIdMaxRunes     = KeyValuePluginIdMaxRunes // UserId or PluginId
+	BotWarnMetricBotUsername = "mattermost-advisor"
+	BotSystemBotUsername     = "system-bot"
 )
 
 // Bot is a special type of User meant for programmatic interactions.
@@ -33,6 +31,20 @@ type Bot struct {
 	CreateAt       int64  `json:"create_at"`
 	UpdateAt       int64  `json:"update_at"`
 	DeleteAt       int64  `json:"delete_at"`
+}
+
+func (b *Bot) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id":          b.UserId,
+		"username":         b.Username,
+		"display_name":     b.DisplayName,
+		"description":      b.Description,
+		"owner_id":         b.OwnerId,
+		"last_icon_update": b.LastIconUpdate,
+		"create_at":        b.CreateAt,
+		"update_at":        b.UpdateAt,
+		"delete_at":        b.DeleteAt,
+	}
 }
 
 // BotPatch is a description of what fields to update on an existing bot.
@@ -55,8 +67,8 @@ type BotGetOptions struct {
 type BotList []*Bot
 
 // Trace describes the minimum information required to identify a bot for the purpose of logging.
-func (b *Bot) Trace() map[string]interface{} {
-	return map[string]interface{}{"user_id": b.UserId}
+func (b *Bot) Trace() map[string]any {
+	return map[string]any{"user_id": b.UserId}
 }
 
 // Clone returns a shallow copy of the bot.
@@ -65,26 +77,31 @@ func (b *Bot) Clone() *Bot {
 	return &copy
 }
 
-// IsValid validates the bot and returns an error if it isn't configured correctly.
-func (b *Bot) IsValid() *AppError {
-	if !IsValidId(b.UserId) {
-		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
-	}
-
+// IsValidCreate validates bot for Create call. This skips validations of fields that are auto-filled on Create
+func (b *Bot) IsValidCreate() *AppError {
 	if !IsValidUsername(b.Username) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.DisplayName) > BOT_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(b.DisplayName) > BotDisplayNameMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.Description) > BOT_DESCRIPTION_MAX_RUNES {
+	if utf8.RuneCountInString(b.Description) > BotDescriptionMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
+	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BotCreatorIdMaxRunes {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// IsValid validates the bot and returns an error if it isn't configured correctly.
+func (b *Bot) IsValid() *AppError {
+	if !IsValidId(b.UserId) {
+		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
 	if b.CreateAt == 0 {
@@ -94,8 +111,7 @@ func (b *Bot) IsValid() *AppError {
 	if b.UpdateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.update_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
-
-	return nil
+	return b.IsValidCreate()
 }
 
 // PreSave should be run before saving a new bot to the database.
@@ -113,19 +129,6 @@ func (b *Bot) PreUpdate() {
 // Etag generates an etag for caching.
 func (b *Bot) Etag() string {
 	return Etag(b.UserId, b.UpdateAt)
-}
-
-// ToJson serializes the bot to json.
-func (b *Bot) ToJson() []byte {
-	data, _ := json.Marshal(b)
-	return data
-}
-
-// BotFromJson deserializes a bot from json.
-func BotFromJson(data io.Reader) *Bot {
-	var bot *Bot
-	json.NewDecoder(data).Decode(&bot)
-	return bot
 }
 
 // Patch modifies an existing bot with optional fields from the given patch.
@@ -162,28 +165,6 @@ func (b *Bot) WouldPatch(patch *BotPatch) bool {
 	return false
 }
 
-// ToJson serializes the bot patch to json.
-func (b *BotPatch) ToJson() []byte {
-	data, err := json.Marshal(b)
-	if err != nil {
-		return nil
-	}
-
-	return data
-}
-
-// BotPatchFromJson deserializes a bot patch from json.
-func BotPatchFromJson(data io.Reader) *BotPatch {
-	decoder := json.NewDecoder(data)
-	var botPatch BotPatch
-	err := decoder.Decode(&botPatch)
-	if err != nil {
-		return nil
-	}
-
-	return &botPatch
-}
-
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
@@ -191,7 +172,7 @@ func UserFromBot(b *Bot) *User {
 		Username:  b.Username,
 		Email:     NormalizeEmail(fmt.Sprintf("%s@localhost", b.Username)),
 		FirstName: b.DisplayName,
-		Roles:     SYSTEM_USER_ROLE_ID,
+		Roles:     SystemUserRoleId,
 	}
 }
 
@@ -201,21 +182,8 @@ func BotFromUser(u *User) *Bot {
 		OwnerId:     u.Id,
 		UserId:      u.Id,
 		Username:    u.Username,
-		DisplayName: u.GetDisplayName(SHOW_USERNAME),
+		DisplayName: u.GetDisplayName(ShowUsername),
 	}
-}
-
-// BotListFromJson deserializes a list of bots from json.
-func BotListFromJson(data io.Reader) BotList {
-	var bots BotList
-	json.NewDecoder(data).Decode(&bots)
-	return bots
-}
-
-// ToJson serializes a list of bots to json.
-func (l *BotList) ToJson() []byte {
-	b, _ := json.Marshal(l)
-	return b
 }
 
 // Etag computes the etag for a list of bots.
@@ -238,11 +206,11 @@ func (l *BotList) Etag() string {
 // MakeBotNotFoundError creates the error returned when a bot does not exist, or when the user isn't allowed to query the bot.
 // The errors must the same in both cases to avoid leaking that a user is a bot.
 func MakeBotNotFoundError(userId string) *AppError {
-	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {
-	if channel.Type != CHANNEL_DIRECT {
+	if channel.Type != ChannelTypeDirect {
 		return false
 	}
 

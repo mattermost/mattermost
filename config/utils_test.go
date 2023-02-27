@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -44,17 +44,17 @@ func TestDesanitize(t *testing.T) {
 	target.FileSettings.DriverName = model.NewString("file")
 
 	// These settings should be updated from actual
-	target.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
-	target.FileSettings.PublicLinkSalt = model.NewString(model.FAKE_SETTING)
-	target.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.FAKE_SETTING)
-	target.EmailSettings.SMTPPassword = model.NewString(model.FAKE_SETTING)
-	target.GitLabSettings.Secret = model.NewString(model.FAKE_SETTING)
-	target.OpenIdSettings.Secret = model.NewString(model.FAKE_SETTING)
-	target.SqlSettings.DataSource = model.NewString(model.FAKE_SETTING)
-	target.SqlSettings.AtRestEncryptKey = model.NewString(model.FAKE_SETTING)
-	target.ElasticsearchSettings.Password = model.NewString(model.FAKE_SETTING)
-	target.SqlSettings.DataSourceReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
-	target.SqlSettings.DataSourceSearchReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
+	target.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
+	target.FileSettings.PublicLinkSalt = model.NewString(model.FakeSetting)
+	target.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.FakeSetting)
+	target.EmailSettings.SMTPPassword = model.NewString(model.FakeSetting)
+	target.GitLabSettings.Secret = model.NewString(model.FakeSetting)
+	target.OpenIdSettings.Secret = model.NewString(model.FakeSetting)
+	target.SqlSettings.DataSource = model.NewString(model.FakeSetting)
+	target.SqlSettings.AtRestEncryptKey = model.NewString(model.FakeSetting)
+	target.ElasticsearchSettings.Password = model.NewString(model.FakeSetting)
+	target.SqlSettings.DataSourceReplicas = []string{model.FakeSetting, model.FakeSetting}
+	target.SqlSettings.DataSourceSearchReplicas = []string{model.FakeSetting, model.FakeSetting}
 
 	actualClone := actual.Clone()
 	desanitize(actual, target)
@@ -159,8 +159,13 @@ func TestIsDatabaseDSN(t *testing.T) {
 			Expected: true,
 		},
 		{
-			Name:     "Postgresql DSN",
+			Name:     "Postgresql 'postgres' DSN",
 			DSN:      "postgres://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Postgresql 'postgresql' DSN",
+			DSN:      "postgresql://localhost",
 			Expected: true,
 		},
 		{

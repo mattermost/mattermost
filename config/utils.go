@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 // marshalConfig converts the given configuration into JSON bytes for persistence.
@@ -23,51 +23,51 @@ func marshalConfig(cfg *model.Config) ([]byte, error) {
 
 // desanitize replaces fake settings with their actual values.
 func desanitize(actual, target *model.Config) {
-	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FAKE_SETTING {
+	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FakeSetting {
 		*target.LdapSettings.BindPassword = *actual.LdapSettings.BindPassword
 	}
 
-	if *target.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
+	if *target.FileSettings.PublicLinkSalt == model.FakeSetting {
 		*target.FileSettings.PublicLinkSalt = *actual.FileSettings.PublicLinkSalt
 	}
-	if *target.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+	if *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
 
-	if *target.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+	if *target.EmailSettings.SMTPPassword == model.FakeSetting {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}
 
-	if *target.GitLabSettings.Secret == model.FAKE_SETTING {
+	if *target.GitLabSettings.Secret == model.FakeSetting {
 		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
 	}
 
-	if target.GoogleSettings.Secret != nil && *target.GoogleSettings.Secret == model.FAKE_SETTING {
+	if target.GoogleSettings.Secret != nil && *target.GoogleSettings.Secret == model.FakeSetting {
 		target.GoogleSettings.Secret = actual.GoogleSettings.Secret
 	}
 
-	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FAKE_SETTING {
+	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FakeSetting {
 		target.Office365Settings.Secret = actual.Office365Settings.Secret
 	}
 
-	if target.OpenIdSettings.Secret != nil && *target.OpenIdSettings.Secret == model.FAKE_SETTING {
+	if target.OpenIdSettings.Secret != nil && *target.OpenIdSettings.Secret == model.FakeSetting {
 		target.OpenIdSettings.Secret = actual.OpenIdSettings.Secret
 	}
 
-	if *target.SqlSettings.DataSource == model.FAKE_SETTING {
+	if *target.SqlSettings.DataSource == model.FakeSetting {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-	if *target.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
+	if *target.SqlSettings.AtRestEncryptKey == model.FakeSetting {
 		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
 	}
 
-	if *target.ElasticsearchSettings.Password == model.FAKE_SETTING {
+	if *target.ElasticsearchSettings.Password == model.FakeSetting {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}
 
 	if len(target.SqlSettings.DataSourceReplicas) == len(actual.SqlSettings.DataSourceReplicas) {
 		for i, value := range target.SqlSettings.DataSourceReplicas {
-			if value == model.FAKE_SETTING {
+			if value == model.FakeSetting {
 				target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
 			}
 		}
@@ -75,21 +75,21 @@ func desanitize(actual, target *model.Config) {
 
 	if len(target.SqlSettings.DataSourceSearchReplicas) == len(actual.SqlSettings.DataSourceSearchReplicas) {
 		for i, value := range target.SqlSettings.DataSourceSearchReplicas {
-			if value == model.FAKE_SETTING {
+			if value == model.FakeSetting {
 				target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 			}
 		}
 	}
 
-	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
-		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	if *target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting {
+		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword = *actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword
 	}
 
-	if target.ServiceSettings.GfycatApiSecret != nil && *target.ServiceSettings.GfycatApiSecret == model.FAKE_SETTING {
-		*target.ServiceSettings.GfycatApiSecret = *actual.ServiceSettings.GfycatApiSecret
+	if target.ServiceSettings.GfycatAPISecret != nil && *target.ServiceSettings.GfycatAPISecret == model.FakeSetting {
+		*target.ServiceSettings.GfycatAPISecret = *actual.ServiceSettings.GfycatAPISecret
 	}
 
-	if *target.ServiceSettings.SplitKey == model.FAKE_SETTING {
+	if *target.ServiceSettings.SplitKey == model.FakeSetting {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
 }
@@ -102,7 +102,7 @@ func fixConfig(cfg *model.Config) {
 	}
 
 	// Ensure the directory for a local file store has a trailing slash.
-	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	if *cfg.FileSettings.DriverName == model.ImageDriverLocal {
 		if *cfg.FileSettings.Directory != "" && !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
 			*cfg.FileSettings.Directory += "/"
 		}
@@ -120,13 +120,13 @@ func FixInvalidLocales(cfg *model.Config) bool {
 
 	locales := i18n.GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
-		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
+		*cfg.LocalizationSettings.DefaultServerLocale = model.DefaultLocale
 		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.")
 		changed = true
 	}
 
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
-		*cfg.LocalizationSettings.DefaultClientLocale = model.DEFAULT_LOCALE
+		*cfg.LocalizationSettings.DefaultClientLocale = model.DefaultLocale
 		mlog.Warn("DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value.")
 		changed = true
 	}
@@ -174,7 +174,9 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 }
 
 func IsDatabaseDSN(dsn string) bool {
-	return strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://")
+	return strings.HasPrefix(dsn, "mysql://") ||
+		strings.HasPrefix(dsn, "postgres://") ||
+		strings.HasPrefix(dsn, "postgresql://")
 }
 
 // stripPassword remove the password from a given DSN
@@ -199,11 +201,11 @@ func stripPassword(dsn, schema string) string {
 }
 
 func isJSONMap(data string) bool {
-	var m map[string]interface{}
+	var m map[string]any
 	return json.Unmarshal([]byte(data), &m) == nil
 }
 
-func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
+func GetValueByPath(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {

@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
+	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestElasticsearchTest(t *testing.T) {
@@ -14,19 +17,38 @@ func TestElasticsearchTest(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp := th.Client.TestElasticsearch()
+		resp, err := th.Client.TestElasticsearch()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp := th.SystemAdminClient.TestElasticsearch()
+		resp, err := th.SystemAdminClient.TestElasticsearch()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 
-	t.Run("as restricted system admin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+	t.Run("invalid config", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.ElasticsearchSettings.Password = nil
 
-		_, resp := th.SystemAdminClient.TestElasticsearch()
+		data, err := json.Marshal(cfg)
+		require.NoError(t, err)
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/elasticsearch/test", string(data))
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.SetDefaults()
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
+
+		resp, err := th.SystemAdminClient.TestElasticsearch()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -36,19 +58,22 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp := th.Client.PurgeElasticsearchIndexes()
+		resp, err := th.Client.PurgeElasticsearchIndexes()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		_, resp := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }

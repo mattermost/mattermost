@@ -8,15 +8,14 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"path"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type SendProfileImageResultFunc func(userId string, rc *model.RemoteCluster, resp *Response, err error)
@@ -58,7 +57,7 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 	var response Response
 
 	if err != nil {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send profile image failed",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send profile image failed",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("UserId", task.userID),
 			mlog.Err(err),
@@ -66,7 +65,7 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 		response.Status = ResponseStatusFail
 		response.Err = err.Error()
 	} else {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster profile image sent successfully",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster profile image sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("UserId", task.userID),
 		)
@@ -80,7 +79,7 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 }
 
 func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendProfileImageTask) error {
-	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "sending profile image to remote...",
+	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "sending profile image to remote...",
 		mlog.String("remote", task.rc.DisplayName),
 		mlog.String("UserId", task.userID),
 	)
@@ -99,7 +98,7 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 	if err != nil {
 		return fmt.Errorf("invalid siteURL while sending file to remote %s: %w", task.rc.RemoteId, err)
 	}
-	u.Path = path.Join(u.Path, model.API_URL_SUFFIX, "remotecluster", task.userID, "image")
+	u.Path = path.Join(u.Path, model.APIURLSuffix, "remotecluster", task.userID, "image")
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -122,8 +121,8 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 		return err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set(model.HEADER_REMOTECLUSTER_ID, task.rc.RemoteId)
-	req.Header.Set(model.HEADER_REMOTECLUSTER_TOKEN, task.rc.RemoteToken)
+	req.Header.Set(model.HeaderRemoteclusterId, task.rc.RemoteId)
+	req.Header.Set(model.HeaderRemoteclusterToken, task.rc.RemoteToken)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -134,7 +133,7 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 	}
 	defer resp.Body.Close()
 
-	_, err = ioutil.ReadAll(resp.Body)
+	_, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

@@ -6,15 +6,14 @@ package marketplace
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 )
 
 // Client is the programmatic interface to the marketplace server API.
@@ -66,6 +65,16 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 }
 
 func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion string) (*model.BaseMarketplacePlugin, error) {
+	filter.ReturnAllVersions = true
+
+	if filter.PluginId == "" {
+		return nil, errors.New("missing pluginID")
+	}
+
+	if pluginVersion == "" {
+		return nil, errors.New("missing pluginVersion")
+	}
+
 	plugins, err := c.GetPlugins(filter)
 	if err != nil {
 		return nil, err
@@ -78,15 +87,38 @@ func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion 
 	return nil, errors.New("plugin not found")
 }
 
+func (c *Client) GetLatestPlugin(filter *model.MarketplacePluginFilter) (*model.BaseMarketplacePlugin, error) {
+	filter.ReturnAllVersions = false
+
+	if filter.PluginId == "" {
+		return nil, errors.New("no pluginID provided")
+	}
+
+	plugins, err := c.GetPlugins(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(plugins) == 0 {
+		return nil, errors.New("plugin not found")
+	}
+
+	if len(plugins) > 1 {
+		return nil, errors.Errorf("unexpectedly more then one plugin was returned from the marketplace")
+	}
+
+	return plugins[0], nil
+}
+
 // closeBody ensures the Body of an http.Response is properly closed.
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
 
-func (c *Client) buildURL(urlPath string, args ...interface{}) string {
+func (c *Client) buildURL(urlPath string, args ...any) string {
 	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(fmt.Sprintf(urlPath, args...), "/"))
 }
 

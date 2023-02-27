@@ -4,26 +4,10 @@
 package model
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestOAuthAppJson(t *testing.T) {
-	a1 := OAuthApp{}
-	a1.Id = NewId()
-	a1.Name = "TestOAuthApp" + NewId()
-	a1.CallbackUrls = []string{"https://nowhere.com"}
-	a1.Homepage = "https://nowhere.com"
-	a1.IconURL = "https://nowhere.com/icon_image.png"
-	a1.ClientSecret = NewId()
-
-	json := a1.ToJson()
-	ra1 := OAuthAppFromJson(strings.NewReader(json))
-
-	require.Equal(t, a1.Id, ra1.Id, "ids did not match")
-}
 
 func TestOAuthAppPreSave(t *testing.T) {
 	a1 := OAuthApp{}
@@ -73,6 +57,9 @@ func TestOAuthAppIsValid(t *testing.T) {
 	require.NotNil(t, app.IsValid())
 
 	app.CallbackUrls = []string{"https://nowhere.com"}
+	require.NotNil(t, app.IsValid())
+
+	app.MattermostAppID = "Some app ID"
 	require.NotNil(t, app.IsValid())
 
 	app.Homepage = "https://nowhere.com"

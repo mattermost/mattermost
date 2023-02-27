@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,9 +34,9 @@ func getRetentionPolicyWithTeamAndChannelIds(t *testing.T, ss store.Store, polic
 	require.NoError(t, err)
 	policyWithIds := model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			ID:           policyID,
-			DisplayName:  policyWithCounts.DisplayName,
-			PostDuration: policyWithCounts.PostDuration,
+			ID:               policyID,
+			DisplayName:      policyWithCounts.DisplayName,
+			PostDurationDays: policyWithCounts.PostDurationDays,
 		},
 		ChannelIDs: make([]string, int(policyWithCounts.ChannelCount)),
 		TeamIDs:    make([]string, int(policyWithCounts.TeamCount)),
@@ -57,7 +57,7 @@ func getRetentionPolicyWithTeamAndChannelIds(t *testing.T, ss store.Store, polic
 func CheckRetentionPolicyWithTeamAndChannelIdsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamAndChannelIDs) {
 	require.Equal(t, p1.ID, p2.ID)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
-	require.Equal(t, p1.PostDuration, p2.PostDuration)
+	require.Equal(t, p1.PostDurationDays, p2.PostDurationDays)
 	require.Equal(t, len(p1.ChannelIDs), len(p2.ChannelIDs))
 	if p1.ChannelIDs == nil || p2.ChannelIDs == nil {
 		require.Equal(t, p1.ChannelIDs, p2.ChannelIDs)
@@ -83,7 +83,7 @@ func CheckRetentionPolicyWithTeamAndChannelIdsAreEqual(t *testing.T, p1, p2 *mod
 func CheckRetentionPolicyWithTeamAndChannelCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamAndChannelCounts) {
 	require.Equal(t, p1.ID, p2.ID)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
-	require.Equal(t, p1.PostDuration, p2.PostDuration)
+	require.Equal(t, p1.PostDurationDays, p2.PostDurationDays)
 	require.Equal(t, p1.ChannelCount, p2.ChannelCount)
 	require.Equal(t, p1.TeamCount, p2.TeamCount)
 }
@@ -94,18 +94,14 @@ func checkRetentionPolicyLikeThisExists(t *testing.T, ss store.Store, expected *
 }
 
 func copyRetentionPolicyWithTeamAndChannelIds(policy *model.RetentionPolicyWithTeamAndChannelIDs) *model.RetentionPolicyWithTeamAndChannelIDs {
-	copy := &model.RetentionPolicyWithTeamAndChannelIDs{
+	cpy := &model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: policy.RetentionPolicy,
 		ChannelIDs:      make([]string, len(policy.ChannelIDs)),
 		TeamIDs:         make([]string, len(policy.TeamIDs)),
 	}
-	for i, channelID := range policy.ChannelIDs {
-		copy.ChannelIDs[i] = channelID
-	}
-	for i, teamID := range policy.TeamIDs {
-		copy.TeamIDs[i] = teamID
-	}
-	return copy
+	copy(cpy.ChannelIDs, policy.ChannelIDs)
+	copy(cpy.TeamIDs, policy.TeamIDs)
+	return cpy
 }
 
 func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId string, numChannels int) (channelIDs []string) {
@@ -116,7 +112,7 @@ func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId strin
 			TeamId:      teamId,
 			DisplayName: "Channel " + name,
 			Name:        name,
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}
 		channel, err := ss.Channel().Save(channel, -1)
 		require.NoError(t, err)
@@ -132,7 +128,7 @@ func createTeamsForRetentionPolicy(t *testing.T, ss store.Store, numTeams int) (
 		team := &model.Team{
 			DisplayName: "Team " + name,
 			Name:        name,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		team, err := ss.Team().Save(team)
 		require.NoError(t, err)
@@ -153,7 +149,7 @@ func cleanupRetentionPolicyTest(s SqlStore) {
 	// Manually clear tables until testlib can handle cleanups
 	tables := []string{"RetentionPolicies", "RetentionPoliciesChannels", "RetentionPoliciesTeams"}
 	for _, table := range tables {
-		if _, err := s.GetMaster().Exec("DELETE FROM " + table); err != nil {
+		if _, err := s.GetMasterX().Exec("DELETE FROM " + table); err != nil {
 			panic(err)
 		}
 	}
@@ -175,8 +171,8 @@ func deleteTeamsAndChannels(ss store.Store, teamIDs, channelIDs []string) {
 func createRetentionPolicyWithTeamAndChannelIds(displayName string, teamIDs, channelIDs []string) *model.RetentionPolicyWithTeamAndChannelIDs {
 	return &model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  displayName,
-			PostDuration: model.NewInt64(30),
+			DisplayName:      displayName,
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs:    teamIDs,
 		ChannelIDs: channelIDs,
@@ -255,22 +251,22 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("modify PostDuration", func(t *testing.T) {
 		patch := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				ID:           policy.ID,
-				PostDuration: model.NewInt64(10000),
+				ID:               policy.ID,
+				PostDurationDays: model.NewInt64(10000),
 			},
 		}
 		_, err := ss.RetentionPolicy().Patch(patch)
 		require.NoError(t, err)
 		expected := copyRetentionPolicyWithTeamAndChannelIds(policy)
-		expected.PostDuration = patch.PostDuration
+		expected.PostDurationDays = patch.PostDurationDays
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
 
 		// Store a negative value (= infinity)
-		patch.PostDuration = model.NewInt64(-1)
+		patch.PostDurationDays = model.NewInt64(-1)
 		_, err = ss.RetentionPolicy().Patch(patch)
 		require.NoError(t, err)
 		expected = copyRetentionPolicyWithTeamAndChannelIds(policy)
-		expected.PostDuration = patch.PostDuration
+		expected.PostDurationDays = patch.PostDurationDays
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
 
 		restoreRetentionPolicy(t, ss, policy)
@@ -326,6 +322,13 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("get none", func(t *testing.T) {
+		retrievedPolicies, err := ss.RetentionPolicy().GetAll(0, 10)
+		require.NoError(t, err)
+		require.NotNil(t, retrievedPolicies)
+		require.Equal(t, 0, len(retrievedPolicies))
+	})
+
 	// create multiple policies
 	policiesWithCounts := make([]*model.RetentionPolicyWithTeamAndChannelCounts, 0)
 	for i := 0; i < 3; i++ {

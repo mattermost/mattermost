@@ -4,8 +4,8 @@
 package model
 
 const (
-	PluginClusterEventSendTypeReliable   = CLUSTER_SEND_RELIABLE
-	PluginClusterEventSendTypeBestEffort = CLUSTER_SEND_BEST_EFFORT
+	PluginClusterEventSendTypeReliable   = ClusterSendReliable
+	PluginClusterEventSendTypeBestEffort = ClusterSendBestEffort
 )
 
 // PluginClusterEvent is used to allow intra-cluster plugin communication.

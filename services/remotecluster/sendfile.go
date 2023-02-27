@@ -7,15 +7,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type SendFileResultFunc func(us *model.UploadSession, rc *model.RemoteCluster, resp *Response, err error)
@@ -59,7 +59,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	var response Response
 
 	if err != nil {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send file failed",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send file failed",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("uploadId", task.us.Id),
 			mlog.Err(err),
@@ -67,7 +67,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 		response.Status = ResponseStatusFail
 		response.Err = err.Error()
 	} else {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster file sent successfully",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster file sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("uploadId", task.us.Id),
 		)
@@ -82,7 +82,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 }
 
 func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (*model.FileInfo, error) {
-	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "sending file to remote...",
+	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "sending file to remote...",
 		mlog.String("remote", task.rc.DisplayName),
 		mlog.String("uploadId", task.us.Id),
 		mlog.String("file_path", task.us.Path),
@@ -98,15 +98,15 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	if err != nil {
 		return nil, fmt.Errorf("invalid siteURL while sending file to remote %s: %w", task.rc.RemoteId, err)
 	}
-	u.Path = path.Join(u.Path, model.API_URL_SUFFIX, "remotecluster", "upload", task.us.Id)
+	u.Path = path.Join(u.Path, model.APIURLSuffix, "remotecluster", "upload", task.us.Id)
 
 	req, err := http.NewRequest("POST", u.String(), r)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set(model.HEADER_REMOTECLUSTER_ID, task.rc.RemoteId)
-	req.Header.Set(model.HEADER_REMOTECLUSTER_TOKEN, task.rc.RemoteToken)
+	req.Header.Set(model.HeaderRemoteclusterId, task.rc.RemoteId)
+	req.Header.Set(model.HeaderRemoteclusterToken, task.rc.RemoteToken)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -117,7 +117,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

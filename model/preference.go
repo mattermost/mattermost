@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -13,48 +12,57 @@ import (
 )
 
 const (
-	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
-	PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW  = "group_channel_show"
-	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
-	PREFERENCE_CATEGORY_ADVANCED_SETTINGS   = "advanced_settings"
-	PREFERENCE_CATEGORY_FLAGGED_POST        = "flagged_post"
-	PREFERENCE_CATEGORY_FAVORITE_CHANNEL    = "favorite_channel"
-	PREFERENCE_CATEGORY_SIDEBAR_SETTINGS    = "sidebar_settings"
+	PreferenceCategoryDirectChannelShow = "direct_channel_show"
+	PreferenceCategoryGroupChannelShow  = "group_channel_show"
+	PreferenceCategoryTutorialSteps     = "tutorial_step"
+	PreferenceCategoryAdvancedSettings  = "advanced_settings"
+	PreferenceCategoryFlaggedPost       = "flagged_post"
+	PreferenceCategoryFavoriteChannel   = "favorite_channel"
+	PreferenceCategorySidebarSettings   = "sidebar_settings"
+	PreferenceCategoryInsights          = "insights"
 
-	PREFERENCE_CATEGORY_DISPLAY_SETTINGS      = "display_settings"
-	PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED = "collapsed_reply_threads"
-	PREFERENCE_NAME_CHANNEL_DISPLAY_MODE      = "channel_display_mode"
-	PREFERENCE_NAME_COLLAPSE_SETTING          = "collapse_previews"
-	PREFERENCE_NAME_MESSAGE_DISPLAY           = "message_display"
-	PREFERENCE_NAME_NAME_FORMAT               = "name_format"
-	PREFERENCE_NAME_USE_MILITARY_TIME         = "use_military_time"
+	PreferenceCategoryDisplaySettings     = "display_settings"
+	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
+	PreferenceNameChannelDisplayMode      = "channel_display_mode"
+	PreferenceNameCollapseSetting         = "collapse_previews"
+	PreferenceNameMessageDisplay          = "message_display"
+	PreferenceNameCollapseConsecutive     = "collapse_consecutive_messages"
+	PreferenceNameColorizeUsernames       = "colorize_usernames"
+	PreferenceNameNameFormat              = "name_format"
+	PreferenceNameUseMilitaryTime         = "use_military_time"
+	PreferenceRecommendedNextSteps        = "recommended_next_steps"
+	PreferenceNameInsights                = "insights_tutorial_state"
 
-	PREFERENCE_CATEGORY_THEME = "theme"
+	// initial onboarding preferences
+	PreferenceOnboarding = "onboarding"
+
+	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 
-	PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP = "oauth_app"
+	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"
 	// the name for oauth_app is the client_id and value is the current scope
 
-	PREFERENCE_CATEGORY_LAST     = "last"
-	PREFERENCE_NAME_LAST_CHANNEL = "channel"
-	PREFERENCE_NAME_LAST_TEAM    = "team"
+	PreferenceCategoryLast    = "last"
+	PreferenceNameLastChannel = "channel"
+	PreferenceNameLastTeam    = "team"
 
-	PREFERENCE_CATEGORY_CUSTOM_STATUS            = "custom_status"
-	PREFERENCE_NAME_RECENT_CUSTOM_STATUSES       = "recent_custom_statuses"
-	PREFERENCE_NAME_CUSTOM_STATUS_TUTORIAL_STATE = "custom_status_tutorial_state"
+	PreferenceCategoryCustomStatus          = "custom_status"
+	PreferenceNameRecentCustomStatuses      = "recent_custom_statuses"
+	PreferenceNameCustomStatusTutorialState = "custom_status_tutorial_state"
 
-	PREFERENCE_CUSTOM_STATUS_MODAL_VIEWED = "custom_status_modal_viewed"
+	PreferenceCustomStatusModalViewed = "custom_status_modal_viewed"
 
-	PREFERENCE_CATEGORY_NOTIFICATIONS = "notifications"
-	PREFERENCE_NAME_EMAIL_INTERVAL    = "email_interval"
+	PreferenceCategoryNotifications = "notifications"
+	PreferenceNameEmailInterval     = "email_interval"
 
-	PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS = "30"  // the "immediate" setting is actually 30s
-	PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS    = "900" // fifteen minutes is 900 seconds
-	PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY         = "immediately"
-	PREFERENCE_EMAIL_INTERVAL_FIFTEEN             = "fifteen"
-	PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS  = "900"
-	PREFERENCE_EMAIL_INTERVAL_HOUR                = "hour"
-	PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS     = "3600"
+	PreferenceEmailIntervalNoBatchingSeconds = "30"  // the "immediate" setting is actually 30s
+	PreferenceEmailIntervalBatchingSeconds   = "900" // fifteen minutes is 900 seconds
+	PreferenceEmailIntervalImmediately       = "immediately"
+	PreferenceEmailIntervalFifteen           = "fifteen"
+	PreferenceEmailIntervalFifteenAsSeconds  = "900"
+	PreferenceEmailIntervalHour              = "hour"
+	PreferenceEmailIntervalHourAsSeconds     = "3600"
+	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
 )
 
 type Preference struct {
@@ -64,16 +72,7 @@ type Preference struct {
 	Value    string `json:"value"`
 }
 
-func (o *Preference) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func PreferenceFromJson(data io.Reader) *Preference {
-	var o *Preference
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
+type Preferences []Preference
 
 func (o *Preference) IsValid() *AppError {
 	if !IsValidId(o.UserId) {
@@ -92,26 +91,24 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 	}
 
-	if o.Category == PREFERENCE_CATEGORY_THEME {
+	if o.Category == PreferenceCategoryTheme {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
-			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	return nil
 }
 
+var preUpdateColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+
 func (o *Preference) PreUpdate() {
-	if o.Category == PREFERENCE_CATEGORY_THEME {
+	if o.Category == PreferenceCategoryTheme {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
-		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {
-			// just continue, the invalid preference value should get caught by IsValid before saving
-			return
-		}
-
-		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+		// just continue, the invalid preference value should get caught by IsValid before saving
+		json.NewDecoder(strings.NewReader(o.Value)).Decode(&props)
 
 		// blank out any invalid theme values
 		for name, value := range props {
@@ -119,7 +116,7 @@ func (o *Preference) PreUpdate() {
 				continue
 			}
 
-			if !colorPattern.MatchString(value) {
+			if !preUpdateColorPattern.MatchString(value) {
 				props[name] = "#ffffff"
 			}
 		}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestPurposeProviderDoCommand(t *testing.T) {
@@ -18,10 +18,10 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	pp := PurposeProvider{}
 
 	// Try a public channel *with* permission.
-	th.addPermissionToRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.addPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -35,10 +35,10 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	}
 
 	// Try a public channel *without* permission.
-	th.removePermissionFromRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 	}
 
@@ -48,10 +48,10 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	// Try a private channel *with* permission.
 	privateChannel := th.createPrivateChannel(th.BasicTeam)
 
-	th.addPermissionToRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.addPermissionToRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -60,10 +60,10 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
-	th.removePermissionFromRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 	}
 
@@ -77,7 +77,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	groupChannel := th.createGroupChannel(user1, user2)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: groupChannel.Id,
 	}
 
@@ -88,7 +88,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	directChannel := th.createDmChannel(user1)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: directChannel.Id,
 	}
 

@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestSupervisor(t *testing.T) {
@@ -28,38 +27,30 @@ func TestSupervisor(t *testing.T) {
 }
 
 func testSupervisorInvalidExecutablePath(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "/foo/../../backend.exe"}}`), 0600)
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "/foo/../../backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
 }
 
 func testSupervisorNonExistentExecutablePath(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "thisfileshouldnotexist"}}`), 0600)
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "thisfileshouldnotexist"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
@@ -67,7 +58,7 @@ func testSupervisorNonExistentExecutablePath(t *testing.T) {
 
 // If plugin development goes really wrong, let's make sure plugin activation won't block forever.
 func testSupervisorStartTimeout(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -81,15 +72,11 @@ func testSupervisorStartTimeout(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
+	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
+	defer log.Shutdown()
 	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)

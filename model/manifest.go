@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,11 +79,16 @@ type PluginSetting struct {
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
-	Default interface{} `json:"default" yaml:"default"`
+	Default any `json:"default" yaml:"default"`
 
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.
 	Options []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
+
+	// The intended hosting environment for this plugin setting. Can be "cloud" or "on-prem".  When this field is set,
+	// and the opposite environment is running the plugin, the setting will be hidden in the admin console UI.
+	// Note that this functionality is entirely client-side, so the plugin needs to handle the case of invalid submissions.
+	Hosting string `json:"hosting"`
 }
 
 type PluginSettingsSchema struct {
@@ -104,42 +108,41 @@ type PluginSettingsSchema struct {
 //
 // Example plugin.json:
 //
-//
-//    {
-//      "id": "com.mycompany.myplugin",
-//      "name": "My Plugin",
-//      "description": "This is my plugin",
-//      "homepage_url": "https://example.com",
-//      "support_url": "https://example.com/support",
-//      "release_notes_url": "https://example.com/releases/v0.0.1",
-//      "icon_path": "assets/logo.svg",
-//      "version": "0.1.0",
-//      "min_server_version": "5.6.0",
-//      "server": {
-//        "executables": {
-//          "linux-amd64": "server/dist/plugin-linux-amd64",
-//          "darwin-amd64": "server/dist/plugin-darwin-amd64",
-//          "windows-amd64": "server/dist/plugin-windows-amd64.exe"
-//        }
-//      },
-//      "webapp": {
-//          "bundle_path": "webapp/dist/main.js"
-//      },
-//      "settings_schema": {
-//        "header": "Some header text",
-//        "footer": "Some footer text",
-//        "settings": [{
-//          "key": "someKey",
-//          "display_name": "Enable Extra Feature",
-//          "type": "bool",
-//          "help_text": "When true, an extra feature will be enabled!",
-//          "default": "false"
-//        }]
-//      },
-//      "props": {
-//        "someKey": "someData"
-//      }
-//    }
+//	{
+//	  "id": "com.mycompany.myplugin",
+//	  "name": "My Plugin",
+//	  "description": "This is my plugin",
+//	  "homepage_url": "https://example.com",
+//	  "support_url": "https://example.com/support",
+//	  "release_notes_url": "https://example.com/releases/v0.0.1",
+//	  "icon_path": "assets/logo.svg",
+//	  "version": "0.1.0",
+//	  "min_server_version": "5.6.0",
+//	  "server": {
+//	    "executables": {
+//	      "linux-amd64": "server/dist/plugin-linux-amd64",
+//	      "darwin-amd64": "server/dist/plugin-darwin-amd64",
+//	      "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+//	    }
+//	  },
+//	  "webapp": {
+//	      "bundle_path": "webapp/dist/main.js"
+//	  },
+//	  "settings_schema": {
+//	    "header": "Some header text",
+//	    "footer": "Some footer text",
+//	    "settings": [{
+//	      "key": "someKey",
+//	      "display_name": "Enable Extra Feature",
+//	      "type": "bool",
+//	      "help_text": "When true, an extra feature will be enabled!",
+//	      "default": "false"
+//	    }]
+//	  },
+//	  "props": {
+//	    "someKey": "someData"
+//	  }
+//	}
 type Manifest struct {
 	// The id is a globally unique identifier that represents your plugin. Ids must be at least
 	// 3 characters, at most 190 characters and must match ^[a-zA-Z0-9-_\.]+$.
@@ -176,9 +179,6 @@ type Manifest struct {
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
-	// Backend is a deprecated flag for defining the server-side portion of your plugin. Going forward, use Server instead.
-	Backend *ManifestServer `json:"backend,omitempty" yaml:"backend,omitempty"`
-
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 
@@ -187,30 +187,18 @@ type Manifest struct {
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
-	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
-	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
 	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
-	// AllExecutables are the paths to your executable binaries, specifying multiple entry
+	// Executables are the paths to your executable binaries, specifying multiple entry
 	// points for different platforms when bundled together in a single plugin.
-	AllExecutables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
-
-	// Executables is a legacy field populated with a subset of supported platform executables.
-	// When unmarshalling, Executables is authoritative for the platform executable paths it
-	// contains, overriding any values in AllExecutables. When marshalling, AllExecutables
-	// is authoritative.
-	//
-	// Code duplication is avoided when (un)marshalling by leveraging type aliases in the
-	// various (Un)Marshal(JSON|YAML) methods, since aliases don't inherit the aliased type's
-	// methods.
-	//
-	// In v6.0, we should remove this field and rename AllExecutables back to Executables.
-	Executables *ManifestExecutables `json:"-" yaml:"-"`
+	Executables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
 
 	// Executable is the path to your executable binary. This should be relative to the root
 	// of your bundle and the location of the manifest file.
@@ -222,79 +210,8 @@ type ManifestServer struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
-func (ms *ManifestServer) MarshalJSON() ([]byte, error) {
-	type auxManifestServer ManifestServer
-
-	// Populate AllExecutables from Executables, if it exists.
-	if ms.Executables != nil {
-		if ms.AllExecutables == nil {
-			ms.AllExecutables = make(map[string]string)
-		}
-
-		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
-		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
-		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
-	}
-
-	return json.Marshal((*auxManifestServer)(ms))
-}
-
-func (ms *ManifestServer) UnmarshalJSON(data []byte) error {
-	type auxManifestServer ManifestServer
-
-	aux := (*auxManifestServer)(ms)
-	if err := json.Unmarshal(data, aux); err != nil {
-		return err
-	}
-
-	if len(aux.AllExecutables) > 0 {
-		ms.Executables = &ManifestExecutables{
-			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
-			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
-			WindowsAmd64: aux.AllExecutables["windows-amd64"],
-		}
-	}
-
-	return nil
-}
-
-func (ms *ManifestServer) MarshalYAML() ([]byte, error) {
-	type auxManifestServer ManifestServer
-
-	// Populate AllExecutables from Executables, if it exists.
-	if ms.Executables != nil {
-		if ms.AllExecutables == nil {
-			ms.AllExecutables = make(map[string]string)
-		}
-
-		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
-		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
-		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
-	}
-
-	return yaml.Marshal((*auxManifestServer)(ms))
-}
-
-func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type auxManifestServer ManifestServer
-
-	aux := (*auxManifestServer)(ms)
-	if err := unmarshal(&aux); err != nil {
-		return err
-	}
-
-	if len(aux.AllExecutables) > 0 {
-		ms.Executables = &ManifestExecutables{
-			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
-			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
-			WindowsAmd64: aux.AllExecutables["windows-amd64"],
-		}
-	}
-
-	return nil
-}
-
-// ManifestExecutables is a legacy structure capturing a subet of the known platform executables.
+// Deprecated: ManifestExecutables is a legacy structure capturing a subset of the known platform executables.
+// It will be remove in v7.0: https://mattermost.atlassian.net/browse/MM-40531
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
@@ -312,28 +229,6 @@ type ManifestWebapp struct {
 
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
-}
-
-func (m *Manifest) ToJson() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestListToJson(m []*Manifest) string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func ManifestFromJson(data io.Reader) *Manifest {
-	var m *Manifest
-	json.NewDecoder(data).Decode(&m)
-	return m
-}
-
-func ManifestListFromJson(data io.Reader) []*Manifest {
-	var manifests []*Manifest
-	json.NewDecoder(data).Decode(&manifests)
-	return manifests
 }
 
 func (m *Manifest) HasClient() bool {
@@ -362,19 +257,14 @@ func (m *Manifest) ClientManifest() *Manifest {
 func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	server := m.Server
 
-	// Support the deprecated backend parameter.
-	if server == nil {
-		server = m.Backend
-	}
-
 	if server == nil {
 		return ""
 	}
 
 	var executable string
-	if len(server.AllExecutables) > 0 {
+	if len(server.Executables) > 0 {
 		osArch := fmt.Sprintf("%s-%s", goOs, goArch)
-		executable = server.AllExecutables[osArch]
+		executable = server.Executables[osArch]
 	}
 
 	if executable == "" {
@@ -385,7 +275,7 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 }
 
 func (m *Manifest) HasServer() bool {
-	return m.Server != nil || m.Backend != nil
+	return m.Server != nil
 }
 
 func (m *Manifest) HasWebapp() bool {
@@ -413,15 +303,15 @@ func (m *Manifest) IsValid() error {
 		return errors.New("a plugin name is needed")
 	}
 
-	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHTTPURL(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHTTPURL(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHTTPURL(m.ReleaseNotesURL) {
 		return errors.New("invalid ReleaseNotesURL")
 	}
 
@@ -474,8 +364,9 @@ func (s *PluginSetting) isValid() error {
 		pluginSettingType == Text ||
 		pluginSettingType == LongText ||
 		pluginSettingType == Number ||
-		pluginSettingType == Username) {
-		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+		pluginSettingType == Username ||
+		pluginSettingType == Custom) {
+		return errors.New("should not set Placeholder for setting type not in text, generated, number, username, or custom")
 	}
 
 	if s.Options != nil {
@@ -535,7 +426,7 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 			}
 			continue
 		}
-		b, ioerr := ioutil.ReadAll(f)
+		b, ioerr := io.ReadAll(f)
 		f.Close()
 		if ioerr != nil {
 			return nil, path, ioerr

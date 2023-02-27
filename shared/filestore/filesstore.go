@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"context"
 	"io"
 	"time"
 
@@ -35,22 +36,25 @@ type FileBackend interface {
 	FileModTime(path string) (time.Time, error)
 
 	ListDirectory(path string) ([]string, error)
+	ListDirectoryRecursively(path string) ([]string, error)
 	RemoveDirectory(path string) error
 }
 
 type FileBackendSettings struct {
-	DriverName              string
-	Directory               string
-	AmazonS3AccessKeyId     string
-	AmazonS3SecretAccessKey string
-	AmazonS3Bucket          string
-	AmazonS3PathPrefix      string
-	AmazonS3Region          string
-	AmazonS3Endpoint        string
-	AmazonS3SSL             bool
-	AmazonS3SignV2          bool
-	AmazonS3SSE             bool
-	AmazonS3Trace           bool
+	DriverName                         string
+	Directory                          string
+	AmazonS3AccessKeyId                string
+	AmazonS3SecretAccessKey            string
+	AmazonS3Bucket                     string
+	AmazonS3PathPrefix                 string
+	AmazonS3Region                     string
+	AmazonS3Endpoint                   string
+	AmazonS3SSL                        bool
+	AmazonS3SignV2                     bool
+	AmazonS3SSE                        bool
+	AmazonS3Trace                      bool
+	SkipVerify                         bool
+	AmazonS3RequestTimeoutMilliseconds int64
 }
 
 func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
@@ -80,4 +84,19 @@ func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
 		}, nil
 	}
 	return nil, errors.New("no valid filestorage driver found")
+}
+
+// TryWriteFileContext checks if the file backend supports context writes and passes the context in that case.
+// Should the file backend not support contexts, it just calls WriteFile instead. This can be used to disable
+// the timeouts for long writes (like exports).
+func TryWriteFileContext(fb FileBackend, ctx context.Context, fr io.Reader, path string) (int64, error) {
+	type ContextWriter interface {
+		WriteFileContext(context.Context, io.Reader, string) (int64, error)
+	}
+
+	if cw, ok := fb.(ContextWriter); ok {
+		return cw.WriteFileContext(ctx, fr, path)
+	}
+
+	return fb.WriteFile(fr, path)
 }

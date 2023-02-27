@@ -26,7 +26,7 @@ type SlackAttachment struct {
 	ThumbURL   string                  `json:"thumb_url"`
 	Footer     string                  `json:"footer"`
 	FooterIcon string                  `json:"footer_icon"`
-	Timestamp  interface{}             `json:"ts"` // This is either a string or an int64
+	Timestamp  any                     `json:"ts"` // This is either a string or an int64
 	Actions    []*PostAction           `json:"actions,omitempty"`
 }
 
@@ -116,7 +116,7 @@ func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
 
 type SlackAttachmentField struct {
 	Title string              `json:"title"`
-	Value interface{}         `json:"value"`
+	Value any                 `json:"value"`
 	Short SlackCompatibleBool `json:"short"`
 }
 
@@ -165,7 +165,7 @@ func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
 // all else should be set in the post which is passed
 func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
 	if post.Type == "" {
-		post.Type = POST_SLACK_ATTACHMENT
+		post.Type = PostTypeSlackAttachment
 	}
 
 	postAttachments := []*SlackAttachment{}
@@ -179,6 +179,9 @@ func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
 		attachment.Pretext = ParseSlackLinksToMarkdown(attachment.Pretext)
 
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
 			if value, ok := field.Value.(string); ok {
 				field.Value = ParseSlackLinksToMarkdown(value)
 			}

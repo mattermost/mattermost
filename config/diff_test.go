@@ -6,7 +6,7 @@ package config
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -75,6 +75,474 @@ func BenchmarkDiff(b *testing.B) {
 	})
 }
 
+func TestDiffSanitized(t *testing.T) {
+	tcs := []struct {
+		name   string
+		base   *model.Config
+		actual *model.Config
+		diffs  ConfigDiffs
+		err    string
+	}{
+		{
+			"nil",
+			nil,
+			nil,
+			nil,
+			"input configs should not be nil",
+		},
+		{
+			"empty",
+			&model.Config{},
+			&model.Config{},
+			nil,
+			"",
+		},
+		{
+			"defaults",
+			defaultConfigGen(),
+			defaultConfigGen(),
+			nil,
+			"",
+		},
+		{
+			"default base, actual empty",
+			defaultConfigGen(),
+			&model.Config{},
+			ConfigDiffs{
+				{
+					Path: "",
+					BaseVal: func() model.Config {
+						cfg := defaultConfigGen()
+						cfg.Sanitize()
+						return *cfg
+					}(),
+					ActualVal: model.Config{},
+				},
+			},
+			"",
+		},
+		{
+			"empty base, actual default",
+			&model.Config{},
+			defaultConfigGen(),
+			ConfigDiffs{
+				{
+					Path:    "",
+					BaseVal: model.Config{},
+					ActualVal: func() model.Config {
+						cfg := defaultConfigGen()
+						cfg.Sanitize()
+						return *cfg
+					}(),
+				},
+			},
+			"",
+		},
+		{
+			"sensitive LdapSettings.BindPassword",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.LdapSettings.BindPassword = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.LdapSettings.BindPassword = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "LdapSettings.BindPassword",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive FileSettings.PublicLinkSalt",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.FileSettings.PublicLinkSalt = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.FileSettings.PublicLinkSalt = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "FileSettings.PublicLinkSalt",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive FileSettings.AmazonS3SecretAccessKey",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "FileSettings.AmazonS3SecretAccessKey",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive SqlSettings.DataSource",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.DataSource = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.DataSource = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "SqlSettings.DataSource",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive SqlSettings.AtRestEncryptKey",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.AtRestEncryptKey = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.AtRestEncryptKey = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "SqlSettings.AtRestEncryptKey",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive SqlSettings.DataSourceReplicas",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.DataSourceReplicas = []string{
+					"ds0",
+					"ds1",
+				}
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.DataSourceReplicas = []string{
+					"ds0",
+					"ds1",
+					"ds2",
+				}
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "SqlSettings.DataSourceReplicas",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive SqlSettings.DataSourceSearchReplicas",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{
+					"ds0",
+					"ds1",
+				}
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{
+					"ds0",
+					"ds1",
+					"ds2",
+				}
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "SqlSettings.DataSourceSearchReplicas",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive EmailSettings.SMTPPassword",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.EmailSettings.SMTPPassword = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.EmailSettings.SMTPPassword = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "EmailSettings.SMTPPassword",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive GitLabSettings.Secret",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.GitLabSettings.Secret = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.GitLabSettings.Secret = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "GitLabSettings.Secret",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive GoogleSettings.Secret",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.GoogleSettings.Secret = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.GoogleSettings.Secret = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "GoogleSettings.Secret",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive Office365Settings.Secret",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.Office365Settings.Secret = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.Office365Settings.Secret = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "Office365Settings.Secret",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive OpenIdSettings.Secret",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.OpenIdSettings.Secret = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.OpenIdSettings.Secret = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "OpenIdSettings.Secret",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive ElasticsearchSettings.Password",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.ElasticsearchSettings.Password = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.ElasticsearchSettings.Password = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "ElasticsearchSettings.Password",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive MessageExportSettings.GlobalRelaySettings",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{
+					SMTPUsername: model.NewString("base"),
+					SMTPPassword: model.NewString("base"),
+					EmailAddress: model.NewString("base"),
+				}
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{
+					SMTPUsername: model.NewString("actual"),
+					SMTPPassword: model.NewString("actual"),
+					EmailAddress: model.NewString("actual"),
+				}
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "MessageExportSettings.GlobalRelaySettings.SMTPUsername",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+				{
+					Path:      "MessageExportSettings.GlobalRelaySettings.SMTPPassword",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+				{
+					Path:      "MessageExportSettings.GlobalRelaySettings.EmailAddress",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive ServiceSettings.GfycatAPISecret",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.ServiceSettings.GfycatAPISecret = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.ServiceSettings.GfycatAPISecret = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "ServiceSettings.GfycatAPISecret",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"sensitive ServiceSettings.SplitKey",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.ServiceSettings.SplitKey = model.NewString("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.ServiceSettings.SplitKey = model.NewString("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "ServiceSettings.SplitKey",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
+			"plugin config",
+			defaultConfigGen(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
+					"com.mattermost.newplugin": {
+						"key": true,
+					},
+				}
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "PluginSettings.Plugins",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			diffs, err := Diff(tc.base, tc.actual)
+			if tc.err != "" {
+				require.EqualError(t, err, tc.err)
+				require.Nil(t, diffs)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tc.diffs, diffs.Sanitize())
+		})
+	}
+}
+
 func TestDiff(t *testing.T) {
 	tcs := []struct {
 		name   string
@@ -110,9 +578,9 @@ func TestDiff(t *testing.T) {
 			&model.Config{},
 			ConfigDiffs{
 				{
-					"",
-					*defaultConfigGen(),
-					model.Config{},
+					Path:      "",
+					BaseVal:   *defaultConfigGen(),
+					ActualVal: model.Config{},
 				},
 			},
 			"",
@@ -123,9 +591,9 @@ func TestDiff(t *testing.T) {
 			defaultConfigGen(),
 			ConfigDiffs{
 				{
-					"",
-					model.Config{},
-					*defaultConfigGen(),
+					Path:      "",
+					BaseVal:   model.Config{},
+					ActualVal: *defaultConfigGen(),
 				},
 			},
 			"",
@@ -339,6 +807,18 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.nps": {
 							Enable: !defaultConfigGen().PluginSettings.PluginStates["com.mattermost.nps"].Enable,
 						},
+						"focalboard": {
+							Enable: false,
+						},
+						"playbooks": {
+							Enable: true,
+						},
+						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -365,6 +845,18 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.newplugin": {
 							Enable: true,
 						},
+						"focalboard": {
+							Enable: false,
+						},
+						"playbooks": {
+							Enable: true,
+						},
+						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -382,9 +874,20 @@ func TestDiff(t *testing.T) {
 				{
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
-					ActualVal: func() interface{} {
-						return map[string]*model.PluginState{}
-					}(),
+					ActualVal: map[string]*model.PluginState{
+						"focalboard": {
+							Enable: false,
+						},
+						"playbooks": {
+							Enable: true,
+						},
+						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
+					},
 				},
 			},
 			"",
@@ -412,7 +915,7 @@ func TestDiff(t *testing.T) {
 			"map type change",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": true,
 					},
@@ -421,7 +924,7 @@ func TestDiff(t *testing.T) {
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": "string",
 					},
@@ -431,15 +934,15 @@ func TestDiff(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path: "PluginSettings.Plugins",
-					BaseVal: func() interface{} {
-						return map[string]map[string]interface{}{
+					BaseVal: func() any {
+						return map[string]map[string]any{
 							"com.mattermost.newplugin": {
 								"key": true,
 							},
 						}
 					}(),
-					ActualVal: func() interface{} {
-						return map[string]map[string]interface{}{
+					ActualVal: func() any {
+						return map[string]map[string]any{
 							"com.mattermost.newplugin": {
 								"key": "string",
 							},

@@ -10,9 +10,9 @@ import (
 	"image/color"
 	"image/png"
 
-	"github.com/mattermost/mattermost-server/v5/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/app/plugin_api_tests"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 type MyPlugin struct {
@@ -58,7 +58,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	byteReader := bytes.NewReader(imageProfile)
 	img2, _, err2 := image.Decode(byteReader)
 	if err2 != nil {
-		return nil, err.Error()
+		return nil, err2.Error()
 	}
 	if img2.At(2, 3) != colorful {
 		return nil, fmt.Sprintf("color mismatch %v != %v", img2.At(2, 3), colorful)

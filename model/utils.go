@@ -4,37 +4,42 @@
 package model
 
 import (
-	"bytes"
 	"crypto/rand"
+	"database/sql/driver"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"regexp"
-	"strconv"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 )
 
 const (
-	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
-	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS           = "0123456789"
-	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	MB                = 1 << 20
+	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS          = "0123456789"
+	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
+	maxPropSizeBytes = 1024 * 1024
 )
 
-type StringInterface map[string]interface{}
+var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
+
+type StringInterface map[string]any
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
@@ -73,6 +78,157 @@ func (sa StringArray) Equals(input StringArray) bool {
 	return true
 }
 
+// Value converts StringArray to database value
+func (sa StringArray) Value() (driver.Value, error) {
+	sz := 0
+	for i := range sa {
+		sz += len(sa[i])
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
+		}
+	}
+
+	j, err := json.Marshal(sa)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
+}
+
+// Scan converts database column value to StringArray
+func (sa *StringArray) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, sa)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), sa)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Scan converts database column value to StringMap
+func (m *StringMap) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, m)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), m)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Value converts StringMap to database value
+func (m StringMap) Value() (driver.Value, error) {
+	ok := m[BinaryParamKey]
+	delete(m, BinaryParamKey)
+
+	sz := 0
+	for k := range m {
+		sz += len(k) + len(m[k])
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
+		}
+	}
+
+	buf, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	if ok == "true" {
+		return append([]byte{0x01}, buf...), nil
+	} else if ok == "false" {
+		return buf, nil
+	}
+	// Key wasn't found. We fall back to the default case.
+	return string(buf), nil
+}
+
+func (StringMap) ImplementsGraphQLType(name string) bool {
+	return name == "StringMap"
+}
+
+func (m StringMap) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]string)(m))
+}
+
+func (m *StringMap) UnmarshalGraphQL(input any) error {
+	json, ok := input.(map[string]string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*m = json
+	return nil
+}
+
+func (si *StringInterface) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, si)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), si)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Value converts StringInterface to database value
+func (si StringInterface) Value() (driver.Value, error) {
+	j, err := json.Marshal(si)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(j) > maxPropSizeBytes {
+		return nil, ErrMaxPropSizeExceeded
+	}
+
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
+}
+
+func (StringInterface) ImplementsGraphQLType(name string) bool {
+	return name == "StringInterface"
+}
+
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
+}
+
+func (si *StringInterface) UnmarshalGraphQL(input any) error {
+	json, ok := input.(map[string]any)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*si = json
+	return nil
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
@@ -90,11 +246,36 @@ type AppError struct {
 	StatusCode    int    `json:"status_code,omitempty"` // The http status code
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]interface{}
+	params        map[string]any
+	wrapped       error
 }
 
 func (er *AppError) Error() string {
-	return er.Where + ": " + er.Message + ", " + er.DetailedError
+	var sb strings.Builder
+
+	// render the error information
+	sb.WriteString(er.Where)
+	sb.WriteString(": ")
+	if er.Message != NoTranslation {
+		sb.WriteString(er.Message)
+	}
+
+	// only render the detailed error when it's present
+	if er.DetailedError != "" {
+		if er.Message != NoTranslation {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(er.DetailedError)
+	}
+
+	// render the wrapped error
+	err := er.wrapped
+	if err != nil {
+		sb.WriteString(", ")
+		sb.WriteString(err.Error())
+	}
+
+	return sb.String()
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {
@@ -117,15 +298,44 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 	return T(er.Id, er.params)
 }
 
-func (er *AppError) ToJson() string {
+func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
+	detailed := er.DetailedError
+	defer func() {
+		er.DetailedError = detailed
+	}()
+
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
 }
 
-// AppErrorFromJson will decode the input and return an AppError
-func AppErrorFromJson(data io.Reader) *AppError {
+func (er *AppError) wrappedToDetailed() {
+	if er.wrapped == nil {
+		return
+	}
+
+	if er.DetailedError != "" {
+		er.DetailedError += ", "
+	}
+
+	er.DetailedError += er.wrapped.Error()
+}
+
+func (er *AppError) Unwrap() error {
+	return er.wrapped
+}
+
+func (er *AppError) Wrap(err error) *AppError {
+	er.wrapped = err
+	return er
+}
+
+// AppErrorFromJSON will decode the input and return an AppError
+func AppErrorFromJSON(data io.Reader) *AppError {
 	str := ""
-	bytes, rerr := ioutil.ReadAll(data)
+	bytes, rerr := io.ReadAll(data)
 	if rerr != nil {
 		str = rerr.Error()
 	} else {
@@ -136,36 +346,32 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	var er AppError
 	err := decoder.Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
+		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
 	}
 	return &er
 }
 
-func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
-	ap := &AppError{}
-	ap.Id = id
-	ap.params = params
-	ap.Message = id
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = status
-	ap.IsOAuth = false
+func NewAppError(where string, id string, params map[string]any, details string, status int) *AppError {
+	ap := &AppError{
+		Id:            id,
+		params:        params,
+		Message:       id,
+		Where:         where,
+		DetailedError: details,
+		StatusCode:    status,
+		IsOAuth:       false,
+	}
 	ap.Translate(translateFunc)
 	return ap
 }
 
-var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
+var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
 
 // NewId is a globally unique identifier.  It is a [A-Z0-9] string 26
 // characters long.  It is a UUID version 4 Guid that is zbased32 encoded
-// with the padding stripped off.
+// without the padding.
 func NewId() string {
-	var b bytes.Buffer
-	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(uuid.NewRandom())
-	encoder.Close()
-	b.Truncate(26) // removes the '==' padding
-	return b.String()
+	return encoding.EncodeToString(uuid.NewRandom())
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -227,66 +433,69 @@ func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
 }
 
 func CopyStringMap(originalMap map[string]string) map[string]string {
-	copyMap := make(map[string]string)
+	copyMap := make(map[string]string, len(originalMap))
 	for k, v := range originalMap {
 		copyMap[k] = v
 	}
 	return copyMap
 }
 
-// MapToJson converts a map to a json string
-func MapToJson(objmap map[string]string) string {
+// MapToJSON converts a map to a json string
+func MapToJSON(objmap map[string]string) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-// MapBoolToJson converts a map to a json string
-func MapBoolToJson(objmap map[string]bool) string {
+// MapBoolToJSON converts a map to a json string
+func MapBoolToJSON(objmap map[string]bool) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-// MapFromJson will decode the key/value pair map
-func MapFromJson(data io.Reader) map[string]string {
-	decoder := json.NewDecoder(data)
-
+// MapFromJSON will decode the key/value pair map
+func MapFromJSON(data io.Reader) map[string]string {
 	var objmap map[string]string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]string)
 	}
+
 	return objmap
 }
 
-// MapFromJson will decode the key/value pair map
-func MapBoolFromJson(data io.Reader) map[string]bool {
-	decoder := json.NewDecoder(data)
-
+// MapFromJSON will decode the key/value pair map
+func MapBoolFromJSON(data io.Reader) map[string]bool {
 	var objmap map[string]bool
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]bool)
 	}
+
 	return objmap
 }
 
-func ArrayToJson(objmap []string) string {
+func ArrayToJSON(objmap []string) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func ArrayFromJson(data io.Reader) []string {
-	decoder := json.NewDecoder(data)
-
+func ArrayFromJSON(data io.Reader) []string {
 	var objmap []string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make([]string, 0)
 	}
+
 	return objmap
 }
 
-func ArrayFromInterface(data interface{}) []string {
+func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
-	dataArray, ok := data.([]interface{})
+	dataArray, ok := data.([]any)
 	if !ok {
 		return stringArray
 	}
@@ -300,43 +509,29 @@ func ArrayFromInterface(data interface{}) []string {
 	return stringArray
 }
 
-func StringInterfaceToJson(objmap map[string]interface{}) string {
+func StringInterfaceToJSON(objmap map[string]any) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
-	decoder := json.NewDecoder(data)
+func StringInterfaceFromJSON(data io.Reader) map[string]any {
+	var objmap map[string]any
 
-	var objmap map[string]interface{}
-	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]interface{})
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make(map[string]any)
 	}
+
 	return objmap
 }
 
-func StringToJson(s string) string {
-	b, _ := json.Marshal(s)
-	return string(b)
-}
-
-func StringFromJson(data io.Reader) string {
-	decoder := json.NewDecoder(data)
-
-	var s string
-	if err := decoder.Decode(&s); err != nil {
-		return ""
-	}
-	return s
-}
-
-// ToJson serializes an arbitrary data type to JSON, discarding the error.
-func ToJson(v interface{}) []byte {
+// ToJSON serializes an arbitrary data type to JSON, discarding the error.
+func ToJSON(v any) []byte {
 	b, _ := json.Marshal(v)
 	return b
 }
 
-func GetServerIpAddress(iface string) string {
+func GetServerIPAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
 		var err error
@@ -372,12 +567,12 @@ func GetServerIpAddress(iface string) string {
 	return ""
 }
 
-func IsLower(s string) bool {
+func isLower(s string) bool {
 	return strings.ToLower(s) == s
 }
 
 func IsValidEmail(email string) bool {
-	if !IsLower(email) {
+	if !isLower(email) {
 		return false
 	}
 
@@ -407,44 +602,38 @@ var reservedName = []string{
 	"plugins",
 	"post",
 	"signup",
+	"boards",
+	"playbooks",
 }
 
 func IsValidChannelIdentifier(s string) bool {
-
-	if !IsValidAlphaNumHyphenUnderscore(s, true) {
-		return false
-	}
-
-	if len(s) < CHANNEL_NAME_MIN_LENGTH {
-		return false
-	}
-
-	return true
+	return validSimpleAlphaNum.MatchString(s) && len(s) >= ChannelNameMinLength
 }
 
-func IsValidAlphaNum(s string) bool {
-	validAlphaNum := regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
+var (
+	validAlphaNum                           = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
+	validAlphaNumHyphenUnderscore           = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
+	validSimpleAlphaNum                     = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]*$`)
+	validSimpleAlphaNumHyphenUnderscore     = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
+	validSimpleAlphaNumHyphenUnderscorePlus = regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
+)
 
+func isValidAlphaNum(s string) bool {
 	return validAlphaNum.MatchString(s)
 }
 
 func IsValidAlphaNumHyphenUnderscore(s string, withFormat bool) bool {
 	if withFormat {
-		validAlphaNumHyphenUnderscore := regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
 		return validAlphaNumHyphenUnderscore.MatchString(s)
 	}
-
-	validSimpleAlphaNumHyphenUnderscore := regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
 	return validSimpleAlphaNumHyphenUnderscore.MatchString(s)
 }
 
 func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
-
-	validSimpleAlphaNumHyphenUnderscorePlus := regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
 	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
 }
 
-func Etag(parts ...interface{}) string {
+func Etag(parts ...any) string {
 
 	etag := CurrentVersion
 
@@ -455,10 +644,12 @@ func Etag(parts ...interface{}) string {
 	return etag
 }
 
-var validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
-var puncStart = regexp.MustCompile(`^[^\pL\d\s#]+`)
-var hashtagStart = regexp.MustCompile(`^#{2,}`)
-var puncEnd = regexp.MustCompile(`[^\pL\d\s]+$`)
+var (
+	validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
+	puncStart    = regexp.MustCompile(`^[^\pL\d\s#]+`)
+	hashtagStart = regexp.MustCompile(`^#{2,}`)
+	puncEnd      = regexp.MustCompile(`[^\pL\d\s]+$`)
+)
 
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
@@ -499,62 +690,12 @@ func ClearMentionTags(post string) string {
 	return post
 }
 
-func IsValidHttpUrl(rawUrl string) bool {
-	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {
+func IsValidHTTPURL(rawURL string) bool {
+	if strings.Index(rawURL, "http://") != 0 && strings.Index(rawURL, "https://") != 0 {
 		return false
 	}
 
-	if u, err := url.ParseRequestURI(rawUrl); err != nil || u.Scheme == "" || u.Host == "" {
-		return false
-	}
-
-	return true
-}
-
-func IsValidTurnOrStunServer(rawUri string) bool {
-	if strings.Index(rawUri, "turn:") != 0 && strings.Index(rawUri, "stun:") != 0 {
-		return false
-	}
-
-	if _, err := url.ParseRequestURI(rawUri); err != nil {
-		return false
-	}
-
-	return true
-}
-
-func IsSafeLink(link *string) bool {
-	if link != nil {
-		if IsValidHttpUrl(*link) {
-			return true
-		} else if strings.HasPrefix(*link, "/") {
-			return true
-		} else {
-			return false
-		}
-	}
-
-	return true
-}
-
-func IsValidWebsocketUrl(rawUrl string) bool {
-	if strings.Index(rawUrl, "ws://") != 0 && strings.Index(rawUrl, "wss://") != 0 {
-		return false
-	}
-
-	if _, err := url.ParseRequestURI(rawUrl); err != nil {
-		return false
-	}
-
-	return true
-}
-
-func IsValidTrueOrFalseString(value string) bool {
-	return value == "true" || value == "false"
-}
-
-func IsValidNumberString(value string) bool {
-	if _, err := strconv.Atoi(value); err != nil {
+	if u, err := url.ParseRequestURI(rawURL); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
 
@@ -575,73 +716,24 @@ func IsValidId(value string) bool {
 	return true
 }
 
-// Copied from https://golang.org/src/net/dnsclient.go#L119
-func IsDomainName(s string) bool {
-	// See RFC 1035, RFC 3696.
-	// Presentation format has dots before every label except the first, and the
-	// terminal empty label is optional here because we assume fully-qualified
-	// (absolute) input. We must therefore reserve space for the first and last
-	// labels' length octets in wire format, where they are necessary and the
-	// maximum total length is 255.
-	// So our _effective_ maximum is 253, but 254 is not rejected if the last
-	// character is a dot.
-	l := len(s)
-	if l == 0 || l > 254 || l == 254 && s[l-1] != '.' {
-		return false
-	}
-
-	last := byte('.')
-	ok := false // Ok once we've seen a letter.
-	partlen := 0
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		switch {
-		default:
-			return false
-		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_':
-			ok = true
-			partlen++
-		case '0' <= c && c <= '9':
-			// fine
-			partlen++
-		case c == '-':
-			// Byte before dash cannot be dot.
-			if last == '.' {
-				return false
-			}
-			partlen++
-		case c == '.':
-			// Byte before dot cannot be dot, dash.
-			if last == '.' || last == '-' {
-				return false
-			}
-			if partlen > 63 || partlen == 0 {
-				return false
-			}
-			partlen = 0
-		}
-		last = c
-	}
-	if last == '-' || partlen > 63 {
-		return false
-	}
-
-	return ok
-}
-
+// RemoveDuplicateStrings does an in-place removal of duplicate strings
+// from the input slice. The original slice gets modified.
 func RemoveDuplicateStrings(in []string) []string {
-	out := []string{}
-	seen := make(map[string]bool, len(in))
-
-	for _, item := range in {
-		if !seen[item] {
-			out = append(out, item)
-
-			seen[item] = true
-		}
+	// In-place de-dup.
+	// Copied from https://github.com/golang/go/wiki/SliceTricks#in-place-deduplicate-comparable
+	if len(in) == 0 {
+		return in
 	}
-
-	return out
+	sort.Strings(in)
+	j := 0
+	for i := 1; i < len(in); i++ {
+		if in[j] == in[i] {
+			continue
+		}
+		j++
+		in[j] = in[i]
+	}
+	return in[:j+1]
 }
 
 func GetPreferredTimezone(timezone StringMap) string {
@@ -650,19 +742,6 @@ func GetPreferredTimezone(timezone StringMap) string {
 	}
 
 	return timezone["manualTimezone"]
-}
-
-// IsSamlFile checks if filename is a SAML file.
-func IsSamlFile(saml *SamlSettings, filename string) bool {
-	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
-}
-
-func AsStringBoolMap(list []string) map[string]bool {
-	listMap := map[string]bool{}
-	for _, p := range list {
-		listMap[p] = true
-	}
-	return listMap
 }
 
 // SanitizeUnicode will remove undesirable Unicode characters from a string.
@@ -710,17 +789,6 @@ func filterBlocklist(r rune) rune {
 	return r
 }
 
-// UniqueStrings returns a unique subset of the string slice provided.
-func UniqueStrings(input []string) []string {
-	u := make([]string, 0, len(input))
-	m := make(map[string]bool)
-
-	for _, val := range input {
-		if _, ok := m[val]; !ok {
-			m[val] = true
-			u = append(u, val)
-		}
-	}
-
-	return u
+func IsCloud() bool {
+	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }

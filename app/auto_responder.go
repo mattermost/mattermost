@@ -7,22 +7,22 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // check if there is any auto_response type post in channel by the user in a calender day
 func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (bool, error) {
-	y, m, d := time.Unix(int64(model.GetTimeForMillis(createdAt).Second()), 0).Date()
+	y, m, d := model.GetTimeForMillis(createdAt).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
-	return a.Srv().Store.Post().HasAutoResponsePostByUserSince(
+	return a.Srv().Store().Post().HasAutoResponsePostByUserSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},
 		userId,
 	)
 }
 
-func (a *App) SendAutoResponseIfNecessary(c *request.Context, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
-	if channel.Type != model.CHANNEL_DIRECT {
+func (a *App) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
+	if channel.Type != model.ChannelTypeDirect {
 		return false, nil
 	}
 
@@ -43,7 +43,7 @@ func (a *App) SendAutoResponseIfNecessary(c *request.Context, channel *model.Cha
 
 	autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId)
 	if err != nil {
-		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if autoResponded {
 		return false, nil
@@ -52,13 +52,13 @@ func (a *App) SendAutoResponseIfNecessary(c *request.Context, channel *model.Cha
 	return a.SendAutoResponse(c, channel, receiver, post)
 }
 
-func (a *App) SendAutoResponse(c *request.Context, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *App) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	if receiver == nil || receiver.NotifyProps == nil {
 		return false, nil
 	}
 
-	active := receiver.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
-	message := receiver.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP]
+	active := receiver.NotifyProps[model.AutoResponderActiveNotifyProp] == "true"
+	message := receiver.NotifyProps[model.AutoResponderMessageNotifyProp]
 
 	if !active || message == "" {
 		return false, nil
@@ -73,7 +73,7 @@ func (a *App) SendAutoResponse(c *request.Context, channel *model.Channel, recei
 		ChannelId: channel.Id,
 		Message:   message,
 		RootId:    rootID,
-		Type:      model.POST_AUTO_RESPONDER,
+		Type:      model.PostTypeAutoResponder,
 		UserId:    receiver.Id,
 	}
 
@@ -85,8 +85,8 @@ func (a *App) SendAutoResponse(c *request.Context, channel *model.Channel, recei
 }
 
 func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
-	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
-	oldActive := oldNotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
+	active := user.NotifyProps[model.AutoResponderActiveNotifyProp] == "true"
+	oldActive := oldNotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 
 	autoResponderEnabled := !oldActive && active
 	autoResponderDisabled := oldActive && !active
@@ -98,20 +98,20 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	}
 }
 
-func (a *App) DisableAutoResponder(userID string, asAdmin bool) *model.AppError {
+func (a *App) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
-	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
+	active := user.NotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 
 	if active {
 		patch := &model.UserPatch{}
 		patch.NotifyProps = user.NotifyProps
-		patch.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] = "false"
+		patch.NotifyProps[model.AutoResponderActiveNotifyProp] = "false"
 
-		_, err := a.PatchUser(userID, patch, asAdmin)
+		_, err := a.PatchUser(c, userID, patch, asAdmin)
 		if err != nil {
 			return err
 		}

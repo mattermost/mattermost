@@ -13,10 +13,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/wsapi"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/wsapi"
 )
 
 var TestCmd = &cobra.Command{
@@ -46,7 +47,7 @@ func init() {
 }
 
 func webClientTestsCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.StartMetrics)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,10 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv().Router)
+	_, err = api4.Init(a.Srv())
+	if err != nil {
+		return err
+	}
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
@@ -67,7 +71,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 }
 
 func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command, app.StartMetrics)
 	if err != nil {
 		return err
 	}
@@ -79,7 +83,10 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv().Router)
+	_, err = api4.Init(a.Srv())
+	if err != nil {
+		return err
+	}
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 

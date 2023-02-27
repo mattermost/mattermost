@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"net"
 	"os"
 	"syscall"
@@ -12,12 +11,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 )
 
 const (
-	UnitTestListeningPort = ":0"
+	unitTestListeningPort = ":0"
 )
 
 //nolint:golint,unused
@@ -64,7 +63,9 @@ func TestRunServerSuccess(t *testing.T) {
 	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
-	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
+	cfg := configStore.Get()
+	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	configStore.Set(cfg)
 
 	err := runServer(configStore, th.interruptChan)
 	require.NoError(t, err)
@@ -75,7 +76,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	defer th.TearDownServerTest()
 
 	// Get a random temporary filename for using as a mock systemd socket
-	socketFile, err := ioutil.TempFile("", "mattermost-systemd-mock-socket-")
+	socketFile, err := os.CreateTemp("", "mattermost-systemd-mock-socket-")
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +115,9 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
-	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
+	cfg := configStore.Get()
+	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	configStore.Set(cfg)
 
 	// Start and stop the server
 	err = runServer(configStore, th.interruptChan)
@@ -137,7 +140,9 @@ func TestRunServerNoSystemd(t *testing.T) {
 	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
-	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
+	cfg := configStore.Get()
+	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	configStore.Set(cfg)
 
 	err := runServer(configStore, th.interruptChan)
 	require.NoError(t, err)

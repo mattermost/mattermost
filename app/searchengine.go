@@ -6,13 +6,13 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 )
 
 func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
-	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
-		if *cfg.ElasticsearchSettings.ConnectionUrl == *a.Config().ElasticsearchSettings.ConnectionUrl && *cfg.ElasticsearchSettings.Username == *a.Config().ElasticsearchSettings.Username {
+	if *cfg.ElasticsearchSettings.Password == model.FakeSetting {
+		if *cfg.ElasticsearchSettings.ConnectionURL == *a.Config().ElasticsearchSettings.ConnectionURL && *cfg.ElasticsearchSettings.Username == *a.Config().ElasticsearchSettings.Username {
 			*cfg.ElasticsearchSettings.Password = *a.Config().ElasticsearchSettings.Password
 		} else {
 			return model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.reenter_password", nil, "", http.StatusBadRequest)
@@ -32,7 +32,7 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 }
 
 func (a *App) SetSearchEngine(se *searchengine.Broker) {
-	a.searchEngine = se
+	a.ch.srv.platform.SearchEngine = se
 }
 
 func (a *App) PurgeElasticsearchIndexes() *model.AppError {

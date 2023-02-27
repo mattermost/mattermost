@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -15,9 +13,10 @@ const (
 	USERNAME = "Username"
 )
 
-//msgp:tuple TeamMember
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple TeamMember
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -27,15 +26,33 @@ type TeamMember struct {
 	SchemeUser    bool   `json:"scheme_user"`
 	SchemeAdmin   bool   `json:"scheme_admin"`
 	ExplicitRoles string `json:"explicit_roles"`
+	CreateAt      int64  `json:"-"`
+}
+
+func (o *TeamMember) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"team_id":        o.TeamId,
+		"user_id":        o.UserId,
+		"roles":          o.Roles,
+		"delete_at":      o.DeleteAt,
+		"scheme_guest":   o.SchemeGuest,
+		"scheme_user":    o.SchemeUser,
+		"scheme_admin":   o.SchemeAdmin,
+		"explicit_roles": o.ExplicitRoles,
+		"create_at":      o.CreateAt,
+	}
 }
 
 //msgp:ignore TeamUnread
 type TeamUnread struct {
-	TeamId           string `json:"team_id"`
-	MsgCount         int64  `json:"msg_count"`
-	MentionCount     int64  `json:"mention_count"`
-	MentionCountRoot int64  `json:"mention_count_root"`
-	MsgCountRoot     int64  `json:"msg_count_root"`
+	TeamId                   string `json:"team_id"`
+	MsgCount                 int64  `json:"msg_count"`
+	MentionCount             int64  `json:"mention_count"`
+	MentionCountRoot         int64  `json:"mention_count_root"`
+	MsgCountRoot             int64  `json:"msg_count_root"`
+	ThreadCount              int64  `json:"thread_count"`
+	ThreadMentionCount       int64  `json:"thread_mention_count"`
+	ThreadUrgentMentionCount int64  `json:"thread_urgent_mention_count"`
 }
 
 //msgp:ignore TeamMemberForExport
@@ -69,32 +86,9 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
-func (o *TeamMember) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *TeamUnread) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func TeamMemberFromJson(data io.Reader) *TeamMember {
-	var o *TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamUnreadFromJson(data io.Reader) *TeamUnread {
-	var o *TeamUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func EmailInviteWithErrorFromJson(data io.Reader) []*EmailInviteWithError {
-	var o []*EmailInviteWithError
-	json.NewDecoder(data).Decode(&o)
-	return o
+//msgp:ignore TeamInviteReminderData
+type TeamInviteReminderData struct {
+	Interval string
 }
 
 func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
@@ -105,14 +99,6 @@ func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 		}
 	}
 	return ret
-}
-
-func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
 }
 
 func EmailInviteWithErrorToString(o *EmailInviteWithError) string {
@@ -129,60 +115,22 @@ func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
 	return ret
 }
 
-func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
 func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
 	return fmt.Sprintf("%s:%s", o.UserId, o.Error.Error())
 }
 
-func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
-	var o []*TeamMemberWithError
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamMembersToJson(o []*TeamMember) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func TeamMembersFromJson(data io.Reader) []*TeamMember {
-	var o []*TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamsUnreadToJson(o []*TeamUnread) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
-	var o []*TeamUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *TeamMember) IsValid() *AppError {
-
 	if !IsValidId(o.TeamId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(o.UserId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.Roles) > UserRolesMaxLength {
+		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.roles_limit.app_error",
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -193,4 +141,10 @@ func (o *TeamMember) PreUpdate() {
 
 func (o *TeamMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
+}
+
+// DeleteAt_ returns the deleteAt value in float64. This is necessary to work
+// with GraphQL since it doesn't support 64 bit integers.
+func (o *TeamMember) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
 }

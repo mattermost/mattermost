@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -33,7 +32,7 @@ func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker) (out string, o
 			outErr = errors.New("error extracting pdf text")
 		}
 	}()
-	f, err := ioutil.TempFile(os.TempDir(), "pdflib")
+	f, err := os.CreateTemp(os.TempDir(), "pdflib")
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
 	}

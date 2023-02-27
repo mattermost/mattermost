@@ -4,8 +4,10 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"bytes"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCacheTeamStore struct {
@@ -14,10 +16,10 @@ type LocalCacheTeamStore struct {
 }
 
 func (s *LocalCacheTeamStore) handleClusterInvalidateTeam(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.teamAllTeamIdsForUserCache.Purge()
 	} else {
-		s.rootStore.teamAllTeamIdsForUserCache.Remove(msg.Data)
+		s.rootStore.teamAllTeamIdsForUserCache.Remove(string(msg.Data))
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func genRateLimitSettings(useAuth, useIP bool, header string) *model.RateLimitSettings {
@@ -73,7 +73,7 @@ func TestGenerateKey(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
 		if tc.authTokenResult != "" {
 			req.AddCookie(&http.Cookie{
-				Name:  model.SESSION_COOKIE_TOKEN,
+				Name:  model.SessionCookieToken,
 				Value: tc.authTokenResult,
 			})
 		}

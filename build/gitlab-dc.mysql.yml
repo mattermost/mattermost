@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mysql:5.6-1
+    image: ${CI_REGISTRY}/mattermost/ci/images/mysql:5.7-1
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
@@ -83,7 +83,7 @@ services:
           - grafana
 
   start_dependencies:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest
+    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest-1
     depends_on:
       - mysql
       - minio
@@ -92,7 +92,7 @@ services:
       - elasticsearch
       - prometheus
       - grafana
-    command: mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+    command: mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
     networks:
       default:
 

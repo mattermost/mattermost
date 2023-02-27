@@ -14,14 +14,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestNoticeValidation(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
 	mockSystemStore := mocks.SystemStore{}
 	mockUserStore := mocks.UserStore{}
@@ -32,6 +31,7 @@ func TestNoticeValidation(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	mockSystemStore.On("SaveOrUpdate", &model.System{Name: "ActiveLicenseId", Value: ""}).Return(nil)
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -101,7 +101,7 @@ func TestNoticeValidation(t *testing.T) {
 
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ClientType: model.NewNoticeClientType(model.NoticeClientType_Mobile),
+						ClientType: model.NewNoticeClientType(model.NoticeClientTypeMobile),
 					},
 				},
 			},
@@ -113,7 +113,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ServerConfig: map[string]interface{}{"ServiceSettings.LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache"},
+						ServerConfig: map[string]any{"ServiceSettings.LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache"},
 					},
 				},
 			},
@@ -125,7 +125,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ServerConfig: map[string]interface{}{"ServiceSettings.ZZ": "test"},
+						ServerConfig: map[string]any{"ServiceSettings.ZZ": "test"},
 					},
 				},
 			},
@@ -137,7 +137,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff": "test"},
+						UserConfig: map[string]any{"Stuff": "test"},
 					},
 				},
 			},
@@ -149,7 +149,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data": "test"},
+						UserConfig: map[string]any{"Stuff.Data": "test"},
 					},
 				},
 			},
@@ -161,7 +161,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data2": "test"},
+						UserConfig: map[string]any{"Stuff.Data2": "test"},
 					},
 				},
 			},
@@ -173,7 +173,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data3": "stuff"},
+						UserConfig: map[string]any{"Stuff.Data3": "stuff"},
 					},
 				},
 			},
@@ -359,7 +359,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().Format("2006-01-02"))),
+						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
 					},
 				},
 			},
@@ -396,7 +396,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Sysadmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceSysadmin),
 					},
 				},
 			},
@@ -409,7 +409,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: false,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Sysadmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceSysadmin),
 					},
 				},
 			},
@@ -422,7 +422,7 @@ func TestNoticeValidation(t *testing.T) {
 				teamAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_TeamAdmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceTeamAdmin),
 					},
 				},
 			},
@@ -435,7 +435,7 @@ func TestNoticeValidation(t *testing.T) {
 				teamAdmin: false,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_TeamAdmin),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceTeamAdmin),
 					},
 				},
 			},
@@ -447,7 +447,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Member),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceMember),
 					},
 				},
 			},
@@ -460,7 +460,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudience_Member),
+						Audience: model.NewNoticeAudience(model.NoticeAudienceMember),
 					},
 				},
 			},
@@ -473,7 +473,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "e20",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_E20),
+						Sku: model.NewNoticeSKU(model.NoticeSKUE20),
 					},
 				},
 			},
@@ -486,7 +486,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "e20",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_E10),
+						Sku: model.NewNoticeSKU(model.NoticeSKUE10),
 					},
 				},
 			},
@@ -499,7 +499,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_Team),
+						Sku: model.NewNoticeSKU(model.NoticeSKUTeam),
 					},
 				},
 			},
@@ -511,7 +511,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKU_All),
+						Sku: model.NewNoticeSKU(model.NoticeSKUAll),
 					},
 				},
 			},
@@ -524,7 +524,7 @@ func TestNoticeValidation(t *testing.T) {
 				cloud: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceType_Cloud),
+						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceTypeCloud),
 					},
 				},
 			},
@@ -536,7 +536,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceType_Both),
+						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceTypeBoth),
 					},
 				},
 			},
@@ -544,7 +544,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with depreacting an external dependency",
+			name: "notice with deprecating an external dependency",
 			args: args{
 				dbmsName: "mysql",
 				dbmsVer:  "5.6",
@@ -561,7 +561,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with depreacting an external dependency, on a future version",
+			name: "notice with deprecating an external dependency, on a future version",
 			args: args{
 				dbmsName:      "mysql",
 				dbmsVer:       "5.6",
@@ -643,7 +643,7 @@ func TestNoticeValidation(t *testing.T) {
 			}
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),
-				th.App.Srv().Store.Preference(),
+				th.App.Srv().Store().Preference(),
 				"test",
 				tt.args.client,
 				clientVersion,
@@ -719,7 +719,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them for specified user
-	messages, appErr := th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr := th.App.GetProductNotices(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 1)
 
@@ -728,12 +728,12 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, see that none are returned
-	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
 	// validate views table
-	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	views, err := th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 1)
 
@@ -747,12 +747,12 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
-	messages, appErr = th.App.GetProductNotices(&request.Context{}, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
+	messages, appErr = th.App.GetProductNotices(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientTypeAll, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
-	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	views, err = th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 0)
 }

@@ -5,14 +5,37 @@ package api4
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
+
+func TestGetAllRoles(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	roles, err := th.App.Srv().Store().Role().GetAll()
+	require.NoError(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		received, resp, err := client.GetAllRoles()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.EqualValues(t, received, roles)
+	})
+
+	t.Run("NormalClient", func(t *testing.T) {
+		_, resp, err := th.Client.GetAllRoles()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
 
 func TestGetRole(t *testing.T) {
 	th := Setup(t)
@@ -26,13 +49,13 @@ func TestGetRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv().Store.Role().Save(role)
+	role, err := th.App.Srv().Store().Role().Save(role)
 	require.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		received, resp := client.GetRole(role.Id)
-		CheckNoError(t, resp)
+		received, _, err := client.GetRole(role.Id)
+		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
 		assert.Equal(t, received.Name, role.Name)
@@ -43,10 +66,12 @@ func TestGetRole(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.GetRole("1234")
+		_, resp, err := client.GetRole("1234")
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp = client.GetRole(model.NewId())
+		_, resp, err = client.GetRole(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }
@@ -63,13 +88,13 @@ func TestGetRoleByName(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv().Store.Role().Save(role)
+	role, err := th.App.Srv().Store().Role().Save(role)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		received, resp := client.GetRoleByName(role.Name)
-		CheckNoError(t, resp)
+		received, _, err := client.GetRoleByName(role.Name)
+		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
 		assert.Equal(t, received.Name, role.Name)
@@ -80,10 +105,12 @@ func TestGetRoleByName(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.GetRoleByName(strings.Repeat("abcdefghij", 10))
+		_, resp, err := client.GetRoleByName(strings.Repeat("abcdefghij", 10))
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp = client.GetRoleByName(model.NewId())
+		_, resp, err = client.GetRoleByName(model.NewId())
+		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 }
@@ -114,46 +141,48 @@ func TestGetRolesByNames(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role1, err := th.App.Srv().Store.Role().Save(role1)
+	role1, err := th.App.Srv().Store().Role().Save(role1)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role1.Id)
+	defer th.App.Srv().Store().Job().Delete(role1.Id)
 
-	role2, err = th.App.Srv().Store.Role().Save(role2)
+	role2, err = th.App.Srv().Store().Role().Save(role2)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role2.Id)
+	defer th.App.Srv().Store().Job().Delete(role2.Id)
 
-	role3, err = th.App.Srv().Store.Role().Save(role3)
+	role3, err = th.App.Srv().Store().Role().Save(role3)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role3.Id)
+	defer th.App.Srv().Store().Job().Delete(role3.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Check all three roles can be found.
-		received, resp := client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
-		CheckNoError(t, resp)
+		received, _, err := client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
+		require.NoError(t, err)
 
 		assert.Contains(t, received, role1)
 		assert.Contains(t, received, role2)
 		assert.Contains(t, received, role3)
 
 		// Check a list of non-existent roles.
-		_, resp = client.GetRolesByNames([]string{model.NewId(), model.NewId()})
-		CheckNoError(t, resp)
+		_, _, err = client.GetRolesByNames([]string{model.NewId(), model.NewId()})
+		require.NoError(t, err)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Empty list should error.
-		_, resp := client.GetRolesByNames([]string{})
+		_, resp, err := client.GetRolesByNames([]string{})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Invalid role name should error.
-		_, resp := client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+		_, resp, err := client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		// Empty/whitespace rolenames should be ignored.
-		_, resp = client.GetRolesByNames([]string{model.NewId(), model.NewId(), "", "    "})
-		CheckNoError(t, resp)
+		_, _, err = client.GetRolesByNames([]string{model.NewId(), model.NewId(), "", "    "})
+		require.NoError(t, err)
 	})
 
 }
@@ -170,9 +199,9 @@ func TestPatchRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv().Store.Role().Save(role)
-	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role.Id)
+	role, err2 := th.App.Srv().Store().Role().Save(role)
+	assert.NoError(t, err2)
+	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
 		Permissions: &[]string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
@@ -181,90 +210,89 @@ func TestPatchRole(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 
 		// Cannot edit a system admin
-		adminRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_admin")
+		adminRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_admin")
 		assert.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(adminRole.Id)
+		defer th.App.Srv().Store().Job().Delete(adminRole.Id)
 
-		_, resp := client.PatchRole(adminRole.Id, patch)
+		_, resp, err := client.PatchRole(adminRole.Id, patch)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
-		systemManager, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_manager")
+		systemManager, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_manager")
 		assert.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
+		defer th.App.Srv().Store().Job().Delete(systemManager.Id)
 
 		patchWriteSystemRoles := &model.RolePatch{
-			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id},
+			Permissions: &[]string{model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		}
 
-		_, resp = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		_, resp, err = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		patchReadSystemRoles := &model.RolePatch{
-			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id},
+			Permissions: &[]string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id},
 		}
 
-		_, resp = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		_, resp, err = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		patchManageRoles := &model.RolePatch{
-			Permissions: &[]string{model.PERMISSION_MANAGE_ROLES.Id},
+			Permissions: &[]string{model.PermissionManageRoles.Id},
 		}
 
-		_, resp = client.PatchRole(systemManager.Id, patchManageRoles)
+		_, resp, err = client.PatchRole(systemManager.Id, patchManageRoles)
+		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, resp := client.PatchRole(role.Id, patch)
-		CheckNoError(t, resp)
+		received, _, err := client.PatchRole(role.Id, patch)
+		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
+		perms := []string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		sort.Strings(perms)
+		assert.EqualValues(t, received.Permissions, perms)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		// Check a no-op patch succeeds.
-		_, resp = client.PatchRole(role.Id, patch)
-		CheckNoError(t, resp)
+		_, _, err = client.PatchRole(role.Id, patch)
+		require.NoError(t, err)
 
-		_, resp = client.PatchRole("junk", patch)
+		_, resp, err := client.PatchRole("junk", patch)
+		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
-	_, resp := th.Client.PatchRole(model.NewId(), patch)
+	_, resp, err := th.Client.PatchRole(model.NewId(), patch)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = th.Client.PatchRole(role.Id, patch)
+	_, resp, err = th.Client.PatchRole(role.Id, patch)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	// Check a change that the license would not allow.
 	patch = &model.RolePatch{
 		Permissions: &[]string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.PatchRole(role.Id, patch)
-		CheckNotImplementedStatus(t, resp)
-	})
-
-	// Add a license.
-	license := model.NewTestLicense()
-	license.Features.GuestAccountsPermissions = model.NewBool(false)
-	th.App.Srv().SetLicense(license)
-
-	// Try again, should succeed
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, resp := client.PatchRole(role.Id, patch)
-		CheckNoError(t, resp)
+		received, _, err := client.PatchRole(role.Id, patch)
+		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
+		perms := []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		sort.Strings(perms)
+		assert.EqualValues(t, received.Permissions, perms)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
@@ -272,9 +300,10 @@ func TestPatchRole(t *testing.T) {
 			license.Features.GuestAccountsPermissions = model.NewBool(false)
 			th.App.Srv().SetLicense(license)
 
-			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
+			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
-			received, resp = client.PatchRole(guestRole.Id, patch)
+			received, resp, err = client.PatchRole(guestRole.Id, patch)
+			require.Error(t, err)
 			CheckNotImplementedStatus(t, resp)
 		})
 
@@ -282,10 +311,10 @@ func TestPatchRole(t *testing.T) {
 			license := model.NewTestLicense()
 			license.Features.GuestAccountsPermissions = model.NewBool(true)
 			th.App.Srv().SetLicense(license)
-			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
+			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
-			_, resp = client.PatchRole(guestRole.Id, patch)
-			CheckNoError(t, resp)
+			_, _, err = client.PatchRole(guestRole.Id, patch)
+			require.NoError(t, err)
 		})
 	})
 }

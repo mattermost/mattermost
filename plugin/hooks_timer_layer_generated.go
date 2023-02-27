@@ -11,8 +11,8 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type hooksTimerLayer struct {
@@ -167,4 +167,90 @@ func (hooks *hooksTimerLayer) OnPluginClusterEvent(c *Context, ev model.PluginCl
 	startTime := timePkg.Now()
 	hooks.hooksImpl.OnPluginClusterEvent(c, ev)
 	hooks.recordTime(startTime, "OnPluginClusterEvent", true)
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketConnect(webConnID, userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnWebSocketConnect(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketConnect", true)
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketDisconnect(webConnID, userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnWebSocketDisconnect(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketDisconnect", true)
+}
+
+func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.WebSocketMessageHasBeenPosted(webConnID, userID, req)
+	hooks.recordTime(startTime, "WebSocketMessageHasBeenPosted", true)
+}
+
+func (hooks *hooksTimerLayer) RunDataRetention(nowTime, batchSize int64) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.RunDataRetention(nowTime, batchSize)
+	hooks.recordTime(startTime, "RunDataRetention", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) OnInstall(c *Context, event model.OnInstallEvent) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnInstall(c, event)
+	hooks.recordTime(startTime, "OnInstall", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnSendDailyTelemetry() {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnSendDailyTelemetry()
+	hooks.recordTime(startTime, "OnSendDailyTelemetry", true)
+}
+
+func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnCloudLimitsUpdated(limits)
+	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
+}
+
+func (hooks *hooksTimerLayer) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.UserHasPermissionToCollection(c, userID, collectionType, collectionId, permission)
+	hooks.recordTime(startTime, "UserHasPermissionToCollection", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GetAllCollectionIDsForUser(c, userID, collectionType)
+	hooks.recordTime(startTime, "GetAllCollectionIDsForUser", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GetAllUserIdsForCollection(c, collectionType, collectionID)
+	hooks.recordTime(startTime, "GetAllUserIdsForCollection", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GetTopicRedirect(c, topicType, topicID)
+	hooks.recordTime(startTime, "GetTopicRedirect", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GetCollectionMetadataByIds(c, collectionType, collectionIds)
+	hooks.recordTime(startTime, "GetCollectionMetadataByIds", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GetTopicMetadataByIds(c, topicType, topicIds)
+	hooks.recordTime(startTime, "GetTopicMetadataByIds", _returnsB == nil)
+	return _returnsA, _returnsB
 }

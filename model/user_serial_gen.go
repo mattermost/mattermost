@@ -17,8 +17,8 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 32 {
-		err = msgp.ArrayError{Wanted: 32, Got: zb0001}
+	if zb0001 != 33 {
+		err = msgp.ArrayError{Wanted: 33, Got: zb0001}
 		return
 	}
 	z.Id, err = dc.ReadString()
@@ -205,13 +205,18 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err, "TermsOfServiceCreateAt")
 		return
 	}
+	z.DisableWelcomeEmail, err = dc.ReadBool()
+	if err != nil {
+		err = msgp.WrapError(err, "DisableWelcomeEmail")
+		return
+	}
 	return
 }
 
 // EncodeMsg implements msgp.Encodable
 func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
-	// array header, size 32
-	err = en.Append(0xdc, 0x0, 0x20)
+	// array header, size 33
+	err = en.Append(0xdc, 0x0, 0x21)
 	if err != nil {
 		return
 	}
@@ -389,14 +394,19 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "TermsOfServiceCreateAt")
 		return
 	}
+	err = en.WriteBool(z.DisableWelcomeEmail)
+	if err != nil {
+		err = msgp.WrapError(err, "DisableWelcomeEmail")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// array header, size 32
-	o = append(o, 0xdc, 0x0, 0x20)
+	// array header, size 33
+	o = append(o, 0xdc, 0x0, 0x21)
 	o = msgp.AppendString(o, z.Id)
 	o = msgp.AppendInt64(o, z.CreateAt)
 	o = msgp.AppendInt64(o, z.UpdateAt)
@@ -449,6 +459,7 @@ func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendInt64(o, z.BotLastIconUpdate)
 	o = msgp.AppendString(o, z.TermsOfServiceId)
 	o = msgp.AppendInt64(o, z.TermsOfServiceCreateAt)
+	o = msgp.AppendBool(o, z.DisableWelcomeEmail)
 	return
 }
 
@@ -460,8 +471,8 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 32 {
-		err = msgp.ArrayError{Wanted: 32, Got: zb0001}
+	if zb0001 != 33 {
+		err = msgp.ArrayError{Wanted: 33, Got: zb0001}
 		return
 	}
 	z.Id, bts, err = msgp.ReadStringBytes(bts)
@@ -646,6 +657,11 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err, "TermsOfServiceCreateAt")
 		return
 	}
+	z.DisableWelcomeEmail, bts, err = msgp.ReadBoolBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "DisableWelcomeEmail")
+		return
+	}
 	o = bts
 	return
 }
@@ -664,7 +680,7 @@ func (z *User) Msgsize() (s int) {
 	} else {
 		s += msgp.StringPrefixSize + len(*z.RemoteId)
 	}
-	s += msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size
+	s += msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size + msgp.BoolSize
 	return
 }
 

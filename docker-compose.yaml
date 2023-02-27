@@ -31,8 +31,8 @@ services:
   inbucket:
     container_name: mattermost-inbucket
     ports:
+      - "9001:9001"
       - "10025:10025"
-      - "10080:10080"
       - "10110:10110"
     extends:
         file: build/docker-compose.common.yml
@@ -95,7 +95,7 @@ services:
       - elasticsearch
       - prometheus
       - grafana
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
 
   leader:
     build:
@@ -103,11 +103,13 @@ services:
       dockerfile: ./build/Dockerfile.buildenv
     working_dir: '/home/mattermost-server'
     environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_FEATUREFLAGS_BoardsProduct=true"
     networks:
       - mm-test
     depends_on:
@@ -116,6 +118,7 @@ services:
       - './:/home/mattermost-server'
       - './../mattermost-webapp:/home/mattermost-webapp'
       - './../enterprise:/home/enterprise'
+      - './../focalboard:/home/focalboard'
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
@@ -139,11 +142,13 @@ services:
       dockerfile: ./build/Dockerfile.buildenv
     working_dir: '/home/mattermost-server'
     environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_FEATUREFLAGS_BoardsProduct=true"
     networks:
       - mm-test
     depends_on:
@@ -152,6 +157,7 @@ services:
       - './:/home/mattermost-server'
       - './../mattermost-webapp:/home/mattermost-webapp'
       - './../enterprise:/home/enterprise'
+      - './../focalboard:/home/focalboard'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
@@ -175,11 +181,13 @@ services:
       dockerfile: ./build/Dockerfile.buildenv
     working_dir: '/home/mattermost-server'
     environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_FEATUREFLAGS_BoardsProduct=true"
     networks:
       - mm-test
     depends_on:
@@ -188,6 +196,7 @@ services:
       - './:/home/mattermost-server'
       - './../mattermost-webapp:/home/mattermost-webapp'
       - './../enterprise:/home/enterprise'
+      - './../focalboard:/home/focalboard'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s

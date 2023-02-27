@@ -4,13 +4,12 @@
 package sqlstore
 
 import (
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 
-	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 )
 
@@ -19,30 +18,31 @@ type SqlReactionStore struct {
 }
 
 func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
-	s := &SqlReactionStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("PostId").SetMaxSize(26)
-		table.ColMap("EmojiName").SetMaxSize(64)
-		table.ColMap("RemoteId").SetMaxSize(26)
-	}
-
-	return s
+	return &SqlReactionStore{sqlStore}
 }
 
-func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
+func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, err error) {
 	reaction.PreSave()
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
 	}
-
-	transaction, err := s.GetMaster().Begin()
+	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransaction(transaction)
+	defer finalizeTransactionX(transaction, &err)
+	if reaction.ChannelId == "" {
+		// get channelId, if not already populated
+		var channelIds []string
+		var args []interface{}
+		query := "SELECT ChannelId from Posts where Id = ?"
+		args = append(args, reaction.PostId)
+		err = transaction.Select(&channelIds, query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed while getting channelId from Posts")
+		}
+		reaction.ChannelId = channelIds[0]
+	}
 	err = s.saveReactionAndUpdatePost(transaction, reaction)
 	if err != nil {
 		// We don't consider duplicated save calls as an error
@@ -58,14 +58,14 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 	return reaction, nil
 }
 
-func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
+func (s *SqlReactionStore) Delete(reaction *model.Reaction) (re *model.Reaction, err error) {
 	reaction.PreUpdate()
 
-	transaction, err := s.GetMaster().Begin()
+	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransaction(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
 		return nil, errors.Wrap(err, "deleteReactionAndUpdatePost")
@@ -82,7 +82,7 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, er
 func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	queryString, args, err := s.getQueryBuilder().
 		Select("UserId", "PostId", "EmojiName", "CreateAt", "COALESCE(UpdateAt, CreateAt) As UpdateAt",
-			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId").
+			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId", "ChannelId").
 		From("Reactions").
 		Where(sq.Eq{"PostId": postId}).
 		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0}).
@@ -94,7 +94,7 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 	}
 
 	var reactions []*model.Reaction
-	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
 	}
 	return reactions, nil
@@ -125,17 +125,17 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 	}
 
 	var reactions []*model.Reaction
-	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find reactions")
 	}
 	return reactions, nil
 }
 
 func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	keys, params := MapStringsToQueryParams(postIds, "postId")
+	placeholder, values := constructArrayArgs(postIds)
 	var reactions []*model.Reaction
 
-	if _, err := s.GetReplica().Select(&reactions,
+	if err := s.GetReplicaX().Select(&reactions,
 		`SELECT
 				UserId,
 				PostId,
@@ -143,13 +143,14 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 				CreateAt,
 				COALESCE(UpdateAt, CreateAt) As UpdateAt,
 				COALESCE(DeleteAt, 0) As DeleteAt,
-				RemoteId
+				RemoteId,
+				ChannelId
 			FROM
 				Reactions
 			WHERE
-				PostId IN `+keys+` AND COALESCE(DeleteAt, 0) = 0
+				PostId IN `+placeholder+` AND COALESCE(DeleteAt, 0) = 0
 			ORDER BY
-				CreateAt`, params); err != nil {
+				CreateAt`, values...); err != nil {
 		return nil, errors.Wrap(err, "failed to get Reactions")
 	}
 	return reactions, nil
@@ -159,13 +160,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	var reactions []*model.Reaction
 	now := model.GetMillis()
 
-	params := map[string]interface{}{
-		"EmojiName": emojiName,
-		"UpdateAt":  now,
-		"DeleteAt":  now,
-	}
-
-	if _, err := s.GetReplica().Select(&reactions,
+	if err := s.GetReplicaX().Select(&reactions,
 		`SELECT
 			UserId,
 			PostId,
@@ -177,28 +172,24 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 		FROM
 			Reactions
 		WHERE
-			EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
+			EmojiName = ? AND COALESCE(DeleteAt, 0) = 0`, emojiName); err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
-	_, err := s.GetMaster().Exec(
+	_, err := s.GetMasterX().Exec(
 		`UPDATE
 			Reactions
 		SET
-			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt
+			UpdateAt = ?, DeleteAt = ?
 		WHERE
-			EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params)
+			EmojiName = ? AND COALESCE(DeleteAt, 0) = 0`, now, now, emojiName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
 	}
 
 	for _, reaction := range reactions {
 		reaction := reaction
-		_, err := s.GetMaster().Exec(UpdatePostHasReactionsOnDeleteQuery,
-			map[string]interface{}{
-				"PostId":   reaction.PostId,
-				"UpdateAt": model.GetMillis(),
-			})
+		_, err := s.GetMasterX().Exec(UpdatePostHasReactionsOnDeleteQuery, now, reaction.PostId, reaction.PostId)
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", reaction.PostId),
@@ -218,11 +209,10 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 			SELECT PostId FROM Reactions
 			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
 			WHERE Posts.Id IS NULL
-			LIMIT :Limit
+			LIMIT ?
 		) AS A
 	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
+	result, err := s.GetMasterX().Exec(query, limit)
 	if err != nil {
 		return
 	}
@@ -233,12 +223,12 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
-		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
+		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < ? LIMIT ?))"
 	} else {
-		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
+		query = "DELETE from Reactions WHERE CreateAt < ? LIMIT ?"
 	}
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	sqlResult, err := s.GetMasterX().Exec(query, endTime, limit)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete Reactions")
 	}
@@ -250,62 +240,163 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
-func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	params := map[string]interface{}{
-		"UserId":    reaction.UserId,
-		"PostId":    reaction.PostId,
-		"EmojiName": reaction.EmojiName,
-		"CreateAt":  reaction.CreateAt,
-		"UpdateAt":  reaction.UpdateAt,
-		"RemoteId":  reaction.RemoteId,
+// GetTopForTeamSince returns the instance counts of the following Reactions sets:
+// a) those created by anyone in private channels in the given user's membership graph on the given team, and
+// b) those created by anyone in public channels on the given team.
+func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
+	reactions := make([]*model.TopReaction, 0)
+
+	query := `
+		SELECT
+			EmojiName,
+			sum(EmojiCount) AS Count
+		FROM ((
+				SELECT
+					EmojiName,
+					count(EmojiName) AS EmojiCount,
+					Reactions.DeleteAt AS DeleteAt,
+					Reactions.CreateAt AS CreateAt
+				FROM
+					ChannelMembers
+					INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
+					INNER JOIN Reactions ON Channels.Id = Reactions.ChannelId
+				WHERE
+					ChannelMembers.UserId = ?
+					AND Channels.Type = 'P'
+					AND Channels.TeamId = ?
+				GROUP BY
+					Reactions.EmojiName,
+					Reactions.DeleteAt,
+					Reactions.CreateAt)
+			UNION ALL (
+				SELECT
+					EmojiName,
+					count(EmojiName) AS EmojiCount,
+					Reactions.DeleteAt AS DeleteAt,
+					Reactions.CreateAt AS CreateAt
+				FROM
+					Reactions
+					INNER JOIN PublicChannels ON Reactions.ChannelId = PublicChannels.Id
+				WHERE
+					PublicChannels.TeamId = ?
+				GROUP BY
+					Reactions.EmojiName,
+					Reactions.DeleteAt,
+					Reactions.CreateAt)) AS A
+		WHERE
+			DeleteAt = 0
+			AND CreateAt > ?
+		GROUP BY
+			EmojiName
+		ORDER BY
+			Count DESC,
+			EmojiName ASC
+		LIMIT ?
+		OFFSET ?`
+
+	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, teamID, since, limit+1, offset); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		if _, err := transaction.Exec(
+	return model.GetTopReactionListWithPagination(reactions, limit), nil
+}
+
+// GetTopForUserSince returns the instance counts of the following Reactions sets:
+// a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
+// b) those created by the given user in DM or group channels.
+func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
+	reactions := make([]*model.TopReaction, 0)
+	var args []any
+	var query string
+
+	if teamID != "" {
+		query = `
+		SELECT
+			EmojiName,
+			count(EmojiName) AS Count
+		FROM
+			Reactions
+			INNER JOIN Channels ON Channels.Id = Reactions.ChannelId
+		WHERE
+			Reactions.DeleteAt = 0
+			AND Reactions.UserId = ?
+			AND (Channels.TeamId = ? OR Channels.Type = 'D' OR Channels.Type = 'G')
+			AND Reactions.CreateAt > ?
+		GROUP BY
+			EmojiName
+		ORDER BY
+			Count DESC,
+			EmojiName ASC
+		LIMIT ?
+		OFFSET ?`
+		args = []any{userID, teamID, since, limit + 1, offset}
+	} else {
+		query = `
+			SELECT
+				EmojiName,
+				count(EmojiName) AS Count
+			FROM
+				Reactions
+			WHERE
+				Reactions.DeleteAt = 0
+				AND Reactions.UserId = ?
+				AND Reactions.CreateAt > ?
+			GROUP BY
+				Reactions.EmojiName
+			ORDER BY
+				Count DESC,
+				EmojiName ASC
+			LIMIT ?
+			OFFSET ?`
+		args = []any{userID, since, limit + 1, offset}
+	}
+
+	if err := s.GetReplicaX().Select(&reactions, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Reactions")
+	}
+
+	return model.GetTopReactionListWithPagination(reactions, limit), nil
+}
+
+func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
+	reaction.DeleteAt = 0
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		if _, err := transaction.NamedExec(
 			`INSERT INTO
 				Reactions
-				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
+				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId, ChannelId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId, :ChannelId)
 			ON DUPLICATE KEY UPDATE
-				UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
+				UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId, ChannelId = :ChannelId`, reaction); err != nil {
 			return err
 		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		if _, err := transaction.Exec(
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		if _, err := transaction.NamedExec(
 			`INSERT INTO
 				Reactions
-				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
+				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId, ChannelId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
-			ON CONFLICT (UserId, PostId, EmojiName) 
-				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId, :ChannelId)
+			ON CONFLICT (UserId, PostId, EmojiName)
+				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId, ChannelId = :ChannelId`, reaction); err != nil {
 			return err
 		}
 	}
 	return updatePostForReactionsOnInsert(transaction, reaction.PostId)
 }
 
-func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	params := map[string]interface{}{
-		"UserId":    reaction.UserId,
-		"PostId":    reaction.PostId,
-		"EmojiName": reaction.EmojiName,
-		"CreateAt":  reaction.CreateAt,
-		"UpdateAt":  reaction.UpdateAt,
-		"DeleteAt":  reaction.UpdateAt, // DeleteAt = UpdateAt
-		"RemoteId":  reaction.RemoteId,
-	}
-
+func deleteReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
 	if _, err := transaction.Exec(
 		`UPDATE
 			Reactions
-		SET 
-			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId
+		SET
+			UpdateAt = ?, DeleteAt = ?, RemoteId = ?
 		WHERE
-			PostId = :PostId AND
-			UserId = :UserId AND
-			EmojiName = :EmojiName`, params); err != nil {
+			PostId = ? AND
+			UserId = ? AND
+			EmojiName = ?`, reaction.UpdateAt, reaction.UpdateAt, reaction.RemoteId, reaction.PostId, reaction.UserId, reaction.EmojiName); err != nil {
 		return err
 	}
 
@@ -316,28 +407,30 @@ const (
 	UpdatePostHasReactionsOnDeleteQuery = `UPDATE
 			Posts
 		SET
-			UpdateAt = :UpdateAt,
-			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId AND COALESCE(DeleteAt, 0) = 0)
+			UpdateAt = ?,
+			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = ? AND COALESCE(DeleteAt, 0) = 0)
 		WHERE
-			Id = :PostId`
+			Id = ?`
 )
 
-func updatePostForReactionsOnDelete(transaction *gorp.Transaction, postId string) error {
+func updatePostForReactionsOnDelete(transaction *sqlxTxWrapper, postId string) error {
 	updateAt := model.GetMillis()
-	_, err := transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, map[string]interface{}{"PostId": postId, "UpdateAt": updateAt})
+	_, err := transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, updateAt, postId, postId)
 	return err
 }
 
-func updatePostForReactionsOnInsert(transaction *gorp.Transaction, postId string) error {
+func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) error {
 	_, err := transaction.Exec(
 		`UPDATE
 			Posts
 		SET
 			HasReactions = True,
-			UpdateAt = :UpdateAt
+			UpdateAt = ?
 		WHERE
-			Id = :PostId`,
-		map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
+			Id = ?`,
+		model.GetMillis(),
+		postId,
+	)
 
 	return err
 }

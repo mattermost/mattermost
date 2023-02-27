@@ -5,19 +5,19 @@ package sqlstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
-	SessionsCleanupDelayMilliseconds = 100
+	sessionsCleanupDelay = 100 * time.Millisecond
 )
 
 type SqlSessionStore struct {
@@ -25,40 +25,41 @@ type SqlSessionStore struct {
 }
 
 func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
-	us := &SqlSessionStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Session{}, "Sessions").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Token").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("DeviceId").SetMaxSize(512)
-		table.ColMap("Roles").SetMaxSize(64)
-		table.ColMap("Props").SetMaxSize(1000)
-	}
-
-	return us
-}
-
-func (me SqlSessionStore) createIndexesIfNotExists() {
-	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
-	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
-	me.CreateIndexIfNotExists("idx_sessions_expires_at", "Sessions", "ExpiresAt")
-	me.CreateIndexIfNotExists("idx_sessions_create_at", "Sessions", "CreateAt")
-	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
+	return &SqlSessionStore{sqlStore}
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
+
 	session.PreSave()
 
-	if err := me.GetMaster().Insert(session); err != nil {
+	if err := session.IsValid(); err != nil {
+		return nil, err
+	}
+	jsonProps, err := json.Marshal(session.Props)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling session props")
+	}
+
+	if me.IsBinaryParamEnabled() {
+		jsonProps = AppendBinaryFlag(jsonProps)
+	}
+
+	query, args, err := me.getQueryBuilder().
+		Insert("Sessions").
+		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, jsonProps).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "sessions_tosql")
+	}
+	if _, err = me.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -74,18 +75,19 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 }
 
 func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
-	var sessions []*model.Session
+	sessions := []*model.Session{}
 
-	if _, err := me.DBFromContext(ctx).Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+	if err := me.DBXFromContext(ctx).Select(&sessions, "SELECT * FROM Sessions WHERE Token = ? OR Id = ? LIMIT 1", sessionIdOrToken, sessionIdOrToken); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
-	} else if len(sessions) == 0 {
+	}
+	if len(sessions) == 0 {
 		return nil, store.NewErrNotFound("Session", fmt.Sprintf("sessionIdOrToken=%s", sessionIdOrToken))
 	}
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
 		WithMaster(context.Background()),
-		session.UserId)
+		session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -99,13 +101,13 @@ func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*mo
 }
 
 func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
-	var sessions []*model.Session
+	sessions := []*model.Session{}
 
-	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
+	if err := me.GetReplicaX().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = ? ORDER BY LastActivityAt DESC", userId); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}
@@ -127,15 +129,14 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 		FROM
 			Sessions
 		WHERE
-			UserId = :UserId AND
+			UserId = ? AND
 			ExpiresAt != 0 AND
-			:ExpiresAt <= ExpiresAt AND
+			? <= ExpiresAt AND
 			DeviceId != ''`
 
-	var sessions []*model.Session
+	sessions := []*model.Session{}
 
-	_, err := me.GetReplica().Select(&sessions, query, map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()})
-	if err != nil {
+	if err := me.GetReplicaX().Select(&sessions, query, userId, model.GetMillis()); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 	return sessions, nil
@@ -161,9 +162,9 @@ func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly b
 		return nil, errors.Wrap(err, "sessions_tosql")
 	}
 
-	var sessions []*model.Session
+	sessions := []*model.Session{}
 
-	_, err = me.GetReplica().Select(&sessions, query, args...)
+	err = me.GetReplicaX().Select(&sessions, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Sessions")
 	}
@@ -180,7 +181,7 @@ func (me SqlSessionStore) UpdateExpiredNotify(sessionId string, notified bool) e
 		return errors.Wrap(err, "sessions_tosql")
 	}
 
-	_, err = me.GetMaster().Exec(query, args...)
+	_, err = me.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update Session with id=%s", sessionId)
 	}
@@ -188,7 +189,7 @@ func (me SqlSessionStore) UpdateExpiredNotify(sessionId string, notified bool) e
 }
 
 func (me SqlSessionStore) Remove(sessionIdOrToken string) error {
-	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
+	_, err := me.GetMasterX().Exec("DELETE FROM Sessions WHERE Id = ? Or Token = ?", sessionIdOrToken, sessionIdOrToken)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Session with sessionIdOrToken=%s", sessionIdOrToken)
 	}
@@ -196,7 +197,7 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) error {
 }
 
 func (me SqlSessionStore) RemoveAllSessions() error {
-	_, err := me.GetMaster().Exec("DELETE FROM Sessions")
+	_, err := me.GetMasterX().Exec("DELETE FROM Sessions")
 	if err != nil {
 		return errors.Wrap(err, "failed to delete all Sessions")
 	}
@@ -204,7 +205,7 @@ func (me SqlSessionStore) RemoveAllSessions() error {
 }
 
 func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) error {
-	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	_, err := me.GetMasterX().Exec("DELETE FROM Sessions WHERE UserId = ?", userId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Session with userId=%s", userId)
 	}
@@ -213,15 +214,26 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) error {
 }
 
 func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
-	_, err := me.GetMaster().Exec("UPDATE Sessions SET ExpiresAt = :ExpiresAt, ExpiredNotify = false WHERE Id = :Id", map[string]interface{}{"ExpiresAt": time, "Id": sessionId})
+	_, err := me.GetMasterX().Exec("UPDATE Sessions SET ExpiresAt = ?, ExpiredNotify = false WHERE Id = ?", time, sessionId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update Session with sessionId=%s", sessionId)
 	}
 	return nil
 }
 
+func (me *SqlSessionStore) GetLastSessionRowCreateAt() (int64, error) {
+	query := `SELECT CREATEAT FROM Sessions ORDER BY CREATEAT DESC LIMIT 1`
+	var createAt int64
+	err := me.GetReplicaX().Get(&createAt, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get last session createat")
+	}
+
+	return createAt, nil
+}
+
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
-	_, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId})
+	_, err := me.GetMasterX().Exec("UPDATE Sessions SET LastActivityAt = ? WHERE Id = ?", time, sessionId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update Session with id=%s", sessionId)
 	}
@@ -229,9 +241,11 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) err
 }
 
 func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
-	query := "UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId"
+	if len(roles) > model.UserRolesMaxLength {
+		return "", fmt.Errorf("given session roles length (%d) exceeds max storage limit (%d)", len(roles), model.UserRolesMaxLength)
+	}
 
-	_, err := me.GetMaster().Exec(query, map[string]interface{}{"Roles": roles, "UserId": userId})
+	_, err := me.GetMasterX().Exec("UPDATE Sessions SET Roles = ? WHERE UserId = ?", roles, userId)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to update Session with userId=%s and roles=%s", userId, roles)
 	}
@@ -239,9 +253,9 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
 }
 
 func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
-	query := "UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt, ExpiredNotify = false WHERE Id = :Id"
+	query := "UPDATE Sessions SET DeviceId = ?, ExpiresAt = ?, ExpiredNotify = false WHERE Id = ?"
 
-	_, err := me.GetMaster().Exec(query, map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt})
+	_, err := me.GetMasterX().Exec(query, deviceId, expiresAt, id)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to update Session with id=%s", id)
 	}
@@ -249,61 +263,65 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, err := me.Get(context.Background(), session.Id)
+	jsonProps, err := json.Marshal(session.Props)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed marshalling session props")
 	}
-	oldSession.Props = session.Props
-
-	count, err := me.GetMaster().Update(oldSession)
+	if me.IsBinaryParamEnabled() {
+		jsonProps = AppendBinaryFlag(jsonProps)
+	}
+	query, args, err := me.getQueryBuilder().
+		Update("Sessions").
+		Set("Props", jsonProps).
+		Where(sq.Eq{"Id": session.Id}).
+		ToSql()
+	if err != nil {
+		errors.Wrap(err, "sessions_tosql")
+	}
+	_, err = me.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to update Session")
-	}
-	if count != 1 {
-		return fmt.Errorf("updated Sessions were %d, expected 1", count)
 	}
 	return nil
 }
 
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, error) {
+	var count int64
 	query :=
 		`SELECT
 			COUNT(*)
 		FROM
 			Sessions
-		WHERE ExpiresAt > :Time`
-	count, err := me.GetReplica().SelectInt(query, map[string]interface{}{"Time": model.GetMillis()})
-	if err != nil {
+		WHERE ExpiresAt > ?`
+	if err := me.GetReplicaX().Get(&count, query, model.GetMillis()); err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Sessions")
 	}
 	return count, nil
 }
 
-func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
-	mlog.Debug("Cleaning up session store.")
-
+func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	var query string
-	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
+	if me.DriverName() == model.DatabaseDriverPostgres {
+		query = "DELETE FROM Sessions WHERE Id IN (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?)"
 	} else {
-		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"
+		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?"
 	}
 
 	var rowsAffected int64 = 1
 
 	for rowsAffected > 0 {
-		sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize})
+		sqlResult, err := me.GetMasterX().Exec(query, expiryTime, batchSize)
 		if err != nil {
-			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
-			return
+			return errors.Wrap(err, "unable to delete sessions")
 		}
 		var rowErr error
 		rowsAffected, rowErr = sqlResult.RowsAffected()
 		if rowErr != nil {
-			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
-			return
+			return errors.Wrap(err, "unable to delete sessions")
 		}
 
-		time.Sleep(SessionsCleanupDelayMilliseconds * time.Millisecond)
+		time.Sleep(sessionsCleanupDelay)
 	}
+
+	return nil
 }

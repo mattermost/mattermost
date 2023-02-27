@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestMeProviderDoCommand(t *testing.T) {
@@ -21,7 +21,7 @@ func TestMeProviderDoCommand(t *testing.T) {
 
 	resp := mp.DoCommand(th.App, th.Context, &model.CommandArgs{}, msg)
 
-	assert.Equal(t, model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, resp.ResponseType)
-	assert.Equal(t, model.POST_ME, resp.Type)
+	assert.Equal(t, model.CommandResponseTypeInChannel, resp.ResponseType)
+	assert.Equal(t, model.PostTypeMe, resp.Type)
 	assert.Equal(t, "*"+msg+"*", resp.Text)
 }

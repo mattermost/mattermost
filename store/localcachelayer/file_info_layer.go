@@ -4,8 +4,10 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"bytes"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCacheFileInfoStore struct {
@@ -14,11 +16,11 @@ type LocalCacheFileInfoStore struct {
 }
 
 func (s *LocalCacheFileInfoStore) handleClusterInvalidateFileInfo(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.fileInfoCache.Purge()
 		return
 	}
-	s.rootStore.fileInfoCache.Remove(msg.Data)
+	s.rootStore.fileInfoCache.Remove(string(msg.Data))
 }
 
 func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
@@ -64,4 +66,34 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
 	}
+}
+
+func (s LocalCacheFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {
+	storageUsageKey := "storage_usage"
+	if includeDeleted {
+		storageUsageKey += "_deleted"
+	}
+
+	if !allowFromCache {
+		usage, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+		if err != nil {
+			return 0, err
+		}
+
+		s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
+		return usage, nil
+	}
+
+	var usage int64
+	if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, storageUsageKey, &usage); err == nil {
+		return usage, nil
+	}
+
+	usage, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+	if err != nil {
+		return 0, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
+	return usage, nil
 }

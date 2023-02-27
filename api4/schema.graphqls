@@ -1,0 +1,222 @@
+schema {
+  query: Query
+}
+
+type Query {
+	user(id: String!): User
+	config(): StringMap!
+	license(): StringMap!
+	teamMembers(userId: String!,
+		teamId: String = "",
+		excludeTeam: Boolean = false): [TeamMember]!
+	channels(userId: String!,
+		teamId: String = "",
+		includeDeleted: Boolean = false,
+		lastDeleteAt: Float = 0,
+		lastUpdateAt: Float = 0,
+		first: Int = 60,
+		after: String = ""): [Channel]!
+	channelsLeft(userId: String!,
+		since: Float!): [String!]!
+	channelMembers(userId: String!,
+		channelId: String = "",
+		teamId: String = "",
+		excludeTeam: Boolean = false,
+		first: Int = 60,
+		after: String = "",
+		lastUpdateAt: Float = 0): [ChannelMember]!
+	sidebarCategories(userId: String!,
+		teamId: String!,
+		excludeTeam: Boolean = false): [SidebarCategory]!
+}
+
+scalar ChannelType
+
+scalar SidebarCategoryType
+
+scalar SidebarCategorySorting
+
+scalar StringMap
+
+scalar StringInterface
+
+scalar Time
+
+type Channel {
+	id           : String!
+	createAt    : Float!
+	updateAt    : Float!
+	deleteAt    : Float!
+	type : ChannelType!
+	displayName: String!
+	prettyDisplayName: String!
+	name: String!
+	header: String!
+	purpose: String!
+	creatorId: String!
+	schemeId: String
+	team: Team
+	groupConstrained: Boolean
+	shared: Boolean
+	lastPostAt: Float!
+	totalMsgCount: Float!
+	totalMsgCountRoot: Float!
+	lastRootPostAt: Float!
+	extraUpdateAt: Float!
+	props: StringInterface!
+	policyId: String
+	cursor: String
+}
+
+type ChannelMember {
+	channel           : Channel
+	user              : User
+	roles             : [Role]!
+	lastViewedAt      : Float!
+	msgCount          : Float!
+	mentionCount      : Float!
+	urgentMentionCount: Float!
+	mentionCountRoot  : Float!
+	msgCountRoot      : Float!
+	notifyProps       : StringMap!
+	lastUpdateAt      : Float!
+	schemeGuest       : Boolean!
+	schemeUser        : Boolean!
+	schemeAdmin       : Boolean!
+	explicitRoles     : String!
+	cursor            : String
+}
+
+# Deliberately omitting password, authData, mfaSecret.
+type User {
+	id: String!
+	username: String!
+	email: String!
+	firstName: String!
+	lastName: String!
+	nickname: String!
+	emailVerified: Boolean!
+	isBot: Boolean!
+	isGuest: Boolean!
+	isSystemAdmin: Boolean!
+	createAt: Float!
+	updateAt: Float!
+	deleteAt: Float!
+	authService: String!
+	customStatus: CustomStatus
+	status: Status
+	props: StringMap!
+	notifyProps: StringMap!
+	lastPictureUpdate: Float!
+	lastPasswordUpdate: Float!
+	failedAttempts: Float!
+	locale: String!
+	timezone: StringMap!
+	position: String!
+	mfaActive: Boolean!
+	allowMarketing: Boolean!
+	remoteId: String
+	lastActivityAt: Float!
+	botDescription: String!
+	botLastIconUpdate: Float!
+	termsOfServiceId: String!
+	termsOfServiceCreateAt: Float!
+	disableWelcomeEmail: Boolean!
+	roles: [Role]!
+	preferences: [Preference!]!
+	sessions: [Session]!
+}
+
+type CustomStatus {
+	emoji: String!
+	text: String!
+	duration: String!
+	expiresAt: Time!
+}
+
+type Status {
+	status: String!
+	manual: Boolean!
+	lastActivityAt: Float!
+	activeChannel: String!
+	dndEndTime: Float!
+}
+
+type Role {
+	id: String!
+	name: String!
+	displayName: String!
+	description: String!
+	createAt: Float!
+	updateAt: Float!
+	deleteAt: Float!
+	permissions: [String!]!
+	schemeManaged: Boolean!
+	builtIn: Boolean!
+}
+
+type Preference {
+	userId: String!
+	category: String!
+	name: String!
+	value: String!
+}
+
+type Team {
+	id: String!
+	displayName    :    String!
+	name           :    String!
+	createAt       :    Float!
+	updateAt       :    Float!
+	deleteAt       :    Float!
+	description    :    String!
+	email          :    String!
+	type           :    String!
+	companyName    :    String!
+	allowedDomains :    String!
+	inviteId       :    String!
+	lastTeamIconUpdate: Float!
+	groupConstrained:   Boolean
+	allowOpenInvite:    Boolean!
+	schemeId       :    String
+	policyId       :    String
+	cloudLimitsArchived: Boolean!
+}
+
+type TeamMember {
+	team: Team
+	user: User
+	roles: [Role]!
+	deleteAt: Float!
+	schemeGuest: Boolean!
+	schemeUser: Boolean!
+	schemeAdmin: Boolean!
+	explicitRoles: String!
+}
+
+type SidebarCategory {
+	id: String!
+	sorting: SidebarCategorySorting!
+	type: SidebarCategoryType!
+	displayName: String!
+	muted: Boolean!
+	collapsed: Boolean!
+	teamId: String!
+	channelIds: [String!]!
+	sortOrder: Float!
+}
+
+# Deliberately leaving out teamMembers.
+type Session {
+	id: String!
+	token: String!
+	createAt: Float!
+	expiresAt: Float!
+	lastActivityAt: Float!
+	deviceId: String!
+	roles: String!
+	isOAuth: Boolean!
+	expiredNotify: Boolean!
+	props: StringMap!
+	local: Boolean!
+}

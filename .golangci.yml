@@ -1,6 +1,5 @@
 run:
   timeout: 5m
-  modules-download-mode: vendor
   skip-dirs:
     - store/storetest/mocks
 
@@ -16,18 +15,15 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - gofmt
     - golint
     - gosimple
     - govet
     - ineffassign
     - exportloopref
-    - structcheck
     - staticcheck
     - unconvert
     - unused
-    - varcheck
     - misspell
     - goimports
     # TODO: enable this later
@@ -42,17 +38,13 @@ issues:
       text: "SetupEnterprise"
 
     - linters:
-      - staticcheck
-      path: ".*_test.go|store/storetest"
-
-    - linters:
       - golint
       text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
 
     - linters:
-      - golint
-      path: "model/"
-
-    - linters:
       - misspell
       path: "shared/markdown/html_entities.go"
+
+    - linters:
+      - staticcheck
+      text: SA1019

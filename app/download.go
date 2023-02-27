@@ -5,15 +5,14 @@ package app
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -27,7 +26,7 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 }
 
 func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
-	if !model.IsValidHttpUrl(downloadURL) {
+	if !model.IsValidHTTPURL(downloadURL) {
 		return nil, errors.Errorf("invalid url %s", downloadURL)
 	}
 
@@ -35,11 +34,11 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Errorf("failed to parse url %s", downloadURL)
 	}
-	if !*s.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
+	if !*s.platform.Config().PluginSettings.AllowInsecureDownloadURL && u.Scheme != "https" {
 		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
-	client := s.HTTPService.MakeClient(true)
+	client := s.HTTPService().MakeClient(true)
 	client.Timeout = HTTPRequestTimeout
 
 	var resp *http.Response
@@ -51,7 +50,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 		}
 
 		if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Errorf("failed to fetch from %s", downloadURL)
 		}
@@ -64,5 +63,5 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }

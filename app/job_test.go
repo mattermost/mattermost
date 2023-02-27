@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 func TestGetJob(t *testing.T) {
@@ -22,10 +22,10 @@ func TestGetJob(t *testing.T) {
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	_, err := th.App.Srv().Store.Job().Save(status)
+	_, err := th.App.Srv().Store().Job().Save(status)
 	require.NoError(t, err)
 
-	defer th.App.Srv().Store.Job().Delete(status.Id)
+	defer th.App.Srv().Store().Job().Delete(status.Id)
 
 	received, appErr := th.App.GetJob(status.Id)
 	require.Nil(t, appErr)
@@ -39,17 +39,17 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	jobs := []model.Job{
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_BLEVE_POST_INDEXING,
+			Type:     model.JobTypeBlevePostIndexing,
 			CreateAt: 1000,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_DATA_RETENTION,
+			Type:     model.JobTypeDataRetention,
 			CreateAt: 999,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_MESSAGE_EXPORT,
+			Type:     model.JobTypeMessageExport,
 			CreateAt: 1001,
 		},
 	}
@@ -60,20 +60,20 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	}{
 		{
 			Job:                jobs[0],
-			PermissionRequired: model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
+			PermissionRequired: model.PermissionCreatePostBleveIndexesJob,
 		},
 		{
 			Job:                jobs[1],
-			PermissionRequired: model.PERMISSION_CREATE_DATA_RETENTION_JOB,
+			PermissionRequired: model.PermissionCreateDataRetentionJob,
 		},
 		{
 			Job:                jobs[2],
-			PermissionRequired: model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB,
+			PermissionRequired: model.PermissionCreateComplianceExportJob,
 		},
 	}
 
 	session := model.Session{
-		Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+		Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 	}
 
 	// Check to see if admin has permission to all the jobs
@@ -85,7 +85,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	}
 
 	session = model.Session{
-		Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
+		Roles: model.SystemUserRoleId + " " + model.SystemReadOnlyAdminRoleId,
 	}
 
 	// Initially the system read only admin should not have access to create these jobs
@@ -97,9 +97,9 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	}
 
 	ctx := sqlstore.WithMaster(context.Background())
-	role, _ := th.App.GetRoleByName(ctx, model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID)
+	role, _ := th.App.GetRoleByName(ctx, model.SystemReadOnlyAdminRoleId)
 
-	role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB.Id)
+	role.Permissions = append(role.Permissions, model.PermissionCreatePostBleveIndexesJob.Id)
 
 	_, err := th.App.UpdateRole(role)
 	require.Nil(t, err)
@@ -107,14 +107,14 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	// Now system read only admin should have ability to create a Belve Post Index job but not the others
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
-		expectedHasPermission := testCase.Job.Type == model.JOB_TYPE_BLEVE_POST_INDEXING
+		expectedHasPermission := testCase.Job.Type == model.JobTypeBlevePostIndexing
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_DATA_RETENTION_JOB.Id)
-	role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB.Id)
+	role.Permissions = append(role.Permissions, model.PermissionCreateDataRetentionJob.Id)
+	role.Permissions = append(role.Permissions, model.PermissionCreateComplianceExportJob.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
@@ -135,12 +135,12 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 	jobs := []model.Job{
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_DATA_RETENTION,
+			Type:     model.JobTypeDataRetention,
 			CreateAt: 999,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_MESSAGE_EXPORT,
+			Type:     model.JobTypeMessageExport,
 			CreateAt: 1001,
 		},
 	}
@@ -150,16 +150,16 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 	}{
 		{
 			Job:                jobs[0],
-			PermissionRequired: model.PERMISSION_READ_DATA_RETENTION_JOB,
+			PermissionRequired: model.PermissionReadDataRetentionJob,
 		},
 		{
 			Job:                jobs[1],
-			PermissionRequired: model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB,
+			PermissionRequired: model.PermissionReadComplianceExportJob,
 		},
 	}
 
 	session := model.Session{
-		Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
+		Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 	}
 
 	// Check to see if admin has permission to all the jobs
@@ -171,7 +171,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 	}
 
 	session = model.Session{
-		Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_MANAGER_ROLE_ID,
+		Roles: model.SystemUserRoleId + " " + model.SystemManagerRoleId,
 	}
 
 	// Initially the system manager should not have access to read these jobs
@@ -183,9 +183,9 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 	}
 
 	ctx := sqlstore.WithMaster(context.Background())
-	role, _ := th.App.GetRoleByName(ctx, model.SYSTEM_MANAGER_ROLE_ID)
+	role, _ := th.App.GetRoleByName(ctx, model.SystemManagerRoleId)
 
-	role.Permissions = append(role.Permissions, model.PERMISSION_READ_DATA_RETENTION_JOB.Id)
+	role.Permissions = append(role.Permissions, model.PermissionReadDataRetentionJob.Id)
 
 	_, err := th.App.UpdateRole(role)
 	require.Nil(t, err)
@@ -193,13 +193,13 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 	// Now system manager should have ability to read data retention jobs
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
-		expectedHasPermission := testCase.Job.Type == model.JOB_TYPE_DATA_RETENTION
+		expectedHasPermission := testCase.Job.Type == model.JobTypeDataRetention
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB.Id)
+	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
@@ -238,9 +238,9 @@ func TestGetJobByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		_, err := th.App.Srv().Store.Job().Save(status)
+		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(status.Id)
+		defer th.App.Srv().Store().Job().Delete(status.Id)
 	}
 
 	received, err := th.App.GetJobsByType(jobType, 0, 2)
@@ -282,9 +282,9 @@ func TestGetJobsByTypes(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		_, err := th.App.Srv().Store.Job().Save(status)
+		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(status.Id)
+		defer th.App.Srv().Store().Job().Delete(status.Id)
 	}
 
 	jobTypes := []string{jobType, jobType1, jobType2}

@@ -4,6 +4,7 @@
 package remotecluster
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -37,7 +38,8 @@ func TestPing(t *testing.T) {
 			defer w.WriteHeader(200)
 			atomic.AddInt32(&countWebReq, 1)
 
-			frame, err := model.RemoteClusterFrameFromJSON(r.Body)
+			var frame model.RemoteClusterFrame
+			err := json.NewDecoder(r.Body).Decode(&frame)
 			if err != nil {
 				merr.Append(err)
 				return
@@ -47,7 +49,8 @@ func TestPing(t *testing.T) {
 				return
 			}
 
-			ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
+			var ping model.RemoteClusterPing
+			err = json.Unmarshal(frame.Msg.Payload, &ping)
 			if err != nil {
 				merr.Append(err)
 				return
@@ -63,7 +66,7 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
 		defer mockServer.Shutdown()
 
 		service, err := NewRemoteClusterService(mockServer)
@@ -78,8 +81,8 @@ func TestPing(t *testing.T) {
 		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Log(fmt.Sprintf("%d web requests counted;  %d expected",
-			atomic.LoadInt32(&countWebReq), NumRemotes))
+		t.Logf("%d web requests counted;  %d expected",
+			atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 
 	t.Run("HTTP errors", func(t *testing.T) {
@@ -93,11 +96,13 @@ func TestPing(t *testing.T) {
 			defer wg.Done()
 			atomic.AddInt32(&countWebReq, 1)
 
-			frame, err := model.RemoteClusterFrameFromJSON(r.Body)
+			var frame model.RemoteClusterFrame
+			err := json.NewDecoder(r.Body).Decode(&frame)
 			if err != nil {
 				merr.Append(err)
 			}
-			ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
+			var ping model.RemoteClusterPing
+			err = json.Unmarshal(frame.Msg.Payload, &ping)
 			if err != nil {
 				merr.Append(err)
 			}
@@ -111,7 +116,7 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
 		defer mockServer.Shutdown()
 
 		service, err := NewRemoteClusterService(mockServer)
@@ -126,8 +131,8 @@ func TestPing(t *testing.T) {
 		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Log(fmt.Sprintf("%d web requests counted;  %d expected",
-			atomic.LoadInt32(&countWebReq), NumRemotes))
+		t.Logf("%d web requests counted;  %d expected",
+			atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 }
 

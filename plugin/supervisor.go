@@ -4,7 +4,10 @@
 package plugin
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -13,10 +16,11 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
+	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type supervisor struct {
@@ -25,6 +29,7 @@ type supervisor struct {
 	hooks       Hooks
 	implemented [TotalHooksID]bool
 	pid         int
+	hooksClient *hooksRPCClient
 }
 
 func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
@@ -38,7 +43,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	wrappedLogger := pluginInfo.WrapLogger(parentLogger)
 
 	hclogAdaptedLogger := &hclogAdapter{
-		wrappedLogger: wrappedLogger.WithCallerSkip(1),
+		wrappedLogger: wrappedLogger,
 		extrasKey:     "wrapped_extras",
 	}
 
@@ -61,6 +66,14 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 
 	cmd := exec.Command(executable)
 
+	// This doesn't add more security than before
+	// but removes the SecureConfig is nil warning.
+	// https://mattermost.atlassian.net/browse/MM-49167
+	pluginChecksum, err := getPluginExecutableChecksum(executable)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to generate a checksum for the plugin %s", pluginInfo.Path)
+	}
+
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
@@ -69,6 +82,10 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
+		SecureConfig: &plugin.SecureConfig{
+			Checksum: pluginChecksum,
+			Hash:     sha256.New(),
+		},
 	})
 
 	rpcClient, err := sup.client.Client()
@@ -81,6 +98,11 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	raw, err := rpcClient.Dispense("hooks")
 	if err != nil {
 		return nil, err
+	}
+
+	c, ok := raw.(*hooksRPCClient)
+	if ok {
+		sup.hooksClient = c
 	}
 
 	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
@@ -103,6 +125,11 @@ func (sup *supervisor) Shutdown() {
 	defer sup.lock.RUnlock()
 	if sup.client != nil {
 		sup.client.Kill()
+	}
+
+	// Wait for API RPC server and DB RPC server to exit.
+	if sup.hooksClient != nil {
+		sup.hooksClient.doneWg.Wait()
 	}
 }
 
@@ -146,4 +173,22 @@ func (sup *supervisor) Implements(hookId int) bool {
 	sup.lock.RLock()
 	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
+}
+
+func getPluginExecutableChecksum(executablePath string) ([]byte, error) {
+	pathHash := sha256.New()
+	file, err := os.Open(executablePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	_, err = io.Copy(pathHash, file)
+	if err != nil {
+		return nil, err
+	}
+
+	return pathHash.Sum(nil), nil
 }

@@ -4,13 +4,14 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestUploadSessionStore(t *testing.T, ss store.Store) {
@@ -52,13 +53,13 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("getting non-existing session should fail", func(t *testing.T) {
-		us, err := ss.UploadSession().Get("fake")
+		us, err := ss.UploadSession().Get(context.Background(), "fake")
 		require.Error(t, err)
 		require.Nil(t, us)
 	})
 
 	t.Run("getting existing session should succeed", func(t *testing.T) {
-		us, err := ss.UploadSession().Get(session.Id)
+		us, err := ss.UploadSession().Get(context.Background(), session.Id)
 		require.NoError(t, err)
 		require.NotNil(t, us)
 		require.Equal(t, session, us)
@@ -100,7 +101,7 @@ func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
 		err = ss.UploadSession().Update(us)
 		require.NoError(t, err)
 
-		updated, err := ss.UploadSession().Get(us.Id)
+		updated, err := ss.UploadSession().Get(context.Background(), us.Id)
 		require.NoError(t, err)
 		require.NotNil(t, us)
 		require.Equal(t, us, updated)
@@ -158,7 +159,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 		require.NotNil(t, us)
 		require.NotEmpty(t, us)
 		// We need this to make sure the ordering is consistent.
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 	}
 
 	t.Run("should return existing sessions", func(t *testing.T) {
@@ -199,7 +200,7 @@ func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
 		err = ss.UploadSession().Delete(session.Id)
 		require.NoError(t, err)
 
-		us, err = ss.UploadSession().Get(us.Id)
+		us, err = ss.UploadSession().Get(context.Background(), us.Id)
 		require.Error(t, err)
 		require.Nil(t, us)
 		require.IsType(t, &store.ErrNotFound{}, err)

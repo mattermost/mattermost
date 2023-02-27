@@ -4,21 +4,20 @@
 package api4
 
 import (
-	"io/ioutil"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -28,55 +27,59 @@ func TestCreateOAuthApp(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, resp, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	assert.Equal(t, oapp.Name, rapp.Name, "names did not match")
 	assert.Equal(t, oapp.IsTrusted, rapp.IsTrusted, "trusted did no match")
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.CreateOAuthApp(oapp)
+	_, resp, err = client.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	rapp, resp = Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, resp, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
 	assert.False(t, rapp.IsTrusted, "trusted should be false - created by non admin")
 
 	oapp.Name = ""
-	_, resp = AdminClient.CreateOAuthApp(oapp)
+	_, resp, err = adminClient.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	r, err := Client.DoApiPost("/oauth/apps", "garbage")
-	require.NotNil(t, err, "expected error from garbage post")
+	r, err := client.DoAPIPost("/oauth/apps", "garbage")
+	require.Error(t, err, "expected error from garbage post")
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
-	Client.Logout()
-	_, resp = Client.CreateOAuthApp(oapp)
+	client.Logout()
+	_, resp, err = client.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	oapp.Name = GenerateTestAppName()
-	_, resp = AdminClient.CreateOAuthApp(oapp)
+	_, resp, err = adminClient.CreateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -86,7 +89,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
@@ -98,7 +101,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 		CallbackUrls: []string{"https://callback.com"},
 	}
 
-	oapp, _ = AdminClient.CreateOAuthApp(oapp)
+	oapp, _, _ = adminClient.CreateOAuthApp(oapp)
 
 	oapp.Name = "oapp_update"
 	oapp.IsTrusted = true
@@ -107,8 +110,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	oapp.Description = "test_update"
 	oapp.CallbackUrls = []string{"https://callback_update.com", "https://another_callback.com"}
 
-	updatedApp, resp := AdminClient.UpdateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	updatedApp, _, err := adminClient.UpdateOAuthApp(oapp)
+	require.NoError(t, err)
 	assert.Equal(t, oapp.Id, updatedApp.Id, "Id should have not updated")
 	assert.Equal(t, oapp.CreatorId, updatedApp.CreatorId, "CreatorId should have not updated")
 	assert.Equal(t, oapp.CreateAt, updatedApp.CreateAt, "CreateAt should have not updated")
@@ -119,8 +122,8 @@ func TestUpdateOAuthApp(t *testing.T) {
 	assert.Equal(t, oapp.IconURL, updatedApp.IconURL, "IconURL should have updated")
 
 	if len(updatedApp.CallbackUrls) == len(oapp.CallbackUrls) {
-		for i, callbackUrl := range updatedApp.CallbackUrls {
-			assert.Equal(t, oapp.CallbackUrls[i], callbackUrl, "Description should have updated")
+		for i, callbackURL := range updatedApp.CallbackUrls {
+			assert.Equal(t, oapp.CallbackUrls[i], callbackURL, "Description should have updated")
 		}
 	}
 	assert.Equal(t, oapp.Homepage, updatedApp.Homepage, "Homepage should have updated")
@@ -128,36 +131,42 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	th.LoginBasic2()
 	updatedApp.CreatorId = th.BasicUser2.Id
-	_, resp = Client.UpdateOAuthApp(oapp)
+	_, resp, err := client.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.UpdateOAuthApp(oapp)
+	_, resp, err = client.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	oapp.Id = "zhk9d1ggatrqz236c7h87im7bc"
-	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	_, resp, err = adminClient.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
-	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	_, resp, err = adminClient.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.UpdateOAuthApp(oapp)
+	client.Logout()
+	_, resp, err = client.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	oapp.Id = "junk"
-	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	_, resp, err = adminClient.UpdateOAuthApp(oapp)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.LoginBasic()
 
 	userOapp := &model.OAuthApp{
@@ -169,30 +178,30 @@ func TestUpdateOAuthApp(t *testing.T) {
 		CallbackUrls: []string{"https://callback.com"},
 	}
 
-	userOapp, resp = Client.CreateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = client.CreateOAuthApp(userOapp)
+	require.NoError(t, err)
 
 	userOapp.IsTrusted = true
-	userOapp, resp = Client.UpdateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = client.UpdateOAuthApp(userOapp)
+	require.NoError(t, err)
 	assert.False(t, userOapp.IsTrusted)
 
 	userOapp.IsTrusted = true
-	userOapp, resp = AdminClient.UpdateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = adminClient.UpdateOAuthApp(userOapp)
+	require.NoError(t, err)
 	assert.True(t, userOapp.IsTrusted)
 
 	userOapp.IsTrusted = false
-	userOapp, resp = Client.UpdateOAuthApp(userOapp)
-	CheckNoError(t, resp)
+	userOapp, _, err = client.UpdateOAuthApp(userOapp)
+	require.NoError(t, err)
 	assert.True(t, userOapp.IsTrusted)
 }
 
 func TestGetOAuthApps(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -202,20 +211,20 @@ func TestGetOAuthApps(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp := Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err := client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	apps, resp := AdminClient.GetOAuthApps(0, 1000)
-	CheckNoError(t, resp)
+	apps, _, err := adminClient.GetOAuthApps(0, 1000)
+	require.NoError(t, err)
 
 	found1 := false
 	found2 := false
@@ -230,35 +239,38 @@ func TestGetOAuthApps(t *testing.T) {
 	assert.Truef(t, found1, "missing oauth app %v", rapp.Id)
 	assert.Truef(t, found2, "missing oauth app %v", rapp2.Id)
 
-	apps, resp = AdminClient.GetOAuthApps(1, 1)
-	CheckNoError(t, resp)
+	apps, _, err = adminClient.GetOAuthApps(1, 1)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(apps), "paging failed")
 
-	apps, resp = Client.GetOAuthApps(0, 1000)
-	CheckNoError(t, resp)
+	apps, _, err = client.GetOAuthApps(0, 1000)
+	require.NoError(t, err)
 	require.True(t, len(apps) == 1 || apps[0].Id == rapp2.Id, "wrong apps returned")
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.GetOAuthApps(0, 1000)
+	_, resp, err := client.GetOAuthApps(0, 1000)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
+	client.Logout()
 
-	_, resp = Client.GetOAuthApps(0, 1000)
+	_, resp, err = client.GetOAuthApps(0, 1000)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp = AdminClient.GetOAuthApps(0, 1000)
+	_, resp, err = adminClient.GetOAuthApps(0, 1000)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetOAuthApp(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -268,61 +280,67 @@ func TestGetOAuthApp(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp := Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err := client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	rrapp, resp := AdminClient.GetOAuthApp(rapp.Id)
-	CheckNoError(t, resp)
+	rrapp, _, err := adminClient.GetOAuthApp(rapp.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
 	assert.NotEqual(t, "", rrapp.ClientSecret, "should not be sanitized")
 
-	rrapp2, resp := AdminClient.GetOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	rrapp2, _, err := adminClient.GetOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
 	assert.NotEqual(t, "", rrapp2.ClientSecret, "should not be sanitized")
 
-	_, resp = Client.GetOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 
-	_, resp = Client.GetOAuthApp(rapp.Id)
+	_, resp, err := client.GetOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.GetOAuthApp(rapp2.Id)
+	_, resp, err = client.GetOAuthApp(rapp2.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
+	client.Logout()
 
-	_, resp = Client.GetOAuthApp(rapp2.Id)
+	_, resp, err = client.GetOAuthApp(rapp2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = AdminClient.GetOAuthApp("junk")
+	_, resp, err = adminClient.GetOAuthApp("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = AdminClient.GetOAuthApp(model.NewId())
+	_, resp, err = adminClient.GetOAuthApp(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp = AdminClient.GetOAuthApp(rapp.Id)
+	_, resp, err = adminClient.GetOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetOAuthAppInfo(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -332,61 +350,65 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp := Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err := client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	rrapp, resp := AdminClient.GetOAuthAppInfo(rapp.Id)
-	CheckNoError(t, resp)
+	rrapp, _, err := adminClient.GetOAuthAppInfo(rapp.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
 	assert.Equal(t, "", rrapp.ClientSecret, "should be sanitized")
 
-	rrapp2, resp := AdminClient.GetOAuthAppInfo(rapp2.Id)
-	CheckNoError(t, resp)
+	rrapp2, _, err := adminClient.GetOAuthAppInfo(rapp2.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
 	assert.Equal(t, "", rrapp2.ClientSecret, "should be sanitized")
 
-	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthAppInfo(rapp2.Id)
+	require.NoError(t, err)
 
-	_, resp = Client.GetOAuthAppInfo(rapp.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthAppInfo(rapp.Id)
+	require.NoError(t, err)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.GetOAuthAppInfo(rapp2.Id)
+	require.NoError(t, err)
 
-	Client.Logout()
+	client.Logout()
 
-	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
+	_, resp, err := client.GetOAuthAppInfo(rapp2.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = AdminClient.GetOAuthAppInfo("junk")
+	_, resp, err = adminClient.GetOAuthAppInfo("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = AdminClient.GetOAuthAppInfo(model.NewId())
+	_, resp, err = adminClient.GetOAuthAppInfo(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp = AdminClient.GetOAuthAppInfo(rapp.Id)
+	_, resp, err = adminClient.GetOAuthAppInfo(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestDeleteOAuthApp(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -396,64 +418,69 @@ func TestDeleteOAuthApp(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp := Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err := client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	pass, resp := AdminClient.DeleteOAuthApp(rapp.Id)
-	CheckNoError(t, resp)
-	assert.True(t, pass, "should have passed")
+	_, err = adminClient.DeleteOAuthApp(rapp.Id)
+	require.NoError(t, err)
 
-	_, resp = AdminClient.DeleteOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	_, err = adminClient.DeleteOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 
-	rapp, resp = AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp = Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	_, resp = Client.DeleteOAuthApp(rapp.Id)
+	resp, err := client.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.DeleteOAuthApp(rapp2.Id)
-	CheckNoError(t, resp)
+	_, err = client.DeleteOAuthApp(rapp2.Id)
+	require.NoError(t, err)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.DeleteOAuthApp(rapp.Id)
+	resp, err = client.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.DeleteOAuthApp(rapp.Id)
+	client.Logout()
+	resp, err = client.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = AdminClient.DeleteOAuthApp("junk")
+	resp, err = adminClient.DeleteOAuthApp("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = AdminClient.DeleteOAuthApp(model.NewId())
+	resp, err = adminClient.DeleteOAuthApp(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp = AdminClient.DeleteOAuthApp(rapp.Id)
+	resp, err = adminClient.DeleteOAuthApp(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestRegenerateOAuthAppSecret(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
@@ -463,65 +490,71 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	}()
 
 	// Grant permission to regular users.
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp := Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err := client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	rrapp, resp := AdminClient.RegenerateOAuthAppSecret(rapp.Id)
-	CheckNoError(t, resp)
+	rrapp, _, err := adminClient.RegenerateOAuthAppSecret(rapp.Id)
+	require.NoError(t, err)
 	assert.Equal(t, rrapp.Id, rapp.Id, "wrong app")
 	assert.NotEqual(t, rapp.ClientSecret, rrapp.ClientSecret, "secret didn't change")
 
-	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = adminClient.RegenerateOAuthAppSecret(rapp2.Id)
+	require.NoError(t, err)
 
-	rapp, resp = AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err = adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	oapp.Name = GenerateTestAppName()
-	rapp2, resp = Client.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp2, _, err = client.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
-	_, resp = Client.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err := client.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.RegenerateOAuthAppSecret(rapp2.Id)
-	CheckNoError(t, resp)
+	_, _, err = client.RegenerateOAuthAppSecret(rapp2.Id)
+	require.NoError(t, err)
 
 	// Revoke permission from regular users.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
-	_, resp = Client.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err = client.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.RegenerateOAuthAppSecret(rapp.Id)
+	client.Logout()
+	_, resp, err = client.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = AdminClient.RegenerateOAuthAppSecret("junk")
+	_, resp, err = adminClient.RegenerateOAuthAppSecret("junk")
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = AdminClient.RegenerateOAuthAppSecret(model.NewId())
+	_, resp, err = adminClient.RegenerateOAuthAppSecret(model.NewId())
+	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp.Id)
+	_, resp, err = adminClient.RegenerateOAuthAppSecret(rapp.Id)
+	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
+	client := th.Client
+	adminClient := th.SystemAdminClient
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -531,22 +564,22 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
+	rapp, _, err := adminClient.CreateOAuthApp(oapp)
+	require.NoError(t, err)
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
+		ResponseType: model.AuthCodeResponseType,
 		ClientId:     rapp.Id,
-		RedirectUri:  rapp.CallbackUrls[0],
+		RedirectURI:  rapp.CallbackUrls[0],
 		Scope:        "",
 		State:        "123",
 	}
 
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	_, _, err = client.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
 
-	apps, resp := Client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
-	CheckNoError(t, resp)
+	apps, _, err := client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	require.NoError(t, err)
 
 	found := false
 	for _, a := range apps {
@@ -557,23 +590,29 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	}
 	require.True(t, found, "missing app")
 
-	_, resp = Client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
+	_, resp, err := client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetAuthorizedOAuthAppsForUser("junk", 0, 1000)
+	_, resp, err = client.GetAuthorizedOAuthAppsForUser("junk", 0, 1000)
+	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	client.Logout()
+	_, resp, err = client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = AdminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
-	CheckNoError(t, resp)
+	_, _, err = adminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	require.NoError(t, err)
 }
 
-func closeBody(r *http.Response) {
-	if r != nil && r.Body != nil {
-		ioutil.ReadAll(r.Body)
-		r.Body.Close()
-	}
+func TestNilAuthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	_, _, err := client.AuthorizeOAuthApp(nil)
+	require.Error(t, err)
+	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 }
