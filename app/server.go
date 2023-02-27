@@ -1309,7 +1309,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		T := i18n.GetUserTranslations(user.Locale)
 		ctaTitle := T("api.templates.license_up_for_renewal_subtitle_two")
 		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsExpandable {
+		if !status.IsRenewable {
 			ctaTitle = ""
 			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
 			ctaLink = "https://mattermost.com/contact-sales/"
@@ -1402,7 +1402,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		T := i18n.GetUserTranslations(user.Locale)
 		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsExpandable {
+		if !status.IsRenewable {
 			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
 			ctaLink = "https://mattermost.com/contact-sales/"
 		}

@@ -428,6 +428,7 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+// getLicenseStatus makes check for the license in the CWS self-serve portal and establishes if the license is renewable, expandable etc.
 func getLicenseStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
