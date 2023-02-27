@@ -45,4 +45,6 @@ type CloudInterface interface {
 	HandleLicenseChange() error
 
 	CheckCWSConnection(userId string) error
+
+	SelfServeDeleteWorkspace(userID string, deletionRequest *model.WorkspaceDeletionRequest) error
 }

@@ -526,6 +526,20 @@ func (_m *CloudInterface) SelfHostedSignupAvailable() error {
 	return r0
 }
 
+// SelfServeDeleteWorkspace provides a mock function with given fields: userID, deletionRequest
+func (_m *CloudInterface) SelfServeDeleteWorkspace(userID string, deletionRequest *model.WorkspaceDeletionRequest) error {
+	ret := _m.Called(userID, deletionRequest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.WorkspaceDeletionRequest) error); ok {
+		r0 = rf(userID, deletionRequest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateCloudCustomer provides a mock function with given fields: userID, customerInfo
 func (_m *CloudInterface) UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error) {
 	ret := _m.Called(userID, customerInfo)
