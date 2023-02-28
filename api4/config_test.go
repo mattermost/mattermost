@@ -227,8 +227,10 @@ func TestUpdateConfig(t *testing.T) {
 		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
 		require.NoError(t, setEnvErr)
 
+		th.Server.Platform().SetConfigReadOnlyFF(false)
+		defer th.Server.Platform().SetConfigReadOnlyFF(true)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.BoardsProduct = true
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 		})
 
@@ -858,6 +860,41 @@ func TestPatchConfig(t *testing.T) {
 		// Check that sending an empty config returns no error.
 		_, _, err = th.SystemAdminClient.PatchConfig(&model.Config{})
 		require.NoError(t, err)
+	})
+
+	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
+		v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
+		defer func() {
+			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
+			require.NoError(t, setEnvErr)
+		}()
+		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
+		require.NoError(t, setEnvErr)
+
+		th.Server.Platform().SetConfigReadOnlyFF(false)
+		defer th.Server.Platform().SetConfigReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		})
+
+		newConfig := &model.Config{}
+		newConfig.PluginSettings = model.PluginSettings{
+			PluginStates: map[string]*model.PluginState{
+				model.PluginIdFocalboard: {Enable: true},
+			},
+		}
+		updatedConfig, _, updateErr := th.SystemAdminClient.UpdateConfig(newConfig)
+		require.NoError(t, updateErr)
+		require.False(t, updatedConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
+
+		// updateConfig should fail for the same scenerio if the plugin was not already enabled
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+		})
+		_, _, updateErr = th.SystemAdminClient.UpdateConfig(newConfig)
+		require.Error(t, updateErr)
+		require.Equal(t, "app.plugin.product_mode.app_error", updateErr.(*model.AppError).Id)
 	})
 }
 

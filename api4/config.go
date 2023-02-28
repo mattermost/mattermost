@@ -170,7 +170,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not allow Focalboard plugin to be enabled if Boards
 	// is running as a product.
-	if cfg.FeatureFlags.BoardsProduct {
+	if appCfg.FeatureFlags.BoardsProduct {
 		existingBoardsPluginEnabled := false
 		existingBoardsPluginState, exists := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard]
 		if exists {
@@ -372,6 +372,33 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
 			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
+		}
+	}
+
+	// Do not allow Focalboard plugin to be enabled if Boards
+	// is running as a product.
+	if appCfg.FeatureFlags.BoardsProduct {
+		existingBoardsPluginEnabled := false
+		existingBoardsPluginState, exists := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard]
+		if exists {
+			existingBoardsPluginEnabled = existingBoardsPluginState.Enable
+		}
+
+		newBoardsPluginEnabled := false
+		newBoardsPluginState, exists := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard]
+		if exists {
+			newBoardsPluginEnabled = newBoardsPluginState.Enable
+		}
+
+		// enabling Focalboard plugin is not allowed in product mode
+		if !existingBoardsPluginEnabled && newBoardsPluginEnabled {
+			c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
+			return
+		}
+
+		if existingBoardsPluginEnabled && newBoardsPluginEnabled {
+			mlog.Warn("Incorrect Focalboard status setting detected. Marking Focalboard plugin state to disabled.")
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable = false
 		}
 	}
 
