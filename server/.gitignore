@@ -1,0 +1,129 @@
+
+logs
+.DS_Store
+node_modules
+/data
+/dist
+/webapp/dist
+jobserver
+npm-debug.log
+webapp/yarn-error.log
+mattermost.mattermost-license
+channels/config/mattermost.mattermost-license
+channels/config/config.json
+channels/config/*.crt
+
+web/static/js/bundle*.js
+web/static/js/bundle*.js.map
+web/static/js/libs*.js
+
+channels/config/active.dat
+channels/config/config.json
+channels/config/logging.json
+/plugins
+
+# Enterprise & products imports files
+channels/imports/imports.go
+channels/imports/boards_imports.go
+
+# go.work file
+go.work
+go.work.sum
+
+#license files
+*.license
+*.mattermost-license
+
+# Build Targets
+.prebuild
+.npminstall
+.yarninstall
+/prepackaged_plugins
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+testfiles
+
+# Architecture specific extensions/prefixes
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+
+# Log files
+*.log
+*.log.jsonl
+*.log.gz
+
+# Fuzz binaries and working dir
+*fuzz.zip
+app/workdir
+
+.tmp
+
+# Vim temporary files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# VSCode project files
+.vscode
+*.code-workspace
+
+# Gogland project files
+mattermost-server.iml
+
+# Build files
+*bundle.js
+
+web/sass-files/sass/.sass-cache/
+*config.codekit
+*.sass-cache
+*styles.css
+
+# Default local file storage
+data/*
+webapp/data/*
+api/data/*
+api4/data/*
+app/data/*
+
+enterprise
+
+cover.out
+ecover.out
+cprofile.out
+*.test
+webapp/coverage
+/report.xml
+
+.agignore
+.ctags
+/tags
+.idea
+
+/debug
+/client
+__debug_bin
+report.xml
+go.*.orig
+config.override.mk
+docker-compose.override.yaml
