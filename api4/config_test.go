@@ -224,6 +224,7 @@ func TestUpdateConfig(t *testing.T) {
 
 		newConfig := cfg.Clone()
 		newConfig.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		newConfig.PluginSettings.MarketplaceURL = model.NewString("https://harshilsharma.com")
 		fmt.Println("test test test")
 		updatedConfig, _, updateErr := th.SystemAdminClient.UpdateConfig(newConfig)
 		require.NoError(t, updateErr)
