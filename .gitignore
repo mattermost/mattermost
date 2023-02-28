@@ -24,7 +24,6 @@ config/logging.json
 
 # Enterprise & products imports files
 imports/imports.go
-imports/boards_imports.go
 
 # go.work file
 go.work
