@@ -18,7 +18,6 @@ web/static/js/bundle*.js.map
 web/static/js/libs*.js
 
 channels/config/active.dat
-channels/config/config.json
 channels/config/logging.json
 /plugins
 

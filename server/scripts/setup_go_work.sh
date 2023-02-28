@@ -16,5 +16,10 @@ then
         txt="${txt}use ../../mattermost-plugin-playbooks\n"
     fi
 
+    if [ "$USE_LOCAL_PLUGIN_API" == "true" ]
+    then
+        txt="${txt}use ../../mattermost-plugin-api\n"
+    fi
+
     printf "$txt" > "go.work"
 fi

@@ -64,6 +64,12 @@ func resolveConfigFilePath(path string) (string, error) {
 		return path, nil
 	}
 
+	// Search for the relative path to the file in the channels/config folder, taking into account
+	// various common starting points.
+	if configFile := fileutils.FindFile(filepath.Join("channels/config", path)); configFile != "" {
+		return configFile, nil
+	}
+
 	// Search for the relative path to the file in the config folder, taking into account
 	// various common starting points.
 	if configFile := fileutils.FindFile(filepath.Join("config", path)); configFile != "" {
