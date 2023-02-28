@@ -83,6 +83,7 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
+	mlog.Info("SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
 	return oldCfg, newCfg, nil
 }
 
