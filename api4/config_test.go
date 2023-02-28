@@ -221,11 +221,11 @@ func TestUpdateConfig(t *testing.T) {
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
 		v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
 		defer func() {
-			err := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
-			require.NoError(t, err)
+			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
+			require.NoError(t, setEnvErr)
 		}()
-		err := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
-		require.NoError(t, err)
+		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
+		require.NoError(t, setEnvErr)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BoardsProduct = true
