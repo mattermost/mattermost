@@ -1,0 +1,92 @@
+name: ESR Upgrade
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+jobs:
+  test-esr-upgrade:
+    runs-on: ubuntu-latest-8-cores
+    env:
+      COMPOSE_PROJECT_NAME: ghactions
+      BUILD_IMAGE: mattermost/mattermost-enterprise-edition:7.8
+      LATEST_MIGRATION: 101
+      DB_DUMP_URL: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
+      MYSQL_CONN_ARGS: -h localhost -P 3306 --protocol=tcp -ummuser -pmostest mattermost_test
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run docker compose
+        run: |
+          cd build
+          docker-compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --no-ansi ps
+      - name: Wait for docker compose
+        run: |
+          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - name: Initialize the database with the source DB dump
+        run: |
+          curl $DB_DUMP_URL | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
+      - name: Pull EE image
+        run: |
+          docker pull $BUILD_IMAGE
+      - name: Run migration through server
+        run: |
+          mkdir -p client/plugins
+          cd build
+          # Run the server in the background to trigger the migrations
+          docker run --name mmserver \
+            --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
+            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" \
+            -v ~/work/mattermost-server:/mattermost-server \
+            -w /mattermost-server/mattermost-server \
+            $BUILD_IMAGE &
+          # In parallel, wait for the migrations to finish.
+          # To verify this, we check whether the db_migrations table contains the latest migration in this version
+          CHECK_LATEST_MIGRATION_CMD="SELECT COUNT(1) FROM db_migrations WHERE Version = $LATEST_MIGRATION;"
+          until [ `docker exec ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS -e "$CHECK_LATEST_MIGRATION_CMD"` -eq 1 ]; do\
+            echo "Waiting for migrations to finish..."; \
+            sleep 1; \
+            done;
+          # Make sure to stop the server. Also, redirect output to null;
+          # otherwise, the name of the container gets written to the console, which is weird
+          docker stop mmserver > /dev/null
+      - name: Dump upgraded database
+        run: |
+          docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > dump.7.8.server.sql
+      - name: Reset DB
+        run: |
+          # Build a script to drop all tables in the DB ignoring any foreign key checks
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS -e "SELECT concat('DROP TABLE IF EXISTS \`', table_name, '\`;') FROM information_schema.tables WHERE table_schema = 'mattermost_test';" > drop-queries.sql
+          echo "SET FOREIGN_KEY_CHECKS = 0;" > drop-script.sql
+          cat drop-queries.sql >> drop-script.sql
+          echo "SET FOREIGN_KEY_CHECKS = 1;" >> drop-script.sql
+          # Drop all tables in the DB
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < drop-script.sql
+      - name: Initialize the database with the source DB dump
+        run: |
+          curl $DB_DUMP_URL | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
+      - name: Run migration through script
+        run : |
+          # Build the image with the migration wrapper
+          cd scripts/esrupgrades
+          docker build -t esrupgrade .
+          # Run the image with the expected driver, DSN, and migration file
+          docker run -i --rm --net ghactions_mm-test esrupgrade mysql "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" esr.5.37-7.8.mysql.up.sql
+      - name: Dump upgraded database
+        run: |
+          docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > dump.7.8.script.sql
+      - name: Upload both dumps
+        uses: actions/upload-artifact@v3
+        with:
+          name: upgraded-dumps
+          path: dump.7.8.*.sql
