@@ -11,11 +11,6 @@ then
         txt="${txt}use ../enterprise\n"
     fi
     
-    if [ "$BUILD_BOARDS" == "true" ] 
-    then
-        txt="${txt}use ../focalboard/server\nuse ../focalboard/mattermost-plugin\n"
-    fi
-    
     if [ "$BUILD_PLAYBOOKS" == "true" ]
     then
         txt="${txt}use ../mattermost-plugin-playbooks\n"

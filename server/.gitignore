@@ -24,7 +24,6 @@ channels/config/logging.json
 
 # Enterprise & products imports files
 channels/imports/imports.go
-channels/imports/boards_imports.go
 
 # go.work file
 go.work

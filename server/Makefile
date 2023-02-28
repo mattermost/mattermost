@@ -44,7 +44,7 @@ ifeq ($(BUILD_NUMBER),dev)
 endif
 
 # Enterprise
-BUILD_ENTERPRISE_DIR ?= ../enterprise
+BUILD_ENTERPRISE_DIR ?= ../../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
@@ -64,7 +64,7 @@ else
 endif
 
 # Webapp
-BUILD_WEBAPP_DIR ?= ../mattermost-webapp
+BUILD_WEBAPP_DIR ?= ../../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independent
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
@@ -79,22 +79,11 @@ else
 endif
 
 # Boards
-BUILD_BOARDS_DIR ?= ../focalboard
-BUILD_BOARDS ?= true
-BUILD_HASH_BOARDS = none
-ifneq ($(wildcard $(BUILD_BOARDS_DIR)/.),)
-  ifeq ($(BUILD_BOARDS),true)
-    BUILD_BOARDS = true
-    BUILD_HASH_BOARDS = $(shell cd $(BUILD_BOARDS_DIR) && git rev-parse HEAD)
-  else
-    BUILD_BOARDS = false
-  endif
-else
-    BUILD_BOARDS = false
-endif
+BUILD_BOARDS = true
+BUILD_HASH_BOARDS = BUILD_HASH
 
 # Playbooks
-BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
+BUILD_PLAYBOOKS_DIR ?= ../../mattermost-plugin-playbooks
 BUILD_PLAYBOOKS ?= false
 BUILD_HASH_PLAYBOOKS = none
 
@@ -180,17 +169,16 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.8.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
-	IGNORE:=$(shell rm -f imports/imports.go)
-	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
+	IGNORE:=$(shell rm -f channels/imports/imports.go)
+	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go channels/imports/)
 	IGNORE:=$(shell rm -f enterprise)
 else
-	IGNORE:=$(shell rm -f imports/imports.go)
+	IGNORE:=$(shell rm -f channels/imports/imports.go)
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -201,24 +189,10 @@ else
   ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
-# Prepare optional Boards build.
-BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
-ifeq ($(BUILD_BOARDS),true)
-# Remove legacy 
-# Adding that flag to server breaks the build with unsupported flag error.
-# PR: https://github.com/mattermost/mattermost-server/pull/20772
-# Ticket: https://mattermost.atlassian.net/browse/CLD-3800
-	IGNORE:=$(shell echo Boards build selected, preparing)
-	IGNORE:=$(shell rm -f imports/boards_imports.go)
-	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/server/product/imports/boards_imports.go imports/)
-else
-	IGNORE:=$(shell rm -f imports/boards_imports.go)
-endif
-
 ifeq ($(BUILD_PLAYBOOKS),true)
-IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
+IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go channels/imports/)
 else
-	IGNORE:=$(shell rm -f imports/playbooks_imports.go)
+	IGNORE:=$(shell rm -f channels/imports/playbooks_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -344,11 +318,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		$(GOBIN)/golangci-lint run ../enterprise/...
   endif
 endif
-ifeq ($(BUILD_BOARDS),true)
-  ifneq ($(MM_NO_BOARDS_LINT),true)
-		cd $(BUILD_BOARDS_DIR); make server-lint
-  endif
-endif
 
 app-layers: ## Extract interface from App struct
 	$(GO) install github.com/reflog/struct2interface@v0.6.1
@@ -444,7 +413,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
-setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
@@ -476,11 +444,8 @@ test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schem
 gomodtidy:
 	@cp go.mod go.mod.orig
 	@cp go.sum go.sum.orig
-	@if [ -f "imports/imports.go" ]; then \
-		mv imports/imports.go imports/imports.go.orig; \
-	fi;
-	@if [ -f "imports/boards_imports.go" ]; then \
-		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	@if [ -f "channels/imports/imports.go" ]; then \
+		mv channels/imports/imports.go channels/imports/imports.go.orig; \
 	fi;
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
@@ -488,27 +453,18 @@ gomodtidy:
 		rm go.*.orig; \
 		exit 1; \
 	fi;
-	@if [ -f "imports/imports.go.orig" ]; then \
-		mv imports/imports.go.orig imports/imports.go; \
-	fi;
-	@if [ -f "imports/boards_imports.go.orig" ]; then \
-		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	@if [ -f "channels/imports/imports.go.orig" ]; then \
+		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
 	@rm go.*.orig;
 
 modules-tidy:
-	@if [ -f "imports/imports.go" ]; then \
-		mv imports/imports.go imports/imports.go.orig; \
-	fi;
-	@if [ -f "imports/boards_imports.go" ]; then \
-		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	@if [ -f "channels/imports/imports.go" ]; then \
+		mv channels/imports/imports.go channels/imports/imports.go.orig; \
 	fi;
 	-$(GO) mod tidy
-	@if [ -f "imports/imports.go.orig" ]; then \
-		mv imports/imports.go.orig imports/imports.go; \
-	fi;
-	@if [ -f "imports/boards_imports.go.orig" ]; then \
-		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	@if [ -f "channels/imports/imports.go.orig" ]; then \
+		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
 
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
@@ -736,7 +692,7 @@ clean: stop-docker ## Clean up everything except persistent server data.
 	rm -f ecover.out
 	rm -f *.out
 	rm -f *.test
-	rm -f imports/imports.go
+	rm -f channels/imports/imports.go
 	rm -f cmd/mattermost/cprofile*.out
 
 nuke: clean clean-docker ## Clean plus removes persistent server data.
@@ -753,12 +709,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Enterprise repository detected, temporarily removing imports.go
-	rm -f imports/imports.go
-endif
-
-ifeq ($(BUILD_BOARDS),true)
-	@echo Boards repository detected, temporarily removing boards_imports.go
-	rm -f imports/boards_imports.go
+	rm -f channels/imports/imports.go
 endif
 
 	# Update all dependencies (does not update across major versions)
@@ -768,11 +719,7 @@ endif
 	$(GO) mod tidy
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
-endif
-
-ifeq ($(BUILD_BOARDS),true)
-	cp $(BUILD_BOARDS_DIR)/server/product/imports/boards_imports.go imports/
+	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go channels/imports/
 endif
 
 vet: ## Run mattermost go vet specific checks
