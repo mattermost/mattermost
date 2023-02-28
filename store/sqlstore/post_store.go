@@ -2072,8 +2072,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		return nil, err
 	}
 
-	mlog.Error(fmt.Sprintf("%s, %v", searchQuery, searchQueryArgs))
-
 	var posts []*model.Post
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
