@@ -219,7 +219,7 @@ func TestUpdateConfig(t *testing.T) {
 	})
 
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
-		th.App.Config().FeatureFlags.BoardsProduct = false
+		th.App.Config().FeatureFlags.BoardsProduct = true
 		th.App.Config().PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 
 		newConfig := cfg.Clone()
