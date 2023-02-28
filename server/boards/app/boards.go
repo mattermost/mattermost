@@ -168,9 +168,8 @@ func (a *App) setBoardCategoryFromSource(sourceBoardID, destinationBoardID, user
 		// then move new board to default category
 		if !asTemplate {
 			return a.addBoardsToDefaultCategory(userID, teamID, []*model.Board{{ID: destinationBoardID}})
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	// now that we have source board's category,

@@ -185,13 +185,13 @@ func (bm *BoardsMigrator) Setup() error {
 		return dbErr
 	}
 
-	if err := bm.db.Ping(); err != nil {
-		return err
+	if err2 := bm.db.Ping(); err2 != nil {
+		return err2
 	}
 
 	if bm.withMattermostMigrations {
-		if err := bm.runMattermostMigrations(); err != nil {
-			return err
+		if err3 := bm.runMattermostMigrations(); err3 != nil {
+			return err3
 		}
 	}
 

@@ -420,9 +420,8 @@ func (ws *Server) getUserIDForToken(token string) string {
 	if len(ws.singleUserToken) > 0 {
 		if token == ws.singleUserToken {
 			return model.SingleUser
-		} else {
-			return ""
 		}
+		return ""
 	}
 
 	session, err := ws.auth.GetSession(token)

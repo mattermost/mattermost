@@ -167,9 +167,8 @@ func (b *Backend) deliverMentionNotification(username string, extract string, ev
 		if model.IsErrNotFound(err) {
 			// not really an error; could just be someone typed "@sometext"
 			return "", nil
-		} else {
-			return "", fmt.Errorf("cannot lookup mentioned user: %w", err)
 		}
+		return "", fmt.Errorf("cannot lookup mentioned user: %w", err)
 	}
 
 	if evt.ModifiedBy == nil {

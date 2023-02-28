@@ -29,6 +29,7 @@ func (c *configuration) Clone() *configuration {
 // getConfiguration retrieves the active configuration under lock, making it safe to use
 // concurrently. The active configuration may change underneath the client of this method, but
 // the struct returned by this API call is considered immutable.
+/*
 func (b *BoardsService) getConfiguration() *configuration {
 	b.configurationLock.RLock()
 	defer b.configurationLock.RUnlock()
@@ -39,6 +40,7 @@ func (b *BoardsService) getConfiguration() *configuration {
 
 	return b.configuration
 }
+*/
 
 // setConfiguration replaces the active configuration under lock.
 //
