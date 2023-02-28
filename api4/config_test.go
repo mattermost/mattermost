@@ -222,6 +222,7 @@ func TestUpdateConfig(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BoardsProduct = true
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+			cfg.PluginSettings.MarketplaceURL = model.NewString("https://harshilsharma.com")
 		})
 
 		newConfig := cfg.Clone()
