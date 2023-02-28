@@ -68,23 +68,19 @@ func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	beforemarketPlaceURL := "nil"
-	if newCfg.PluginSettings.MarketplaceURL != nil {
-		beforemarketPlaceURL = *newCfg.PluginSettings.MarketplaceURL
+	if newCfg.PluginSettings.MarketplaceURL != nil && *newCfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("GGG", mlog.Bool("BoardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
 	}
-
-	boardsEnabled := false
-	if newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard] != nil {
-		boardsEnabled = newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
-	}
-
-	mlog.Info("BEFORE NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", boardsEnabled), mlog.String("marketplaceURL", beforemarketPlaceURL))
 
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)
 	} else if err != nil {
 		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if newCfg.PluginSettings.MarketplaceURL != nil && *newCfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("HHH", mlog.Bool("BoardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
 	}
 
 	if ps.clusterIFace != nil {
@@ -95,28 +91,9 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
-	marketPlaceURL := "nil"
-	if newCfg.PluginSettings.MarketplaceURL != nil {
-		marketPlaceURL = *newCfg.PluginSettings.MarketplaceURL
+	if newCfg.PluginSettings.MarketplaceURL != nil && *newCfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("III", mlog.Bool("BoardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
 	}
-
-	oldMarketPlaceURL := "nil"
-	if oldCfg.PluginSettings.MarketplaceURL != nil {
-		oldMarketPlaceURL = *oldCfg.PluginSettings.MarketplaceURL
-	}
-
-	afterboardsEnabled := false
-	if newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard] != nil {
-		afterboardsEnabled = newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
-	}
-
-	oldBoardsEnabled := false
-	if _, ok := oldCfg.PluginSettings.PluginStates[model.PluginIdFocalboard]; ok {
-		oldBoardsEnabled = oldCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
-	}
-
-	mlog.Info("NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", afterboardsEnabled), mlog.String("marketplaceURL", marketPlaceURL))
-	mlog.Info("OLD SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", oldBoardsEnabled), mlog.String("marketplaceURL", oldMarketPlaceURL))
 	return oldCfg, newCfg, nil
 }
 

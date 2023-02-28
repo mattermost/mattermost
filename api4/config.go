@@ -116,12 +116,19 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if cfg.PluginSettings.MarketplaceURL != nil && *cfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("AAA", mlog.Bool("BoardsEnabled", cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
+	}
+
 	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
 
 	// auditRec.AddEventParameter("config", cfg)  // TODO We can do this but do we want to?
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
+	if cfg.PluginSettings.MarketplaceURL != nil && *cfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("BBB", mlog.Bool("BoardsEnabled", cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
+	}
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
 		c.SetPermissionError(model.SysconsoleWritePermissions...)
@@ -142,6 +149,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if cfg.PluginSettings.MarketplaceURL != nil && *cfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("CCC", mlog.Bool("BoardsEnabled", cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
@@ -194,6 +205,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if cfg.PluginSettings.MarketplaceURL != nil && *cfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("DDD", mlog.Bool("BoardsEnabled", cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
+	}
+
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License().IsCloud() {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
@@ -211,10 +226,18 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if cfg.PluginSettings.MarketplaceURL != nil && *cfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("EEE", mlog.Bool("BoardsEnabled", cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
+	}
+
 	oldCfg, newCfg, appErr := c.App.SaveConfig(cfg, true)
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if newCfg.PluginSettings.MarketplaceURL != nil && *newCfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("JJJ", mlog.Bool("BoardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
 	}
 
 	// If the config for default server locale has changed, reinitialize the server's translations.
@@ -261,6 +284,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if newCfg.PluginSettings.MarketplaceURL != nil && *newCfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("KKK", mlog.Bool("BoardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
+	}
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

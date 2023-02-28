@@ -219,6 +219,9 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
+	if newCfg.PluginSettings.MarketplaceURL != nil && *newCfg.PluginSettings.MarketplaceURL == "https://harshilsharma.com" {
+		mlog.Info("FFF", mlog.Bool("BoardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable))
+	}
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
