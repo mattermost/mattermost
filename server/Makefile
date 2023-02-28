@@ -80,7 +80,7 @@ endif
 
 # Boards
 BUILD_BOARDS = true
-BUILD_HASH_BOARDS = BUILD_HASH
+BUILD_HASH_BOARDS = $(BUILD_HASH)
 
 # Playbooks
 BUILD_PLAYBOOKS_DIR ?= ../../mattermost-plugin-playbooks
