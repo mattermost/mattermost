@@ -160,8 +160,17 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow Focalboard plugin to be enabled if Boards
 	// is running as a product.
 	if cfg.FeatureFlags.BoardsProduct {
-		existingBoardsPluginEnabled := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
-		newBoardsPluginEnabled := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+		existingBoardsPluginEnabled := false
+		existingBoardsPluginState, exists := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard]
+		if exists {
+			existingBoardsPluginEnabled = existingBoardsPluginState.Enable
+		}
+
+		newBoardsPluginEnabled := false
+		newBoardsPluginState, exists := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard]
+		if exists {
+			newBoardsPluginEnabled = newBoardsPluginState.Enable
+		}
 
 		marketPlaceURL := "nil"
 		if cfg.PluginSettings.MarketplaceURL != nil {

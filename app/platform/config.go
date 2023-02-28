@@ -73,7 +73,12 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		beforemarketPlaceURL = *newCfg.PluginSettings.MarketplaceURL
 	}
 
-	mlog.Info("BEFORE NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable), mlog.String("marketplaceURL", beforemarketPlaceURL))
+	boardsEnabled := false
+	if newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard] != nil {
+		boardsEnabled = newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+	}
+
+	mlog.Info("BEFORE NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", boardsEnabled), mlog.String("marketplaceURL", beforemarketPlaceURL))
 
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
@@ -99,8 +104,19 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 	if oldCfg.PluginSettings.MarketplaceURL != nil {
 		oldMarketPlaceURL = *oldCfg.PluginSettings.MarketplaceURL
 	}
-	mlog.Info("NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable), mlog.String("marketplaceURL", marketPlaceURL))
-	mlog.Info("OLD SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", oldCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable), mlog.String("marketplaceURL", oldMarketPlaceURL))
+
+	afterboardsEnabled := false
+	if newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard] != nil {
+		afterboardsEnabled = newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+	}
+
+	oldBoardsEnabled := false
+	if _, ok := oldCfg.PluginSettings.PluginStates[model.PluginIdFocalboard]; ok {
+		oldBoardsEnabled = oldCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+	}
+
+	mlog.Info("NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", afterboardsEnabled), mlog.String("marketplaceURL", marketPlaceURL))
+	mlog.Info("OLD SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", oldBoardsEnabled), mlog.String("marketplaceURL", oldMarketPlaceURL))
 	return oldCfg, newCfg, nil
 }
 
