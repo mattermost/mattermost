@@ -703,9 +703,20 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 			groups = result.Data.(map[string]*model.Group)
 		}
 
-		allowChannelMentions := a.allowChannelMentions(c, post, len(profileMap))
-		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
-		mentions := getExplicitMentions(post, keywords, groups)
+		mentions := &ExplicitMentions{}
+		var allowChannelMentions bool
+		if channel.Type == model.ChannelTypeDirect {
+			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+
+			_, ok := profileMap[otherUserId]
+			if ok {
+				mentions.addMention(otherUserId, DMMention)
+			}
+		} else {
+			allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
+			keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+			mentions = getExplicitMentions(post, keywords, groups)
+		}
 
 		for userID := range mentions.Mentions {
 			tm, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
