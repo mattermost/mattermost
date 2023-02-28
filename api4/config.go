@@ -159,15 +159,15 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not allow Focalboard plugin to be enabled if Boards
 	// is running as a product.
-	if cfg.FeatureFlags.BoardsProduct {
-		existingBoardsPluginEnabled := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
-		newBoardsPluginEnabled := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
-
-		marketPlaceURL := "nil"
-		if cfg.PluginSettings.MarketplaceURL != nil {
-			marketPlaceURL = *cfg.PluginSettings.MarketplaceURL
+	if appCfg.FeatureFlags.BoardsProduct {
+		var existingBoardsPluginEnabled, newBoardsPluginEnabled bool
+		if _, ok := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard]; ok {
+			existingBoardsPluginEnabled = appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
 		}
-		mlog.Info("TEST TEST", mlog.Bool("cfg.FeatureFlags.BoardsProduct", cfg.FeatureFlags.BoardsProduct), mlog.Bool("existingBoardsPluginEnabled", existingBoardsPluginEnabled), mlog.Bool("newBoardsPluginEnabled", newBoardsPluginEnabled), mlog.String("marketplaceURL", marketPlaceURL))
+
+		if _, ok := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard]; ok {
+			newBoardsPluginEnabled = cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
+		}
 
 		// enabling Focalboard plugin is not allowed in product mode
 		if !existingBoardsPluginEnabled && newBoardsPluginEnabled {
@@ -180,7 +180,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Because the plugin can't run when in product more, we auto-fix this setting
 		// to avoid furthur issues.
 		if existingBoardsPluginEnabled && newBoardsPluginEnabled {
-			mlog.Warn("Incorrect Focalboard status setting detected. Marking Focalboard plugin state to disabled.", mlog.String("marketplaceURL", marketPlaceURL))
+			mlog.Warn("Incorrect Focalboard status setting detected. Marking Focalboard plugin state to disabled.")
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable = false
 		}
 	}

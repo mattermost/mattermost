@@ -219,12 +219,22 @@ func TestUpdateConfig(t *testing.T) {
 	})
 
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
+		v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
+		defer func() {
+			os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
+		}()
+		os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
+		th.App.Srv().Platform().GetConfigStore().SetReadOnlyFF(false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BoardsProduct = true
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 		})
 
+		require.True(t, th.App.Config().PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
+		require.True(t, th.App.Config().FeatureFlags.BoardsProduct)
+
 		newConfig := cfg.Clone()
+		newConfig.FeatureFlags.BoardsProduct = true
 		newConfig.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 		updatedConfig, _, updateErr := th.SystemAdminClient.UpdateConfig(newConfig)
 		require.NoError(t, updateErr)

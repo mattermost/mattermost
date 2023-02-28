@@ -68,13 +68,6 @@ func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	beforemarketPlaceURL := "nil"
-	if newCfg.PluginSettings.MarketplaceURL != nil {
-		beforemarketPlaceURL = *newCfg.PluginSettings.MarketplaceURL
-	}
-
-	mlog.Info("BEFORE NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable), mlog.String("marketplaceURL", beforemarketPlaceURL))
-
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)
@@ -90,17 +83,6 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
-	marketPlaceURL := "nil"
-	if newCfg.PluginSettings.MarketplaceURL != nil {
-		marketPlaceURL = *newCfg.PluginSettings.MarketplaceURL
-	}
-
-	oldMarketPlaceURL := "nil"
-	if oldCfg.PluginSettings.MarketplaceURL != nil {
-		oldMarketPlaceURL = *oldCfg.PluginSettings.MarketplaceURL
-	}
-	mlog.Info("NEW SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", newCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable), mlog.String("marketplaceURL", marketPlaceURL))
-	mlog.Info("OLD SaveConfig SaveConfig SaveConfig", mlog.Bool("boardsEnabled", oldCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable), mlog.String("marketplaceURL", oldMarketPlaceURL))
 	return oldCfg, newCfg, nil
 }
 
