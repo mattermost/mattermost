@@ -224,6 +224,7 @@ func TestUpdateConfig(t *testing.T) {
 
 		newConfig := cfg.Clone()
 		newConfig.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		fmt.Println("test test test")
 		updatedConfig, _, updateErr := th.SystemAdminClient.UpdateConfig(newConfig)
 		require.NoError(t, updateErr)
 		require.False(t, updatedConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)

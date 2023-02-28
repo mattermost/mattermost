@@ -163,6 +163,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		existingBoardsPluginEnabled := appCfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
 		newBoardsPluginEnabled := cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable
 
+		mlog.Info(fmt.Sprintf("TEST TEST cfg.FeatureFlags.BoardsProduct: %t, existingBoardsPluginEnabled: %t newBoardsPluginEnabled: %t", cfg.FeatureFlags.BoardsProduct, existingBoardsPluginEnabled, newBoardsPluginEnabled))
+
 		// enabling Focalboard plugin is not allowed in product mode
 		if !existingBoardsPluginEnabled && newBoardsPluginEnabled {
 			c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
