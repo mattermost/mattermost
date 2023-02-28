@@ -219,19 +219,21 @@ func TestUpdateConfig(t *testing.T) {
 	})
 
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
-		th.App.Config().FeatureFlags.BoardsProduct = true
-		th.App.Config().PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.BoardsProduct = true
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		})
 
 		newConfig := cfg.Clone()
 		newConfig.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
-		newConfig.PluginSettings.MarketplaceURL = model.NewString("https://harshilsharma.com")
-		fmt.Println("test test test")
 		updatedConfig, _, updateErr := th.SystemAdminClient.UpdateConfig(newConfig)
 		require.NoError(t, updateErr)
 		require.False(t, updatedConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
 
 		// updateConfig should fail for the same scenerio if the plugin was not already enabled
-		th.App.Config().PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+		})
 		_, _, updateErr = th.SystemAdminClient.UpdateConfig(newConfig)
 		require.Error(t, updateErr)
 		require.Equal(t, "app.plugin.product_mode.app_error", updateErr.(*model.AppError).Id)
