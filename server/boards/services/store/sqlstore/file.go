@@ -8,11 +8,11 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 
-func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mmModel.FileInfo) error {
+func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mm_model.FileInfo) error {
 	query := s.getQueryBuilder(db).
 		Insert(s.tablePrefix+"file_info").
 		Columns(
@@ -47,7 +47,7 @@ func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mmModel.FileInfo) er
 	return nil
 }
 
-func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mmModel.FileInfo, error) {
+func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mm_model.FileInfo, error) {
 	query := s.getQueryBuilder(db).
 		Select(
 			"id",
@@ -63,7 +63,7 @@ func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mmModel.FileInfo, 
 
 	row := query.QueryRow()
 
-	fileInfo := mmModel.FileInfo{}
+	fileInfo := mm_model.FileInfo{}
 
 	err := row.Scan(
 		&fileInfo.Id,

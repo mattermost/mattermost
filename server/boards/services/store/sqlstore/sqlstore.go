@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/store"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 
@@ -30,7 +30,7 @@ type SQLStore struct {
 	servicesAPI      servicesAPI
 	isBinaryParam    bool
 	schemaName       string
-	configFn         func() *mmModel.Config
+	configFn         func() *mm_model.Config
 }
 
 // MutexFactory is used by the store in plugin mode to generate
@@ -167,19 +167,19 @@ func (s *SQLStore) elementInColumn(column string) string {
 	return ""
 }
 
-func (s *SQLStore) getLicense(db sq.BaseRunner) *mmModel.License {
+func (s *SQLStore) getLicense(db sq.BaseRunner) *mm_model.License {
 	return nil
 }
 
-func (s *SQLStore) getCloudLimits(db sq.BaseRunner) (*mmModel.ProductLimits, error) {
+func (s *SQLStore) getCloudLimits(db sq.BaseRunner) (*mm_model.ProductLimits, error) {
 	return nil, nil
 }
 
-func (s *SQLStore) searchUserChannels(db sq.BaseRunner, teamID, userID, query string) ([]*mmModel.Channel, error) {
+func (s *SQLStore) searchUserChannels(db sq.BaseRunner, teamID, userID, query string) ([]*mm_model.Channel, error) {
 	return nil, store.NewNotSupportedError("search user channels not supported on standalone mode")
 }
 
-func (s *SQLStore) getChannel(db sq.BaseRunner, teamID, channel string) (*mmModel.Channel, error) {
+func (s *SQLStore) getChannel(db sq.BaseRunner, teamID, channel string) (*mm_model.Channel, error) {
 	return nil, store.NewNotSupportedError("get channel not supported on standalone mode")
 }
 

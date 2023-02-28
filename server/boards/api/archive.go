@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/audit"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 
@@ -62,7 +62,7 @@ func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
 		// if this user has `manage_system` permission and there is a license with the compliance
 		// feature enabled, then we will allow the export.
 		license := a.app.GetLicense()
-		if !a.permissions.HasPermissionTo(userID, mmModel.PermissionManageSystem) || license == nil || !(*license.Features.Compliance) {
+		if !a.permissions.HasPermissionTo(userID, mm_model.PermissionManageSystem) || license == nil || !(*license.Features.Compliance) {
 			a.errorResponse(w, r, model.NewErrPermission("access denied to board"))
 			return
 		}

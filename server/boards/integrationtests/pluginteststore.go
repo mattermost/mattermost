@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/store"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 var errTestStore = errors.New("plugin test store error")
@@ -145,9 +145,9 @@ func (s *PluginTestStore) GetUserByUsername(username string) (*model.User, error
 	return nil, errTestStore
 }
 
-func (s *PluginTestStore) GetUserPreferences(userID string) (mmModel.Preferences, error) {
+func (s *PluginTestStore) GetUserPreferences(userID string) (mm_model.Preferences, error) {
 	if userID == userTeamMember {
-		return mmModel.Preferences{{
+		return mm_model.Preferences{{
 			UserId:   userTeamMember,
 			Category: "focalboard",
 			Name:     "test",
@@ -237,8 +237,8 @@ func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error)
 	return false, nil
 }
 
-func (s *PluginTestStore) SearchUserChannels(teamID, userID, query string) ([]*mmModel.Channel, error) {
-	return []*mmModel.Channel{
+func (s *PluginTestStore) SearchUserChannels(teamID, userID, query string) ([]*mm_model.Channel, error) {
+	return []*mm_model.Channel{
 		{
 			TeamId:      teamID,
 			Id:          "valid-channel-id",
@@ -254,16 +254,16 @@ func (s *PluginTestStore) SearchUserChannels(teamID, userID, query string) ([]*m
 	}, nil
 }
 
-func (s *PluginTestStore) GetChannel(teamID, channel string) (*mmModel.Channel, error) {
+func (s *PluginTestStore) GetChannel(teamID, channel string) (*mm_model.Channel, error) {
 	if channel == "valid-channel-id" {
-		return &mmModel.Channel{
+		return &mm_model.Channel{
 			TeamId:      teamID,
 			Id:          "valid-channel-id",
 			DisplayName: "Valid Channel",
 			Name:        "valid-channel",
 		}, nil
 	} else if channel == "valid-channel-id-2" {
-		return &mmModel.Channel{
+		return &mm_model.Channel{
 			TeamId:      teamID,
 			Id:          "valid-channel-id-2",
 			DisplayName: "Valid Channel 2",
@@ -296,16 +296,16 @@ func (s *PluginTestStore) SearchBoardsForUser(term string, field model.BoardSear
 	return resultBoards, nil
 }
 
-func (s *PluginTestStore) GetLicense() *mmModel.License {
+func (s *PluginTestStore) GetLicense() *mm_model.License {
 	license := s.Store.GetLicense()
 
 	if license == nil {
-		license = &mmModel.License{
-			Id:        mmModel.NewId(),
-			StartsAt:  mmModel.GetMillis() - 2629746000, // 1 month
-			ExpiresAt: mmModel.GetMillis() + 2629746000, //
-			IssuedAt:  mmModel.GetMillis() - 2629746000,
-			Features:  &mmModel.Features{},
+		license = &mm_model.License{
+			Id:        mm_model.NewId(),
+			StartsAt:  mm_model.GetMillis() - 2629746000, // 1 month
+			ExpiresAt: mm_model.GetMillis() + 2629746000, //
+			IssuedAt:  mm_model.GetMillis() - 2629746000,
+			Features:  &mm_model.Features{},
 		}
 		license.Features.SetDefaults()
 	}
@@ -313,7 +313,7 @@ func (s *PluginTestStore) GetLicense() *mmModel.License {
 	complianceLicense := os.Getenv("FOCALBOARD_UNIT_TESTING_COMPLIANCE")
 	if complianceLicense != "" {
 		if val, err := strconv.ParseBool(complianceLicense); err == nil {
-			license.Features.Compliance = mmModel.NewBool(val)
+			license.Features.Compliance = mm_model.NewBool(val)
 		}
 	}
 

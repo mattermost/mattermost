@@ -12,7 +12,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	mockservicesapi "github.com/mattermost/mattermost-server/v6/boards/model/mocks"
@@ -31,12 +31,12 @@ func TestIsCloud(t *testing.T) {
 		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
-		fakeLicense := &mmModel.License{}
+		fakeLicense := &mm_model.License{}
 
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 		require.False(t, th.App.IsCloud())
 
-		fakeLicense = &mmModel.License{Features: &mmModel.Features{}}
+		fakeLicense = &mm_model.License{Features: &mm_model.Features{}}
 
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 		require.False(t, th.App.IsCloud())
@@ -46,8 +46,8 @@ func TestIsCloud(t *testing.T) {
 		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(false)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(false)},
 		}
 
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
@@ -58,8 +58,8 @@ func TestIsCloud(t *testing.T) {
 		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 		}
 
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
@@ -82,8 +82,8 @@ func TestIsCloudLimited(t *testing.T) {
 		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 		}
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
@@ -112,7 +112,7 @@ func TestSetCloudLimits(t *testing.T) {
 
 			require.Zero(t, th.App.CardLimit())
 
-			limits := &mmModel.ProductLimits{}
+			limits := &mm_model.ProductLimits{}
 
 			require.NoError(t, th.App.SetCloudLimits(limits))
 			require.Zero(t, th.App.CardLimit())
@@ -124,8 +124,8 @@ func TestSetCloudLimits(t *testing.T) {
 
 			require.Zero(t, th.App.CardLimit())
 
-			limits := &mmModel.ProductLimits{
-				Boards: &mmModel.BoardsLimits{},
+			limits := &mm_model.ProductLimits{
+				Boards: &mm_model.BoardsLimits{},
 			}
 
 			require.NoError(t, th.App.SetCloudLimits(limits))
@@ -142,8 +142,8 @@ func TestSetCloudLimits(t *testing.T) {
 		newCardLimitTimestamp := int64(27)
 		th.Store.EXPECT().UpdateCardLimitTimestamp(5).Return(newCardLimitTimestamp, nil)
 
-		limits := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{Cards: mmModel.NewInt(5)},
+		limits := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{Cards: mm_model.NewInt(5)},
 		}
 
 		require.NoError(t, th.App.SetCloudLimits(limits))
@@ -173,8 +173,8 @@ func TestSetCloudLimits(t *testing.T) {
 		// as the limits didn't change
 		th.Store.EXPECT().UpdateCardLimitTimestamp(gomock.Any()).Times(0)
 
-		limits := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{Cards: mmModel.NewInt(20)},
+		limits := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{Cards: mm_model.NewInt(20)},
 		}
 
 		require.NoError(t, th.App.SetCloudLimits(limits))
@@ -185,8 +185,8 @@ func TestSetCloudLimits(t *testing.T) {
 func TestUpdateCardLimitTimestamp(t *testing.T) {
 	t.Skipf("The Cloud Limits feature has been disabled")
 
-	fakeLicense := &mmModel.License{
-		Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+	fakeLicense := &mm_model.License{
+		Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 	}
 
 	t.Run("if the server is a cloud instance but not limited, it should do nothing", func(t *testing.T) {
@@ -311,8 +311,8 @@ func TestGetTemplateMapForBlocks(t *testing.T) {
 func TestApplyCloudLimits(t *testing.T) {
 	t.Skipf("The Cloud Limits feature has been disabled")
 
-	fakeLicense := &mmModel.License{
-		Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+	fakeLicense := &mm_model.License{
+		Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 	}
 
 	board1 := &model.Board{
@@ -664,31 +664,31 @@ func TestNotifyPortalAdminsUpgradeRequest(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		servicesAPI := mockservicesapi.NewMockServicesAPI(ctrl)
 
-		sysAdmin1 := &mmModel.User{
+		sysAdmin1 := &mm_model.User{
 			Id:       "michael-scott",
 			Username: "Michael Scott",
 		}
 
-		sysAdmin2 := &mmModel.User{
+		sysAdmin2 := &mm_model.User{
 			Id:       "dwight-schrute",
 			Username: "Dwight Schrute",
 		}
 
-		getUsersOptionsPage0 := &mmModel.UserGetOptions{
+		getUsersOptionsPage0 := &mm_model.UserGetOptions{
 			Active:  true,
-			Role:    mmModel.SystemAdminRoleId,
+			Role:    mm_model.SystemAdminRoleId,
 			PerPage: 50,
 			Page:    0,
 		}
-		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage0).Return([]*mmModel.User{sysAdmin1, sysAdmin2}, nil)
+		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage0).Return([]*mm_model.User{sysAdmin1, sysAdmin2}, nil)
 
-		getUsersOptionsPage1 := &mmModel.UserGetOptions{
+		getUsersOptionsPage1 := &mm_model.UserGetOptions{
 			Active:  true,
-			Role:    mmModel.SystemAdminRoleId,
+			Role:    mm_model.SystemAdminRoleId,
 			PerPage: 50,
 			Page:    1,
 		}
-		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage1).Return([]*mmModel.User{}, nil)
+		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage1).Return([]*mm_model.User{}, nil)
 
 		th.App.servicesAPI = servicesAPI
 
@@ -707,13 +707,13 @@ func TestNotifyPortalAdminsUpgradeRequest(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		servicesAPI := mockservicesapi.NewMockServicesAPI(ctrl)
 
-		getUsersOptionsPage0 := &mmModel.UserGetOptions{
+		getUsersOptionsPage0 := &mm_model.UserGetOptions{
 			Active:  true,
-			Role:    mmModel.SystemAdminRoleId,
+			Role:    mm_model.SystemAdminRoleId,
 			PerPage: 50,
 			Page:    0,
 		}
-		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage0).Return([]*mmModel.User{}, nil)
+		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage0).Return([]*mm_model.User{}, nil)
 
 		th.App.servicesAPI = servicesAPI
 
@@ -731,39 +731,39 @@ func TestNotifyPortalAdminsUpgradeRequest(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		servicesAPI := mockservicesapi.NewMockServicesAPI(ctrl)
 
-		sysAdmin1 := &mmModel.User{
+		sysAdmin1 := &mm_model.User{
 			Id:       "michael-scott",
 			Username: "Michael Scott",
 		}
 
-		sysAdmin2 := &mmModel.User{
+		sysAdmin2 := &mm_model.User{
 			Id:       "dwight-schrute",
 			Username: "Dwight Schrute",
 		}
 
-		getUsersOptionsPage0 := &mmModel.UserGetOptions{
+		getUsersOptionsPage0 := &mm_model.UserGetOptions{
 			Active:  true,
-			Role:    mmModel.SystemAdminRoleId,
+			Role:    mm_model.SystemAdminRoleId,
 			PerPage: 50,
 			Page:    0,
 		}
-		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage0).Return([]*mmModel.User{sysAdmin1}, nil)
+		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage0).Return([]*mm_model.User{sysAdmin1}, nil)
 
-		getUsersOptionsPage1 := &mmModel.UserGetOptions{
+		getUsersOptionsPage1 := &mm_model.UserGetOptions{
 			Active:  true,
-			Role:    mmModel.SystemAdminRoleId,
+			Role:    mm_model.SystemAdminRoleId,
 			PerPage: 50,
 			Page:    1,
 		}
-		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage1).Return([]*mmModel.User{sysAdmin2}, nil)
+		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage1).Return([]*mm_model.User{sysAdmin2}, nil)
 
-		getUsersOptionsPage2 := &mmModel.UserGetOptions{
+		getUsersOptionsPage2 := &mm_model.UserGetOptions{
 			Active:  true,
-			Role:    mmModel.SystemAdminRoleId,
+			Role:    mm_model.SystemAdminRoleId,
 			PerPage: 50,
 			Page:    2,
 		}
-		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage2).Return([]*mmModel.User{}, nil)
+		servicesAPI.EXPECT().GetUsersFromProfiles(getUsersOptionsPage2).Return([]*mm_model.User{}, nil)
 
 		th.App.servicesAPI = servicesAPI
 

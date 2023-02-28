@@ -6,7 +6,7 @@ import (
 	authMocks "github.com/mattermost/mattermost-server/v6/boards/auth/mocks"
 	wsMocks "github.com/mattermost/mattermost-server/v6/boards/ws/mocks"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 
 	"github.com/golang/mock/gomock"
@@ -41,7 +41,7 @@ func SetupTestHelper(t *testing.T) *TestHelper {
 }
 
 func (th *TestHelper) ReceiveWebSocketMessage(webConnID, userID, action string, data map[string]interface{}) {
-	req := &mmModel.WebSocketRequest{Action: websocketMessagePrefix + action, Data: data}
+	req := &mm_model.WebSocketRequest{Action: websocketMessagePrefix + action, Data: data}
 
 	th.pa.WebSocketMessageHasBeenPosted(webConnID, userID, req)
 }

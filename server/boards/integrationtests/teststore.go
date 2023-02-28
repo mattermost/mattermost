@@ -3,20 +3,20 @@ package integrationtests
 import (
 	"github.com/mattermost/mattermost-server/v6/boards/services/store"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 type TestStore struct {
 	store.Store
-	license *mmModel.License
+	license *mm_model.License
 }
 
 func NewTestEnterpriseStore(store store.Store) *TestStore {
 	usersValue := 10000
 	trueValue := true
 	falseValue := false
-	license := &mmModel.License{
-		Features: &mmModel.Features{
+	license := &mm_model.License{
+		Features: &mm_model.Features{
 			Users:                     &usersValue,
 			LDAP:                      &trueValue,
 			LDAPGroups:                &trueValue,
@@ -62,8 +62,8 @@ func NewTestProfessionalStore(store store.Store) *TestStore {
 	usersValue := 10000
 	trueValue := true
 	falseValue := false
-	license := &mmModel.License{
-		Features: &mmModel.Features{
+	license := &mm_model.License{
+		Features: &mm_model.Features{
 			Users:                     &usersValue,
 			LDAP:                      &falseValue,
 			LDAPGroups:                &falseValue,
@@ -105,6 +105,6 @@ func NewTestProfessionalStore(store store.Store) *TestStore {
 	return testStore
 }
 
-func (s *TestStore) GetLicense() *mmModel.License {
+func (s *TestStore) GetLicense() *mm_model.License {
 	return s.license
 }

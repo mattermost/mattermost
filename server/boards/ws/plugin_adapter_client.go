@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 type PluginAdapterClient struct {
@@ -22,7 +22,7 @@ func (pac *PluginAdapterClient) isActive() bool {
 }
 
 func (pac *PluginAdapterClient) hasExpired(threshold time.Duration) bool {
-	return !mmModel.GetTimeForMillis(atomic.LoadInt64(&pac.inactiveAt)).Add(threshold).After(time.Now())
+	return !mm_model.GetTimeForMillis(atomic.LoadInt64(&pac.inactiveAt)).Add(threshold).After(time.Now())
 }
 
 func (pac *PluginAdapterClient) subscribeToTeam(teamID string) {

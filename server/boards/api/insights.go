@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/audit"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (a *API) registerInsightsRoutes(r *mux.Router) {
@@ -114,14 +114,14 @@ func (a *API) handleTeamBoardsInsights(w http.ResponseWriter, r *http.Request) {
 		userLocation = time.Now().UTC().Location()
 	}
 	// get unix time for duration
-	startTime, appErr := mmModel.GetStartOfDayForTimeRange(timeRange, userLocation)
+	startTime, appErr := mm_model.GetStartOfDayForTimeRange(timeRange, userLocation)
 	if appErr != nil {
 		a.errorResponse(w, r, model.NewErrBadRequest(appErr.Message))
 		return
 	}
 
-	boardsInsights, err := a.app.GetTeamBoardsInsights(userID, teamID, &mmModel.InsightsOpts{
-		StartUnixMilli: mmModel.GetMillisForTime(*startTime),
+	boardsInsights, err := a.app.GetTeamBoardsInsights(userID, teamID, &mm_model.InsightsOpts{
+		StartUnixMilli: mm_model.GetMillisForTime(*startTime),
 		Page:           page,
 		PerPage:        perPage,
 	})
@@ -232,14 +232,14 @@ func (a *API) handleUserBoardsInsights(w http.ResponseWriter, r *http.Request) {
 		userLocation = time.Now().UTC().Location()
 	}
 	// get unix time for duration
-	startTime, appErr := mmModel.GetStartOfDayForTimeRange(timeRange, userLocation)
+	startTime, appErr := mm_model.GetStartOfDayForTimeRange(timeRange, userLocation)
 	if appErr != nil {
 		a.errorResponse(w, r, model.NewErrBadRequest(appErr.Message))
 		return
 	}
 
-	boardsInsights, err := a.app.GetUserBoardsInsights(userID, teamID, &mmModel.InsightsOpts{
-		StartUnixMilli: mmModel.GetMillisForTime(*startTime),
+	boardsInsights, err := a.app.GetUserBoardsInsights(userID, teamID, &mm_model.InsightsOpts{
+		StartUnixMilli: mm_model.GetMillisForTime(*startTime),
 		Page:           page,
 		PerPage:        perPage,
 	})

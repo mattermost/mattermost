@@ -115,10 +115,9 @@ services:
     depends_on:
       - start_dependencies
     volumes:
-      - './:/home/mattermost-server'
-      - './../mattermost-webapp:/home/mattermost-webapp'
-      - './../enterprise:/home/enterprise'
-      - './../focalboard:/home/focalboard'
+      - './server:/home/mattermost-server'
+      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../../enterprise:/home/enterprise'
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
@@ -154,10 +153,9 @@ services:
     depends_on:
       - leader
     volumes:
-      - './:/home/mattermost-server'
-      - './../mattermost-webapp:/home/mattermost-webapp'
-      - './../enterprise:/home/enterprise'
-      - './../focalboard:/home/focalboard'
+      - './server:/home/mattermost-server'
+      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../../enterprise:/home/enterprise'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
@@ -193,10 +191,9 @@ services:
     depends_on:
       - leader
     volumes:
-      - './:/home/mattermost-server'
-      - './../mattermost-webapp:/home/mattermost-webapp'
-      - './../enterprise:/home/enterprise'
-      - './../focalboard:/home/focalboard'
+      - './server:/home/mattermost-server'
+      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../../enterprise:/home/enterprise'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s

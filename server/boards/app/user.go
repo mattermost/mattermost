@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (a *App) GetTeamUsers(teamID string, asGuestID string) ([]*model.User, error) {
@@ -26,7 +26,7 @@ func (a *App) SearchTeamUsers(teamID string, searchQuery string, asGuestID strin
 	return users, nil
 }
 
-func (a *App) UpdateUserConfig(userID string, patch model.UserPreferencesPatch) ([]mmModel.Preference, error) {
+func (a *App) UpdateUserConfig(userID string, patch model.UserPreferencesPatch) ([]mm_model.Preference, error) {
 	updatedPreferences, err := a.store.PatchUserPreferences(userID, patch)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (a *App) UpdateUserConfig(userID string, patch model.UserPreferencesPatch) 
 	return updatedPreferences, nil
 }
 
-func (a *App) GetUserPreferences(userID string) ([]mmModel.Preference, error) {
+func (a *App) GetUserPreferences(userID string) ([]mm_model.Preference, error) {
 	return a.store.GetUserPreferences(userID)
 }
 
@@ -62,13 +62,13 @@ func (a *App) CanSeeUser(seerUser string, seenUser string) (bool, error) {
 	return true, nil
 }
 
-func (a *App) SearchUserChannels(teamID string, userID string, query string) ([]*mmModel.Channel, error) {
+func (a *App) SearchUserChannels(teamID string, userID string, query string) ([]*mm_model.Channel, error) {
 	channels, err := a.store.SearchUserChannels(teamID, userID, query)
 	if err != nil {
 		return nil, err
 	}
 
-	var writeableChannels []*mmModel.Channel
+	var writeableChannels []*mm_model.Channel
 	for _, channel := range channels {
 		if a.permissions.HasPermissionToChannel(userID, channel.Id, model.PermissionCreatePost) {
 			writeableChannels = append(writeableChannels, channel)
@@ -77,6 +77,6 @@ func (a *App) SearchUserChannels(teamID string, userID string, query string) ([]
 	return writeableChannels, nil
 }
 
-func (a *App) GetChannel(teamID string, channelID string) (*mmModel.Channel, error) {
+func (a *App) GetChannel(teamID string, channelID string) (*mm_model.Channel, error) {
 	return a.store.GetChannel(teamID, channelID)
 }

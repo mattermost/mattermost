@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/permissions"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 
@@ -23,11 +23,11 @@ func New(store permissions.Store, logger mlog.LoggerIFace) *Service {
 	}
 }
 
-func (s *Service) HasPermissionTo(userID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionTo(userID string, permission *mm_model.Permission) bool {
 	return false
 }
 
-func (s *Service) HasPermissionToTeam(userID, teamID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionToTeam(userID, teamID string, permission *mm_model.Permission) bool {
 	if userID == "" || teamID == "" || permission == nil {
 		return false
 	}
@@ -37,14 +37,14 @@ func (s *Service) HasPermissionToTeam(userID, teamID string, permission *mmModel
 	return true
 }
 
-func (s *Service) HasPermissionToChannel(userID, channelID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionToChannel(userID, channelID string, permission *mm_model.Permission) bool {
 	if userID == "" || channelID == "" || permission == nil {
 		return false
 	}
 	return true
 }
 
-func (s *Service) HasPermissionToBoard(userID, boardID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionToBoard(userID, boardID string, permission *mm_model.Permission) bool {
 	if userID == "" || boardID == "" || permission == nil {
 		return false
 	}

@@ -10,7 +10,7 @@ import (
 	mmpermissionsMocks "github.com/mattermost/mattermost-server/v6/boards/services/permissions/mmpermissions/mocks"
 	permissionsMocks "github.com/mattermost/mattermost-server/v6/boards/services/permissions/mocks"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 
 	"github.com/golang/mock/gomock"
@@ -40,7 +40,7 @@ func SetupTestHelper(t *testing.T) *TestHelper {
 }
 
 func (th *TestHelper) checkBoardPermissions(roleName string, member *model.BoardMember, teamID string,
-	hasPermissionTo, hasNotPermissionTo []*mmModel.Permission) {
+	hasPermissionTo, hasNotPermissionTo []*mm_model.Permission) {
 	for _, p := range hasPermissionTo {
 		th.t.Run(roleName+" "+p.Id, func(t *testing.T) {
 			th.store.EXPECT().

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
@@ -12,7 +12,7 @@ import (
 // servicesAPI is the interface required my the Params to interact with the mattermost-server.
 // You can use plugin-api or product-api adapter implementations.
 type servicesAPI interface {
-	GetChannelByID(string) (*mmModel.Channel, error)
+	GetChannelByID(string) (*mm_model.Channel, error)
 }
 
 type Params struct {
@@ -26,7 +26,7 @@ type Params struct {
 	NewMutexFn       MutexFactory
 	ServicesAPI      servicesAPI
 	SkipMigrations   bool
-	ConfigFn         func() *mmModel.Config
+	ConfigFn         func() *mm_model.Config
 }
 
 func (p Params) CheckValid() error {

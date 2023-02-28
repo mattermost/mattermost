@@ -9,7 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/utils"
@@ -83,7 +83,7 @@ func (a *App) IsCloudLimited() bool {
 }
 
 // SetCloudLimits sets the limits of the server.
-func (a *App) SetCloudLimits(limits *mmModel.ProductLimits) error {
+func (a *App) SetCloudLimits(limits *mm_model.ProductLimits) error {
 	oldCardLimit := a.CardLimit()
 
 	// if the limit object doesn't come complete, we assume limits are
@@ -301,9 +301,9 @@ func (a *App) NotifyPortalAdminsUpgradeRequest(teamID string) error {
 	message := fmt.Sprintf("A member of %s has notified you to upgrade this workspace before the trial ends.", ofWhat)
 
 	page := 0
-	getUsersOptions := &mmModel.UserGetOptions{
+	getUsersOptions := &mm_model.UserGetOptions{
 		Active:  true,
-		Role:    mmModel.SystemAdminRoleId,
+		Role:    mm_model.SystemAdminRoleId,
 		PerPage: 50,
 		Page:    page,
 	}

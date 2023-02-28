@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/services/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/boards/utils"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 
 	"github.com/stretchr/testify/require"
@@ -73,11 +73,11 @@ type TestHelper struct {
 
 type FakePermissionPluginAPI struct{}
 
-func (*FakePermissionPluginAPI) HasPermissionTo(userID string, permission *mmModel.Permission) bool {
+func (*FakePermissionPluginAPI) HasPermissionTo(userID string, permission *mm_model.Permission) bool {
 	return userID == userAdmin
 }
 
-func (*FakePermissionPluginAPI) HasPermissionToTeam(userID string, teamID string, permission *mmModel.Permission) bool {
+func (*FakePermissionPluginAPI) HasPermissionToTeam(userID string, teamID string, permission *mm_model.Permission) bool {
 	if permission.Id == model.PermissionManageTeam.Id {
 		return false
 	}
@@ -90,7 +90,7 @@ func (*FakePermissionPluginAPI) HasPermissionToTeam(userID string, teamID string
 	return true
 }
 
-func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID string, permission *mmModel.Permission) bool {
+func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID string, permission *mm_model.Permission) bool {
 	return channelID == "valid-channel-id" || channelID == "valid-channel-id-2"
 }
 

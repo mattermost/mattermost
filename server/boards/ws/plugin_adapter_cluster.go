@@ -3,7 +3,7 @@ package ws
 import (
 	"encoding/json"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 
@@ -26,9 +26,9 @@ func (pa *PluginAdapter) sendMessageToCluster(clusterMessage *ClusterMessage) {
 		return
 	}
 
-	event := mmModel.PluginClusterEvent{Id: id, Data: b}
-	opts := mmModel.PluginClusterEventSendOptions{
-		SendType: mmModel.PluginClusterEventSendTypeReliable,
+	event := mm_model.PluginClusterEvent{Id: id, Data: b}
+	opts := mm_model.PluginClusterEventSendOptions{
+		SendType: mm_model.PluginClusterEventSendTypeReliable,
 	}
 
 	if err := pa.api.PublishPluginClusterEvent(event, opts); err != nil {
@@ -39,7 +39,7 @@ func (pa *PluginAdapter) sendMessageToCluster(clusterMessage *ClusterMessage) {
 	}
 }
 
-func (pa *PluginAdapter) HandleClusterEvent(ev mmModel.PluginClusterEvent) {
+func (pa *PluginAdapter) HandleClusterEvent(ev mm_model.PluginClusterEvent) {
 	pa.logger.Debug("received cluster event", mlog.String("id", ev.Id))
 
 	var clusterMessage ClusterMessage

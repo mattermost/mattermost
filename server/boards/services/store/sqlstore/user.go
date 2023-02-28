@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/channels/store"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -260,7 +260,7 @@ func (s *SQLStore) usersFromRows(rows *sql.Rows) ([]*model.User, error) {
 	return users, nil
 }
 
-func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error) {
+func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch model.UserPreferencesPatch) (mm_model.Preferences, error) {
 	preferences, err := s.getUserPreferences(db, userID)
 	if err != nil {
 		return nil, err
@@ -268,7 +268,7 @@ func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch m
 
 	if len(patch.UpdatedFields) > 0 {
 		for key, value := range patch.UpdatedFields {
-			preference := mmModel.Preference{
+			preference := mm_model.Preference{
 				UserId:   userID,
 				Category: model.PreferencesCategoryFocalboard,
 				Name:     key,
@@ -279,7 +279,7 @@ func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch m
 				return nil, err
 			}
 
-			newPreferences := mmModel.Preferences{}
+			newPreferences := mm_model.Preferences{}
 			for _, existingPreference := range preferences {
 				if preference.Name != existingPreference.Name {
 					newPreferences = append(newPreferences, existingPreference)
@@ -292,7 +292,7 @@ func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch m
 
 	if len(patch.DeletedFields) > 0 {
 		for _, key := range patch.DeletedFields {
-			preference := mmModel.Preference{
+			preference := mm_model.Preference{
 				UserId:   userID,
 				Category: model.PreferencesCategoryFocalboard,
 				Name:     key,
@@ -302,7 +302,7 @@ func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch m
 				return nil, err
 			}
 
-			newPreferences := mmModel.Preferences{}
+			newPreferences := mm_model.Preferences{}
 			for _, existingPreference := range preferences {
 				if preference.Name != existingPreference.Name {
 					newPreferences = append(newPreferences, existingPreference)
@@ -315,7 +315,7 @@ func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch m
 	return preferences, nil
 }
 
-func (s *SQLStore) updateUserPreference(db sq.BaseRunner, preference mmModel.Preference) error {
+func (s *SQLStore) updateUserPreference(db sq.BaseRunner, preference mm_model.Preference) error {
 	query := s.getQueryBuilder(db).
 		Insert(s.tablePrefix+"preferences").
 		Columns("UserId", "Category", "Name", "Value").
@@ -337,7 +337,7 @@ func (s *SQLStore) updateUserPreference(db sq.BaseRunner, preference mmModel.Pre
 	return nil
 }
 
-func (s *SQLStore) deleteUserPreference(db sq.BaseRunner, preference mmModel.Preference) error {
+func (s *SQLStore) deleteUserPreference(db sq.BaseRunner, preference mm_model.Preference) error {
 	query := s.getQueryBuilder(db).
 		Delete(s.tablePrefix + "preferences").
 		Where(sq.Eq{"UserId": preference.UserId}).
@@ -367,7 +367,7 @@ func (s *SQLStore) getUserTimezone(_ sq.BaseRunner, _ string) (string, error) {
 	return "", errUnsupportedOperation
 }
 
-func (s *SQLStore) getUserPreferences(db sq.BaseRunner, userID string) (mmModel.Preferences, error) {
+func (s *SQLStore) getUserPreferences(db sq.BaseRunner, userID string) (mm_model.Preferences, error) {
 	query := s.getQueryBuilder(db).
 		Select("userid", "category", "name", "value").
 		From(s.tablePrefix + "preferences").
@@ -392,11 +392,11 @@ func (s *SQLStore) getUserPreferences(db sq.BaseRunner, userID string) (mmModel.
 	return preferences, nil
 }
 
-func (s *SQLStore) preferencesFromRows(rows *sql.Rows) ([]mmModel.Preference, error) {
-	preferences := []mmModel.Preference{}
+func (s *SQLStore) preferencesFromRows(rows *sql.Rows) ([]mm_model.Preference, error) {
+	preferences := []mm_model.Preference{}
 
 	for rows.Next() {
-		var preference mmModel.Preference
+		var preference mm_model.Preference
 
 		err := rows.Scan(
 			&preference.UserId,

@@ -1,25 +1,25 @@
 package model
 
 import (
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 var (
-	PermissionViewTeam              = mmModel.PermissionViewTeam
-	PermissionManageTeam            = mmModel.PermissionManageTeam
-	PermissionManageSystem          = mmModel.PermissionManageSystem
-	PermissionReadChannel           = mmModel.PermissionReadChannel
-	PermissionCreatePost            = mmModel.PermissionCreatePost
-	PermissionViewMembers           = mmModel.PermissionViewMembers
-	PermissionCreatePublicChannel   = mmModel.PermissionCreatePublicChannel
-	PermissionCreatePrivateChannel  = mmModel.PermissionCreatePrivateChannel
-	PermissionManageBoardType       = &mmModel.Permission{Id: "manage_board_type", Name: "", Description: "", Scope: ""}
-	PermissionDeleteBoard           = &mmModel.Permission{Id: "delete_board", Name: "", Description: "", Scope: ""}
-	PermissionViewBoard             = &mmModel.Permission{Id: "view_board", Name: "", Description: "", Scope: ""}
-	PermissionManageBoardRoles      = &mmModel.Permission{Id: "manage_board_roles", Name: "", Description: "", Scope: ""}
-	PermissionShareBoard            = &mmModel.Permission{Id: "share_board", Name: "", Description: "", Scope: ""}
-	PermissionManageBoardCards      = &mmModel.Permission{Id: "manage_board_cards", Name: "", Description: "", Scope: ""}
-	PermissionManageBoardProperties = &mmModel.Permission{Id: "manage_board_properties", Name: "", Description: "", Scope: ""}
-	PermissionCommentBoardCards     = &mmModel.Permission{Id: "comment_board_cards", Name: "", Description: "", Scope: ""}
-	PermissionDeleteOthersComments  = &mmModel.Permission{Id: "delete_others_comments", Name: "", Description: "", Scope: ""}
+	PermissionViewTeam              = mm_model.PermissionViewTeam
+	PermissionManageTeam            = mm_model.PermissionManageTeam
+	PermissionManageSystem          = mm_model.PermissionManageSystem
+	PermissionReadChannel           = mm_model.PermissionReadChannel
+	PermissionCreatePost            = mm_model.PermissionCreatePost
+	PermissionViewMembers           = mm_model.PermissionViewMembers
+	PermissionCreatePublicChannel   = mm_model.PermissionCreatePublicChannel
+	PermissionCreatePrivateChannel  = mm_model.PermissionCreatePrivateChannel
+	PermissionManageBoardType       = &mm_model.Permission{Id: "manage_board_type", Name: "", Description: "", Scope: ""}
+	PermissionDeleteBoard           = &mm_model.Permission{Id: "delete_board", Name: "", Description: "", Scope: ""}
+	PermissionViewBoard             = &mm_model.Permission{Id: "view_board", Name: "", Description: "", Scope: ""}
+	PermissionManageBoardRoles      = &mm_model.Permission{Id: "manage_board_roles", Name: "", Description: "", Scope: ""}
+	PermissionShareBoard            = &mm_model.Permission{Id: "share_board", Name: "", Description: "", Scope: ""}
+	PermissionManageBoardCards      = &mm_model.Permission{Id: "manage_board_cards", Name: "", Description: "", Scope: ""}
+	PermissionManageBoardProperties = &mm_model.Permission{Id: "manage_board_properties", Name: "", Description: "", Scope: ""}
+	PermissionCommentBoardCards     = &mm_model.Permission{Id: "comment_board_cards", Name: "", Description: "", Scope: ""}
+	PermissionDeleteOthersComments  = &mm_model.Permission{Id: "delete_others_comments", Name: "", Description: "", Scope: ""}
 )

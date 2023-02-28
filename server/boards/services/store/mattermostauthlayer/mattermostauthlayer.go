@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -24,23 +24,23 @@ var boardsBotID string
 // servicesAPI is the interface required my the MattermostAuthLayer to interact with
 // the mattermost-server. You can use plugin-api or product-api adapter implementations.
 type servicesAPI interface {
-	GetDirectChannel(userID1, userID2 string) (*mmModel.Channel, error)
-	GetChannelByID(channelID string) (*mmModel.Channel, error)
-	GetChannelMember(channelID string, userID string) (*mmModel.ChannelMember, error)
-	GetChannelsForTeamForUser(teamID string, userID string, includeDeleted bool) (mmModel.ChannelList, error)
-	GetUserByID(userID string) (*mmModel.User, error)
-	UpdateUser(user *mmModel.User) (*mmModel.User, error)
-	GetUserByEmail(email string) (*mmModel.User, error)
-	GetUserByUsername(username string) (*mmModel.User, error)
-	GetLicense() *mmModel.License
-	GetFileInfo(fileID string) (*mmModel.FileInfo, error)
-	GetCloudLimits() (*mmModel.ProductLimits, error)
-	EnsureBot(bot *mmModel.Bot) (string, error)
-	CreatePost(post *mmModel.Post) (*mmModel.Post, error)
-	GetTeamMember(teamID string, userID string) (*mmModel.TeamMember, error)
-	GetPreferencesForUser(userID string) (mmModel.Preferences, error)
-	DeletePreferencesForUser(userID string, preferences mmModel.Preferences) error
-	UpdatePreferencesForUser(userID string, preferences mmModel.Preferences) error
+	GetDirectChannel(userID1, userID2 string) (*mm_model.Channel, error)
+	GetChannelByID(channelID string) (*mm_model.Channel, error)
+	GetChannelMember(channelID string, userID string) (*mm_model.ChannelMember, error)
+	GetChannelsForTeamForUser(teamID string, userID string, includeDeleted bool) (mm_model.ChannelList, error)
+	GetUserByID(userID string) (*mm_model.User, error)
+	UpdateUser(user *mm_model.User) (*mm_model.User, error)
+	GetUserByEmail(email string) (*mm_model.User, error)
+	GetUserByUsername(username string) (*mm_model.User, error)
+	GetLicense() *mm_model.License
+	GetFileInfo(fileID string) (*mm_model.FileInfo, error)
+	GetCloudLimits() (*mm_model.ProductLimits, error)
+	EnsureBot(bot *mm_model.Bot) (string, error)
+	CreatePost(post *mm_model.Post) (*mm_model.Post, error)
+	GetTeamMember(teamID string, userID string) (*mm_model.TeamMember, error)
+	GetPreferencesForUser(userID string) (mm_model.Preferences, error)
+	DeletePreferencesForUser(userID string, preferences mm_model.Preferences) error
+	UpdatePreferencesForUser(userID string, preferences mm_model.Preferences) error
 }
 
 // Store represents the abstraction of the data storage.
@@ -131,16 +131,16 @@ func (s *MattermostAuthLayer) UpdateUserPasswordByID(userID, password string) er
 	return store.NewNotSupportedError("no update allowed from focalboard, update it using mattermost")
 }
 
-func (s *MattermostAuthLayer) PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error) {
+func (s *MattermostAuthLayer) PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mm_model.Preferences, error) {
 	preferences, err := s.GetUserPreferences(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(patch.UpdatedFields) > 0 {
-		updatedPreferences := mmModel.Preferences{}
+		updatedPreferences := mm_model.Preferences{}
 		for key, value := range patch.UpdatedFields {
-			preference := mmModel.Preference{
+			preference := mm_model.Preference{
 				UserId:   userID,
 				Category: model.PreferencesCategoryFocalboard,
 				Name:     key,
@@ -157,7 +157,7 @@ func (s *MattermostAuthLayer) PatchUserPreferences(userID string, patch model.Us
 
 		// we update the preferences list replacing or adding those
 		// that were updated
-		newPreferences := mmModel.Preferences{}
+		newPreferences := mm_model.Preferences{}
 		for _, existingPreference := range preferences {
 			hasBeenUpdated := false
 			for _, updatedPreference := range updatedPreferences {
@@ -176,9 +176,9 @@ func (s *MattermostAuthLayer) PatchUserPreferences(userID string, patch model.Us
 	}
 
 	if len(patch.DeletedFields) > 0 {
-		deletedPreferences := mmModel.Preferences{}
+		deletedPreferences := mm_model.Preferences{}
 		for _, key := range patch.DeletedFields {
-			preference := mmModel.Preference{
+			preference := mm_model.Preference{
 				UserId:   userID,
 				Category: model.PreferencesCategoryFocalboard,
 				Name:     key,
@@ -194,7 +194,7 @@ func (s *MattermostAuthLayer) PatchUserPreferences(userID string, patch model.Us
 
 		// we update the preferences removing those that have been
 		// deleted
-		newPreferences := mmModel.Preferences{}
+		newPreferences := mm_model.Preferences{}
 		for _, existingPreference := range preferences {
 			hasBeenDeleted := false
 			for _, deletedPreference := range deletedPreferences {
@@ -214,7 +214,7 @@ func (s *MattermostAuthLayer) PatchUserPreferences(userID string, patch model.Us
 	return preferences, nil
 }
 
-func (s *MattermostAuthLayer) GetUserPreferences(userID string) (mmModel.Preferences, error) {
+func (s *MattermostAuthLayer) GetUserPreferences(userID string) (mm_model.Preferences, error) {
 	return s.servicesAPI.GetPreferencesForUser(userID)
 }
 
@@ -486,7 +486,7 @@ func (s *MattermostAuthLayer) CreatePrivateWorkspace(userID string) (string, err
 	return channel.Id, nil
 }
 
-func mmUserToFbUser(mmUser *mmModel.User) model.User {
+func mmUserToFbUser(mmUser *mm_model.User) model.User {
 	authData := ""
 	if mmUser.AuthData != nil {
 		authData = *mmUser.AuthData
@@ -511,13 +511,13 @@ func mmUserToFbUser(mmUser *mmModel.User) model.User {
 	}
 }
 
-func (s *MattermostAuthLayer) GetFileInfo(id string) (*mmModel.FileInfo, error) {
+func (s *MattermostAuthLayer) GetFileInfo(id string) (*mm_model.FileInfo, error) {
 	fileInfo, err := s.servicesAPI.GetFileInfo(id)
 	if err != nil {
 		// Not finding fileinfo is fine because we don't have data for
 		// any existing files already uploaded in Boards before this code
 		// was deployed.
-		var appErr *mmModel.AppError
+		var appErr *mm_model.AppError
 		if errors.As(err, &appErr) {
 			if appErr.StatusCode == http.StatusNotFound {
 				return nil, model.NewErrNotFound("file info ID=" + id)
@@ -534,7 +534,7 @@ func (s *MattermostAuthLayer) GetFileInfo(id string) (*mmModel.FileInfo, error) 
 	return fileInfo, nil
 }
 
-func (s *MattermostAuthLayer) SaveFileInfo(fileInfo *mmModel.FileInfo) error {
+func (s *MattermostAuthLayer) SaveFileInfo(fileInfo *mm_model.FileInfo) error {
 	query := s.getQueryBuilder().
 		Insert("FileInfo").
 		Columns(
@@ -595,7 +595,7 @@ func (s *MattermostAuthLayer) SaveFileInfo(fileInfo *mmModel.FileInfo) error {
 	return nil
 }
 
-func (s *MattermostAuthLayer) GetLicense() *mmModel.License {
+func (s *MattermostAuthLayer) GetLicense() *mm_model.License {
 	return s.servicesAPI.GetLicense()
 }
 
@@ -952,7 +952,7 @@ func (s *MattermostAuthLayer) boardsFromRows(rows *sql.Rows, removeDuplicates bo
 	return boards, nil
 }
 
-func (s *MattermostAuthLayer) GetCloudLimits() (*mmModel.ProductLimits, error) {
+func (s *MattermostAuthLayer) GetCloudLimits() (*mm_model.ProductLimits, error) {
 	return s.servicesAPI.GetCloudLimits()
 }
 
@@ -1003,7 +1003,7 @@ func (s *MattermostAuthLayer) GetMemberForBoard(boardID, userID string) (*model.
 		if b.ChannelID != "" {
 			_, memberErr := s.servicesAPI.GetChannelMember(b.ChannelID, userID)
 			if memberErr != nil {
-				var appErr *mmModel.AppError
+				var appErr *mm_model.AppError
 				if errors.As(memberErr, &appErr) && appErr.StatusCode == http.StatusNotFound {
 					// Plugin API returns error if channel member doesn't exist.
 					// We're fine if it doesn't exist, so its not an error for us.
@@ -1028,7 +1028,7 @@ func (s *MattermostAuthLayer) GetMemberForBoard(boardID, userID string) (*model.
 		if b.Type == model.BoardTypeOpen && b.IsTemplate {
 			_, memberErr := s.servicesAPI.GetTeamMember(b.TeamID, userID)
 			if memberErr != nil {
-				var appErr *mmModel.AppError
+				var appErr *mm_model.AppError
 				if errors.As(memberErr, &appErr) && appErr.StatusCode == http.StatusNotFound {
 					return nil, model.NewErrNotFound(userID)
 				}
@@ -1181,18 +1181,18 @@ func (s *MattermostAuthLayer) GetBoardsForUserAndTeam(userID, teamID string, inc
 	return boards, nil
 }
 
-func (s *MattermostAuthLayer) SearchUserChannels(teamID, userID, query string) ([]*mmModel.Channel, error) {
+func (s *MattermostAuthLayer) SearchUserChannels(teamID, userID, query string) ([]*mm_model.Channel, error) {
 	channels, err := s.servicesAPI.GetChannelsForTeamForUser(teamID, userID, false)
 	if err != nil {
 		return nil, err
 	}
 	lowerQuery := strings.ToLower(query)
 
-	result := []*mmModel.Channel{}
+	result := []*mm_model.Channel{}
 	count := 0
 	for _, channel := range channels {
-		if channel.Type != mmModel.ChannelTypeDirect &&
-			channel.Type != mmModel.ChannelTypeGroup &&
+		if channel.Type != mm_model.ChannelTypeDirect &&
+			channel.Type != mm_model.ChannelTypeGroup &&
 			(strings.Contains(strings.ToLower(channel.Name), lowerQuery) || strings.Contains(strings.ToLower(channel.DisplayName), lowerQuery)) {
 			result = append(result, channel)
 			count++
@@ -1204,7 +1204,7 @@ func (s *MattermostAuthLayer) SearchUserChannels(teamID, userID, query string) (
 	return result, nil
 }
 
-func (s *MattermostAuthLayer) GetChannel(teamID, channelID string) (*mmModel.Channel, error) {
+func (s *MattermostAuthLayer) GetChannel(teamID, channelID string) (*mm_model.Channel, error) {
 	channel, err := s.servicesAPI.GetChannelByID(channelID)
 	if err != nil {
 		return nil, err
@@ -1260,7 +1260,7 @@ func (s *MattermostAuthLayer) PostMessage(message, postType, channelID string) e
 		return err
 	}
 
-	post := &mmModel.Post{
+	post := &mm_model.Post{
 		Message:   message,
 		UserId:    botID,
 		ChannelId: channelID,
@@ -1282,7 +1282,7 @@ func (s *MattermostAuthLayer) GetUserTimezone(userID string) (string, error) {
 		return "", err
 	}
 	timezone := user.Timezone
-	return mmModel.GetPreferredTimezone(timezone), nil
+	return mm_model.GetPreferredTimezone(timezone), nil
 }
 
 func (s *MattermostAuthLayer) CanSeeUser(seerID string, seenID string) (bool, error) {

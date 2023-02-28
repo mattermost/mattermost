@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 type IDType byte
@@ -28,22 +28,22 @@ const (
 // with the padding stripped off, and a one character alpha prefix indicating the
 // type of entity or a `7` if unknown type.
 func NewID(idType IDType) string {
-	return string(idType) + mmModel.NewId()
+	return string(idType) + mm_model.NewId()
 }
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return mmModel.GetMillis()
+	return mm_model.GetMillis()
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return mmModel.GetMillisForTime(thisTime)
+	return mm_model.GetMillisForTime(thisTime)
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return mmModel.GetTimeForMillis(millis)
+	return mm_model.GetTimeForMillis(millis)
 }
 
 // SecondsToMillis is a convenience method to convert seconds to milliseconds.
@@ -97,7 +97,7 @@ func Intersection(x ...[]interface{}) []interface{} {
 	return result
 }
 
-func IsCloudLicense(license *mmModel.License) bool {
+func IsCloudLicense(license *mm_model.License) bool {
 	return license != nil &&
 		license.Features != nil &&
 		license.Features.Cloud != nil &&

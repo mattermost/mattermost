@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 
 	"github.com/mattermost/mattermost-server/v6/boards/services/audit"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/web"
@@ -41,8 +41,8 @@ func FileUploadResponseFromJSON(data io.Reader) (*FileUploadResponse, error) {
 	return &fileUploadResponse, nil
 }
 
-func FileInfoResponseFromJSON(data io.Reader) (*mmModel.FileInfo, error) {
-	var fileInfo mmModel.FileInfo
+func FileInfoResponseFromJSON(data io.Reader) (*mm_model.FileInfo, error) {
+	var fileInfo mm_model.FileInfo
 
 	if err := json.NewDecoder(data).Decode(&fileInfo); err != nil {
 		return nil, err

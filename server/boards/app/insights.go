@@ -4,10 +4,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
-func (a *App) GetTeamBoardsInsights(userID string, teamID string, opts *mmModel.InsightsOpts) (*model.BoardInsightsList, error) {
+func (a *App) GetTeamBoardsInsights(userID string, teamID string, opts *mm_model.InsightsOpts) (*model.BoardInsightsList, error) {
 	// check if server is properly licensed, and user is not a guest
 	userPermitted, err := insightPermissionGate(a, userID, false)
 	if err != nil {
@@ -23,7 +23,7 @@ func (a *App) GetTeamBoardsInsights(userID string, teamID string, opts *mmModel.
 	return a.store.GetTeamBoardsInsights(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage, boardIDs)
 }
 
-func (a *App) GetUserBoardsInsights(userID string, teamID string, opts *mmModel.InsightsOpts) (*model.BoardInsightsList, error) {
+func (a *App) GetUserBoardsInsights(userID string, teamID string, opts *mm_model.InsightsOpts) (*model.BoardInsightsList, error) {
 	// check if server is properly licensed, and user is not a guest
 	userPermitted, err := insightPermissionGate(a, userID, true)
 	if err != nil {
@@ -58,7 +58,7 @@ func insightPermissionGate(a *App, userID string, isMyInsights bool) (bool, erro
 		return false, licenseError
 	}
 
-	if !isMyInsights && (lic.SkuShortName != mmModel.LicenseShortSkuProfessional && lic.SkuShortName != mmModel.LicenseShortSkuEnterprise) {
+	if !isMyInsights && (lic.SkuShortName != mm_model.LicenseShortSkuProfessional && lic.SkuShortName != mm_model.LicenseShortSkuEnterprise) {
 		return false, licenseError
 	}
 

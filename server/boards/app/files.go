@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/boards/utils"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/filestore"
@@ -37,7 +37,7 @@ func (a *App) SaveFile(reader io.Reader, teamID, rootID, filename string) (strin
 
 	now := utils.GetMillis()
 
-	fileInfo := &mmModel.FileInfo{
+	fileInfo := &mm_model.FileInfo{
 		Id:              createdFilename[1:],
 		CreatorId:       "boards",
 		PostId:          emptyString,
@@ -67,7 +67,7 @@ func (a *App) SaveFile(reader io.Reader, teamID, rootID, filename string) (strin
 	return fullFilename, nil
 }
 
-func (a *App) GetFileInfo(filename string) (*mmModel.FileInfo, error) {
+func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 	if len(filename) == 0 {
 		return nil, errEmptyFilename
 	}

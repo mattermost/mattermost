@@ -9,7 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 )
@@ -56,7 +56,7 @@ func TestPatchBlocks(t *testing.T) {
 		blockPatches := model.BlockPatchBatch{
 			BlockIDs: []string{"block1"},
 			BlockPatches: []model.BlockPatch{
-				{Title: mmModel.NewString("new title")},
+				{Title: mm_model.NewString("new title")},
 			},
 		}
 
@@ -82,14 +82,14 @@ func TestPatchBlocks(t *testing.T) {
 
 		th.App.SetCardLimit(5)
 
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 		}
 
 		blockPatches := model.BlockPatchBatch{
 			BlockIDs: []string{"block1"},
 			BlockPatches: []model.BlockPatch{
-				{Title: mmModel.NewString("new title")},
+				{Title: mm_model.NewString("new title")},
 			},
 		}
 
@@ -192,16 +192,16 @@ func TestIsWithinViewsLimit(t *testing.T) {
 	th, tearDown := SetupTestHelper(t)
 	defer tearDown()
 
-	fakeLicense := &mmModel.License{
-		Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+	fakeLicense := &mm_model.License{
+		Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 	}
 
 	t.Run("within views limit", func(t *testing.T) {
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(2),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(2),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
@@ -217,9 +217,9 @@ func TestIsWithinViewsLimit(t *testing.T) {
 	t.Run("view limit exactly reached", func(t *testing.T) {
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(1),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(1),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
@@ -235,9 +235,9 @@ func TestIsWithinViewsLimit(t *testing.T) {
 	t.Run("view limit already exceeded", func(t *testing.T) {
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(2),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(2),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
@@ -253,9 +253,9 @@ func TestIsWithinViewsLimit(t *testing.T) {
 	t.Run("creating first view", func(t *testing.T) {
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(2),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(2),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
@@ -269,8 +269,8 @@ func TestIsWithinViewsLimit(t *testing.T) {
 	})
 
 	t.Run("is not a cloud SKU so limits don't apply", func(t *testing.T) {
-		nonCloudLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(false)},
+		nonCloudLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(false)},
 		}
 		th.Store.EXPECT().GetLicense().Return(nonCloudLicense)
 
@@ -320,14 +320,14 @@ func TestInsertBlocks(t *testing.T) {
 		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
 
 		// setting up mocks for limits
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 		}
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(2),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(2),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
@@ -352,14 +352,14 @@ func TestInsertBlocks(t *testing.T) {
 		th.Store.EXPECT().GetBoard(boardID).Return(board, nil)
 
 		// setting up mocks for limits
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 		}
 		th.Store.EXPECT().GetLicense().Return(fakeLicense)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(2),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(2),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
@@ -393,14 +393,14 @@ func TestInsertBlocks(t *testing.T) {
 		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(2)
 
 		// setting up mocks for limits
-		fakeLicense := &mmModel.License{
-			Features: &mmModel.Features{Cloud: mmModel.NewBool(true)},
+		fakeLicense := &mm_model.License{
+			Features: &mm_model.Features{Cloud: mm_model.NewBool(true)},
 		}
 		th.Store.EXPECT().GetLicense().Return(fakeLicense).Times(2)
 
-		cloudLimit := &mmModel.ProductLimits{
-			Boards: &mmModel.BoardsLimits{
-				Views: mmModel.NewInt(2),
+		cloudLimit := &mm_model.ProductLimits{
+			Boards: &mm_model.BoardsLimits{
+				Views: mm_model.NewInt(2),
 			},
 		}
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil).Times(2)

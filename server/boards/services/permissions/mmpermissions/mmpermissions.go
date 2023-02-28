@@ -7,14 +7,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/permissions"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 
 type APIInterface interface {
-	HasPermissionTo(userID string, permission *mmModel.Permission) bool
-	HasPermissionToTeam(userID string, teamID string, permission *mmModel.Permission) bool
-	HasPermissionToChannel(userID string, channelID string, permission *mmModel.Permission) bool
+	HasPermissionTo(userID string, permission *mm_model.Permission) bool
+	HasPermissionToTeam(userID string, teamID string, permission *mm_model.Permission) bool
+	HasPermissionToChannel(userID string, channelID string, permission *mm_model.Permission) bool
 }
 
 type Service struct {
@@ -31,28 +31,28 @@ func New(store permissions.Store, api APIInterface, logger mlog.LoggerIFace) *Se
 	}
 }
 
-func (s *Service) HasPermissionTo(userID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionTo(userID string, permission *mm_model.Permission) bool {
 	if userID == "" || permission == nil {
 		return false
 	}
 	return s.api.HasPermissionTo(userID, permission)
 }
 
-func (s *Service) HasPermissionToTeam(userID, teamID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionToTeam(userID, teamID string, permission *mm_model.Permission) bool {
 	if userID == "" || teamID == "" || permission == nil {
 		return false
 	}
 	return s.api.HasPermissionToTeam(userID, teamID, permission)
 }
 
-func (s *Service) HasPermissionToChannel(userID, channelID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionToChannel(userID, channelID string, permission *mm_model.Permission) bool {
 	if userID == "" || channelID == "" || permission == nil {
 		return false
 	}
 	return s.api.HasPermissionToChannel(userID, channelID, permission)
 }
 
-func (s *Service) HasPermissionToBoard(userID, boardID string, permission *mmModel.Permission) bool {
+func (s *Service) HasPermissionToBoard(userID, boardID string, permission *mm_model.Permission) bool {
 	if userID == "" || boardID == "" || permission == nil {
 		return false
 	}

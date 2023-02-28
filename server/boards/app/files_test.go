@@ -11,7 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -264,7 +264,7 @@ func TestGetFileInfo(t *testing.T) {
 	th, _ := SetupTestHelper(t)
 
 	t.Run("should return file info", func(t *testing.T) {
-		fileInfo := &mmModel.FileInfo{
+		fileInfo := &mm_model.FileInfo{
 			Id:       "file_info_id",
 			Archived: false,
 		}
@@ -283,7 +283,7 @@ func TestGetFileInfo(t *testing.T) {
 	})
 
 	t.Run("should return archived file info", func(t *testing.T) {
-		fileInfo := &mmModel.FileInfo{
+		fileInfo := &mm_model.FileInfo{
 			Id:       "file_info_id",
 			Archived: true,
 		}

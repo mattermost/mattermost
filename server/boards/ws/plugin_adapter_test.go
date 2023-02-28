@@ -6,7 +6,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -14,9 +14,9 @@ import (
 func TestPluginAdapterTeamSubscription(t *testing.T) {
 	th := SetupTestHelper(t)
 
-	webConnID := mmModel.NewId()
-	userID := mmModel.NewId()
-	teamID := mmModel.NewId()
+	webConnID := mm_model.NewId()
+	userID := mm_model.NewId()
+	teamID := mm_model.NewId()
 
 	var pac *PluginAdapterClient
 	t.Run("Should correctly add a connection", func(t *testing.T) {
@@ -105,9 +105,9 @@ func TestPluginAdapterTeamSubscription(t *testing.T) {
 func TestPluginAdapterClientReconnect(t *testing.T) {
 	th := SetupTestHelper(t)
 
-	webConnID := mmModel.NewId()
-	userID := mmModel.NewId()
-	teamID := mmModel.NewId()
+	webConnID := mm_model.NewId()
+	userID := mm_model.NewId()
+	teamID := mm_model.NewId()
 
 	var pac *PluginAdapterClient
 	t.Run("A user should be able to reconnect within the accepted threshold and keep their subscriptions", func(t *testing.T) {
@@ -149,7 +149,7 @@ func TestPluginAdapterClientReconnect(t *testing.T) {
 		require.Len(t, th.pa.listenersByUserID[userID], 1)
 		require.Equal(t, webConnID, th.pa.listenersByUserID[userID][0].webConnID)
 
-		newWebConnID := mmModel.NewId()
+		newWebConnID := mm_model.NewId()
 		th.pa.OnWebSocketConnect(newWebConnID, userID)
 
 		require.Len(t, th.pa.listeners, 1)
@@ -177,7 +177,7 @@ func TestPluginAdapterClientReconnect(t *testing.T) {
 		require.Len(t, th.pa.listeners, 2)
 
 		// a new user connects
-		th.pa.OnWebSocketConnect(mmModel.NewId(), userID)
+		th.pa.OnWebSocketConnect(mm_model.NewId(), userID)
 
 		// and we should have three connections, all of them active
 		require.Len(t, th.pa.listeners, 3)
@@ -192,17 +192,17 @@ func TestGetUserIDsForTeam(t *testing.T) {
 	th := SetupTestHelper(t)
 
 	// we have two teams
-	teamID1 := mmModel.NewId()
-	teamID2 := mmModel.NewId()
+	teamID1 := mm_model.NewId()
+	teamID2 := mm_model.NewId()
 
 	// user 1 has two connections
-	userID1 := mmModel.NewId()
-	webConnID1 := mmModel.NewId()
-	webConnID2 := mmModel.NewId()
+	userID1 := mm_model.NewId()
+	webConnID1 := mm_model.NewId()
+	webConnID2 := mm_model.NewId()
 
 	// user 2 has one connection
-	userID2 := mmModel.NewId()
-	webConnID3 := mmModel.NewId()
+	userID2 := mm_model.NewId()
+	webConnID3 := mm_model.NewId()
 
 	wg := new(sync.WaitGroup)
 	wg.Add(3)
@@ -310,19 +310,19 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	th := SetupTestHelper(t)
 
 	// we have two teams
-	teamID1 := mmModel.NewId()
-	boardID1 := mmModel.NewId()
-	teamID2 := mmModel.NewId()
-	boardID2 := mmModel.NewId()
+	teamID1 := mm_model.NewId()
+	boardID1 := mm_model.NewId()
+	teamID2 := mm_model.NewId()
+	boardID2 := mm_model.NewId()
 
 	// user 1 has two connections
-	userID1 := mmModel.NewId()
-	webConnID1 := mmModel.NewId()
-	webConnID2 := mmModel.NewId()
+	userID1 := mm_model.NewId()
+	webConnID1 := mm_model.NewId()
+	webConnID2 := mm_model.NewId()
 
 	// user 2 has one connection
-	userID2 := mmModel.NewId()
-	webConnID3 := mmModel.NewId()
+	userID2 := mm_model.NewId()
+	webConnID3 := mm_model.NewId()
 
 	wg := new(sync.WaitGroup)
 	wg.Add(3)
@@ -419,7 +419,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	})
 
 	t.Run("should include a user that is not present if it's ensured", func(t *testing.T) {
-		userID3 := mmModel.NewId()
+		userID3 := mm_model.NewId()
 		mockedMembers := []*model.BoardMember{{UserID: userID1}, {UserID: userID2}}
 		th.store.EXPECT().
 			GetMembersForBoard(boardID2).
@@ -465,14 +465,14 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 func TestParallelSubscriptionsOnMultipleConnections(t *testing.T) {
 	th := SetupTestHelper(t)
 
-	teamID1 := mmModel.NewId()
-	teamID2 := mmModel.NewId()
-	teamID3 := mmModel.NewId()
-	teamID4 := mmModel.NewId()
+	teamID1 := mm_model.NewId()
+	teamID2 := mm_model.NewId()
+	teamID3 := mm_model.NewId()
+	teamID4 := mm_model.NewId()
 
-	userID := mmModel.NewId()
-	webConnID1 := mmModel.NewId()
-	webConnID2 := mmModel.NewId()
+	userID := mm_model.NewId()
+	webConnID1 := mm_model.NewId()
+	webConnID2 := mm_model.NewId()
 
 	th.pa.OnWebSocketConnect(webConnID1, userID)
 	pac1, ok := th.pa.GetListenerByWebConnID(webConnID1)

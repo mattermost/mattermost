@@ -7,7 +7,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 const CardLimitTimestampSystemKey = "card_limit_timestamp"
@@ -66,8 +66,8 @@ type Store interface {
 	UpdateUserPasswordByID(userID, password string) error
 	GetUsersByTeam(teamID string, asGuestID string, showEmail, showName bool) ([]*model.User, error)
 	SearchUsersByTeam(teamID string, searchQuery string, asGuestID string, excludeBots bool, showEmail, showName bool) ([]*model.User, error)
-	PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error)
-	GetUserPreferences(userID string) (mmModel.Preferences, error)
+	PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mm_model.Preferences, error)
+	GetUserPreferences(userID string) (mm_model.Preferences, error)
 
 	GetActiveUserCount(updatedSecondsAgo int64) (int, error)
 	GetSession(token string, expireTime int64) (*model.Session, error)
@@ -128,8 +128,8 @@ type Store interface {
 
 	GetUserCategoryBoards(userID, teamID string) ([]model.CategoryBoards, error)
 
-	GetFileInfo(id string) (*mmModel.FileInfo, error)
-	SaveFileInfo(fileInfo *mmModel.FileInfo) error
+	GetFileInfo(id string) (*mm_model.FileInfo, error)
+	SaveFileInfo(fileInfo *mm_model.FileInfo) error
 
 	// @withTransaction
 	AddUpdateCategoryBoard(userID, categoryID string, boardIDs []string) error
@@ -162,10 +162,10 @@ type Store interface {
 	DBType() string
 	DBVersion() string
 
-	GetLicense() *mmModel.License
-	GetCloudLimits() (*mmModel.ProductLimits, error)
-	SearchUserChannels(teamID, userID, query string) ([]*mmModel.Channel, error)
-	GetChannel(teamID, channelID string) (*mmModel.Channel, error)
+	GetLicense() *mm_model.License
+	GetCloudLimits() (*mm_model.ProductLimits, error)
+	SearchUserChannels(teamID, userID, query string) ([]*mm_model.Channel, error)
+	GetChannel(teamID, channelID string) (*mm_model.Channel, error)
 	PostMessage(message, postType, channelID string) error
 	SendMessage(message, postType string, receipts []string) error
 

@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (a *API) registerStatisticsRoutes(r *mux.Router) {
@@ -41,7 +41,7 @@ func (a *API) handleStatistics(w http.ResponseWriter, r *http.Request) {
 
 	// user must have right to access analytics
 	userID := getUserID(r)
-	if !a.permissions.HasPermissionTo(userID, mmModel.PermissionGetAnalytics) {
+	if !a.permissions.HasPermissionTo(userID, mm_model.PermissionGetAnalytics) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied System Statistics"))
 		return
 	}

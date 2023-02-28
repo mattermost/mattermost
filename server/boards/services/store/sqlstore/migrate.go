@@ -14,7 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/v6/channels/store/sqlstore"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 
 	"github.com/mattermost/morph"
@@ -59,7 +59,7 @@ func (s *SQLStore) getMigrationConnection() (*sql.DB, error) {
 		}
 	}
 
-	var settings mmModel.SqlSettings
+	var settings mm_model.SqlSettings
 	settings.SetDefaults(false)
 	if s.configFn != nil {
 		settings = s.configFn().SqlSettings

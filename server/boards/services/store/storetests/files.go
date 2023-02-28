@@ -6,7 +6,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 	"github.com/mattermost/mattermost-server/v6/boards/services/store"
 	"github.com/mattermost/mattermost-server/v6/boards/utils"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,7 @@ func StoreTestFileStore(t *testing.T, setup func(t *testing.T) (store.Store, fun
 	defer tearDown()
 
 	t.Run("should save and retrieve fileinfo", func(t *testing.T) {
-		fileInfo := &mmModel.FileInfo{
+		fileInfo := &mm_model.FileInfo{
 			Id:        "file_info_1",
 			CreateAt:  utils.GetMillis(),
 			Name:      "Dunder Mifflin Sales Report 2022",

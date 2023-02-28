@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"io"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 // BoardInsightsList is a response type with pagination support.
 type BoardInsightsList struct {
-	mmModel.InsightsListData
+	mm_model.InsightsListData
 	Items []*BoardInsight `json:"items"`
 }
 
@@ -34,7 +34,7 @@ type BoardInsight struct {
 
 	// IDs of users active on the board
 	// required: true
-	ActiveUsers mmModel.StringArray `json:"activeUsers"`
+	ActiveUsers mm_model.StringArray `json:"activeUsers"`
 
 	// ID of user who created the board
 	// required: true
@@ -58,5 +58,5 @@ func GetTopBoardInsightsListWithPagination(boards []*BoardInsight, limit int) *B
 		boards = boards[:len(boards)-1]
 	}
 
-	return &BoardInsightsList{InsightsListData: mmModel.InsightsListData{HasNext: hasNext}, Items: boards}
+	return &BoardInsightsList{InsightsListData: mm_model.InsightsListData{HasNext: hasNext}, Items: boards}
 }

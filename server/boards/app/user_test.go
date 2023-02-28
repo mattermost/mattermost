@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v6/boards/model"
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestSearchUsers(t *testing.T) {
@@ -66,7 +66,7 @@ func TestSearchUsers(t *testing.T) {
 
 	t.Run("test user channels", func(t *testing.T) {
 		channelID := "Channel1"
-		th.Store.EXPECT().SearchUserChannels(teamID, userID, "").Return([]*mmModel.Channel{{Id: channelID}}, nil)
+		th.Store.EXPECT().SearchUserChannels(teamID, userID, "").Return([]*mm_model.Channel{{Id: channelID}}, nil)
 		th.API.EXPECT().HasPermissionToChannel(userID, channelID, model.PermissionCreatePost).Return(true).Times(1)
 
 		channels, err := th.App.SearchUserChannels(teamID, userID, "")
@@ -76,7 +76,7 @@ func TestSearchUsers(t *testing.T) {
 
 	t.Run("test user channels- no permissions", func(t *testing.T) {
 		channelID := "Channel1"
-		th.Store.EXPECT().SearchUserChannels(teamID, userID, "").Return([]*mmModel.Channel{{Id: channelID}}, nil)
+		th.Store.EXPECT().SearchUserChannels(teamID, userID, "").Return([]*mm_model.Channel{{Id: channelID}}, nil)
 		th.API.EXPECT().HasPermissionToChannel(userID, channelID, model.PermissionCreatePost).Return(false).Times(1)
 
 		channels, err := th.App.SearchUserChannels(teamID, userID, "")

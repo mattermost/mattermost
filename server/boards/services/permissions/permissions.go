@@ -7,14 +7,14 @@ package permissions
 import (
 	"github.com/mattermost/mattermost-server/v6/boards/model"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 type PermissionsService interface {
-	HasPermissionTo(userID string, permission *mmModel.Permission) bool
-	HasPermissionToTeam(userID, teamID string, permission *mmModel.Permission) bool
-	HasPermissionToChannel(userID, channelID string, permission *mmModel.Permission) bool
-	HasPermissionToBoard(userID, boardID string, permission *mmModel.Permission) bool
+	HasPermissionTo(userID string, permission *mm_model.Permission) bool
+	HasPermissionToTeam(userID, teamID string, permission *mm_model.Permission) bool
+	HasPermissionToChannel(userID, channelID string, permission *mm_model.Permission) bool
+	HasPermissionToBoard(userID, boardID string, permission *mm_model.Permission) bool
 }
 
 type Store interface {

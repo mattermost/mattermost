@@ -10,7 +10,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	mmModel "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
@@ -20,7 +20,7 @@ func (s *SQLStore) getTeamBoardsInsights(db sq.BaseRunner, teamID string, since 
 		Select("boards.id, boards.icon, boards.title, count(boards_history.id) as count, boards_history.modified_by, boards.created_by").
 		From(s.tablePrefix + "boards_history as boards_history").
 		Join(s.tablePrefix + "boards as boards on boards_history.id = boards.id").
-		Where(sq.Gt{"boards_history.insert_at": mmModel.GetTimeForMillis(since).Format(time.RFC3339)}).
+		Where(sq.Gt{"boards_history.insert_at": mm_model.GetTimeForMillis(since).Format(time.RFC3339)}).
 		Where(sq.Eq{"boards.team_id": teamID}).
 		Where(sq.Eq{"boards.id": boardIDs}).
 		Where(sq.NotEq{"boards_history.modified_by": "system"}).
@@ -32,7 +32,7 @@ func (s *SQLStore) getTeamBoardsInsights(db sq.BaseRunner, teamID string, since 
 		Prefix("UNION ALL").
 		From(s.tablePrefix + "blocks_history as blocks_history").
 		Join(s.tablePrefix + "boards as boards on blocks_history.board_id = boards.id").
-		Where(sq.Gt{"blocks_history.insert_at": mmModel.GetTimeForMillis(since).Format(time.RFC3339)}).
+		Where(sq.Gt{"blocks_history.insert_at": mm_model.GetTimeForMillis(since).Format(time.RFC3339)}).
 		Where(sq.Eq{"boards.team_id": teamID}).
 		Where(sq.Eq{"boards.id": boardIDs}).
 		Where(sq.NotEq{"blocks_history.modified_by": "system"}).
@@ -71,7 +71,7 @@ func (s *SQLStore) getUserBoardsInsights(db sq.BaseRunner, teamID string, userID
 		Select("boards.id, boards.icon, boards.title, count(boards_history.id) as count, boards_history.modified_by, boards.created_by").
 		From(s.tablePrefix + "boards_history as boards_history").
 		Join(s.tablePrefix + "boards as boards on boards_history.id = boards.id").
-		Where(sq.Gt{"boards_history.insert_at": mmModel.GetTimeForMillis(since).Format(time.RFC3339)}).
+		Where(sq.Gt{"boards_history.insert_at": mm_model.GetTimeForMillis(since).Format(time.RFC3339)}).
 		Where(sq.Eq{"boards.team_id": teamID}).
 		Where(sq.Eq{"boards.id": boardIDs}).
 		Where(sq.NotEq{"boards_history.modified_by": "system"}).
@@ -83,7 +83,7 @@ func (s *SQLStore) getUserBoardsInsights(db sq.BaseRunner, teamID string, userID
 		Prefix("UNION ALL").
 		From(s.tablePrefix + "blocks_history as blocks_history").
 		Join(s.tablePrefix + "boards as boards on blocks_history.board_id = boards.id").
-		Where(sq.Gt{"blocks_history.insert_at": mmModel.GetTimeForMillis(since).Format(time.RFC3339)}).
+		Where(sq.Gt{"blocks_history.insert_at": mm_model.GetTimeForMillis(since).Format(time.RFC3339)}).
 		Where(sq.Eq{"boards.team_id": teamID}).
 		Where(sq.Eq{"boards.id": boardIDs}).
 		Where(sq.NotEq{"blocks_history.modified_by": "system"}).
