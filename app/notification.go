@@ -1264,6 +1264,14 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 
 	m.addGroupMention(word, groups)
 
+	// Check if the word contains a keyword.
+	for id, words := range keywords {
+		if strings.Contains(word, id) {
+			m.addMentions(words, mentionType)
+			return true
+		}
+	}
+
 	if ids, match := keywords[strings.ToLower(word)]; match {
 		m.addMentions(ids, mentionType)
 		return true
