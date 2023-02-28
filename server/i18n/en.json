@@ -6184,6 +6184,14 @@
     "translation": "Unable to delete the post."
   },
   {
+    "id": "app.post.delete_post.get_team.error",
+    "translation": ""
+  },
+  {
+    "id": "app.post.delete_post.remove_notifications.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
   },
