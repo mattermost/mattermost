@@ -9246,5 +9246,21 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Valeur de délai d'attente non valide {{.Value}}. Doit être un nombre positif."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "échec de l'ajout de l'utilisateur dans group-teams et group-channels"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Vous ne pouvez pas acquitter dans un canal archivé."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Vous ne pouvez pas supprimer un acquittement après 5 minutes."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Vous ne pouvez par retirer un acquittement dans un canal archivé."
   }
 ]
