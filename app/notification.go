@@ -1305,7 +1305,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsSpace(c) || unicode.IsLetter(c) || unicode.IsNumber(c))
 	}) {
 		// skip word with format ':word:' with an assumption that it is an emoji format only
 		if word[0] == ':' && word[len(word)-1] == ':' {
