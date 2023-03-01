@@ -180,6 +180,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
+# dummy change
 PLUGIN_PACKAGES += focalboard-v7.8.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
 
