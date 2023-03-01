@@ -220,7 +220,14 @@ func TestUpdateConfig(t *testing.T) {
 
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
 		v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
-		defer func() {
+		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
+		require.NoError(t, setEnvErr)
+		th.Server.Platform().SetConfigReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		})
+
+		cleanup := func() {
 			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
 			require.NoError(t, setEnvErr)
 
@@ -229,15 +236,7 @@ func TestUpdateConfig(t *testing.T) {
 			})
 
 			th.Server.Platform().SetConfigReadOnlyFF(true)
-		}()
-		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
-		require.NoError(t, setEnvErr)
-
-		th.Server.Platform().SetConfigReadOnlyFF(false)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
-		})
+		}
 
 		newConfig := cfg.Clone()
 		newConfig.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
@@ -253,6 +252,8 @@ func TestUpdateConfig(t *testing.T) {
 		_, _, updateErr = th.SystemAdminClient.UpdateConfig(newConfig)
 		require.Error(t, updateErr)
 		require.Equal(t, "app.plugin.product_mode.app_error", updateErr.(*model.AppError).Id)
+
+		cleanup()
 	})
 
 	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
@@ -869,7 +870,14 @@ func TestPatchConfig(t *testing.T) {
 
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
 		v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
-		defer func() {
+		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
+		require.NoError(t, setEnvErr)
+		th.Server.Platform().SetConfigReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
+		})
+
+		cleanup := func() {
 			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
 			require.NoError(t, setEnvErr)
 
@@ -878,13 +886,7 @@ func TestPatchConfig(t *testing.T) {
 			})
 
 			th.Server.Platform().SetConfigReadOnlyFF(true)
-		}()
-		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
-		require.NoError(t, setEnvErr)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
-		})
+		}
 
 		newConfig := &model.Config{}
 		newConfig.PluginSettings = model.PluginSettings{
@@ -903,6 +905,8 @@ func TestPatchConfig(t *testing.T) {
 		_, _, updateErr = th.SystemAdminClient.UpdateConfig(newConfig)
 		require.Error(t, updateErr)
 		require.Equal(t, "app.plugin.product_mode.app_error", updateErr.(*model.AppError).Id)
+
+		cleanup()
 	})
 }
 
