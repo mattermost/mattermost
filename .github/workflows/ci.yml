@@ -146,7 +146,7 @@ jobs:
       drivername: mysql
   build-mattermost-server:
     name: Build mattermost-server
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest-16-cores
     needs: check-mattermost-vet
     steps:
       - name: Checkout mattermost-server
