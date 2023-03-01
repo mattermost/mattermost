@@ -119,35 +119,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		groups = result.Data.(map[string]*model.Group)
 	}
 
-	mentions := &ExplicitMentions{}
-	allActivityPushUserIds := []string{}
-	var allowChannelMentions bool
-	var keywords map[string][]string
-	if channel.Type == model.ChannelTypeDirect {
-		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+	mentions, keywords := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 
-		_, ok := profileMap[otherUserId]
-		if ok {
-			mentions.addMention(otherUserId, DMMention)
-		}
-
-		if post.GetProp("from_webhook") == "true" {
-			mentions.addMention(post.UserId, DMMention)
-		}
-	} else {
-		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
-
-		mentions = getExplicitMentions(post, keywords, groups)
-		// Add an implicit mention when a user is added to a channel
-		// even if the user has set 'username mentions' to false in account settings.
-		if post.Type == model.PostTypeAddToChannel {
-			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
-			if ok {
-				mentions.addMention(addedUserId, KeywordMention)
-			}
-		}
-
+	var allActivityPushUserIds []string
+	if channel.Type != model.ChannelTypeDirect {
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
 		for _, group := range mentions.GroupMentions {
 			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
@@ -158,36 +133,6 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			if !anyUsersMentionedByGroup {
 				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, group)
 			}
-		}
-
-		// get users that have comment thread mentions enabled
-		if post.RootId != "" && parentPostList != nil {
-			for _, threadPost := range parentPostList.Posts {
-				profile := profileMap[threadPost.UserId]
-				if profile == nil {
-					continue
-				}
-				// If this is the root post and it was posted by an OAuth bot, don't notify the user
-				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
-					continue
-				}
-				if a.IsCRTEnabledForUser(c, profile.Id) {
-					continue
-				}
-				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
-					mentionType := ThreadMention
-					if threadPost.Id == parentPostList.Order[0] {
-						mentionType = CommentMention
-					}
-
-					mentions.addMention(threadPost.UserId, mentionType)
-				}
-			}
-		}
-
-		// prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
-			mentions.removeMention(post.UserId)
 		}
 
 		go func() {
@@ -703,20 +648,7 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 			groups = result.Data.(map[string]*model.Group)
 		}
 
-		mentions := &ExplicitMentions{}
-		var allowChannelMentions bool
-		if channel.Type == model.ChannelTypeDirect {
-			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
-
-			_, ok := profileMap[otherUserId]
-			if ok {
-				mentions.addMention(otherUserId, DMMention)
-			}
-		} else {
-			allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
-			keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
-			mentions = getExplicitMentions(post, keywords, groups)
-		}
+		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
 		for userID := range mentions.Mentions {
 			tm, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
@@ -737,6 +669,71 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 		}
 	}
 	return nil
+}
+
+func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*ExplicitMentions, map[string][]string) {
+	mentions := &ExplicitMentions{}
+	var allowChannelMentions bool
+	var keywords map[string][]string
+
+	if channel.Type == model.ChannelTypeDirect {
+		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+
+		_, ok := profileMap[otherUserId]
+		if ok {
+			mentions.addMention(otherUserId, DMMention)
+		}
+
+		if post.GetProp("from_webhook") == "true" {
+			mentions.addMention(post.UserId, DMMention)
+		}
+	} else {
+		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+
+		mentions = getExplicitMentions(post, keywords, groups)
+		// Add an implicit mention when a user is added to a channel
+		// even if the user has set 'username mentions' to false in account settings.
+		if post.Type == model.PostTypeAddToChannel {
+			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
+			if ok {
+				mentions.addMention(addedUserId, KeywordMention)
+			}
+		}
+
+		// Get users that have comment thread mentions enabled
+		if post.RootId != "" && parentPostList != nil {
+			for _, threadPost := range parentPostList.Posts {
+				profile := profileMap[threadPost.UserId]
+				if profile == nil {
+					continue
+				}
+
+				// If this is the root post and it was posted by an OAuth bot, don't notify the user
+				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
+					continue
+				}
+				if a.IsCRTEnabledForUser(c, profile.Id) {
+					continue
+				}
+				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
+					mentionType := ThreadMention
+					if threadPost.Id == parentPostList.Order[0] {
+						mentionType = CommentMention
+					}
+
+					mentions.addMention(threadPost.UserId, mentionType)
+				}
+			}
+		}
+
+		// Prevent the user from mentioning themselves
+		if post.GetProp("from_webhook") != "true" {
+			mentions.removeMention(post.UserId)
+		}
+	}
+
+	return mentions, keywords
 }
 
 func max(a, b int64) int64 {
