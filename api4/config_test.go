@@ -877,17 +877,6 @@ func TestPatchConfig(t *testing.T) {
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 		})
 
-		cleanup := func() {
-			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
-			require.NoError(t, setEnvErr)
-
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
-			})
-
-			th.Server.Platform().SetConfigReadOnlyFF(true)
-		}
-
 		newConfig := &model.Config{}
 		newConfig.PluginSettings = model.PluginSettings{
 			PluginStates: map[string]*model.PluginState{
@@ -906,7 +895,14 @@ func TestPatchConfig(t *testing.T) {
 		require.Error(t, updateErr)
 		require.Equal(t, "app.plugin.product_mode.app_error", updateErr.(*model.AppError).Id)
 
-		cleanup()
+		setEnvErr = os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
+		require.NoError(t, setEnvErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+		})
+
+		th.Server.Platform().SetConfigReadOnlyFF(true)
 	})
 }
 
