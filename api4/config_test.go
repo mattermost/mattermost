@@ -248,9 +248,17 @@ func TestUpdateConfig(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+			cfg.FeatureFlags.BoardsProduct = false
 		})
 
 		th.Server.Platform().SetConfigReadOnlyFF(true)
+
+		latestConfig, _, latestErr := th.SystemAdminClient.GetConfig()
+		require.NoError(t, latestErr)
+
+		require.NotNil(t, latestConfig.PluginSettings.PluginStates[model.PluginIdFocalboard])
+		require.False(t, latestConfig.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable)
+		require.False(t, latestConfig.FeatureFlags.BoardsProduct)
 	})
 
 	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
@@ -900,6 +908,7 @@ func TestPatchConfig(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+			cfg.FeatureFlags.BoardsProduct = false
 		})
 
 		th.Server.Platform().SetConfigReadOnlyFF(true)
