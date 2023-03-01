@@ -6184,12 +6184,12 @@
     "translation": "Unable to delete the post."
   },
   {
-    "id": "app.post.delete_post.get_team.error",
-    "translation": ""
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "An error occurred getting the team."
   },
   {
     "id": "app.post.delete_post.remove_notifications.app_error",
-    "translation": ""
+    "translation": "An error occurred removing the notifications."
   },
   {
     "id": "app.post.get.app_error",

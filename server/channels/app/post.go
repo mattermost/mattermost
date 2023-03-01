@@ -1271,7 +1271,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	if channel.TeamId != "" {
 		t, err1 := a.Srv().Store().Team().Get(channel.TeamId)
 		if err1 != nil {
-			return nil, model.NewAppError("DeletePost", "app.post.delete_post.get_team.error", nil, "", http.StatusInternalServerError).Wrap(err1)
+			return nil, model.NewAppError("DeletePost", "app.post.delete_post.get_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err1)
 		}
 		team = t
 	} else {
