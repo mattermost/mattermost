@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -117,7 +116,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user != nil {
-		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, fmt.Sprintf("user name %s exists", val), http.StatusBadRequest)
+		return model.NewAppError("isUniqueToUsernames", "app.group.username_conflict", map[string]interface{}{"Username": val}, "", http.StatusBadRequest)
 	}
 	return nil
 }

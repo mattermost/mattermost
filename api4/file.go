@@ -11,15 +11,14 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/web"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -29,28 +28,6 @@ const (
 	PreviewImageType   = "image/jpeg"
 	ThumbnailImageType = "image/jpeg"
 )
-
-var UnsafeContentTypes = [...]string{
-	"application/javascript",
-	"application/ecmascript",
-	"text/javascript",
-	"text/ecmascript",
-	"application/x-javascript",
-	"text/html",
-}
-
-var MediaContentTypes = [...]string{
-	"image/jpeg",
-	"image/png",
-	"image/bmp",
-	"image/gif",
-	"image/tiff",
-	"video/avi",
-	"video/mpeg",
-	"video/mp4",
-	"audio/mpeg",
-	"audio/wav",
-}
 
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
@@ -502,7 +479,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	web.WriteFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -537,7 +514,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	writeFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	web.WriteFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -614,7 +591,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	writeFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	web.WriteFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -681,64 +658,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
-}
-
-func writeFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Cache-Control", "private, no-cache")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-
-	if contentSize > 0 {
-		contentSizeStr := strconv.Itoa(int(contentSize))
-		if webserverMode == "gzip" {
-			w.Header().Set("X-Uncompressed-Content-Length", contentSizeStr)
-		} else {
-			w.Header().Set("Content-Length", contentSizeStr)
-		}
-	}
-
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	} else {
-		for _, unsafeContentType := range UnsafeContentTypes {
-			if strings.HasPrefix(contentType, unsafeContentType) {
-				contentType = "text/plain"
-				break
-			}
-		}
-	}
-
-	w.Header().Set("Content-Type", contentType)
-
-	var toDownload bool
-	if forceDownload {
-		toDownload = true
-	} else {
-		isMediaType := false
-
-		for _, mediaContentType := range MediaContentTypes {
-			if strings.HasPrefix(contentType, mediaContentType) {
-				isMediaType = true
-				break
-			}
-		}
-
-		toDownload = !isMediaType
-	}
-
-	filename = url.PathEscape(filename)
-
-	if toDownload {
-		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
-	} else {
-		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
-	}
-
-	// prevent file links from being embedded in iframes
-	w.Header().Set("X-Frame-Options", "DENY")
-	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
-
-	http.ServeContent(w, r, filename, lastModification, fileReader)
+	web.WriteFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
 }
 
 func searchFilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {

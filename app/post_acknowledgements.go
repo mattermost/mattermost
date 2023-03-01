@@ -42,6 +42,9 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 		}
 	}
 
+	// The post is always modified since the UpdateAt always changes
+	a.invalidateCacheForChannelPosts(channel.Id)
+
 	a.Srv().Go(func() {
 		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
 	})
@@ -84,6 +87,9 @@ func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID st
 	if nErr != nil {
 		return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	// The post is always modified since the UpdateAt always changes
+	a.invalidateCacheForChannelPosts(channel.Id)
 
 	a.Srv().Go(func() {
 		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
