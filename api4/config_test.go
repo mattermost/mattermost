@@ -220,23 +220,13 @@ func TestUpdateConfig(t *testing.T) {
 
 	t.Run("Should keep boards disabled when boards enabled as product", func(t *testing.T) {
 		v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
+		fmt.Println("AAA " + v)
 		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
 		require.NoError(t, setEnvErr)
 		th.Server.Platform().SetConfigReadOnlyFF(false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
 		})
-
-		cleanup := func() {
-			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
-			require.NoError(t, setEnvErr)
-
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
-			})
-
-			th.Server.Platform().SetConfigReadOnlyFF(true)
-		}
 
 		newConfig := cfg.Clone()
 		newConfig.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
@@ -253,7 +243,14 @@ func TestUpdateConfig(t *testing.T) {
 		require.Error(t, updateErr)
 		require.Equal(t, "app.plugin.product_mode.app_error", updateErr.(*model.AppError).Id)
 
-		cleanup()
+		resetEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
+		require.NoError(t, resetEnvErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+		})
+
+		th.Server.Platform().SetConfigReadOnlyFF(true)
 	})
 
 	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
@@ -323,6 +320,9 @@ func TestUpdateConfig(t *testing.T) {
 }
 
 func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
+	v := os.Getenv("MM_FEATUREFLAGS_BOARDSPRODUCT")
+	fmt.Println("BBB " + v)
+
 	th := Setup(t)
 	defer th.TearDown()
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
