@@ -7,7 +7,7 @@ defaults:
 jobs:
   check-mocks:
     name: Check mocks
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -17,7 +17,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
     name: Check go mod tidy
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -27,7 +27,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   check-gen-serialized:
     name: Check serialization methods for hot structs
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -37,7 +37,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -58,7 +58,7 @@ jobs:
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   check-migrations:
     name: Check migration files
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -68,7 +68,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   build-api-spec:
     name: Build API specification
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -83,7 +83,7 @@ jobs:
           cd ../mattermost-server
   check-generate-work-templates:
     name: Generate work templates
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -93,7 +93,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the worktemplates using make generate-worktemplates"; exit 1; fi
   check-email-templates:
     name: Generate email templates
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -105,7 +105,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
   check-store-layers:
     name: Check store layers
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -115,7 +115,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
   check-app-layers:
     name: Check app layers
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -146,7 +146,7 @@ jobs:
       drivername: mysql
   build-mattermost-server:
     name: Build mattermost-server
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     needs: check-mattermost-vet
     steps:
       - name: Checkout mattermost-server
@@ -212,7 +212,7 @@ jobs:
           retention-days: 14 
   upload-s3:
     name: Upload to S3 bucket
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     needs: 
       - build-mattermost-server
       - test-mysql
@@ -245,7 +245,7 @@ jobs:
         aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive
   build-docker:
     name: Build docker image
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-8-cores
     needs: upload-s3
     steps:
     - name: Download build artifacts
