@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -29,6 +30,8 @@ func (s *Server) initializeProducts(
 	// determined elsewhere therefore we do a on the fly sorting here. Which means the
 	// initialization order will be resolved during the loop.
 	maxTry := len(pmap) * len(pmap)
+
+	mlog.Info("product map:", mlog.String("productmap", fmt.Sprintf("%v", pmap)))
 
 	for len(pmap) > 0 && maxTry != 0 {
 	initLoop:
