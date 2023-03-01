@@ -8677,6 +8677,30 @@ func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRe
 	return BuildResponse(r), &response, nil
 }
 
+func (c *Client4) GetSelfHostedInvoices() (*Response, []*Invoice, error) {
+	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/invoices", "")
+
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	defer closeBody(r)
+
+	invoices := []*Invoice{}
+	err = json.Unmarshal(data, &invoices)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	defer closeBody(r)
+
+	return BuildResponse(r), invoices, nil
+}
+
 func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
 	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
 	if err != nil {
