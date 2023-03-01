@@ -166,14 +166,6 @@ func (s *Server) SetStore(st store.Store) {
 	}
 }
 
-func (s *Server) GetPlatform() *platform.PlatformService {
-	return s.platform
-}
-
-func (s *Server) SetPlatform(platform *platform.PlatformService) {
-	s.platform = platform
-}
-
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
 	localRouter := mux.NewRouter()
