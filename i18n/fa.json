@@ -6085,7 +6085,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nکانال ها اضافه شدند:\n"
+    "translation": "\nکانال‌ها اضافه شدند:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -6755,7 +6755,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "این کلید مجوز آزمایشی برای Mattermost Enterprise Edition منقضی شده است و دیگر معتبر نیست. اگر می‌خواهید دوره آزمایشی خود را تمدید کنید، لطفاً [با تیم فروش ما تماس بگیرید] (https://mattermost.com/contact-us/)."
+    "translation": "نمی‌توان مجوز دوره آزمایشی جدیدی اعمال کرد. شما از قبل یک مجوز دوره آزمایشی در این مترموست اعمال کرده‌اید. اگر می‌خواهید دوره آزمایشی خود را تمدید کنید، لطفاً [با بخش فروش ما تماس بگیرید] (https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -7239,7 +7239,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "شکلک ایجاد نمی شود. اندازه تصویر باید کمتر از 1 مگابایت باشد."
+    "translation": "نمی‌توان شکلک را ایجاد کرد. اندازه تصویر باید کمتر از 512 کیلوبایت باشد."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -7862,7 +7862,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "کانال {{.Channel}} پیدا نشد. لطفاً از هندل کانال برای شناسایی کانال ها استفاده کنید."
+    "translation": "کانال {{.Channel}} پیدا نشد. لطفاً از [شناساگر کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) برای شناسایی کانال‌ها استفاده کنید."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -7874,15 +7874,15 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "کاربر را پیدا نکردیم. ممکن است توسط مدیر سیستم غیرفعال شده باشد."
+    "translation": "کاربر {{.User}} را پیدا نکردیم. ممکن است توسط مدیر سامانه غیرفعال شده باشد."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "نام کاربری و کانال از دست رفته است."
+    "translation": "نام کاربری و یا کانال فراموش شده است."
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -7986,7 +7986,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "صفحه راهنمای Mattermost را باز کنید"
+    "translation": "نمایش متن راهنمای مترموست"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
