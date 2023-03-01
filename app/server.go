@@ -579,14 +579,14 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 	// Remote Cluster service
 
-	// License check
-	if !*license.Features.RemoteClusterService {
+	// License check (assume enabled if shared channels enabled)
+	if !*license.Features.RemoteClusterService && !license.HasSharedChannels() {
 		mlog.Debug("License does not have Remote Cluster services enabled")
 		return nil
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService {
+	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -606,7 +606,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	s.remoteClusterService = rcs
 	s.serviceMux.Unlock()
 
-	// Shared Channels service
+	// Shared Channels service (depends on remote cluster service)
 
 	// License check
 	if !license.HasSharedChannels() {
@@ -1293,7 +1293,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	status, err := s.Cloud.GetLicenseExpandStatus("", tokenToBeUsedForRenew)
+	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
 	if err != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1309,7 +1309,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		T := i18n.GetUserTranslations(user.Locale)
 		ctaTitle := T("api.templates.license_up_for_renewal_subtitle_two")
 		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsExpandable {
+		if !status.IsRenewable {
 			ctaTitle = ""
 			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
 			ctaLink = "https://mattermost.com/contact-sales/"
@@ -1386,7 +1386,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	status, err := s.Cloud.GetLicenseExpandStatus("", tokenToBeUsedForRenew)
+	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
 	if err != nil {
 		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err).Error())
 		return
@@ -1401,8 +1401,8 @@ func (s *Server) doLicenseExpirationCheck() {
 		}
 
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsExpandable {
+		ctaText := T("api.templates.remove_expired_license.body.renew_button")
+		if !status.IsRenewable {
 			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
 			ctaLink = "https://mattermost.com/contact-sales/"
 		}
