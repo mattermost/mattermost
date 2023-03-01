@@ -223,12 +223,17 @@ func TestUpdateConfig(t *testing.T) {
 		defer func() {
 			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
 			require.NoError(t, setEnvErr)
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+			})
+
+			th.Server.Platform().SetConfigReadOnlyFF(true)
 		}()
 		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
 		require.NoError(t, setEnvErr)
 
 		th.Server.Platform().SetConfigReadOnlyFF(false)
-		defer th.Server.Platform().SetConfigReadOnlyFF(true)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
@@ -867,12 +872,15 @@ func TestPatchConfig(t *testing.T) {
 		defer func() {
 			setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", v)
 			require.NoError(t, setEnvErr)
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: false}
+			})
+
+			th.Server.Platform().SetConfigReadOnlyFF(true)
 		}()
 		setEnvErr := os.Setenv("MM_FEATUREFLAGS_BOARDSPRODUCT", "true")
 		require.NoError(t, setEnvErr)
-
-		th.Server.Platform().SetConfigReadOnlyFF(false)
-		defer th.Server.Platform().SetConfigReadOnlyFF(true)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.PluginSettings.PluginStates[model.PluginIdFocalboard] = &model.PluginState{Enable: true}
