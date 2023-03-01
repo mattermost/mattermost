@@ -444,13 +444,13 @@ func getLicenseSelfServeStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	res, cloudErr := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
+	status, cloudErr := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
 	if cloudErr != nil {
 		c.Err = model.NewAppError("Api4.getLicenseSelfServeStatus", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
 		return
 	}
 
-	json, jsonErr := json.Marshal(res)
+	json, jsonErr := json.Marshal(status)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("Api4.getLicenseSelfServeStatus", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return

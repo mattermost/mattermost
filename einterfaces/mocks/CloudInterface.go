@@ -340,15 +340,15 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 }
 
 // GetLicenseSelfServeStatus provides a mock function with given fields: userID, token
-func (_m *CloudInterface) GetLicenseSelfServeStatus(userID string, token string) (*model.SubscriptionChecksMadeResponse, error) {
+func (_m *CloudInterface) GetLicenseSelfServeStatus(userID string, token string) (*model.SubscriptionLicenseSelfServeStatusResponse, error) {
 	ret := _m.Called(userID, token)
 
-	var r0 *model.SubscriptionChecksMadeResponse
-	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionChecksMadeResponse); ok {
+	var r0 *model.SubscriptionLicenseSelfServeStatusResponse
+	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionLicenseSelfServeStatusResponse); ok {
 		r0 = rf(userID, token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.SubscriptionChecksMadeResponse)
+			r0 = ret.Get(0).(*model.SubscriptionLicenseSelfServeStatusResponse)
 		}
 	}
 
