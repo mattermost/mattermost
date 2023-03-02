@@ -1,0 +1,292 @@
+name: mattermost-build
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+jobs:
+  check-mocks:
+    name: Check mocks
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Generate mocks
+        run: make mocks
+      - name: Check mocks
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
+  check-go-mod-tidy:
+    name: Check go mod tidy
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run go mod tidy
+        run: make modules-tidy
+      - name: Check modules
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  check-gen-serialized:
+    name: Check serialization methods for hot structs
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run make-gen-serialized
+        run: make gen-serialized
+      - name: Check serialized
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+  check-mattermost-vet:
+    name: Check style
+    runs-on: ubuntu-latest-8-cores
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Checkout focalboard
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git  
+          cd focalboard
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+          echo $(git rev-parse HEAD)
+          cd ../mattermost-server
+          make setup-go-work
+      - name: Reset config
+        run: make config-reset
+      - name: Run plugin-checker
+        run: make plugin-checker
+      - name: Run mattermost-vet
+        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+  check-migrations:
+    name: Check migration files
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Extract migrations files
+        run: make migrations-extract
+      - name: Check migration files
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+  build-api-spec:
+    name: Build API specification
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Checkout mattermost-api-reference
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
+          cd mattermost-api-reference
+          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
+          make build
+          cd ../mattermost-server
+  check-generate-work-templates:
+    name: Generate work templates
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Generate work templates
+        run: make generate-worktemplates
+      - name: Check generated work templates
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the worktemplates using make generate-worktemplates"; exit 1; fi
+  check-email-templates:
+    name: Generate email templates
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Generate email templates
+        run: |
+          sudo npm install -g mjml@4.9.0
+          make build-templates
+      - name: Check generated email templates
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+  check-store-layers:
+    name: Check store layers
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Generate store layers
+        run: make store-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+  check-app-layers:
+    name: Check app layers
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Generate app layers
+        run: make app-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+  test-postgres-binary:
+    name: Run tests on postgres with binary parameters
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/test.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
+      drivername: postgres
+  test-postgres-normal:
+    name: Run tests on postgres
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/test.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+  test-mysql:
+    name: Run tests on mysql
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/test.yml
+    with:
+      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+      drivername: mysql
+  build-mattermost-server:
+    name: Build mattermost-server
+    runs-on: ubuntu-latest-8-cores
+    needs: check-mattermost-vet
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Checkout mattermost-webapp
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
+          cd mattermost-webapp
+          git checkout $GITHUB_HEAD_REF || git checkout master
+          export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
+          echo "$WEBAPP_GIT_COMMIT"
+          FILE_DIST=dist.tar.gz
+          runtime="2 minute"
+          endtime=$(date -ud "$runtime" +%s)
+          while [[ $(date -u +%s) -le $endtime ]]; do
+            if curl -s --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz; then
+              break
+            fi
+            echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
+            sleep 5
+          done
+          if [[ -f "$FILE_DIST" ]]; then
+            echo "Precompiled version of web app found"
+            mkdir dist && tar -xf $FILE_DIST -C dist --strip-components=1
+          else
+          echo "Building web app from source"
+          make dist
+          fi
+          cd ../mattermost-server
+      - name: Checkout and build focalboard
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
+          cd focalboard
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+          echo $(git rev-parse HEAD)
+          make server-linux
+          echo "Building Boards product for web app"
+          # make prebuild build-product # TODO figure out how to get this to run without bypassing the Makefile
+          make prebuild
+          cd mattermost-plugin/webapp
+          npm run build:product
+          cd ../../../mattermost-server
+          make setup-go-work
+      - name: Build
+        run: |
+          make config-reset
+          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+      - name: Persist dist artifacts
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: server-dist-artifact
+          path: dist/
+          retention-days: 14
+      - name: Persist build artifacts
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: server-build-artifact
+          path: build/
+          retention-days: 14 
+  upload-s3:
+    name: Upload to S3 bucket
+    runs-on: ubuntu-22.04
+    needs: 
+      - build-mattermost-server
+      - test-mysql
+      - test-postgres-binary
+      - test-postgres-normal 
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
+    steps:
+    - name: Download dist artifacts
+      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
+      with:
+        name: server-dist-artifact
+        path: dist/
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
+      with:
+        aws-region: us-east-1
+        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
+    # We need to sanitize the branch name before using it
+    - name: ci/sanitize-branch-name
+      id: branch
+      uses: transferwise/sanitize-branch-name@b10b4d524ac5a7b645b43a3527db3a6cca017b9d # v1
+    # Search for the string "pull" and replace it with "PR" in branch-name
+    - name: ci/sanitize-branch-name-replace-pull-with-PR-
+      run: echo "BRANCH_NAME=$(echo ${{ steps.branch.outputs.sanitized-branch-name }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
+    - name: ci/artifact-upload
+      run: |
+        aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --acl public-read --cache-control "no-cache" --recursive
+        aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive
+  build-docker:
+    name: Build docker image
+    runs-on: ubuntu-22.04
+    needs: upload-s3
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
+      with:
+        name: server-build-artifact
+        path: build/
+    - name: Login to Docker Hub
+      uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
+    - name: Docker build and push
+      env:
+        DOCKER_CLI_EXPERIMENTAL: enabled
+      run: |
+        export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
+        cd build
+        export DOCKER_CLI_EXPERIMENTAL=enabled
+        export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
+        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
+  sentry:
+    name: Send build info to sentry
+    runs-on: ubuntu-22.04
+    needs:
+      - test-postgres-binary
+      - test-postgres-normal
+      - test-mysql
+    if: ${{ github.event_name == 'push' }}
+    env:
+      SENTRY_CLI_VERSION: 1.64.1
+      SENTRY_ORG: mattermost-mr
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | sh
+      - name: Run sentry-cli
+        run: |
+          sentry-cli --log-level=debug releases new --finalize -p mattermost-server `git rev-parse HEAD`
+          sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
