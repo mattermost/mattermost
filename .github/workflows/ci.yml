@@ -1,6 +1,11 @@
 name: mattermost-build
 on:
-  push
+  pull_request:
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
 jobs:
   check-mocks:
     name: Check mocks
@@ -260,8 +265,27 @@ jobs:
       env:
         DOCKER_CLI_EXPERIMENTAL: enabled
       run: |
-        export TAG="${GITHUB_SHA:0:7}"
+        export TAG=$(echo "${{ github.event.pull_request.head.sha }}" | cut -c1-7)
         cd build
         export DOCKER_CLI_EXPERIMENTAL=enabled
         export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
         docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
+  sentry:
+    name: Send build info to sentry
+    runs-on: ubuntu-22.04
+    needs:
+      - test-postgres-binary
+      - test-postgres-normal
+      - test-mysql
+    if:  ${{ github.event_name == 'push' }}
+    env:
+      SENTRY_CLI_VERSION: 1.64.1
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | sh
+      - name: Run sentry-cli
+        run: |
+          sentry-cli --log-level=debug releases new --finalize -p mattermost-server `git rev-parse HEAD`
+          sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
