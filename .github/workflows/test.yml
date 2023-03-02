@@ -46,14 +46,3 @@ jobs:
             -w /mattermost-server/mattermost-server \
             mattermost/mattermost-build-server:20230118_golang-1.19.5 \
             make test-server${{ inputs.racemode }} BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
-          cd ..
-      - name: Capture docker logs
-        run: |
-          cd build
-          # Capture docker logs
-          mkdir -p logs
-          docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
-          docker ps -a --no-trunc > logs/docker_ps
-          docker stats -a --no-stream > logs/docker_stats
-          tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
-          cd ..
