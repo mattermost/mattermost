@@ -157,7 +157,6 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           FILE_DIST=dist.tar.gz
-          curl --version
           runtime="2 minute"
           endtime=$(date -ud "$runtime" +%s)
           while [[ $(date -u +%s) -le $endtime ]]; do
