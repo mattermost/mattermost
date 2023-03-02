@@ -68,5 +68,5 @@ jobs:
         run: curl -sL https://sentry.io/get-cli/ | SENTRY_CLI_VERSION="1.64.1" sh
       - name: Run sentry-cli
         run: |
-          sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
+          sentry-cli --log-level=debug releases new --finalize -p mattermost-server `git rev-parse HEAD`
           sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
