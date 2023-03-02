@@ -4745,7 +4745,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4753,19 +4753,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Wersja 14.1+"
+    "translation": "Wersja 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 91+"
+    "translation": "Wersja 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 95+"
+    "translation": "Wersja 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 106+"
+    "translation": "Wersja 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9998,5 +9998,13 @@
   {
     "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
     "translation": "błąd duplikowania tablicy"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Nieprawidłowy filtr dziennika"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS Server nie potrafił usunąć przestrzeni roboczej."
   }
 ]
