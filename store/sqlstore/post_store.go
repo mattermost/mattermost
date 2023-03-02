@@ -2344,6 +2344,34 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
+func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Posts.OriginalId": postId}).
+		OrderBy("Posts.EditAt DESC")
+
+	queryString, args, err := builder.ToSql()
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", postId)
+		}
+		return nil, errors.Wrap(err, "failed to find post history")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplicaX().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting posts edit history with postId=%s", postId)
+	}
+
+	if len(posts) == 0 {
+		return nil, store.NewErrNotFound("failed to find post history", postId)
+	}
+
+	return posts, nil
+}
+
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
 	table := "Posts"
@@ -2395,16 +2423,35 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 
 // DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
 func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	var query string
 	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Posts WHERE Id IN (
-		SELECT * FROM (
-			SELECT Posts.Id FROM Posts
-			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
+	if s.DriverName() == model.DatabaseDriverMysql {
+		// MySQL fails to do a proper antijoin if the selecting column
+		// and the joining column are different. In that case, doing a subquery
+		// leads to a faster plan because MySQL materializes the sub-query
+		// and does a covering index scan on Posts table. More details on the PR with
+		// this commit.
+		query = `
+		DELETE FROM Posts WHERE Id IN (
+			SELECT * FROM (
+				SELECT Posts.Id FROM Posts
+				WHERE Posts.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX (PRIMARY))
+				LIMIT ?
+			) AS A
+		)`
+	} else {
+		query = `
+		DELETE FROM Posts WHERE Id IN (
+			SELECT * FROM (
+				SELECT Posts.Id FROM Posts
+				LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+				WHERE Channels.Id IS NULL
+				LIMIT ?
+			) AS A
+		)`
+
+	}
+
 	result, err := s.GetMasterX().Exec(query, limit)
 	if err != nil {
 		return
@@ -3123,10 +3170,14 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 			},
 		}).GroupBy("vch.id")
 
-	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
+	// following where clause filters out all archived DMs with "deleted" users, that has only 1 user-id in Participants column.
+	archivedDMsFilter := s.getQueryBuilder().Select("MessageCount", "Participants", "ChannelId").FromSelect(topDMsBuilder, "top_dms").
+		Where(sq.Expr("POSITION(',' IN Participants) > 0"))
+
+	archivedDMsFilter = archivedDMsFilter.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
 
 	topDMs := make([]*model.TopDM, 0)
-	sql, args, err := topDMsBuilder.ToSql()
+	sql, args, err := archivedDMsFilter.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "GetTopDMsForUserSince_ToSql")
 	}
@@ -3313,15 +3364,15 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	meta := &store.PostReminderMetadata{}
 	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
-			t.name as TeamName,
-			u.locale as UserLocale, u.username as Username
-		FROM Posts p, Channels c, Teams t, Users u
-		WHERE p.ChannelId=c.Id
-		AND c.TeamId=t.Id
-		AND p.UserId=u.Id
-		AND p.Id=?`, postID)
+		COALESCE(t.name, '') as TeamName,
+		u.locale as UserLocale, u.username as Username
+	FROM Posts p
+	JOIN Channels c ON p.ChannelId=c.Id
+	LEFT JOIN Teams t ON c.TeamId=t.Id
+	JOIN Users u ON p.UserId=u.Id
+	AND p.Id=?`, postID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get post reminder metadata")
+		return nil, errors.Wrapf(err, "failed to get post reminder metadata: postId %s", postID)
 	}
 
 	return meta, nil

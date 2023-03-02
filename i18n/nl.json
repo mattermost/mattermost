@@ -4341,11 +4341,11 @@
   },
   {
     "id": "model.post.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht"
+    "translation": "Ongeldig bericht."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4765,7 +4765,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4773,19 +4773,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 14.1+"
+    "translation": "Versie 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 91+"
+    "translation": "Versie 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 95+"
+    "translation": "Versie 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 106+"
+    "translation": "Versie 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9736,19 +9736,19 @@
   },
   {
     "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True up-review is niet toegestaan voor cloud-instances"
+    "translation": "Review van het actueel aantal gebruikers is niet toegestaan voor cloud-instances"
   },
   {
     "id": "api.license.true_up_review.license_required",
-    "translation": "True up-review vereist een licentie"
+    "translation": "Review van het actueel aantal gebruikers vereist een licentie"
   },
   {
     "id": "api.license.true_up_review.get_status_error",
-    "translation": "Kon geen true up statusrecords krijgen"
+    "translation": "Kon geen rapport met actueel aantal gebruikers verkrijgen"
   },
   {
     "id": "api.license.true_up_review.create_error",
-    "translation": "Kon geen true up statusrecord aanmaken"
+    "translation": "Kon geen rapport met actueel aantal gebruikers aanmaken"
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
@@ -9769,5 +9769,241 @@
   {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "Fout bij het ophalen van het totaal aantal actieve gebruikers"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Fout bij het bijwerken van de serververtalingen."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.board",
+    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op één lijn te houden."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op één lijn te houden."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op dezelfde lijn te houden."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "Leiderschap"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "Bedrijfswijd"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "Kan kanaal verbonden met een playbook niet vinden."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "Fout bij het aanmaken van een playbook."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "Fout bij het maken van een kanaal."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "Fout bij het aanmaken van een bord."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "Fout bij het uitvoeren van een werksjabloon."
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "Jouw licentie ondersteunt geen privé-playbooks."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "Je hebt geen rechten om een publiek playbook te maken."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "Je hebt geen rechten om een publiek kanaal te maken."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "Je hebt geen rechten om een openbaar bord aan te maken."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "Je hebt geen rechten om een privé playbook aan te maken."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "Je hebt geen rechten om een privékanaal te maken."
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "Je hebt geen rechten om een privé-bord te maken."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Ongeldige auth service: {{.AuthService}}"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "Werksjablonen zijn uitgeschakeld."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Alleen beschikbaar in Mattermost Enterprise editie"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Beschrijving van waarom het kanaal of de kanalen nodig zijn"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Beschrijving van waarom het bord of de borden nodig zijn"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit Project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit Project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "De sjablonenopdracht wordt niet ondersteund op jouw toestel."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "sjablonen"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Open het venster Aanmaken van sjabloon"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Het naamveld kan niet meer dan 64 tekens bevatten."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "productsleutel niet gevonden"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "interface niet van het verwachte type"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "fout tijdens het patchen van het bord"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "fout geen bord aangemaakt"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "fout bij het ophalen van de bordsjablonen"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "fout bij het dupliceren van het bord"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Ongeldig logboekfilter"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS-server kon de werkruimte niet verwijderen."
   }
 ]

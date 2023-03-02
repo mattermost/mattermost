@@ -3149,6 +3149,51 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
 }
 
+func TestGetEditHistoryForPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "new message",
+		UserId:    th.BasicUser.Id,
+	}
+
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+
+	// update the post message
+	patch := &model.PostPatch{
+		Message: model.NewString("new message edited"),
+	}
+	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch)
+	require.Nil(t, err1)
+
+	// update the post message again
+	patch = &model.PostPatch{
+		Message: model.NewString("new message edited again"),
+	}
+
+	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch)
+	require.Nil(t, err2)
+
+	// get the edit history
+	edits, err := th.App.GetEditHistoryForPost(post.Id)
+	require.Nil(t, err)
+
+	t.Run("should return the edit history", func(t *testing.T) {
+		require.Len(t, edits, 2)
+		require.Equal(t, "new message edited", edits[0].Message)
+		require.Equal(t, "new message", edits[1].Message)
+	})
+
+	t.Run("should return an error if the post is not found", func(t *testing.T) {
+		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
+		require.NotNil(t, err)
+		require.Empty(t, edits)
+	})
+}
+
 func TestGetTopDMsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3246,5 +3291,20 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		// check order, magnitude of items
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
+	})
+
+	t.Run("topDMs will not consider deleted second user", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, err := th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
+		require.Nil(t, err)
+		// len of topDMs.Items should be 1
+		require.Len(t, topDMs.Items, 1)
+		// delete user3
+		err = th.App.PermanentDeleteUser(th.Context, u3)
+		require.Nil(t, err)
+		topDMs, err = th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
+		require.Nil(t, err)
+		// len of topDMs.Items should be 0 since u3 is deleted
+		require.Len(t, topDMs.Items, 0)
 	})
 }

@@ -5,6 +5,7 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -123,7 +124,7 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (ps *PlatformService) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
 
 	if *ps.Config().LogSettings.EnableFile {
@@ -172,7 +173,22 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int) ([]string, *model.
 					if err != nil {
 						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
-					lines = append(lines, string(line))
+
+					filtered := false
+					var entry *model.LogEntry
+					err = json.Unmarshal(line, &entry)
+					if err != nil {
+						mlog.Debug("Failed to parse line, skipping")
+					} else {
+						filtered = isLogFilteredByLevel(logFilter, entry) || filtered
+						filtered = isLogFilteredByDate(logFilter, entry) || filtered
+					}
+
+					if filtered {
+						lineCount--
+					} else {
+						lines = append(lines, string(line))
+					}
 				}
 				if pos == 0 {
 					break
@@ -193,4 +209,49 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int) ([]string, *model.
 	}
 
 	return lines, nil
+}
+
+func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+	logLevels := logFilter.LogLevels
+	if len(logLevels) == 0 {
+		return false
+	}
+
+	for _, level := range logLevels {
+		if entry.Level == level {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
+		return false
+	}
+
+	dateFrom, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateFrom)
+	if err != nil {
+		dateFrom = time.Time{}
+	}
+	dateTo, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateTo)
+	if err != nil {
+		dateTo = time.Now()
+	}
+
+	timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
+	if err != nil {
+		mlog.Debug("Cannot parse timestamp, skipping")
+		return false
+	}
+
+	if timestamp.Equal(dateFrom) || timestamp.Equal(dateTo) {
+		return false
+	}
+	if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
+		return false
+	}
+
+	return true
 }

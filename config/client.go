@@ -347,7 +347,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			// MM-48727: enable SSO options for free cloud - not in self hosted
 			*license.Features.GoogleOAuth = true
 			*license.Features.Office365OAuth = true
-			*license.Features.OpenId = true
 		}
 
 		if *license.Features.GoogleOAuth {

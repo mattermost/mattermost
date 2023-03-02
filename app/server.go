@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/v6/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
@@ -578,14 +579,14 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 	// Remote Cluster service
 
-	// License check
-	if !*license.Features.RemoteClusterService {
+	// License check (assume enabled if shared channels enabled)
+	if !*license.Features.RemoteClusterService && !license.HasSharedChannels() {
 		mlog.Debug("License does not have Remote Cluster services enabled")
 		return nil
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService {
+	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -605,7 +606,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	s.remoteClusterService = rcs
 	s.serviceMux.Unlock()
 
-	// Shared Channels service
+	// Shared Channels service (depends on remote cluster service)
 
 	// License check
 	if !license.HasSharedChannels() {
@@ -1540,6 +1541,18 @@ func (s *Server) initJobs() {
 		model.JobTypeTrialNotifyAdmin,
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeInstallPluginNotifyAdmin,
+		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeHostedPurchaseScreening,
+		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
+		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.platform.Jobs = s.Jobs
