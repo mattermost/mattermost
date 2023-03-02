@@ -385,7 +385,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
-	InProductExpansion                                *bool   `access:"write_restrictable,cloud_restrictable"`
+	SelfHostedExpansion                               *bool   `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -859,8 +859,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.SelfHostedPurchase = NewBool(true)
 	}
 
-	if s.InProductExpansion == nil {
-		s.InProductExpansion = NewBool(false)
+	if s.SelfHostedExpansion == nil {
+		s.SelfHostedExpansion = NewBool(false)
 	}
 }
 
