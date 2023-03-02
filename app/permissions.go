@@ -41,6 +41,10 @@ func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, 
 	return s.app.HasPermissionToChannel(request.EmptyContext(s.app.Log()), askingUserID, channelID, permission)
 }
 
+func (s *permissionsServiceWrapper) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	return s.app.RolesGrantPermission(roleNames, permissionId)
+}
+
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
 	if err := a.Srv().Store().Team().ResetAllTeamSchemes(); err != nil {

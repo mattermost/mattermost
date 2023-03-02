@@ -125,13 +125,13 @@ func (_m *ServiceInterface) SendChangeUsernameEmail(newUsername string, _a1 stri
 	return r0
 }
 
-// SendCloudUpgradeConfirmationEmail provides a mock function with given fields: userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly
-func (_m *ServiceInterface) SendCloudUpgradeConfirmationEmail(userEmail string, name string, trialEndDate string, locale string, siteURL string, workspaceName string, isYearly bool) error {
-	ret := _m.Called(userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly)
+// SendCloudUpgradeConfirmationEmail provides a mock function with given fields: userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly, embeddedFiles
+func (_m *ServiceInterface) SendCloudUpgradeConfirmationEmail(userEmail string, name string, trialEndDate string, locale string, siteURL string, workspaceName string, isYearly bool, embeddedFiles map[string]io.Reader) error {
+	ret := _m.Called(userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly, embeddedFiles)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, bool) error); ok {
-		r0 = rf(userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, bool, map[string]io.Reader) error); ok {
+		r0 = rf(userEmail, name, trialEndDate, locale, siteURL, workspaceName, isYearly, embeddedFiles)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -372,13 +372,13 @@ func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string
 	return r0
 }
 
-// SendMailWithEmbeddedFiles provides a mock function with given fields: to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references
-func (_m *ServiceInterface) SendMailWithEmbeddedFiles(to string, subject string, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error {
-	ret := _m.Called(to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references)
+// SendMailWithEmbeddedFiles provides a mock function with given fields: to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references, category
+func (_m *ServiceInterface) SendMailWithEmbeddedFiles(to string, subject string, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error {
+	ret := _m.Called(to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references, category)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, map[string]io.Reader, string, string, string) error); ok {
-		r0 = rf(to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references)
+	if rf, ok := ret.Get(0).(func(string, string, string, map[string]io.Reader, string, string, string, string) error); ok {
+		r0 = rf(to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references, category)
 	} else {
 		r0 = ret.Error(0)
 	}

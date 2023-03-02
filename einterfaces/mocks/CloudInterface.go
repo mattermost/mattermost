@@ -60,6 +60,20 @@ func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID strin
 	return r0, r1
 }
 
+// CheckCWSConnection provides a mock function with given fields: userId
+func (_m *CloudInterface) CheckCWSConnection(userId string) error {
+	ret := _m.Called(userId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ConfirmCustomerPayment provides a mock function with given fields: userID, confirmRequest
 func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
 	ret := _m.Called(userID, confirmRequest)
@@ -519,6 +533,20 @@ func (_m *CloudInterface) SelfHostedSignupAvailable() error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SelfServeDeleteWorkspace provides a mock function with given fields: userID, deletionRequest
+func (_m *CloudInterface) SelfServeDeleteWorkspace(userID string, deletionRequest *model.WorkspaceDeletionRequest) error {
+	ret := _m.Called(userID, deletionRequest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.WorkspaceDeletionRequest) error); ok {
+		r0 = rf(userID, deletionRequest)
 	} else {
 		r0 = ret.Error(0)
 	}

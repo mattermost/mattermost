@@ -3032,8 +3032,9 @@ func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response, error
 }
 
 // GetChannelStats returns statistics for a channel.
-func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/stats", etag)
+func (c *Client4) GetChannelStats(channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
+	route := c.channelRoute(channelId) + fmt.Sprintf("/stats?exclude_files_count=%v", excludeFilesCount)
+	r, err := c.DoAPIGet(route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4012,6 +4013,27 @@ func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
 		return nil, nil, NewAppError("GetPostsByIds", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// GetEditHistoryForPost gets a list of posts by taking a post ids
+func (c *Client4) GetEditHistoryForPost(postId string) ([]*Post, *Response, error) {
+	js, err := json.Marshal(postId)
+	if err != nil {
+		return nil, nil, NewAppError("GetEditHistoryForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/edit_history", string(js))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Post
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEditHistoryForPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return list, BuildResponse(r), nil
 }
@@ -8655,6 +8677,30 @@ func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRe
 	return BuildResponse(r), &response, nil
 }
 
+func (c *Client4) GetSelfHostedInvoices() (*Response, []*Invoice, error) {
+	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/invoices", "")
+
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	defer closeBody(r)
+
+	invoices := []*Invoice{}
+	err = json.Unmarshal(data, &invoices)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	defer closeBody(r)
+
+	return BuildResponse(r), invoices, nil
+}
+
 func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
 	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
 	if err != nil {
@@ -8697,6 +8743,17 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 		return BuildResponse(r), err
 	}
 	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
 	return BuildResponse(r), nil
 }
 

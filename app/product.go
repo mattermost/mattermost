@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -74,4 +75,22 @@ func (s *Server) shouldStart(product string) bool {
 	}
 
 	return true
+}
+
+func (s *Server) HasBoardProduct() (bool, error) {
+	prod, exists := s.services[product.BoardsKey]
+	if !exists {
+		return false, nil
+	}
+	if prod == nil {
+		return false, errors.New("board product is nil")
+	}
+	if _, ok := prod.(product.BoardsService); !ok {
+		return false, errors.New("board product key does not match its definition")
+	}
+	return true, nil
+}
+
+func (a *App) HasBoardProduct() (bool, error) {
+	return a.Srv().HasBoardProduct()
 }
