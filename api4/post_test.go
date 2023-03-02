@@ -879,6 +879,42 @@ func TestUpdatePost(t *testing.T) {
 		_, _, err := th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
 		require.NoError(t, err)
 	})
+
+	t.Run("change message, but post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		rpost4, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, false, true)
+		require.Nil(t, appErr)
+
+		up4 := &model.Post{
+			Id:        rpost4.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 4",
+		}
+		rrupost4, _, err := client.UpdatePost(rpost4.Id, up4)
+		require.NoError(t, err)
+		assert.NotEqual(t, rpost4.EditAt, rrupost4.EditAt)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+
+		up4.Message = "zz" + model.NewId() + " update post 4 again"
+		_, resp, err := client.UpdatePost(rpost4.Id, up4)
+		require.Error(t, err, "should fail on update old post")
+		CheckBadRequestStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {

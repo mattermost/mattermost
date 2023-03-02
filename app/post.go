@@ -631,11 +631,6 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		return nil, err
 	}
 
-	if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-		return nil, err
-	}
-
 	channel, err := a.GetChannel(c, oldPost.ChannelId)
 	if err != nil {
 		return nil, err
@@ -803,6 +798,11 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
+		return nil, err
+	}
+
+	if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > post.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && patch.Message != nil {
+		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
