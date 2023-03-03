@@ -545,6 +545,10 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
+	post, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+	}
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := post.ToJSON()
