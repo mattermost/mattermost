@@ -4901,7 +4901,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, err)
 	}
 	// for u4-u3: 4 posts
-	_, err = ss.Post().Save(&model.Post{
+	u3u4Post1, err := ss.Post().Save(&model.Post{
 		ChannelId: chUser3User4.Id,
 		UserId:    u3.Id,
 	})
@@ -4911,7 +4911,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		UserId:    u4.Id,
 	})
 	require.NoError(t, err)
-	_, err = ss.Post().Save(&model.Post{
+	u3u4Post2, err := ss.Post().Save(&model.Post{
 		ChannelId: chUser3User4.Id,
 		UserId:    u3.Id,
 	})
@@ -4964,6 +4964,28 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, err)
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 2)
+	})
+	t.Run("topDMs will not consider deleted second user", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, err := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 1
+		require.Len(t, topDMs.Items, 1)
+		// delete user3
+		err = ss.User().PermanentDelete(u3.Id)
+		require.NoError(t, err)
+		// delete user3 posts
+		err = ss.Post().Delete(u3u4Post1.Id, 200, u3.Id)
+		require.NoError(t, err)
+		err = ss.Post().Delete(u3u4Post2.Id, 200, u3.Id)
+		require.NoError(t, err)
+		// delete channel memberships
+		err = ss.Channel().PermanentDeleteMembersByUser(u3.Id)
+		require.NoError(t, err)
+		topDMs, err = ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 0 since u3 is deleted
+		require.Len(t, topDMs.Items, 0)
 	})
 }
 

@@ -33,7 +33,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 		return nil, err
 	}
 	query := ls.getQueryBuilder().
-		Select("*").
+		Select("Id, CreateAt, Bytes").
 		From("Licenses").
 		Where(sq.Eq{"Id": license.Id})
 	queryString, args, err := query.ToSql()
@@ -64,7 +64,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 // http.StatusNotFound in the StatusCode field.
 func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	query := ls.getQueryBuilder().
-		Select("*").
+		Select("Id, CreateAt, Bytes").
 		From("Licenses").
 		Where(sq.Eq{"Id": id})
 
@@ -82,7 +82,7 @@ func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 
 func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 	query := ls.getQueryBuilder().
-		Select("*").
+		Select("Id, CreateAt, Bytes").
 		From("Licenses")
 
 	queryString, _, err := query.ToSql()
