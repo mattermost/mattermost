@@ -26,7 +26,7 @@ func GetEnvironment() map[string]string {
 	return mmenv
 }
 
-func applyPluginStateOverride(mapVal reflect.Value, key, value string) bool {
+func applyPluginStateOverride(m reflect.Value, key, value string) bool {
 	keyParts := strings.SplitN(key, "_", 2)
 	if len(keyParts) != 2 {
 		return false
@@ -35,14 +35,27 @@ func applyPluginStateOverride(mapVal reflect.Value, key, value string) bool {
 	// supporting legacy pluginID format with dots in it (e.g. com.mattermost.plugin)
 	pluginID := strings.ReplaceAll(strings.ToLower(keyParts[1]), "_", ".")
 
-	for _, key := range mapVal.MapKeys() {
+	for _, key := range m.MapKeys() {
 		if key.String() == pluginID {
 			enable, err := strconv.ParseBool(value)
 			if err != nil {
-				continue
+				return false
 			}
-			stateVal := reflect.ValueOf(&model.PluginState{Enable: enable})
-			mapVal.SetMapIndex(key, stateVal)
+
+			mapVal := m.MapIndex(key)
+			if !mapVal.CanInterface() {
+				return false
+			}
+
+			stateVal := mapVal.Interface()
+			state, ok := stateVal.(*model.PluginState)
+			if !ok {
+				return false
+			}
+
+			state.Enable = enable
+			m.SetMapIndex(key, reflect.ValueOf(state))
+
 			return true
 		}
 	}

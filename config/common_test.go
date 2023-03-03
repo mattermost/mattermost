@@ -188,9 +188,9 @@ func TestConfigEnvironmentOverridesPluginStates(t *testing.T) {
 	require.NoError(t, err)
 	originalConfig := &model.Config{}
 	originalConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
-		"focalboard":           &model.PluginState{Enable: true},
-		"playbooks":            &model.PluginState{Enable: false},
-		"com.mattermost.calls": &model.PluginState{Enable: true},
+		"focalboard":           {Enable: true},
+		"playbooks":            {Enable: false},
+		"com.mattermost.calls": {Enable: true},
 	}
 
 	os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_PLAYBOOKS", "true")
