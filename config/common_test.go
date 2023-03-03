@@ -180,3 +180,42 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 	newCfg := base.RemoveEnvironmentOverrides(oldCfg)
 	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
 }
+
+func TestConfigEnvironmentOverridesPluginStates(t *testing.T) {
+	memstore, err := NewMemoryStore()
+	require.NoError(t, err)
+	base, err := NewStoreFromBacking(memstore, nil, false)
+	require.NoError(t, err)
+	originalConfig := &model.Config{}
+	originalConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
+		"focalboard":           &model.PluginState{Enable: true},
+		"playbooks":            &model.PluginState{Enable: false},
+		"com.mattermost.calls": &model.PluginState{Enable: true},
+	}
+
+	os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_PLAYBOOKS", "true")
+	os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_FOCALBOARD", "false")
+	os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_COM_MATTERMOST_CALLS", "false")
+
+	defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_PLAYBOOKS")
+	defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_FOCALBOARD")
+	defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_COM_MATTERMOST_CALLS")
+
+	t.Run("loading config should respect environment variable overrides", func(t *testing.T) {
+		err := base.Load()
+		require.NoError(t, err)
+
+		assert.False(t, base.Get().PluginSettings.PluginStates["focalboard"].Enable)
+		assert.True(t, base.Get().PluginSettings.PluginStates["playbooks"].Enable)
+		assert.False(t, base.Get().PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+
+	t.Run("setting config should respect environment variable overrides", func(t *testing.T) {
+		_, _, err := base.Set(originalConfig)
+		require.NoError(t, err)
+
+		assert.False(t, base.Get().PluginSettings.PluginStates["focalboard"].Enable)
+		assert.True(t, base.Get().PluginSettings.PluginStates["playbooks"].Enable)
+		assert.False(t, base.Get().PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+}

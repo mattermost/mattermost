@@ -26,6 +26,30 @@ func GetEnvironment() map[string]string {
 	return mmenv
 }
 
+func applyPluginStateOverride(mapVal reflect.Value, key, value string) bool {
+	keyParts := strings.SplitN(key, "_", 2)
+	if len(keyParts) != 2 {
+		return false
+	}
+
+	// supporting legacy pluginID format with dots in it (e.g. com.mattermost.plugin)
+	pluginID := strings.ReplaceAll(strings.ToLower(keyParts[1]), "_", ".")
+
+	for _, key := range mapVal.MapKeys() {
+		if key.String() == pluginID {
+			enable, err := strconv.ParseBool(value)
+			if err != nil {
+				continue
+			}
+			stateVal := reflect.ValueOf(&model.PluginState{Enable: enable})
+			mapVal.SetMapIndex(key, stateVal)
+			return true
+		}
+	}
+
+	return false
+}
+
 func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 	keyParts := strings.SplitN(key, "_", 2)
 	if len(keyParts) < 1 {
@@ -75,6 +99,12 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 	case reflect.SliceOf(reflect.TypeOf("")).Kind():
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
 	case reflect.Map:
+		if rFieldValue.Type().String() == "map[string]*model.PluginState" {
+			if applied := applyPluginStateOverride(rFieldValue, key, value); applied {
+				return
+			}
+		}
+
 		target := reflect.New(rFieldValue.Type()).Interface()
 		if err := json.Unmarshal([]byte(value), target); err == nil {
 			rFieldValue.Set(reflect.ValueOf(target).Elem())
