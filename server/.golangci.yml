@@ -1,7 +1,7 @@
 run:
   timeout: 5m
   skip-dirs:
-    - store/storetest/mocks
+    - channels/store/storetest/mocks
 
 linters-settings:
   gofmt:
@@ -43,7 +43,7 @@ issues:
 
     - linters:
       - misspell
-      path: "shared/markdown/html_entities.go"
+      path: "platform/shared/markdown/html_entities.go"
 
     - linters:
       - staticcheck
