@@ -3624,6 +3624,10 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
   },
   {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Contact sales"
+  },
+  {
     "id": "api.templates.license_up_for_renewal_renew_now",
     "translation": "Renew now"
   },
