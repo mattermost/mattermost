@@ -358,13 +358,13 @@ func (_m *ServiceInterface) SendLicenseInactivityEmail(_a0 string, name string, 
 	return r0
 }
 
-// SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, name, locale, siteURL, renewalLink, daysToExpiration
-func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string, locale string, siteURL string, renewalLink string, daysToExpiration int) error {
-	ret := _m.Called(_a0, name, locale, siteURL, renewalLink, daysToExpiration)
+// SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration
+func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string, locale string, siteURL string, ctaTitle string, ctaLink string, ctaText string, daysToExpiration int) error {
+	ret := _m.Called(_a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int) error); ok {
-		r0 = rf(_a0, name, locale, siteURL, renewalLink, daysToExpiration)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, string, int) error); ok {
+		r0 = rf(_a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -484,13 +484,13 @@ func (_m *ServiceInterface) SendPaymentFailedEmail(_a0 string, locale string, fa
 	return r0, r1
 }
 
-// SendRemoveExpiredLicenseEmail provides a mock function with given fields: renewalLink, _a1, locale, siteURL
-func (_m *ServiceInterface) SendRemoveExpiredLicenseEmail(renewalLink string, _a1 string, locale string, siteURL string) error {
-	ret := _m.Called(renewalLink, _a1, locale, siteURL)
+// SendRemoveExpiredLicenseEmail provides a mock function with given fields: ctaText, ctaLink, _a2, locale, siteURL
+func (_m *ServiceInterface) SendRemoveExpiredLicenseEmail(ctaText string, ctaLink string, _a2 string, locale string, siteURL string) error {
+	ret := _m.Called(ctaText, ctaLink, _a2, locale, siteURL)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
-		r0 = rf(renewalLink, _a1, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string) error); ok {
+		r0 = rf(ctaText, ctaLink, _a2, locale, siteURL)
 	} else {
 		r0 = ret.Error(0)
 	}
