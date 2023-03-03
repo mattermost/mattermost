@@ -23,9 +23,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/channels/app/worktemplates"
 	"github.com/mattermost/mattermost-server/v6/channels/audit"
 	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/channels/product"
+	"github.com/mattermost/mattermost-server/v6/channels/store"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/platform/services/remotecluster"
@@ -34,7 +34,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/channels/store"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
