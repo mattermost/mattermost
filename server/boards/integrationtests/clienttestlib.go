@@ -1,3 +1,5 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 package integrationtests
 
 import (
@@ -151,7 +153,7 @@ func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *
 	if err = logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
 		panic(err)
 	}
-	singleUser := len(singleUserToken) > 0
+	singleUser := singleUserToken != ""
 	innerStore, err := server.NewStore(cfg, singleUser, logger)
 	if err != nil {
 		panic(err)
