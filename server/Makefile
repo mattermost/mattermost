@@ -368,7 +368,7 @@ filestore-mocks: ## Creates mock files.
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
-	$(GOBIN)/mockery --dir enterprise/ldap --all --output enterprise/ldap/mocks --note 'Regenerate this file using `make ldap-mocks`.'
+	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --output $(BUILD_ENTERPRISE_DIR)/ldap/mocks --note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
@@ -771,7 +771,7 @@ gen-serialized: ## Generates serialization methods for hot structs
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' $(BUILD_ENTERPRISE_DIR)/
 endif
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
