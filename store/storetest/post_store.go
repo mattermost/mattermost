@@ -64,6 +64,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
 	t.Run("GetTopDMsForUserSince", func(t *testing.T) { testGetTopDMsForUserSince(t, ss, s) })
+	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -4900,7 +4901,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, err)
 	}
 	// for u4-u3: 4 posts
-	_, err = ss.Post().Save(&model.Post{
+	u3u4Post1, err := ss.Post().Save(&model.Post{
 		ChannelId: chUser3User4.Id,
 		UserId:    u3.Id,
 	})
@@ -4910,7 +4911,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		UserId:    u4.Id,
 	})
 	require.NoError(t, err)
-	_, err = ss.Post().Save(&model.Post{
+	u3u4Post2, err := ss.Post().Save(&model.Post{
 		ChannelId: chUser3User4.Id,
 		UserId:    u3.Id,
 	})
@@ -4964,4 +4965,111 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 2)
 	})
+	t.Run("topDMs will not consider deleted second user", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, err := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 1
+		require.Len(t, topDMs.Items, 1)
+		// delete user3
+		err = ss.User().PermanentDelete(u3.Id)
+		require.NoError(t, err)
+		// delete user3 posts
+		err = ss.Post().Delete(u3u4Post1.Id, 200, u3.Id)
+		require.NoError(t, err)
+		err = ss.Post().Delete(u3u4Post2.Id, 200, u3.Id)
+		require.NoError(t, err)
+		// delete channel memberships
+		err = ss.Channel().PermanentDeleteMembersByUser(u3.Id)
+		require.NoError(t, err)
+		topDMs, err = ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 0 since u3 is deleted
+		require.Len(t, topDMs.Items, 0)
+	})
+}
+
+func testGetEditHistoryForPost(t *testing.T, ss store.Store) {
+	t.Run("should return edit history for post", func(t *testing.T) {
+		// create a post
+		post := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   "test",
+		}
+		originalPost, err := ss.Post().Save(post)
+		require.NoError(t, err)
+		// create an edit
+		updatedPost := originalPost.Clone()
+		updatedPost.Message = "test edited"
+		savedUpdatedPost, err := ss.Post().Update(updatedPost, originalPost)
+		require.NoError(t, err)
+		// get edit history
+		edits, err := ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
+		require.NoError(t, err)
+		require.Len(t, edits, 1)
+		require.Equal(t, originalPost.Id, edits[0].Id)
+		require.Equal(t, originalPost.UserId, edits[0].UserId)
+		require.Equal(t, originalPost.Message, edits[0].Message)
+	})
+
+	t.Run("should return error for not edited posts", func(t *testing.T) {
+		// create a post
+		post := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   "test",
+		}
+		originalPost, err := ss.Post().Save(post)
+		require.NoError(t, err)
+		// get edit history
+		_, err = ss.Post().GetEditHistoryForPost(originalPost.Id)
+		require.Error(t, err)
+	})
+
+	t.Run("should return error for non-existent post", func(t *testing.T) {
+		// get edit history
+		_, err := ss.Post().GetEditHistoryForPost("non-existent")
+		require.Error(t, err)
+	})
+
+	t.Run("should return error for deleted post", func(t *testing.T) {
+		// create a post
+		post := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   "test",
+		}
+		originalPost, err := ss.Post().Save(post)
+		require.NoError(t, err)
+		// delete post
+		err = ss.Post().Delete(post.Id, 100, post.UserId)
+		require.NoError(t, err)
+		// get edit history
+		_, err = ss.Post().GetEditHistoryForPost(originalPost.Id)
+		require.Error(t, err)
+	})
+
+	t.Run("should return error for deleted edit", func(t *testing.T) {
+		// create a post
+		post := &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   "test",
+		}
+		originalPost, err := ss.Post().Save(post)
+		require.NoError(t, err)
+		// create an edit
+		updatedPost := originalPost.Clone()
+		updatedPost.Message = "test edited"
+		savedUpdatedPost, err := ss.Post().Update(updatedPost, originalPost)
+		require.NoError(t, err)
+		// delete edit
+		err = ss.Post().Delete(savedUpdatedPost.Id, 100, savedUpdatedPost.UserId)
+		require.NoError(t, err)
+		// get edit history
+		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
+		require.NoError(t, err)
+	})
+
 }

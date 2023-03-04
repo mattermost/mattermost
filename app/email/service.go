@@ -140,8 +140,8 @@ type ServiceInterface interface {
 	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
-	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error
-	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
+	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
+	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
 	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error)
 	// Cloud delinquency email sequence
 	SendDelinquencyEmail7(email, locale, siteURL, planName string) error
@@ -152,7 +152,7 @@ type ServiceInterface interface {
 	SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error
 	SendDelinquencyEmail90(email, locale, siteURL string) error
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
-	SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error
+	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	InitEmailBatching()

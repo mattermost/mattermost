@@ -4745,7 +4745,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4753,19 +4753,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Wersja 14.1+"
+    "translation": "Wersja 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 91+"
+    "translation": "Wersja 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 95+"
+    "translation": "Wersja 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 106+"
+    "translation": "Wersja 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7669,7 +7669,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Zaloguj się do swojego konta klienta, aby odnowić umowę"
+    "translation": "Zaloguj się do swojego konta klienta, aby odnowić"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
@@ -7709,7 +7709,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Twoja subskrypcja Mattermost została przedłużona"
+    "translation": "Twoja subskrypcja Mattermost wymaga przedłużenia"
   },
   {
     "id": "api.templates.license_up_for_renewal_renew_now",
@@ -9609,7 +9609,7 @@
   },
   {
     "id": "app.draft.get.app_error",
-    "translation": "Nie mogę pobrać szablonu."
+    "translation": "Nie mogę pobrać szkicu."
   },
   {
     "id": "app.draft.feature_disabled",
@@ -9617,7 +9617,7 @@
   },
   {
     "id": "app.draft.delete.app_error",
-    "translation": "Nie można usunąć projektu."
+    "translation": "Nie można usunąć szkicu."
   },
   {
     "id": "app.channel.get_priority_for_posts.app_error",
@@ -9649,7 +9649,7 @@
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
-    "translation": "Nie można zapisać wersji roboczej do usuniętego kanału"
+    "translation": "Nie można zapisać szkicu do usuniętego kanału"
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
@@ -9880,14 +9880,6 @@
     "translation": "Twoja licencja nie obsługuje prywatnych playbooków."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_find_playbook_template",
-    "translation": "Nie można znaleźć szablonu playbooka powiązanego z tym szablonem roboczym."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_run",
-    "translation": "Nie masz uprawnień do tworzenia prywatnego kanału dla uruchomionego playbooka."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "Nie masz uprawnień do tworzenia publicznego playbooka."
   },
@@ -9898,10 +9890,6 @@
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Nie masz uprawnień do tworzenia tablic publicznych."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_run",
-    "translation": "Nie masz uprawnień do tworzenia prywatnego kanału dla uruchomionego playbooka."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
@@ -9922,5 +9910,101 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Nie udało się zaktualizować tłumaczeń serwera."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Opis, dlaczego kanał(y) jest(są) potrzebny(e)"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Opis powodów, dla których tablica(e) jest(są) potrzebna(e)"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Nieprawidłowy serwis autentykacji: {{.AuthService}}"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Usługa dostępna tylko w edycji Mattermost Enterprise"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Polecenie szablony nie jest obsługiwane w Twoim urządzeniu."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "szablony"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Otwórz okno tworzenia z szablonu"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Pole nazwa nie może zawierać więcej niż 64 znaki."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "nie znaleziono klucza produktu"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "interfejs nie jest oczekiwanym typem"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "błąd podczas paczowania tablicy"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "błąd nie utworzono tablicy"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "błąd pobierania szablonów tablic"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "błąd duplikowania tablicy"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Nieprawidłowy filtr dziennika"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS Server nie potrafił usunąć przestrzeni roboczej."
   }
 ]

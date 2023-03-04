@@ -4017,6 +4017,27 @@ func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
 	return list, BuildResponse(r), nil
 }
 
+// GetEditHistoryForPost gets a list of posts by taking a post ids
+func (c *Client4) GetEditHistoryForPost(postId string) ([]*Post, *Response, error) {
+	js, err := json.Marshal(postId)
+	if err != nil {
+		return nil, nil, NewAppError("GetEditHistoryForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/edit_history", string(js))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Post
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEditHistoryForPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -8214,17 +8235,17 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	return cloudCustomer, BuildResponse(r), nil
 }
 
-func (c *Client4) GetExpandStats(licenseId string) (*SubscriptionExpandStatus, *Response, error) {
-	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/expand", licenseId), "")
+func (c *Client4) GetSubscriptionStatus(licenseId string) (*SubscriptionLicenseSelfServeStatusResponse, *Response, error) {
+	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/self-serve-status", licenseId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	var subscriptionExpandable *SubscriptionExpandStatus
-	json.NewDecoder(r.Body).Decode(&subscriptionExpandable)
+	var status *SubscriptionLicenseSelfServeStatusResponse
+	json.NewDecoder(r.Body).Decode(&status)
 
-	return subscriptionExpandable, BuildResponse(r), nil
+	return status, BuildResponse(r), nil
 }
 
 func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
@@ -8654,6 +8675,30 @@ func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRe
 	defer closeBody(r)
 
 	return BuildResponse(r), &response, nil
+}
+
+func (c *Client4) GetSelfHostedInvoices() (*Response, []*Invoice, error) {
+	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/invoices", "")
+
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	defer closeBody(r)
+
+	invoices := []*Invoice{}
+	err = json.Unmarshal(data, &invoices)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	defer closeBody(r)
+
+	return BuildResponse(r), invoices, nil
 }
 
 func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {

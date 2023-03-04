@@ -186,6 +186,31 @@ func (_m *ClusterInterface) NotifyMsg(buf []byte) {
 	_m.Called(buf)
 }
 
+// QueryLogs provides a mock function with given fields: page, perPage
+func (_m *ClusterInterface) QueryLogs(page int, perPage int) (map[string][]string, *model.AppError) {
+	ret := _m.Called(page, perPage)
+
+	var r0 map[string][]string
+	if rf, ok := ret.Get(0).(func(int, int) map[string][]string); ok {
+		r0 = rf(page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+		r1 = rf(page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // RegisterClusterMessageHandler provides a mock function with given fields: event, crm
 func (_m *ClusterInterface) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 	_m.Called(event, crm)
