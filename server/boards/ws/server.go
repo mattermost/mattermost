@@ -219,7 +219,7 @@ func (ws *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 			// if single user mode, check that the userID is valid and
 			// assume that the user has permission if so
-			if len(ws.singleUserToken) != 0 {
+			if ws.singleUserToken != "" {
 				if wsSession.userID != model.SingleUser {
 					continue
 				}
@@ -251,7 +251,7 @@ func (ws *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 // isCommandReadTokenValid ensures that a command contains a read
 // token and a set of block ids that said token is valid for.
 func (ws *Server) isCommandReadTokenValid(command WebsocketCommand) bool {
-	if len(command.TeamID) == 0 {
+	if command.TeamID == "" {
 		return false
 	}
 
@@ -420,7 +420,7 @@ func (ws *Server) removeListenerFromBlock(listener *websocketSession, blockID st
 }
 
 func (ws *Server) getUserIDForToken(token string) string {
-	if len(ws.singleUserToken) > 0 {
+	if ws.singleUserToken != "" {
 		if token == ws.singleUserToken {
 			return model.SingleUser
 		}

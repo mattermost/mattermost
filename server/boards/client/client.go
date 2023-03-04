@@ -289,7 +289,7 @@ func (c *Client) DuplicateBoard(boardID string, asTemplate bool, teamID string) 
 	if asTemplate {
 		queryParams = "?asTemplate=true"
 	}
-	if len(teamID) > 0 {
+	if teamID != "" {
 		queryParams = queryParams + "&toTeam=" + teamID
 	}
 	r, err := c.DoAPIPost(c.GetBoardRoute(boardID)+"/duplicate"+queryParams, "")

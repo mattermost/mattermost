@@ -65,7 +65,7 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(a.singleUserToken) > 0 {
+	if a.singleUserToken != "" {
 		// Not permitted in single-user mode
 		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
 		return
@@ -131,7 +131,7 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(a.singleUserToken) > 0 {
+	if a.singleUserToken != "" {
 		// Not permitted in single-user mode
 		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
 		return
@@ -185,7 +185,7 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(a.singleUserToken) > 0 {
+	if a.singleUserToken != "" {
 		// Not permitted in single-user mode
 		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
 		return
@@ -207,7 +207,7 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 	registerData.Username = strings.TrimSpace(registerData.Username)
 
 	// Validate token
-	if len(registerData.Token) > 0 {
+	if registerData.Token != "" {
 		team, err2 := a.app.GetRootTeam()
 		if err2 != nil {
 			a.errorResponse(w, r, err2)
@@ -288,7 +288,7 @@ func (a *API) handleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(a.singleUserToken) > 0 {
+	if a.singleUserToken != "" {
 		// Not permitted in single-user mode
 		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
 		return
@@ -334,8 +334,8 @@ func (a *API) attachSession(handler func(w http.ResponseWriter, r *http.Request)
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, _ := auth.ParseAuthTokenFromRequest(r)
 
-		a.logger.Debug(`attachSession`, mlog.Bool("single_user", len(a.singleUserToken) > 0))
-		if len(a.singleUserToken) > 0 {
+		a.logger.Debug(`attachSession`, mlog.Bool("single_user", a.singleUserToken != ""))
+		if a.singleUserToken != "" {
 			if required && (token != a.singleUserToken) {
 				a.errorResponse(w, r, model.NewErrUnauthorized("invalid single user token"))
 				return

@@ -89,7 +89,7 @@ func TestRunDataRetention(t *testing.T) {
 	t.Run("test null license", func(t *testing.T) {
 		th.Store.EXPECT().GetLicense().Return(nil)
 		_, err := b.RunDataRetention(now, 10)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, ErrInsufficientLicense, err)
 	})
 
@@ -104,7 +104,7 @@ func TestRunDataRetention(t *testing.T) {
 			},
 		)
 		_, err := b.RunDataRetention(now, 10)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, ErrInsufficientLicense, err)
 	})
 
@@ -118,7 +118,7 @@ func TestRunDataRetention(t *testing.T) {
 			})
 
 		count, err := b.RunDataRetention(now, 10)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 	})
 
@@ -136,7 +136,7 @@ func TestRunDataRetention(t *testing.T) {
 
 		count, err := b.RunDataRetention(now, 10)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, int64(100), count)
 	})
 }

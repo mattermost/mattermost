@@ -44,7 +44,7 @@ func testCreateBoardsAndBlocks(t *testing.T, store store.Store) {
 	userID := testUserID
 
 	boards, err := store.GetBoardsForUserAndTeam(userID, teamID, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, boards)
 
 	t.Run("create boards and blocks", func(t *testing.T) {
@@ -61,7 +61,7 @@ func testCreateBoardsAndBlocks(t *testing.T, store store.Store) {
 		}
 
 		bab, err := store.CreateBoardsAndBlocks(newBab, userID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotNil(t, bab)
 		require.Len(t, bab.Boards, 3)
 		require.Len(t, bab.Blocks, 2)
@@ -94,7 +94,7 @@ func testCreateBoardsAndBlocks(t *testing.T, store store.Store) {
 		}
 
 		bab, members, err := store.CreateBoardsAndBlocksWithAdmin(newBab, userID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotNil(t, bab)
 		require.Len(t, bab.Boards, 3)
 		require.Len(t, bab.Blocks, 2)
@@ -213,7 +213,7 @@ func testPatchBoardsAndBlocks(t *testing.T, store store.Store) {
 		}
 
 		rBab, err := store.CreateBoardsAndBlocks(newBab, userID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotNil(t, rBab)
 		require.Len(t, rBab.Boards, 3)
 		require.Len(t, rBab.Blocks, 2)
@@ -581,7 +581,7 @@ func testDuplicateBoard(t *testing.T, store store.Store) {
 	}
 
 	bab, err := store.CreateBoardsAndBlocks(newBab, userID)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, bab)
 	require.Len(t, bab.Boards, 3)
 	require.Len(t, bab.Blocks, 3)

@@ -211,7 +211,7 @@ func TestSaveFile(t *testing.T) {
 		mockedFileBackend.On("WriteFile", mockedReadCloseSeek, mock.Anything).Return(writeFileFunc, writeFileErrorFunc)
 		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", testBoardID, fileName)
 		assert.Equal(t, fileName, actual)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should save .jpeg file as jpg file to file store using file backend", func(t *testing.T) {
@@ -234,7 +234,7 @@ func TestSaveFile(t *testing.T) {
 
 		mockedFileBackend.On("WriteFile", mockedReadCloseSeek, mock.Anything).Return(writeFileFunc, writeFileErrorFunc)
 		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", "test-board-id", fileName)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotNil(t, actual)
 	})
 

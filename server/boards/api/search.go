@@ -156,7 +156,7 @@ func (a *API) handleSearchBoards(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(term) == 0 {
+	if term == "" {
 		jsonStringResponse(w, http.StatusOK, "[]")
 		return
 	}
@@ -244,7 +244,7 @@ func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if len(term) == 0 {
+	if term == "" {
 		jsonStringResponse(w, http.StatusOK, "[]")
 		return
 	}
@@ -316,7 +316,7 @@ func (a *API) handleSearchAllBoards(w http.ResponseWriter, r *http.Request) {
 	term := r.URL.Query().Get("q")
 	userID := getUserID(r)
 
-	if len(term) == 0 {
+	if term == "" {
 		jsonStringResponse(w, http.StatusOK, "[]")
 		return
 	}

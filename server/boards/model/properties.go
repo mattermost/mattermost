@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:generate mockgen -destination=mocks/propValueResolverMock.go -package mocks . PropValueResolver
+//go:generate mockgen -copyright_file=../../copyright.txt -destination=mocks/propValueResolverMock.go -package mocks . PropValueResolver
 
 package model
 

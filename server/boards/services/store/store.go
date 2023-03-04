@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:generate mockgen -destination=mockstore/mockstore.go -package mockstore . Store
+//go:generate mockgen -copyright_file=../../../copyright.txt -destination=mockstore/mockstore.go -package mockstore . Store
 //go:generate go run ./generators/main.go
 package store
 

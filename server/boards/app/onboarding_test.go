@@ -128,7 +128,7 @@ func TestCreateWelcomeBoard(t *testing.T) {
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id_1", "boards_category_id", []string{"board_id_1"}).Return(nil)
 
 		boardID, err := th.App.createWelcomeBoard(userID, teamID)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotEmpty(t, boardID)
 	})
 

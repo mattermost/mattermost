@@ -52,7 +52,7 @@ func getBoardsInsightsTest(t *testing.T, store store.Store) {
 	}
 
 	bab, err := store.CreateBoardsAndBlocks(newBab, userID)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, bab)
 
 	newBab = &model.BoardsAndBlocks{
@@ -62,7 +62,7 @@ func getBoardsInsightsTest(t *testing.T, store store.Store) {
 		},
 	}
 	bab, err = store.CreateBoardsAndBlocks(newBab, testInsightsUserID1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, bab)
 	bm := &model.BoardMember{
 		UserID:      userID,

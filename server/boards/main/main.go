@@ -117,12 +117,12 @@ func main() {
 
 	// Override config from commandline
 
-	if pDBType != nil && len(*pDBType) > 0 {
+	if pDBType != nil && *pDBType != "" {
 		config.DBType = *pDBType
 		logger.Info("DBType from commandline", mlog.String("DBType", *pDBType))
 	}
 
-	if pDBConfig != nil && len(*pDBConfig) > 0 {
+	if pDBConfig != nil && *pDBConfig != "" {
 		config.DBConfigString = *pDBConfig
 		// Don't echo, as the confix string may contain passwords
 		logger.Info("DBConfigString overridden from commandline")
@@ -211,11 +211,11 @@ func startServer(webPath string, filesPath string, port int, singleUserToken, db
 
 	model.LogServerInfo(logger)
 
-	if len(filesPath) > 0 {
+	if filesPath != "" {
 		config.FilesPath = filesPath
 	}
 
-	if len(webPath) > 0 {
+	if webPath != "" {
 		config.WebPath = webPath
 	}
 
@@ -223,11 +223,11 @@ func startServer(webPath string, filesPath string, port int, singleUserToken, db
 		config.Port = port
 	}
 
-	if len(dbConfigString) > 0 {
+	if dbConfigString != "" {
 		config.DBConfigString = dbConfigString
 	}
 
-	singleUser := len(singleUserToken) > 0
+	singleUser := singleUserToken != ""
 	db, err := server.NewStore(config, singleUser, logger)
 	if err != nil {
 		logger.Fatal("server.NewStore ERROR", mlog.Err(err))

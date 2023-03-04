@@ -327,6 +327,10 @@ app-layers: ## Extract interface from App struct
 	$(GOBIN)/struct2interface -f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
+boards-gen: ## Run generators for Boards
+	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+	cd boards && $(GO) generate ./...
+
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@fdf2cd651b261bcd511a32da33dd76febedd44a8
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
@@ -403,7 +407,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks
 
-layers: app-layers store-layers pluginapi
+layers: app-layers store-layers pluginapi boards-gen
 
 generated: mocks layers
 

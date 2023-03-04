@@ -174,7 +174,7 @@ func New(params Params) (*Server, error) {
 
 	// Init telemetry
 	telemetryID := settings["TelemetryID"]
-	if len(telemetryID) == 0 {
+	if telemetryID == "" {
 		telemetryID = utils.NewID(utils.IDTypeNone)
 		if err = params.DBStore.SetSystemSetting("TelemetryID", telemetryID); err != nil {
 			return nil, err
@@ -186,7 +186,7 @@ func New(params Params) (*Server, error) {
 		telemetryID: telemetryID,
 		serverID:    params.ServerID,
 		logger:      params.Logger,
-		singleUser:  len(params.SingleUserToken) > 0,
+		singleUser:  params.SingleUserToken != "",
 	}
 	telemetryService := initTelemetry(telemetryOpts)
 

@@ -1,7 +1,7 @@
-//go:generate go run generator/main.go
-
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
+//go:generate go run generator/main.go
 
 package worktemplates
 

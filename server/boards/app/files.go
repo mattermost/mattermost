@@ -71,7 +71,7 @@ func (a *App) SaveFile(reader io.Reader, teamID, rootID, filename string) (strin
 }
 
 func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
-	if len(filename) == 0 {
+	if filename == "" {
 		return nil, errEmptyFilename
 	}
 

@@ -40,7 +40,7 @@ func HashPassword(password string) string {
 
 // ComparePassword compares the hash.
 func ComparePassword(hash, password string) bool {
-	if len(password) == 0 || len(hash) == 0 {
+	if password == "" || hash == "" {
 		return false
 	}
 

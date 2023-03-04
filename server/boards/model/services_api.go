@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:generate mockgen --build_flags= -destination=mocks/mockservicesapi.go -package mocks . ServicesAPI
+//go:generate mockgen --build_flags= -copyright_file=../../copyright.txt -destination=mocks/mockservicesapi.go -package mocks . ServicesAPI
 
 package model
 

@@ -43,7 +43,7 @@ func SetupTests(t *testing.T) (store.Store, func()) {
 	tearDown := func() {
 		defer func() { _ = logger.Shutdown() }()
 		err = store.Shutdown()
-		require.Nil(t, err)
+		require.NoError(t, err)
 		if err = os.Remove(connectionString); err == nil {
 			logger.Debug("Removed test database", mlog.String("file", connectionString))
 		}
