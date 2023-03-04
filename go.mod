@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost-plugin-api
 
-go 1.18
+go 1.19
 
 require (
 	github.com/blang/semver/v4 v4.0.0

@@ -12,7 +12,7 @@ import (
 //
 // To configure the default Logrus logger for use with plugin logging, simply invoke:
 //
-//   pluginapi.ConfigureLogrus(logrus.StandardLogger(), pluginAPIClient)
+//	pluginapi.ConfigureLogrus(logrus.StandardLogger(), pluginAPIClient)
 //
 // Alternatively, construct your own logger to pass to pluginapi.ConfigureLogrus.
 type LogrusHook struct {

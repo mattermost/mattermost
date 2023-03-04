@@ -37,7 +37,8 @@ type NextWaitInterval func(now time.Time, metadata JobMetadata) time.Duration
 //
 // For example, if the job first starts at 12:01 PM, and is configured with interval 5 minutes,
 // it will next run at:
-//     12:06, 12:11, 12:16, ...
+//
+//	12:06, 12:11, 12:16, ...
 //
 // If the job has not previously started, it will run immediately.
 func MakeWaitForInterval(interval time.Duration) NextWaitInterval {
@@ -60,6 +61,7 @@ func MakeWaitForInterval(interval time.Duration) NextWaitInterval {
 //
 // For example, if the job first starts at 12:04 PM, and is configured with interval 5 minutes,
 // and is configured to round to 5 minute intervals, it will next run at:
+//
 //	12:05 PM, 12:10 PM, 12:15 PM, ...
 //
 // If the job has not previously started, it will run immediately. Note that this wait interval

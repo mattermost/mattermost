@@ -16,7 +16,7 @@ coverage:
 
 check-style:
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...

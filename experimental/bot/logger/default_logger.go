@@ -19,7 +19,6 @@ type defaultLogger struct {
 New creates a new logger.
 
 - api: LogAPI implementation
-
 */
 func New(api common.LogAPI) Logger {
 	l := &defaultLogger{

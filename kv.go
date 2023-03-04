@@ -148,19 +148,19 @@ func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (bool, er
 //
 // Parameters:
 //
-//      `key`              is the key to get and set.
-//      `valueFunc`        is a user-provided function that will take the old value as a []byte and
-//                         return the new value or an error. If valueFunc needs to operate on
-//                         oldValue, it will need to use the oldValue as a []byte, or convert
-//                         oldValue into the expected type (e.g., by parsing it, or marshaling it
-//                         into the expected struct). It should then return the newValue as the type
-//                         expected to be stored.
+//	`key`              is the key to get and set.
+//	`valueFunc`        is a user-provided function that will take the old value as a []byte and
+//	                   return the new value or an error. If valueFunc needs to operate on
+//	                   oldValue, it will need to use the oldValue as a []byte, or convert
+//	                   oldValue into the expected type (e.g., by parsing it, or marshaling it
+//	                   into the expected struct). It should then return the newValue as the type
+//	                   expected to be stored.
 //
 // Returns:
 //
-//       Returns err if the key could not be retrieved (DB error), valueFunc returned an error,
-//               if the key could not be set (DB error), or if the key could not be set (after retries).
-//       Returns nil if the value was set.
+//	Returns err if the key could not be retrieved (DB error), valueFunc returned an error,
+//	if the key could not be set (DB error), or if the key could not be set (after retries).
+//	Returns nil if the value was set.
 //
 // Minimum server version: 5.18
 func (k *KVService) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue interface{}, err error)) error {

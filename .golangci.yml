@@ -7,7 +7,6 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
     - errcheck
     - exportloopref
     - goconst
@@ -22,14 +21,12 @@ linters:
     - misspell
     - revive
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unconvert
     - unused
     - unparam
-    - varcheck
     - whitespace
 
 linters-settings:
