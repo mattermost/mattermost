@@ -304,6 +304,7 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
+	message.Add("user", user)
 	a.Publish(message)
 
 	return rchannel, nil
