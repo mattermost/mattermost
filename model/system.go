@@ -105,6 +105,7 @@ type SupportPacket struct {
 	MessageExportJobs          []*Job   `yaml:"message_export_jobs"`
 	DataRetentionJobs          []*Job   `yaml:"data_retention_jobs"`
 	ComplianceJobs             []*Job   `yaml:"compliance_jobs"`
+	MigrationJobs              []*Job   `yaml:"migration_jobs"`
 }
 
 type FileData struct {

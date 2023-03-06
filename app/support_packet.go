@@ -91,6 +91,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	messageExport, _ := a.Srv().Store().Job().GetAllByTypePage("message_export", 0, 2)
 	dataRetentionJobs, _ := a.Srv().Store().Job().GetAllByTypePage("data_retention", 0, 2)
 	complianceJobs, _ := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
+	migrationJobs, _ := a.Srv().Store().Job().GetAllByTypePage("migrations", 0, 2)
 
 	licenseTo := ""
 	supportedUsers := 0
@@ -130,6 +131,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		MessageExportJobs:          messageExport,
 		DataRetentionJobs:          dataRetentionJobs,
 		ComplianceJobs:             complianceJobs,
+		MigrationJobs:              migrationJobs,
 	}
 
 	// Marshal to a Yaml File
