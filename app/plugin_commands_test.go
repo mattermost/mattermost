@@ -7,9 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
@@ -438,4 +442,189 @@ func TestPluginCommand(t *testing.T) {
 		require.Equal(t, 500, err.StatusCode)
 	})
 
+}
+
+// Test Product with the minimum code needed to handle
+// hooksmanager and slash commands
+type TProduct struct {
+	hooksService product.HooksService
+}
+
+func newTProduct(m map[product.ServiceKey]any) (product.Product, error) {
+	return &TProduct{
+		hooksService: m[product.HooksKey].(product.HooksService),
+	}, nil
+}
+func (p *TProduct) Start() error {
+	p.hooksService.RegisterHooks("productT", p)
+	return nil
+}
+func (p *TProduct) Stop() error { return nil }
+func (p *TProduct) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	return &model.CommandResponse{Text: "product slash command called"}, nil
+}
+
+func TestProductCommands(t *testing.T) {
+
+	products := map[string]product.Manifest{
+		"productT": {
+			Initializer:  newTProduct,
+			Dependencies: map[product.ServiceKey]struct{}{},
+		},
+	}
+
+	t.Run("Execute product command", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		// Server hijack.
+		// This must be done in a cleaner way.
+		th.Server.initializeProducts(products, th.Server.services)
+		th.Server.products["productT"].Start()
+		require.Len(t, th.Server.products, 2) // 1 product + channels
+
+		err := th.App.RegisterProductCommand("productT", &model.Command{
+			TeamId:           th.BasicTeam.Id,
+			Trigger:          "product",
+			DisplayName:      "Product Command",
+			AutoComplete:     true,
+			AutoCompleteDesc: "autocomplete",
+		})
+		require.NoError(t, err)
+
+		ctx := request.EmptyContext(th.TestLogger)
+		resp, err2 := th.App.ExecuteCommand(ctx, &model.CommandArgs{
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Command:   "/product",
+		})
+		require.Nil(t, err2)
+		require.NotNil(t, resp)
+		assert.Equal(t, "product slash command called", resp.Text)
+	})
+
+	t.Run("Product commands can override builtin commands", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Server hijack.
+		// This must be done in a cleaner way.
+		th.Server.initializeProducts(products, th.Server.services)
+		th.Server.products["productT"].Start()
+		require.Len(t, th.Server.products, 2) // 1 product + channels
+
+		err := th.App.RegisterProductCommand("productT", &model.Command{
+			TeamId:           th.BasicTeam.Id,
+			Trigger:          "away",
+			DisplayName:      "Product Command",
+			AutoComplete:     true,
+			AutoCompleteDesc: "autocomplete",
+		})
+		require.NoError(t, err)
+
+		ctx := request.EmptyContext(th.TestLogger)
+		resp, err2 := th.App.ExecuteCommand(ctx, &model.CommandArgs{
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Command:   "/away",
+		})
+		require.Nil(t, err2)
+		require.NotNil(t, resp)
+		assert.Equal(t, "product slash command called", resp.Text)
+	})
+
+	t.Run("Plugin commands can override product commands", func(t *testing.T) {
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]any{
+				"TeamId": th.BasicTeam.Id,
+			}
+		})
+
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+
+			type configuration struct {
+				TeamId string
+			}
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+
+				configuration configuration
+			}
+
+			func (p *MyPlugin) OnConfigurationChange() error {
+				if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+					return err
+				}
+
+				return nil
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCommand(&model.Command{
+					TeamId: p.configuration.TeamId,
+					Trigger: "triggername",
+					DisplayName: "Plugin Command",
+					AutoComplete: true,
+					AutoCompleteDesc: "autocomplete",
+				})
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+
+				return err
+			}
+
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+				return &model.CommandResponse{
+					Text: "plugin slash command called",
+				}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.Nil(t, nil, activationErrors[0])
+
+		// Server hijack.
+		// This must be done in a cleaner way.
+		th.Server.initializeProducts(products, th.Server.services)
+		th.Server.products["productT"].Start()
+		require.Len(t, th.Server.products, 2) // 1 product + channels
+
+		err := th.App.RegisterProductCommand("productT", &model.Command{
+			TeamId:           th.BasicTeam.Id,
+			Trigger:          "triggername",
+			DisplayName:      "Product Command",
+			AutoComplete:     true,
+			AutoCompleteDesc: "autocomplete",
+		})
+		require.NoError(t, err)
+
+		ctx := request.EmptyContext(th.TestLogger)
+		resp, err2 := th.App.ExecuteCommand(ctx, &model.CommandArgs{
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Command:   "/triggername",
+		})
+		require.Nil(t, err2)
+		require.NotNil(t, resp)
+		assert.Equal(t, "plugin slash command called", resp.Text)
+
+	})
 }

@@ -75,6 +75,8 @@ type AppIface interface {
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
 	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
+	// CommandsForTeam returns all the plugin and product commands for the given team.
+	CommandsForTeam(teamID string) []*model.Command
 	// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
 	// Use GetLastAccessibleFileTime() to access the result.
 	ComputeLastAccessibleFileTime() error
@@ -944,7 +946,6 @@ type AppIface interface {
 	PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError
 	PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError
 	PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError
-	PluginCommandsForTeam(teamID string) []*model.Command
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
@@ -970,6 +971,7 @@ type AppIface interface {
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
 	RegisterCollectionAndTopic(pluginID, collectionType, topicType string) error
 	RegisterPluginCommand(pluginID string, command *model.Command) error
+	RegisterProductCommand(ProductID string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError
 	RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *model.AppError

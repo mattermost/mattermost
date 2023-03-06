@@ -257,6 +257,7 @@ func NewServer(options ...Option) (*Server, error) {
 		product.SystemKey:        &systemServiceAdapter{server: s},
 		product.SessionKey:       app,
 		product.FrontendKey:      app,
+		product.CommandKey:       app,
 	}
 
 	// Step 4: Initialize products.

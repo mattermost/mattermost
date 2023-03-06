@@ -253,7 +253,7 @@ type FrontendService interface {
 // The service shall be registered via app.CommandKey service key.
 type CommandService interface {
 	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
-	RegisterPluginCommand(pluginID string, command *model.Command) error
+	RegisterProductCommand(productID string, command *model.Command) error
 }
 
 // ThreadsService is the API for interacting with threads anywhere.
