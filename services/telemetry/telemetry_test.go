@@ -346,7 +346,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 		systemStore := storeMocks.SystemStore{}
 
 		insertError := errors.New("insert error")
-		systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(nil, insertError).Once()
+		systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(nil, insertError).Times(DBAccessAttempts)
 
 		storeMock.On("System").Return(&systemStore)
 

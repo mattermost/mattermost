@@ -142,12 +142,14 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 		ts.log.Info("Ensuring the telemetry ID", mlog.String("id", id))
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
-		if err == nil {
-			ts.TelemetryID = systemID.Value
-			return nil
+		if err != nil {
+			ts.log.Info("Unable to get/set the telemetry ID", mlog.Err(err))
+			time.Sleep(DBAccessTimeoutSecs * time.Second)
+			continue
 		}
 
-		time.Sleep(DBAccessTimeoutSecs * time.Second)
+		ts.TelemetryID = systemID.Value
+		return nil
 	}
 
 	return fmt.Errorf("unable to get the telemetry ID: %w", err)
