@@ -85,38 +85,51 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		return nil, errors.Wrap(err, "error while getting analytics").Error()
 	}
 
+	elasticPostIndexing, _ := a.Srv().Store().Job().GetAllByTypePage("elasticsearch_post_indexing", 0, 2)
+	elasticPostAggregation, _ := a.Srv().Store().Job().GetAllByTypePage("elasticsearch_post_aggregation", 0, 2)
+	ldapSyncJobs, _ := a.Srv().Store().Job().GetAllByTypePage("ldap_sync", 0, 2)
+	messageExport, _ := a.Srv().Store().Job().GetAllByTypePage("message_export", 0, 2)
+	dataRetentionJobs, _ := a.Srv().Store().Job().GetAllByTypePage("data_retention", 0, 2)
+	complianceJobs, _ := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
+
 	licenseTo := ""
 	supportedUsers := 0
 	if license := a.Srv().License(); license != nil {
 		supportedUsers = *license.Features.Users
-		licenseTo = *&license.Customer.Company
+		licenseTo = license.Customer.Company
 	}
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
-		LicenseTo:             licenseTo,
-		ServerOS:              runtime.GOOS,
-		ServerArchitecture:    runtime.GOARCH,
-		ServerVersion:         model.CurrentVersion,
-		BuildHash:             model.BuildHash,
-		DatabaseType:          databaseType,
-		DatabaseVersion:       databaseVersion,
-		DatabaseSchemaVersion: databaseSchemaVersion,
-		LdapVendorName:        vendorName,
-		LdapVendorVersion:     vendorVersion,
-		ElasticServerVersion:  elasticServerVersion,
-		ElasticServerPlugins:  elasticServerPlugins,
-		ActiveUsers:           int(uniqueUserCount),
-		LicenseSupportedUsers: supportedUsers,
-		TotalChannels:         int(analytics[0].Value) + int(analytics[1].Value),
-		TotalPosts:            int(analytics[2].Value),
-		TotalTeams:            int(analytics[4].Value),
-		WebsocketConnections:  int(analytics[5].Value),
-		MasterDbConnections:   int(analytics[6].Value),
-		ReplicaDbConnections:  int(analytics[7].Value),
-		DailyActiveUsers:      int(analytics[8].Value),
-		MonthlyActiveUsers:    int(analytics[9].Value),
-		InactiveUserCount:     int(analytics[10].Value),
+		LicenseTo:                  licenseTo,
+		ServerOS:                   runtime.GOOS,
+		ServerArchitecture:         runtime.GOARCH,
+		ServerVersion:              model.CurrentVersion,
+		BuildHash:                  model.BuildHash,
+		DatabaseType:               databaseType,
+		DatabaseVersion:            databaseVersion,
+		DatabaseSchemaVersion:      databaseSchemaVersion,
+		LdapVendorName:             vendorName,
+		LdapVendorVersion:          vendorVersion,
+		ElasticServerVersion:       elasticServerVersion,
+		ElasticServerPlugins:       elasticServerPlugins,
+		ActiveUsers:                int(uniqueUserCount),
+		LicenseSupportedUsers:      supportedUsers,
+		TotalChannels:              int(analytics[0].Value) + int(analytics[1].Value),
+		TotalPosts:                 int(analytics[2].Value),
+		TotalTeams:                 int(analytics[4].Value),
+		WebsocketConnections:       int(analytics[5].Value),
+		MasterDbConnections:        int(analytics[6].Value),
+		ReplicaDbConnections:       int(analytics[7].Value),
+		DailyActiveUsers:           int(analytics[8].Value),
+		MonthlyActiveUsers:         int(analytics[9].Value),
+		InactiveUserCount:          int(analytics[10].Value),
+		ElasticPostIndexingJobs:    elasticPostIndexing,
+		ElasticPostAggregationJobs: elasticPostAggregation,
+		LdapSyncJobs:               ldapSyncJobs,
+		MessageExportJobs:          messageExport,
+		DataRetentionJobs:          dataRetentionJobs,
+		ComplianceJobs:             complianceJobs,
 	}
 
 	// Marshal to a Yaml File
