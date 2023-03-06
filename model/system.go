@@ -76,18 +76,29 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
+	LicenseTo             string   `yaml:"license_to"`
 	ServerOS              string   `yaml:"server_os"`
 	ServerArchitecture    string   `yaml:"server_architecture"`
 	ServerVersion         string   `yaml:"server_version"`
 	BuildHash             string   `yaml:"build_hash,omitempty"`
 	DatabaseType          string   `yaml:"database_type"`
 	DatabaseVersion       string   `yaml:"database_version"`
+	DatabaseSchemaVersion string   `yaml:"database_schema_version"`
 	LdapVendorName        string   `yaml:"ldap_vendor_name,omitempty"`
 	LdapVendorVersion     string   `yaml:"ldap_vendor_version,omitempty"`
 	ElasticServerVersion  string   `yaml:"elastic_server_version,omitempty"`
 	ElasticServerPlugins  []string `yaml:"elastic_server_plugins,omitempty"`
 	ActiveUsers           int      `yaml:"active_users"`
 	LicenseSupportedUsers int      `yaml:"license_supported_users,omitempty"`
+	TotalChannels         int      `yaml:"total_channels"`
+	TotalPosts            int      `yaml:"total_posts"`
+	TotalTeams            int      `yaml:"total_teams"`
+	DailyActiveUsers      int      `yaml:"daily_active_users"`
+	MonthlyActiveUsers    int      `yaml:"monthly_active_users"`
+	WebsocketConnections  int      `yaml:"websocket_connections"`
+	MasterDbConnections   int      `yaml:"master_db_connections"`
+	ReplicaDbConnections  int      `yaml:"read_db_connections"`
+	InactiveUserCount     int      `yaml:"inactive_user_count"`
 }
 
 type FileData struct {
