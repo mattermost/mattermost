@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/channels/config"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )

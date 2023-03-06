@@ -9,16 +9,16 @@ jobserver
 npm-debug.log
 webapp/yarn-error.log
 mattermost.mattermost-license
-channels/config/mattermost.mattermost-license
-channels/config/config.json
-channels/config/*.crt
+config/mattermost.mattermost-license
+config/config.json
+config/*.crt
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
 web/static/js/libs*.js
 
-channels/config/active.dat
-channels/config/logging.json
+config/active.dat
+config/logging.json
 /plugins
 
 # Enterprise & products imports files

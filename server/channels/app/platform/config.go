@@ -17,10 +17,10 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/channels/config"
 	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/channels/product"
 	"github.com/mattermost/mattermost-server/v6/channels/store"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )

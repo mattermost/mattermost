@@ -5,9 +5,9 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/v6/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/channels/config"
 	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/channels/store"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"

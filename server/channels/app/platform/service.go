@@ -12,7 +12,6 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v6/channels/app/featureflag"
-	"github.com/mattermost/mattermost-server/v6/channels/config"
 	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/channels/jobs"
 	"github.com/mattermost/mattermost-server/v6/channels/store"
@@ -21,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/channels/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v6/channels/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/channels/store/timerlayer"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/services/cache"
 	"github.com/mattermost/mattermost-server/v6/platform/services/searchengine"

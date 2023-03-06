@@ -33,7 +33,7 @@ EXIT_STATUS=$?
 cat output | $GOBIN/go-junit-report > report.xml
 rm output
 find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 "{}" >> cover.out ; rm "{}"' \;
-rm -f channels/config/*.crt
-rm -f channels/config/*.key
+rm -f config/*.crt
+rm -f config/*.key
 
 exit $EXIT_STATUS

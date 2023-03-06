@@ -21,9 +21,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/channels/config"
 	"github.com/mattermost/mattermost-server/v6/channels/product"
 	storeMocks "github.com/mattermost/mattermost-server/v6/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/platform/services/searchengine"

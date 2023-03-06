@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/channels/app"
 	"github.com/mattermost/mattermost-server/v6/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/channels/config"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 )
 

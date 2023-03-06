@@ -19,10 +19,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/channels/app"
 	"github.com/mattermost/mattermost-server/v6/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/channels/config"
 	"github.com/mattermost/mattermost-server/v6/channels/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/plugin"

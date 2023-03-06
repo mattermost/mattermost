@@ -28,12 +28,12 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/channels/app"
 	"github.com/mattermost/mattermost-server/v6/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/channels/config"
 	"github.com/mattermost/mattermost-server/v6/channels/store"
 	"github.com/mattermost/mattermost-server/v6/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/channels/testlib"
 	"github.com/mattermost/mattermost-server/v6/channels/web"
 	"github.com/mattermost/mattermost-server/v6/channels/wsapi"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/platform/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
