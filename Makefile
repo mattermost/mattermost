@@ -471,14 +471,6 @@ test-compile: ## Compile tests.
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh 6.0.0
-	./scripts/psql-migration-test.sh 6.0.0
-
-test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh 5.0.0
-	./scripts/psql-migration-test.sh 5.0.0
-
 gomodtidy:
 	@cp go.mod go.mod.orig
 	@cp go.sum go.sum.orig
