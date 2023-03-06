@@ -22,11 +22,13 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
+	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/graph-gophers/dataloader/v6 v6.0.0
+	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hashicorp/go-hclog v1.4.0
@@ -48,6 +50,7 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.21
 	github.com/minio/minio-go/v7 v7.0.45
+	github.com/mitchellh/mapstructure v1.4.3
 	github.com/oklog/run v1.1.0
 	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 	github.com/opentracing/opentracing-go v1.2.0
@@ -60,6 +63,7 @@ require (
 	github.com/rudderlabs/analytics-go v3.3.3+incompatible
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sergi/go-diff v1.2.0
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.10.1
 	github.com/splitio/go-client/v6 v6.2.1
@@ -70,14 +74,17 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	github.com/wiggin77/merror v1.0.4
+	github.com/writeas/go-strip-markdown v2.0.1+incompatible
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.5.3
 	golang.org/x/crypto v0.5.0
 	golang.org/x/image v0.3.0
 	golang.org/x/net v0.5.0
+	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b
 	golang.org/x/sync v0.1.0
 	golang.org/x/text v0.6.0
 	golang.org/x/tools v0.5.0
+	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -124,7 +131,6 @@ require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
@@ -150,7 +156,6 @@ require (
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
-	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
@@ -169,7 +174,6 @@ require (
 	github.com/richardlehane/msoleps v1.0.3 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/segmentio/backo-go v1.0.1 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -189,7 +193,6 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf // indirect

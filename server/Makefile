@@ -86,20 +86,8 @@ BUILD_BOARDS = true
 BUILD_HASH_BOARDS = $(BUILD_HASH)
 
 # Playbooks
-BUILD_PLAYBOOKS_DIR ?= ../../mattermost-plugin-playbooks
-BUILD_PLAYBOOKS ?= false
-BUILD_HASH_PLAYBOOKS = none
-
-ifneq ($(wildcard $(BUILD_PLAYBOOKS_DIR)/.),)
-  ifeq ($(BUILD_PLAYBOOKS),true)
-    BUILD_PLAYBOOKS = true
-    BUILD_HASH_PLAYBOOKS = $(shell cd $(BUILD_PLAYBOOKS_DIR) && git rev-parse HEAD)
-  else
-    BUILD_PLAYBOOKS = false
-  endif
-else
-    BUILD_PLAYBOOKS = false
-endif
+BUILD_PLAYBOOKS ?= true
+BUILD_HASH_PLAYBOOKS = $(BUILD_HASH)
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
@@ -164,7 +152,6 @@ PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.36.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -190,12 +177,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
   ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
   ALL_PACKAGES=$(TE_PACKAGES)
-endif
-
-ifeq ($(BUILD_PLAYBOOKS),true)
-IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go channels/imports/)
-else
-	IGNORE:=$(shell rm -f channels/imports/playbooks_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -420,7 +401,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
-setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
 setup-go-work: export USE_LOCAL_PLUGIN_API := $(USE_LOCAL_PLUGIN_API)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)

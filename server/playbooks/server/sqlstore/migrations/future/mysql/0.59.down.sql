@@ -1,0 +1,1 @@
+-- intentionally empty, 0.57 migration is only for postgres

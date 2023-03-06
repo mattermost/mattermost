@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/channels/product"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 )
 
 func TestPluginCommand(t *testing.T) {
