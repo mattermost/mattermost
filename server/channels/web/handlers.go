@@ -141,6 +141,14 @@ func generateDevCSP(c Context) string {
 		}
 
 		devCSP = append(devCSP, boardsURL)
+
+		playbooksURL := os.Getenv("MM_PLAYBOOKS_DEV_SERVER_URL")
+		if playbooksURL == "" {
+			// Playbooks runs on http://localhost:9007 by default
+			playbooksURL = "http://localhost:9007"
+		}
+
+		devCSP = append(devCSP, playbooksURL)
 	}
 
 	if len(devCSP) == 0 {
