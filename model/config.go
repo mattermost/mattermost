@@ -2872,8 +2872,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Disable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: false}
+		// Enable the focalboard plugin by default
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {
