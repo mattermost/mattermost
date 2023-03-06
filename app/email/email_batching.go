@@ -161,6 +161,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 	for userID, notifications := range job.pendingNotifications {
 		// Defensive code.
 		if len(notifications) == 0 {
+			mlog.Warn("Unexpected result. Got 0 pending notifications for batched email.", mlog.String("user_id", userID))
 			continue
 		}
 
@@ -181,7 +182,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		batchStartTime := notifications[0].post.CreateAt
 		// Ignore if it isn't time yet to send.
-		if now.Sub(time.Unix(batchStartTime/1000, 0)) <= time.Duration(interval)*time.Second {
+		if now.Sub(time.UnixMilli(batchStartTime)) <= time.Duration(interval)*time.Second {
 			continue
 		}
 
