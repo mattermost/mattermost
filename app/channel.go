@@ -299,12 +299,17 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 		return nil, err
 	}
 
+	var member *model.ChannelMember
+	if member, err = a.GetChannelMember(c, rchannel.Id, userID); err != nil {
+		return nil, err
+	}
+
 	a.postJoinChannelMessage(c, user, channel)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
-	message.Add("user", user)
+	message.Add("member", member)
 	a.Publish(message)
 
 	return rchannel, nil
