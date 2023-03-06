@@ -349,6 +349,12 @@ ifeq ($(BUILD_BOARDS),true)
 		cd $(BUILD_BOARDS_DIR); make server-lint
   endif
 endif
+ifeq ($(BUILD_PLAYBOOKS),true)
+  ifneq ($(MM_NO_PLAYBOOKS_LINT),true)
+		cd $(BUILD_PLAYBOOKS_DIR); make server-lint
+  endif
+endif
+
 
 app-layers: ## Extract interface from App struct
 	$(GO) install github.com/reflog/struct2interface@v0.6.1
