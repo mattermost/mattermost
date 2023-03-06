@@ -5,6 +5,7 @@ package telemetry
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -25,8 +26,10 @@ import (
 )
 
 const (
-	DayMilliseconds   = 24 * 60 * 60 * 1000
-	MonthMilliseconds = 31 * DayMilliseconds
+	DayMilliseconds     = 24 * 60 * 60 * 1000
+	MonthMilliseconds   = 31 * DayMilliseconds
+	DBAccessAttempts    = 3
+	DBAccessTimeoutSecs = 10
 
 	RudderKey          = "placeholder_rudder_key"
 	RudderDataplaneURL = "placeholder_rudder_dataplane_url"
@@ -111,7 +114,7 @@ type RudderConfig struct {
 	DataplaneURL string
 }
 
-func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) *TelemetryService {
+func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
 	service := &TelemetryService{
 		srv:          srv,
 		dbStore:      dbStore,
@@ -119,24 +122,35 @@ func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker
 		log:          log,
 		verbose:      verbose,
 	}
-	service.ensureTelemetryID()
-	return service
+
+	if err := service.ensureTelemetryID(); err != nil {
+		return nil, fmt.Errorf("unable to ensure telemetry ID: %w", err)
+	}
+
+	return service, nil
 }
 
-func (ts *TelemetryService) ensureTelemetryID() {
+func (ts *TelemetryService) ensureTelemetryID() error {
 	if ts.TelemetryID != "" {
-		return
+		return nil
 	}
 
 	id := model.NewId()
-	systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
-	systemID, err := ts.dbStore.System().InsertIfExists(systemID)
-	if err != nil {
-		ts.log.Error("unable to get the telemetry ID", mlog.Err(err))
-		return
+	var err error
+
+	for i := 0; i < DBAccessAttempts; i++ {
+		ts.log.Info("Ensuring the telemetry ID", mlog.String("id", id))
+		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
+		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
+		if err == nil {
+			ts.TelemetryID = systemID.Value
+			return nil
+		}
+
+		time.Sleep(DBAccessTimeoutSecs * time.Second)
 	}
 
-	ts.TelemetryID = systemID.Value
+	return fmt.Errorf("unable to get the telemetry ID: %w", err)
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
