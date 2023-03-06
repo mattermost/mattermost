@@ -265,7 +265,7 @@ jobs:
       env:
         DOCKER_CLI_EXPERIMENTAL: enabled
       run: |
-        export TAG=$(echo "${{ github.event.pull_request.head.sha }}" | cut -c1-7)
+        export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
         cd build
         export DOCKER_CLI_EXPERIMENTAL=enabled
         export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
@@ -277,15 +277,14 @@ jobs:
       - test-postgres-binary
       - test-postgres-normal
       - test-mysql
-    if:  ${{ github.event_name == 'push' }}
+      - build-mattermost-server
+    if: ${{ github.event_name == 'push' }}
     env:
-      SENTRY_CLI_VERSION: 1.64.1
+      SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Install sentry-cli
-        run: curl -sL https://sentry.io/get-cli/ | sh
-      - name: Run sentry-cli
-        run: |
-          sentry-cli --log-level=debug releases new --finalize -p mattermost-server `git rev-parse HEAD`
-          sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
+      - name: Create Sentry release
+        uses: getsentry/action-release@85e0095193a153d57c458995f99d0afd81b9e5ea # v1.3.0
