@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
@@ -10,7 +9,6 @@ import (
 )
 
 func main() {
-	fmt.Println(os.Args)
 	if len(os.Args) != 4 {
 		log.Fatal("this script expects three arguments: the driver name ('mysql' or 'postgres'), the DNS connection string and the path to the upgrade file")
 	}
