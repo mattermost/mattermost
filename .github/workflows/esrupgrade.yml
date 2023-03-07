@@ -6,15 +6,15 @@ on:
       - master
       - cloud
       - release-*
+env:
+  COMPOSE_PROJECT_NAME: ghactions
+  BUILD_IMAGE: mattermost/mattermost-enterprise-edition:7.8
+  LATEST_MIGRATION: 101
+  DB_DUMP_URL: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
+  MYSQL_CONN_ARGS: -h localhost -P 3306 --protocol=tcp -ummuser -pmostest mattermost_test
 jobs:
-  test-esr-upgrade:
+  esr-upgrade-server:
     runs-on: ubuntu-latest-8-cores
-    env:
-      COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-enterprise-edition:7.8
-      LATEST_MIGRATION: 101
-      DB_DUMP_URL: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
-      MYSQL_CONN_ARGS: -h localhost -P 3306 --protocol=tcp -ummuser -pmostest mattermost_test
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -71,15 +71,28 @@ jobs:
             --ignore-table=mattermost_test.db_migrations \
             --skip-opt --set-gtid-purged=OFF \
             $MYSQL_CONN_ARGS > dump.7.8.server.sql
-      - name: Reset DB
+      - name: Upload dump
+        uses: actions/upload-artifact@v3
+        with:
+          name: upgraded-dump-server
+          path: dump.7.8.server.sql
+  esr-upgrade-script:
+    runs-on: ubuntu-latest-8-cores
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run docker compose
         run: |
-          # Build a script to drop all tables in the DB ignoring any foreign key checks
-          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS -e "SELECT concat('DROP TABLE IF EXISTS \`', table_name, '\`;') FROM information_schema.tables WHERE table_schema = 'mattermost_test';" > drop-queries.sql
-          echo "SET FOREIGN_KEY_CHECKS = 0;" > drop-script.sql
-          cat drop-queries.sql >> drop-script.sql
-          echo "SET FOREIGN_KEY_CHECKS = 1;" >> drop-script.sql
-          # Drop all tables in the DB
-          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < drop-script.sql
+          cd build
+          docker-compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --no-ansi ps
+      - name: Wait for docker compose
+        run: |
+          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - name: Initialize the database with the source DB dump
         run: |
           curl $DB_DUMP_URL | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
@@ -93,8 +106,19 @@ jobs:
       - name: Dump upgraded database
         run: |
           docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > dump.7.8.script.sql
-      - name: Upload both dumps
+      - name: Upload dump
         uses: actions/upload-artifact@v3
         with:
-          name: upgraded-dumps
-          path: dump.7.8.*.sql
+          name: upgraded-dump-script
+          path: dump.7.8.script.sql
+  esr-upgrade-diff:
+    runs-on: ubuntu-latest-8-cores
+    needs:
+      - esr-upgrade-server
+      - esr-upgrade-script
+    steps:
+      - name: Retrieve dumps
+        uses: actions/download-artifact@v3
+      - name: List dumps
+        run: |
+          ls -R
