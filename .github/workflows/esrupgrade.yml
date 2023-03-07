@@ -60,6 +60,10 @@ jobs:
           # Make sure to stop the server. Also, redirect output to null;
           # otherwise, the name of the container gets written to the console, which is weird
           docker stop mmserver > /dev/null
+      - name: Cleanup DB
+        run : |
+          cd scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < esr.5.37-7.8.mysql.cleanup.sql
       - name: Dump upgraded database
         run: |
           # Ignore tables containing meta-information about the migrations (db_{lock,migrations}),
@@ -71,11 +75,15 @@ jobs:
             --ignore-table=mattermost_test.db_migrations \
             --skip-opt --set-gtid-purged=OFF \
             $MYSQL_CONN_ARGS > dump.7.8.server.sql
+      - name: Cleanup dump and compress
+        run: |
+          # We skip the very last line, which simply contains the date of the dump
+          head -n -1 dump.7.8.server.sql | gzip > dump.7.8.server.sql.gz
       - name: Upload dump
         uses: actions/upload-artifact@v3
         with:
           name: upgraded-dump-server
-          path: dump.7.8.server.sql
+          path: dump.7.8.server.sql.gz
   esr-upgrade-script:
     runs-on: ubuntu-latest-8-cores
     steps:
@@ -103,14 +111,22 @@ jobs:
           docker build -t esrupgrade .
           # Run the image with the expected driver, DSN, and migration file
           docker run -i --rm --net ghactions_mm-test esrupgrade mysql "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" esr.5.37-7.8.mysql.up.sql
+      - name: Cleanup DB
+        run : |
+          cd scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < esr.5.37-7.8.mysql.cleanup.sql
       - name: Dump upgraded database
         run: |
           docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > dump.7.8.script.sql
+      - name: Cleanup dump and compress
+        run: |
+          # We skip the very last line, which simply contains the date of the dump
+          head -n -1 dump.7.8.script.sql | gzip > dump.7.8.script.sql.gz
       - name: Upload dump
         uses: actions/upload-artifact@v3
         with:
           name: upgraded-dump-script
-          path: dump.7.8.script.sql
+          path: dump.7.8.script.sql.gz
   esr-upgrade-diff:
     runs-on: ubuntu-latest-8-cores
     needs:
@@ -121,6 +137,8 @@ jobs:
         uses: actions/download-artifact@v3
       - name: Diff dumps
         run: |
+          gzip -d upgraded-dump-server/dump.7.8.server.sql.gz
+          gzip -d upgraded-dump-script/dump.7.8.script.sql.gz
           diff upgraded-dump-server/dump.7.8.server.sql upgraded-dump-script/dump.7.8.script.sql > diff.7.8.sql && echo "No differences found" || echo "Differences found"
       - name: Upload diff
         uses: actions/upload-artifact@v3
