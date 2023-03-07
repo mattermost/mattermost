@@ -1,3 +1,22 @@
+/* ==> mysql/000041_create_upload_sessions.up.sql <== */
+/* Release 5.37 was meant to contain the index idx_uploadsessions_type, but a bug prevented that.
+   This part of the migration #41 adds such index */
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'UploadSessions'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_uploadsessions_type'
+    ) > 0,
+    'SELECT 1',
+    'CREATE INDEX idx_uploadsessions_type ON UploadSessions(Type);'
+));
+
+PREPARE createIndexIfNotExists FROM @preparedStatement;
+EXECUTE createIndexIfNotExists;
+DEALLOCATE PREPARE createIndexIfNotExists;
+
 /* ==> mysql/000054_create_crt_channelmembership_count.up.sql <== */
 /* fixCRTChannelMembershipCounts fixes the channel counts, i.e. the total message count,
 total root message count, mention count, and mention count in root messages for users
