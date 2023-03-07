@@ -62,7 +62,15 @@ jobs:
           docker stop mmserver > /dev/null
       - name: Dump upgraded database
         run: |
-          docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > dump.7.8.server.sql
+          # Ignore tables containing meta-information about the migrations (db_{lock,migrations}),
+          # since those will not be present in the upgrade from the script.
+          # Use --skip-opt to have each INSERT into one line.
+          # Use --set-gtid-purged=OFF to suppress GTID-related statements.
+          docker exec -i ghactions_mysql_1 mysqldump \
+            --ignore-table=mattermost_test.db_lock \
+            --ignore-table=mattermost_test.db_migrations \
+            --skip-opt --set-gtid-purged=OFF \
+            $MYSQL_CONN_ARGS > dump.7.8.server.sql
       - name: Reset DB
         run: |
           # Build a script to drop all tables in the DB ignoring any foreign key checks
