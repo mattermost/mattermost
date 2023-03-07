@@ -477,7 +477,7 @@ func TestProductCommands(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		// Server hijack.
-		// This must be done in a cleaner way.
+		// Follow-up task to improve this https://mattermost.atlassian.net/browse/MM-51190
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels
@@ -508,7 +508,7 @@ func TestProductCommands(t *testing.T) {
 		defer th.TearDown()
 
 		// Server hijack.
-		// This must be done in a cleaner way.
+		// Follow-up task to improve this https://mattermost.atlassian.net/browse/MM-51190
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels
@@ -601,7 +601,7 @@ func TestProductCommands(t *testing.T) {
 		require.Nil(t, nil, activationErrors[0])
 
 		// Server hijack.
-		// This must be done in a cleaner way.
+		// Follow-up task to improve this https://mattermost.atlassian.net/browse/MM-51190
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels

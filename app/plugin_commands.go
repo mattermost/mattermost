@@ -107,20 +107,20 @@ func (a *App) CommandsForTeam(teamID string) []*model.Command {
 	var commands []*model.Command
 
 	a.ch.pluginCommandsLock.RLock()
-	defer a.ch.pluginCommandsLock.RUnlock()
 	for _, pc := range a.ch.pluginCommands {
 		if pc.Command.TeamId == "" || pc.Command.TeamId == teamID {
 			commands = append(commands, pc.Command)
 		}
 	}
+	a.ch.pluginCommandsLock.RUnlock()
 
 	a.ch.productCommandsLock.RLock()
-	defer a.ch.productCommandsLock.RUnlock()
 	for _, pc := range a.ch.productCommands {
 		if pc.Command.TeamId == "" || pc.Command.TeamId == teamID {
 			commands = append(commands, pc.Command)
 		}
 	}
+	a.ch.productCommandsLock.RUnlock()
 	return commands
 }
 
