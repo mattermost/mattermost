@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {

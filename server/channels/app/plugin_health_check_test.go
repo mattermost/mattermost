@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/plugin"
 )
 
 func TestHealthCheckJob(t *testing.T) {
@@ -21,8 +21,8 @@ func TestHealthCheckJob(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/model"
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v7/model"
+				"github.com/mattermost/mattermost-server/server/v7/plugin"
 			)
 
 			type MyPlugin struct {

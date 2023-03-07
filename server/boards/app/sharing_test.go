@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
 )
 
 func TestGetSharing(t *testing.T) {

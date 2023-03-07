@@ -3,7 +3,7 @@
 
 package audit
 
-import "github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+import "github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 
 // Meta represents metadata that can be added to a audit record as name/value pairs.
 type Meta struct {

@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v7/channels/product"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 const (

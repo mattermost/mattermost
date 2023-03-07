@@ -19,9 +19,9 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v7/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/filestore"
 )
 
 const (

@@ -11,10 +11,10 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/remotecluster"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 type sendSyncMsgResultFunc func(syncResp SyncResponse, err error)

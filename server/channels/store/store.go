@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/product"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 type StoreResult struct {

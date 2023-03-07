@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v7/channels/product"
+	"github.com/mattermost/mattermost-server/server/v7/config"
 )
 
 const (

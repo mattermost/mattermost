@@ -4,7 +4,7 @@
 package ws
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
 )
 
 // UpdateCategoryMessage is sent on block updates.

@@ -10,9 +10,9 @@ import (
 	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/web"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app"
+	"github.com/mattermost/mattermost-server/server/v7/channels/web"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 type Routes struct {

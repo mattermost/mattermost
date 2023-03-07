@@ -7,12 +7,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
 )
 
 var ErrNilPluginAPI = errors.New("server not running in plugin mode")

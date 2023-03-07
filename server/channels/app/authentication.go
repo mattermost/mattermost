@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mfa"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mfa"
 )
 
 type TokenLocation int

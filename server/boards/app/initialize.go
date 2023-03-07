@@ -6,7 +6,7 @@ package app
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 // initialize is called when the App is first created.

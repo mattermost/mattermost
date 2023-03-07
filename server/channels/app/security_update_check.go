@@ -11,10 +11,10 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 const (

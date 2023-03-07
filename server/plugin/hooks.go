@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 // These assignments are part of the wire protocol used to trigger hook events in plugins.

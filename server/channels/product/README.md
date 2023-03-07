@@ -17,7 +17,7 @@ type Product interface {
 }
 ```
 
-The `app.Server` will take care of starting and stopping products. The product shall register itself via a function called `RegisterProduct` provided by `github.com/mattermost/mattermost-server/server/v8/app` package. To register a product,
+The `app.Server` will take care of starting and stopping products. The product shall register itself via a function called `RegisterProduct` provided by `github.com/mattermost/mattermost-server/server/v7/app` package. To register a product,
 a product initializer is required. The signature of a product initializer is defined as following:
 
 ```Go

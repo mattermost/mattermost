@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	emailmocks "github.com/mattermost/mattermost-server/server/v8/channels/app/email/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/email"
+	emailmocks "github.com/mattermost/mattermost-server/server/v7/channels/app/email/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/teams"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 func TestCreateTeam(t *testing.T) {

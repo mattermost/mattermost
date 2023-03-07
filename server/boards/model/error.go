@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )

@@ -18,20 +18,20 @@ import (
 	"sort"
 	"strings"
 
-	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
+	fb_model "github.com/mattermost/mattermost-server/server/v7/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/email"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/imaging"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/teams"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v7/channels/product"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/plugin"
 )
 
 // teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
@@ -207,7 +207,7 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_model.Board, *model.AppError) {
 	const defaultTemplatesTeam = "0"
 
-	// see https://github.com/mattermost/mattermost-server/server/v8/boards/blob/main/server/services/store/sqlstore/board.go#L302
+	// see https://github.com/mattermost/mattermost-server/server/v7/boards/blob/main/server/services/store/sqlstore/board.go#L302
 	// and https://github.com/mattermost/mattermost-server/pull/22201#discussion_r1099536430
 	const defaultTemplateTitle = "Welcome to Boards!"
 	welcomeToBoardsTemplateId := fmt.Sprintf("%x", md5.Sum([]byte(defaultTemplateTitle)))

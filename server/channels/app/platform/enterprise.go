@@ -4,8 +4,8 @@
 package platform
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/searchengine"
 )
 
 var clusterInterface func(*PlatformService) einterfaces.ClusterInterface

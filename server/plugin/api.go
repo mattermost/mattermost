@@ -9,7 +9,7 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods

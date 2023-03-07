@@ -9,9 +9,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/boards/model/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	mockservicesapi "github.com/mattermost/mattermost-server/server/v7/boards/model/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 
 	"github.com/stretchr/testify/require"
 )

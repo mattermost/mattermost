@@ -10,11 +10,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/plugin/plugintest/mock"
 )
 
 func TestProcessPermalinkToRemote(t *testing.T) {

@@ -6,7 +6,7 @@ package slashcommands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v7/channels/testlib"
 )
 
 var mainHelper *testlib.MainHelper

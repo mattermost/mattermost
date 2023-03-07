@@ -6,8 +6,8 @@ package import_delete
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/jobs"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 const schedFreq = 24 * time.Hour

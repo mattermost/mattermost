@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/db"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchtest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/v7/channels/db"
+	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/searchtest"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/plugin/plugintest/mock"
 )
 
 type storeType struct {

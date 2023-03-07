@@ -8,7 +8,7 @@ import (
 
 	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 type ExecutionRequest struct {

@@ -11,12 +11,12 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v7/config"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 type TestHelper struct {

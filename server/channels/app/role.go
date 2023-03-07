@@ -11,9 +11,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {

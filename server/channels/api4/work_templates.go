@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 func (api *API) InitWorkTemplate() {

@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 // CallbackFunc is a func that can enqueued in the callback queue and will be

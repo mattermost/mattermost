@@ -6,10 +6,10 @@ package storetests
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
+	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 
 	"github.com/stretchr/testify/require"
 )

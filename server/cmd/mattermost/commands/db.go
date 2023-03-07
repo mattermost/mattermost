@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app"
+	"github.com/mattermost/mattermost-server/server/v7/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v7/config"
 )
 
 var DbCmd = &cobra.Command{

@@ -9,10 +9,10 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/configservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/channels/jobs"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/configservice"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 const jobName = "ExportDelete"

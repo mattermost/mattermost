@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 var ErrNoBoardsInBoardsAndBlocks = errors.New("at least one board is required")

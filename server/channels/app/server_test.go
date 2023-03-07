@@ -24,12 +24,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v7/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v7/config"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 )
 
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {

@@ -9,16 +9,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
+	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v7/channels/product"
+	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/imageproxy"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v7/platform/services/timezones"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/templates"
 )
 
 // App is a pure functional component that does not have any fields, except Server.

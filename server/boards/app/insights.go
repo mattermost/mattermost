@@ -6,8 +6,8 @@ package app
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 func (a *App) GetTeamBoardsInsights(userID string, teamID string, opts *mm_model.InsightsOpts) (*model.BoardInsightsList, error) {

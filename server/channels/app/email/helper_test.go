@@ -9,15 +9,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store"
+	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v7/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v7/config"
+	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v7/platform/shared/templates"
+	"github.com/mattermost/mattermost-server/server/v7/plugin/plugintest/mock"
 )
 
 type TestHelper struct {

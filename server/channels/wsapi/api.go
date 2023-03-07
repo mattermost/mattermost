@@ -4,8 +4,8 @@
 package wsapi
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app"
+	"github.com/mattermost/mattermost-server/server/v7/channels/app/platform"
 )
 
 type API struct {

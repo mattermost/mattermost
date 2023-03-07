@@ -4,9 +4,9 @@
 package notifymentions
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
+	"github.com/mattermost/mattermost-server/server/v7/boards/services/notify"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 // MentionDelivery provides an interface for delivering @mention notifications to other systems, such as

@@ -4,11 +4,11 @@
 package server
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/boards/app"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v7/boards/app"
+	"github.com/mattermost/mattermost-server/server/v7/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v7/channels/product"
+	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 )
 
 // boardsServiceAPI provides a service API for other products such as Channels.
