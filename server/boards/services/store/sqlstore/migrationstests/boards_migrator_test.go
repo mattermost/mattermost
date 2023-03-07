@@ -29,19 +29,16 @@ import (
 var tablePrefix = "focalboard_"
 
 type BoardsMigrator struct {
-	withMattermostMigrations bool
-	connString               string
-	driverName               string
-	db                       *sql.DB
-	store                    *sqlstore.SQLStore
-	morphEngine              *morph.Morph
-	morphDriver              drivers.Driver
+	connString  string
+	driverName  string
+	db          *sql.DB
+	store       *sqlstore.SQLStore
+	morphEngine *morph.Morph
+	morphDriver drivers.Driver
 }
 
-func NewBoardsMigrator(withMattermostMigrations bool) *BoardsMigrator {
-	return &BoardsMigrator{
-		withMattermostMigrations: withMattermostMigrations,
-	}
+func NewBoardsMigrator() *BoardsMigrator {
+	return &BoardsMigrator{}
 }
 
 func (bm *BoardsMigrator) runMattermostMigrations() error {
@@ -122,7 +119,7 @@ func (bm *BoardsMigrator) getMorphConnection() (*morph.Morph, drivers.Driver, er
 		"prefix":     tablePrefix,
 		"postgres":   bm.driverName == model.PostgresDBType,
 		"mysql":      bm.driverName == model.MysqlDBType,
-		"plugin":     bm.withMattermostMigrations,
+		"plugin":     true, // TODO: to be removed
 		"singleUser": false,
 	}
 
@@ -191,10 +188,8 @@ func (bm *BoardsMigrator) Setup() error {
 		return err2
 	}
 
-	if bm.withMattermostMigrations {
-		if err3 := bm.runMattermostMigrations(); err3 != nil {
-			return err3
-		}
+	if err3 := bm.runMattermostMigrations(); err3 != nil {
+		return err3
 	}
 
 	storeParams := sqlstore.Params{
@@ -203,7 +198,7 @@ func (bm *BoardsMigrator) Setup() error {
 		TablePrefix:      tablePrefix,
 		Logger:           mlog.CreateConsoleTestLogger(false, mlog.LvlDebug),
 		DB:               bm.db,
-		IsPlugin:         bm.withMattermostMigrations,
+		IsPlugin:         true, // TODO: to be removed
 		SkipMigrations:   true,
 	}
 	bm.store, err = sqlstore.New(storeParams)

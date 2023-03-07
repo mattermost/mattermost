@@ -11,7 +11,7 @@ import (
 
 func TestDeletedMembershipBoardsMigration(t *testing.T) {
 	t.Run("should detect a board linked to a team in which the owner has a deleted membership and restore it", func(t *testing.T) {
-		th, tearDown := SetupPluginTestHelper(t)
+		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
 		th.f.MigrateToStepSkippingLastInterceptor(18).

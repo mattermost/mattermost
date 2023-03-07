@@ -16,8 +16,8 @@ func Test37MigrateHiddenBoardIDTest(t *testing.T) {
 		th.f.MigrateToStep(37)
 	})
 
-	t.Run("MySQL and PostgreSQL - existsing category boards with some hidden boards", func(t *testing.T) {
-		th, tearDown := SetupPluginTestHelper(t)
+	t.Run("existsing category boards with some hidden boards", func(t *testing.T) {
+		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
 		th.f.MigrateToStep(36).
@@ -59,8 +59,8 @@ func Test37MigrateHiddenBoardIDTest(t *testing.T) {
 		require.Equal(t, 0, count)
 	})
 
-	t.Run("MySQL and PostgreSQL - preference but no hidden board", func(t *testing.T) {
-		th, tearDown := SetupPluginTestHelper(t)
+	t.Run("preference but no hidden board", func(t *testing.T) {
+		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
 		th.f.MigrateToStep(36).
