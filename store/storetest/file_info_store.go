@@ -18,6 +18,9 @@ import (
 )
 
 func TestFileInfoStore(t *testing.T, ss store.Store, s SqlStore) {
+	t.Cleanup(func() {
+		s.GetMasterX().Exec("TRUNCATE FileInfo")
+	})
 	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, ss) })
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, ss) })
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
@@ -810,9 +813,6 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, ss store.Store, s SqlStore) {
-	// Cleaning up any previous entries
-	s.GetMasterX().Exec("TRUNCATE FileInfo")
-
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
