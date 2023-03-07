@@ -67,7 +67,7 @@ func PrepareNewTestDatabase() (dbType string, connectionString string, err error
 			return "", "", newErrInvalidDBType(dbType)
 		}
 
-		connectionString = fmt.Sprintf(template, rootUser, port, "")
+		connectionString = fmt.Sprintf(template, rootUser, port, "mattermost_test")
 
 		// create a new database each run
 		sqlDB, err := sql.Open(dbType, connectionString)

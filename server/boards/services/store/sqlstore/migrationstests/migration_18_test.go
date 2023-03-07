@@ -12,7 +12,7 @@ import (
 
 func Test18AddTeamsAndBoardsSQLMigration(t *testing.T) {
 	t.Run("should migrate a block of type board to the boards table", func(t *testing.T) {
-		th, tearDown := SetupPluginTestHelper(t)
+		th, tearDown := SetupTestHelper(t)
 		defer tearDown()
 
 		th.f.MigrateToStep(17).
