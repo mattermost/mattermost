@@ -11,8 +11,9 @@ type Client struct {
 	api plugin.API
 
 	Bot           BotService
-	Configuration ConfigurationService
 	Channel       ChannelService
+	Cluster       ClusterService
+	Configuration ConfigurationService
 	SlashCommand  SlashCommandService
 	OAuth         OAuthService
 	Emoji         EmojiService
@@ -41,6 +42,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 
 		Bot:           BotService{api: api},
 		Channel:       ChannelService{api: api},
+		Cluster:       ClusterService{api: api},
 		Configuration: ConfigurationService{api: api},
 		SlashCommand:  SlashCommandService{api: api},
 		OAuth:         OAuthService{api: api},
