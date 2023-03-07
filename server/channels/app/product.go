@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 )
 
 func (s *Server) initializeProducts(

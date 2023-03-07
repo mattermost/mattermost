@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	"github.com/mattermost/mattermost-server/v6/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestPreferenceStore(t *testing.T) {

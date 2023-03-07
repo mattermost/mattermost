@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	"github.com/mattermost/mattermost-server/v6/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/services/telemetry"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
 )
 
 func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string) bool {

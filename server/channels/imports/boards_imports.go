@@ -5,5 +5,5 @@ package imports
 
 import (
 	// Needed to ensure the init() method in the FocalBoard product is run.
-	_ "github.com/mattermost/mattermost-server/v6/boards/product"
+	_ "github.com/mattermost/mattermost-server/server/v8/boards/product"
 )

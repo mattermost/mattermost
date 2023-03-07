@@ -7,12 +7,12 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/channels/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/v6/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/driver"
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/driver"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 type MyPlugin struct {

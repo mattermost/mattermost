@@ -8,7 +8,7 @@ import (
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func generateMarkdownDiff(oldText string, newText string, logger mlog.LoggerIFace) string {

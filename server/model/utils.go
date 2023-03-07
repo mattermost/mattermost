@@ -25,7 +25,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 )
 
 const (

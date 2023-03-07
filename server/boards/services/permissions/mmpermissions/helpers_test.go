@@ -6,12 +6,12 @@ package mmpermissions
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/boards/model"
-	mmpermissionsMocks "github.com/mattermost/mattermost-server/v6/boards/services/permissions/mmpermissions/mocks"
-	permissionsMocks "github.com/mattermost/mattermost-server/v6/boards/services/permissions/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	mmpermissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mmpermissions/mocks"
+	permissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mocks"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

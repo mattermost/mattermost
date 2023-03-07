@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func SetupTests(t *testing.T) (store.Store, func()) {

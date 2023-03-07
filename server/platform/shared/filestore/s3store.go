@@ -19,7 +19,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/encrypt"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 // S3FileBackend contains all necessary information to communicate with

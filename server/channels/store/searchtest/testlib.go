@@ -6,8 +6,8 @@ package searchtest
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	"github.com/mattermost/mattermost-server/v6/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 )
 
 var replicaFlag bool

@@ -5,8 +5,8 @@ package app
 
 // TODO: platform: remove this and use from platform package
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
 )
 
 // SharedChannelServiceIFace is the interface to the shared channel service

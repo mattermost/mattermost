@@ -7,10 +7,10 @@ import (
 	"errors"
 	"net/http"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 
-	"github.com/mattermost/mattermost-server/v6/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 type mutexAPIAdapter struct {

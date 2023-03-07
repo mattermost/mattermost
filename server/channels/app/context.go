@@ -6,9 +6,9 @@ package app
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/v6/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 // WithMaster adds the context value that master DB should be selected for this request.

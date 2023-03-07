@@ -11,17 +11,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/boards/app"
+	"github.com/mattermost/mattermost-server/server/v8/boards/app"
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v6/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/v6/boards/services/audit"
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/audit"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
 
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
 )
 
 // FileUploadResponse is the response to a file upload

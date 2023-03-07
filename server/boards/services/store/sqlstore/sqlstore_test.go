@@ -6,11 +6,11 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/boards/services/store/storetests"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/storetests"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 func TestSQLStore(t *testing.T) {

@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	storemocks "github.com/mattermost/mattermost-server/v6/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/v6/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/model/oauthproviders/gitlab"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -255,8 +255,8 @@ func TestCreateUser(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {

@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/mattermost/mattermost-server/v6/channels/app/slashcommands"
+	_ "github.com/mattermost/mattermost-server/server/v8/channels/app/slashcommands"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestEchoCommand(t *testing.T) {

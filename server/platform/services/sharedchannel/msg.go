@@ -6,7 +6,7 @@ package sharedchannel
 import (
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).

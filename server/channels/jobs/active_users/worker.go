@@ -4,10 +4,10 @@
 package active_users
 
 import (
-	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/channels/jobs"
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 const (

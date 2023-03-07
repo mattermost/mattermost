@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	platform_mocks "github.com/mattermost/mattermost-server/v6/channels/app/platform/mocks"
-	"github.com/mattermost/mattermost-server/v6/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/i18n"
+	platform_mocks "github.com/mattermost/mattermost-server/server/v8/channels/app/platform/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {

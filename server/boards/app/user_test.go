@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v6/boards/model"
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestSearchUsers(t *testing.T) {

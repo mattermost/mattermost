@@ -16,13 +16,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	eMocks "github.com/mattermost/mattermost-server/v6/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	storemocks "github.com/mattermost/mattermost-server/v6/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost-server/v6/platform/shared/filestore/mocks"
+	eMocks "github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/mocks"
+	filesStoreMocks "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {

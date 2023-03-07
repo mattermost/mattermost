@@ -11,7 +11,7 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 
-	"github.com/mattermost/mattermost-server/v6/platform/services/cache"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 )
 
 const (

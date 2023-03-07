@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/mattermost/mattermost-server/v6/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func (ps *PlatformService) RegisterClusterHandlers() {

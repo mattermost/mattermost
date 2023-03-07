@@ -8,7 +8,7 @@ import (
 	logr "github.com/mattermost/logr/v2"
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost-server/server/v8/model"
 
 	sql "database/sql"
 )

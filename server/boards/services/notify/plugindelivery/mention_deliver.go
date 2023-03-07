@@ -6,10 +6,10 @@ package plugindelivery
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v6/boards/services/notify"
-	"github.com/mattermost/mattermost-server/v6/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // MentionDeliver notifies a user they have been mentioned in a blockv ia the plugin API.

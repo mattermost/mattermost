@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
 )
 
 func TestExtract(t *testing.T) {

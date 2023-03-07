@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v6/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/channels/store"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {

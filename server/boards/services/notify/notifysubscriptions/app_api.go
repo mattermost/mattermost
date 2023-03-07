@@ -6,7 +6,7 @@ package notifysubscriptions
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 type AppAPI interface {
