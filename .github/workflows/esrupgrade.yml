@@ -119,6 +119,11 @@ jobs:
     steps:
       - name: Retrieve dumps
         uses: actions/download-artifact@v3
-      - name: List dumps
+      - name: Diff dumps
         run: |
-          ls -R
+          diff upgraded-dump-server/dump.7.8.server.sql upgraded-dump-script/dump.7.8.script.sql > diff.7.8.sql && echo "No differences found" || echo "Differences found"
+      - name: Upload diff
+        uses: actions/upload-artifact@v3
+        with:
+          name: dumps-diff
+          path: diff.7.8.sql
