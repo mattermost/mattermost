@@ -1,0 +1,199 @@
+@charset 'UTF-8';
+
+.radio,
+.checkbox {
+    &.margin-bottom--none {
+        margin-bottom: 0;
+    }
+
+    &.no-padding {
+        padding: 0;
+
+        label {
+            padding: 0;
+        }
+    }
+}
+
+.form-control {
+    ::placeholder {
+        color: inherit;
+    }
+
+    &.form-sm {
+        height: 32px;
+        font-size: 13px;
+    }
+}
+
+.form-legend {
+    border: none;
+    margin: 0 0 0.8rem;
+    color: inherit;
+    font-size: inherit;
+    font-weight: 600;
+}
+
+.input__help {
+    margin: 10px 0 0 0;
+    color: inherit;
+    opacity: 0.8;
+    word-break: break-word;
+
+    &.dark {
+        opacity: 1;
+    }
+
+    &.error {
+        color: darken($red, 20%);
+    }
+}
+
+.form-horizontal {
+    .modal-intro {
+        margin: -10px 0 30px;
+    }
+
+    .form__label {
+        padding-right: 3px;
+        font-size: 1.1em;
+        font-weight: 600;
+        text-align: left;
+
+        &.light {
+            padding-top: 2px;
+            font-size: 1.05em;
+            font-style: italic;
+            font-weight: normal;
+            opacity: 0.6;
+        }
+    }
+
+    .form-control {
+        font-weight: normal;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+
+        &.less {
+            margin-bottom: 10px;
+        }
+    }
+}
+
+.help-block {
+    margin: 10px 0 0;
+    color: $dark-gray;
+    font-size: 0.95em;
+}
+
+.form-group {
+    max-width: 100%;
+
+    &.form-group--small {
+        margin-bottom: 10px;
+    }
+}
+
+.has-error {
+    .help-block,
+    .radio,
+    .checkbox,
+    .radio-inline,
+    .checkbox-inline {
+        color: $red;
+    }
+
+    .form__label {
+        &.control-label {
+            color: inherit !important;
+        }
+    }
+
+    &.radio,
+    &.checkbox,
+    &.radio-inline,
+    &.checkbox-inline {
+        label {
+            color: $red;
+        }
+    }
+}
+
+.multi-select__radio {
+    label {
+        display: flex;
+        align-items: center;
+    }
+
+    input[type='radio'] {
+        width: 13px;
+        margin-top: 0;
+    }
+
+    .flex-parent {
+        display: flex;
+        align-items: center;
+    }
+
+    .icon {
+        display: flex;
+        width: 14px;
+        height: 21px;
+        align-items: center;
+        justify-content: center;
+        padding-right: 1px;
+        margin-right: 6px;
+
+        & + span {
+            margin-right: 4px;
+            font-weight: 600;
+        }
+    }
+
+    span {
+        &:last-child {
+            opacity: 0.8;
+        }
+    }
+}
+
+.app__body {
+    .form-control {
+        border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        background: v(center-channel-bg);
+        color: v(center-channel-color);
+
+        &:focus {
+            border-color: rgba(var(--center-channel-color-rgb), 0.4);
+        }
+
+        &.inline {
+            display: inline-block;
+            width: auto;
+        }
+
+        &::-moz-placeholder,
+        &:-moz-placeholder {
+            color: inherit !important;
+            opacity: 0.6;
+        }
+    }
+}
+
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
+    background-color: #f9f9f9;
+}
+
+input[type="file"]:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus {
+    outline: none;
+}
+
+.notification-sound-dropdown {
+    padding-top: 5px;
+}

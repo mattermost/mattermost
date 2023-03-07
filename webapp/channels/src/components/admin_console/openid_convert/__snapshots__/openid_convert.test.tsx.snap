@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/OpenIdConvert should match snapshot 1`] = `
+<div
+  className="OpenIdConvert"
+>
+  <div
+    className="OpenIdConvert_imageWrapper"
+  >
+    <img
+      alt="OpenId Convert Image"
+      className="OpenIdConvert_image"
+      src={null}
+    />
+  </div>
+  <div
+    className="OpenIdConvert_copyWrapper"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="You can now convert your OAuth2.0 configuration to OpenID Connect."
+        id="admin.openIdConvert.message"
+      />
+    </p>
+    <div
+      className="OpenIdConvert_actionWrapper"
+    >
+      <button
+        className="btn"
+        data-testid="openIdConvert"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Convert to OpenID Connect"
+          id="admin.openIdConvert.text"
+        />
+      </button>
+      <a
+        className="btn-secondary"
+        data-testid="openIdLearnMore"
+        href="https://www.mattermost.com/default-openid-docs"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Learn more"
+          id="admin.openIdConvert.help"
+        />
+      </a>
+      <div
+        className="error-message"
+        data-testid="errorMessage"
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

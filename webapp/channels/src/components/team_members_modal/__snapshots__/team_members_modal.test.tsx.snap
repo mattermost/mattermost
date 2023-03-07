@@ -1,0 +1,85 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/TeamMembersModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="teamMemberModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="teamMembersModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="teamMemberModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{team} Members"
+        id="team_member_modal.members"
+        values={
+          Object {
+            "team": "display name",
+          }
+        }
+      />
+    </ModalTitle>
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "add_user_to_team",
+          "invite_guest",
+        ]
+      }
+      teamId="id"
+    >
+      <button
+        className="btn btn-primary invite-people-btn"
+        id="invitePeople"
+        onClick={[Function]}
+        type="button"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Invite People"
+          id="team_member_modal.invitePeople"
+        />
+      </button>
+    </Connect(TeamPermissionGate)>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <Connect(MemberListTeam)
+      teamId="id"
+    />
+  </ModalBody>
+</Modal>
+`;

@@ -1,0 +1,17 @@
+@import 'utils/variables';
+
+.annnouncementBar__renewLicense {
+    display: block;
+    padding: 12px 20px;
+    border: none;
+    margin-top: 15px;
+    background: var(--sys-button-bg);
+    border-radius: 4px;
+    color: var(--sys-button-color);
+
+    span {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 14px;
+    }
+}

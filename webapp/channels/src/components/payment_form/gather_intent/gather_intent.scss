@@ -1,0 +1,186 @@
+@import 'utils/mixins';
+
+.gatherIntent {
+    margin-bottom: 24px;
+
+    &__title {
+        padding: 0;
+        margin: 0 0 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        line-height: 24px !important;
+    }
+
+    &__button {
+        height: auto !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        color: var(--button-bg) !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        line-height: 20px !important;
+    }
+}
+
+.savedFeedback__text {
+    align-self: center;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.AltPaymentsModal {
+    .modal-content {
+        max-width: 512px;
+        max-height: 465px;
+        background: var(--center-channel-bg);
+        border-radius: 12px;
+    }
+
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        min-width: 532px;
+        margin: auto;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-footer {
+        padding-top: 24px;
+        padding-bottom: 24px;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .modal-header {
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-header,
+    .modal-footer {
+        display: flex;
+        padding-right: 32px;
+        padding-left: 32px;
+    }
+
+    .AltPaymentsModal__header {
+        align-items: baseline;
+        border: none;
+
+        &.modal-header {
+            background: var(--center-channel-bg);
+        }
+
+        h3 {
+            margin: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 28px;
+        }
+
+        .icon-close {
+            padding: 0;
+            border: none;
+            margin-left: auto;
+            background: var(--center-channel-bg);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 24px;
+        }
+    }
+
+    .modal-body {
+        display: block;
+        overflow: auto;
+        padding: 0 32px;
+        margin-bottom: 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__submitted-icon-container {
+        margin-bottom: 24px;
+
+        > svg {
+            width: 51px;
+            height: 51px;
+            align-self: center;
+            color: rgba(61, 184, 135, 1);
+        }
+    }
+
+    &__body {
+        text-align: center;
+
+        &__question {
+            margin-bottom: 10px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        &__option {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        &__label {
+            padding-left: 12px;
+            cursor: default;
+            vertical-align: bottom;
+        }
+
+        &__checkbox {
+            height: 28px;
+            vertical-align: middle;
+        }
+
+        &__error {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            &__text {
+                color: var(--error-text);
+                font-size: 14px;
+            }
+
+            &__icon {
+                display: inline-flex;
+                width: 16px;
+                height: 16px;
+                flex-grow: 0;
+                align-items: center;
+                filter: invert(54%) sepia(68%) saturate(314%) hue-rotate(309deg) brightness(83%) contrast(117%);
+            }
+        }
+
+        &__textarea {
+            width: 100%;
+            border: solid 1px rgba(63, 67, 80, 0.16);
+            background: rgb(var(--center-channel-bg-rgb));
+            border-radius: 4px;
+            resize: none;
+        }
+    }
+
+    &__footer {
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+
+        &--secondary {
+            @include tertiary-button;
+            @include button-medium;
+        }
+
+        &--primary {
+            @include primary-button;
+            @include button-medium;
+        }
+    }
+}

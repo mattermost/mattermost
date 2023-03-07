@@ -1,0 +1,987 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with no binding, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with no bindings 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with no extended component 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with no extended component, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with one binding 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={
+    Array [
+      Object {
+        "app_id": "appid",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+    ]
+  }
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "formatMessage": [Function],
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+>
+  <li
+    className="flex-parent--center"
+  >
+    <button
+      className="navbar-toggle navbar-right__icon"
+      id="appid_test"
+      onClick={[Function]}
+    >
+      <span
+        className="icon navbar-plugin-button"
+      >
+        <img
+          height="16"
+          src="http://test.com/icon.png"
+          width="16"
+        />
+      </span>
+    </button>
+  </li>
+</MobileChannelHeaderPlug>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with one binding, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={
+    Array [
+      Object {
+        "app_id": "appid",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+    ]
+  }
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemappidtest"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      Label
+    </a>
+  </li>
+</MobileChannelHeaderPlug>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended component 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "formatMessage": [Function],
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+>
+  <li
+    className="flex-parent--center"
+  >
+    <button
+      className="navbar-toggle navbar-right__icon"
+      onClick={[Function]}
+    >
+      <span
+        className="icon navbar-plugin-button"
+      >
+        <i
+          className="fa fa-anchor"
+        />
+      </span>
+    </button>
+  </li>
+</MobileChannelHeaderPlug>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended component and one binding, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={
+    Array [
+      Object {
+        "app_id": "appid",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+    ]
+  }
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemsomeid"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      some dropdown text
+    </a>
+  </li>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemappidtest"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      Label
+    </a>
+  </li>
+</MobileChannelHeaderPlug>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended component, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemsomeid"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      some dropdown text
+    </a>
+  </li>
+</MobileChannelHeaderPlug>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended components and one binding 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={
+    Array [
+      Object {
+        "app_id": "appid",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+    ]
+  }
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with two bindings 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={
+    Array [
+      Object {
+        "app_id": "appid",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+      Object {
+        "app_id": "app2",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+    ]
+  }
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with two bindings, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={
+    Array [
+      Object {
+        "app_id": "appid",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+      Object {
+        "app_id": "app2",
+        "form": Object {
+          "submit": Object {
+            "path": "/call/path",
+          },
+        },
+        "hint": "Hint",
+        "icon": "http://test.com/icon.png",
+        "label": "Label",
+        "location": "test",
+      },
+    ]
+  }
+  appsEnabled={true}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "formatMessage": [Function],
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemappidtest"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      Label
+    </a>
+  </li>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemapp2test"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      Label
+    </a>
+  </li>
+</MobileChannelHeaderPlug>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with two extended components 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+      },
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid2",
+        "pluginId": "pluginid",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isDropdown={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/MobileChannelHeaderPlug should match snapshot with two extended components, in dropdown 1`] = `
+<MobileChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+      },
+      Object {
+        "action": [MockFunction],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid2",
+        "pluginId": "pluginid",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "formatMessage": [Function],
+    }
+  }
+  isDropdown={true}
+  theme={Object {}}
+>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemsomeid"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      some dropdown text
+    </a>
+  </li>
+  <li
+    className="MenuItem"
+    key="mobileChannelHeaderItemsomeid2"
+    role="presentation"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+      role="menuitem"
+    >
+      some dropdown text
+    </a>
+  </li>
+</MobileChannelHeaderPlug>
+`;

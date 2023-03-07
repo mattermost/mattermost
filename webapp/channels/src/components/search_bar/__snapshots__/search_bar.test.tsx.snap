@@ -1,0 +1,284 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/search_bar/SearchBar should match snapshot with search 1`] = `
+<div>
+  <div
+    class="search-form__container"
+    id="searchFormContainer"
+  >
+    <form
+      aria-labelledby="searchBox"
+      autocomplete="off"
+      class="search__form"
+      role="application"
+      style="overflow: visible;"
+    >
+      <div
+        class="search__font-icon"
+      >
+        <i
+          class="icon icon-magnify icon-16"
+        />
+      </div>
+      <div
+        class="w-full"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="alert"
+        />
+        <div>
+          <input
+            aria-describedby="searchbar-help-popup"
+            aria-label="Search"
+            autocomplete="off"
+            class="search-bar form-control a11y__region"
+            data-a11y-sort-order="9"
+            id="searchBox"
+            placeholder="Search"
+            tabindex="0"
+            type="search"
+            value="test"
+          />
+          <div
+            class="input-clear visible"
+          >
+            <span
+              aria-hidden="true"
+              class="input-clear-x"
+            >
+              <i
+                class="icon icon-close-circle"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/search_bar/SearchBar should match snapshot with search, with searchType 1`] = `
+<div>
+  <div
+    class="search-form__container"
+    id="searchFormContainer"
+  >
+    <form
+      aria-labelledby="searchBox"
+      autocomplete="off"
+      class="search__form"
+      role="application"
+      style="overflow: visible;"
+    >
+      <div
+        class="search__font-icon"
+      >
+        <i
+          class="icon icon-magnify icon-16"
+        />
+      </div>
+      <div
+        class="searchTypeBadge"
+      >
+        FILES
+        <i
+          class="icon icon-close icon-12"
+        />
+      </div>
+      <div
+        class="w-full"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="alert"
+        />
+        <div>
+          <input
+            aria-describedby="searchbar-help-popup"
+            aria-label="Search"
+            autocomplete="off"
+            class="search-bar form-control a11y__region"
+            data-a11y-sort-order="9"
+            id="searchBox"
+            placeholder="Search"
+            tabindex="0"
+            type="search"
+            value="test"
+          />
+          <div
+            class="input-clear visible"
+          >
+            <span
+              aria-hidden="true"
+              class="input-clear-x"
+            >
+              <i
+                class="icon icon-close-circle"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/search_bar/SearchBar should match snapshot without search 1`] = `
+<div>
+  <div
+    class="search-form__container"
+    id="searchFormContainer"
+  >
+    <form
+      aria-labelledby="searchBox"
+      autocomplete="off"
+      class="search__form"
+      role="application"
+      style="overflow: visible;"
+    >
+      <div
+        class="search__font-icon"
+      >
+        <i
+          class="icon icon-magnify icon-16"
+        />
+      </div>
+      <div
+        class="w-full"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="alert"
+        />
+        <div>
+          <input
+            aria-describedby="searchbar-help-popup"
+            aria-label="Search"
+            autocomplete="off"
+            class="search-bar form-control a11y__region"
+            data-a11y-sort-order="9"
+            id="searchBox"
+            placeholder="Search"
+            tabindex="0"
+            type="search"
+            value=""
+          />
+          
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/search_bar/SearchBar should match snapshot without search, with searchType 1`] = `
+<div>
+  <div
+    class="search-form__container"
+    id="searchFormContainer"
+  >
+    <form
+      aria-labelledby="searchBox"
+      autocomplete="off"
+      class="search__form"
+      role="application"
+      style="overflow: visible;"
+    >
+      <div
+        class="search__font-icon"
+      >
+        <i
+          class="icon icon-magnify icon-16"
+        />
+      </div>
+      <div
+        class="searchTypeBadge"
+      >
+        FILES
+        <i
+          class="icon icon-close icon-12"
+        />
+      </div>
+      <div
+        class="w-full"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="alert"
+        />
+        <div>
+          <input
+            aria-describedby="searchbar-help-popup"
+            aria-label="Search"
+            autocomplete="off"
+            class="search-bar form-control a11y__region"
+            data-a11y-sort-order="9"
+            id="searchBox"
+            placeholder="Search"
+            tabindex="0"
+            type="search"
+            value=""
+          />
+          
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/search_bar/SearchBar should match snapshot without search, without searchType 1`] = `
+<div>
+  <div
+    class="search-form__container"
+    id="searchFormContainer"
+  >
+    <form
+      aria-labelledby="searchBox"
+      autocomplete="off"
+      class="search__form"
+      role="application"
+      style="overflow: visible;"
+    >
+      <div
+        class="search__font-icon"
+      >
+        <i
+          class="icon icon-magnify icon-16"
+        />
+      </div>
+      <div
+        class="w-full"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="alert"
+        />
+        <div>
+          <input
+            aria-describedby="searchbar-help-popup"
+            aria-label="Search"
+            autocomplete="off"
+            class="search-bar form-control a11y__region"
+            data-a11y-sort-order="9"
+            id="searchBox"
+            placeholder="Search"
+            tabindex="0"
+            type="search"
+            value=""
+          />
+          
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;

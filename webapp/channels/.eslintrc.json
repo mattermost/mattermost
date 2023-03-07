@@ -1,0 +1,181 @@
+{
+  "root": true,
+  "extends": [
+    "plugin:mattermost/react",
+    "plugin:cypress/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "plugins": [
+    "@babel/eslint-plugin",
+    "mattermost",
+    "import",
+    "cypress",
+    "no-only-tests",
+    "@typescript-eslint",
+    "formatjs"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "jest": true,
+    "cypress/globals": true
+  },
+  "settings": {
+    "import/resolver": "webpack",
+    "react": {
+        "pragma": "React",
+        "version": "detect"
+    }
+  },
+  "rules": {
+    "header/header": [
+      2,
+      "line",
+      " Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.",
+      2
+    ],
+    "no-duplicate-imports": 0,
+    "import/no-duplicates": 2,
+    "max-nested-callbacks": ["error", 10],
+    "no-unused-expressions": 0,
+    "@babel/no-unused-expressions": 2,
+    "eol-last": ["error", "always"],
+    "import/no-unresolved": 2,
+    "import/order": [
+      2,
+      {
+        "newlines-between": "always-and-inside-groups",
+        "groups": [
+          "builtin",
+          "external",
+          [
+            "internal",
+            "parent"
+          ],
+          "sibling",
+          "index"
+        ]
+      }
+    ],
+    "no-undefined": 0,
+    "no-use-before-define": 0,
+    "react/jsx-filename-extension": 0,
+    "react/prop-types": [
+      2,
+      {
+        "ignore": [
+          "location",
+          "history",
+          "component"
+        ]
+      }
+    ],
+    "react/no-unknown-property": [
+      2,
+      {
+        "ignore": [
+          "mask-type"
+        ]
+      }
+    ],
+    "react/no-string-refs": 2,
+    "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}],
+    "react/style-prop-object": [2, {
+      "allow": ["Timestamp"]
+    }],
+    "no-restricted-imports": ["error", {
+      "paths": [
+        {"name": "react-bootstrap", "importNames": ["OverlayTrigger"], "message": "Please use OverlayTrigger from '/components/overlay_trigger' instead"}
+      ]
+    }],
+    "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
+    "formatjs/no-multiple-whitespaces": ["error"]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.tsx", "**/*.ts"],
+      "extends": [
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "rules": {
+        "camelcase": 0,
+        "no-shadow": 0,
+        "import/no-unresolved": 0, // ts handles this better
+        "@typescript-eslint/naming-convention": [
+          2,
+          {
+            "selector": "function",
+            "format": ["camelCase", "PascalCase"]
+          },
+          {
+            "selector": "variable",
+            "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+          },
+          {
+            "selector": "parameter",
+            "format": ["camelCase", "PascalCase"],
+            "leadingUnderscore": "allow"
+          },
+          {
+            "selector": "typeLike",
+            "format": ["PascalCase"]
+          }
+        ],
+        "@typescript-eslint/no-non-null-assertion": 0,
+        "@typescript-eslint/no-unused-vars": [
+          2,
+          {
+            "vars": "all",
+            "args": "after-used"
+          }
+        ],
+        "@typescript-eslint/no-var-requires": 0,
+        "@typescript-eslint/no-empty-function": 0,
+        "@typescript-eslint/prefer-interface": 0,
+        "@typescript-eslint/explicit-function-return-type": 0,
+        "@typescript-eslint/explicit-module-boundary-types": 0,
+        "@typescript-eslint/indent": [
+          2,
+          4,
+          {
+            "SwitchCase": 0
+          }
+        ],
+        "@typescript-eslint/no-use-before-define": [
+          2,
+          {
+            "classes": false,
+            "functions": false,
+            "variables": false
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/tests/**", "**/*.test.*", "src/tests/*.js", "src/packages/mattermost-redux/test/*"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "func-names": 0,
+        "global-require": 0,
+        "max-lines": 0,
+        "new-cap": 0,
+        "no-empty-function": 0,
+        "no-import-assign": 0,
+        "no-process-env": 0,
+        "prefer-arrow-callback": 0
+      }
+    },
+    {
+      "files": ["e2e/**"],
+      "rules": {
+        "@babel/no-unused-expressions": 0,
+        "func-names": 0,
+        "import/no-unresolved": 0,
+        "max-nested-callbacks": 0,
+        "no-process-env": 0,
+        "no-unused-expressions": 0
+      }
+    }
+  ]
+}

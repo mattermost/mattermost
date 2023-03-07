@@ -1,0 +1,65 @@
+@charset 'UTF-8';
+
+.info-toast {
+    position: fixed;
+    z-index: 99;
+    right: 16px;
+    bottom: 16px;
+    display: grid;
+    width: fit-content;
+    min-height: 40px;
+    align-items: center;
+    padding: 8px;
+    background: var(--center-channel-text);
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+    color: var(--sidebar-text);
+    font-weight: 600;
+    grid-template-columns: min-content auto min-content auto;
+    line-height: 20px;
+
+    .info-toast__icon_button {
+        color: inherit;
+    }
+
+    span {
+        padding-left: 4px;
+    }
+
+    > div {
+        display: flex;
+        align-items: center;
+
+        .Icon {
+            font-size: 16px;
+        }
+    }
+}
+
+.info-toast__undo {
+    display: flex;
+    height: 24px;
+    align-items: center;
+    padding: 6px 10px;
+    border: none;
+    margin-right: 16px;
+    margin-left: 8px;
+    background: var(--button-bg);
+    border-radius: 4px;
+    color: var(--sidebar-text);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 10px;
+}
+
+// Animations
+.toast-appear {
+    opacity: 0;
+    transform: translateY(150px);
+}
+
+.toast-appear-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 500ms ease;
+}

@@ -1,0 +1,39 @@
+@charset 'UTF-8';
+
+// Color Variables
+$primary-color: #166de0;
+$primary-color--hover: darken($primary-color, 10%);
+$bg--gray: rgb(245, 245, 245);
+$white: rgb(255, 255, 255);
+$black: rgb(0, 0, 0);
+$red: rgb(214, 73, 70);
+$yellow: rgb(255, 255, 0);
+$light-gray: rgba(0, 0, 0, 0.15);
+$gray: rgba(0, 0, 0, 0.3);
+$dark-gray: rgba(0, 0, 0, 0.5);
+$link-color: rgb(35, 137, 215);
+$transparent: rgba(0, 0, 0, 0);
+$highlight-color: #fcea8d;
+
+// Typography
+$font-weight--semibold: 600;
+
+// Page Variables
+$border-gray: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+$announcement-bar-height: 40px;
+$backstage-bar-height: 43px;
+
+// Random variables
+$border-rad: 2px;
+$emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in emoji_picker.jsx
+
+// Transition timing defaults
+$transition-quick: 0.12s;
+
+// Elevations
+$elevation-1: var(--elevation-1);
+$elevation-2: var(--elevation-2);
+$elevation-3: var(--elevation-3);
+$elevation-4: var(--elevation-4);
+$elevation-5: var(--elevation-5);
+$elevation-6: var(--elevation-6);

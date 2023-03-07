@@ -1,0 +1,431 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot 1`] = `
+<AdminPanel
+  button={
+    <Memo(Connect(ToggleModalButton))
+      className="btn btn-primary"
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "channel-1",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+          "channelId": "channel-1",
+          "excludeUsers": Object {},
+          "includeUsers": Object {},
+          "onAddCallback": [Function],
+          "skipCommit": true,
+          "teamId": "team_id",
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="addChannelMembers"
+      modalId="channel_invite"
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add Members"
+        id="admin.team_settings.team_details.add_members"
+      />
+    </Memo(Connect(ToggleModalButton))>
+  }
+  className=""
+  id="channelMembers"
+  subtitleDefault="A list of users who are currently in the channel right now"
+  subtitleId="admin.channel_settings.channel_detail.membersDescription"
+  titleDefault="Members"
+  titleId="admin.channel_settings.channel_detail.membersTitle"
+>
+  <UserGrid
+    excludeUsers={Object {}}
+    filterProps={
+      Object {
+        "keys": Array [
+          "role",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "role": Object {
+            "keys": Array [
+              "system_guest",
+              "channel_user",
+              "channel_admin",
+              "system_admin",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Role"
+              id="admin.user_grid.role"
+            />,
+            "values": Object {
+              "channel_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Channel Admin"
+                  id="admin.user_grid.channel_admin"
+                />,
+                "value": false,
+              },
+              "channel_user": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Member"
+                  id="admin.user_item.member"
+                />,
+                "value": false,
+              },
+              "system_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Admin"
+                  id="admin.user_grid.system_admin"
+                />,
+                "value": false,
+              },
+              "system_guest": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest"
+                  id="admin.user_grid.guest"
+                />,
+                "value": false,
+              },
+            },
+          },
+        },
+      }
+    }
+    includeUsers={Object {}}
+    loadPage={[Function]}
+    loading={true}
+    memberships={
+      Object {
+        "user-1": Object {
+          "channel_id": "channel_id",
+          "last_update_at": 0,
+          "last_viewed_at": 0,
+          "mention_count": 0,
+          "mention_count_root": 0,
+          "msg_count": 0,
+          "msg_count_root": 0,
+          "notify_props": Object {
+            "desktop": "default",
+            "email": "default",
+            "ignore_channel_mentions": "default",
+            "mark_unread": "all",
+            "push": "default",
+          },
+          "roles": "channel_user",
+          "scheme_admin": false,
+          "scheme_user": true,
+          "urgent_mention_count": 0,
+          "user_id": "user-1",
+        },
+        "user-2": Object {
+          "channel_id": "channel_id",
+          "last_update_at": 0,
+          "last_viewed_at": 0,
+          "mention_count": 0,
+          "mention_count_root": 0,
+          "msg_count": 0,
+          "msg_count_root": 0,
+          "notify_props": Object {
+            "desktop": "default",
+            "email": "default",
+            "ignore_channel_mentions": "default",
+            "mark_unread": "all",
+            "push": "default",
+          },
+          "roles": "channel_user",
+          "scheme_admin": false,
+          "scheme_user": true,
+          "urgent_mention_count": 0,
+          "user_id": "user-2",
+        },
+        "user-3": Object {
+          "channel_id": "channel_id",
+          "last_update_at": 0,
+          "last_viewed_at": 0,
+          "mention_count": 0,
+          "mention_count_root": 0,
+          "msg_count": 0,
+          "msg_count_root": 0,
+          "notify_props": Object {
+            "desktop": "default",
+            "email": "default",
+            "ignore_channel_mentions": "default",
+            "mark_unread": "all",
+            "push": "default",
+          },
+          "roles": "channel_user",
+          "scheme_admin": false,
+          "scheme_user": true,
+          "urgent_mention_count": 0,
+          "user_id": "user-3",
+        },
+      }
+    }
+    onSearch={[Function]}
+    removeUser={[Function]}
+    scope="channel"
+    term=""
+    totalCount={3}
+    updateMembership={[Function]}
+    users={
+      Array [
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "user-1",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        },
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "user-2",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        },
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "user-3",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        },
+      ]
+    }
+  />
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot loading no users 1`] = `
+<AdminPanel
+  button={
+    <Memo(Connect(ToggleModalButton))
+      className="btn btn-primary"
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "channel-1",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+          "channelId": "channel-1",
+          "excludeUsers": Object {},
+          "includeUsers": Object {},
+          "onAddCallback": [Function],
+          "skipCommit": true,
+          "teamId": "team_id",
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="addChannelMembers"
+      modalId="channel_invite"
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add Members"
+        id="admin.team_settings.team_details.add_members"
+      />
+    </Memo(Connect(ToggleModalButton))>
+  }
+  className=""
+  id="channelMembers"
+  subtitleDefault="A list of users who are currently in the channel right now"
+  subtitleId="admin.channel_settings.channel_detail.membersDescription"
+  titleDefault="Members"
+  titleId="admin.channel_settings.channel_detail.membersTitle"
+>
+  <UserGrid
+    excludeUsers={Object {}}
+    filterProps={
+      Object {
+        "keys": Array [
+          "role",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "role": Object {
+            "keys": Array [
+              "system_guest",
+              "channel_user",
+              "channel_admin",
+              "system_admin",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Role"
+              id="admin.user_grid.role"
+            />,
+            "values": Object {
+              "channel_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Channel Admin"
+                  id="admin.user_grid.channel_admin"
+                />,
+                "value": false,
+              },
+              "channel_user": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Member"
+                  id="admin.user_item.member"
+                />,
+                "value": false,
+              },
+              "system_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Admin"
+                  id="admin.user_grid.system_admin"
+                />,
+                "value": false,
+              },
+              "system_guest": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest"
+                  id="admin.user_grid.guest"
+                />,
+                "value": false,
+              },
+            },
+          },
+        },
+      }
+    }
+    includeUsers={Object {}}
+    loadPage={[Function]}
+    loading={true}
+    memberships={Object {}}
+    onSearch={[Function]}
+    removeUser={[Function]}
+    scope="channel"
+    term=""
+    totalCount={0}
+    updateMembership={[Function]}
+    users={Array []}
+  />
+</AdminPanel>
+`;

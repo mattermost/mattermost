@@ -1,0 +1,341 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions should match snapshot for external image with public links enabled 1`] = `
+<div
+  className="file-preview-modal-main-actions__actions"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="download"
+    overlay={
+      <Tooltip
+        id="download-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Download"
+          id="view_image_popover.download"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      className="file-preview-modal-main-actions__action-item"
+      download="img.png"
+      href="http://example.com/img.png"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </a>
+  </OverlayTrigger>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="publicLink"
+    overlay={
+      <Tooltip
+        id="close-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Close"
+          id="full_screen_modal.close"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="file-preview-modal-main-actions__action-item"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon icon-close"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions should match snapshot when copy content is enabled 1`] = `
+<div
+  className="file-preview-modal-main-actions__actions"
+>
+  <CopyButton
+    afterCopyText="Copied"
+    className="file-preview-modal-main-actions__action-item"
+    content="test content"
+    placement="bottom"
+  />
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="download"
+    overlay={
+      <Tooltip
+        id="download-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Download"
+          id="view_image_popover.download"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      className="file-preview-modal-main-actions__action-item"
+      download="img.png"
+      href="http://example.com/img.png"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </a>
+  </OverlayTrigger>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="publicLink"
+    overlay={
+      <Tooltip
+        id="close-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Close"
+          id="full_screen_modal.close"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="file-preview-modal-main-actions__action-item"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon icon-close"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions should match snapshot with public links disabled 1`] = `
+<div
+  className="file-preview-modal-main-actions__actions"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="download"
+    overlay={
+      <Tooltip
+        id="download-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Download"
+          id="view_image_popover.download"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      className="file-preview-modal-main-actions__action-item"
+      download="img.png"
+      href="http://example.com/img.png"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </a>
+  </OverlayTrigger>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="publicLink"
+    overlay={
+      <Tooltip
+        id="close-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Close"
+          id="full_screen_modal.close"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="file-preview-modal-main-actions__action-item"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon icon-close"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions should match snapshot with public links enabled 1`] = `
+<div
+  className="file-preview-modal-main-actions__actions"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="filePreviewPublicLink"
+    onExit={[Function]}
+    overlay={
+      <Tooltip
+        id="link-variant-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Get a public link"
+          id="view_image_popover.publicLink"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    shouldUpdatePosition={true}
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      className="file-preview-modal-main-actions__action-item"
+      href="#"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-link-variant"
+      />
+    </a>
+  </OverlayTrigger>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="download"
+    overlay={
+      <Tooltip
+        id="download-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Download"
+          id="view_image_popover.download"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <a
+      className="file-preview-modal-main-actions__action-item"
+      download="img.png"
+      href="http://example.com/img.png"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </a>
+  </OverlayTrigger>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="publicLink"
+    overlay={
+      <Tooltip
+        id="close-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Close"
+          id="full_screen_modal.close"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="file-preview-modal-main-actions__action-item"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon icon-close"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions should match snapshot with public links enabled 2`] = `
+<a
+  className="file-preview-modal-main-actions__action-item"
+  href="#"
+  onClick={[Function]}
+>
+  <i
+    className="icon icon-link-variant"
+  />
+</a>
+`;

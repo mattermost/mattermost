@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/InfoToast should match snapshot 1`] = `
+<CSSTransition
+  appear={true}
+  classNames="toast"
+  in={true}
+  mountOnEnter={true}
+  timeout={300}
+  unmountOnExit={true}
+>
+  <div
+    className="info-toast className"
+  >
+    <CheckIcon />
+    <span>
+      test
+    </span>
+    <button
+      className="info-toast__undo"
+      onClick={[Function]}
+    >
+      Undo
+    </button>
+    <ForwardRef
+      className="info-toast__icon_button"
+      icon="close"
+      inverted={true}
+      onClick={[Function]}
+      size="sm"
+    />
+  </div>
+</CSSTransition>
+`;

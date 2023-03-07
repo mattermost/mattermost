@@ -1,0 +1,125 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditCommand should have match renderExtra 1`] = `
+<ConfirmModal
+  confirmButtonClass="btn btn-primary"
+  confirmButtonText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Update"
+      id="update_command.update"
+    />
+  }
+  message={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Your changes may break the existing slash command. Are you sure you would like to update it?"
+      id="update_command.question"
+    />
+  }
+  modalClass=""
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  show={false}
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Edit Slash Command"
+      id="update_command.confirm"
+    />
+  }
+/>
+`;
+
+exports[`components/integrations/EditCommand should match snapshot 1`] = `
+<AbstractCommand
+  action={[Function]}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "edit_command.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialCommand={
+    Object {
+      "auto_complete": true,
+      "auto_complete_desc": "auto_complete_desc",
+      "auto_complete_hint": "auto_complete_hint",
+      "create_at": 1499722850203,
+      "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+      "delete_at": 0,
+      "description": "description",
+      "display_name": "display_name",
+      "icon_url": "https://google.com/icon",
+      "id": "r5tpgt4iepf45jt768jz84djic",
+      "method": "G",
+      "team_id": "m5gix3oye3du8ghk4ko6h9cq7y",
+      "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+      "trigger": "trigger",
+      "update_at": 1504468859001,
+      "url": "https://google.com/command",
+      "username": "username",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "edit_command.updating",
+    }
+  }
+  renderExtra={
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Update"
+          id="update_command.update"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Your changes may break the existing slash command. Are you sure you would like to update it?"
+          id="update_command.question"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Edit Slash Command"
+          id="update_command.confirm"
+        />
+      }
+    />
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "m5gix3oye3du8ghk4ko6h9cq7y",
+      "invite_id": "",
+      "name": "test",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditCommand should match snapshot when EnableCommands is false 1`] = `<LoadingScreen />`;
+
+exports[`components/integrations/EditCommand should match snapshot, loading 1`] = `<LoadingScreen />`;

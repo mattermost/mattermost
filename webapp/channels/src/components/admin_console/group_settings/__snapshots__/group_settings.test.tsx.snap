@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/GroupSettings should match snapshot 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <div
+    className="admin-console__header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Groups"
+      id="admin.group_settings.groupsPageTitle"
+    />
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="banner info"
+      >
+        <div
+          className="banner__content"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Groups are a way to organize users and apply actions to all users within that group.
+For more information on Groups, please see <link>documentation</link>."
+            id="admin.group_settings.introBanner"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        </div>
+      </div>
+      <AdminPanel
+        className=""
+        id="ldap_groups"
+        subtitleDefault="Connect AD/LDAP and create groups in Mattermost. To get started, configure group attributes on the <link>AD/LDAP</link> configuration page."
+        subtitleId="admin.group_settings.ldapGroupsDescription"
+        subtitleValues={
+          Object {
+            "link": [Function],
+          }
+        }
+        titleDefault="AD/LDAP Groups"
+        titleId="admin.group_settings.ldapGroupsTitle"
+      >
+        <Connect(GroupsList) />
+      </AdminPanel>
+    </div>
+  </div>
+</div>
+`;

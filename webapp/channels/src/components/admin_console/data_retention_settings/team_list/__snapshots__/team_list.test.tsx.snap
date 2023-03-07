@@ -1,0 +1,483 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/data_retention_settings/team_list should match snapshot 1`] = `
+<div
+  className="PolicyTeamsList"
+>
+  <DataGrid
+    className="customTable"
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_settings.team_list.nameHeader"
+          />,
+        },
+        Object {
+          "className": "TeamList__actionColumn",
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={1}
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "id": "team-1",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-team-1"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="name"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  name
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-team-1"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+      ]
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={1}
+  />
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/team_list should match snapshot with paging 1`] = `
+<div
+  className="PolicyTeamsList"
+>
+  <DataGrid
+    className="customTable"
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_settings.team_list.nameHeader"
+          />,
+        },
+        Object {
+          "className": "TeamList__actionColumn",
+          "field": "remove",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={10}
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "id": "id0",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id0"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN0"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN0
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id0"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id1",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id1"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN1"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN1
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id1"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id2",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id2"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN2"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN2
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id2"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id3",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id3"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN3"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN3
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id3"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id4",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id4"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN4"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN4
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id4"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id5",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id5"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN5"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN5
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id5"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id6",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id6"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN6"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN6
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id6"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id7",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id7"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN7"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN7
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id7"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id8",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id8"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN8"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN8
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id8"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id9",
+            "name": <div
+              className="TeamList__nameColumn"
+              id="team-name-id9"
+            >
+              <div
+                className="TeamList__lowerOpacity"
+              >
+                <injectIntl(TeamIcon)
+                  content="DN9"
+                  size="sm"
+                  url={null}
+                />
+              </div>
+              <div
+                className="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN9
+                </b>
+              </div>
+            </div>,
+            "remove": <a
+              className="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id9"
+              onClick={[Function]}
+            >
+              Remove
+            </a>,
+          },
+        },
+      ]
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={30}
+  />
+</div>
+`;

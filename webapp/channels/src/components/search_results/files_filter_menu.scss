@@ -1,0 +1,46 @@
+.FilesFilterMenu {
+    .MenuWrapper {
+        z-index: 100;
+        align-self: end;
+
+        .action-icon {
+            z-index: 5;
+            display: flex;
+            min-width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+            text-align: center;
+
+            .icon-dot {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                width: 10px;
+                height: 10px;
+                border: 2px solid var(--center-channel-bg);
+                background-color: var(--button-bg);
+                border-radius: 50%;
+            }
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+        }
+    }
+
+    .MenuItem {
+        span.icon {
+            position: absolute;
+            right: 13px;
+            color: var(--button-bg);
+        }
+    }
+}

@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/CommentedOnFilesMessage Snapshot when no files 1`] = `""`;
+
+exports[`components/CommentedOnFilesMessage should match snapshot for multiple files 1`] = `
+<span>
+  image_3.png
+  <MemoizedFormattedMessage
+    defaultMessage=" plus {count, number} other {count, plural, one {file} other {files}}"
+    id="post_body.plusMore"
+    values={
+      Object {
+        "count": 2,
+      }
+    }
+  />
+</span>
+`;
+
+exports[`components/CommentedOnFilesMessage should match snapshot for single file 1`] = `
+<span>
+  image_1.png
+</span>
+`;

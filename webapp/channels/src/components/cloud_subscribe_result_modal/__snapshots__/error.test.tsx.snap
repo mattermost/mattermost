@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <ErrorModal>
+    <injectIntl(FullScreenModal)
+      onClose={[Function]}
+      overrideTargetEvent={true}
+      show={false}
+    >
+      <injectIntl(FullScreenModal)
+        forwardedRef={null}
+        onClose={[Function]}
+        overrideTargetEvent={true}
+        show={false}
+      >
+        <FullScreenModal
+          forwardedRef={null}
+          intl={
+            Object {
+              "defaultFormats": Object {},
+              "defaultLocale": "en",
+              "defaultRichTextElements": undefined,
+              "formatDate": [Function],
+              "formatDateTimeRange": [Function],
+              "formatDateToParts": [Function],
+              "formatDisplayName": [Function],
+              "formatList": [Function],
+              "formatListToParts": [Function],
+              "formatMessage": [Function],
+              "formatNumber": [Function],
+              "formatNumberToParts": [Function],
+              "formatPlural": [Function],
+              "formatRelativeTime": [Function],
+              "formatTime": [Function],
+              "formatTimeToParts": [Function],
+              "formats": Object {},
+              "formatters": Object {
+                "getDateTimeFormat": [Function],
+                "getDisplayNames": [Function],
+                "getListFormat": [Function],
+                "getMessageFormat": [Function],
+                "getNumberFormat": [Function],
+                "getPluralRules": [Function],
+                "getRelativeTimeFormat": [Function],
+              },
+              "locale": "en",
+              "messages": Object {},
+              "onError": [Function],
+              "textComponent": "span",
+              "timeZone": "Etc/UTC",
+              "wrapRichTextChunksInFragment": undefined,
+            }
+          }
+          onClose={[Function]}
+          overrideTargetEvent={true}
+          show={false}
+        >
+          <CSSTransition
+            appear={true}
+            classNames="FullScreenModal"
+            in={false}
+            mountOnEnter={true}
+            timeout={100}
+            unmountOnExit={true}
+          >
+            <Transition
+              appear={true}
+              enter={true}
+              exit={true}
+              in={false}
+              mountOnEnter={true}
+              onEnter={[Function]}
+              onEntered={[Function]}
+              onEntering={[Function]}
+              onExit={[Function]}
+              onExited={[Function]}
+              onExiting={[Function]}
+              timeout={100}
+              unmountOnExit={true}
+            />
+          </CSSTransition>
+        </FullScreenModal>
+      </injectIntl(FullScreenModal)>
+    </injectIntl(FullScreenModal)>
+  </ErrorModal>
+</Provider>
+`;

@@ -1,0 +1,169 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="emoji-picker__inner"
+    role="application"
+  >
+    <div
+      aria-live="assertive"
+      class="sr-only"
+    >
+       emoji
+    </div>
+    <div
+      class="emoji-picker__search-container"
+    >
+      <div
+        class="emoji-picker__text-container"
+      >
+        <span
+          class="icon-magnify icon emoji-picker__search-icon"
+        />
+        <input
+          aria-label="Search for an emoji"
+          autocomplete="off"
+          class="emoji-picker__search"
+          data-testid="emojiInputSearch"
+          id="emojiPickerSearch"
+          placeholder="Search Emoji"
+          type="text"
+          value=""
+        />
+      </div>
+      <div />
+    </div>
+    <div
+      class="emoji-picker__categories"
+      id="emojiPickerCategories"
+    >
+      <a
+        aria-label="emoji_picker.smileys-emotion"
+        class="emoji-picker__category emoji-picker__category--selected"
+        href="#"
+      >
+        <i
+          class="icon-emoticon-happy-outline"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.people-body"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-account-outline"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.animals-nature"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-leaf-outline"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.food-drink"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-food-apple"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.travel-places"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-airplane-variant"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.activities"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-basketball"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.objects"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-lightbulb-outline"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.symbols"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-heart-outline"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.flags"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-flag-outline"
+        />
+      </a>
+      <a
+        aria-label="emoji_picker.custom"
+        class="emoji-picker__category"
+        href="#"
+      >
+        <i
+          class="icon-emoticon-custom-outline"
+        />
+      </a>
+    </div>
+    <div
+      class="emoji-picker__items"
+      style="height: 290px;"
+    >
+      <div
+        class="emoji-picker__container"
+      >
+        <div
+          style="overflow: visible; height: 0px; width: 0px;"
+        />
+        <div
+          class="resize-triggers"
+        >
+          <div
+            class="expand-trigger"
+          >
+            <div
+              style="width: 1px; height: 1px;"
+            />
+          </div>
+          <div
+            class="contract-trigger"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emoji-picker__footer"
+    >
+      <div
+        class="emoji-picker__preview emoji-picker__preview-placeholder"
+      >
+        Select an Emoji
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

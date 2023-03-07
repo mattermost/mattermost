@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/CommercialSupportModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="commercialSupportModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Commercial Support"
+        id="commercial_support.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="CommercialSupportModal"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="If you're experiencing issues, [submit a support ticket.](!{supportLink})
+ 
+**Download Support Packet**
+ 
+We recommend that you download additional environment details about your Mattermost environment to help with troubleshooting. Once downloaded, attach the packet to your support ticket to share with our Customer Support team."
+        id="commercial_support.description"
+        values={
+          Object {
+            "supportLink": "https://support.mattermost.com/hc/en-us/requests/new",
+          }
+        }
+      />
+      <a
+        className="btn btn-primary DownloadSupportPacket"
+        href="/api/v4/system/support_packet"
+        rel="noopener noreferrer"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Download Support Packet"
+          id="commercial_support.download_support_packet"
+        />
+      </a>
+      <AlertBanner
+        message={
+          <FormattedMarkdownMessage
+            defaultMessage="Before downloading the support packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
+            id="commercial_support.warning.banner"
+          />
+        }
+        mode="info"
+        onDismiss={[Function]}
+      />
+    </div>
+  </ModalBody>
+</Modal>
+`;

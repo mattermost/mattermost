@@ -1,0 +1,47 @@
+.CircularChart {
+    .circular-chart {
+        display: block;
+        margin: 5px auto;
+
+        &.warning .circle {
+            stroke: var(--away-indicator);
+        }
+
+        &.success .circle {
+            stroke: var(--denim-status-online);
+        }
+
+        &.info .circle {
+            stroke: var(--sidebar-text-active-border);
+        }
+
+        &.error .circle {
+            stroke: var(--error-text);
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: transparent;
+            stroke-width: 4.2;
+        }
+
+        .circle {
+            animation: progress 1s ease-out forwards;
+            fill: none;
+            stroke-width: 3.2;
+        }
+    }
+
+    @keyframes progress {
+        0% {
+            stroke-dasharray: 0 100;
+        }
+    }
+
+    .percentageOrNumber {
+        fill: var(--sys-center-channel-color);
+        font-family: sans-serif;
+        font-size: 0.5em;
+        text-anchor: middle;
+    }
+}

@@ -1,0 +1,88 @@
+@charset 'UTF-8';
+
+.inner-wrap {
+    &.move--left {
+        .search-btns {
+            display: none;
+        }
+
+        .header-list__right {
+            position: relative;
+            z-index: 6;
+            padding-right: 0 !important;
+            // the negative margin-right is used
+            // to prevent the icons in the header from
+            // moving to the left when the RHS is open
+            //
+            // the below z-index is used to ensure the icons
+            // stays on the top and don't get hidden by the
+            // search's input block
+            float: right;
+        }
+    }
+
+    &.move--right {
+        .search-bar__container {
+            display: none;
+        }
+
+        .search-btns {
+            display: none;
+        }
+
+        .header-list__right {
+            position: relative;
+            z-index: 6;
+            padding-right: 0 !important;
+            margin-right: -18px;
+            // the negative margin-right is used
+            // to prevent the icons in the header from
+            // moving to the left when the RHS is open
+            //
+            // the below z-index is used to ensure the icons
+            // stays on the top and don't get hidden by the
+            // search's input block
+            float: right;
+        }
+    }
+}
+
+.app__content {
+    position: relative;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    padding-top: 50px;
+    background: var(--center-channel-bg);
+
+    .channel__wrap & {
+        padding-top: 0;
+    }
+}
+
+#archive-link-home {
+    flex: 0 0 auto;
+    cursor: pointer;
+    font-size: 13px;
+
+    .fa {
+        font-size: 11px;
+        opacity: 0.7;
+    }
+
+    a {
+        display: block;
+        width: 100%;
+        padding: 10px 20px;
+        color: inherit;
+    }
+}
+
+.delete-message-text {
+    margin-top: 10px;
+}
+
+.col-sm-auto {
+    padding-right: 15px;
+    padding-left: 15px;
+}

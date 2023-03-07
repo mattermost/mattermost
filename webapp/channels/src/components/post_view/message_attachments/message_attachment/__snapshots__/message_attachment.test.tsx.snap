@@ -1,0 +1,742 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/MessageAttachment should call actions.doPostActionWithCookie on handleAction 1`] = `
+<div
+  className="attachment attachment--pretext"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__thumb-pretext"
+  >
+    <Connect(Markdown)
+      message="pretext"
+      postId="post_id"
+    />
+  </div>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container"
+      style={
+        Object {
+          "borderLeftColor": "#FFF",
+        }
+      }
+    >
+      <a
+        href="author_link"
+        key="attachment__author-name"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Connect(ExternalImage)
+          key="attachment__author-icon"
+          src="author_icon"
+        >
+          <Component />
+        </Connect(ExternalImage)>
+        <span
+          className="attachment__author-name"
+          key="attachment__author-name"
+        >
+          author_name
+        </span>
+      </a>
+      <h1
+        className="attachment__title"
+      >
+        <a
+          className="attachment__title-link"
+          href="title_link"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          title
+        </a>
+      </h1>
+      <div>
+        <div
+          className="attachment__body"
+        >
+          <Connect(ShowMore)
+            checkOverflow={0}
+            isAttachmentText={true}
+            maxHeight={200}
+            text="short text"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="short text"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+          <div
+            className="attachment__image-container"
+          >
+            <Connect(ExternalImage)
+              imageMetadata={
+                Object {
+                  "height": 200,
+                  "width": 200,
+                }
+              }
+              src="image_url"
+            >
+              <Component />
+            </Connect(ExternalImage)>
+          </div>
+          <div
+            className="attachment__footer-container"
+          >
+            <Connect(ExternalImage)
+              src="footer_icon"
+            >
+              <Component />
+            </Connect(ExternalImage)>
+            <span>
+              footer
+            </span>
+          </div>
+          <div
+            className="attachment-actions"
+          >
+            <Connect(ActionButton)
+              action={
+                Object {
+                  "cookie": "cookie-contents",
+                  "id": "action_id_1",
+                  "name": "action_name_1",
+                }
+              }
+              actionExecuting={false}
+              handleAction={[Function]}
+              key="action_id_1"
+            />
+          </div>
+        </div>
+        <div
+          className="attachment__thumb-container"
+        >
+          <Connect(ExternalImage)
+            imageMetadata={
+              Object {
+                "height": 200,
+                "width": 200,
+              }
+            }
+            src="thumb_url"
+          >
+            <Component />
+          </Connect(ExternalImage)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
+<div
+  className="attachment attachment--pretext"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__thumb-pretext"
+  >
+    <Connect(Markdown)
+      message="pretext"
+      postId="post_id"
+    />
+  </div>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container"
+      style={
+        Object {
+          "borderLeftColor": "#FFF",
+        }
+      }
+    >
+      <a
+        href="author_link"
+        key="attachment__author-name"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Connect(ExternalImage)
+          key="attachment__author-icon"
+          src="author_icon"
+        >
+          <Component />
+        </Connect(ExternalImage)>
+        <span
+          className="attachment__author-name"
+          key="attachment__author-name"
+        >
+          author_name
+        </span>
+      </a>
+      <h1
+        className="attachment__title"
+      >
+        <a
+          className="attachment__title-link"
+          href="title_link"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          title
+        </a>
+      </h1>
+      <div>
+        <div
+          className="attachment__body"
+        >
+          <Connect(ShowMore)
+            checkOverflow={0}
+            isAttachmentText={true}
+            maxHeight={200}
+            text="short text"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="short text"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+          <div
+            className="attachment__image-container"
+          >
+            <Connect(ExternalImage)
+              imageMetadata={
+                Object {
+                  "height": 200,
+                  "width": 200,
+                }
+              }
+              src="image_url"
+            >
+              <Component />
+            </Connect(ExternalImage)>
+          </div>
+          <div
+            className="attachment__footer-container"
+          >
+            <Connect(ExternalImage)
+              src="footer_icon"
+            >
+              <Component />
+            </Connect(ExternalImage)>
+            <span>
+              footer
+            </span>
+          </div>
+        </div>
+        <div
+          className="attachment__thumb-container"
+        >
+          <Connect(ExternalImage)
+            imageMetadata={
+              Object {
+                "height": 200,
+                "width": 200,
+              }
+            }
+            src="thumb_url"
+          >
+            <Component />
+          </Connect(ExternalImage)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot and render a field with a number value 1`] = `
+<td
+  className="attachment-field"
+  key="attachment__field-0__1"
+>
+  <Connect(Markdown)
+    message="1234"
+    postId="post_id"
+  />
+</td>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot when no footer is provided (even if footer_icon is provided) 1`] = `
+<div
+  className="attachment attachment--pretext"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__thumb-pretext"
+  >
+    <Connect(Markdown)
+      message="pretext"
+      postId="post_id"
+    />
+  </div>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container"
+      style={
+        Object {
+          "borderLeftColor": "#FFF",
+        }
+      }
+    >
+      <a
+        href="author_link"
+        key="attachment__author-name"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Connect(ExternalImage)
+          key="attachment__author-icon"
+          src="author_icon"
+        >
+          <Component />
+        </Connect(ExternalImage)>
+        <span
+          className="attachment__author-name"
+          key="attachment__author-name"
+        >
+          author_name
+        </span>
+      </a>
+      <h1
+        className="attachment__title"
+      >
+        <a
+          className="attachment__title-link"
+          href="title_link"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          title
+        </a>
+      </h1>
+      <div>
+        <div
+          className="attachment__body"
+        >
+          <Connect(ShowMore)
+            checkOverflow={0}
+            isAttachmentText={true}
+            maxHeight={200}
+            text="short text"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="short text"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+          <div
+            className="attachment__image-container"
+          >
+            <Connect(ExternalImage)
+              imageMetadata={
+                Object {
+                  "height": 200,
+                  "width": 200,
+                }
+              }
+              src="image_url"
+            >
+              <Component />
+            </Connect(ExternalImage)>
+          </div>
+        </div>
+        <div
+          className="attachment__thumb-container"
+        >
+          <Connect(ExternalImage)
+            imageMetadata={
+              Object {
+                "height": 200,
+                "width": 200,
+              }
+            }
+            src="thumb_url"
+          >
+            <Component />
+          </Connect(ExternalImage)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot when the attachment has a link in the title 1`] = `
+<div
+  className="attachment "
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--undefined"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="Do you like https://mattermost.com?"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        />
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot when the attachment has an emoji in the title 1`] = `
+<div
+  className="attachment "
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--undefined"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="Do you like :pizza:?"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        />
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot when the attachment hasn't any emojis in the title 1`] = `
+<div
+  className="attachment "
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--undefined"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="Don't you like emojis?"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        />
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match snapshot when the footer is truncated 1`] = `
+<div
+  className="attachment "
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--undefined"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="footer"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        >
+          <div
+            className="attachment__footer-container"
+          >
+            <span>
+              aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match value on getFieldsTable 1`] = `""`;
+
+exports[`components/post_view/MessageAttachment should match value on getFieldsTable 2`] = `
+<div>
+  <table
+    className="attachment-fields"
+  >
+    <thead>
+      <tr />
+    </thead>
+    <tbody>
+      <tr />
+    </tbody>
+  </table>
+  <table
+    className="attachment-fields"
+  >
+    <thead>
+      <tr>
+        <th
+          className="attachment-field__caption"
+        >
+          <Memo(Connect(Markdown))
+            message="title_1"
+            options={
+              Object {
+                "markdown": false,
+                "mentionHighlight": false,
+              }
+            }
+            postId="post_id"
+          />
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          className="attachment-field"
+        >
+          <Memo(Connect(Markdown))
+            message="value_1"
+            postId="post_id"
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <table
+    className="attachment-fields"
+  >
+    <thead>
+      <tr>
+        <th
+          className="attachment-field__caption"
+        >
+          <Memo(Connect(Markdown))
+            message="title_2"
+            options={
+              Object {
+                "markdown": false,
+                "mentionHighlight": false,
+              }
+            }
+            postId="post_id"
+          />
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td
+          className="attachment-field"
+        >
+          <Memo(Connect(Markdown))
+            message="value_2"
+            postId="post_id"
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should match value on renderPostActions 1`] = `""`;
+
+exports[`components/post_view/MessageAttachment should match value on renderPostActions 2`] = `
+<div
+  className="attachment-actions"
+>
+  <Memo(Connect(ActionButton))
+    action={
+      Object {
+        "id": "action_id_1",
+        "name": "action_name_1",
+      }
+    }
+    actionExecuting={false}
+    handleAction={[Function]}
+  />
+  <Memo(Connect(ActionButton))
+    action={
+      Object {
+        "id": "action_id_2",
+        "name": "action_name_2",
+      }
+    }
+    actionExecuting={false}
+    handleAction={[Function]}
+  />
+  <Memo(Connect(ActionMenu))
+    action={
+      Object {
+        "data_source": "users",
+        "id": "action_id_3",
+        "name": "action_name_3",
+        "type": "select",
+      }
+    }
+    postId="post_id"
+  />
+</div>
+`;
+
+exports[`components/post_view/MessageAttachment should not render content box if there is no content 1`] = `
+<div
+  className="attachment attachment--pretext"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__thumb-pretext"
+  >
+    <Connect(Markdown)
+      message="This is a pretext."
+      postId="post_id"
+    />
+  </div>
+</div>
+`;

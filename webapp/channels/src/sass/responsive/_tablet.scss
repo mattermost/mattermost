@@ -1,0 +1,523 @@
+@charset "utf-8";
+
+@media screen and (max-width: 960px) {
+    .system-users__filter-row {
+        flex-direction: column;
+
+        .system-users__filter {
+            &:first-child {
+                flex: 1 1 auto;
+                padding-bottom: 12px;
+            }
+        }
+
+        > label {
+            margin-bottom: 12px;
+
+            span {
+                flex: 0 0 auto;
+                padding-left: 0;
+            }
+        }
+    }
+
+    .app__body {
+        .modal {
+            .modal-image {
+                .modal-image__wrapper {
+                    img {
+                        max-height: calc(100vh - 108px);
+                    }
+
+                    > div {
+                        min-width: 250px;
+                        font-size: 12px;
+                    }
+
+                    .modal-close {
+                        opacity: 1;
+                    }
+                }
+
+                .modal-button-bar {
+                    bottom: 20px;
+                    padding: 5px 10px 5px 5px;
+                    line-height: 30px;
+                }
+            }
+        }
+    }
+
+    .post-create__container {
+        .channel-archived__close-btn {
+            display: block;
+            margin: 10px auto 0;
+        }
+    }
+
+    .help__format-text {
+        display: none;
+    }
+
+    .post-right__scroll {
+        .post-create__container {
+            .post-create-body {
+                .icon__emoji_picker {
+                    top: -7px;
+                    display: none;
+                }
+            }
+        }
+    }
+
+    .signup-team__container {
+        &.branded {
+            display: block;
+            max-width: 380px;
+            margin: 0 auto;
+
+            .signup__markdown {
+                display: none;
+            }
+        }
+    }
+
+    .backstage-content {
+        max-width: 100%;
+        padding: 0;
+        margin: 30px;
+    }
+
+    .backstage-sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        padding: 30px 15px 0;
+    }
+
+    .post {
+        .attachment {
+            .attachment__image {
+                &.attachment__image--opengraph {
+                    max-width: 100%;
+                    max-height: 70px;
+
+                    &.loading {
+                        height: 70px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 880px) {
+    .post-collapse__show-more {
+        padding-right: 60px;
+    }
+
+    .post-attachment-collapse__show-more {
+        padding-right: 0;
+    }
+
+    .sidebar--right {
+        .post-collapse__show-more,
+        .post-attachment-collapse__show-more {
+            padding-right: 0;
+        }
+    }
+}
+
+// Tablet and desktop
+@media screen and (min-width: 769px) {
+    // ensure the global header always sits on top of its immediate sibling
+    > header {
+        z-index: 2;
+
+        + * {
+            position: relative;
+            z-index: 1;
+        }
+    }
+
+    .search-help-popover {
+        width: 274px;
+    }
+
+    .channel-header__popover {
+        top: 44px !important;
+        left: 236px !important;
+    }
+
+    .col-sm-auto {
+        float: left;
+    }
+
+    .second-bar {
+        display: none;
+    }
+
+    .channel-header {
+        .search-bar__container {
+            .search__form {
+                &--focused {
+                    width: 274px;
+                }
+            }
+        }
+    }
+
+    .sidebar--right {
+        &.move--left {
+            transform: translateX(0);
+
+            .search-bar__container {
+                display: none;
+            }
+        }
+
+        &.sidebar--right--expanded {
+            width: min(60vw, 75rem);
+
+            .search-bar__container {
+                padding-left: 10px;
+            }
+
+            .sidebar-right-container {
+                position: relative;
+                z-index: 5;
+            }
+
+            .sidebar--right__expand {
+                .icon-arrow-expand {
+                    display: none;
+                }
+
+                .icon-arrow-collapse {
+                    display: inline-block;
+                }
+            }
+        }
+    }
+
+    .post {
+        &.post--compact {
+            .post-message--overflow {
+                @include clearfix;
+
+                margin-top: 22px; //Any value change to this needs to reflect for MARGIN_CHANGE_FOR_COMPACT_POST variable in show_more component
+            }
+
+            .attachment__body .post-message--overflow {
+                margin-top: 0; //The above margin was added for wrapping texg in compact view but it isnt needed for attachment text
+            }
+
+            &.same--root {
+                &.same--user {
+                    .post-message {
+                        &.post-message--overflow {
+                            margin-top: 0;
+                        }
+                    }
+
+                    padding-top: 0;
+                    padding-left: 77px;
+
+                    .card-icon__container {
+                        position: absolute;
+                        top: 4px;
+                        left: -16px;
+                    }
+
+                    .post__header {
+                        .post-menu {
+                            top: -34px;
+                        }
+                    }
+
+                    .post__img {
+                        img {
+                            display: none;
+                        }
+                    }
+
+                    &.post--root,
+                    .post-preview {
+                        .post__img {
+                            img {
+                                display: block;
+                            }
+                        }
+
+                        .post__time {
+                            opacity: 0.6;
+                        }
+                    }
+                }
+
+                &.post--comment {
+                    &.same--user {
+                        .post__img {
+                            img {
+                                display: none;
+                            }
+                        }
+                    }
+
+                    .post__header {
+                        margin-left: 12px;
+                    }
+                }
+            }
+
+            &.post--comment {
+                &.other--root {
+                    .post-message {
+                        &.post-message--overflow {
+                            margin-top: 0;
+                        }
+                    }
+                }
+            }
+
+            &.post--thread {
+                .post-message {
+                    &.post-message--overflow {
+                        margin-top: 0;
+                    }
+                }
+            }
+
+            .channel__wrap #post-list & {
+                .post__permalink {
+                    position: absolute;
+                    top: 1px;
+                    left: -76px;
+                    width: 60px;
+                    text-align: right;
+                }
+
+                .post__time {
+                    font-size: 0.85em;
+                }
+
+                .star-icon__container {
+                    position: absolute;
+                    top: 6px;
+                    left: -65px;
+                    width: 60px;
+                    text-align: right;
+                }
+            }
+
+            &:not(.post--thread) {
+                padding: 0 0.5em 0 77px; // .post-row__padding.bottom needs to be changed accordingly if this is changed
+
+                .post__link {
+                    margin: 3px 0 7px;
+                    vertical-align: bottom;
+                }
+
+                span {
+                    p {
+                        &:last-child {
+                            margin-bottom: 0;
+                        }
+                    }
+                }
+
+                .post__header {
+                    padding-top: 2px;
+                    padding-right: 0;
+                    float: left;
+
+                    .col__name {
+                        position: relative;
+                        z-index: 1;
+                        padding-right: 5px;
+                        margin-right: 2px;
+                        font-weight: bold;
+                    }
+
+                    .colon {
+                        display: inline;
+                    }
+
+                    .post-menu {
+                        top: -34px;
+                    }
+                }
+
+                &.other--root {
+                    .post__link + .post__body {
+                        clear: both;
+                    }
+
+                    &.post--comment {
+                        .post__header {
+                            .post-menu {
+                                top: -34px;
+                            }
+                        }
+                    }
+                }
+
+                .post-code {
+                    clear: both;
+                }
+
+                .post__body {
+                    width: 100%;
+                }
+
+                .post__content {
+                    padding-right: 45px;
+                }
+            }
+
+            .sidebar--right & .card-icon__container {
+                position: relative;
+                top: 2px;
+                left: auto;
+            }
+        }
+
+        &.same--root {
+            &.same--user {
+                .post__time {
+                    opacity: 0;
+                }
+
+                .post__header {
+                    float: left;
+
+                    .post-menu {
+                        top: -34px;
+                    }
+                }
+
+                &:not(.post--compact) {
+                    .post__permalink {
+                        position: absolute;
+                        top: 2px;
+                        left: -18px;
+
+                        .sidebar--right & {
+                            top: 1px;
+                            left: -18px;
+                        }
+                    }
+
+                    .post__time {
+                        display: inline-block;
+                        width: 51px;
+                        font-size: 12px;
+                        line-height: 20px;
+                        text-align: right;
+                        text-rendering: auto;
+
+                        &:hover {
+                            text-decoration: underline;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .post-row__padding.top .post--compact {
+        padding-top: 1em;
+    }
+
+    .post-row__padding.bottom .post--compact {
+        padding-bottom: 1em;
+    }
+}
+
+@media screen and (max-width: 1020px) {
+    .channel-header {
+        z-index: 5;
+    }
+
+    .sidebar--right {
+        z-index: 13;
+        top: 0;
+        transform: translateX(100%);
+        transition: all 0.35s ease;
+
+        .sidebar-right-container {
+            height: 100%;
+        }
+
+        &.move--left {
+            -webkit-transform: translateX(0) !important;
+            -moz-transform: translateX(0) !important;
+            -ms-transform: translateX(0) !important;
+            -o-transform: translateX(0) !important;
+            transform: translateX(0) !important;
+
+            .browser--ie & {
+                display: block;
+                -webkit-transform: none !important;
+                -moz-transform: none !important;
+                -ms-transform: none !important;
+                -o-transform: none !important;
+                transform: none !important;
+            }
+
+            .search-bar__container {
+                z-index: 5;
+                display: block !important;
+
+                .search__form {
+                    width: 100% !important;
+                }
+            }
+        }
+    }
+
+    .inner-wrap {
+        &:not(.move--left) {
+            .app__content {
+                > #post-list {
+                    margin-right: 0 !important;
+                }
+
+                > .post-create__container {
+                    width: 100% !important;
+                }
+            }
+        }
+
+        &.move--left {
+            .search-bar__container {
+                display: none;
+            }
+
+            .app__content {
+                > .Drafts__main,
+                > #post-list {
+                    margin-right: 0 !important;
+                }
+
+                > .post-create__container {
+                    width: 100% !important;
+                }
+            }
+
+            .channel-header__links {
+                position: relative;
+                top: auto;
+                right: auto;
+            }
+        }
+
+        &.move--left,
+        &.move--right {
+            .header-list__right {
+                // hide it behind the RHS
+                z-index: -1;
+            }
+        }
+    }
+}

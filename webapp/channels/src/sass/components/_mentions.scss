@@ -1,0 +1,59 @@
+@charset 'UTF-8';
+
+del .mention-link,
+del .group-mention-link {
+    text-decoration: line-through;
+}
+
+del .mention-link:hover,
+del .mention-link:focus,
+del .group-mention-link:hover,
+del .group-mention-link:focus {
+    text-decoration: line-through underline;
+}
+
+.mention {
+    position: relative;
+    z-index: 10;
+    padding-bottom: 2px;
+    background: $primary-color;
+    border-radius: 3px;
+    color: $white;
+}
+
+.badge {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    background-color: #777;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.mention--highlight {
+    padding: 0 1px;
+    background-color: var(--mention-highlight-bg);
+    border-radius: 4px;
+    color: var(--mention-highlight-link);
+
+    .mention-link,
+    .mention-link:hover,
+    .mention-link:focus {
+        color: var(--mention-highlight-link);
+    }
+
+    .mention--highlight {
+        padding: 0;
+        background: none;
+    }
+}
+
+.group-mention-link {
+    color: var(--link-color);
+}

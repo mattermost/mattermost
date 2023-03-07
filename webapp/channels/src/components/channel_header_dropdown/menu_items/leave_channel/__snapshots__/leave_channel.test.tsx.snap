@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden if the channel is default channel 1`] = `
+<MenuItemAction
+  isDangerous={true}
+  onClick={[Function]}
+  show={false}
+  text="Leave Channel"
+/>
+`;
+
+exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden if the channel type is DM or GM 1`] = `
+<MenuItemAction
+  isDangerous={true}
+  onClick={[Function]}
+  show={false}
+  text="Leave Channel"
+/>
+`;
+
+exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden if the channel type is DM or GM 2`] = `
+<MenuItemAction
+  isDangerous={true}
+  onClick={[Function]}
+  show={false}
+  text="Leave Channel"
+/>
+`;
+
+exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should match snapshot 1`] = `
+<MenuItemAction
+  isDangerous={true}
+  onClick={[Function]}
+  show={true}
+  text="Leave Channel"
+/>
+`;

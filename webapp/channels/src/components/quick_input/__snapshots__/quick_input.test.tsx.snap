@@ -1,0 +1,194 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/QuickInput should render clear button with customized tooltip component 1`] = `
+<div
+  className="input-clear visible"
+  onMouseDown={[Function]}
+  onTouchEnd={[Function]}
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        id="InputClearTooltip"
+      >
+        <span>
+          Custom
+        </span>
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      overlay={
+        <OverlayWrapper
+          id="InputClearTooltip"
+          intl={null}
+        >
+          <span>
+            Custom
+          </span>
+        </OverlayWrapper>
+      }
+      placement="bottom"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        aria-hidden="true"
+        className="input-clear-x"
+        onBlur={[Function]}
+        onClick={null}
+        onFocus={[Function]}
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <i
+          className="icon icon-close-circle"
+        />
+      </span>
+    </OverlayTrigger>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/QuickInput should render clear button with customized tooltip text 1`] = `
+<div
+  className="input-clear visible"
+  onMouseDown={[Function]}
+  onTouchEnd={[Function]}
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        id="InputClearTooltip"
+      >
+        Custom
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      overlay={
+        <OverlayWrapper
+          id="InputClearTooltip"
+          intl={null}
+        >
+          Custom
+        </OverlayWrapper>
+      }
+      placement="bottom"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        aria-hidden="true"
+        className="input-clear-x"
+        onBlur={[Function]}
+        onClick={null}
+        onFocus={[Function]}
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <i
+          className="icon icon-close-circle"
+        />
+      </span>
+    </OverlayTrigger>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/QuickInput should render clear button with default tooltip text 1`] = `
+<div
+  className="input-clear visible"
+  onMouseDown={[Function]}
+  onTouchEnd={[Function]}
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        id="InputClearTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Clear"
+          id="input.clear"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      overlay={
+        <OverlayWrapper
+          id="InputClearTooltip"
+          intl={null}
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Clear"
+            id="input.clear"
+          />
+        </OverlayWrapper>
+      }
+      placement="bottom"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        aria-hidden="true"
+        className="input-clear-x"
+        onBlur={[Function]}
+        onClick={null}
+        onFocus={[Function]}
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <i
+          className="icon icon-close-circle"
+        />
+      </span>
+    </OverlayTrigger>
+  </OverlayTrigger>
+</div>
+`;

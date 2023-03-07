@@ -1,0 +1,228 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`at mention suggestion Should display nick name of non signed in user 1`] = `
+<AtMentionSuggestion
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  item={
+    Object {
+      "first_name": "a",
+      "id": "userid2",
+      "last_name": "b",
+      "nickname": "c",
+      "username": "user2",
+    }
+  }
+  matchedPretext="@"
+  term="@user"
+>
+  <div
+    className="suggestion-list__item"
+    data-testid="mentionSuggestion_user2"
+    onClick={[Function]}
+    onMouseMove={[Function]}
+    role="button"
+    tabIndex={-1}
+  >
+    <span
+      className="status-wrapper style--none"
+    >
+      <span
+        className="profile-icon"
+      >
+        <Memo(Avatar)
+          size="sm"
+          url="/api/v4/users/userid2/image?_=0"
+          username="user2"
+        >
+          <img
+            alt="user2 profile image"
+            className="Avatar Avatar-sm"
+            loading="lazy"
+            onError={[Function]}
+            src="/api/v4/users/userid2/image?_=0"
+            tabIndex={0}
+          />
+        </Memo(Avatar)>
+      </span>
+      <StatusIcon
+        button={false}
+        className=""
+      />
+    </span>
+    <span
+      className="suggestion-list__ellipsis"
+    >
+      <span
+        className="suggestion-list__main"
+      >
+        @user2
+      </span>
+      <Component
+        emojiSize={15}
+        emojiStyle={
+          Object {
+            "margin": "0 4px 4px",
+          }
+        }
+        showTooltip={true}
+        userID="userid2"
+      >
+        <div />
+      </Component>
+      a b (c)
+    </span>
+  </div>
+</AtMentionSuggestion>
+`;
+
+exports[`at mention suggestion Should not display nick name of the signed in user 1`] = `
+<AtMentionSuggestion
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  item={
+    Object {
+      "first_name": "a",
+      "id": "userid1",
+      "isCurrentUser": true,
+      "last_name": "b",
+      "nickname": "c",
+      "username": "user",
+    }
+  }
+  matchedPretext="@"
+  term="@user"
+>
+  <div
+    className="suggestion-list__item"
+    data-testid="mentionSuggestion_user"
+    onClick={[Function]}
+    onMouseMove={[Function]}
+    role="button"
+    tabIndex={-1}
+  >
+    <span
+      className="status-wrapper style--none"
+    >
+      <span
+        className="profile-icon"
+      >
+        <Memo(Avatar)
+          size="sm"
+          url="/api/v4/users/userid1/image?_=0"
+          username="user"
+        >
+          <img
+            alt="user profile image"
+            className="Avatar Avatar-sm"
+            loading="lazy"
+            onError={[Function]}
+            src="/api/v4/users/userid1/image?_=0"
+            tabIndex={0}
+          />
+        </Memo(Avatar)>
+      </span>
+      <StatusIcon
+        button={false}
+        className=""
+      />
+    </span>
+    <span
+      className="suggestion-list__ellipsis"
+    >
+      <span
+        className="suggestion-list__main"
+      >
+        @user
+      </span>
+      <Component
+        emojiSize={15}
+        emojiStyle={
+          Object {
+            "margin": "0 4px 4px",
+          }
+        }
+        showTooltip={true}
+        userID="userid1"
+      >
+        <div />
+      </Component>
+      a b
+      <FormattedMessage
+        defaultMessage="(you)"
+        id="suggestion.user.isCurrent"
+      >
+        <span>
+          (you)
+        </span>
+      </FormattedMessage>
+    </span>
+  </div>
+</AtMentionSuggestion>
+`;

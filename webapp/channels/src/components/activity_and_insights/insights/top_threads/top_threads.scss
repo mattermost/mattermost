@@ -1,0 +1,82 @@
+.InsightsTable,
+.top-thread-container {
+    .thread-details {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        gap: 8px;
+
+        .display-name {
+            overflow: hidden;
+            color: var(--center-channel-color);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 16px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .reply-count {
+            flex: 1;
+            margin-left: auto;
+            text-align: end;
+
+            i.icon {
+                width: 12px;
+                height: 12px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 12px;
+            }
+
+            span {
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-family: 'Open Sans', sans-serif;
+                font-size: 11px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 16px;
+            }
+        }
+    }
+
+    .preview {
+        display: -webkit-box;
+        overflow: hidden;
+        height: 32px;
+        max-height: 32px;
+        margin: 0;
+        -webkit-box-orient: vertical;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        -webkit-line-clamp: 2;
+        line-height: 16px;
+
+        .compliance-information {
+            font-style: italic;
+        }
+
+        .markdown__heading {
+            margin: inherit;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+        .file_card {
+            width: auto;
+            height: 32px;
+            margin: 0;
+
+            img.file_card__image {
+                min-width: 24px;
+                max-width: 24px;
+                min-height: 24px;
+                max-height: 24px;
+            }
+        }
+    }
+}

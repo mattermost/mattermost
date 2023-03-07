@@ -1,0 +1,192 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/error_page/ErrorMessage should match snapshot, channel_not_found type 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="The channel you're requesting is private or does not exist. Please contact an Administrator to be added to the channel."
+    id="error.channel_not_found.message"
+  />
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, channel_not_found type 2`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="Your guest account has no channels assigned. Please contact an administrator."
+    id="error.channel_not_found.message_guest"
+  />
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, local_storage type 1`] = `
+<div>
+  <MemoizedFormattedMessage
+    defaultMessage="Mattermost was unable to load because a setting in your browser prevents the use of its local storage features. To allow Mattermost to load, try the following actions:"
+    id="error.local_storage.message"
+  />
+  <ul>
+    <li>
+      <MemoizedFormattedMessage
+        defaultMessage="Enable cookies"
+        id="error.local_storage.help1"
+      />
+    </li>
+    <li>
+      <MemoizedFormattedMessage
+        defaultMessage="Turn off private browsing"
+        id="error.local_storage.help2"
+      />
+    </li>
+    <li>
+      <MemoizedFormattedMessage
+        defaultMessage="Use a supported browser (IE 11, Chrome 61+, Firefox 60+, Safari 12+, Edge 42+)"
+        id="error.local_storage.help3"
+      />
+    </li>
+  </ul>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, no type but with message 1`] = `
+<p>
+  error message
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, no type nor message 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="An error has occurred."
+    id="error.generic.message"
+  />
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, oauth_access_denied type 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="You must authorize Mattermost to log in with {service}."
+    id="error.oauth_access_denied"
+    values={
+      Object {
+        "service": "Gitlab",
+      }
+    }
+  />
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, oauth_invalid_param type 1`] = `
+<p>
+  error message
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, oauth_invalid_redirect_url type 1`] = `
+<p>
+  error message
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing_code type 1`] = `
+<div>
+  <p>
+    <MemoizedFormattedMessage
+      defaultMessage="The service provider {service} did not provide an authorization code in the redirect URL."
+      id="error.oauth_missing_code"
+      values={
+        Object {
+          "service": "Gitlab",
+        }
+      }
+    />
+  </p>
+  <p>
+    <MemoizedFormattedMessage
+      defaultMessage="For {link} make sure your administrator enabled the Google+ API."
+      id="error.oauth_missing_code.google"
+      values={
+        Object {
+          "link": <ErrorLink
+            defaultMessage="Google Apps"
+            messageId="error.oauth_missing_code.google.link"
+            url="https://docs.mattermost.com/deployment/sso-google.html"
+          />,
+        }
+      }
+    />
+  </p>
+  <p>
+    <MemoizedFormattedMessage
+      defaultMessage="For {link} make sure the administrator of your Microsoft organization has enabled the Mattermost app."
+      id="error.oauth_missing_code.office365"
+      values={
+        Object {
+          "link": <ErrorLink
+            defaultMessage="Office 365"
+            messageId="error.oauth_missing_code.office365.link"
+            url="https://docs.mattermost.com/deployment/sso-office.html"
+          />,
+        }
+      }
+    />
+  </p>
+  <p>
+    <MemoizedFormattedMessage
+      defaultMessage="For {link} please make sure you followed the setup instructions."
+      id="error.oauth_missing_code.gitlab"
+      values={
+        Object {
+          "link": <ErrorLink
+            defaultMessage="GitLab"
+            messageId="error.oauth_missing_code.gitlab.link"
+            url="https://docs.mattermost.com/deployment/sso-gitlab.html"
+          />,
+        }
+      }
+    />
+  </p>
+  <p>
+    <MemoizedFormattedMessage
+      defaultMessage="If you reviewed the above and are still having trouble with configuration, you may post in our {link} where we'll be happy to help with issues during setup."
+      id="error.oauth_missing_code.forum"
+      values={
+        Object {
+          "link": <ErrorLink
+            defaultMessage="Troubleshooting forum"
+            messageId="error.oauth_missing_code.forum.link"
+            url="https://forum.mattermost.com/c/trouble-shoot"
+          />,
+        }
+      }
+    />
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, page_not_found type 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="The page you were trying to reach does not exist"
+    id="error.not_found.message"
+  />
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, permalink_not_found type 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="Permalink belongs to a deleted message or to a channel to which you do not have access."
+    id="permalink.error.access"
+  />
+</p>
+`;
+
+exports[`components/error_page/ErrorMessage should match snapshot, team_not_found type 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="The team you're requesting is private or does not exist. Please contact your Administrator for an invitation."
+    id="error.team_not_found.message"
+  />
+</p>
+`;

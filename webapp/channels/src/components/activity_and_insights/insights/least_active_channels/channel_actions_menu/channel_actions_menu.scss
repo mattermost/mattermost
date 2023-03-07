@@ -1,0 +1,35 @@
+.channel-action {
+    margin-left: auto;
+
+    button.action-wrapper {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        flex-direction: column;
+        align-items: center;
+        padding: 6px 8px;
+        border: none;
+        margin-left: auto;
+        background: transparent;
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-decoration: none;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            fill: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+        }
+
+        i.icon {
+            font-size: 18px;
+            line-height: 18px;
+        }
+    }
+}

@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/FailedPostOptions should match snapshot 1`] = `
+<span
+  className="pending-post-actions"
+>
+  <a
+    className="post-retry"
+    href="#"
+    onClick={[Function]}
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Retry"
+      id="pending_post_actions.retry"
+    />
+  </a>
+   - 
+  <a
+    className="post-cancel"
+    href="#"
+    onClick={[Function]}
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Cancel"
+      id="pending_post_actions.cancel"
+    />
+  </a>
+</span>
+`;

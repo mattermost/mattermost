@@ -1,0 +1,139 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/activity_and_insights/insights/insights_modal should match snapshot with My insights 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="insightsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal insights-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="insightsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <div
+      className="title-section"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="insightsModalTitle"
+      >
+        My top reactions
+      </ModalTitle>
+      <div
+        className="subtitle"
+      >
+        Reactions I've used the most
+      </div>
+    </div>
+    <Memo(TimeFrameDropdown)
+      setTimeFrame={[Function]}
+      timeFrame="today"
+    />
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+  >
+    <Memo(TopReactionsTable)
+      filterType="MY"
+      timeFrame="today"
+    />
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/activity_and_insights/insights/insights_modal should match snapshot with team 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="insightsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal insights-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="insightsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <div
+      className="title-section"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="insightsModalTitle"
+      >
+        Top reactions
+      </ModalTitle>
+      <div
+        className="subtitle"
+      >
+        The team's most-used reactions
+      </div>
+    </div>
+    <Memo(TimeFrameDropdown)
+      setTimeFrame={[Function]}
+      timeFrame="7_day"
+    />
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+  >
+    <Memo(TopReactionsTable)
+      filterType="TEAM"
+      timeFrame="7_day"
+    />
+  </ModalBody>
+</Modal>
+`;
