@@ -222,7 +222,7 @@
     "yup": "0.32.11"
   },
   "scripts": {
-    "postinstall": "npm run build --workspaces && node skip_integrity_check.js",
+    "postinstall": "node skip_integrity_check.js",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
     "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
     "build": "node scripts/build",
@@ -245,10 +245,5 @@
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
-  },
-  "workspaces": [
-    "src/packages/client",
-    "src/packages/types",
-    "src/packages/components"
-  ]
+  }
 }

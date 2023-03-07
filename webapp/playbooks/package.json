@@ -22,7 +22,7 @@
     "js-trim-multiline-string": "^1.0.8",
     "lodash": "4.17.21",
     "luxon": "2.3.1",
-    "mattermost-webapp": "github:mattermost/mattermost-webapp#c0f36d4502e9f14aca250d885881ee8ec5efa56b",
+    "mattermost-webapp": "*",
     "parse-duration": "1.0.2",
     "qs": "6.10.2",
     "react": "^17.0.2",
@@ -133,7 +133,8 @@
     "graphql": "graphql-codegen --config graphql_gen.ts",
     "report-unused-exports": "ts-prune",
     "build:product": "webpack --mode=production",
-    "start:product": "webpack serve --mode=development"    
+    "start:product": "webpack serve --mode=development",
+    "deploy:product": "node scripts/deploy.js"    
   },
   "jest": {
     "testPathIgnorePatterns": [

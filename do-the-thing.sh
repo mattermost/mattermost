@@ -6,7 +6,7 @@ KEEP_HISTORY=false
 
 ROOT=`pwd`
 mkdir -p $ROOT/webapp/channels/src
-rsync --archive --delete --ignore .git ../mattermost-webapp/ $ROOT/webapp/channels/src
+rsync --archive --delete --exclude .git --exclude node_modules ../mattermost-webapp/ $ROOT/webapp/channels/src
 
 ######## Move web app files out of src
 cd "$ROOT/webapp/channels/src"
@@ -40,9 +40,9 @@ cd "$ROOT/webapp/channels/src"
 [ -f tsconfig.json ] && mv tsconfig.json  ..
 [ -f webpack.config.js ] && mv webpack.config.js  ..
 
-[ -d build ] && mv build  ..
-[ -d e2e ] && mv e2e ..
-[ -d scripts ] && mv scripts ..
+[ -d build ] && rm -fr ../build && mv build  ..
+[ -d e2e ] && rm -fr ../e2e && mv e2e ..
+[ -d scripts ] && rm -fr ../scripts && mv scripts ..
 
 ######## Update web app files for src directory
 
@@ -84,8 +84,6 @@ perl -pi -e "s/'<rootDir>\/tests\/setup\.js'/'<rootDir>\/src\/tests\/setup.js'/"
 perl -pi -e 's/"tests\/\*\*"/"src\/tests\/**"/' .eslintrc.json
 perl -pi -e 's/"tests\/\*\.js"/"src\/tests\/*.js"/' .eslintrc.json
 perl -pi -e 's/"packages\/mattermost-redux\/test\/\*"/"src\/packages\/mattermost-redux\/test\/*"/' .eslintrc.json
-
-npm install # Update package-lock.json
 
 # git add .
 # git commit -m "Update web app configuration files for src directory"
