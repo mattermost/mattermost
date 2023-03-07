@@ -48,6 +48,9 @@ type Channels struct {
 	pluginsEnvironment     *plugin.Environment
 	pluginConfigListenerID string
 
+	productCommandsLock sync.RWMutex
+	productCommands     []*ProductCommand
+
 	imageProxy *imageproxy.ImageProxy
 
 	// cached counts that are used during notice condition validation
@@ -331,7 +334,7 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 }
 
 func (a *App) HooksManager() *product.HooksManager {
-	return a.Srv().hooksManager
+	return a.ch.srv.hooksManager
 }
 
 // Ensure hooksService implements `product.HooksService`
