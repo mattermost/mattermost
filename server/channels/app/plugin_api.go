@@ -1101,7 +1101,7 @@ func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error
 	commands := make([]*model.Command, 0)
 	seen := make(map[string]bool)
 
-	for _, cmd := range api.app.PluginCommandsForTeam(teamID) {
+	for _, cmd := range api.app.CommandsForTeam(teamID) {
 		if !seen[cmd.Trigger] {
 			seen[cmd.Trigger] = true
 			commands = append(commands, cmd)

@@ -91,7 +91,7 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 		seen[CmdCustomStatusTrigger] = true
 	}
 
-	for _, cmd := range a.PluginCommandsForTeam(teamID) {
+	for _, cmd := range a.CommandsForTeam(teamID) {
 		if cmd.AutoComplete && !seen[cmd.Trigger] {
 			seen[cmd.Trigger] = true
 			commands = append(commands, cmd)
@@ -154,7 +154,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 		}
 	}
 
-	for _, cmd := range a.PluginCommandsForTeam(teamID) {
+	for _, cmd := range a.CommandsForTeam(teamID) {
 		if !seen[cmd.Trigger] {
 			seen[cmd.Trigger] = true
 			commands = append(commands, cmd)
@@ -202,8 +202,17 @@ func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.Com
 
 	args.TriggerId = triggerId
 
-	// Plugins can override built in and custom commands
+	// Plugins can override built in, custom, and product commands
 	cmd, response, appErr := a.tryExecutePluginCommand(c, args)
+	if appErr != nil {
+		return nil, appErr
+	} else if cmd != nil && response != nil {
+		response.TriggerId = clientTriggerId
+		return a.HandleCommandResponse(c, cmd, args, response, true)
+	}
+
+	// Products can override built in and custom commands
+	cmd, response, appErr = a.tryExecuteProductCommand(c, args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {

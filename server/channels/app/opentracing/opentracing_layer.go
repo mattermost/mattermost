@@ -1592,6 +1592,23 @@ func (a *OpenTracingAppLayer) Cloud() einterfaces.CloudInterface {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) CommandsForTeam(teamID string) []*model.Command {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CommandsForTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CommandsForTeam(teamID)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CompareAndDeletePluginKey(pluginID string, key string, oldValue []byte) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompareAndDeletePluginKey")
@@ -13241,23 +13258,6 @@ func (a *OpenTracingAppLayer) PermanentDeleteUser(c *request.Context, user *mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamID string) []*model.Command {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginCommandsForTeam")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.PluginCommandsForTeam(teamID)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfig, seqVal string) (*platform.WebConnConfig, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PopulateWebConnConfig")
@@ -13828,6 +13828,28 @@ func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginID string, command *mo
 
 	defer span.Finish()
 	resultVar0 := a.app.RegisterPluginCommand(pluginID, command)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) RegisterProductCommand(ProductID string, command *model.Command) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegisterProductCommand")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RegisterProductCommand(ProductID, command)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
