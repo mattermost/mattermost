@@ -1159,14 +1159,14 @@ func TestPlaybooksConversions(t *testing.T) {
 		t.Run("E0", func(t *testing.T) {
 			e.RemoveLicence()
 
-			err := e.PlaybooksClient.Playbooks.Update(context.Background(), *e.BasicPlaybook)
+			err = e.PlaybooksClient.Playbooks.Update(context.Background(), *e.BasicPlaybook)
 			requireErrorWithStatusCode(t, err, http.StatusForbidden)
 		})
 
 		t.Run("E10", func(t *testing.T) {
 			e.SetE10Licence()
 
-			err := e.PlaybooksClient.Playbooks.Update(context.Background(), *e.BasicPlaybook)
+			err = e.PlaybooksClient.Playbooks.Update(context.Background(), *e.BasicPlaybook)
 			requireErrorWithStatusCode(t, err, http.StatusForbidden)
 		})
 

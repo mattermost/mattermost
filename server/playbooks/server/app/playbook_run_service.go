@@ -275,7 +275,7 @@ func (s *PlaybookRunServiceImpl) CreatePlaybookRun(playbookRun *PlaybookRun, pb 
 			},
 		}
 
-		if _, err := s.actionService.Create(welcomeAction); err != nil {
+		if _, err = s.actionService.Create(welcomeAction); err != nil {
 			logger.WithError(err).WithField("channel_id", playbookRun.ChannelID).Error("unable to create welcome action for new run in channel")
 		}
 	}
@@ -293,7 +293,7 @@ func (s *PlaybookRunServiceImpl) CreatePlaybookRun(playbookRun *PlaybookRun, pb 
 			},
 		}
 
-		if _, err := s.actionService.Create(categorizeChannelAction); err != nil {
+		if _, err = s.actionService.Create(categorizeChannelAction); err != nil {
 			logger.WithError(err).WithField("channel_id", playbookRun.ChannelID).Error("unable to create welcome action for new run in channel")
 		}
 	}
@@ -410,7 +410,7 @@ func (s *PlaybookRunServiceImpl) CreatePlaybookRun(playbookRun *PlaybookRun, pb 
 
 		// dm to users who are auto-following the playbook
 		telemetryString := fmt.Sprintf("?telem_action=follower_clicked_run_started_dm&telem_run_id=%s", playbookRun.ID)
-		err := s.dmPostToAutoFollows(&model.Post{Message: fmt.Sprintf(messageTemplate, telemetryString)}, pb.ID, playbookRun.ID, userID)
+		err = s.dmPostToAutoFollows(&model.Post{Message: fmt.Sprintf(messageTemplate, telemetryString)}, pb.ID, playbookRun.ID, userID)
 		if err != nil {
 			logger.WithError(err).Error("failed to dm post to auto follows")
 		}
@@ -431,12 +431,13 @@ func (s *PlaybookRunServiceImpl) CreatePlaybookRun(playbookRun *PlaybookRun, pb 
 
 	//auto-follow playbook run
 	if pb != nil {
-		autoFollows, err := s.playbookService.GetAutoFollows(pb.ID)
+		var autoFollows []string
+		autoFollows, err = s.playbookService.GetAutoFollows(pb.ID)
 		if err != nil {
 			return playbookRun, errors.Wrapf(err, "failed to get autoFollows of the playbook `%s`", pb.ID)
 		}
 		for _, autoFollow := range autoFollows {
-			if err := s.Follow(playbookRun.ID, autoFollow); err != nil {
+			if err = s.Follow(playbookRun.ID, autoFollow); err != nil {
 				logger.WithError(err).WithFields(logrus.Fields{
 					"playbook_run_id": playbookRun.ID,
 					"auto_follow":     autoFollow,
@@ -1101,7 +1102,7 @@ func (s *PlaybookRunServiceImpl) ToggleStatusUpdates(playbookRunID, userID strin
 	}
 
 	runStatusUpdateMessage := s.buildStatusUpdateMessage(playbookRunToModify, user.Username, statusUpdate)
-	if err := s.dmPostToRunFollowers(&model.Post{Message: runStatusUpdateMessage}, statusUpdateMessage, playbookRunToModify.ID, userID); err != nil {
+	if err = s.dmPostToRunFollowers(&model.Post{Message: runStatusUpdateMessage}, statusUpdateMessage, playbookRunToModify.ID, userID); err != nil {
 		logger.WithError(err).Error("failed to dm post toggle-run-status-updates to run followers")
 	}
 
@@ -1569,7 +1570,7 @@ func (s *PlaybookRunServiceImpl) SetAssignee(playbookRunID, userID, assigneeID s
 			}
 		}
 		if !isParticipant {
-			err := s.AddParticipants(playbookRunID, []string{assigneeID}, userID, false)
+			err = s.AddParticipants(playbookRunID, []string{assigneeID}, userID, false)
 			if err != nil {
 				return errors.Wrapf(err, "failed to add assignee to run")
 			}
@@ -2993,7 +2994,7 @@ func (s *PlaybookRunServiceImpl) RemoveParticipants(playbookRunID string, userID
 		}
 	}
 
-	if err := s.store.RemoveParticipants(playbookRunID, userIDs); err != nil {
+	if err = s.store.RemoveParticipants(playbookRunID, userIDs); err != nil {
 		return errors.Wrapf(err, "users `%+v` failed to remove participation in run `%s`", userIDs, playbookRunID)
 	}
 
@@ -3060,7 +3061,8 @@ func (s *PlaybookRunServiceImpl) AddParticipants(playbookRunID string, userIDs [
 
 	// Ensure new participants are team members
 	for _, userID := range userIDs {
-		member, err := s.api.GetTeamMember(playbookRun.TeamID, userID)
+		var member *model.TeamMember
+		member, err = s.api.GetTeamMember(playbookRun.TeamID, userID)
 		if err != nil || member.DeleteAt != 0 {
 			usersFailedToInvite = append(usersFailedToInvite, userID)
 			continue
@@ -3068,7 +3070,7 @@ func (s *PlaybookRunServiceImpl) AddParticipants(playbookRunID string, userIDs [
 		usersToInvite = append(usersToInvite, userID)
 	}
 
-	if err := s.store.AddParticipants(playbookRun.ID, usersToInvite); err != nil {
+	if err = s.store.AddParticipants(playbookRun.ID, usersToInvite); err != nil {
 		return errors.Wrapf(err, "users `%+v` failed to participate the run `%s`", usersToInvite, playbookRun.ID)
 	}
 
@@ -3099,7 +3101,7 @@ func (s *PlaybookRunServiceImpl) AddParticipants(playbookRunID string, userIDs [
 		s.participateActions(playbookRun, channel, user, requesterUser, forceAddToChannel)
 
 		// Participate implies following the run
-		if err := s.Follow(playbookRunID, userID); err != nil {
+		if err = s.Follow(playbookRunID, userID); err != nil {
 			return errors.Wrap(err, "failed to make participant to follow run")
 		}
 	}

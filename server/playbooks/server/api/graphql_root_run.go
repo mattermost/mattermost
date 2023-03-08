@@ -25,7 +25,7 @@ func (r *RunRootResolver) Run(ctx context.Context, args struct {
 	}
 	userID := c.r.Header.Get("Mattermost-User-ID")
 
-	if err := c.permissions.RunView(userID, args.ID); err != nil {
+	if err = c.permissions.RunView(userID, args.ID); err != nil {
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func (r *RunRootResolver) SetRunFavorite(ctx context.Context, args struct {
 	}
 	userID := c.r.Header.Get("Mattermost-User-ID")
 
-	if err := c.permissions.RunView(userID, args.ID); err != nil {
+	if err = c.permissions.RunView(userID, args.ID); err != nil {
 		return "", err
 	}
 
@@ -166,7 +166,7 @@ func (r *RunRootResolver) UpdateRun(ctx context.Context, args struct {
 	}
 	userID := c.r.Header.Get("Mattermost-User-ID")
 
-	if err := c.permissions.RunManageProperties(userID, args.ID); err != nil {
+	if err = c.permissions.RunManageProperties(userID, args.ID); err != nil {
 		return "", err
 	}
 

@@ -543,7 +543,7 @@ func TestMigrations(t *testing.T) {
 			}
 			for _, run := range runs {
 				// Insert runs
-				_, err := sqlStore.execBuilder(sqlStore.db, sq.
+				_, err = sqlStore.execBuilder(sqlStore.db, sq.
 					Insert("IR_Incident").
 					SetMap(map[string]interface{}{
 						"ID":            run.ID,

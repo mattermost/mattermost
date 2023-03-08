@@ -455,14 +455,14 @@ func TestMigration_000049(t *testing.T) {
 		postsIDs := []string{}
 		for i := 0; i < numRuns; i++ {
 			run := NewRunMapBuilder().WithName(fmt.Sprintf("run %d", i)).ToRunAsMap()
-			err := InsertRun(store, run)
+			err = InsertRun(store, run)
 			require.NoError(t, err)
 			runsIDs = append(runsIDs, run["ID"].(string))
 		}
 
 		for i := 0; i < numPosts; i++ {
 			postsIDs = append(postsIDs, model.NewId())
-			err := InsertPost(store, postsIDs[i], getPostCreatedAtByIndex(i))
+			err = InsertPost(store, postsIDs[i], getPostCreatedAtByIndex(i))
 			require.NoError(t, err)
 		}
 

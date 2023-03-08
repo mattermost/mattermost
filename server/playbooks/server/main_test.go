@@ -123,7 +123,7 @@ func Setup(t *testing.T) *TestEnvironment {
 	// override config with e2etest.config.json if it exists
 	textConfig, err := os.ReadFile("./e2etest.config.json")
 	if err == nil {
-		err := json.Unmarshal(textConfig, config)
+		err = json.Unmarshal(textConfig, config)
 		if err != nil {
 			require.NoError(t, err)
 		}

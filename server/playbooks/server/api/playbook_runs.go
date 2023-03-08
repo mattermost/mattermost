@@ -439,7 +439,8 @@ func (h *PlaybookRunHandler) createPlaybookRun(playbookRun app.PlaybookRun, user
 
 	var playbook *app.Playbook
 	if playbookRun.PlaybookID != "" {
-		pb, err := h.playbookService.Get(playbookRun.PlaybookID)
+		var pb app.Playbook
+		pb, err = h.playbookService.Get(playbookRun.PlaybookID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get playbook")
 		}
@@ -449,7 +450,7 @@ func (h *PlaybookRunHandler) createPlaybookRun(playbookRun app.PlaybookRun, user
 			return nil, errors.New("playbook is archived, cannot create a new run using an archived playbook")
 		}
 
-		if err := h.permissions.RunCreate(userID, *playbook); err != nil {
+		if err = h.permissions.RunCreate(userID, *playbook); err != nil {
 			return nil, err
 		}
 
@@ -495,7 +496,8 @@ func (h *PlaybookRunHandler) createPlaybookRun(playbookRun app.PlaybookRun, user
 
 	// Check the permissions on the provided post: the user must have access to the post's channel
 	if playbookRun.PostID != "" {
-		post, err := h.api.GetPost(playbookRun.PostID)
+		var post *model.Post
+		post, err = h.api.GetPost(playbookRun.PostID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get playbook run original post")
 		}

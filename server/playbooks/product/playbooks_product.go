@@ -284,10 +284,10 @@ func newPlaybooksProduct(services map[product.ServiceKey]interface{}) (product.P
 
 	// register collections and topics.
 	// TODO bump the minimum server version
-	if err := playbooks.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeStatus); err != nil {
+	if err = playbooks.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeStatus); err != nil {
 		logrus.WithError(err).WithField("collection_type", CollectionTypeRun).WithField("topic_type", TopicTypeStatus).Warnf("failed to register collection and topic")
 	}
-	if err := playbooks.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeTask); err != nil {
+	if err = playbooks.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeTask); err != nil {
 		logrus.WithError(err).WithField("collection_type", CollectionTypeRun).WithField("topic_type", TopicTypeTask).Warnf("failed to register collection and topic")
 	}
 

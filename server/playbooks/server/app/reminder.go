@@ -100,7 +100,7 @@ func (s *PlaybookRunServiceImpl) handleStatusUpdateReminder(playbookRunID string
 	}
 	model.ParseSlackAttachment(post, attachments)
 
-	if err := s.poster.PostMessageToThread("", post); err != nil {
+	if err = s.poster.PostMessageToThread("", post); err != nil {
 		logger.WithError(err).Errorf("HandleReminder error posting reminder message")
 		return
 	}

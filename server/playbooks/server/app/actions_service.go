@@ -247,7 +247,7 @@ func (a *channelActionServiceImpl) UserHasJoinedChannel(userID, channelID, actor
 	}
 
 	var payload CategorizeChannelPayload
-	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
+	if err = mapstructure.Decode(action.Payload, &payload); err != nil {
 		logrus.WithError(err).Error("unable to decode payload of CategorizeChannelPayload")
 		return
 	}
