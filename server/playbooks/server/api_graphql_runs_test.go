@@ -376,11 +376,11 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		require.Len(t, meta.Followers, 1)
 		assert.Equal(t, e.RegularUser.Id, meta.Followers[0])
 
-		member, err := e.A.GetChannelMember(request.EmptyContext(nil), e.BasicRun.ChannelID, e.RegularUser2.Id)
+		member, _ := e.A.GetChannelMember(request.EmptyContext(nil), e.BasicRun.ChannelID, e.RegularUser2.Id)
 		// TODO: require.Error(t, err)
 		assert.Nil(t, member)
 
-		member, err = e.A.GetChannelMember(request.EmptyContext(nil), e.BasicRun.ChannelID, user3.Id)
+		member, _ = e.A.GetChannelMember(request.EmptyContext(nil), e.BasicRun.ChannelID, user3.Id)
 		// TODO: require.Error(t, err)
 		assert.Nil(t, member)
 	})
@@ -422,11 +422,11 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		require.Len(t, meta.Followers, 1)
 		assert.Equal(t, e.RegularUser.Id, meta.Followers[0])
 
-		member, err := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
+		member, _ := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
 		// TODO: require.NoError(t, err)
 		assert.NotNil(t, member)
 
-		member, err = e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, user3.Id)
+		member, _ = e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, user3.Id)
 		// TODO: require.NoError(t, err)
 		assert.NotNil(t, member)
 	})
@@ -468,7 +468,7 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		assert.Equal(t, e.RegularUser.Id, meta.Followers[0])
 		assert.Equal(t, e.RegularUser2.Id, meta.Followers[1])
 
-		member, err := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
+		member, _ := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
 		// TODO: require.NoError(t, err)
 		assert.Equal(t, e.RegularUser2.Id, member.UserId)
 	})
@@ -511,7 +511,7 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		assert.Equal(t, e.RegularUser.Id, meta.Followers[0])
 		assert.Equal(t, e.RegularUser2.Id, meta.Followers[1])
 
-		member, err := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
+		member, _ := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
 		// TODO: require.NoError(t, err)
 		assert.Equal(t, e.RegularUser2.Id, member.UserId)
 	})
