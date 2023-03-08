@@ -222,6 +222,8 @@ channels/db/migrations/mysql/000110_add_lastviewedpinnedpostat_column_to_channel
 channels/db/migrations/mysql/000110_add_lastviewedpinnedpostat_column_to_channelmembers.up.sql
 channels/db/migrations/mysql/000111_add_pinat_column_to_posts.down.sql
 channels/db/migrations/mysql/000111_add_pinat_column_to_posts.up.sql
+channels/db/migrations/mysql/000112_add_pinby_column_to_posts.down.sql
+channels/db/migrations/mysql/000112_add_pinby_column_to_posts.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -444,3 +446,5 @@ channels/db/migrations/postgres/000110_add_lastviewedpinnedpostat_column_to_chan
 channels/db/migrations/postgres/000110_add_lastviewedpinnedpostat_column_to_channelmembers.up.sql
 channels/db/migrations/postgres/000111_add_pinat_column_to_posts.down.sql
 channels/db/migrations/postgres/000111_add_pinat_column_to_posts.up.sql
+channels/db/migrations/postgres/000112_add_pinby_column_to_posts.down.sql
+channels/db/migrations/postgres/000112_add_pinby_column_to_posts.up.sql

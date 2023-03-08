@@ -1022,6 +1022,9 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool, pinAt *i
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)
 	patch.PinAt = pinAt
+	if pinAt != nil {
+		patch.PinBy = model.NewString(c.AppContext.Session().UserId)
+	}
 
 	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch)
 	if err != nil {

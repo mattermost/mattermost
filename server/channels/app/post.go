@@ -678,6 +678,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	if !safeUpdate {
 		newPost.IsPinned = post.IsPinned
 		newPost.PinAt = post.PinAt
+		newPost.PinBy = post.PinBy
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
 		newPost.SetProps(post.GetProps())

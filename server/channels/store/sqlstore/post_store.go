@@ -57,6 +57,7 @@ func postSliceColumnsWithTypes() []struct {
 		{"DeleteAt", reflect.Int64},
 		{"IsPinned", reflect.Bool},
 		{"PinAt", reflect.Int64},
+		{"PinBy", reflect.String},
 		{"UserId", reflect.String},
 		{"ChannelId", reflect.String},
 		{"RootId", reflect.String},
@@ -81,6 +82,7 @@ func postToSlice(post *model.Post) []any {
 		post.DeleteAt,
 		post.IsPinned,
 		post.PinAt,
+		post.PinBy,
 		post.UserId,
 		post.ChannelId,
 		post.RootId,
@@ -110,7 +112,7 @@ func postSliceCoalesceQuery() string {
 	cols := make([]string, len(colInfos))
 	for i, colInfo := range colInfos {
 		var defaultValue string
-		if colInfo.Name == "PinAt" {
+		if colInfo.Name == "PinAt" || colInfo.Name == "PinBy" {
 			defaultValue = "NULL"
 		} else {
 			switch colInfo.Type {
@@ -356,6 +358,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 			DeleteAt=:DeleteAt,
 			IsPinned=:IsPinned,
 			PinAt=:PinAt,
+			PinBy=:PinBy,
 			UserId=:UserId,
 			ChannelId=:ChannelId,
 			RootId=:RootId,
@@ -3231,6 +3234,7 @@ func (s *SqlPostStore) GetNewPinnedPosts(channelID string, userID string) ([]*mo
 			sq.And{
 				sq.Eq{"u.Id": userID},
 				sq.Expr("cm.LastViewedPinnedPostAt < p.PinAt"),
+				sq.NotEq{"p.pinBy": userID},
 			},
 		).
 		ToSql()

@@ -84,17 +84,18 @@ const (
 )
 
 type Post struct {
-	Id         string `json:"id"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	EditAt     int64  `json:"edit_at"`
-	DeleteAt   int64  `json:"delete_at"`
-	IsPinned   bool   `json:"is_pinned"`
-	PinAt      *int64 `json:"pin_at"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RootId     string `json:"root_id"`
-	OriginalId string `json:"original_id"`
+	Id         string  `json:"id"`
+	CreateAt   int64   `json:"create_at"`
+	UpdateAt   int64   `json:"update_at"`
+	EditAt     int64   `json:"edit_at"`
+	DeleteAt   int64   `json:"delete_at"`
+	IsPinned   bool    `json:"is_pinned"`
+	PinAt      *int64  `json:"pin_at"`
+	PinBy      *string `json:"pin_by"`
+	UserId     string  `json:"user_id"`
+	ChannelId  string  `json:"channel_id"`
+	RootId     string  `json:"root_id"`
+	OriginalId string  `json:"original_id"`
 
 	Message string `json:"message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
@@ -152,6 +153,7 @@ type PostEphemeral struct {
 type PostPatch struct {
 	IsPinned     *bool            `json:"is_pinned"`
 	PinAt        *int64           `json:"pin_at"`
+	PinBy        *string          `json:"pin_by"`
 	Message      *string          `json:"message"`
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
@@ -590,6 +592,9 @@ func (o *Post) Patch(patch *PostPatch) {
 		if o.IsPinned {
 			if patch.PinAt != nil {
 				o.PinAt = patch.PinAt
+			}
+			if patch.PinBy != nil {
+				o.PinBy = patch.PinBy
 			}
 		} else {
 			o.PinAt = nil
