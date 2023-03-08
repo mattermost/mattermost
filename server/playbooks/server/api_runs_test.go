@@ -444,7 +444,7 @@ func TestRunRetrieval(t *testing.T) {
 		list, err := e.PlaybooksAdminClient.PlaybookRuns.List(context.Background(), 0, 100, client.PlaybookRunListOptions{
 			TeamID: e.BasicTeam2.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, list.Items, 0)
 	})
 
@@ -462,21 +462,21 @@ func TestRunRetrieval(t *testing.T) {
 		list, err := e.PlaybooksAdminClient.PlaybookRuns.List(context.Background(), 0, 100, client.PlaybookRunListOptions{
 			TeamID: e.BasicTeam.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, list.Items, 2)
 
 		list, err = e.PlaybooksAdminClient.PlaybookRuns.List(context.Background(), 0, 100, client.PlaybookRunListOptions{
 			TeamID:   e.BasicTeam.Id,
 			Statuses: []client.Status{client.StatusInProgress},
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, list.Items, 1)
 
 		list, err = e.PlaybooksAdminClient.PlaybookRuns.List(context.Background(), 0, 100, client.PlaybookRunListOptions{
 			TeamID:  e.BasicTeam.Id,
 			OwnerID: e.RegularUser.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, list.Items, 1)
 	})
 
