@@ -388,6 +388,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	SelfHostedExpansion                               *bool   `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -859,6 +860,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
+	}
+
+	if s.SelfHostedExpansion == nil {
+		s.SelfHostedExpansion = NewBool(false)
 	}
 }
 
@@ -2876,8 +2881,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Disable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: false}
+		// Enable the focalboard plugin by default
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {

@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -42,7 +43,6 @@ func condenseSiteURL(siteURL string) string {
 
 type Service struct {
 	config  func() *model.Config
-	goFn    func(f func())
 	license func() *model.License
 
 	userService *users.UserService
@@ -57,7 +57,6 @@ type Service struct {
 type ServiceConfig struct {
 	ConfigFn  func() *model.Config
 	LicenseFn func() *model.License
-	GoFn      func(f func())
 
 	TemplatesContainer *templates.Container
 	UserService        *users.UserService
@@ -72,7 +71,6 @@ func NewService(config ServiceConfig) (*Service, error) {
 		config:             config.ConfigFn,
 		templatesContainer: config.TemplatesContainer,
 		license:            config.LicenseFn,
-		goFn:               config.GoFn,
 		store:              config.Store,
 		userService:        config.UserService,
 	}
@@ -83,8 +81,15 @@ func NewService(config ServiceConfig) (*Service, error) {
 	return service, nil
 }
 
+func (es *Service) Stop() {
+	mlog.Info("Shutting down Email batching service...")
+	if es.EmailBatching != nil {
+		es.EmailBatching.Stop()
+	}
+}
+
 func (c *ServiceConfig) validate() error {
-	if c.ConfigFn == nil || c.GoFn == nil || c.Store == nil || c.LicenseFn == nil || c.TemplatesContainer == nil {
+	if c.ConfigFn == nil || c.Store == nil || c.LicenseFn == nil || c.TemplatesContainer == nil {
 		return errors.New("invalid service config")
 	}
 	return nil
@@ -141,7 +146,7 @@ type ServiceInterface interface {
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
-	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
+	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
 	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error)
 	// Cloud delinquency email sequence
 	SendDelinquencyEmail7(email, locale, siteURL, planName string) error
@@ -152,13 +157,14 @@ type ServiceInterface interface {
 	SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error
 	SendDelinquencyEmail90(email, locale, siteURL string) error
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
-	SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error
+	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	InitEmailBatching()
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
 	SendLicenseInactivityEmail(email, name, locale, siteURL string) error
+	Stop()
 }
 
 func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
