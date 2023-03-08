@@ -651,23 +651,54 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
 		for userID := range mentions.Mentions {
-			tm, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
+			threadMembership, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
 			if appErr != nil {
 				return appErr
 			}
 
-			if tm.LastViewed > post.CreateAt {
+			// If the user has viewed the thread or there are no unread mentions, skip.
+			if threadMembership.LastViewed > post.CreateAt || threadMembership.UnreadMentions == 0 {
 				continue
 			}
 
-			if tm.UnreadMentions > 0 {
-				tm.UnreadMentions -= 1
-				if _, err := a.Srv().Store().Thread().UpdateMembership(tm); err != nil {
-					return err
+			threadMembership.UnreadMentions -= 1
+			if _, err := a.Srv().Store().Thread().UpdateMembership(threadMembership); err != nil {
+				return err
+			}
+
+			userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
+			if err != nil {
+				return err
+			}
+
+			if userThread != nil {
+				previousUnreadMentions := int64(0)
+				previousUnreadReplies := int64(0)
+
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+
+				sanitizedPost, err1 := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
+				if err1 != nil {
+					return err1
 				}
+				userThread.Post = sanitizedPost
+
+				payload, jsonErr := json.Marshal(userThread)
+				if jsonErr != nil {
+					mlog.Warn("Failed to encode thread to JSON")
+				}
+
+				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
+				message.Add("thread", string(payload))
+				message.Add("previous_unread_mentions", previousUnreadMentions)
+				message.Add("previous_unread_replies", previousUnreadReplies)
+
+				a.Publish(message)
 			}
 		}
 	}
+
 	return nil
 }
 
