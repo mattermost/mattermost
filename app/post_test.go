@@ -3308,3 +3308,67 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		require.Len(t, topDMs.Items, 0)
 	})
 }
+
+func TestCheckPostReminders(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	siteURL := "http://example.com"
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = siteURL
+	})
+
+	getBotMessage := func(t *testing.T) *model.Post {
+		systemBot, appErr := th.App.GetSystemBot()
+		require.Nil(t, appErr)
+
+		ch, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+
+		posts, appErr := th.App.GetPosts(ch.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.GreaterOrEqual(t, len(posts.Order), 1)
+
+		return posts.Posts[posts.Order[0]]
+	}
+
+	t.Run("for a post in channel", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "hello",
+		}
+		post, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+
+		// We're setting the reminder to the past, so we trigger the reminder immediately.
+		appErr = th.App.SetPostReminder(post.Id, th.BasicUser.Id, time.Now().Add(-time.Minute).Unix())
+		require.Nil(t, appErr)
+
+		th.App.CheckPostReminders()
+
+		msg := getBotMessage(t)
+		require.Contains(t, msg.Message, fmt.Sprintf("@%s: %s/%s/pl/%s", th.BasicUser.Username, siteURL, th.BasicTeam.Name, post.Id))
+	})
+
+	t.Run("for a post in DM", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		post := &model.Post{
+			ChannelId: dmChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "hello",
+		}
+		post, appErr := th.App.CreatePost(th.Context, post, dmChannel, false, false)
+		require.Nil(t, appErr)
+
+		// We're setting the reminder to the past, so we trigger the reminder immediately.
+		appErr = th.App.SetPostReminder(post.Id, th.BasicUser.Id, time.Now().Add(-time.Minute).Unix())
+		require.Nil(t, appErr)
+
+		th.App.CheckPostReminders()
+
+		msg := getBotMessage(t)
+		require.Contains(t, msg.Message, fmt.Sprintf("@%s: %s/pl/%s", th.BasicUser.Username, siteURL, post.Id))
+	})
+}

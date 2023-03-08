@@ -2161,14 +2161,19 @@ func (a *App) CheckPostReminders() {
 				continue
 			}
 
+			var permalink string
+			if metadata.TeamName == "" {
+				permalink = fmt.Sprintf("%s/pl/%s", siteURL, postID)
+			} else {
+				permalink = fmt.Sprintf("%s/%s/pl/%s", siteURL, metadata.TeamName, postID)
+			}
+
 			T := i18n.GetUserTranslations(metadata.UserLocale)
 			dm := &model.Post{
 				ChannelId: ch.Id,
-				Message: T("app.post_reminder_dm", model.StringInterface{
-					"SiteURL":  siteURL,
-					"TeamName": metadata.TeamName,
-					"PostId":   postID,
-					"Username": metadata.Username,
+				Message: T("app.post_reminder_message", model.StringInterface{
+					"Username":  metadata.Username,
+					"Permalink": permalink,
 				}),
 				Type:   model.PostTypeReminder,
 				UserId: systemBot.UserId,

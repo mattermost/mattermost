@@ -6272,8 +6272,8 @@
     "translation": "Unable to get postpriority for post"
   },
   {
-    "id": "app.post_reminder_dm",
-    "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "id": "app.post_reminder_message",
+    "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.Permalink}}"
   },
   {
     "id": "app.preference.delete.app_error",
