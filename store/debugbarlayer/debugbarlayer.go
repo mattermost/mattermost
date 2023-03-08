@@ -11,7 +11,7 @@ import (
 	"time"
 	//"fmt"
 
-	"github.com/mattermost/mattermost-server/v6/app/debugbar"
+	"github.com/mattermost/mattermost-server/v6/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )

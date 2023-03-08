@@ -1298,7 +1298,7 @@ func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 func (ss *SqlStore) Explain(query string, args []any) (string, error) {
 	var explain []string
 
-	if strings.HasPrefix("ANALYZE") {
+	if strings.HasPrefix(query, "ANALYZE") {
 		return "", errors.New("not allowed to explain queries with analyze at the beginning")
 	}
 
