@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api
 
 import (
@@ -5,9 +8,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/v6/model"
 	"gopkg.in/guregu/null.v4"
 
 	"github.com/gorilla/mux"

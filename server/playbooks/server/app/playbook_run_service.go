@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -13,14 +16,14 @@ import (
 	"github.com/sirupsen/logrus"
 	stripmd "github.com/writeas/go-strip-markdown"
 
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/bot"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/httptools"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/metrics"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/timeutils"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 )
 
 const checklistItemDescriptionCharLimit = 4000

@@ -14,8 +14,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/stretchr/testify/require"
 )
 

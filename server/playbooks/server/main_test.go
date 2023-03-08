@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package main
 
 import (
@@ -9,16 +12,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/api4"
 	sapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
 	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"

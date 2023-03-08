@@ -1,9 +1,12 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package bot
 
 import (
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // Bot stores the information for the plugin configuration, and implements the Poster interfaces.

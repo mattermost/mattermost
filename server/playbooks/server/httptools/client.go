@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package httptools
 
 import (
@@ -7,8 +10,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
 )
 
 func MakeClient(api playbooks.ServicesAPI) *http.Client {

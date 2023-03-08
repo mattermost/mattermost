@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package sqlstore
 
 import (
@@ -10,8 +13,8 @@ import (
 	"github.com/blang/semver"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

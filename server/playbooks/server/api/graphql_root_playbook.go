@@ -1,11 +1,14 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api
 
 import (
 	"context"
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	"github.com/pkg/errors"
 	"gopkg.in/guregu/null.v4"
 )

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package client_test
 
 import (
@@ -5,8 +8,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 )
 
 func Example() {

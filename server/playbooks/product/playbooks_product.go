@@ -9,6 +9,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	mmapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/product/pluginapi/cluster"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/api"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
@@ -21,11 +26,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/scheduler"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/telemetry"
-	mmapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
