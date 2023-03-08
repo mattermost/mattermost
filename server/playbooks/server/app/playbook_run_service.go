@@ -2640,7 +2640,7 @@ func (s *PlaybookRunServiceImpl) newAddToTimelineDialog(playbookRuns []PlaybookR
 		return nil, errors.Wrapf(err, "failed to marshal DialogState")
 	}
 	defaultSummary := ""
-	if len(post.Message) > 0 {
+	if post.Message != "" {
 		end := min(40, len(post.Message))
 		defaultSummary = post.Message[:end]
 		if len(post.Message) > end {

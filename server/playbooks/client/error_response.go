@@ -42,11 +42,11 @@ func (e *ErrorResponse) UnmarshalJSON(data []byte) error {
 }
 
 // Unwrap exposes the underlying error of an ErrorResponse.
-func (r *ErrorResponse) Unwrap() error {
-	return r.Err
+func (e *ErrorResponse) Unwrap() error {
+	return e.Err
 }
 
 // Error describes the error from the API request.
-func (r *ErrorResponse) Error() string {
-	return fmt.Sprintf("%s %s [%d]: %v", r.Method, r.URL, r.StatusCode, r.Err)
+func (e *ErrorResponse) Error() string {
+	return fmt.Sprintf("%s %s [%d]: %v", e.Method, e.URL, e.StatusCode, e.Err)
 }
