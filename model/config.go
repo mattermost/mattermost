@@ -241,7 +241,12 @@ const (
 
 	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
-	OpenidSettingsDefaultScope    = "profile openid email"
+	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
+	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
+	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
+	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
+
+	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 )
@@ -2781,9 +2786,15 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		if !isProdLicensePublicKey {
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+		}
 	}
 	if s.CWSAPIURL == nil {
 		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		if !isProdLicensePublicKey {
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
+		}
 	}
 }
 
