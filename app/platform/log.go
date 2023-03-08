@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -68,21 +69,20 @@ func (ps *PlatformService) initLogging() error {
 	// Redirect default Go logger to app logger.
 	ps.logger.RedirectStdLog(mlog.LvlStdLog)
 
-	if ps.DebugBar.IsEnabled() {
-		debugBarLogger := debugbar.NewLogger(
-			ps.logger,
-			ps.DebugBar,
-		)
-		// Use the app logger as the global logger (eventually remove all instances of global logging).
-		mlog.InitGlobalLogger(debugBarLogger)
-	} else {
-		mlog.InitGlobalLogger(ps.logger)
-	}
+	// Use the app logger as the global logger (eventually remove all instances of global logging).
+	mlog.InitGlobalLogger(ps.logger)
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&ps.Config().NotificationLogSettings)
 	if err := ps.ConfigureLogger("notification logging", ps.notificationsLogger, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
+			return err
+		}
+	}
+
+	if ps.DebugBar.IsEnabled() {
+		err := ps.logger.AddTarget(debugbar.NewDebugBarLogTarget(ps.DebugBar), "debugbar", &debugbar.DebugBarLogFilter{}, &debugbar.DebugBarLogFormatter{}, logr.DefaultMaxQueueSize)
+		if err != nil {
 			return err
 		}
 	}
