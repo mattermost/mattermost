@@ -882,6 +882,9 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("change message, but post too old", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostEditTimeLimit = -1
 		})
 
@@ -898,22 +901,9 @@ func TestUpdatePost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + " update post 4",
 		}
-		rrupost4, _, err := client.UpdatePost(rpost4.Id, up4)
-		require.NoError(t, err)
-		assert.NotEqual(t, rpost4.EditAt, rrupost4.EditAt)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostEditTimeLimit = 1
-		})
-
-		up4.Message = "zz" + model.NewId() + " update post 4 again"
 		_, resp, err := client.UpdatePost(rpost4.Id, up4)
 		require.Error(t, err, "should fail on update old post")
 		CheckBadRequestStatus(t, resp)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostEditTimeLimit = -1
-		})
 	})
 }
 
