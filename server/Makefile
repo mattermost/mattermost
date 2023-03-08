@@ -755,18 +755,18 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) install github.com/tinylib/msgp@v1.1.6
-	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
+	$(GOBIN)/msgp -file=../model/session.go -tests=false -o=../model/session_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ./model/session_serial_gen.go >> tmp.go
-	@mv tmp.go ./model/session_serial_gen.go
-	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
+	@cat ../model/session_serial_gen.go >> tmp.go
+	@mv tmp.go ../model/session_serial_gen.go
+	$(GOBIN)/msgp -file=../model/user.go -tests=false -o=../model/user_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ./model/user_serial_gen.go >> tmp.go
-	@mv tmp.go ./model/user_serial_gen.go
-	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
+	@cat ../model/user_serial_gen.go >> tmp.go
+	@mv tmp.go ../model/user_serial_gen.go
+	$(GOBIN)/msgp -file=../model/team_member.go -tests=false -o=../model/team_member_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ./model/team_member_serial_gen.go >> tmp.go
-	@mv tmp.go ./model/team_member_serial_gen.go
+	@cat ../model/team_member_serial_gen.go >> tmp.go
+	@mv tmp.go ../model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
