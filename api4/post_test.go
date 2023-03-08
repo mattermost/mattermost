@@ -1084,7 +1084,7 @@ func TestPatchPost(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.PatchPost(post2.Id, patch2)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
-		require.Equal(t, "api.post.patch_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
 	})
 }
 
