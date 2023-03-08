@@ -104,7 +104,7 @@ api/data/*
 api4/data/*
 app/data/*
 
-enterprise
+/enterprise
 
 cover.out
 ecover.out
