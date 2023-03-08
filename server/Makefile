@@ -293,7 +293,7 @@ else
 endif
 
 plugin-checker:
-	$(GO) run $(GOFLAGS) ./plugin/checker
+	$(GO) run $(GOFLAGS) ../plugin/checker
 
 prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	@echo Downloading prepackaged plugins
@@ -403,7 +403,7 @@ platform-mocks: ## Creates mocks for platform interfaces.
 	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
-	$(GO) generate $(GOFLAGS) ./plugin
+	$(GO) generate $(GOFLAGS) ../plugin
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks
 
