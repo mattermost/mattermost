@@ -132,7 +132,7 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlStore = New(*st.SqlSettings, nil)
+			st.SqlStore = New(*st.SqlSettings, nil, nil)
 			st.Store = st.SqlStore
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
@@ -268,7 +268,7 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -338,7 +338,7 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -402,7 +402,7 @@ func TestGetDbVersion(t *testing.T) {
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 
 			version, err := store.GetDbVersion(false)
 			require.NoError(t, err)

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package debugbar
 
 import (
@@ -31,11 +34,11 @@ func NewDebugBarLogTarget(debugBar *DebugBar) *DebugBarLogTarget {
 	return &DebugBarLogTarget{debugBar: debugBar}
 }
 
-func (_ *DebugBarLogTarget) Init() error {
+func (dblt *DebugBarLogTarget) Init() error {
 	return nil
 }
 
-func (_ *DebugBarLogTarget) Shutdown() error {
+func (dblt *DebugBarLogTarget) Shutdown() error {
 	return nil
 }
 
