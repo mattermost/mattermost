@@ -1071,6 +1071,31 @@ func TestPatchPost(t *testing.T) {
 		_, _, err = client.PatchPost(post.Id, patch)
 		require.NoError(t, err)
 	})
+
+	t.Run("time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		post2 := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		post2, _, err := th.SystemAdminClient.CreatePost(post2)
+		require.NoError(t, err)
+
+		patch2 := &model.PostPatch{
+			Message: model.NewString("new message"),
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(post2.Id, patch2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.patch_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
+	})
 }
 
 func TestPinPost(t *testing.T) {

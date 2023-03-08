@@ -1031,49 +1031,6 @@ func TestPatchPost(t *testing.T) {
 			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
-
-	t.Run("patch post with a new message, but message too old", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostEditTimeLimit = -1
-		})
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "message" + model.NewId() + "1",
-			UserId:    th.BasicUser.Id,
-			CreateAt:  model.GetMillis() - 2000,
-		}
-		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
-		require.Nil(t, err)
-		require.Equal(t, post.Message, rpost.Message)
-
-		patch := &model.PostPatch{
-			Message: model.NewString("message" + model.NewId() + "2"),
-		}
-
-		rpost, err = th.App.PatchPost(th.Context, rpost.Id, patch)
-		require.Nil(t, err)
-		require.Equal(t, *patch.Message, rpost.Message)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostEditTimeLimit = 1
-		})
-
-		patch = &model.PostPatch{
-			Message: model.NewString("message" + model.NewId() + "3"),
-		}
-
-		_, err = th.App.PatchPost(th.Context, rpost.Id, patch)
-		require.NotNil(t, err, "should fail on update old post")
-		require.Equal(t, http.StatusBadRequest, err.StatusCode)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostEditTimeLimit = -1
-		})
-	})
 }
 
 func TestCreatePostAsUser(t *testing.T) {
