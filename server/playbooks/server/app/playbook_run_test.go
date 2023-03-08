@@ -59,6 +59,7 @@ func TestPlaybookRunFilterOptions_Clone(t *testing.T) {
 	err = json.Unmarshal(marshalledOptions, &unmarshalledOptions)
 	require.NoError(t, err)
 	require.Equal(t, options, unmarshalledOptions)
+	require.NotEqual(t, clone, unmarshalledOptions)
 }
 
 func TestPlaybookRunFilterOptions_Validate(t *testing.T) {

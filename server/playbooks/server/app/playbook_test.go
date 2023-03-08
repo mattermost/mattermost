@@ -103,6 +103,7 @@ func TestPlaybookFilterOptions_Clone(t *testing.T) {
 	err = json.Unmarshal(marshalledOptions, &unmarshalledOptions)
 	require.NoError(t, err)
 	require.Equal(t, options, unmarshalledOptions)
+	require.NotEqual(t, clone, unmarshalledOptions)
 }
 
 func TestPlaybookFilterOptions_Validate(t *testing.T) {

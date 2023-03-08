@@ -1042,12 +1042,10 @@ func TestGetFollowersActiveTotal(t *testing.T) {
 	}
 
 	alice := userInfo{
-		ID:   model.NewId(),
-		Name: "alice",
+		ID: model.NewId(),
 	}
 	bob := userInfo{
-		ID:   model.NewId(),
-		Name: "bob",
+		ID: model.NewId(),
 	}
 	followers := []string{alice.ID, bob.ID}
 	teamID := model.NewId()

@@ -227,10 +227,8 @@ func TestGetPlaybook(t *testing.T) {
 		})
 
 		t.Run(driverName+" - create but retrieve non-existing playbook", func(t *testing.T) {
-			id, err := playbookStore.Create(pb02)
+			_, err := playbookStore.Create(pb02)
 			require.NoError(t, err)
-			expected := pb02.Clone()
-			expected.ID = id
 
 			actual, err := playbookStore.Get("nonexisting")
 			cleanMetricsIDs(actual.Metrics)
