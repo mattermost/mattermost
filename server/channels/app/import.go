@@ -14,10 +14,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/imports"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type ReactionImportData = imports.ReactionImportData // part of the app interface

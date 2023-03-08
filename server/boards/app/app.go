@@ -8,19 +8,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/auth"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/config"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/metrics"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/notify"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/permissions"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/store"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/webhook"
-	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
-	"github.com/mattermost/mattermost-server/server/v7/boards/ws"
+	"github.com/mattermost/mattermost-server/v6/server/boards/auth"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/metrics"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/webhook"
+	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/v6/server/boards/ws"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const (

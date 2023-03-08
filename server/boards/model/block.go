@@ -8,7 +8,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/audit"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
 )
 
 // Block is the basic data unit

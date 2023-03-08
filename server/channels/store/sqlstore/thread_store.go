@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
 )
 
 // JoinedThread allows querying the Threads + Posts table in a single query, before looking up

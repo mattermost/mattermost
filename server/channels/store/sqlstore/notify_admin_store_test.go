@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
 )
 
 func TestNotifyAdminStore(t *testing.T) {

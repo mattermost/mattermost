@@ -6,7 +6,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 var VersionCmd = &cobra.Command{

@@ -13,9 +13,9 @@ import (
 	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
 	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 // GetPublicKey will return the actual public key saved in the `name` file.

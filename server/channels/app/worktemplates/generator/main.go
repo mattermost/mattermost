@@ -19,7 +19,7 @@ import (
 	"golang.org/x/tools/imports"
 	"gopkg.in/yaml.v3"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
 )
 
 type WorkTemplateWithMD5 struct {

@@ -8,11 +8,11 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mfa"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mfa"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 
 	"github.com/pkg/errors"
 )

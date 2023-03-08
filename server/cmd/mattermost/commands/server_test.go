@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v7/config"
+	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
+	"github.com/mattermost/mattermost-server/v6/server/config"
 )
 
 const (

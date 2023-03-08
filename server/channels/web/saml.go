@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB

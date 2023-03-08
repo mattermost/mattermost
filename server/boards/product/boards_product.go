@@ -7,13 +7,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/server"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/server"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/product"
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v7/plugin"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const (

@@ -10,10 +10,10 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/scheduler"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/scheduler"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const (

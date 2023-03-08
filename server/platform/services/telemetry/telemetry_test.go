@@ -21,16 +21,16 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/product"
-	storeMocks "github.com/mattermost/mattermost-server/server/v7/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/config"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/telemetry/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v7/plugin"
-	"github.com/mattermost/mattermost-server/server/v7/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	storeMocks "github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/telemetry/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type FakeConfigService struct {

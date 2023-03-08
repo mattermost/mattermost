@@ -24,8 +24,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp" //nolint:staticcheck
 
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 //go:embed pubkey.gpg

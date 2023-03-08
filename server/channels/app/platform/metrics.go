@@ -18,9 +18,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second

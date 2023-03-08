@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 )
 
 var (

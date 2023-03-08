@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

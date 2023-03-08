@@ -10,8 +10,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/web"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/web"
 )
 
 // channel is an internal graphQL wrapper struct to add resolver methods.

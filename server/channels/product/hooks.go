@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v7/plugin"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
 )
 
 type HooksManager struct {

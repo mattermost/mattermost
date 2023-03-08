@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (a *App) NotifySelfHostedSignupProgress(progress string, userId string) {

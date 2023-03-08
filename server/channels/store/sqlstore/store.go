@@ -30,11 +30,11 @@ import (
 	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/db"
-	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/db"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type migrationDirection string
@@ -117,7 +117,7 @@ type SqlStoreStores struct {
 
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
-	// See https://github.com/mattermost/mattermost-server/server/v7/channels/pull/7281
+	// See https://github.com/mattermost/mattermost-server/v6/server/channels/pull/7281
 	rrCounter int64
 	srCounter int64
 

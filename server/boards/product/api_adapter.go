@@ -8,11 +8,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 )
 
 // normalizeAppError returns a truly nil error if appErr is nil

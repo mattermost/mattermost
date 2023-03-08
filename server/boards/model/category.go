@@ -9,7 +9,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
+	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 )
 
 const (

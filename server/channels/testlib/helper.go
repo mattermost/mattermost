@@ -13,13 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/searchlayer"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
 )
 
 type MainHelper struct {

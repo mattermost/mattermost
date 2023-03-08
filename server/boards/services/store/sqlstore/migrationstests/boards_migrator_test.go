@@ -18,12 +18,12 @@ import (
 	embedded "github.com/mattermost/morph/sources/embedded"
 	"github.com/mgdelacroix/foundation"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/db"
-	mmSqlStore "github.com/mattermost/mattermost-server/server/v7/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/channels/db"
+	mmSqlStore "github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
 )
 
 var tablePrefix = "focalboard_"

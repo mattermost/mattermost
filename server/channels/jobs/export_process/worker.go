@@ -8,11 +8,11 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/configservice"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const jobName = "ExportProcess"

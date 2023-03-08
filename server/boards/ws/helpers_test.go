@@ -6,11 +6,11 @@ package ws
 import (
 	"testing"
 
-	authMocks "github.com/mattermost/mattermost-server/server/v7/boards/auth/mocks"
-	wsMocks "github.com/mattermost/mattermost-server/server/v7/boards/ws/mocks"
+	authMocks "github.com/mattermost/mattermost-server/v6/server/boards/auth/mocks"
+	wsMocks "github.com/mattermost/mattermost-server/v6/server/boards/ws/mocks"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 
 	"github.com/golang/mock/gomock"
 )

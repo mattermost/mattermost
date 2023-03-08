@@ -20,15 +20,15 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app"
-	app_opentracing "github.com/mattermost/mattermost-server/server/v7/channels/app/opentracing"
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/opentracinglayer"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app"
+	app_opentracing "github.com/mattermost/mattermost-server/v6/server/channels/app/opentracing"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/opentracinglayer"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/tracing"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {

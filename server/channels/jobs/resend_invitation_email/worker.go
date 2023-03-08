@@ -8,12 +8,12 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/configservice"
-	"github.com/mattermost/mattermost-server/server/v7/platform/services/telemetry"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/server/platform/services/telemetry"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const FourtyEightHoursInMillis int64 = 172800000

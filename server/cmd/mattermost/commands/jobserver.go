@@ -10,10 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app"
-	"github.com/mattermost/mattermost-server/server/v7/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v7/config"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app"
+	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
+	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 var JobserverCmd = &cobra.Command{

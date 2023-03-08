@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v7/config"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/server/config"
 )
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {

@@ -17,14 +17,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app"
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v7/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
 )
 
 func TestCreateTeam(t *testing.T) {

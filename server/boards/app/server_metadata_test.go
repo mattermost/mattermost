@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 )
 
 func TestGetServerMetadata(t *testing.T) {

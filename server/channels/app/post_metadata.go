@@ -17,12 +17,12 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils/imgutils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/markdown"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/imgutils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/markdown"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type linkMetadataCache struct {

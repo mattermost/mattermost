@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app"
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 )
 
 type ExpandProvider struct {

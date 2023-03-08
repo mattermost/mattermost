@@ -8,8 +8,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/product"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
 )
 
 // Ensure preferences service wrapper implements `product.PreferencesService`

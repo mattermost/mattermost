@@ -6,7 +6,7 @@ package teams
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // By default the list will be (not necessarily in this order):

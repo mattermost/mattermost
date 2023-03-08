@@ -4,8 +4,8 @@
 package expirynotify
 
 import (
-	"github.com/mattermost/mattermost-server/server/v7/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
 )
 
 const (

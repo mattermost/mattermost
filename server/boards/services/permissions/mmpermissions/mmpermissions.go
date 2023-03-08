@@ -4,11 +4,11 @@
 package mmpermissions
 
 import (
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/permissions"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type APIInterface interface {

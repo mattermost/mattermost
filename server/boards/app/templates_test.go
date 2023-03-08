@@ -9,10 +9,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v7/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 )
 
 func TestApp_initializeTemplates(t *testing.T) {

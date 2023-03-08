@@ -7,18 +7,18 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/auth"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/config"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/metrics"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/permissions/mmpermissions"
-	mmpermissionsMocks "github.com/mattermost/mattermost-server/server/v7/boards/services/permissions/mmpermissions/mocks"
-	permissionsMocks "github.com/mattermost/mattermost-server/server/v7/boards/services/permissions/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/store/mockstore"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/webhook"
-	"github.com/mattermost/mattermost-server/server/v7/boards/ws"
+	"github.com/mattermost/mattermost-server/v6/server/boards/auth"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/metrics"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/mmpermissions"
+	mmpermissionsMocks "github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/mmpermissions/mocks"
+	permissionsMocks "github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/mockstore"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/webhook"
+	"github.com/mattermost/mattermost-server/v6/server/boards/ws"
 
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/filestore/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type TestHelper struct {

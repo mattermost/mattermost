@@ -6,9 +6,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/plugin_api_tests"
 )
 
 type configuration struct {

@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
+	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 )
 
 var ErrInvalidBoardBlock = errors.New("invalid board block")

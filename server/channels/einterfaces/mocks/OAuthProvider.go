@@ -7,7 +7,7 @@ package mocks
 import (
 	io "io"
 
-	model "github.com/mattermost/mattermost-server/server/v7/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 

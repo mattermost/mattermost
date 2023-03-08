@@ -12,12 +12,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/app"
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/audit"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/permissions"
+	"github.com/mattermost/mattermost-server/v6/server/boards/app"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions"
 
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const (

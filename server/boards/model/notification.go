@@ -6,7 +6,7 @@ package model
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
 )
 
 // NotificationHint provides a hint that a block has been modified and has subscribers that

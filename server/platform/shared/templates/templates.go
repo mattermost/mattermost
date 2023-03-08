@@ -13,7 +13,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
 )
 
 // Container represents a set of templates that can be render

@@ -7,9 +7,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 // servicesAPI is the interface required my the Params to interact with the mattermost-server.

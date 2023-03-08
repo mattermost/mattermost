@@ -10,14 +10,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/config"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/permissions/localpermissions"
-	mockpermissions "github.com/mattermost/mattermost-server/server/v7/boards/services/permissions/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/store/mockstore"
-	"github.com/mattermost/mattermost-server/server/v7/boards/utils"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/localpermissions"
+	mockpermissions "github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/mockstore"
+	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type TestHelper struct {

@@ -12,14 +12,14 @@ import (
 
 	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
 
-	fb_model "github.com/mattermost/mattermost-server/server/v7/boards/model"
+	fb_model "github.com/mattermost/mattermost-server/v6/server/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/server/v7/channels/product"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type WorkTemplateExecutor interface {

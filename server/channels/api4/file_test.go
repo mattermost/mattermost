@@ -23,10 +23,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
 )
 
 var testDir = ""

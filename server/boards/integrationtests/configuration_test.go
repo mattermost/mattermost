@@ -8,14 +8,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/server"
-	"github.com/mattermost/mattermost-server/server/v7/boards/ws"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/server"
+	"github.com/mattermost/mattermost-server/v6/server/boards/ws"
 
-	mockservicesapi "github.com/mattermost/mattermost-server/server/v7/boards/model/mocks"
+	mockservicesapi "github.com/mattermost/mattermost-server/v6/server/boards/model/mocks"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 
 	"github.com/stretchr/testify/assert"
 )

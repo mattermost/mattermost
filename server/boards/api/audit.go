@@ -6,8 +6,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v7/boards/model"
-	"github.com/mattermost/mattermost-server/server/v7/boards/services/audit"
+	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
 )
 
 // makeAuditRecord creates an audit record pre-populated with data from the request.

@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v7/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils"
-	mocks2 "github.com/mattermost/mattermost-server/server/v7/channels/utils/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v7/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	mocks2 "github.com/mattermost/mattermost-server/v6/server/channels/utils/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

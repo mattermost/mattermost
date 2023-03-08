@@ -17,14 +17,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v7/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v7/channels/product"
-	"github.com/mattermost/mattermost-server/server/v7/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v7/config"
-	"github.com/mattermost/mattermost-server/server/v7/model"
-	fmocks "github.com/mattermost/mattermost-server/server/v7/platform/shared/filestore/mocks"
-	"github.com/mattermost/mattermost-server/server/v7/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
+	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
+	"github.com/mattermost/mattermost-server/v6/server/config"
+	fmocks "github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
