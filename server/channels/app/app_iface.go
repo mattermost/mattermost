@@ -18,6 +18,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
@@ -25,7 +27,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/server/channels/product"
 	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/remotecluster"
@@ -34,7 +35,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.

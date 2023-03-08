@@ -10,8 +10,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/tracing"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"

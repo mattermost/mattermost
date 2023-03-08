@@ -12,8 +12,8 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/v6/server/boards/model"
-	model0 "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
+	model0 "github.com/mattermost/mattermost-server/v6/server/boards/model"
 )
 
 // MockStore is a mock of Store interface.
@@ -83,10 +83,10 @@ func (mr *MockStoreMockRecorder) CleanUpSessions(arg0 interface{}) *gomock.Call 
 }
 
 // CreateBoardsAndBlocks mocks base method.
-func (m *MockStore) CreateBoardsAndBlocks(arg0 *model.BoardsAndBlocks, arg1 string) (*model.BoardsAndBlocks, error) {
+func (m *MockStore) CreateBoardsAndBlocks(arg0 *model0.BoardsAndBlocks, arg1 string) (*model0.BoardsAndBlocks, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateBoardsAndBlocks", arg0, arg1)
-	ret0, _ := ret[0].(*model.BoardsAndBlocks)
+	ret0, _ := ret[0].(*model0.BoardsAndBlocks)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -98,11 +98,11 @@ func (mr *MockStoreMockRecorder) CreateBoardsAndBlocks(arg0, arg1 interface{}) *
 }
 
 // CreateBoardsAndBlocksWithAdmin mocks base method.
-func (m *MockStore) CreateBoardsAndBlocksWithAdmin(arg0 *model.BoardsAndBlocks, arg1 string) (*model.BoardsAndBlocks, []*model.BoardMember, error) {
+func (m *MockStore) CreateBoardsAndBlocksWithAdmin(arg0 *model0.BoardsAndBlocks, arg1 string) (*model0.BoardsAndBlocks, []*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateBoardsAndBlocksWithAdmin", arg0, arg1)
-	ret0, _ := ret[0].(*model.BoardsAndBlocks)
-	ret1, _ := ret[1].([]*model.BoardMember)
+	ret0, _ := ret[0].(*model0.BoardsAndBlocks)
+	ret1, _ := ret[1].([]*model0.BoardMember)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -114,7 +114,7 @@ func (mr *MockStoreMockRecorder) CreateBoardsAndBlocksWithAdmin(arg0, arg1 inter
 }
 
 // CreateCategory mocks base method.
-func (m *MockStore) CreateCategory(arg0 model.Category) error {
+func (m *MockStore) CreateCategory(arg0 model0.Category) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateCategory", arg0)
 	ret0, _ := ret[0].(error)
@@ -128,7 +128,7 @@ func (mr *MockStoreMockRecorder) CreateCategory(arg0 interface{}) *gomock.Call {
 }
 
 // CreateSession mocks base method.
-func (m *MockStore) CreateSession(arg0 *model.Session) error {
+func (m *MockStore) CreateSession(arg0 *model0.Session) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSession", arg0)
 	ret0, _ := ret[0].(error)
@@ -142,10 +142,10 @@ func (mr *MockStoreMockRecorder) CreateSession(arg0 interface{}) *gomock.Call {
 }
 
 // CreateSubscription mocks base method.
-func (m *MockStore) CreateSubscription(arg0 *model.Subscription) (*model.Subscription, error) {
+func (m *MockStore) CreateSubscription(arg0 *model0.Subscription) (*model0.Subscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSubscription", arg0)
-	ret0, _ := ret[0].(*model.Subscription)
+	ret0, _ := ret[0].(*model0.Subscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -157,10 +157,10 @@ func (mr *MockStoreMockRecorder) CreateSubscription(arg0 interface{}) *gomock.Ca
 }
 
 // CreateUser mocks base method.
-func (m *MockStore) CreateUser(arg0 *model.User) (*model.User, error) {
+func (m *MockStore) CreateUser(arg0 *model0.User) (*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", arg0)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -256,7 +256,7 @@ func (mr *MockStoreMockRecorder) DeleteBoardRecord(arg0, arg1 interface{}) *gomo
 }
 
 // DeleteBoardsAndBlocks mocks base method.
-func (m *MockStore) DeleteBoardsAndBlocks(arg0 *model.DeleteBoardsAndBlocks, arg1 string) error {
+func (m *MockStore) DeleteBoardsAndBlocks(arg0 *model0.DeleteBoardsAndBlocks, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteBoardsAndBlocks", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -340,10 +340,10 @@ func (mr *MockStoreMockRecorder) DeleteSubscription(arg0, arg1 interface{}) *gom
 }
 
 // DuplicateBlock mocks base method.
-func (m *MockStore) DuplicateBlock(arg0, arg1, arg2 string, arg3 bool) ([]*model.Block, error) {
+func (m *MockStore) DuplicateBlock(arg0, arg1, arg2 string, arg3 bool) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DuplicateBlock", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -355,11 +355,11 @@ func (mr *MockStoreMockRecorder) DuplicateBlock(arg0, arg1, arg2, arg3 interface
 }
 
 // DuplicateBoard mocks base method.
-func (m *MockStore) DuplicateBoard(arg0, arg1, arg2 string, arg3 bool) (*model.BoardsAndBlocks, []*model.BoardMember, error) {
+func (m *MockStore) DuplicateBoard(arg0, arg1, arg2 string, arg3 bool) (*model0.BoardsAndBlocks, []*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DuplicateBoard", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*model.BoardsAndBlocks)
-	ret1, _ := ret[1].([]*model.BoardMember)
+	ret0, _ := ret[0].(*model0.BoardsAndBlocks)
+	ret1, _ := ret[1].([]*model0.BoardMember)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -386,10 +386,10 @@ func (mr *MockStoreMockRecorder) GetActiveUserCount(arg0 interface{}) *gomock.Ca
 }
 
 // GetAllTeams mocks base method.
-func (m *MockStore) GetAllTeams() ([]*model.Team, error) {
+func (m *MockStore) GetAllTeams() ([]*model0.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllTeams")
-	ret0, _ := ret[0].([]*model.Team)
+	ret0, _ := ret[0].([]*model0.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -401,10 +401,10 @@ func (mr *MockStoreMockRecorder) GetAllTeams() *gomock.Call {
 }
 
 // GetBlock mocks base method.
-func (m *MockStore) GetBlock(arg0 string) (*model.Block, error) {
+func (m *MockStore) GetBlock(arg0 string) (*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlock", arg0)
-	ret0, _ := ret[0].(*model.Block)
+	ret0, _ := ret[0].(*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -431,10 +431,10 @@ func (mr *MockStoreMockRecorder) GetBlockCountsByType() *gomock.Call {
 }
 
 // GetBlockHistory mocks base method.
-func (m *MockStore) GetBlockHistory(arg0 string, arg1 model.QueryBlockHistoryOptions) ([]*model.Block, error) {
+func (m *MockStore) GetBlockHistory(arg0 string, arg1 model0.QueryBlockHistoryOptions) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlockHistory", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -446,10 +446,10 @@ func (mr *MockStoreMockRecorder) GetBlockHistory(arg0, arg1 interface{}) *gomock
 }
 
 // GetBlockHistoryDescendants mocks base method.
-func (m *MockStore) GetBlockHistoryDescendants(arg0 string, arg1 model.QueryBlockHistoryOptions) ([]*model.Block, error) {
+func (m *MockStore) GetBlockHistoryDescendants(arg0 string, arg1 model0.QueryBlockHistoryOptions) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlockHistoryDescendants", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -461,10 +461,10 @@ func (mr *MockStoreMockRecorder) GetBlockHistoryDescendants(arg0, arg1 interface
 }
 
 // GetBlockHistoryNewestChildren mocks base method.
-func (m *MockStore) GetBlockHistoryNewestChildren(arg0 string, arg1 model.QueryBlockHistoryChildOptions) ([]*model.Block, bool, error) {
+func (m *MockStore) GetBlockHistoryNewestChildren(arg0 string, arg1 model0.QueryBlockHistoryChildOptions) ([]*model0.Block, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlockHistoryNewestChildren", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -477,10 +477,10 @@ func (mr *MockStoreMockRecorder) GetBlockHistoryNewestChildren(arg0, arg1 interf
 }
 
 // GetBlocks mocks base method.
-func (m *MockStore) GetBlocks(arg0 model.QueryBlocksOptions) ([]*model.Block, error) {
+func (m *MockStore) GetBlocks(arg0 model0.QueryBlocksOptions) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocks", arg0)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -492,10 +492,10 @@ func (mr *MockStoreMockRecorder) GetBlocks(arg0 interface{}) *gomock.Call {
 }
 
 // GetBlocksByIDs mocks base method.
-func (m *MockStore) GetBlocksByIDs(arg0 []string) ([]*model.Block, error) {
+func (m *MockStore) GetBlocksByIDs(arg0 []string) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocksByIDs", arg0)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -507,10 +507,10 @@ func (mr *MockStoreMockRecorder) GetBlocksByIDs(arg0 interface{}) *gomock.Call {
 }
 
 // GetBlocksComplianceHistory mocks base method.
-func (m *MockStore) GetBlocksComplianceHistory(arg0 model.QueryBlocksComplianceHistoryOptions) ([]*model.BlockHistory, bool, error) {
+func (m *MockStore) GetBlocksComplianceHistory(arg0 model0.QueryBlocksComplianceHistoryOptions) ([]*model0.BlockHistory, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocksComplianceHistory", arg0)
-	ret0, _ := ret[0].([]*model.BlockHistory)
+	ret0, _ := ret[0].([]*model0.BlockHistory)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -523,10 +523,10 @@ func (mr *MockStoreMockRecorder) GetBlocksComplianceHistory(arg0 interface{}) *g
 }
 
 // GetBlocksForBoard mocks base method.
-func (m *MockStore) GetBlocksForBoard(arg0 string) ([]*model.Block, error) {
+func (m *MockStore) GetBlocksForBoard(arg0 string) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocksForBoard", arg0)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -538,10 +538,10 @@ func (mr *MockStoreMockRecorder) GetBlocksForBoard(arg0 interface{}) *gomock.Cal
 }
 
 // GetBlocksWithParent mocks base method.
-func (m *MockStore) GetBlocksWithParent(arg0, arg1 string) ([]*model.Block, error) {
+func (m *MockStore) GetBlocksWithParent(arg0, arg1 string) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocksWithParent", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -553,10 +553,10 @@ func (mr *MockStoreMockRecorder) GetBlocksWithParent(arg0, arg1 interface{}) *go
 }
 
 // GetBlocksWithParentAndType mocks base method.
-func (m *MockStore) GetBlocksWithParentAndType(arg0, arg1, arg2 string) ([]*model.Block, error) {
+func (m *MockStore) GetBlocksWithParentAndType(arg0, arg1, arg2 string) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocksWithParentAndType", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -568,10 +568,10 @@ func (mr *MockStoreMockRecorder) GetBlocksWithParentAndType(arg0, arg1, arg2 int
 }
 
 // GetBlocksWithType mocks base method.
-func (m *MockStore) GetBlocksWithType(arg0, arg1 string) ([]*model.Block, error) {
+func (m *MockStore) GetBlocksWithType(arg0, arg1 string) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBlocksWithType", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -583,10 +583,10 @@ func (mr *MockStoreMockRecorder) GetBlocksWithType(arg0, arg1 interface{}) *gomo
 }
 
 // GetBoard mocks base method.
-func (m *MockStore) GetBoard(arg0 string) (*model.Board, error) {
+func (m *MockStore) GetBoard(arg0 string) (*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoard", arg0)
-	ret0, _ := ret[0].(*model.Board)
+	ret0, _ := ret[0].(*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -598,11 +598,11 @@ func (mr *MockStoreMockRecorder) GetBoard(arg0 interface{}) *gomock.Call {
 }
 
 // GetBoardAndCard mocks base method.
-func (m *MockStore) GetBoardAndCard(arg0 *model.Block) (*model.Board, *model.Block, error) {
+func (m *MockStore) GetBoardAndCard(arg0 *model0.Block) (*model0.Board, *model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardAndCard", arg0)
-	ret0, _ := ret[0].(*model.Board)
-	ret1, _ := ret[1].(*model.Block)
+	ret0, _ := ret[0].(*model0.Board)
+	ret1, _ := ret[1].(*model0.Block)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -614,11 +614,11 @@ func (mr *MockStoreMockRecorder) GetBoardAndCard(arg0 interface{}) *gomock.Call 
 }
 
 // GetBoardAndCardByID mocks base method.
-func (m *MockStore) GetBoardAndCardByID(arg0 string) (*model.Board, *model.Block, error) {
+func (m *MockStore) GetBoardAndCardByID(arg0 string) (*model0.Board, *model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardAndCardByID", arg0)
-	ret0, _ := ret[0].(*model.Board)
-	ret1, _ := ret[1].(*model.Block)
+	ret0, _ := ret[0].(*model0.Board)
+	ret1, _ := ret[1].(*model0.Block)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -645,10 +645,10 @@ func (mr *MockStoreMockRecorder) GetBoardCount() *gomock.Call {
 }
 
 // GetBoardHistory mocks base method.
-func (m *MockStore) GetBoardHistory(arg0 string, arg1 model.QueryBoardHistoryOptions) ([]*model.Board, error) {
+func (m *MockStore) GetBoardHistory(arg0 string, arg1 model0.QueryBoardHistoryOptions) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardHistory", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -660,10 +660,10 @@ func (mr *MockStoreMockRecorder) GetBoardHistory(arg0, arg1 interface{}) *gomock
 }
 
 // GetBoardMemberHistory mocks base method.
-func (m *MockStore) GetBoardMemberHistory(arg0, arg1 string, arg2 uint64) ([]*model.BoardMemberHistoryEntry, error) {
+func (m *MockStore) GetBoardMemberHistory(arg0, arg1 string, arg2 uint64) ([]*model0.BoardMemberHistoryEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardMemberHistory", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.BoardMemberHistoryEntry)
+	ret0, _ := ret[0].([]*model0.BoardMemberHistoryEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -675,10 +675,10 @@ func (mr *MockStoreMockRecorder) GetBoardMemberHistory(arg0, arg1, arg2 interfac
 }
 
 // GetBoardsComplianceHistory mocks base method.
-func (m *MockStore) GetBoardsComplianceHistory(arg0 model.QueryBoardsComplianceHistoryOptions) ([]*model.BoardHistory, bool, error) {
+func (m *MockStore) GetBoardsComplianceHistory(arg0 model0.QueryBoardsComplianceHistoryOptions) ([]*model0.BoardHistory, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardsComplianceHistory", arg0)
-	ret0, _ := ret[0].([]*model.BoardHistory)
+	ret0, _ := ret[0].([]*model0.BoardHistory)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -691,10 +691,10 @@ func (mr *MockStoreMockRecorder) GetBoardsComplianceHistory(arg0 interface{}) *g
 }
 
 // GetBoardsForCompliance mocks base method.
-func (m *MockStore) GetBoardsForCompliance(arg0 model.QueryBoardsForComplianceOptions) ([]*model.Board, bool, error) {
+func (m *MockStore) GetBoardsForCompliance(arg0 model0.QueryBoardsForComplianceOptions) ([]*model0.Board, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardsForCompliance", arg0)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -707,10 +707,10 @@ func (mr *MockStoreMockRecorder) GetBoardsForCompliance(arg0 interface{}) *gomoc
 }
 
 // GetBoardsForUserAndTeam mocks base method.
-func (m *MockStore) GetBoardsForUserAndTeam(arg0, arg1 string, arg2 bool) ([]*model.Board, error) {
+func (m *MockStore) GetBoardsForUserAndTeam(arg0, arg1 string, arg2 bool) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardsForUserAndTeam", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -722,10 +722,10 @@ func (mr *MockStoreMockRecorder) GetBoardsForUserAndTeam(arg0, arg1, arg2 interf
 }
 
 // GetBoardsInTeamByIds mocks base method.
-func (m *MockStore) GetBoardsInTeamByIds(arg0 []string, arg1 string) ([]*model.Board, error) {
+func (m *MockStore) GetBoardsInTeamByIds(arg0 []string, arg1 string) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardsInTeamByIds", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -752,10 +752,10 @@ func (mr *MockStoreMockRecorder) GetCardLimitTimestamp() *gomock.Call {
 }
 
 // GetCategory mocks base method.
-func (m *MockStore) GetCategory(arg0 string) (*model.Category, error) {
+func (m *MockStore) GetCategory(arg0 string) (*model0.Category, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCategory", arg0)
-	ret0, _ := ret[0].(*model.Category)
+	ret0, _ := ret[0].(*model0.Category)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -767,10 +767,10 @@ func (mr *MockStoreMockRecorder) GetCategory(arg0 interface{}) *gomock.Call {
 }
 
 // GetChannel mocks base method.
-func (m *MockStore) GetChannel(arg0, arg1 string) (*model0.Channel, error) {
+func (m *MockStore) GetChannel(arg0, arg1 string) (*model.Channel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannel", arg0, arg1)
-	ret0, _ := ret[0].(*model0.Channel)
+	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -782,10 +782,10 @@ func (mr *MockStoreMockRecorder) GetChannel(arg0, arg1 interface{}) *gomock.Call
 }
 
 // GetCloudLimits mocks base method.
-func (m *MockStore) GetCloudLimits() (*model0.ProductLimits, error) {
+func (m *MockStore) GetCloudLimits() (*model.ProductLimits, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCloudLimits")
-	ret0, _ := ret[0].(*model0.ProductLimits)
+	ret0, _ := ret[0].(*model.ProductLimits)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -797,10 +797,10 @@ func (mr *MockStoreMockRecorder) GetCloudLimits() *gomock.Call {
 }
 
 // GetFileInfo mocks base method.
-func (m *MockStore) GetFileInfo(arg0 string) (*model0.FileInfo, error) {
+func (m *MockStore) GetFileInfo(arg0 string) (*model.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFileInfo", arg0)
-	ret0, _ := ret[0].(*model0.FileInfo)
+	ret0, _ := ret[0].(*model.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -812,10 +812,10 @@ func (mr *MockStoreMockRecorder) GetFileInfo(arg0 interface{}) *gomock.Call {
 }
 
 // GetLicense mocks base method.
-func (m *MockStore) GetLicense() *model0.License {
+func (m *MockStore) GetLicense() *model.License {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLicense")
-	ret0, _ := ret[0].(*model0.License)
+	ret0, _ := ret[0].(*model.License)
 	return ret0
 }
 
@@ -826,10 +826,10 @@ func (mr *MockStoreMockRecorder) GetLicense() *gomock.Call {
 }
 
 // GetMemberForBoard mocks base method.
-func (m *MockStore) GetMemberForBoard(arg0, arg1 string) (*model.BoardMember, error) {
+func (m *MockStore) GetMemberForBoard(arg0, arg1 string) (*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMemberForBoard", arg0, arg1)
-	ret0, _ := ret[0].(*model.BoardMember)
+	ret0, _ := ret[0].(*model0.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -841,10 +841,10 @@ func (mr *MockStoreMockRecorder) GetMemberForBoard(arg0, arg1 interface{}) *gomo
 }
 
 // GetMembersForBoard mocks base method.
-func (m *MockStore) GetMembersForBoard(arg0 string) ([]*model.BoardMember, error) {
+func (m *MockStore) GetMembersForBoard(arg0 string) ([]*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMembersForBoard", arg0)
-	ret0, _ := ret[0].([]*model.BoardMember)
+	ret0, _ := ret[0].([]*model0.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -856,10 +856,10 @@ func (mr *MockStoreMockRecorder) GetMembersForBoard(arg0 interface{}) *gomock.Ca
 }
 
 // GetMembersForUser mocks base method.
-func (m *MockStore) GetMembersForUser(arg0 string) ([]*model.BoardMember, error) {
+func (m *MockStore) GetMembersForUser(arg0 string) ([]*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMembersForUser", arg0)
-	ret0, _ := ret[0].([]*model.BoardMember)
+	ret0, _ := ret[0].([]*model0.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -871,10 +871,10 @@ func (mr *MockStoreMockRecorder) GetMembersForUser(arg0 interface{}) *gomock.Cal
 }
 
 // GetNextNotificationHint mocks base method.
-func (m *MockStore) GetNextNotificationHint(arg0 bool) (*model.NotificationHint, error) {
+func (m *MockStore) GetNextNotificationHint(arg0 bool) (*model0.NotificationHint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNextNotificationHint", arg0)
-	ret0, _ := ret[0].(*model.NotificationHint)
+	ret0, _ := ret[0].(*model0.NotificationHint)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -886,10 +886,10 @@ func (mr *MockStoreMockRecorder) GetNextNotificationHint(arg0 interface{}) *gomo
 }
 
 // GetNotificationHint mocks base method.
-func (m *MockStore) GetNotificationHint(arg0 string) (*model.NotificationHint, error) {
+func (m *MockStore) GetNotificationHint(arg0 string) (*model0.NotificationHint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNotificationHint", arg0)
-	ret0, _ := ret[0].(*model.NotificationHint)
+	ret0, _ := ret[0].(*model0.NotificationHint)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -916,10 +916,10 @@ func (mr *MockStoreMockRecorder) GetRegisteredUserCount() *gomock.Call {
 }
 
 // GetSession mocks base method.
-func (m *MockStore) GetSession(arg0 string, arg1 int64) (*model.Session, error) {
+func (m *MockStore) GetSession(arg0 string, arg1 int64) (*model0.Session, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSession", arg0, arg1)
-	ret0, _ := ret[0].(*model.Session)
+	ret0, _ := ret[0].(*model0.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -931,10 +931,10 @@ func (mr *MockStoreMockRecorder) GetSession(arg0, arg1 interface{}) *gomock.Call
 }
 
 // GetSharing mocks base method.
-func (m *MockStore) GetSharing(arg0 string) (*model.Sharing, error) {
+func (m *MockStore) GetSharing(arg0 string) (*model0.Sharing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSharing", arg0)
-	ret0, _ := ret[0].(*model.Sharing)
+	ret0, _ := ret[0].(*model0.Sharing)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -946,10 +946,10 @@ func (mr *MockStoreMockRecorder) GetSharing(arg0 interface{}) *gomock.Call {
 }
 
 // GetSubTree2 mocks base method.
-func (m *MockStore) GetSubTree2(arg0, arg1 string, arg2 model.QuerySubtreeOptions) ([]*model.Block, error) {
+func (m *MockStore) GetSubTree2(arg0, arg1 string, arg2 model0.QuerySubtreeOptions) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubTree2", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.Block)
+	ret0, _ := ret[0].([]*model0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -976,10 +976,10 @@ func (mr *MockStoreMockRecorder) GetSubscribersCountForBlock(arg0 interface{}) *
 }
 
 // GetSubscribersForBlock mocks base method.
-func (m *MockStore) GetSubscribersForBlock(arg0 string) ([]*model.Subscriber, error) {
+func (m *MockStore) GetSubscribersForBlock(arg0 string) ([]*model0.Subscriber, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscribersForBlock", arg0)
-	ret0, _ := ret[0].([]*model.Subscriber)
+	ret0, _ := ret[0].([]*model0.Subscriber)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -991,10 +991,10 @@ func (mr *MockStoreMockRecorder) GetSubscribersForBlock(arg0 interface{}) *gomoc
 }
 
 // GetSubscription mocks base method.
-func (m *MockStore) GetSubscription(arg0, arg1 string) (*model.Subscription, error) {
+func (m *MockStore) GetSubscription(arg0, arg1 string) (*model0.Subscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscription", arg0, arg1)
-	ret0, _ := ret[0].(*model.Subscription)
+	ret0, _ := ret[0].(*model0.Subscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1006,10 +1006,10 @@ func (mr *MockStoreMockRecorder) GetSubscription(arg0, arg1 interface{}) *gomock
 }
 
 // GetSubscriptions mocks base method.
-func (m *MockStore) GetSubscriptions(arg0 string) ([]*model.Subscription, error) {
+func (m *MockStore) GetSubscriptions(arg0 string) ([]*model0.Subscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSubscriptions", arg0)
-	ret0, _ := ret[0].([]*model.Subscription)
+	ret0, _ := ret[0].([]*model0.Subscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1051,10 +1051,10 @@ func (mr *MockStoreMockRecorder) GetSystemSettings() *gomock.Call {
 }
 
 // GetTeam mocks base method.
-func (m *MockStore) GetTeam(arg0 string) (*model.Team, error) {
+func (m *MockStore) GetTeam(arg0 string) (*model0.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeam", arg0)
-	ret0, _ := ret[0].(*model.Team)
+	ret0, _ := ret[0].(*model0.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1066,10 +1066,10 @@ func (mr *MockStoreMockRecorder) GetTeam(arg0 interface{}) *gomock.Call {
 }
 
 // GetTeamBoardsInsights mocks base method.
-func (m *MockStore) GetTeamBoardsInsights(arg0 string, arg1 int64, arg2, arg3 int, arg4 []string) (*model.BoardInsightsList, error) {
+func (m *MockStore) GetTeamBoardsInsights(arg0 string, arg1 int64, arg2, arg3 int, arg4 []string) (*model0.BoardInsightsList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamBoardsInsights", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(*model.BoardInsightsList)
+	ret0, _ := ret[0].(*model0.BoardInsightsList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1096,10 +1096,10 @@ func (mr *MockStoreMockRecorder) GetTeamCount() *gomock.Call {
 }
 
 // GetTeamsForUser mocks base method.
-func (m *MockStore) GetTeamsForUser(arg0 string) ([]*model.Team, error) {
+func (m *MockStore) GetTeamsForUser(arg0 string) ([]*model0.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamsForUser", arg0)
-	ret0, _ := ret[0].([]*model.Team)
+	ret0, _ := ret[0].([]*model0.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1111,10 +1111,10 @@ func (mr *MockStoreMockRecorder) GetTeamsForUser(arg0 interface{}) *gomock.Call 
 }
 
 // GetTemplateBoards mocks base method.
-func (m *MockStore) GetTemplateBoards(arg0, arg1 string) ([]*model.Board, error) {
+func (m *MockStore) GetTemplateBoards(arg0, arg1 string) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTemplateBoards", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1141,10 +1141,10 @@ func (mr *MockStoreMockRecorder) GetUsedCardsCount() *gomock.Call {
 }
 
 // GetUserBoardsInsights mocks base method.
-func (m *MockStore) GetUserBoardsInsights(arg0, arg1 string, arg2 int64, arg3, arg4 int, arg5 []string) (*model.BoardInsightsList, error) {
+func (m *MockStore) GetUserBoardsInsights(arg0, arg1 string, arg2 int64, arg3, arg4 int, arg5 []string) (*model0.BoardInsightsList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserBoardsInsights", arg0, arg1, arg2, arg3, arg4, arg5)
-	ret0, _ := ret[0].(*model.BoardInsightsList)
+	ret0, _ := ret[0].(*model0.BoardInsightsList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1156,10 +1156,10 @@ func (mr *MockStoreMockRecorder) GetUserBoardsInsights(arg0, arg1, arg2, arg3, a
 }
 
 // GetUserByEmail mocks base method.
-func (m *MockStore) GetUserByEmail(arg0 string) (*model.User, error) {
+func (m *MockStore) GetUserByEmail(arg0 string) (*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByEmail", arg0)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1171,10 +1171,10 @@ func (mr *MockStoreMockRecorder) GetUserByEmail(arg0 interface{}) *gomock.Call {
 }
 
 // GetUserByID mocks base method.
-func (m *MockStore) GetUserByID(arg0 string) (*model.User, error) {
+func (m *MockStore) GetUserByID(arg0 string) (*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", arg0)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1186,10 +1186,10 @@ func (mr *MockStoreMockRecorder) GetUserByID(arg0 interface{}) *gomock.Call {
 }
 
 // GetUserByUsername mocks base method.
-func (m *MockStore) GetUserByUsername(arg0 string) (*model.User, error) {
+func (m *MockStore) GetUserByUsername(arg0 string) (*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByUsername", arg0)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1201,10 +1201,10 @@ func (mr *MockStoreMockRecorder) GetUserByUsername(arg0 interface{}) *gomock.Cal
 }
 
 // GetUserCategories mocks base method.
-func (m *MockStore) GetUserCategories(arg0, arg1 string) ([]model.Category, error) {
+func (m *MockStore) GetUserCategories(arg0, arg1 string) ([]model0.Category, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserCategories", arg0, arg1)
-	ret0, _ := ret[0].([]model.Category)
+	ret0, _ := ret[0].([]model0.Category)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1216,10 +1216,10 @@ func (mr *MockStoreMockRecorder) GetUserCategories(arg0, arg1 interface{}) *gomo
 }
 
 // GetUserCategoryBoards mocks base method.
-func (m *MockStore) GetUserCategoryBoards(arg0, arg1 string) ([]model.CategoryBoards, error) {
+func (m *MockStore) GetUserCategoryBoards(arg0, arg1 string) ([]model0.CategoryBoards, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserCategoryBoards", arg0, arg1)
-	ret0, _ := ret[0].([]model.CategoryBoards)
+	ret0, _ := ret[0].([]model0.CategoryBoards)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1231,10 +1231,10 @@ func (mr *MockStoreMockRecorder) GetUserCategoryBoards(arg0, arg1 interface{}) *
 }
 
 // GetUserPreferences mocks base method.
-func (m *MockStore) GetUserPreferences(arg0 string) (model0.Preferences, error) {
+func (m *MockStore) GetUserPreferences(arg0 string) (model.Preferences, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserPreferences", arg0)
-	ret0, _ := ret[0].(model0.Preferences)
+	ret0, _ := ret[0].(model.Preferences)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1261,10 +1261,10 @@ func (mr *MockStoreMockRecorder) GetUserTimezone(arg0 interface{}) *gomock.Call 
 }
 
 // GetUsersByTeam mocks base method.
-func (m *MockStore) GetUsersByTeam(arg0, arg1 string, arg2, arg3 bool) ([]*model.User, error) {
+func (m *MockStore) GetUsersByTeam(arg0, arg1 string, arg2, arg3 bool) ([]*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUsersByTeam", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]*model.User)
+	ret0, _ := ret[0].([]*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1276,10 +1276,10 @@ func (mr *MockStoreMockRecorder) GetUsersByTeam(arg0, arg1, arg2, arg3 interface
 }
 
 // GetUsersList mocks base method.
-func (m *MockStore) GetUsersList(arg0 []string, arg1, arg2 bool) ([]*model.User, error) {
+func (m *MockStore) GetUsersList(arg0 []string, arg1, arg2 bool) ([]*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUsersList", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.User)
+	ret0, _ := ret[0].([]*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1291,7 +1291,7 @@ func (mr *MockStoreMockRecorder) GetUsersList(arg0, arg1, arg2 interface{}) *gom
 }
 
 // InsertBlock mocks base method.
-func (m *MockStore) InsertBlock(arg0 *model.Block, arg1 string) error {
+func (m *MockStore) InsertBlock(arg0 *model0.Block, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertBlock", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1305,7 +1305,7 @@ func (mr *MockStoreMockRecorder) InsertBlock(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // InsertBlocks mocks base method.
-func (m *MockStore) InsertBlocks(arg0 []*model.Block, arg1 string) error {
+func (m *MockStore) InsertBlocks(arg0 []*model0.Block, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertBlocks", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1319,10 +1319,10 @@ func (mr *MockStoreMockRecorder) InsertBlocks(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // InsertBoard mocks base method.
-func (m *MockStore) InsertBoard(arg0 *model.Board, arg1 string) (*model.Board, error) {
+func (m *MockStore) InsertBoard(arg0 *model0.Board, arg1 string) (*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertBoard", arg0, arg1)
-	ret0, _ := ret[0].(*model.Board)
+	ret0, _ := ret[0].(*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1334,11 +1334,11 @@ func (mr *MockStoreMockRecorder) InsertBoard(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // InsertBoardWithAdmin mocks base method.
-func (m *MockStore) InsertBoardWithAdmin(arg0 *model.Board, arg1 string) (*model.Board, *model.BoardMember, error) {
+func (m *MockStore) InsertBoardWithAdmin(arg0 *model0.Board, arg1 string) (*model0.Board, *model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertBoardWithAdmin", arg0, arg1)
-	ret0, _ := ret[0].(*model.Board)
-	ret1, _ := ret[1].(*model.BoardMember)
+	ret0, _ := ret[0].(*model0.Board)
+	ret1, _ := ret[1].(*model0.BoardMember)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -1350,7 +1350,7 @@ func (mr *MockStoreMockRecorder) InsertBoardWithAdmin(arg0, arg1 interface{}) *g
 }
 
 // PatchBlock mocks base method.
-func (m *MockStore) PatchBlock(arg0 string, arg1 *model.BlockPatch, arg2 string) error {
+func (m *MockStore) PatchBlock(arg0 string, arg1 *model0.BlockPatch, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchBlock", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -1364,7 +1364,7 @@ func (mr *MockStoreMockRecorder) PatchBlock(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // PatchBlocks mocks base method.
-func (m *MockStore) PatchBlocks(arg0 *model.BlockPatchBatch, arg1 string) error {
+func (m *MockStore) PatchBlocks(arg0 *model0.BlockPatchBatch, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchBlocks", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1378,10 +1378,10 @@ func (mr *MockStoreMockRecorder) PatchBlocks(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // PatchBoard mocks base method.
-func (m *MockStore) PatchBoard(arg0 string, arg1 *model.BoardPatch, arg2 string) (*model.Board, error) {
+func (m *MockStore) PatchBoard(arg0 string, arg1 *model0.BoardPatch, arg2 string) (*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchBoard", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*model.Board)
+	ret0, _ := ret[0].(*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1393,10 +1393,10 @@ func (mr *MockStoreMockRecorder) PatchBoard(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // PatchBoardsAndBlocks mocks base method.
-func (m *MockStore) PatchBoardsAndBlocks(arg0 *model.PatchBoardsAndBlocks, arg1 string) (*model.BoardsAndBlocks, error) {
+func (m *MockStore) PatchBoardsAndBlocks(arg0 *model0.PatchBoardsAndBlocks, arg1 string) (*model0.BoardsAndBlocks, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchBoardsAndBlocks", arg0, arg1)
-	ret0, _ := ret[0].(*model.BoardsAndBlocks)
+	ret0, _ := ret[0].(*model0.BoardsAndBlocks)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1408,10 +1408,10 @@ func (mr *MockStoreMockRecorder) PatchBoardsAndBlocks(arg0, arg1 interface{}) *g
 }
 
 // PatchUserPreferences mocks base method.
-func (m *MockStore) PatchUserPreferences(arg0 string, arg1 model.UserPreferencesPatch) (model0.Preferences, error) {
+func (m *MockStore) PatchUserPreferences(arg0 string, arg1 model0.UserPreferencesPatch) (model.Preferences, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchUserPreferences", arg0, arg1)
-	ret0, _ := ret[0].(model0.Preferences)
+	ret0, _ := ret[0].(model.Preferences)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1437,7 +1437,7 @@ func (mr *MockStoreMockRecorder) PostMessage(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // RefreshSession mocks base method.
-func (m *MockStore) RefreshSession(arg0 *model.Session) error {
+func (m *MockStore) RefreshSession(arg0 *model0.Session) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshSession", arg0)
 	ret0, _ := ret[0].(error)
@@ -1451,7 +1451,7 @@ func (mr *MockStoreMockRecorder) RefreshSession(arg0 interface{}) *gomock.Call {
 }
 
 // RemoveDefaultTemplates mocks base method.
-func (m *MockStore) RemoveDefaultTemplates(arg0 []*model.Board) error {
+func (m *MockStore) RemoveDefaultTemplates(arg0 []*model0.Board) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDefaultTemplates", arg0)
 	ret0, _ := ret[0].(error)
@@ -1510,7 +1510,7 @@ func (mr *MockStoreMockRecorder) RunDataRetention(arg0, arg1 interface{}) *gomoc
 }
 
 // SaveFileInfo mocks base method.
-func (m *MockStore) SaveFileInfo(arg0 *model0.FileInfo) error {
+func (m *MockStore) SaveFileInfo(arg0 *model.FileInfo) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveFileInfo", arg0)
 	ret0, _ := ret[0].(error)
@@ -1524,10 +1524,10 @@ func (mr *MockStoreMockRecorder) SaveFileInfo(arg0 interface{}) *gomock.Call {
 }
 
 // SaveMember mocks base method.
-func (m *MockStore) SaveMember(arg0 *model.BoardMember) (*model.BoardMember, error) {
+func (m *MockStore) SaveMember(arg0 *model0.BoardMember) (*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveMember", arg0)
-	ret0, _ := ret[0].(*model.BoardMember)
+	ret0, _ := ret[0].(*model0.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1539,10 +1539,10 @@ func (mr *MockStoreMockRecorder) SaveMember(arg0 interface{}) *gomock.Call {
 }
 
 // SearchBoardsForUser mocks base method.
-func (m *MockStore) SearchBoardsForUser(arg0 string, arg1 model.BoardSearchField, arg2 string, arg3 bool) ([]*model.Board, error) {
+func (m *MockStore) SearchBoardsForUser(arg0 string, arg1 model0.BoardSearchField, arg2 string, arg3 bool) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchBoardsForUser", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1554,10 +1554,10 @@ func (mr *MockStoreMockRecorder) SearchBoardsForUser(arg0, arg1, arg2, arg3 inte
 }
 
 // SearchBoardsForUserInTeam mocks base method.
-func (m *MockStore) SearchBoardsForUserInTeam(arg0, arg1, arg2 string) ([]*model.Board, error) {
+func (m *MockStore) SearchBoardsForUserInTeam(arg0, arg1, arg2 string) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchBoardsForUserInTeam", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.Board)
+	ret0, _ := ret[0].([]*model0.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1569,10 +1569,10 @@ func (mr *MockStoreMockRecorder) SearchBoardsForUserInTeam(arg0, arg1, arg2 inte
 }
 
 // SearchUserChannels mocks base method.
-func (m *MockStore) SearchUserChannels(arg0, arg1, arg2 string) ([]*model0.Channel, error) {
+func (m *MockStore) SearchUserChannels(arg0, arg1, arg2 string) ([]*model.Channel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchUserChannels", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model0.Channel)
+	ret0, _ := ret[0].([]*model.Channel)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1584,10 +1584,10 @@ func (mr *MockStoreMockRecorder) SearchUserChannels(arg0, arg1, arg2 interface{}
 }
 
 // SearchUsersByTeam mocks base method.
-func (m *MockStore) SearchUsersByTeam(arg0, arg1, arg2 string, arg3, arg4, arg5 bool) ([]*model.User, error) {
+func (m *MockStore) SearchUsersByTeam(arg0, arg1, arg2 string, arg3, arg4, arg5 bool) ([]*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchUsersByTeam", arg0, arg1, arg2, arg3, arg4, arg5)
-	ret0, _ := ret[0].([]*model.User)
+	ret0, _ := ret[0].([]*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1698,7 +1698,7 @@ func (mr *MockStoreMockRecorder) UpdateCardLimitTimestamp(arg0 interface{}) *gom
 }
 
 // UpdateCategory mocks base method.
-func (m *MockStore) UpdateCategory(arg0 model.Category) error {
+func (m *MockStore) UpdateCategory(arg0 model0.Category) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateCategory", arg0)
 	ret0, _ := ret[0].(error)
@@ -1712,7 +1712,7 @@ func (mr *MockStoreMockRecorder) UpdateCategory(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateSession mocks base method.
-func (m *MockStore) UpdateSession(arg0 *model.Session) error {
+func (m *MockStore) UpdateSession(arg0 *model0.Session) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSession", arg0)
 	ret0, _ := ret[0].(error)
@@ -1740,10 +1740,10 @@ func (mr *MockStoreMockRecorder) UpdateSubscribersNotifiedAt(arg0, arg1 interfac
 }
 
 // UpdateUser mocks base method.
-func (m *MockStore) UpdateUser(arg0 *model.User) (*model.User, error) {
+func (m *MockStore) UpdateUser(arg0 *model0.User) (*model0.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUser", arg0)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*model0.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1783,10 +1783,10 @@ func (mr *MockStoreMockRecorder) UpdateUserPasswordByID(arg0, arg1 interface{}) 
 }
 
 // UpsertNotificationHint mocks base method.
-func (m *MockStore) UpsertNotificationHint(arg0 *model.NotificationHint, arg1 time.Duration) (*model.NotificationHint, error) {
+func (m *MockStore) UpsertNotificationHint(arg0 *model0.NotificationHint, arg1 time.Duration) (*model0.NotificationHint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertNotificationHint", arg0, arg1)
-	ret0, _ := ret[0].(*model.NotificationHint)
+	ret0, _ := ret[0].(*model0.NotificationHint)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1798,7 +1798,7 @@ func (mr *MockStoreMockRecorder) UpsertNotificationHint(arg0, arg1 interface{}) 
 }
 
 // UpsertSharing mocks base method.
-func (m *MockStore) UpsertSharing(arg0 model.Sharing) error {
+func (m *MockStore) UpsertSharing(arg0 model0.Sharing) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertSharing", arg0)
 	ret0, _ := ret[0].(error)
@@ -1812,7 +1812,7 @@ func (mr *MockStoreMockRecorder) UpsertSharing(arg0 interface{}) *gomock.Call {
 }
 
 // UpsertTeamSettings mocks base method.
-func (m *MockStore) UpsertTeamSettings(arg0 model.Team) error {
+func (m *MockStore) UpsertTeamSettings(arg0 model0.Team) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertTeamSettings", arg0)
 	ret0, _ := ret[0].(error)
@@ -1826,7 +1826,7 @@ func (mr *MockStoreMockRecorder) UpsertTeamSettings(arg0 interface{}) *gomock.Ca
 }
 
 // UpsertTeamSignupToken mocks base method.
-func (m *MockStore) UpsertTeamSignupToken(arg0 model.Team) error {
+func (m *MockStore) UpsertTeamSignupToken(arg0 model0.Team) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertTeamSignupToken", arg0)
 	ret0, _ := ret[0].(error)

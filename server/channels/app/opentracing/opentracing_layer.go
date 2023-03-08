@@ -18,6 +18,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
@@ -26,7 +28,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/server/channels/product"
 	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/server/platform/services/remotecluster"
@@ -36,7 +37,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
