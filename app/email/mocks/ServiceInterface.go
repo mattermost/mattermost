@@ -553,3 +553,8 @@ func (_m *ServiceInterface) SendWelcomeEmail(userID string, _a1 string, verified
 
 	return r0
 }
+
+// Stop provides a mock function with given fields:
+func (_m *ServiceInterface) Stop() {
+	_m.Called()
+}
