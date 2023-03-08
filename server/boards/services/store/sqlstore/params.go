@@ -26,16 +26,12 @@ type Params struct {
 	DB               *sql.DB
 	IsPlugin         bool
 	IsSingleUser     bool
-	NewMutexFn       MutexFactory
 	ServicesAPI      servicesAPI
 	SkipMigrations   bool
 	ConfigFn         func() *mm_model.Config
 }
 
 func (p Params) CheckValid() error {
-	if p.IsPlugin && p.NewMutexFn == nil {
-		return ErrStoreParam{name: "NewMutexFn", issue: "cannot be nil in plugin mode"}
-	}
 	return nil
 }
 

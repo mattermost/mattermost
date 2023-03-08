@@ -21,8 +21,6 @@ import (
 	mm_model "github.com/mattermost/mattermost-server/server/v7/model"
 	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v7/plugin"
-
-	"github.com/mattermost/mattermost-plugin-api/cluster"
 )
 
 const (
@@ -90,11 +88,8 @@ func NewBoardsService(api model.ServicesAPI) (*BoardsService, error) {
 		Logger:           logger,
 		DB:               sqlDB,
 		IsPlugin:         true,
-		NewMutexFn: func(name string) (*cluster.Mutex, error) {
-			return cluster.NewMutex(&mutexAPIAdapter{api: api}, name)
-		},
-		ServicesAPI: api,
-		ConfigFn:    api.GetConfig,
+		ServicesAPI:      api,
+		ConfigFn:         api.GetConfig,
 	}
 
 	var db store.Store

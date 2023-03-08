@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/mattermost/mattermost-plugin-api/cluster"
 	"github.com/mattermost/morph"
 	"github.com/mattermost/morph/drivers"
 	"github.com/mattermost/morph/drivers/mysql"
@@ -205,10 +204,7 @@ func (bm *BoardsMigrator) Setup() error {
 		Logger:           mlog.CreateConsoleTestLogger(false, mlog.LvlDebug),
 		DB:               bm.db,
 		IsPlugin:         bm.withMattermostMigrations,
-		NewMutexFn: func(name string) (*cluster.Mutex, error) {
-			return nil, fmt.Errorf("not implemented")
-		},
-		SkipMigrations: true,
+		SkipMigrations:   true,
 	}
 	bm.store, err = sqlstore.New(storeParams)
 	if err != nil {

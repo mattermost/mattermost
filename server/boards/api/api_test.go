@@ -15,8 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v7/boards/model"
 	"github.com/mattermost/mattermost-server/server/v7/platform/shared/mlog"
-
-	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
 func TestErrorResponse(t *testing.T) {
@@ -49,7 +47,6 @@ func TestErrorResponse(t *testing.T) {
 		{"ErrNotFound", model.NewErrNotFound("board"), http.StatusNotFound, "board"},
 		{"ErrNotAllFound", model.NewErrNotAllFound("block", []string{"1", "2"}), http.StatusNotFound, "not all instances of {block} in {1, 2} found"},
 		{"sql.ErrNoRows", sql.ErrNoRows, http.StatusNotFound, "rows"},
-		{"mattermost-plugin-api/ErrNotFound", pluginapi.ErrNotFound, http.StatusNotFound, "not found"},
 		{"ErrNotFound", model.ErrCategoryDeleted, http.StatusNotFound, "category is deleted"},
 
 		// request entity too large
