@@ -10006,5 +10006,9 @@
   {
     "id": "api.server.cws.delete_workspace.app_error",
     "translation": "CWS Server nie potrafił usunąć przestrzeni roboczej."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Kontakt ze sprzedażą"
   }
 ]

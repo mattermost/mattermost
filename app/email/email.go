@@ -1005,7 +1005,7 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 	return nil
 }
 
-func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error {
+func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.license_up_for_renewal_subject")
 
@@ -1013,10 +1013,10 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
 	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
-	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
+	data.Props["SubTitleTwo"] = ctaTitle
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
-	data.Props["ButtonURL"] = renewalLink
+	data.Props["Button"] = ctaText
+	data.Props["ButtonURL"] = ctaLink
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["SupportEmail"] = "feedback@mattermost.com"
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
@@ -1314,7 +1314,7 @@ func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (es *Service) SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error {
+func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
@@ -1322,8 +1322,8 @@ func (es *Service) SendRemoveExpiredLicenseEmail(renewalLink, email string, loca
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	data.Props["Link"] = renewalLink
-	data.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
+	data.Props["Link"] = ctaLink
+	data.Props["LinkButton"] = ctaText
 
 	body, err := es.templatesContainer.RenderToString("remove_expired_license", data)
 	if err != nil {
