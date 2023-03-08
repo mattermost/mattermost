@@ -43,9 +43,6 @@ ifeq ($(BUILD_NUMBER),dev)
 	export MM_FEATUREFLAGS_GRAPHQL = true
 endif
 
-# plugin-api  remove this once mono-repo is complete and mattermost-plugin-api changes are merged
-USE_LOCAL_PLUGIN_API = true
-
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../../enterprise
 BUILD_ENTERPRISE ?= true
@@ -372,9 +369,9 @@ ldap-mocks: ## Creates mock files for ldap.
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
-	$(GOBIN)/mockery --dir plugin --name API --output plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir plugin --name Hooks --output plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir plugin --name Driver --output plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ../plugin --name API --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ../plugin --name Hooks --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ../plugin --name Driver --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
@@ -421,7 +418,6 @@ endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
-setup-go-work: export USE_LOCAL_PLUGIN_API := $(USE_LOCAL_PLUGIN_API)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
