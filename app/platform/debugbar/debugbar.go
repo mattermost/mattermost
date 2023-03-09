@@ -16,16 +16,33 @@ const (
 	socketEventName = "debugbar"
 )
 
+type Publisher func(*model.WebSocketEvent)
+
 type DebugBar struct {
-	publish func(*model.WebSocketEvent)
-	enabled bool
+	publishers map[string]Publisher
+	enabled    bool
 }
 
 func New(publish func(*model.WebSocketEvent)) *DebugBar {
 	return &DebugBar{
-		publish: publish,
-		enabled: os.Getenv("MM_ENABLE_DEBUG_BAR") == "true",
+		publishers: map[string]Publisher{"main": publish},
+		enabled:    os.Getenv("MM_ENABLE_DEBUG_BAR") == "true",
 	}
+}
+
+func (db *DebugBar) publish(e *model.WebSocketEvent) bool {
+	for _, publisher := range db.publishers {
+		publisher(e)
+	}
+	return db.enabled
+}
+
+func (db *DebugBar) AddPublisher(name string, publisher Publisher) {
+	db.publishers[name] = publisher
+}
+
+func (db *DebugBar) RemovePublisher(name string) {
+	delete(db.publishers, name)
 }
 
 func (db *DebugBar) IsEnabled() bool {
