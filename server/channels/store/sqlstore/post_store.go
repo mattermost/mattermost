@@ -3235,6 +3235,7 @@ func (s *SqlPostStore) GetNewPinnedPosts(channelID string, userID string) ([]*mo
 				sq.Eq{"u.Id": userID},
 				sq.Expr("cm.LastViewedPinnedPostAt < p.PinAt"),
 				sq.NotEq{"p.pinBy": userID},
+				sq.Eq{"p.DeleteAt": 0},
 			},
 		).
 		ToSql()
