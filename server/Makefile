@@ -64,7 +64,7 @@ else
 endif
 
 # Webapp
-BUILD_WEBAPP_DIR ?= ../../mattermost-webapp
+BUILD_WEBAPP_DIR ?= ../webapp/channels
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independent
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
