@@ -132,8 +132,8 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 else
 	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 endif
-	cp server/NOTICE.txt $(DIST_PATH)
-	cp server/README.md $(DIST_PATH)
+	cp ../NOTICE.txt $(DIST_PATH)
+	cp ../README.md $(DIST_PATH)
 	if [ -f ../manifest.txt ]; then \
 		cp ../manifest.txt $(DIST_PATH); \
 	fi
