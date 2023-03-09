@@ -225,12 +225,9 @@
     "postinstall": "npm run build --workspaces && node skip_integrity_check.js",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
     "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
-    "build": "node scripts/build",
-    "build:webapp": "cross-env NODE_ENV=production webpack",
-    "run": "node scripts/run",
-    "run:webapp": "webpack --progress --watch",
-    "dev-server": "node scripts/dev-server",
-    "dev-server:webapp": "webpack serve --mode development",
+    "build": "cross-env NODE_ENV=production webpack",
+    "run": "webpack --progress --watch",
+    "dev-server": "webpack serve --mode development",
     "test": "cross-env TZ=Etc/UTC jest --maxWorkers=50%",
     "test-ci": "cross-env NODE_OPTIONS=--max_old_space_size=5120 TZ=Etc/UTC jest --ci",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
@@ -245,10 +242,5 @@
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
-  },
-  "workspaces": [
-    "src/packages/client",
-    "src/packages/types",
-    "src/packages/components"
-  ]
+  }
 }

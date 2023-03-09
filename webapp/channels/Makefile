@@ -99,8 +99,6 @@ restart: | stop run ## Restarts the app
 clean: ## Clears cached; deletes node_modules and dist directories
 	@echo Cleaning Web App
 
-	npm run clean --workspaces --if-present
-
 	rm -rf dist
 	rm -rf node_modules
 
