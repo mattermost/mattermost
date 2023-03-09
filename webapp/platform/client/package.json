@@ -20,6 +20,8 @@
     "form-data": "4.0.0"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "7.21.0",
+    "isomorphic-fetch": "3.0.0",
     "jest": "*",
     "nock": "*"
   },
@@ -35,6 +37,7 @@
   "scripts": {
     "build": "tsc --build --verbose",
     "run": "tsc --watch --preserveWatchOutput",
+    "test": "jest",
     "clean": "rm -rf tsconfig.tsbuildinfo ./lib"
   }
 }
