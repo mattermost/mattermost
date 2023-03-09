@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multiple items 1`] = `
+<Settings
+  helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+  inputId="MySetting"
+  label="Custom URL Schemes:"
+  setByEnv={false}
+>
+  <LocalizedInput
+    className="form-control"
+    disabled={false}
+    id="MySetting"
+    onChange={[Function]}
+    placeholder={
+      Object {
+        "defaultMessage": "E.g.: \\"git,smtp\\"",
+        "id": "admin.customization.customUrlSchemesPlaceholder",
+      }
+    }
+    type="text"
+    value="git,smtp,steam"
+  />
+</Settings>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no items 1`] = `
+<Settings
+  helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+  inputId="MySetting"
+  label="Custom URL Schemes:"
+  setByEnv={false}
+>
+  <LocalizedInput
+    className="form-control"
+    disabled={false}
+    id="MySetting"
+    onChange={[Function]}
+    placeholder={
+      Object {
+        "defaultMessage": "E.g.: \\"git,smtp\\"",
+        "id": "admin.customization.customUrlSchemesPlaceholder",
+      }
+    }
+    type="text"
+    value=""
+  />
+</Settings>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one item 1`] = `
+<Settings
+  helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+  inputId="MySetting"
+  label="Custom URL Schemes:"
+  setByEnv={false}
+>
+  <LocalizedInput
+    className="form-control"
+    disabled={false}
+    id="MySetting"
+    onChange={[Function]}
+    placeholder={
+      Object {
+        "defaultMessage": "E.g.: \\"git,smtp\\"",
+        "id": "admin.customization.customUrlSchemesPlaceholder",
+      }
+    }
+    type="text"
+    value="git"
+  />
+</Settings>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when disabled 1`] = `
+<Settings
+  helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+  inputId="MySetting"
+  label="Custom URL Schemes:"
+  setByEnv={false}
+>
+  <LocalizedInput
+    className="form-control"
+    disabled={true}
+    id="MySetting"
+    onChange={[Function]}
+    placeholder={
+      Object {
+        "defaultMessage": "E.g.: \\"git,smtp\\"",
+        "id": "admin.customization.customUrlSchemesPlaceholder",
+      }
+    }
+    type="text"
+    value="git,smtp"
+  />
+</Settings>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when set by environment variable 1`] = `
+<Settings
+  helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+  inputId="MySetting"
+  label="Custom URL Schemes:"
+  setByEnv={true}
+>
+  <LocalizedInput
+    className="form-control"
+    disabled={true}
+    id="MySetting"
+    onChange={[Function]}
+    placeholder={
+      Object {
+        "defaultMessage": "E.g.: \\"git,smtp\\"",
+        "id": "admin.customization.customUrlSchemesPlaceholder",
+      }
+    }
+    type="text"
+    value="git,smtp"
+  />
+</Settings>
+`;

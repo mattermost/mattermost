@@ -1,0 +1,2156 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/user_group_popover should match snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <BrowserRouter>
+    <Router
+      history={
+        Object {
+          "action": "POP",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 1,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "undefinedundefined",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
+    >
+      <Memo(UserGroupPopover)
+        actions={
+          Object {
+            "openModal": [MockFunction],
+            "searchProfiles": [MockFunction],
+            "setPopoverSearchTerm": [MockFunction] {
+              "calls": Array [
+                Array [
+                  "",
+                ],
+              ],
+              "results": Array [
+                Object {
+                  "type": "return",
+                  "value": undefined,
+                },
+              ],
+            },
+          }
+        }
+        canManageGroup={true}
+        group={
+          Object {
+            "allow_reference": true,
+            "create_at": 1,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "group_display_name",
+            "has_syncables": false,
+            "id": "group1",
+            "member_count": 15,
+            "name": "group_name",
+            "remote_id": "",
+            "scheme_admin": false,
+            "source": "",
+            "update_at": 1,
+          }
+        }
+        hide={[MockFunction]}
+        returnFocus={[MockFunction]}
+        searchTerm=""
+        showUserOverlay={[MockFunction]}
+      >
+        <Popover
+          actions={
+            Object {
+              "openModal": [MockFunction],
+              "searchProfiles": [MockFunction],
+              "setPopoverSearchTerm": [MockFunction] {
+                "calls": Array [
+                  Array [
+                    "",
+                  ],
+                ],
+                "results": Array [
+                  Object {
+                    "type": "return",
+                    "value": undefined,
+                  },
+                ],
+              },
+            }
+          }
+          canManageGroup={true}
+          group={
+            Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
+              "id": "group1",
+              "member_count": 15,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
+            }
+          }
+          hide={[MockFunction]}
+          id="user-group-popover"
+          placement="right"
+          popoverSize="sm"
+          popoverStyle="info"
+          returnFocus={[MockFunction]}
+          searchTerm=""
+          showUserOverlay={[MockFunction]}
+        >
+          <Popover
+            bsClass="popover"
+            bsSize="small"
+            bsStyle="info"
+            id="user-group-popover"
+            placement="right"
+          >
+            <div
+              className="popover popover-sm popover-info right"
+              id="user-group-popover"
+              role="tooltip"
+              style={
+                Object {
+                  "display": "block",
+                  "left": undefined,
+                  "top": undefined,
+                }
+              }
+            >
+              <div
+                className="arrow"
+                style={
+                  Object {
+                    "left": undefined,
+                    "top": undefined,
+                  }
+                }
+              />
+              <div
+                className="popover-content"
+              >
+                <span
+                  onFocus={[Function]}
+                  tabIndex={0}
+                />
+                <Body
+                  aria-label="group_display_name"
+                  aria-modal={true}
+                  className="a11y__popup"
+                  onKeyDown={[Function]}
+                  role="dialog"
+                >
+                  <div
+                    aria-label="group_display_name"
+                    aria-modal={true}
+                    className="Body-jPXXyK jkivLB a11y__popup"
+                    onKeyDown={[Function]}
+                    role="dialog"
+                  >
+                    <Header>
+                      <div
+                        className="Header-ibKheB hIZrPW"
+                      >
+                        <Heading>
+                          <div
+                            className="Heading-dalVaC VzXTr"
+                          >
+                            <Title
+                              className="overflow--ellipsis text-nowrap"
+                            >
+                              <span
+                                className="Title-gqsoLG eUZcLS overflow--ellipsis text-nowrap"
+                              >
+                                group_display_name
+                              </span>
+                            </Title>
+                            <CloseButton
+                              aria-label="Close"
+                              className="btn-icon"
+                              onClick={[Function]}
+                            >
+                              <button
+                                aria-label="Close"
+                                className="CloseButton-lhxEdi gyMeQZ btn-icon"
+                                onClick={[Function]}
+                              >
+                                <CloseIcon>
+                                  <svg
+                                    fill="currentColor"
+                                    height={24}
+                                    version="1.1"
+                                    viewBox="0 0 24 24"
+                                    width={24}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                    />
+                                  </svg>
+                                </CloseIcon>
+                              </button>
+                            </CloseButton>
+                          </div>
+                        </Heading>
+                        <Subtitle>
+                          <div
+                            className="Subtitle-ocLvS yXVnq"
+                          >
+                            <span
+                              className="overflow--ellipsis text-nowrap"
+                            >
+                              @
+                              group_name
+                            </span>
+                            <Dot>
+                              <span
+                                className="NoShrink-kvXWXm Dot-etDJYJ wzpro jiooBj"
+                              >
+                                 • 
+                              </span>
+                            </Dot>
+                            <FormattedMessage
+                              defaultMessage="{member_count} {member_count, plural, one {Member} other {Members}}"
+                              id="user_group_popover.memberCount"
+                              tagName={
+                                Object {
+                                  "$$typeof": Symbol(react.forward_ref),
+                                  "attrs": Array [],
+                                  "componentStyle": e {
+                                    "baseHash": -1318562053,
+                                    "baseStyle": undefined,
+                                    "componentId": "NoShrink-kvXWXm",
+                                    "isStatic": false,
+                                    "rules": Array [
+                                      "flex:0 0 auto;",
+                                    ],
+                                    "staticRulesId": "",
+                                  },
+                                  "foldedComponentIds": Array [],
+                                  "render": [Function],
+                                  "shouldForwardProp": undefined,
+                                  "styledComponentId": "NoShrink-kvXWXm",
+                                  "target": "span",
+                                  "toString": [Function],
+                                  "warnTooManyClasses": [Function],
+                                  "withComponent": [Function],
+                                }
+                              }
+                              values={
+                                Object {
+                                  "member_count": 15,
+                                }
+                              }
+                            >
+                              <NoShrink>
+                                <span
+                                  className="NoShrink-kvXWXm wzpro"
+                                >
+                                  15 Members
+                                </span>
+                              </NoShrink>
+                            </FormattedMessage>
+                          </div>
+                        </Subtitle>
+                        <HeaderButton
+                          aria-label="group_display_name @group_name 15 Members View full group info"
+                          className="user-group-popover_header-button"
+                          onClick={[Function]}
+                        >
+                          <button
+                            aria-label="group_display_name @group_name 15 Members View full group info"
+                            className="HeaderButton-jHgPlb jFywol user-group-popover_header-button"
+                            onClick={[Function]}
+                          />
+                        </HeaderButton>
+                      </div>
+                    </Header>
+                    <SearchBar>
+                      <div
+                        className="SearchBar-cqKmJF easqtW"
+                      >
+                        <MagnifyIcon>
+                          <svg
+                            fill="currentColor"
+                            height={24}
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width={24}
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+                            />
+                          </svg>
+                        </MagnifyIcon>
+                        <QuickInput
+                          className="user-group-popover_search-bar"
+                          clearable={true}
+                          delayInputUpdate={false}
+                          onChange={[Function]}
+                          onClear={[Function]}
+                          placeholder="Search members"
+                          tooltipPosition="bottom"
+                          type="text"
+                          value=""
+                        >
+                          <div>
+                            <input
+                              className="user-group-popover_search-bar"
+                              defaultValue=""
+                              onChange={[Function]}
+                              placeholder="Search members"
+                              type="text"
+                            />
+                          </div>
+                        </QuickInput>
+                      </div>
+                    </SearchBar>
+                    <Connect(Component)
+                      group={
+                        Object {
+                          "allow_reference": true,
+                          "create_at": 1,
+                          "delete_at": 0,
+                          "description": "",
+                          "display_name": "group_display_name",
+                          "has_syncables": false,
+                          "id": "group1",
+                          "member_count": 15,
+                          "name": "group_name",
+                          "remote_id": "",
+                          "scheme_admin": false,
+                          "source": "",
+                          "update_at": 1,
+                        }
+                      }
+                      hide={[MockFunction]}
+                      searchState={0}
+                      showUserOverlay={[MockFunction]}
+                    >
+                      <Memo(GroupMemberList)
+                        actions={
+                          Object {
+                            "closeRightHandSide": [Function],
+                            "getUsersInGroup": [Function],
+                            "openDirectChannelToUserId": [Function],
+                          }
+                        }
+                        group={
+                          Object {
+                            "allow_reference": true,
+                            "create_at": 1,
+                            "delete_at": 0,
+                            "description": "",
+                            "display_name": "group_display_name",
+                            "has_syncables": false,
+                            "id": "group1",
+                            "member_count": 15,
+                            "name": "group_name",
+                            "remote_id": "",
+                            "scheme_admin": false,
+                            "source": "",
+                            "update_at": 1,
+                          }
+                        }
+                        hide={[MockFunction]}
+                        members={
+                          Array [
+                            Object {
+                              "displayName": "username0",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test0@test.com",
+                                "first_name": "Name0",
+                                "id": "id0",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname0",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username0",
+                              },
+                            },
+                            Object {
+                              "displayName": "username1",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test1@test.com",
+                                "first_name": "Name1",
+                                "id": "id1",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname1",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username1",
+                              },
+                            },
+                            Object {
+                              "displayName": "username10",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test10@test.com",
+                                "first_name": "Name10",
+                                "id": "id10",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname10",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username10",
+                              },
+                            },
+                            Object {
+                              "displayName": "username11",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test11@test.com",
+                                "first_name": "Name11",
+                                "id": "id11",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname11",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username11",
+                              },
+                            },
+                            Object {
+                              "displayName": "username12",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test12@test.com",
+                                "first_name": "Name12",
+                                "id": "id12",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname12",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username12",
+                              },
+                            },
+                            Object {
+                              "displayName": "username13",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test13@test.com",
+                                "first_name": "Name13",
+                                "id": "id13",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname13",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username13",
+                              },
+                            },
+                            Object {
+                              "displayName": "username14",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test14@test.com",
+                                "first_name": "Name14",
+                                "id": "id14",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname14",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username14",
+                              },
+                            },
+                            Object {
+                              "displayName": "username2",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test2@test.com",
+                                "first_name": "Name2",
+                                "id": "id2",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname2",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username2",
+                              },
+                            },
+                            Object {
+                              "displayName": "username3",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test3@test.com",
+                                "first_name": "Name3",
+                                "id": "id3",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname3",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username3",
+                              },
+                            },
+                            Object {
+                              "displayName": "username4",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test4@test.com",
+                                "first_name": "Name4",
+                                "id": "id4",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname4",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username4",
+                              },
+                            },
+                            Object {
+                              "displayName": "username5",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test5@test.com",
+                                "first_name": "Name5",
+                                "id": "id5",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname5",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username5",
+                              },
+                            },
+                            Object {
+                              "displayName": "username6",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test6@test.com",
+                                "first_name": "Name6",
+                                "id": "id6",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname6",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username6",
+                              },
+                            },
+                            Object {
+                              "displayName": "username7",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test7@test.com",
+                                "first_name": "Name7",
+                                "id": "id7",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname7",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username7",
+                              },
+                            },
+                            Object {
+                              "displayName": "username8",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test8@test.com",
+                                "first_name": "Name8",
+                                "id": "id8",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname8",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username8",
+                              },
+                            },
+                            Object {
+                              "displayName": "username9",
+                              "user": Object {
+                                "auth_service": "",
+                                "bot_description": "",
+                                "create_at": 0,
+                                "delete_at": 0,
+                                "email": "test9@test.com",
+                                "first_name": "Name9",
+                                "id": "id9",
+                                "is_bot": false,
+                                "last_activity_at": 0,
+                                "last_name": "Surname9",
+                                "last_password_update": 0,
+                                "last_picture_update": 0,
+                                "locale": "",
+                                "mfa_active": false,
+                                "nickname": "",
+                                "notify_props": Object {
+                                  "channel": "false",
+                                  "comments": "never",
+                                  "desktop": "default",
+                                  "desktop_sound": "false",
+                                  "email": "false",
+                                  "first_name": "false",
+                                  "mark_unread": "mention",
+                                  "mention_keys": "",
+                                  "push": "none",
+                                  "push_status": "offline",
+                                },
+                                "password": "",
+                                "position": "",
+                                "props": Object {},
+                                "roles": "",
+                                "terms_of_service_create_at": 0,
+                                "terms_of_service_id": "",
+                                "update_at": 0,
+                                "username": "username9",
+                              },
+                            },
+                          ]
+                        }
+                        searchState={0}
+                        searchTerm=""
+                        showUserOverlay={[MockFunction]}
+                        teamUrl="/team1"
+                      >
+                        <UserList
+                          role="list"
+                          style={
+                            Object {
+                              "height": 307.20000000000005,
+                            }
+                          }
+                        >
+                          <div
+                            className="UserList-XqScV gnsdGQ"
+                            role="list"
+                            style={
+                              Object {
+                                "height": 307.20000000000005,
+                              }
+                            }
+                          >
+                            <Component>
+                              <InfiniteLoader
+                                isItemLoaded={[Function]}
+                                itemCount={15}
+                                loadMoreItems={[Function]}
+                                threshold={5}
+                              >
+                                <List
+                                  direction="ltr"
+                                  height={100}
+                                  itemCount={15}
+                                  itemSize={[Function]}
+                                  layout="vertical"
+                                  onItemsRendered={[Function]}
+                                  overscanCount={2}
+                                  useIsScrolling={false}
+                                  width={100}
+                                >
+                                  <div
+                                    onScroll={[Function]}
+                                    style={
+                                      Object {
+                                        "WebkitOverflowScrolling": "touch",
+                                        "direction": "ltr",
+                                        "height": 100,
+                                        "overflow": "auto",
+                                        "position": "relative",
+                                        "width": 100,
+                                        "willChange": "transform",
+                                      }
+                                    }
+                                  >
+                                    <div
+                                      style={
+                                        Object {
+                                          "height": 708,
+                                          "pointerEvents": undefined,
+                                          "width": "100%",
+                                        }
+                                      }
+                                    >
+                                      <Item
+                                        index={0}
+                                        key="0"
+                                        style={
+                                          Object {
+                                            "height": undefined,
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": undefined,
+                                            "top": 0,
+                                            "width": "100%",
+                                          }
+                                        }
+                                      >
+                                        <UserListItem
+                                          className="group-member-list_item"
+                                          first={true}
+                                          key="id0"
+                                          last={false}
+                                          role="listitem"
+                                          style={
+                                            Object {
+                                              "height": undefined,
+                                              "left": 0,
+                                              "position": "absolute",
+                                              "right": undefined,
+                                              "top": 0,
+                                              "width": "100%",
+                                            }
+                                          }
+                                        >
+                                          <div
+                                            className="UserListItem-iCIMiI bTPvin group-member-list_item"
+                                            role="listitem"
+                                            style={
+                                              Object {
+                                                "height": undefined,
+                                                "left": 0,
+                                                "position": "absolute",
+                                                "right": undefined,
+                                                "top": 0,
+                                                "width": "100%",
+                                              }
+                                            }
+                                          >
+                                            <UserButton
+                                              aria-haspopup="dialog"
+                                              onClick={[Function]}
+                                            >
+                                              <button
+                                                aria-haspopup="dialog"
+                                                className="UserButton-bZNeGd lLsMM"
+                                                onClick={[Function]}
+                                              >
+                                                <Memo(Avatar)
+                                                  className="avatar-post-preview"
+                                                  size="sm"
+                                                  tabIndex={-1}
+                                                  url="/api/v4/users/id0/image?_=0"
+                                                  username="username0"
+                                                >
+                                                  <img
+                                                    alt="username0 profile image"
+                                                    className="Avatar Avatar-sm avatar-post-preview"
+                                                    loading="lazy"
+                                                    onError={[Function]}
+                                                    src="/api/v4/users/id0/image?_=0"
+                                                    tabIndex={-1}
+                                                  />
+                                                </Memo(Avatar)>
+                                                <Username
+                                                  className="overflow--ellipsis text-nowrap"
+                                                >
+                                                  <span
+                                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                  >
+                                                    username0
+                                                  </span>
+                                                </Username>
+                                                <Gap
+                                                  className="group-member-list_gap"
+                                                >
+                                                  <span
+                                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                  />
+                                                </Gap>
+                                              </button>
+                                            </UserButton>
+                                            <DMContainer
+                                              className="group-member-list_dm-button"
+                                            >
+                                              <div
+                                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                                              >
+                                                <SimpleTooltip
+                                                  content="Send message"
+                                                  id="name-id0"
+                                                >
+                                                  <OverlayTrigger
+                                                    defaultOverlayShown={false}
+                                                    delayShow={500}
+                                                    overlay={
+                                                      <Tooltip
+                                                        className="hidden-xs"
+                                                        id="name-id0"
+                                                        placement="top"
+                                                      >
+                                                        Send message
+                                                      </Tooltip>
+                                                    }
+                                                    placement="top"
+                                                    trigger={
+                                                      Array [
+                                                        "hover",
+                                                        "focus",
+                                                      ]
+                                                    }
+                                                  >
+                                                    <OverlayTrigger
+                                                      defaultOverlayShown={false}
+                                                      delayShow={500}
+                                                      overlay={
+                                                        <OverlayWrapper
+                                                          className="hidden-xs"
+                                                          id="name-id0"
+                                                          intl={
+                                                            Object {
+                                                              "defaultFormats": Object {},
+                                                              "defaultLocale": "en",
+                                                              "defaultRichTextElements": undefined,
+                                                              "formatDate": [Function],
+                                                              "formatDateTimeRange": [Function],
+                                                              "formatDateToParts": [Function],
+                                                              "formatDisplayName": [Function],
+                                                              "formatList": [Function],
+                                                              "formatListToParts": [Function],
+                                                              "formatMessage": [Function],
+                                                              "formatNumber": [Function],
+                                                              "formatNumberToParts": [Function],
+                                                              "formatPlural": [Function],
+                                                              "formatRelativeTime": [Function],
+                                                              "formatTime": [Function],
+                                                              "formatTimeToParts": [Function],
+                                                              "formats": Object {},
+                                                              "formatters": Object {
+                                                                "getDateTimeFormat": [Function],
+                                                                "getDisplayNames": [Function],
+                                                                "getListFormat": [Function],
+                                                                "getMessageFormat": [Function],
+                                                                "getNumberFormat": [Function],
+                                                                "getPluralRules": [Function],
+                                                                "getRelativeTimeFormat": [Function],
+                                                              },
+                                                              "locale": "en",
+                                                              "messages": Object {},
+                                                              "onError": [Function],
+                                                              "textComponent": "span",
+                                                              "timeZone": "Etc/UTC",
+                                                              "wrapRichTextChunksInFragment": undefined,
+                                                            }
+                                                          }
+                                                          placement="top"
+                                                        >
+                                                          Send message
+                                                        </OverlayWrapper>
+                                                      }
+                                                      placement="top"
+                                                      trigger={
+                                                        Array [
+                                                          "hover",
+                                                          "focus",
+                                                        ]
+                                                      }
+                                                    >
+                                                      <DMButton
+                                                        aria-label="Send message to username0"
+                                                        className="btn-icon"
+                                                        onBlur={[Function]}
+                                                        onClick={[Function]}
+                                                        onFocus={[Function]}
+                                                        onMouseOut={[Function]}
+                                                        onMouseOver={[Function]}
+                                                      >
+                                                        <button
+                                                          aria-label="Send message to username0"
+                                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                                          onBlur={[Function]}
+                                                          onClick={[Function]}
+                                                          onFocus={[Function]}
+                                                          onMouseOut={[Function]}
+                                                          onMouseOver={[Function]}
+                                                        >
+                                                          <SendIcon>
+                                                            <svg
+                                                              fill="currentColor"
+                                                              height={24}
+                                                              version="1.1"
+                                                              viewBox="0 0 24 24"
+                                                              width={24}
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                            >
+                                                              <path
+                                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                                              />
+                                                            </svg>
+                                                          </SendIcon>
+                                                        </button>
+                                                      </DMButton>
+                                                    </OverlayTrigger>
+                                                  </OverlayTrigger>
+                                                </SimpleTooltip>
+                                              </div>
+                                            </DMContainer>
+                                          </div>
+                                        </UserListItem>
+                                      </Item>
+                                      <Item
+                                        index={1}
+                                        key="1"
+                                        style={
+                                          Object {
+                                            "height": undefined,
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": undefined,
+                                            "top": 48,
+                                            "width": "100%",
+                                          }
+                                        }
+                                      >
+                                        <UserListItem
+                                          className="group-member-list_item"
+                                          first={false}
+                                          key="id1"
+                                          last={false}
+                                          role="listitem"
+                                          style={
+                                            Object {
+                                              "height": undefined,
+                                              "left": 0,
+                                              "position": "absolute",
+                                              "right": undefined,
+                                              "top": 48,
+                                              "width": "100%",
+                                            }
+                                          }
+                                        >
+                                          <div
+                                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                                            role="listitem"
+                                            style={
+                                              Object {
+                                                "height": undefined,
+                                                "left": 0,
+                                                "position": "absolute",
+                                                "right": undefined,
+                                                "top": 48,
+                                                "width": "100%",
+                                              }
+                                            }
+                                          >
+                                            <UserButton
+                                              aria-haspopup="dialog"
+                                              onClick={[Function]}
+                                            >
+                                              <button
+                                                aria-haspopup="dialog"
+                                                className="UserButton-bZNeGd lLsMM"
+                                                onClick={[Function]}
+                                              >
+                                                <Memo(Avatar)
+                                                  className="avatar-post-preview"
+                                                  size="sm"
+                                                  tabIndex={-1}
+                                                  url="/api/v4/users/id1/image?_=0"
+                                                  username="username1"
+                                                >
+                                                  <img
+                                                    alt="username1 profile image"
+                                                    className="Avatar Avatar-sm avatar-post-preview"
+                                                    loading="lazy"
+                                                    onError={[Function]}
+                                                    src="/api/v4/users/id1/image?_=0"
+                                                    tabIndex={-1}
+                                                  />
+                                                </Memo(Avatar)>
+                                                <Username
+                                                  className="overflow--ellipsis text-nowrap"
+                                                >
+                                                  <span
+                                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                  >
+                                                    username1
+                                                  </span>
+                                                </Username>
+                                                <Gap
+                                                  className="group-member-list_gap"
+                                                >
+                                                  <span
+                                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                  />
+                                                </Gap>
+                                              </button>
+                                            </UserButton>
+                                            <DMContainer
+                                              className="group-member-list_dm-button"
+                                            >
+                                              <div
+                                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                                              >
+                                                <SimpleTooltip
+                                                  content="Send message"
+                                                  id="name-id1"
+                                                >
+                                                  <OverlayTrigger
+                                                    defaultOverlayShown={false}
+                                                    delayShow={500}
+                                                    overlay={
+                                                      <Tooltip
+                                                        className="hidden-xs"
+                                                        id="name-id1"
+                                                        placement="top"
+                                                      >
+                                                        Send message
+                                                      </Tooltip>
+                                                    }
+                                                    placement="top"
+                                                    trigger={
+                                                      Array [
+                                                        "hover",
+                                                        "focus",
+                                                      ]
+                                                    }
+                                                  >
+                                                    <OverlayTrigger
+                                                      defaultOverlayShown={false}
+                                                      delayShow={500}
+                                                      overlay={
+                                                        <OverlayWrapper
+                                                          className="hidden-xs"
+                                                          id="name-id1"
+                                                          intl={
+                                                            Object {
+                                                              "defaultFormats": Object {},
+                                                              "defaultLocale": "en",
+                                                              "defaultRichTextElements": undefined,
+                                                              "formatDate": [Function],
+                                                              "formatDateTimeRange": [Function],
+                                                              "formatDateToParts": [Function],
+                                                              "formatDisplayName": [Function],
+                                                              "formatList": [Function],
+                                                              "formatListToParts": [Function],
+                                                              "formatMessage": [Function],
+                                                              "formatNumber": [Function],
+                                                              "formatNumberToParts": [Function],
+                                                              "formatPlural": [Function],
+                                                              "formatRelativeTime": [Function],
+                                                              "formatTime": [Function],
+                                                              "formatTimeToParts": [Function],
+                                                              "formats": Object {},
+                                                              "formatters": Object {
+                                                                "getDateTimeFormat": [Function],
+                                                                "getDisplayNames": [Function],
+                                                                "getListFormat": [Function],
+                                                                "getMessageFormat": [Function],
+                                                                "getNumberFormat": [Function],
+                                                                "getPluralRules": [Function],
+                                                                "getRelativeTimeFormat": [Function],
+                                                              },
+                                                              "locale": "en",
+                                                              "messages": Object {},
+                                                              "onError": [Function],
+                                                              "textComponent": "span",
+                                                              "timeZone": "Etc/UTC",
+                                                              "wrapRichTextChunksInFragment": undefined,
+                                                            }
+                                                          }
+                                                          placement="top"
+                                                        >
+                                                          Send message
+                                                        </OverlayWrapper>
+                                                      }
+                                                      placement="top"
+                                                      trigger={
+                                                        Array [
+                                                          "hover",
+                                                          "focus",
+                                                        ]
+                                                      }
+                                                    >
+                                                      <DMButton
+                                                        aria-label="Send message to username1"
+                                                        className="btn-icon"
+                                                        onBlur={[Function]}
+                                                        onClick={[Function]}
+                                                        onFocus={[Function]}
+                                                        onMouseOut={[Function]}
+                                                        onMouseOver={[Function]}
+                                                      >
+                                                        <button
+                                                          aria-label="Send message to username1"
+                                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                                          onBlur={[Function]}
+                                                          onClick={[Function]}
+                                                          onFocus={[Function]}
+                                                          onMouseOut={[Function]}
+                                                          onMouseOver={[Function]}
+                                                        >
+                                                          <SendIcon>
+                                                            <svg
+                                                              fill="currentColor"
+                                                              height={24}
+                                                              version="1.1"
+                                                              viewBox="0 0 24 24"
+                                                              width={24}
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                            >
+                                                              <path
+                                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                                              />
+                                                            </svg>
+                                                          </SendIcon>
+                                                        </button>
+                                                      </DMButton>
+                                                    </OverlayTrigger>
+                                                  </OverlayTrigger>
+                                                </SimpleTooltip>
+                                              </div>
+                                            </DMContainer>
+                                          </div>
+                                        </UserListItem>
+                                      </Item>
+                                      <Item
+                                        index={2}
+                                        key="2"
+                                        style={
+                                          Object {
+                                            "height": undefined,
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": undefined,
+                                            "top": 88,
+                                            "width": "100%",
+                                          }
+                                        }
+                                      >
+                                        <UserListItem
+                                          className="group-member-list_item"
+                                          first={false}
+                                          key="id10"
+                                          last={false}
+                                          role="listitem"
+                                          style={
+                                            Object {
+                                              "height": undefined,
+                                              "left": 0,
+                                              "position": "absolute",
+                                              "right": undefined,
+                                              "top": 88,
+                                              "width": "100%",
+                                            }
+                                          }
+                                        >
+                                          <div
+                                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                                            role="listitem"
+                                            style={
+                                              Object {
+                                                "height": undefined,
+                                                "left": 0,
+                                                "position": "absolute",
+                                                "right": undefined,
+                                                "top": 88,
+                                                "width": "100%",
+                                              }
+                                            }
+                                          >
+                                            <UserButton
+                                              aria-haspopup="dialog"
+                                              onClick={[Function]}
+                                            >
+                                              <button
+                                                aria-haspopup="dialog"
+                                                className="UserButton-bZNeGd lLsMM"
+                                                onClick={[Function]}
+                                              >
+                                                <Memo(Avatar)
+                                                  className="avatar-post-preview"
+                                                  size="sm"
+                                                  tabIndex={-1}
+                                                  url="/api/v4/users/id10/image?_=0"
+                                                  username="username10"
+                                                >
+                                                  <img
+                                                    alt="username10 profile image"
+                                                    className="Avatar Avatar-sm avatar-post-preview"
+                                                    loading="lazy"
+                                                    onError={[Function]}
+                                                    src="/api/v4/users/id10/image?_=0"
+                                                    tabIndex={-1}
+                                                  />
+                                                </Memo(Avatar)>
+                                                <Username
+                                                  className="overflow--ellipsis text-nowrap"
+                                                >
+                                                  <span
+                                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                  >
+                                                    username10
+                                                  </span>
+                                                </Username>
+                                                <Gap
+                                                  className="group-member-list_gap"
+                                                >
+                                                  <span
+                                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                  />
+                                                </Gap>
+                                              </button>
+                                            </UserButton>
+                                            <DMContainer
+                                              className="group-member-list_dm-button"
+                                            >
+                                              <div
+                                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                                              >
+                                                <SimpleTooltip
+                                                  content="Send message"
+                                                  id="name-id10"
+                                                >
+                                                  <OverlayTrigger
+                                                    defaultOverlayShown={false}
+                                                    delayShow={500}
+                                                    overlay={
+                                                      <Tooltip
+                                                        className="hidden-xs"
+                                                        id="name-id10"
+                                                        placement="top"
+                                                      >
+                                                        Send message
+                                                      </Tooltip>
+                                                    }
+                                                    placement="top"
+                                                    trigger={
+                                                      Array [
+                                                        "hover",
+                                                        "focus",
+                                                      ]
+                                                    }
+                                                  >
+                                                    <OverlayTrigger
+                                                      defaultOverlayShown={false}
+                                                      delayShow={500}
+                                                      overlay={
+                                                        <OverlayWrapper
+                                                          className="hidden-xs"
+                                                          id="name-id10"
+                                                          intl={
+                                                            Object {
+                                                              "defaultFormats": Object {},
+                                                              "defaultLocale": "en",
+                                                              "defaultRichTextElements": undefined,
+                                                              "formatDate": [Function],
+                                                              "formatDateTimeRange": [Function],
+                                                              "formatDateToParts": [Function],
+                                                              "formatDisplayName": [Function],
+                                                              "formatList": [Function],
+                                                              "formatListToParts": [Function],
+                                                              "formatMessage": [Function],
+                                                              "formatNumber": [Function],
+                                                              "formatNumberToParts": [Function],
+                                                              "formatPlural": [Function],
+                                                              "formatRelativeTime": [Function],
+                                                              "formatTime": [Function],
+                                                              "formatTimeToParts": [Function],
+                                                              "formats": Object {},
+                                                              "formatters": Object {
+                                                                "getDateTimeFormat": [Function],
+                                                                "getDisplayNames": [Function],
+                                                                "getListFormat": [Function],
+                                                                "getMessageFormat": [Function],
+                                                                "getNumberFormat": [Function],
+                                                                "getPluralRules": [Function],
+                                                                "getRelativeTimeFormat": [Function],
+                                                              },
+                                                              "locale": "en",
+                                                              "messages": Object {},
+                                                              "onError": [Function],
+                                                              "textComponent": "span",
+                                                              "timeZone": "Etc/UTC",
+                                                              "wrapRichTextChunksInFragment": undefined,
+                                                            }
+                                                          }
+                                                          placement="top"
+                                                        >
+                                                          Send message
+                                                        </OverlayWrapper>
+                                                      }
+                                                      placement="top"
+                                                      trigger={
+                                                        Array [
+                                                          "hover",
+                                                          "focus",
+                                                        ]
+                                                      }
+                                                    >
+                                                      <DMButton
+                                                        aria-label="Send message to username10"
+                                                        className="btn-icon"
+                                                        onBlur={[Function]}
+                                                        onClick={[Function]}
+                                                        onFocus={[Function]}
+                                                        onMouseOut={[Function]}
+                                                        onMouseOver={[Function]}
+                                                      >
+                                                        <button
+                                                          aria-label="Send message to username10"
+                                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                                          onBlur={[Function]}
+                                                          onClick={[Function]}
+                                                          onFocus={[Function]}
+                                                          onMouseOut={[Function]}
+                                                          onMouseOver={[Function]}
+                                                        >
+                                                          <SendIcon>
+                                                            <svg
+                                                              fill="currentColor"
+                                                              height={24}
+                                                              version="1.1"
+                                                              viewBox="0 0 24 24"
+                                                              width={24}
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                            >
+                                                              <path
+                                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                                              />
+                                                            </svg>
+                                                          </SendIcon>
+                                                        </button>
+                                                      </DMButton>
+                                                    </OverlayTrigger>
+                                                  </OverlayTrigger>
+                                                </SimpleTooltip>
+                                              </div>
+                                            </DMContainer>
+                                          </div>
+                                        </UserListItem>
+                                      </Item>
+                                      <Item
+                                        index={3}
+                                        key="3"
+                                        style={
+                                          Object {
+                                            "height": undefined,
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": undefined,
+                                            "top": 128,
+                                            "width": "100%",
+                                          }
+                                        }
+                                      >
+                                        <UserListItem
+                                          className="group-member-list_item"
+                                          first={false}
+                                          key="id11"
+                                          last={false}
+                                          role="listitem"
+                                          style={
+                                            Object {
+                                              "height": undefined,
+                                              "left": 0,
+                                              "position": "absolute",
+                                              "right": undefined,
+                                              "top": 128,
+                                              "width": "100%",
+                                            }
+                                          }
+                                        >
+                                          <div
+                                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                                            role="listitem"
+                                            style={
+                                              Object {
+                                                "height": undefined,
+                                                "left": 0,
+                                                "position": "absolute",
+                                                "right": undefined,
+                                                "top": 128,
+                                                "width": "100%",
+                                              }
+                                            }
+                                          >
+                                            <UserButton
+                                              aria-haspopup="dialog"
+                                              onClick={[Function]}
+                                            >
+                                              <button
+                                                aria-haspopup="dialog"
+                                                className="UserButton-bZNeGd lLsMM"
+                                                onClick={[Function]}
+                                              >
+                                                <Memo(Avatar)
+                                                  className="avatar-post-preview"
+                                                  size="sm"
+                                                  tabIndex={-1}
+                                                  url="/api/v4/users/id11/image?_=0"
+                                                  username="username11"
+                                                >
+                                                  <img
+                                                    alt="username11 profile image"
+                                                    className="Avatar Avatar-sm avatar-post-preview"
+                                                    loading="lazy"
+                                                    onError={[Function]}
+                                                    src="/api/v4/users/id11/image?_=0"
+                                                    tabIndex={-1}
+                                                  />
+                                                </Memo(Avatar)>
+                                                <Username
+                                                  className="overflow--ellipsis text-nowrap"
+                                                >
+                                                  <span
+                                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                  >
+                                                    username11
+                                                  </span>
+                                                </Username>
+                                                <Gap
+                                                  className="group-member-list_gap"
+                                                >
+                                                  <span
+                                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                  />
+                                                </Gap>
+                                              </button>
+                                            </UserButton>
+                                            <DMContainer
+                                              className="group-member-list_dm-button"
+                                            >
+                                              <div
+                                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                                              >
+                                                <SimpleTooltip
+                                                  content="Send message"
+                                                  id="name-id11"
+                                                >
+                                                  <OverlayTrigger
+                                                    defaultOverlayShown={false}
+                                                    delayShow={500}
+                                                    overlay={
+                                                      <Tooltip
+                                                        className="hidden-xs"
+                                                        id="name-id11"
+                                                        placement="top"
+                                                      >
+                                                        Send message
+                                                      </Tooltip>
+                                                    }
+                                                    placement="top"
+                                                    trigger={
+                                                      Array [
+                                                        "hover",
+                                                        "focus",
+                                                      ]
+                                                    }
+                                                  >
+                                                    <OverlayTrigger
+                                                      defaultOverlayShown={false}
+                                                      delayShow={500}
+                                                      overlay={
+                                                        <OverlayWrapper
+                                                          className="hidden-xs"
+                                                          id="name-id11"
+                                                          intl={
+                                                            Object {
+                                                              "defaultFormats": Object {},
+                                                              "defaultLocale": "en",
+                                                              "defaultRichTextElements": undefined,
+                                                              "formatDate": [Function],
+                                                              "formatDateTimeRange": [Function],
+                                                              "formatDateToParts": [Function],
+                                                              "formatDisplayName": [Function],
+                                                              "formatList": [Function],
+                                                              "formatListToParts": [Function],
+                                                              "formatMessage": [Function],
+                                                              "formatNumber": [Function],
+                                                              "formatNumberToParts": [Function],
+                                                              "formatPlural": [Function],
+                                                              "formatRelativeTime": [Function],
+                                                              "formatTime": [Function],
+                                                              "formatTimeToParts": [Function],
+                                                              "formats": Object {},
+                                                              "formatters": Object {
+                                                                "getDateTimeFormat": [Function],
+                                                                "getDisplayNames": [Function],
+                                                                "getListFormat": [Function],
+                                                                "getMessageFormat": [Function],
+                                                                "getNumberFormat": [Function],
+                                                                "getPluralRules": [Function],
+                                                                "getRelativeTimeFormat": [Function],
+                                                              },
+                                                              "locale": "en",
+                                                              "messages": Object {},
+                                                              "onError": [Function],
+                                                              "textComponent": "span",
+                                                              "timeZone": "Etc/UTC",
+                                                              "wrapRichTextChunksInFragment": undefined,
+                                                            }
+                                                          }
+                                                          placement="top"
+                                                        >
+                                                          Send message
+                                                        </OverlayWrapper>
+                                                      }
+                                                      placement="top"
+                                                      trigger={
+                                                        Array [
+                                                          "hover",
+                                                          "focus",
+                                                        ]
+                                                      }
+                                                    >
+                                                      <DMButton
+                                                        aria-label="Send message to username11"
+                                                        className="btn-icon"
+                                                        onBlur={[Function]}
+                                                        onClick={[Function]}
+                                                        onFocus={[Function]}
+                                                        onMouseOut={[Function]}
+                                                        onMouseOver={[Function]}
+                                                      >
+                                                        <button
+                                                          aria-label="Send message to username11"
+                                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                                          onBlur={[Function]}
+                                                          onClick={[Function]}
+                                                          onFocus={[Function]}
+                                                          onMouseOut={[Function]}
+                                                          onMouseOver={[Function]}
+                                                        >
+                                                          <SendIcon>
+                                                            <svg
+                                                              fill="currentColor"
+                                                              height={24}
+                                                              version="1.1"
+                                                              viewBox="0 0 24 24"
+                                                              width={24}
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                            >
+                                                              <path
+                                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                                              />
+                                                            </svg>
+                                                          </SendIcon>
+                                                        </button>
+                                                      </DMButton>
+                                                    </OverlayTrigger>
+                                                  </OverlayTrigger>
+                                                </SimpleTooltip>
+                                              </div>
+                                            </DMContainer>
+                                          </div>
+                                        </UserListItem>
+                                      </Item>
+                                      <Item
+                                        index={4}
+                                        key="4"
+                                        style={
+                                          Object {
+                                            "height": undefined,
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": undefined,
+                                            "top": 168,
+                                            "width": "100%",
+                                          }
+                                        }
+                                      >
+                                        <UserListItem
+                                          className="group-member-list_item"
+                                          first={false}
+                                          key="id12"
+                                          last={false}
+                                          role="listitem"
+                                          style={
+                                            Object {
+                                              "height": undefined,
+                                              "left": 0,
+                                              "position": "absolute",
+                                              "right": undefined,
+                                              "top": 168,
+                                              "width": "100%",
+                                            }
+                                          }
+                                        >
+                                          <div
+                                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                                            role="listitem"
+                                            style={
+                                              Object {
+                                                "height": undefined,
+                                                "left": 0,
+                                                "position": "absolute",
+                                                "right": undefined,
+                                                "top": 168,
+                                                "width": "100%",
+                                              }
+                                            }
+                                          >
+                                            <UserButton
+                                              aria-haspopup="dialog"
+                                              onClick={[Function]}
+                                            >
+                                              <button
+                                                aria-haspopup="dialog"
+                                                className="UserButton-bZNeGd lLsMM"
+                                                onClick={[Function]}
+                                              >
+                                                <Memo(Avatar)
+                                                  className="avatar-post-preview"
+                                                  size="sm"
+                                                  tabIndex={-1}
+                                                  url="/api/v4/users/id12/image?_=0"
+                                                  username="username12"
+                                                >
+                                                  <img
+                                                    alt="username12 profile image"
+                                                    className="Avatar Avatar-sm avatar-post-preview"
+                                                    loading="lazy"
+                                                    onError={[Function]}
+                                                    src="/api/v4/users/id12/image?_=0"
+                                                    tabIndex={-1}
+                                                  />
+                                                </Memo(Avatar)>
+                                                <Username
+                                                  className="overflow--ellipsis text-nowrap"
+                                                >
+                                                  <span
+                                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                  >
+                                                    username12
+                                                  </span>
+                                                </Username>
+                                                <Gap
+                                                  className="group-member-list_gap"
+                                                >
+                                                  <span
+                                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                  />
+                                                </Gap>
+                                              </button>
+                                            </UserButton>
+                                            <DMContainer
+                                              className="group-member-list_dm-button"
+                                            >
+                                              <div
+                                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                                              >
+                                                <SimpleTooltip
+                                                  content="Send message"
+                                                  id="name-id12"
+                                                >
+                                                  <OverlayTrigger
+                                                    defaultOverlayShown={false}
+                                                    delayShow={500}
+                                                    overlay={
+                                                      <Tooltip
+                                                        className="hidden-xs"
+                                                        id="name-id12"
+                                                        placement="top"
+                                                      >
+                                                        Send message
+                                                      </Tooltip>
+                                                    }
+                                                    placement="top"
+                                                    trigger={
+                                                      Array [
+                                                        "hover",
+                                                        "focus",
+                                                      ]
+                                                    }
+                                                  >
+                                                    <OverlayTrigger
+                                                      defaultOverlayShown={false}
+                                                      delayShow={500}
+                                                      overlay={
+                                                        <OverlayWrapper
+                                                          className="hidden-xs"
+                                                          id="name-id12"
+                                                          intl={
+                                                            Object {
+                                                              "defaultFormats": Object {},
+                                                              "defaultLocale": "en",
+                                                              "defaultRichTextElements": undefined,
+                                                              "formatDate": [Function],
+                                                              "formatDateTimeRange": [Function],
+                                                              "formatDateToParts": [Function],
+                                                              "formatDisplayName": [Function],
+                                                              "formatList": [Function],
+                                                              "formatListToParts": [Function],
+                                                              "formatMessage": [Function],
+                                                              "formatNumber": [Function],
+                                                              "formatNumberToParts": [Function],
+                                                              "formatPlural": [Function],
+                                                              "formatRelativeTime": [Function],
+                                                              "formatTime": [Function],
+                                                              "formatTimeToParts": [Function],
+                                                              "formats": Object {},
+                                                              "formatters": Object {
+                                                                "getDateTimeFormat": [Function],
+                                                                "getDisplayNames": [Function],
+                                                                "getListFormat": [Function],
+                                                                "getMessageFormat": [Function],
+                                                                "getNumberFormat": [Function],
+                                                                "getPluralRules": [Function],
+                                                                "getRelativeTimeFormat": [Function],
+                                                              },
+                                                              "locale": "en",
+                                                              "messages": Object {},
+                                                              "onError": [Function],
+                                                              "textComponent": "span",
+                                                              "timeZone": "Etc/UTC",
+                                                              "wrapRichTextChunksInFragment": undefined,
+                                                            }
+                                                          }
+                                                          placement="top"
+                                                        >
+                                                          Send message
+                                                        </OverlayWrapper>
+                                                      }
+                                                      placement="top"
+                                                      trigger={
+                                                        Array [
+                                                          "hover",
+                                                          "focus",
+                                                        ]
+                                                      }
+                                                    >
+                                                      <DMButton
+                                                        aria-label="Send message to username12"
+                                                        className="btn-icon"
+                                                        onBlur={[Function]}
+                                                        onClick={[Function]}
+                                                        onFocus={[Function]}
+                                                        onMouseOut={[Function]}
+                                                        onMouseOver={[Function]}
+                                                      >
+                                                        <button
+                                                          aria-label="Send message to username12"
+                                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                                          onBlur={[Function]}
+                                                          onClick={[Function]}
+                                                          onFocus={[Function]}
+                                                          onMouseOut={[Function]}
+                                                          onMouseOver={[Function]}
+                                                        >
+                                                          <SendIcon>
+                                                            <svg
+                                                              fill="currentColor"
+                                                              height={24}
+                                                              version="1.1"
+                                                              viewBox="0 0 24 24"
+                                                              width={24}
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                            >
+                                                              <path
+                                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                                              />
+                                                            </svg>
+                                                          </SendIcon>
+                                                        </button>
+                                                      </DMButton>
+                                                    </OverlayTrigger>
+                                                  </OverlayTrigger>
+                                                </SimpleTooltip>
+                                              </div>
+                                            </DMContainer>
+                                          </div>
+                                        </UserListItem>
+                                      </Item>
+                                    </div>
+                                  </div>
+                                </List>
+                              </InfiniteLoader>
+                            </Component>
+                          </div>
+                        </UserList>
+                      </Memo(GroupMemberList)>
+                    </Connect(Component)>
+                  </div>
+                </Body>
+                <span
+                  onFocus={[Function]}
+                  tabIndex={0}
+                />
+              </div>
+            </div>
+          </Popover>
+        </Popover>
+      </Memo(UserGroupPopover)>
+    </Router>
+  </BrowserRouter>
+</Provider>
+`;

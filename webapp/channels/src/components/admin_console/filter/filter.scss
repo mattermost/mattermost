@@ -1,0 +1,131 @@
+.Filter {
+    position: relative;
+    display: inline-block;
+    padding-left: 8px;
+
+    .Filter_button {
+        width: auto;
+        height: 32px;
+        padding: 0 10px;
+        border: 0;
+        background: var(--sys-center-channel-bg);
+        border-radius: 4px;
+        color: var(--sys-button-bg);
+        font-size: 12px;
+
+        &.Filter__active,
+        &:focus {
+            background: rgba(var(--sys-button-bg-rgb), 0.12);
+        }
+
+        &:hover {
+            background: rgba(var(--sys-button-bg-rgb), 0.06);
+        }
+    }
+
+    .Icon {
+        margin-right: 2px;
+        font-size: 14px;
+    }
+
+    .Filter_content {
+        position: absolute;
+        z-index: 1;
+        display: none;
+        min-width: 256px;
+        box-sizing: border-box;
+        padding: 16px;
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        margin-top: 4px;
+        margin-bottom: 24px;
+        background: var(--sys-center-channel-bg);
+        border-radius: 4px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+        &.Filter__show {
+            display: block;
+        }
+
+        hr {
+            padding: 0;
+            margin: 8px -16px 8px -16px;
+            color: rgba(var(--sys-center-channel-color-rgb), 0.08);
+        }
+    }
+
+    .Filter_header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+
+        .Filter_title {
+            padding: 8px;
+            color: var(--sys-center-channel-color);
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 14px;
+        }
+
+        .Filter_reset {
+            padding: 8px;
+            font-size: 12px;
+            line-height: 16px;
+        }
+    }
+
+    .Filter_lists {
+        white-space: nowrap;
+    }
+
+    .Filter_apply {
+        margin: 8px 8px 8px 0;
+        border-radius: 4px;
+        float: right;
+        font-size: 12px;
+
+        &:disabled {
+            background: rgba(var(--sys-center-channel-color-rgb), 0.1);
+            color: var(--sys-center-channel-color);
+        }
+    }
+
+    .FilterList {
+        display: inline-block;
+        width: 160px;
+        padding: 8px;
+        font-size: 14px;
+        vertical-align: top;
+
+        &.FilterList__full {
+            display: block;
+            width: 320px;
+        }
+
+        .FilterList_name {
+            padding-bottom: 12px;
+            color: rgba(var(--sys-center-channel-color-rgb), 0.5);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .FilterList_checkbox {
+            color: rgba(var(--sys-center-channel-color-rgb), 0.8);
+
+            input {
+                position: relative;
+                top: -4px;
+                margin: 0 8px 0 2px;
+                opacity: 0.64;
+                vertical-align: bottom;
+
+                &:checked {
+                    opacity: 1;
+                }
+            }
+
+            label {
+                font-weight: normal;
+            }
+        }
+    }
+}

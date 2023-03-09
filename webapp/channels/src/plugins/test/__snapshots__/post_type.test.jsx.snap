@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`plugins/PostMessageView should match snapshot with extended post type 1`] = `
+<PostMessageView
+  currentRelativeTeamUrl="team_url"
+  currentUser={
+    Object {
+      "username": "username",
+    }
+  }
+  emojis={
+    Object {
+      "name": "smile",
+    }
+  }
+  enableFormatting={true}
+  isRHS={false}
+  options={Object {}}
+  pluginPostTypes={
+    Object {
+      "testtype": Object {
+        "component": [Function],
+      },
+    }
+  }
+  post={
+    Object {
+      "id": "post_id",
+      "message": "this is some text",
+      "type": "testtype",
+    }
+  }
+  team={
+    Object {
+      "name": "team_name",
+    }
+  }
+  theme={
+    Object {
+      "id": "theme_id",
+    }
+  }
+>
+  <PostTypePlugin
+    isRHS={false}
+    post={
+      Object {
+        "id": "post_id",
+        "message": "this is some text",
+        "type": "testtype",
+      }
+    }
+    theme={
+      Object {
+        "id": "theme_id",
+      }
+    }
+  >
+    <span
+      id="pluginId"
+    >
+      PostTypePlugin
+    </span>
+  </PostTypePlugin>
+</PostMessageView>
+`;
+
+exports[`plugins/PostMessageView should match snapshot with no extended post type 1`] = `
+<Connect(ShowMore)
+  checkOverflow={0}
+  text="this is some text"
+>
+  <div
+    aria-readonly="true"
+    className="post-message__text"
+    dir="auto"
+    id="postMessageText_post_id"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      isRHS={false}
+      mentionKeys={Array []}
+      message="this is some text"
+      options={Object {}}
+      post={
+        Object {
+          "id": "post_id",
+          "message": "this is some text",
+          "type": "testtype",
+        }
+      }
+    />
+  </div>
+  <Connect(Pluggable)
+    onHeightChange={[Function]}
+    pluggableName="PostMessageAttachment"
+    postId="post_id"
+  />
+</Connect(ShowMore)>
+`;

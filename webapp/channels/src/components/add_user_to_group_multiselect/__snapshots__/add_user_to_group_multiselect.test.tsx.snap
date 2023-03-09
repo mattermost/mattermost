@@ -1,0 +1,124 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/add_user_to_group_multiselect should match snapshot with different submit button text 1`] = `
+<MultiSelect
+  ariaLabelRenderer={[Function]}
+  buttonSubmitLoadingText="Updating..."
+  buttonSubmitText="Update Group"
+  focusOnLoad={false}
+  handleAdd={[Function]}
+  handleDelete={[Function]}
+  handleInput={[Function]}
+  handlePageChange={[Function]}
+  handleSubmit={[Function]}
+  key="addUsersToGroupKey"
+  loading={true}
+  numRemainingText={null}
+  optionRenderer={[Function]}
+  options={
+    Array [
+      Object {
+        "delete_at": 0,
+        "id": "user-1",
+        "label": "user-1",
+        "value": "user-1",
+      },
+      Object {
+        "delete_at": 0,
+        "id": "user-2",
+        "label": "user-2",
+        "value": "user-2",
+      },
+    ]
+  }
+  perPage={50}
+  placeholderText="Search for people"
+  saveButtonPosition="bottom"
+  saving={false}
+  savingEnabled={false}
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+  valueWithImage={true}
+  values={Array []}
+/>
+`;
+
+exports[`component/add_user_to_group_multiselect should match snapshot with profiles 1`] = `
+<MultiSelect
+  ariaLabelRenderer={[Function]}
+  buttonSubmitLoadingText="Creating..."
+  buttonSubmitText="Create Group"
+  focusOnLoad={false}
+  handleAdd={[Function]}
+  handleDelete={[Function]}
+  handleInput={[Function]}
+  handlePageChange={[Function]}
+  handleSubmit={[Function]}
+  key="addUsersToGroupKey"
+  loading={true}
+  numRemainingText={null}
+  optionRenderer={[Function]}
+  options={
+    Array [
+      Object {
+        "delete_at": 0,
+        "id": "user-1",
+        "label": "user-1",
+        "value": "user-1",
+      },
+      Object {
+        "delete_at": 0,
+        "id": "user-2",
+        "label": "user-2",
+        "value": "user-2",
+      },
+    ]
+  }
+  perPage={50}
+  placeholderText="Search for people"
+  saveButtonPosition="bottom"
+  saving={false}
+  savingEnabled={false}
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+  valueWithImage={true}
+  values={Array []}
+/>
+`;
+
+exports[`component/add_user_to_group_multiselect should match snapshot without any profiles 1`] = `
+<MultiSelect
+  ariaLabelRenderer={[Function]}
+  buttonSubmitLoadingText="Creating..."
+  buttonSubmitText="Create Group"
+  focusOnLoad={false}
+  handleAdd={[Function]}
+  handleDelete={[Function]}
+  handleInput={[Function]}
+  handlePageChange={[Function]}
+  handleSubmit={[Function]}
+  key="addUsersToGroupKey"
+  loading={true}
+  numRemainingText={null}
+  optionRenderer={[Function]}
+  options={Array []}
+  perPage={50}
+  placeholderText="Search for people"
+  saveButtonPosition="bottom"
+  saving={false}
+  savingEnabled={false}
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+  valueWithImage={true}
+  values={Array []}
+/>
+`;

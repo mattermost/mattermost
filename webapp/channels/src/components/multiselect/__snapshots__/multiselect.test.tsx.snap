@@ -1,0 +1,576 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/multiselect/multiselect MultiSelectList should match snapshot when custom no option message is defined 1`] = `
+<Fragment>
+  <div
+    className="filtered-user-list"
+  >
+    <div
+      className="filter-row filter-row--full"
+    >
+      <div
+        className="multi-select__container react-select"
+      >
+        <StateManager
+          className=""
+          classNamePrefix="react-select-auto react-select"
+          components={
+            Object {
+              "IndicatorsContainer": [Function],
+              "Menu": [Function],
+              "MultiValueLabel": [Function],
+              "MultiValueRemove": [Function],
+            }
+          }
+          defaultInputValue=""
+          defaultMenuIsOpen={false}
+          defaultValue={null}
+          getOptionLabel={[Function]}
+          getOptionValue={[Function]}
+          id="selectItems"
+          inputValue=""
+          isClearable={false}
+          isMulti={true}
+          menuIsOpen={false}
+          onChange={[Function]}
+          onInputChange={[Function]}
+          onKeyDown={[Function]}
+          openMenuOnFocus={false}
+          options={
+            Array [
+              Object {
+                "id": "0",
+                "label": "0",
+                "value": "0",
+              },
+              Object {
+                "id": "1",
+                "label": "1",
+                "value": "1",
+              },
+              Object {
+                "id": "2",
+                "label": "2",
+                "value": "2",
+              },
+              Object {
+                "id": "3",
+                "label": "3",
+                "value": "3",
+              },
+              Object {
+                "id": "4",
+                "label": "4",
+                "value": "4",
+              },
+              Object {
+                "id": "5",
+                "label": "5",
+                "value": "5",
+              },
+              Object {
+                "id": "6",
+                "label": "6",
+                "value": "6",
+              },
+              Object {
+                "id": "7",
+                "label": "7",
+                "value": "7",
+              },
+            ]
+          }
+          styles={
+            Object {
+              "container": [Function],
+            }
+          }
+          value={
+            Array [
+              Object {
+                "id": "id",
+                "label": "label",
+                "value": "value",
+              },
+            ]
+          }
+        />
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Save"
+              id="save_button.save"
+            />
+          }
+          disabled={false}
+          extraClasses=""
+          id="saveItems"
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+      </div>
+      <div
+        className="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="{memberOptions, number} of {totalCount, number} members"
+          id="multiselect.numMembers"
+          values={
+            Object {
+              "memberOptions": 5,
+              "totalCount": 8,
+            }
+          }
+        />
+      </div>
+    </div>
+    <MultiSelectList
+      ariaLabelRenderer={[Function]}
+      customNoOptionsMessage={
+        <div
+          className="custom-no-options-message"
+        >
+          <span>
+            No matches found
+          </span>
+        </div>
+      }
+      onAction={[Function]}
+      onAdd={[Function]}
+      onSelect={[Function]}
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "id": "0",
+            "label": "0",
+            "value": "0",
+          },
+          Object {
+            "id": "1",
+            "label": "1",
+            "value": "1",
+          },
+          Object {
+            "id": "2",
+            "label": "2",
+            "value": "2",
+          },
+          Object {
+            "id": "3",
+            "label": "3",
+            "value": "3",
+          },
+          Object {
+            "id": "4",
+            "label": "4",
+            "value": "4",
+          },
+        ]
+      }
+      page={0}
+      perPage={5}
+      query=""
+    />
+    <div
+      className="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+    <div
+      className="filter-controls"
+    >
+      <button
+        className="btn btn-link filter-control filter-control__next"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Next"
+          id="filtered_user_list.next"
+        />
+      </button>
+    </div>
+  </div>
+</Fragment>
+`;
+
+exports[`components/multiselect/multiselect should match snapshot 1`] = `
+<Fragment>
+  <div
+    className="filtered-user-list"
+  >
+    <div
+      className="filter-row filter-row--full"
+    >
+      <div
+        className="multi-select__container react-select"
+      >
+        <StateManager
+          className=""
+          classNamePrefix="react-select-auto react-select"
+          components={
+            Object {
+              "IndicatorsContainer": [Function],
+              "Menu": [Function],
+              "MultiValueLabel": [Function],
+              "MultiValueRemove": [Function],
+            }
+          }
+          defaultInputValue=""
+          defaultMenuIsOpen={false}
+          defaultValue={null}
+          getOptionLabel={[Function]}
+          getOptionValue={[Function]}
+          id="selectItems"
+          inputValue=""
+          isClearable={false}
+          isMulti={true}
+          menuIsOpen={false}
+          onChange={[Function]}
+          onInputChange={[Function]}
+          onKeyDown={[Function]}
+          openMenuOnFocus={false}
+          options={
+            Array [
+              Object {
+                "id": "0",
+                "label": "0",
+                "value": "0",
+              },
+              Object {
+                "id": "1",
+                "label": "1",
+                "value": "1",
+              },
+              Object {
+                "id": "2",
+                "label": "2",
+                "value": "2",
+              },
+              Object {
+                "id": "3",
+                "label": "3",
+                "value": "3",
+              },
+              Object {
+                "id": "4",
+                "label": "4",
+                "value": "4",
+              },
+              Object {
+                "id": "5",
+                "label": "5",
+                "value": "5",
+              },
+              Object {
+                "id": "6",
+                "label": "6",
+                "value": "6",
+              },
+              Object {
+                "id": "7",
+                "label": "7",
+                "value": "7",
+              },
+            ]
+          }
+          styles={
+            Object {
+              "container": [Function],
+            }
+          }
+          value={
+            Array [
+              Object {
+                "id": "id",
+                "label": "label",
+                "value": "value",
+              },
+            ]
+          }
+        />
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Save"
+              id="save_button.save"
+            />
+          }
+          disabled={false}
+          extraClasses=""
+          id="saveItems"
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+      </div>
+      <div
+        className="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="{memberOptions, number} of {totalCount, number} members"
+          id="multiselect.numMembers"
+          values={
+            Object {
+              "memberOptions": 5,
+              "totalCount": 8,
+            }
+          }
+        />
+      </div>
+    </div>
+    <MultiSelectList
+      ariaLabelRenderer={[Function]}
+      onAction={[Function]}
+      onAdd={[Function]}
+      onSelect={[Function]}
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "id": "0",
+            "label": "0",
+            "value": "0",
+          },
+          Object {
+            "id": "1",
+            "label": "1",
+            "value": "1",
+          },
+          Object {
+            "id": "2",
+            "label": "2",
+            "value": "2",
+          },
+          Object {
+            "id": "3",
+            "label": "3",
+            "value": "3",
+          },
+          Object {
+            "id": "4",
+            "label": "4",
+            "value": "4",
+          },
+        ]
+      }
+      page={0}
+      perPage={5}
+      query=""
+    />
+    <div
+      className="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+    <div
+      className="filter-controls"
+    >
+      <button
+        className="btn btn-link filter-control filter-control__next"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Next"
+          id="filtered_user_list.next"
+        />
+      </button>
+    </div>
+  </div>
+</Fragment>
+`;
+
+exports[`components/multiselect/multiselect should match snapshot for page 2 1`] = `
+<Fragment>
+  <div
+    className="filtered-user-list"
+  >
+    <div
+      className="filter-row filter-row--full"
+    >
+      <div
+        className="multi-select__container react-select"
+      >
+        <StateManager
+          className=""
+          classNamePrefix="react-select-auto react-select"
+          components={
+            Object {
+              "IndicatorsContainer": [Function],
+              "Menu": [Function],
+              "MultiValueLabel": [Function],
+              "MultiValueRemove": [Function],
+            }
+          }
+          defaultInputValue=""
+          defaultMenuIsOpen={false}
+          defaultValue={null}
+          getOptionLabel={[Function]}
+          getOptionValue={[Function]}
+          id="selectItems"
+          inputValue=""
+          isClearable={false}
+          isMulti={true}
+          menuIsOpen={false}
+          onChange={[Function]}
+          onInputChange={[Function]}
+          onKeyDown={[Function]}
+          openMenuOnFocus={false}
+          options={
+            Array [
+              Object {
+                "id": "0",
+                "label": "0",
+                "value": "0",
+              },
+              Object {
+                "id": "1",
+                "label": "1",
+                "value": "1",
+              },
+              Object {
+                "id": "2",
+                "label": "2",
+                "value": "2",
+              },
+              Object {
+                "id": "3",
+                "label": "3",
+                "value": "3",
+              },
+              Object {
+                "id": "4",
+                "label": "4",
+                "value": "4",
+              },
+              Object {
+                "id": "5",
+                "label": "5",
+                "value": "5",
+              },
+              Object {
+                "id": "6",
+                "label": "6",
+                "value": "6",
+              },
+              Object {
+                "id": "7",
+                "label": "7",
+                "value": "7",
+              },
+            ]
+          }
+          styles={
+            Object {
+              "container": [Function],
+            }
+          }
+          value={
+            Array [
+              Object {
+                "id": "id",
+                "label": "label",
+                "value": "value",
+              },
+            ]
+          }
+        />
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Save"
+              id="save_button.save"
+            />
+          }
+          disabled={false}
+          extraClasses=""
+          id="saveItems"
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+      </div>
+      <div
+        className="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="{memberOptions, number} of {totalCount, number} members"
+          id="multiselect.numMembers"
+          values={
+            Object {
+              "memberOptions": 3,
+              "totalCount": 8,
+            }
+          }
+        />
+      </div>
+    </div>
+    <MultiSelectList
+      ariaLabelRenderer={[Function]}
+      onAction={[Function]}
+      onAdd={[Function]}
+      onSelect={[Function]}
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "id": "5",
+            "label": "5",
+            "value": "5",
+          },
+          Object {
+            "id": "6",
+            "label": "6",
+            "value": "6",
+          },
+          Object {
+            "id": "7",
+            "label": "7",
+            "value": "7",
+          },
+        ]
+      }
+      page={1}
+      perPage={5}
+      query=""
+    />
+    <div
+      className="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+    <div
+      className="filter-controls"
+    >
+      <button
+        className="btn btn-link filter-control filter-control__prev"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Previous"
+          id="filtered_user_list.prev"
+        />
+      </button>
+    </div>
+  </div>
+</Fragment>
+`;

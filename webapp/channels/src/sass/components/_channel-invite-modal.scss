@@ -1,0 +1,196 @@
+@charset "UTF-8";
+
+@import 'utils/variables';
+@import 'utils/mixins';
+
+.modal .channel-invite__content,
+.modal .user-groups-modal__content {
+    .multi-select__container {
+        padding: 0 2.4rem;
+    }
+
+    .react-select__multi-value {
+        border-radius: 50px;
+    }
+
+    .multi-select__help {
+        padding: 8px 2.4rem 0;
+    }
+
+    .filtered-user-list {
+        display: block;
+        height: auto;
+    }
+
+    .react-select__multi-value__label {
+        display: flex;
+        align-items: center;
+        padding: 4px;
+        color: inherit;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .react-select__value__name {
+        margin: 0 0 0 8px;
+    }
+
+    .react-select__multi-value__remove {
+        margin-right: 4px;
+    }
+
+    .multi-select__wrapper {
+        position: absolute;
+        z-index: 5;
+        overflow: auto;
+        width: calc(100% - 28px);
+        height: auto;
+        max-height: 272px;
+        padding: 12px 0;
+        margin: -10px 0 0 14px;
+        border-radius: 4px;
+        box-shadow: var(--elevation-4);
+    }
+
+    .multi-select__footer {
+        padding: 0 24px 24px 0;
+        text-align: right;
+    }
+
+    .btn-primary {
+        height: 40px;
+        padding: 0 36px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .no-channel-message {
+        padding: 1rem;
+        font-size: 1.4rem;
+
+        .primary-message {
+            margin: 0;
+            color: var(--center-channel-color);
+            font-size: inherit;
+            line-height: 28px;
+        }
+    }
+
+    .react-select__value-container {
+        padding: 0 16px;
+        font-size: 16px;
+
+        &.react-select__value-container--has-value {
+            padding: 0 8px;
+        }
+    }
+
+    .more-modal__list {
+        height: auto;
+
+        .more-modal__options {
+            overflow: visible;
+            min-height: auto;
+        }
+    }
+
+    .react-select__control.react-select-auto {
+        overflow: auto;
+        min-height: 48px;
+        max-height: 125px;
+        padding: 3px 0;
+    }
+
+    .loading-screen {
+        position: relative !important;
+        padding: 1rem;
+    }
+
+    .more-modal__actions {
+        display: none;
+    }
+
+    .more-modal__row {
+        height: 40px;
+        padding: 0 2.4rem;
+        border: none;
+
+        .more-modal__name {
+            font-weight: 400;
+        }
+    }
+
+    .more-modal__details {
+        padding-left: 12px;
+    }
+}
+
+.modal .channel-invite__content {
+    display: flex;
+    flex-direction: column;
+
+    .filtered-user-list {
+        order: 0;
+    }
+
+    .invite-as-guest {
+        width: fit-content;
+        order: 1;
+        padding-top: 8px;
+        margin-right: 2.4rem;
+        margin-bottom: 22px;
+        margin-left: auto;
+        font-weight: 600;
+    }
+
+    .multi-select__footer {
+        order: 2;
+        margin-top: 10px;
+
+        .btn-cancel {
+            @include tertiary-button;
+
+            width: auto;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .save-button {
+            width: 67px;
+            padding: 0;
+        }
+    }
+
+    .custom-no-options-message {
+        padding: 12px 15px;
+        font-size: 16px;
+        line-height: 24px;
+
+        button {
+            padding: 0;
+            margin-top: -3px;
+            font-size: 16px;
+        }
+    }
+}
+
+body.app__body {
+    .channel-invite,
+    .user-groups-modal-create {
+        .multi-select__wrapper {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            background: rgba(var(--center-channel-bg-rgb), 1);
+        }
+    }
+}
+
+body:not(.app__body) {
+    .channel-invite,
+    .user-groups-modal-create {
+        .multi-select__wrapper {
+            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+            background: rgba(var(--sys-center-channel-bg-rgb), 1);
+        }
+    }
+}

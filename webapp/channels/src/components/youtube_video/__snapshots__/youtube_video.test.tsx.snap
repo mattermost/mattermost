@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`YoutubeVideo should match init snapshot 1`] = `
+<div
+  className="post__embed-container"
+>
+  <div>
+    <h4>
+      <span
+        className="video-type"
+      >
+        YouTube - 
+      </span>
+      <span
+        className="video-title"
+      >
+        <a
+          href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+          rel="noopener noreferrer"
+          target="blank"
+        >
+          Youtube title
+        </a>
+      </span>
+    </h4>
+    <div
+      className="video-div embed-responsive-item"
+      onClick={[Function]}
+    >
+      <div
+        className="embed-responsive video-div__placeholder"
+      >
+        <div
+          className="video-thumbnail__container"
+        >
+          <Connect(ExternalImage)
+            src="linkForThumbnail"
+          >
+            <Component />
+          </Connect(ExternalImage)>
+          <div
+            className="block"
+          >
+            <span
+              className="play-button"
+            >
+              <span />
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`YoutubeVideo should match snapshot for playing state 1`] = `
+<div
+  className="post__embed-container"
+>
+  <div>
+    <h4>
+      <span
+        className="video-type"
+      >
+        YouTube - 
+      </span>
+      <span
+        className="video-title"
+      >
+        <a
+          href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+          rel="noopener noreferrer"
+          target="blank"
+        >
+          Youtube title
+        </a>
+      </span>
+    </h4>
+    <div
+      className="video-div embed-responsive-item"
+      onClick={[Function]}
+    >
+      <iframe
+        allowFullScreen={true}
+        frameBorder="0"
+        height="360px"
+        src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1"
+        width="480px"
+      />
+    </div>
+  </div>
+</div>
+`;

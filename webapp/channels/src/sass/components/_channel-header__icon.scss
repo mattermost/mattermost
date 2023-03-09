@@ -1,0 +1,98 @@
+.channel-header__icon {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    min-width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    margin: 16px 0 0 4px;
+    background: transparent;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    text-align: center;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        fill: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .icon {
+        font-size: 16px;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    .icon.icon__flag {
+        svg {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    &:active,
+    &--active,
+    &--active:hover {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: v(button-bg);
+        fill: v(button-bg);
+
+        .icon__text {
+            color: v(button-bg);
+        }
+
+        .icon {
+            color: v(button-bg);
+        }
+    }
+
+    &--active-inverted,
+    &--active-inverted:hover {
+        background: v(button-bg);
+        color: v(button-color);
+        fill: v(button-color);
+    }
+
+    .icon__text {
+        margin: 0 2px;
+        font-weight: 600;
+    }
+
+    .icon__search {
+        top: 1px;
+    }
+}
+
+.channel-header__icon--wide {
+    width: auto;
+    min-width: unset;
+    padding: 0 6px;
+}
+
+.channel-header__icon--left {
+    height: unset;
+    padding: 4px;
+    margin: 0 4px 0 0;
+
+    .icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.userGuideHelp {
+    display: inline-table;
+}

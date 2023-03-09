@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SearchShortcut should match snapshot on Mac desktop 1`] = `
+<span
+  className="search-shortcut"
+>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Ctrl
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Shift
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    F
+  </ShortcutKey>
+</span>
+`;
+
+exports[`components/SearchShortcut should match snapshot on Mac webapp 1`] = `
+<span
+  className="search-shortcut"
+>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Ctrl
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Shift
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    F
+  </ShortcutKey>
+</span>
+`;
+
+exports[`components/SearchShortcut should match snapshot on Windows desktop 1`] = `
+<span
+  className="search-shortcut"
+>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Ctrl
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Shift
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    F
+  </ShortcutKey>
+</span>
+`;
+
+exports[`components/SearchShortcut should match snapshot on Windows webapp 1`] = `
+<span
+  className="search-shortcut"
+>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Ctrl
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    Shift
+  </ShortcutKey>
+  <ShortcutKey
+    variant="contrast"
+  >
+    F
+  </ShortcutKey>
+</span>
+`;

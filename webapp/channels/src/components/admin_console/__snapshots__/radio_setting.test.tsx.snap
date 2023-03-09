@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
+<Settings
+  inputId="string.id"
+  label="some label"
+  setByEnv={false}
+>
+  <div
+    className="radio"
+    key="Engineering"
+  >
+    <label>
+      <input
+        checked={false}
+        disabled={false}
+        name="string.id"
+        onChange={[Function]}
+        type="radio"
+        value="Engineering"
+      />
+      this is engineering
+    </label>
+  </div>
+  <div
+    className="radio"
+    key="Sales"
+  >
+    <label>
+      <input
+        checked={true}
+        disabled={false}
+        name="string.id"
+        onChange={[Function]}
+        type="radio"
+        value="Sales"
+      />
+      this is sales
+    </label>
+  </div>
+  <div
+    className="radio"
+    key="Administration"
+  >
+    <label>
+      <input
+        checked={false}
+        disabled={false}
+        name="string.id"
+        onChange={[Function]}
+        type="radio"
+        value="Administration"
+      />
+      this is administration
+    </label>
+  </div>
+</Settings>
+`;

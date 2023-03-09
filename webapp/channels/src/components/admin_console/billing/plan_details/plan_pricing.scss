@@ -1,0 +1,18 @@
+.PlanPricing {
+    display: flex;
+    align-items: flex-end;
+    margin-top: 16px;
+    color: var(--sys-center-channel-color);
+
+    &__paid-tier {
+        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-style: normal;
+        font-weight: normal;
+        line-height: 16px;
+
+        a {
+            margin-left: 5px;
+        }
+    }
+}

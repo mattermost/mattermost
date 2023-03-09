@@ -1,0 +1,342 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/test/integrations/outgoing_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Outgoing Webhooks"
+        id="installed_outgoing_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="add"
+      id="add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_outgoing_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength="64"
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_outgoing_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_outgoing_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength="500"
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your outgoing webhook."
+              id="add_outgoing_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="contentType"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Content Type"
+            id="add_outgoing_webhook.content_Type"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <select
+            className="form-control"
+            onChange={[Function]}
+            value="application/x-www-form-urlencoded"
+          >
+            <option
+              value="application/x-www-form-urlencoded"
+            >
+              application/x-www-form-urlencoded
+            </option>
+            <option
+              value="application/json"
+            >
+              application/json
+            </option>
+          </select>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the content type by which to send the request."
+              id="add_outgoing_webhook.contentType.help1"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="For the server to encode the parameters in a URL format in the request body, select application/x-www-form-urlencoded."
+              id="add_outgoing_webhook.contentType.help2"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="For the server to format the request body as JSON, select application/json."
+              id="add_outgoing_webhook.contentType.help3"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_outgoing_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            id="channelId"
+            onChange={[Function]}
+            selectOpen={true}
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This field is optional if you specify at least one trigger word. Specify the public channel that delivers the payload to the webhook."
+              id="add_outgoing_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="triggerWords"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Trigger Words (One Per Line)"
+            id="add_outgoing_webhook.triggerWords"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <textarea
+            className="form-control"
+            id="triggerWords"
+            maxLength="1000"
+            onChange={[Function]}
+            rows="3"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the trigger words that send an HTTP POST request to your application. The trigger can be for the channel, the outgoing webhook, or both. If you select only Channel, trigger words are optional. If you select both, the message must match both values."
+              id="add_outgoing_webhook.triggerWords.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="triggerWords"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Trigger When"
+            id="add_outgoing_webhook.triggerWordsTriggerWhen"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <select
+            className="form-control"
+            onChange={[Function]}
+            value={0}
+          >
+            <option
+              value="0"
+            >
+              First word matches a trigger word exactly
+            </option>
+            <option
+              value="1"
+            >
+              First word starts with a trigger word
+            </option>
+          </select>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify when to trigger the outgoing webhook."
+              id="add_outgoing_webhook.triggerWordsTriggerWhen.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="callbackUrls"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Callback URLs (One Per Line)"
+            id="add_outgoing_webhook.callbackUrls"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <textarea
+            className="form-control"
+            id="callbackUrls"
+            maxLength="1000"
+            onChange={[Function]}
+            rows="3"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the URL that the messages will be sent to. If the URL is private, add it as a {link}."
+              id="add_outgoing_webhook.callbackUrls.help"
+              values={
+                Object {
+                  "link": <a
+                    href="https://docs.mattermost.com/configure/configuration-settings.html#session-lengths"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="trusted internal connection"
+                      id="add_outgoing_webhook.callbackUrls.helpLinkText"
+                    />
+                  </a>,
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/test/integrations/outgoing_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_outgoing_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="save"
+            id="save"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;

@@ -1,0 +1,409 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary should match snapshot on default data 1`] = `
+<div
+  className="permissions-scheme-summary"
+  data-testid="permissions-scheme-summary"
+  onClick={[Function]}
+>
+  <div
+    onClick={[Function]}
+  >
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <LoadingWrapper
+          loading={false}
+          text="Deleting..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Yes, Delete"
+            id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
+          />
+        </LoadingWrapper>
+      }
+      message={
+        <div>
+          <p>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The permissions in the teams using this scheme will reset to the defaults in the System Scheme. Are you sure you want to delete the {schemeName} scheme?"
+              id="admin.permissions.permissionsSchemeSummary.deleteConfirmQuestion"
+              values={
+                Object {
+                  "schemeName": "Test",
+                }
+              }
+            />
+          </p>
+        </div>
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Delete {scheme} scheme?"
+          id="admin.permissions.permissionsSchemeSummary.deleteSchemeTitle"
+          values={
+            Object {
+              "scheme": "Test",
+            }
+          }
+        />
+      }
+    />
+  </div>
+  <div
+    className="permissions-scheme-summary--header"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="actions"
+    >
+      <Link
+        className="edit-button"
+        data-testid="Test-edit"
+        to="/admin_console/user_management/permissions/team_override_scheme/id"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Edit"
+          id="admin.permissions.permissionsSchemeSummary.edit"
+        />
+      </Link>
+      -
+      <a
+        className="delete-button"
+        data-testid="Test-delete"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Delete"
+          id="admin.permissions.permissionsSchemeSummary.delete"
+        />
+      </a>
+    </div>
+  </div>
+  <div
+    className="permissions-scheme-summary--description"
+  >
+    Test description
+  </div>
+  <div
+    className="permissions-scheme-summary--teams"
+  >
+    <span
+      className="team"
+      key="xxx"
+    >
+      Team 1
+    </span>
+    <span
+      className="team"
+      key="yyy"
+    >
+      Team 2
+    </span>
+    <span
+      className="team"
+      key="zzz"
+    >
+      Team 3
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary should match snapshot on more than eight teams 1`] = `
+<div
+  className="permissions-scheme-summary"
+  data-testid="permissions-scheme-summary"
+  onClick={[Function]}
+>
+  <div
+    onClick={[Function]}
+  >
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <LoadingWrapper
+          loading={false}
+          text="Deleting..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Yes, Delete"
+            id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
+          />
+        </LoadingWrapper>
+      }
+      message={
+        <div>
+          <p>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The permissions in the teams using this scheme will reset to the defaults in the System Scheme. Are you sure you want to delete the {schemeName} scheme?"
+              id="admin.permissions.permissionsSchemeSummary.deleteConfirmQuestion"
+              values={
+                Object {
+                  "schemeName": "Test",
+                }
+              }
+            />
+          </p>
+        </div>
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Delete {scheme} scheme?"
+          id="admin.permissions.permissionsSchemeSummary.deleteSchemeTitle"
+          values={
+            Object {
+              "scheme": "Test",
+            }
+          }
+        />
+      }
+    />
+  </div>
+  <div
+    className="permissions-scheme-summary--header"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="actions"
+    >
+      <Link
+        className="edit-button"
+        data-testid="Test-edit"
+        to="/admin_console/user_management/permissions/team_override_scheme/id"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Edit"
+          id="admin.permissions.permissionsSchemeSummary.edit"
+        />
+      </Link>
+      -
+      <a
+        className="delete-button"
+        data-testid="Test-delete"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Delete"
+          id="admin.permissions.permissionsSchemeSummary.delete"
+        />
+      </a>
+    </div>
+  </div>
+  <div
+    className="permissions-scheme-summary--description"
+  >
+    Test description
+  </div>
+  <div
+    className="permissions-scheme-summary--teams"
+  >
+    <span
+      className="team"
+      key="aaa"
+    >
+      Team 1
+    </span>
+    <span
+      className="team"
+      key="bbb"
+    >
+      Team 2
+    </span>
+    <span
+      className="team"
+      key="ccc"
+    >
+      Team 3
+    </span>
+    <span
+      className="team"
+      key="ddd"
+    >
+      Team 4
+    </span>
+    <span
+      className="team"
+      key="eee"
+    >
+      Team 5
+    </span>
+    <span
+      className="team"
+      key="fff"
+    >
+      Team 6
+    </span>
+    <span
+      className="team"
+      key="ggg"
+    >
+      Team 7
+    </span>
+    <span
+      className="team"
+      key="hhh"
+    >
+      Team 8
+    </span>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      overlay={
+        <Tooltip
+          className="team-scheme-extra-teams-overlay"
+          id="id-extra-teams-overlay"
+        >
+          <span
+            className="team"
+          >
+            Team 9
+          </span>
+          <span
+            className="team"
+          >
+            Team 10
+          </span>
+        </Tooltip>
+      }
+      placement="bottom"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        className="team"
+        key="extra-teams"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="+{number} more"
+          id="admin.permissions.permissionsSchemeSummary.moreTeams"
+          values={
+            Object {
+              "number": 2,
+            }
+          }
+        />
+      </span>
+    </OverlayTrigger>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary should match snapshot on no teams 1`] = `
+<div
+  className="permissions-scheme-summary"
+  data-testid="permissions-scheme-summary"
+  onClick={[Function]}
+>
+  <div
+    onClick={[Function]}
+  >
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <LoadingWrapper
+          loading={false}
+          text="Deleting..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Yes, Delete"
+            id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
+          />
+        </LoadingWrapper>
+      }
+      message={
+        <div>
+          <p>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The permissions in the teams using this scheme will reset to the defaults in the System Scheme. Are you sure you want to delete the {schemeName} scheme?"
+              id="admin.permissions.permissionsSchemeSummary.deleteConfirmQuestion"
+              values={
+                Object {
+                  "schemeName": "Test",
+                }
+              }
+            />
+          </p>
+        </div>
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Delete {scheme} scheme?"
+          id="admin.permissions.permissionsSchemeSummary.deleteSchemeTitle"
+          values={
+            Object {
+              "scheme": "Test",
+            }
+          }
+        />
+      }
+    />
+  </div>
+  <div
+    className="permissions-scheme-summary--header"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="actions"
+    >
+      <Link
+        className="edit-button"
+        data-testid="Test-edit"
+        to="/admin_console/user_management/permissions/team_override_scheme/id"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Edit"
+          id="admin.permissions.permissionsSchemeSummary.edit"
+        />
+      </Link>
+      -
+      <a
+        className="delete-button"
+        data-testid="Test-delete"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Delete"
+          id="admin.permissions.permissionsSchemeSummary.delete"
+        />
+      </a>
+    </div>
+  </div>
+  <div
+    className="permissions-scheme-summary--description"
+  >
+    Test description
+  </div>
+  <div
+    className="permissions-scheme-summary--teams"
+  />
+</div>
+`;

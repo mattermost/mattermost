@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AudioVideoPreview should match snapshot without children 1`] = `
+<video
+  controls={true}
+  data-setup="{}"
+  height={480}
+  key="file_id"
+  width={640}
+>
+  <source
+    src="/api/v4/files/file_id"
+  />
+</video>
+`;
+
+exports[`AudioVideoPreview should match snapshot, cannot play 1`] = `
+<Connect(FileInfoPreview)
+  fileInfo={
+    Object {
+      "archived": false,
+      "clientId": "client_id",
+      "create_at": 1,
+      "delete_at": 1,
+      "extension": "mov",
+      "has_preview_image": true,
+      "height": 200,
+      "id": "file_id",
+      "mime_type": "mime_type",
+      "name": "name",
+      "size": 1,
+      "update_at": 1,
+      "user_id": "user_id",
+      "width": 350,
+    }
+  }
+  fileUrl="/api/v4/files/file_id"
+/>
+`;

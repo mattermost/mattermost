@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/group_details/GroupProfile should match snapshot 1`] = `
+<div
+  className="group-profile form-horizontal"
+>
+  <div
+    className="group-profile-field form-group mb-0"
+  >
+    <label
+      className="control-label col-sm-4"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name:"
+        id="admin.group_settings.group_details.group_profile.name"
+      />
+    </label>
+    <div
+      className="col-sm-8"
+    >
+      <div
+        className="icon-over-input"
+      >
+        <MentionsIcon
+          aria-hidden="true"
+          className="icon icon__mentions"
+        />
+      </div>
+      <input
+        className="form-control group-at-mention-input"
+        disabled={false}
+        type="text"
+        value="Test"
+      />
+    </div>
+  </div>
+</div>
+`;

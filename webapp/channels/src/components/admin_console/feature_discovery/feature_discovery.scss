@@ -1,0 +1,83 @@
+@import 'utils/variables';
+
+.FeatureDiscovery {
+    display: grid;
+    padding: 20px;
+    background: $white;
+    border-radius: 8px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+    font-family: Open Sans;
+    font-style: normal;
+    font-weight: normal;
+    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+}
+
+.FeatureDiscovery_imageWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.FeatureDiscovery_copyWrapper,
+.FeatureDiscovery_imageWrapper {
+    padding: 20px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.FeatureDiscovery_image {
+    height: 220px;
+}
+
+.FeatureDiscovery_title {
+    padding-bottom: 24px;
+    font-family: Metropolis, sans-serif;
+    font-size: 24px;
+    line-height: 32px;
+}
+
+.FeatureDiscovery_copy {
+    padding-bottom: 24px;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.FeatureDiscovery .btn {
+    width: 160px;
+    height: 48px;
+    padding: 14px 0;
+    margin-right: 24px;
+    background: $primary-color;
+    border-radius: 4px;
+    color: $white;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 16px;
+
+    &:focus,
+    &:active,
+    &:focus:active {
+        border-color: transparent;
+        outline: none;
+    }
+
+    &:disabled {
+        border-color: transparent;
+        background: $light-gray;
+        color: $dark-gray;
+    }
+
+    &.btn-inactive {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &.btn-secondary {
+        border: 1px solid $primary-color;
+        background: $white;
+        color: $primary-color;
+    }
+
+    &.btn-primary {
+        width: 190px;
+    }
+}

@@ -1,0 +1,29 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+.external-login-button {
+    @include secondary-button;
+    @include button-medium;
+
+    min-width: 136px;
+    flex: 1 1 0%;
+    border-color: rgba(var(--center-channel-color-rgb), 0.16);
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    text-decoration: none;
+
+    &.direction-column {
+        flex: 1 0 auto;
+    }
+
+    &:hover,
+    &:active,
+    &:focus {
+        text-decoration-line: none;
+    }
+
+    .external-login-button-label {
+        margin-left: 7px;
+    }
+}

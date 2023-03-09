@@ -1,0 +1,982 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/team/TeamProfile should match snapshot (not cloud, freemium disabled 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <TeamProfile
+    isArchived={false}
+    onToggleArchive={[MockFunction]}
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
+        "name": "DN",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  />
+</ContextProvider>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile should match snapshot with isArchived true 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <TeamProfile
+    isArchived={true}
+    onToggleArchive={[MockFunction]}
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
+        "name": "DN",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  />
+</ContextProvider>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore should not be disabled when below teams limit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <TeamProfile
+    isArchived={true}
+    onToggleArchive={[MockFunction]}
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
+        "name": "DN",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  >
+    <AdminPanel
+      className=""
+      id="team_profile"
+      subtitleDefault="Summary of the team, including team name and description."
+      subtitleId="admin.team_settings.team_detail.profileDescription"
+      titleDefault="Team Profile"
+      titleId="admin.team_settings.team_detail.profileTitle"
+    >
+      <div
+        className="AdminPanel clearfix "
+        id="team_profile"
+      >
+        <div
+          className="header"
+        >
+          <div>
+            <h3>
+              <FormattedMessage
+                defaultMessage="Team Profile"
+                id="admin.team_settings.team_detail.profileTitle"
+              >
+                <span>
+                  Team Profile
+                </span>
+              </FormattedMessage>
+            </h3>
+            <div
+              className="mt-2"
+            >
+              <FormattedMessage
+                defaultMessage="Summary of the team, including team name and description."
+                id="admin.team_settings.team_detail.profileDescription"
+              >
+                <span>
+                  Summary of the team, including team name and description.
+                </span>
+              </FormattedMessage>
+            </div>
+          </div>
+        </div>
+        <div
+          className="group-teams-and-channels"
+        >
+          <div
+            className="group-teams-and-channels--body"
+          >
+            <div
+              className="d-flex"
+            >
+              <div
+                className="large-team-image-col"
+              >
+                <injectIntl(TeamIcon)
+                  content="name"
+                  size="lg"
+                  url={null}
+                >
+                  <TeamIcon
+                    content="name"
+                    intl={
+                      Object {
+                        "defaultFormats": Object {},
+                        "defaultLocale": "en",
+                        "defaultRichTextElements": undefined,
+                        "formatDate": [Function],
+                        "formatDateTimeRange": [Function],
+                        "formatDateToParts": [Function],
+                        "formatDisplayName": [Function],
+                        "formatList": [Function],
+                        "formatListToParts": [Function],
+                        "formatMessage": [Function],
+                        "formatNumber": [Function],
+                        "formatNumberToParts": [Function],
+                        "formatPlural": [Function],
+                        "formatRelativeTime": [Function],
+                        "formatTime": [Function],
+                        "formatTimeToParts": [Function],
+                        "formats": Object {},
+                        "formatters": Object {
+                          "getDateTimeFormat": [Function],
+                          "getDisplayNames": [Function],
+                          "getListFormat": [Function],
+                          "getMessageFormat": [Function],
+                          "getNumberFormat": [Function],
+                          "getPluralRules": [Function],
+                          "getRelativeTimeFormat": [Function],
+                        },
+                        "locale": "en",
+                        "messages": Object {},
+                        "onError": [Function],
+                        "textComponent": "span",
+                        "timeZone": "Etc/UTC",
+                        "wrapRichTextChunksInFragment": undefined,
+                      }
+                    }
+                    size="lg"
+                    url={null}
+                  >
+                    <div
+                      className="TeamIcon TeamIcon__lg no-hover"
+                    >
+                      <div
+                        className="TeamIcon__content no-hover"
+                      >
+                        <div
+                          aria-label="name Team Initials"
+                          className="TeamIcon__initials TeamIcon__initials__lg"
+                          data-testid="teamIconInitial"
+                          role="img"
+                        >
+                          na
+                        </div>
+                      </div>
+                    </div>
+                  </TeamIcon>
+                </injectIntl(TeamIcon)>
+              </div>
+              <div
+                className="team-desc-col"
+              >
+                <div
+                  className="row row-bottom-padding"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="**Team Name**:"
+                    id="admin.team_settings.team_detail.teamName"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={
+                        Object {
+                          "__html": "<strong>Team Name</strong>:",
+                        }
+                      }
+                    />
+                  </FormattedMarkdownMessage>
+                  <br />
+                  name
+                </div>
+                <div
+                  className="row"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="**Team Description**:"
+                    id="admin.team_settings.team_detail.teamDescription"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={
+                        Object {
+                          "__html": "<strong>Team Description</strong>:",
+                        }
+                      }
+                    />
+                  </FormattedMarkdownMessage>
+                  <br />
+                  <span
+                    className="greyed-out"
+                  >
+                    No team description added.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="AdminChannelDetails_archiveContainer"
+            >
+              <button
+                className="btn btn-secondary ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+                disabled={false}
+                onClick={[Function]}
+                type="button"
+              >
+                <UnarchiveIcon
+                  className="channel-icon channel-icon__unarchive"
+                >
+                  <span
+                    className="channel-icon channel-icon__unarchive"
+                  >
+                    <svg
+                      aria-label="Archive Icon"
+                      height="16px"
+                      role="img"
+                      viewBox="0 0 16 16"
+                      width="16px"
+                    >
+                      <path
+                        d="M13.994 14.75H2.006V6.50605H3.5V13.256H12.5V6.50605H13.994V14.75ZM1.25 1.25005H14.75V5.75005H1.25V1.25005ZM2.744 2.74405V4.25605H13.256V2.74405H2.744ZM6.884 11.744V9.49405H4.994L8 6.50605L11.006 9.49405H9.134V11.744H6.884Z"
+                      />
+                    </svg>
+                  </span>
+                </UnarchiveIcon>
+                <FormattedMessage
+                  defaultMessage="Unarchive Team"
+                  id="admin.team_settings.team_details.unarchiveTeam"
+                >
+                  <span>
+                    Unarchive Team
+                  </span>
+                </FormattedMessage>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AdminPanel>
+  </TeamProfile>
+</Provider>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should match snapshot - archived, at teams limit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <TeamProfile
+    isArchived={true}
+    onToggleArchive={[MockFunction]}
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
+        "name": "DN",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  >
+    <AdminPanel
+      className=""
+      id="team_profile"
+      subtitleDefault="Summary of the team, including team name and description."
+      subtitleId="admin.team_settings.team_detail.profileDescription"
+      titleDefault="Team Profile"
+      titleId="admin.team_settings.team_detail.profileTitle"
+    >
+      <div
+        className="AdminPanel clearfix "
+        id="team_profile"
+      >
+        <div
+          className="header"
+        >
+          <div>
+            <h3>
+              <FormattedMessage
+                defaultMessage="Team Profile"
+                id="admin.team_settings.team_detail.profileTitle"
+              >
+                <span>
+                  Team Profile
+                </span>
+              </FormattedMessage>
+            </h3>
+            <div
+              className="mt-2"
+            >
+              <FormattedMessage
+                defaultMessage="Summary of the team, including team name and description."
+                id="admin.team_settings.team_detail.profileDescription"
+              >
+                <span>
+                  Summary of the team, including team name and description.
+                </span>
+              </FormattedMessage>
+            </div>
+          </div>
+        </div>
+        <div
+          className="group-teams-and-channels"
+        >
+          <div
+            className="group-teams-and-channels--body"
+          >
+            <div
+              className="d-flex"
+            >
+              <div
+                className="large-team-image-col"
+              >
+                <injectIntl(TeamIcon)
+                  content="name"
+                  size="lg"
+                  url={null}
+                >
+                  <TeamIcon
+                    content="name"
+                    intl={
+                      Object {
+                        "defaultFormats": Object {},
+                        "defaultLocale": "en",
+                        "defaultRichTextElements": undefined,
+                        "formatDate": [Function],
+                        "formatDateTimeRange": [Function],
+                        "formatDateToParts": [Function],
+                        "formatDisplayName": [Function],
+                        "formatList": [Function],
+                        "formatListToParts": [Function],
+                        "formatMessage": [Function],
+                        "formatNumber": [Function],
+                        "formatNumberToParts": [Function],
+                        "formatPlural": [Function],
+                        "formatRelativeTime": [Function],
+                        "formatTime": [Function],
+                        "formatTimeToParts": [Function],
+                        "formats": Object {},
+                        "formatters": Object {
+                          "getDateTimeFormat": [Function],
+                          "getDisplayNames": [Function],
+                          "getListFormat": [Function],
+                          "getMessageFormat": [Function],
+                          "getNumberFormat": [Function],
+                          "getPluralRules": [Function],
+                          "getRelativeTimeFormat": [Function],
+                        },
+                        "locale": "en",
+                        "messages": Object {},
+                        "onError": [Function],
+                        "textComponent": "span",
+                        "timeZone": "Etc/UTC",
+                        "wrapRichTextChunksInFragment": undefined,
+                      }
+                    }
+                    size="lg"
+                    url={null}
+                  >
+                    <div
+                      className="TeamIcon TeamIcon__lg no-hover"
+                    >
+                      <div
+                        className="TeamIcon__content no-hover"
+                      >
+                        <div
+                          aria-label="name Team Initials"
+                          className="TeamIcon__initials TeamIcon__initials__lg"
+                          data-testid="teamIconInitial"
+                          role="img"
+                        >
+                          na
+                        </div>
+                      </div>
+                    </div>
+                  </TeamIcon>
+                </injectIntl(TeamIcon)>
+              </div>
+              <div
+                className="team-desc-col"
+              >
+                <div
+                  className="row row-bottom-padding"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="**Team Name**:"
+                    id="admin.team_settings.team_detail.teamName"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={
+                        Object {
+                          "__html": "<strong>Team Name</strong>:",
+                        }
+                      }
+                    />
+                  </FormattedMarkdownMessage>
+                  <br />
+                  name
+                </div>
+                <div
+                  className="row"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="**Team Description**:"
+                    id="admin.team_settings.team_detail.teamDescription"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={
+                        Object {
+                          "__html": "<strong>Team Description</strong>:",
+                        }
+                      }
+                    />
+                  </FormattedMarkdownMessage>
+                  <br />
+                  <span
+                    className="greyed-out"
+                  >
+                    No team description added.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="AdminChannelDetails_archiveContainer"
+            >
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delay={400}
+                disabled={false}
+                overlay={
+                  <Tooltip
+                    id="sharedTooltip"
+                  >
+                    <div
+                      className="tooltip-title"
+                    >
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Upgrade to Unarchive"
+                        id="workspace_limits.teams_limit_reached.upgrade_to_unarchive"
+                      />
+                    </div>
+                    <div
+                      className="tooltip-body"
+                    >
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams"
+                        id="workspace_limits.teams_limit_reached.tool_tip"
+                      />
+                    </div>
+                  </Tooltip>
+                }
+                placement="bottom"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <OverlayTrigger
+                  defaultOverlayShown={false}
+                  delay={400}
+                  overlay={
+                    <OverlayWrapper
+                      id="sharedTooltip"
+                      intl={
+                        Object {
+                          "defaultFormats": Object {},
+                          "defaultLocale": "en",
+                          "defaultRichTextElements": undefined,
+                          "formatDate": [Function],
+                          "formatDateTimeRange": [Function],
+                          "formatDateToParts": [Function],
+                          "formatDisplayName": [Function],
+                          "formatList": [Function],
+                          "formatListToParts": [Function],
+                          "formatMessage": [Function],
+                          "formatNumber": [Function],
+                          "formatNumberToParts": [Function],
+                          "formatPlural": [Function],
+                          "formatRelativeTime": [Function],
+                          "formatTime": [Function],
+                          "formatTimeToParts": [Function],
+                          "formats": Object {},
+                          "formatters": Object {
+                            "getDateTimeFormat": [Function],
+                            "getDisplayNames": [Function],
+                            "getListFormat": [Function],
+                            "getMessageFormat": [Function],
+                            "getNumberFormat": [Function],
+                            "getPluralRules": [Function],
+                            "getRelativeTimeFormat": [Function],
+                          },
+                          "locale": "en",
+                          "messages": Object {},
+                          "onError": [Function],
+                          "textComponent": "span",
+                          "timeZone": "Etc/UTC",
+                          "wrapRichTextChunksInFragment": undefined,
+                        }
+                      }
+                    >
+                      <div
+                        className="tooltip-title"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Upgrade to Unarchive"
+                          id="workspace_limits.teams_limit_reached.upgrade_to_unarchive"
+                        />
+                      </div>
+                      <div
+                        className="tooltip-body"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams"
+                          id="workspace_limits.teams_limit_reached.tool_tip"
+                        />
+                      </div>
+                    </OverlayWrapper>
+                  }
+                  placement="bottom"
+                  trigger={
+                    Array [
+                      "hover",
+                      "focus",
+                    ]
+                  }
+                >
+                  <div
+                    className="disabled-overlay-wrapper"
+                    onBlur={[Function]}
+                    onClick={null}
+                    onFocus={[Function]}
+                    onMouseOut={[Function]}
+                    onMouseOver={[Function]}
+                  >
+                    <button
+                      className="btn btn-secondary ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+                      disabled={true}
+                      onClick={[Function]}
+                      style={
+                        Object {
+                          "pointerEvents": "none",
+                        }
+                      }
+                      type="button"
+                    >
+                      <UnarchiveIcon
+                        className="channel-icon channel-icon__unarchive"
+                      >
+                        <span
+                          className="channel-icon channel-icon__unarchive"
+                        >
+                          <svg
+                            aria-label="Archive Icon"
+                            height="16px"
+                            role="img"
+                            viewBox="0 0 16 16"
+                            width="16px"
+                          >
+                            <path
+                              d="M13.994 14.75H2.006V6.50605H3.5V13.256H12.5V6.50605H13.994V14.75ZM1.25 1.25005H14.75V5.75005H1.25V1.25005ZM2.744 2.74405V4.25605H13.256V2.74405H2.744ZM6.884 11.744V9.49405H4.994L8 6.50605L11.006 9.49405H9.134V11.744H6.884Z"
+                            />
+                          </svg>
+                        </span>
+                      </UnarchiveIcon>
+                      <FormattedMessage
+                        defaultMessage="Unarchive Team"
+                        id="admin.team_settings.team_details.unarchiveTeam"
+                      >
+                        <span>
+                          Unarchive Team
+                        </span>
+                      </FormattedMessage>
+                    </button>
+                  </div>
+                </OverlayTrigger>
+              </OverlayTrigger>
+              <button
+                className="btn btn-secondary upgrade-options-button"
+                onClick={[Function]}
+                type="button"
+              >
+                <FormattedMessage
+                  defaultMessage="View upgrade options"
+                  id="workspace_limits.teams_limit_reached.view_upgrade_options"
+                >
+                  <span>
+                    View upgrade options
+                  </span>
+                </FormattedMessage>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AdminPanel>
+  </TeamProfile>
+</Provider>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should match snapshot - not archived, at teams limit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <TeamProfile
+    isArchived={false}
+    onToggleArchive={[MockFunction]}
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "team_id",
+        "invite_id": "",
+        "name": "DN",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  >
+    <AdminPanel
+      className=""
+      id="team_profile"
+      subtitleDefault="Summary of the team, including team name and description."
+      subtitleId="admin.team_settings.team_detail.profileDescription"
+      titleDefault="Team Profile"
+      titleId="admin.team_settings.team_detail.profileTitle"
+    >
+      <div
+        className="AdminPanel clearfix "
+        id="team_profile"
+      >
+        <div
+          className="header"
+        >
+          <div>
+            <h3>
+              <FormattedMessage
+                defaultMessage="Team Profile"
+                id="admin.team_settings.team_detail.profileTitle"
+              >
+                <span>
+                  Team Profile
+                </span>
+              </FormattedMessage>
+            </h3>
+            <div
+              className="mt-2"
+            >
+              <FormattedMessage
+                defaultMessage="Summary of the team, including team name and description."
+                id="admin.team_settings.team_detail.profileDescription"
+              >
+                <span>
+                  Summary of the team, including team name and description.
+                </span>
+              </FormattedMessage>
+            </div>
+          </div>
+        </div>
+        <div
+          className="group-teams-and-channels"
+        >
+          <div
+            className="group-teams-and-channels--body"
+          >
+            <div
+              className="d-flex"
+            >
+              <div
+                className="large-team-image-col"
+              >
+                <injectIntl(TeamIcon)
+                  content="name"
+                  size="lg"
+                  url={null}
+                >
+                  <TeamIcon
+                    content="name"
+                    intl={
+                      Object {
+                        "defaultFormats": Object {},
+                        "defaultLocale": "en",
+                        "defaultRichTextElements": undefined,
+                        "formatDate": [Function],
+                        "formatDateTimeRange": [Function],
+                        "formatDateToParts": [Function],
+                        "formatDisplayName": [Function],
+                        "formatList": [Function],
+                        "formatListToParts": [Function],
+                        "formatMessage": [Function],
+                        "formatNumber": [Function],
+                        "formatNumberToParts": [Function],
+                        "formatPlural": [Function],
+                        "formatRelativeTime": [Function],
+                        "formatTime": [Function],
+                        "formatTimeToParts": [Function],
+                        "formats": Object {},
+                        "formatters": Object {
+                          "getDateTimeFormat": [Function],
+                          "getDisplayNames": [Function],
+                          "getListFormat": [Function],
+                          "getMessageFormat": [Function],
+                          "getNumberFormat": [Function],
+                          "getPluralRules": [Function],
+                          "getRelativeTimeFormat": [Function],
+                        },
+                        "locale": "en",
+                        "messages": Object {},
+                        "onError": [Function],
+                        "textComponent": "span",
+                        "timeZone": "Etc/UTC",
+                        "wrapRichTextChunksInFragment": undefined,
+                      }
+                    }
+                    size="lg"
+                    url={null}
+                  >
+                    <div
+                      className="TeamIcon TeamIcon__lg no-hover"
+                    >
+                      <div
+                        className="TeamIcon__content no-hover"
+                      >
+                        <div
+                          aria-label="name Team Initials"
+                          className="TeamIcon__initials TeamIcon__initials__lg"
+                          data-testid="teamIconInitial"
+                          role="img"
+                        >
+                          na
+                        </div>
+                      </div>
+                    </div>
+                  </TeamIcon>
+                </injectIntl(TeamIcon)>
+              </div>
+              <div
+                className="team-desc-col"
+              >
+                <div
+                  className="row row-bottom-padding"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="**Team Name**:"
+                    id="admin.team_settings.team_detail.teamName"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={
+                        Object {
+                          "__html": "<strong>Team Name</strong>:",
+                        }
+                      }
+                    />
+                  </FormattedMarkdownMessage>
+                  <br />
+                  name
+                </div>
+                <div
+                  className="row"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="**Team Description**:"
+                    id="admin.team_settings.team_detail.teamDescription"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={
+                        Object {
+                          "__html": "<strong>Team Description</strong>:",
+                        }
+                      }
+                    />
+                  </FormattedMarkdownMessage>
+                  <br />
+                  <span
+                    className="greyed-out"
+                  >
+                    No team description added.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="AdminChannelDetails_archiveContainer"
+            >
+              <button
+                className="btn btn-secondary ArchiveButton ArchiveButton___unarchived cloud-limits-disabled"
+                disabled={false}
+                onClick={[Function]}
+                type="button"
+              >
+                <ArchiveIcon
+                  className="channel-icon channel-icon__archive"
+                >
+                  <span
+                    className="channel-icon channel-icon__archive"
+                  >
+                    <svg
+                      aria-label="Archive Icon"
+                      height="16px"
+                      role="img"
+                      viewBox="0 0 16 16"
+                      width="16px"
+                    >
+                      <path
+                        d="M13.994 14.75H2.006V6.50599H3.5V13.256H12.5V6.50599H13.994V14.75ZM1.25 1.24999H14.75V5.74999H1.25V1.24999ZM6.128 7.24399H9.872C9.98 7.24399 10.07 7.27999 10.142 7.35199C10.214 7.42399 10.25 7.51399 10.25 7.62199V8.75599H5.75V7.62199C5.75 7.51399 5.786 7.42399 5.858 7.35199C5.93 7.27999 6.02 7.24399 6.128 7.24399ZM2.744 2.74399V4.25599H13.256V2.74399H2.744Z"
+                      />
+                    </svg>
+                  </span>
+                </ArchiveIcon>
+                <FormattedMessage
+                  defaultMessage="Archive Team"
+                  id="admin.team_settings.team_details.archiveTeam"
+                >
+                  <span>
+                    Archive Team
+                  </span>
+                </FormattedMessage>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AdminPanel>
+  </TeamProfile>
+</Provider>
+`;

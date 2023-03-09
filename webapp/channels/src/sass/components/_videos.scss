@@ -1,0 +1,118 @@
+@charset 'UTF-8';
+
+.post {
+    .video-div {
+        position: relative;
+        overflow: hidden;
+        max-width: 480px;
+        height: 360px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+
+        iframe,
+        video {
+            display: block;
+            max-width: 100%;
+        }
+
+        .video-thumbnail {
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+
+        .video-thumbnail__error {
+            width: 100%;
+            height: 100%;
+            padding: 110px 0;
+            line-height: 2;
+            text-align: center;
+
+            .fa {
+                opacity: 0.5;
+            }
+
+            div {
+                font-size: 1.2em;
+            }
+        }
+
+        .block {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 150px;
+            margin: -75px 0 0 -100px;
+            background-color: alpha-color($black, 0.5);
+            border-radius: 10px;
+        }
+    }
+
+    .video-type {
+        padding: 0;
+        margin: 0;
+        font-size: 15px;
+        opacity: 0.8;
+    }
+
+    .video-title {
+        margin-top: 3px;
+        font-size: 15px;
+    }
+
+    .play-button {
+        position: absolute;
+        top: 26px;
+        right: 51px;
+        width: 100px;
+        height: 100px;
+        border: 4px solid alpha-color($white, 0.4);
+        border-radius: 14px;
+        cursor: pointer;
+
+        span {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-top: 36px solid transparent;
+            border-bottom: 36px solid transparent;
+            border-left: 60px solid alpha-color($white, 0.4);
+        }
+    }
+
+    .img-div {
+        position: relative;
+        max-width: 480px;
+        max-height: 350px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        -moz-force-broken-image-icon: 1;
+        transition: all 0.1s linear;
+
+        &:hover {
+            box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 10px 0 rgba($black, 0.1);
+        }
+
+        &.placeholder {
+            height: 350px;
+        }
+
+        .sidebar--right & {
+            max-width: 100%;
+        }
+    }
+
+    .video-loading {
+        height: 368px;
+    }
+
+    .video-div__placeholder {
+        display: flex;
+        height: 360px;
+        align-items: center;
+        background-color: black;
+    }
+}

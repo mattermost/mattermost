@@ -1,0 +1,805 @@
+#ldap_groups {
+    overflow: visible;
+}
+
+.groups-list {
+    padding: 2rem 2rem 2rem 2rem;
+    transition: all 0.4s ease-in-out 0s;
+
+    &.groups-list-less-padding {
+        padding: 0;
+    }
+
+    .groups-list--global-actions {
+        position: relative;
+        display: flex;
+        padding: 8px 20px;
+        background: $white;
+
+        .group-list-search {
+            position: relative;
+            display: flex;
+            max-width: 280px;
+            height: 30px;
+            flex-grow: 1;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: 2px;
+            border-radius: 15px;
+            stroke: $dark-gray;
+
+            input {
+                width: 100%;
+                border: 0;
+                margin-right: 15px;
+                margin-left: 25px;
+                font-size: 0.95em;
+            }
+
+            input:focus {
+                outline: none;
+            }
+
+            .group-filter-action {
+                padding: 8px 10px 0 0;
+
+                &.hidden {
+                    visibility: hidden;
+                }
+            }
+        }
+
+        .group-list-link-unlink {
+            display: flex;
+            flex-grow: 1;
+            justify-content: flex-end;
+        }
+
+        .group-search-filters {
+            position: absolute;
+            top: 40px;
+            width: 303px;
+            padding: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: white;
+
+            .search-groups-btn {
+                right: 20px;
+                bottom: 20px;
+                float: right;
+            }
+
+            .cancel-filters {
+                float: right;
+            }
+
+            .filter-row {
+                height: 30px;
+                vertical-align: middle;
+            }
+
+            .filter-check {
+                display: inline-block;
+                width: 18px;
+                height: 18px;
+                border: 2px solid $dark-gray;
+                margin-right: 7px;
+                border-radius: 3px;
+                vertical-align: middle;
+
+                &.checked {
+                    border: 0;
+
+                    svg {
+                        background: $white;
+                        fill: $primary-color;
+                    }
+                }
+            }
+        }
+    }
+
+    .groups-list--header {
+        display: flex;
+        flex-direction: row;
+        padding: 0.5em 0;
+        border-bottom: solid 1px rgba(0, 0, 0, 0.1);
+        font-size: 1.1em;
+        font-weight: bold;
+
+        .group-name {
+            margin-left: 16px;
+        }
+
+        .group-description {
+            display: block;
+            width: 150px;
+            color: $black;
+            opacity: 1;
+
+            &.adjusted {
+                width: 100px;
+            }
+        }
+
+        .group-actions {
+            width: 130px;
+        }
+    }
+
+    .groups-list--body {
+        background: $bg--gray;
+        cursor: pointer;
+
+        .groups-list-loading {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .groups-list-empty {
+            margin-top: 1rem;
+            background: alpha-color($white, 0.5);
+            color: $gray;
+            font-size: 1.6rem;
+            text-align: center;
+
+            span {
+                display: inline-block;
+                width: 100%;
+                height: 100%;
+                padding-top: 20px;
+                padding-bottom: 20px;
+            }
+        }
+    }
+
+    .groups-list--footer {
+        display: flex;
+        height: auto;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 5px;
+        border-top: solid 1px rgba(0, 0, 0, 0.1);
+        background: $white;
+
+        .btn-link {
+            color: $dark-gray;
+
+            &.disabled {
+                opacity: 0.5;
+            }
+        }
+
+        .counter {
+            margin-bottom: 2px;
+            color: $dark-gray;
+            font-size: 1.1em;
+        }
+    }
+
+    .group-check {
+        display: flex;
+        min-width: 18px;
+        min-height: 18px;
+        align-items: center;
+        justify-content: space-around;
+        border: 2px solid $dark-gray;
+        margin: 5px 5px 4px 14px;
+        border-radius: 3px;
+
+        &.checked {
+            border: 0;
+
+            svg {
+                background: $white;
+                fill: $primary-color;
+            }
+        }
+    }
+
+    .group-name {
+        display: flex;
+        flex: 1.8;
+        flex-grow: 1;
+        align-items: center;
+    }
+
+    .group-content {
+        display: flex;
+        flex: 1;
+        padding-left: 20px;
+    }
+
+    .group-description {
+        display: flex;
+        overflow: hidden;
+        width: 150px;
+        height: 100%;
+        align-items: center;
+        opacity: 0.65;
+
+        &.adjusted {
+            width: 120px;
+        }
+
+        &.roles {
+            overflow: visible;
+        }
+
+        i {
+            margin-right: 5px;
+        }
+
+        >a {
+            padding: 3px 5px;
+            color: $black;
+            text-decoration: none;
+
+            &:hover {
+                background-color: $light-gray;
+                border-radius: 3px;
+            }
+
+            &.warning {
+                color: $red;
+            }
+        }
+    }
+
+    .group-description-link {
+        >a {
+            &:hover {
+                background-color: transparent;
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .group-actions {
+        width: 130px;
+        padding-right: 20px;
+        text-align: right;
+    }
+
+    .group {
+        &.checked {
+            background-color: lighten($primary-color, 40%);
+
+            .group-description {
+                opacity: 1;
+            }
+        }
+
+        &:nth-child(even) {
+            background: alpha-color($white, 0.5);
+        }
+
+        &.checked:nth-child(even) {
+            background-color: lighten($primary-color, 40%);
+        }
+
+        .group-row {
+            .group-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .group-row {
+        display: flex;
+        height: 34px;
+        flex-direction: row;
+        align-items: center;
+        border: 2px solid $transparent;
+
+        &:hover {
+            border-left: 2px solid $primary-color;
+            background-color: lighten($primary-color, 45%);
+
+            .group-description {
+                opacity: 1;
+            }
+        }
+
+        &.selected {
+            animation-duration: 3s;
+            animation-name: rowhighlight;
+        }
+
+        &.group-row-large {
+            height: 80px;
+        }
+    }
+
+    .channel-icon {
+        opacity: 0.8;
+    }
+}
+
+#groupDisplayName {
+    &.group-profile {
+        padding-bottom: 0;
+    }
+}
+
+#groupMention {
+    .group-profile {
+        padding-top: 0;
+    }
+
+    .group-at-mention-input {
+        padding-left: 26px;
+    }
+}
+
+.group-profile {
+    padding: 20px;
+}
+
+.group-users {
+    .group-users--header {
+        padding: 10px 20px;
+        background: #333;
+        color: $white;
+
+        a {
+            color: $white;
+            text-decoration: underline;
+        }
+    }
+
+    .group-users--body {
+        position: relative;
+        margin: 15px 15px 0 15px;
+
+        .group-users-loading {
+            position: absolute;
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: $light-gray;
+            text-align: center;
+
+            &.active {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                .fa-spinner {
+                    max-width: 10%;
+                }
+            }
+        }
+
+        .group-users-empty {
+            padding: 20px;
+            background: alpha-color($white, 0.5);
+            color: $gray;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .group-users-row {
+            &:nth-child(even) {
+                background: alpha-color($white, 0.5);
+            }
+
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+
+            .profile-picture {
+                width: 32px;
+                height: 32px;
+                margin: 5px 10px;
+                border-radius: 100%;
+            }
+
+            .user-data {
+                margin-left: 10px;
+
+                .name-row {
+                    display: flex;
+                }
+
+                .display-name,
+                .email {
+                    color: $gray;
+                }
+            }
+
+            .email-label {
+                margin-right: 5px;
+            }
+        }
+    }
+
+    .group-users--footer {
+        display: flex;
+        height: auto;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 5px;
+        margin: 0 15px 15px 15px;
+        background: $white;
+
+        &.empty {
+            height: 0;
+            padding: 0;
+            border-top: 0;
+        }
+
+        .btn-link {
+            color: $dark-gray;
+
+            &.disabled {
+                opacity: 0.5;
+            }
+        }
+
+        .counter {
+            margin-bottom: 2px;
+            color: $dark-gray;
+            font-size: 1.1em;
+        }
+    }
+}
+
+.channel-moderation {
+    .channel-moderation--body {
+        padding: 20px;
+
+        .channel-moderation--table {
+            width: 100%;
+
+            th {
+                &:first-child {
+                    width: 100%;
+                    padding-left: 0;
+                }
+
+                padding: 6px 20px;
+                border-bottom: solid 1px alpha-color(#ccc, 0.75);
+            }
+
+            tr {
+                &:not(:last-child) {
+                    border-bottom: solid 1px alpha-color(#ccc, 0.75);
+                }
+
+                &:last-child {
+                    td {
+                        padding-bottom: 0;
+                    }
+                }
+            }
+
+            td {
+                padding: 20px 0;
+
+                &:first-child {
+                    padding-left: 0;
+                }
+
+                &:not(:first-child) {
+                    text-align: center;
+                    vertical-align: middle;
+                }
+            }
+
+            .checkbox {
+                display: inline-block;
+                width: 18px;
+                height: 18px;
+                padding: 0;
+                border: 2px solid $dark-gray;
+                background: none;
+                border-radius: 3px;
+
+                > * {
+                    pointer-events: none;
+                }
+
+                &.disabled {
+                    border-color: $light-gray;
+                }
+
+                &.checked {
+                    border: 0;
+
+                    svg {
+                        fill: #145dbf;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.group-teams-and-channels {
+    .group-teams-and-channels-loading {
+        padding: 40px;
+        text-align: center;
+    }
+
+    .group-teams-and-channels-empty {
+        padding: 20px;
+        background: alpha-color($white, 0.5);
+        color: $gray;
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    .group-teams-and-channels--header {
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+
+    .group-teams-and-channels--body {
+        padding: 20px;
+
+        .group-teams-and-channels-row.has-children {
+            .type {
+                margin-left: 20px;
+            }
+        }
+
+        .group-teams-and-channels-row {
+            &:nth-child(even) {
+                background: alpha-color($white, 0.5);
+            }
+
+            .team-icon,
+            .channel-icon {
+                width: 16px;
+                height: 16px;
+                margin: 0 7px 0 4px;
+                color: inherit;
+                opacity: 0.7;
+            }
+
+            .arrow-icon {
+                .fa {
+                    padding: 0 4px;
+                    cursor: pointer;
+                }
+            }
+
+            .channel-icon {
+                margin: 1px 2px 0 20px;
+            }
+
+            .team-icon-private {
+                font-size: 0.35em;
+            }
+
+            .actions {
+                button {
+                    padding: 5px;
+                }
+            }
+
+            .type {
+                flex: 1;
+                margin-left: -29px;
+                color: #454448;
+                opacity: 50%;
+            }
+
+            .name-no-arrow {
+                margin-left: 16px;
+            }
+
+            .name-content {
+                display: flex;
+                flex: 1;
+
+                .name {
+                    flex: 1;
+                }
+
+                .arrow-icon {
+                    margin-left: 10px;
+
+                    .fa-caret-right {
+                        padding: 5px;
+                        cursor: pointer;
+                    }
+
+                    .open {
+                        transform: rotate(90deg);
+                        transform-origin: 55% 50%;
+                        transition: transform 300ms;
+                    }
+                }
+            }
+
+            .remove {
+                height: 30px;
+            }
+        }
+
+        .teams-list {
+            .teams-list--header {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid $dark-gray;
+                font-size: 1.1em;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.group-settings {
+    .group-settings--body {
+        padding: 0 20px 20px 20px;
+    }
+}
+
+.group-profile-add-menu {
+    position: relative;
+    margin-top: -36px;
+    margin-left: 10px;
+
+    .fa-caret-down {
+        margin-left: 5px;
+    }
+
+    .add-team-or-channel-menu {
+        position: absolute;
+        top: 33px;
+        width: 100%;
+        padding: 5px 8px;
+        border: 1px solid $gray;
+        background: $white;
+        border-radius: 2px;
+
+        a {
+            display: block;
+            padding: 7px;
+            color: $dark-gray;
+        }
+    }
+}
+
+.group-user-profile-picture {
+    width: 32px;
+    height: 32px;
+    margin: 5px 10px;
+    border-radius: 100%;
+}
+
+.group-users-to-remove-modal-description {
+    padding: 16px;
+    background-color: #f5f5f5;
+}
+
+.group-description.group-user-removal-column {
+    height: 40px;
+}
+
+#team_groups .group-row .group-description,
+#channel_groups .group-row .group-description {
+    width: 170px;
+}
+
+.section-separator {
+    position: relative;
+    z-index: 0;
+    height: 4rem;
+    margin: 0;
+    text-align: center;
+
+    hr {
+        position: relative;
+        z-index: 5;
+        top: 2rem;
+        border-color: #333;
+        margin: 0;
+        opacity: 0.12;
+    }
+}
+
+.email-group-row {
+    overflow: hidden;
+    width: 90%;
+    text-overflow: ellipsis;
+}
+
+.group-users--header-padded {
+    padding-left: 24px;
+}
+
+.icon-over-input {
+    position: absolute;
+    padding-top: 9px;
+    padding-left: 12px;
+    opacity: 0.8;
+}
+
+.AdminChannelDetails_archiveContainer {
+    position: relative;
+    left: -22px;
+    display: block;
+    width: 920px;
+    padding-top: 20px;
+    padding-left: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.AdminChannelDetails_archiveContainer .ArchiveButton {
+    padding: 9px 16px;
+}
+
+.AdminChannelDetails_archiveContainer .channel-icon__archive,
+.AdminChannelDetails_archiveContainer .channel-icon__unarchive {
+    width: 16px;
+    height: 16px;
+}
+
+$archived-color: #166de0;
+$unarchived-color: #f74343;
+
+.ArchiveButton___archived {
+    border-color: rgba($archived-color, 1);
+    color: rgba($archived-color, 1);
+
+    svg {
+        fill: rgba($archived-color, 1);
+    }
+}
+
+.ArchiveButton___unarchived {
+    border-color: rgba($unarchived-color, 1);
+    color: rgba($unarchived-color, 1);
+
+    svg {
+        fill: rgba($unarchived-color, 1);
+    }
+}
+
+.ArchiveButton {
+    border-width: 1px;
+    border-style: solid;
+    background-color: transparent;
+    border-radius: 4px;
+}
+
+.ArchiveButton___unarchived:hover {
+    background-color: rgba($unarchived-color, 0.06);
+    color: rgba($unarchived-color, 1);
+}
+
+.ArchiveButton___archived:hover {
+    background-color: rgba($archived-color, 0.06);
+    color: rgba($archived-color, 1);
+}
+
+.ArchiveButton:focus,
+.ArchiveButton:focus:active,
+.ArchiveButton:active {
+    outline: none;
+}
+
+.ArchiveButton___archived:focus {
+    color: rgba($archived-color, 1);
+}
+
+.ArchiveButton___unarchived:focus {
+    color: rgba($unarchived-color, 1);
+}
+
+.ArchiveButton___archived:focus:active {
+    background-color: rgba($archived-color, 0.12);
+}
+
+.ArchiveButton___unarchived:focus:active {
+    background-color: rgba($unarchived-color, 0.12);
+}
+
+.ArchiveButton:active {
+    box-shadow: none;
+}

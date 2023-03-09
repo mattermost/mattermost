@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledIncomingWebhook should match snapshot 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <strong
+        className="item-details__name"
+      >
+        build
+      </strong>
+      <div
+        className="item-actions"
+      >
+        <Link
+          to="/test/integrations/incoming_webhooks/edit?id=9w96t4nhbfdiij64wfqors4i1r"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Edit"
+            id="installed_integrations.edit"
+          />
+        </Link>
+         - 
+        <Connect(DeleteIntegrationLink)
+          modalMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="This action permanently deletes the incoming webhook and breaks any integrations using it. Are you sure you want to delete it?"
+              id="installed_incoming_webhooks.delete.confirm"
+            />
+          }
+          onDelete={[Function]}
+        />
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        build status
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__url word-break--all"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="URL: {url}"
+          id="installed_integrations.url"
+          values={
+            Object {
+              "url": "http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r",
+            }
+          }
+        />
+        <span>
+          <CopyText
+            defaultMessage="Copy"
+            idMessage="integrations.copy"
+            value="http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r"
+          />
+        </span>
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1502455422406,
+              "creator": "creator",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;

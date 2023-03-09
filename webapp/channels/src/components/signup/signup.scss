@@ -1,0 +1,398 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+.signup-body {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+
+    .signup-body-action {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+
+        @media (max-width: 700px) {
+            width: 100%;
+        }
+    }
+
+    .signup-body-alternate-link {
+        margin-bottom: 18px;
+    }
+
+    .signup-body-content {
+        display: flex;
+        height: fit-content;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+
+        .signup-body-no-login {
+            display: flex;
+            max-width: 540px;
+            flex-flow: column;
+            justify-content: center;
+
+            .signup-body-no-login-title {
+                color: var(--title-color-indigo-500);
+                font-family: Metropolis;
+                font-size: 40px;
+                font-weight: 600;
+                letter-spacing: -0.02em;
+                line-height: 48px;
+                text-align: center;
+            }
+
+            .signup-body-no-login-subtitle {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 18px;
+                font-weight: 400;
+                line-height: 28px;
+                text-align: center;
+            }
+        }
+
+        .signup-body-message-subtitle {
+            padding-right: 170px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 28px;
+        }
+
+        .signup-body-message {
+            display: flex;
+            width: 540px;
+            flex-flow: column;
+            align-self: flex-start;
+
+            .signup-body-message-title {
+                padding-right: 60px;
+                color: var(--title-color-indigo-500);
+                font-family: Metropolis;
+                font-size: 80px;
+                font-weight: 600;
+                letter-spacing: -0.01em;
+                line-height: 88px;
+            }
+
+            .signup-body-message-svg {
+                position: relative;
+                align-self: flex-end;
+
+                svg {
+                    position: absolute;
+                    z-index: 2;
+                    bottom: -220px;
+                    left: -267px;
+                    display: block;
+                }
+            }
+
+            &.custom-branding {
+                padding: 0;
+
+                &.with-brand-image {
+                    align-self: center;
+
+                    .signup-body-message-subtitle,
+                    .signup-body-custom-branding-markdown {
+                        text-align: center;
+                    }
+                }
+
+                .signup-body-message-subtitle {
+                    padding-right: 0;
+                }
+
+                .signup-body-custom-branding-image {
+                    max-height: 540px;
+                    align-self: center;
+                    margin-bottom: 28px;
+                    border-radius: 8px;
+                }
+            }
+
+            &.with-alternate-link {
+                margin-top: 40px;
+            }
+        }
+
+        .signup-body-card {
+            width: 540px;
+            box-sizing: border-box;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin-left: 60px;
+            background-color: var(--center-channel-bg);
+            border-radius: 8px;
+            box-shadow: var(--elevation-5);
+
+            &.with-error {
+                @include shake-horizontally;
+            }
+
+            .signup-body-card-content {
+                display: flex;
+                flex: 1;
+                flex-flow: column;
+                padding: 48px 56px;
+                border: none;
+                box-shadow: none;
+
+                .signup-body-card-title {
+                    color: var(--center-channel-color);
+                    font-family: 'Metropolis';
+                    font-size: 22px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: 28px;
+                }
+
+                .signup-body-custom-branding-markdown,
+                .signup-body-message-subtitle {
+                    display: none;
+                }
+
+                .signup-body-card-banner {
+                    margin: 20px 0 10px;
+                }
+
+                .signup-body-card-form {
+                    .signup-body-card-form-email-input,
+                    .signup-body-card-form-name-input,
+                    .signup-body-card-form-password-input {
+                        margin-top: 22px;
+                    }
+
+                    .signup-body-card-form-button-submit {
+                        @include primary-button;
+                        @include button-large;
+
+                        width: 100%;
+                        margin-top: 30px;
+                    }
+                }
+
+                .signup-body-card-form-divider {
+                    display: flex;
+                    height: 1px;
+                    justify-content: center;
+                    margin: 40px 0;
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                    text-align: center;
+
+                    .signup-body-card-form-divider-label {
+                        padding: 0 10px;
+                        background-color: var(--center-channel-bg);
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        font-size: 12px;
+                        line-height: 0;
+                    }
+                }
+
+                .signup-body-card-form-login-options {
+                    display: flex;
+                    flex: 1;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                    column-gap: 8px;
+                    row-gap: 8px;
+
+                    &.column {
+                        flex-direction: column;
+                        margin-top: 22px;
+                        row-gap: 24px;
+                    }
+                }
+
+                .signup-body-card-agreement {
+                    margin-top: 32px;
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    font-size: 11px;
+                    line-height: 16px;
+
+                    a {
+                        @include link;
+
+                        font-size: 11px;
+                    }
+                }
+            }
+        }
+
+        .signup-body-custom-branding-markdown {
+            flex: 1;
+
+            ul + p,
+            ol + p {
+                margin-top: 0.6em;
+            }
+
+            p + ul,
+            p + ol {
+                margin-top: 0.6em;
+            }
+
+            img {
+                max-width: 450px;
+            }
+
+            p {
+                width: 100%;
+                margin: 0;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 18px;
+                font-weight: 400;
+                line-height: 28px;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+        }
+
+        .signup-body-content-button-container {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+
+            .signup-body-content-button-return {
+                @include primary-button;
+                @include button-medium;
+            }
+        }
+    }
+}
+
+@media screen and (min-width: 1680px) {
+    .signup-body .signup-body-content {
+        .signup-body-message,
+        .signup-body-card,
+        .signup-body-no-login {
+            width: 610px;
+        }
+
+        .signup-body-message .signup-body-message-title {
+            padding-right: 130px;
+            margin-top: 48px;
+        }
+    }
+}
+
+@media screen and (max-width: 1199px) {
+    .signup-body {
+        .signup-body-alternate-link {
+            padding-right: 24px;
+        }
+
+        .signup-body-content {
+            flex-direction: column;
+
+            .signup-body-message,
+            .signup-body-card,
+            .signup-body-no-login {
+                width: 640px;
+            }
+
+            .signup-body-message {
+                align-self: center;
+                padding: 24px;
+
+                .signup-body-message-title {
+                    padding-right: 0;
+                    font-size: 64px;
+                    line-height: 76px;
+                }
+
+                .signup-body-message-subtitle {
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .signup-body-message-svg {
+                    display: none;
+                }
+
+                &.custom-branding {
+                    display: none;
+                }
+            }
+
+            .signup-body-card {
+                border: none;
+                margin: 0;
+                background-color: unset;
+                box-shadow: none;
+
+                .signup-body-card-content {
+                    padding: 16px 24px;
+
+                    .signup-body-card-title {
+                        display: none;
+                    }
+
+                    .signup-body-card-banner {
+                        margin: 0 0 32px;
+                    }
+
+                    .signup-body-card-form {
+                        .signup-body-card-form-email-input {
+                            margin-top: 0;
+                        }
+
+                        .signup-body-card-form-email-input,
+                        .signup-body-card-form-name-input,
+                        .signup-body-card-form-password-input {
+                            background-color: var(--center-channel-bg);
+                        }
+                    }
+                }
+
+                &.custom-branding {
+                    .signup-body-card-content {
+                        .signup-body-card-title {
+                            display: block;
+                            font-size: 32px;
+                            line-height: 40px;
+                        }
+
+                        .signup-body-custom-branding-markdown,
+                        .signup-body-message-subtitle {
+                            display: block;
+                            margin: 0 0 32px;
+                            text-align: left;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 699px) {
+    .signup-body {
+        margin: auto 0;
+
+        .signup-body-content {
+            min-width: 375px;
+
+            .signup-body-card,
+            .signup-body-no-login {
+                width: 100%;
+            }
+
+            .signup-body-message {
+                width: auto;
+                align-self: flex-start;
+                padding: 24px;
+
+                .signup-body-message-title {
+                    max-width: 271px;
+                    padding-right: 0;
+                    font-size: 45px;
+                    line-height: 56px;
+                }
+            }
+        }
+    }
+}
