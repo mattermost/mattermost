@@ -5,8 +5,8 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"strconv"
 )
 
 const (
@@ -281,7 +281,15 @@ func (ev *WebSocketEvent) EventType() string {
 
 func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 	if ev.precomputedJSON != nil {
-		return []byte(fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.GetSequence())), nil
+		return []byte(`{"event": ` +
+			string(ev.precomputedJSON.Event) +
+			`, "data": ` +
+			string(ev.precomputedJSON.Data) +
+			`, "broadcast": ` +
+			string(ev.precomputedJSON.Broadcast) +
+			`, "seq": ` +
+			strconv.Itoa(int(ev.sequence)) +
+			`}`), nil
 	}
 	return json.Marshal(webSocketEventJSON{
 		ev.event,
@@ -295,8 +303,16 @@ func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
 	if ev.precomputedJSON != nil {
 		return enc.Encode(json.RawMessage(
-			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.sequence),
-		))
+			// Performance optimization
+			[]byte(`{"event": ` +
+				string(ev.precomputedJSON.Event) +
+				`, "data": ` +
+				string(ev.precomputedJSON.Data) +
+				`, "broadcast": ` +
+				string(ev.precomputedJSON.Broadcast) +
+				`, "seq": ` +
+				strconv.Itoa(int(ev.sequence)) +
+				`}`)))
 	}
 
 	return enc.Encode(webSocketEventJSON{
