@@ -43,6 +43,6 @@ jobs:
             --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             -v ~/work/mattermost-server:/mattermost-server \
-            -w /mattermost-server/mattermost-server \
+            -w /mattermost-server/mattermost-server/server \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
