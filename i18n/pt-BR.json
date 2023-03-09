@@ -653,7 +653,7 @@
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Faltando Nome do Usuário e Canal."
+    "translation": "Faltando Nome do Usuário/Canal."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -8634,5 +8634,25 @@
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "Campos faltando para envio de email."
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "O recurso requer uma atualização para Enterprise Edition."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "As configurações de e-mail têm valores não definidos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Você tem novas mensagens"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Visualizar esta mensagem"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Abrir Mattermost"
   }
 ]

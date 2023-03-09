@@ -241,7 +241,12 @@ const (
 
 	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
-	OpenidSettingsDefaultScope    = "profile openid email"
+	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
+	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
+	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
+	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
+
+	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 )
@@ -385,6 +390,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	SelfHostedExpansion                               *bool   `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -856,6 +862,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
+	}
+
+	if s.SelfHostedExpansion == nil {
+		s.SelfHostedExpansion = NewBool(false)
 	}
 }
 
@@ -2776,9 +2786,15 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		if !isProdLicensePublicKey {
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+		}
 	}
 	if s.CWSAPIURL == nil {
 		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		if !isProdLicensePublicKey {
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
+		}
 	}
 }
 
@@ -2867,8 +2883,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Disable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: false}
+		// Enable the focalboard plugin by default
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {
