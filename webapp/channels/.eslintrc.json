@@ -42,7 +42,7 @@
     "eol-last": ["error", "always"],
     "import/no-unresolved": 2,
     "import/order": [
-      2,
+      0,
       {
         "newlines-between": "always-and-inside-groups",
         "groups": [
