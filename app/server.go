@@ -29,6 +29,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -141,6 +142,14 @@ type Server struct {
 	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
+}
+
+func (s *Server) DebugBar() *debugbar.DebugBar {
+	if s.platform != nil {
+		return s.platform.DebugBar
+	}
+
+	return nil
 }
 
 func (s *Server) Store() store.Store {
@@ -366,7 +375,7 @@ func NewServer(options ...Option) (*Server, error) {
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
 		LicenseFn:          s.License,
-		GoFn:               s.Go,
+		DebugBar:           s.DebugBar,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
@@ -718,6 +727,10 @@ func (s *Server) Shutdown() {
 	if err = s.platform.ShutdownMetrics(); err != nil {
 		s.Log().Warn("Failed to stop metrics server", mlog.Err(err))
 	}
+
+	// Stopping email service after HTTP server has stopped to prevent
+	// any stray notifications from being queued.
+	s.EmailService.Stop()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
