@@ -1285,7 +1285,7 @@ describe('Actions.Posts', () => {
     });
 
     it('getCustomEmojiForReaction', async () => {
-        const testImageData = fs.createReadStream('packages/mattermost-redux/test/assets/images/test.png');
+        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).

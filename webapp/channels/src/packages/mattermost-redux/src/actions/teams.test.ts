@@ -742,7 +742,7 @@ describe('Actions.Teams', () => {
         await loadMeREST()(store.dispatch, store.getState);
 
         const team = TestHelper.basicTeam;
-        const imageData = fs.createReadStream('packages/mattermost-redux/test/assets/images/test.png');
+        const imageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
 
         nock(Client4.getTeamRoute(team!.id)).
             post('/image').
