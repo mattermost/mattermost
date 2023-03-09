@@ -35,6 +35,7 @@ const targetIsEslint = NPM_TARGET === 'check' || NPM_TARGET === 'fix' || process
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
 const boardsDevServerUrl = process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006';
+const playbooksDevServerUrl = process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007';
 
 const STANDARD_EXCLUDE = [
     /node_modules/,
@@ -308,6 +309,8 @@ function generateCSP() {
         csp += ' \'unsafe-eval\'';
 
         csp += ' ' + boardsDevServerUrl;
+
+        csp += ' ' + playbooksDevServerUrl;
     }
 
     return csp;
@@ -365,6 +368,7 @@ async function initializeModuleFederation() {
     async function getRemoteContainers() {
         const products = [
             {name: 'boards', baseUrl: boardsDevServerUrl},
+            {name: 'playbooks', baseUrl: playbooksDevServerUrl},
         ];
 
         const remotes = {};

@@ -7,7 +7,6 @@ const chalk = require('chalk');
 const concurrently = require('concurrently');
 
 const {makeRunner} = require('./runner.js');
-const {getProductStartCommands, getWorkspaceCommands} = require('./utils.js');
 
 async function watchAll(useRunner) {
     if (!useRunner) {
@@ -16,20 +15,11 @@ async function watchAll(useRunner) {
 
     const commands = [
         {command: 'npm:run:webapp', name: 'webapp', prefixColor: 'cyan'},
+        {command: 'npm run start:product', cwd: '../playbooks', name: 'playbooks', prefixColor: 'green'},
+        {command: `npm:run`, cwd: 'src/packages/client', name: 'client', prefixColor: 'red'},
+        {command: `npm:run`, cwd: 'src/packages/types', name: 'types', prefixColor: 'magenta'},
+        {command: `npm:run`, cwd: 'src/packages/components', name: 'components', prefixColor: 'blue'},
     ];
-
-    const productCommands = getProductStartCommands();
-    commands.push(...productCommands);
-
-    if (!useRunner) {
-        if (productCommands.length > 0) {
-            console.log(chalk.green('Found products: ' + productCommands.map((command) => command.name).join(', ')));
-        } else {
-            console.log(chalk.yellow('No products found'));
-        }
-    }
-
-    commands.push(...getWorkspaceCommands('run'));
 
     let runner;
     if (useRunner) {

@@ -13,6 +13,7 @@
     "channels",
     "platform/client",
     "platform/components",
-    "platform/types"
+    "platform/types",
+    "playbooks"
   ]
 }

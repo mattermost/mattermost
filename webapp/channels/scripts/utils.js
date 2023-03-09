@@ -6,13 +6,17 @@ const path = require('path');
 
 const chalk = require('chalk');
 
-const packageJson = require('../package.json');
+const packageJson = require('../../package.json');
 
 function getProductStartCommands() {
     const commands = [];
 
     if (fs.existsSync('../focalboard')) {
         commands.push({command: 'make watch-product', cwd: '../focalboard', name: 'boards', prefixColor: 'blue'});
+    }
+
+    if (fs.existsSync('../playbooks')) {
+        commands.push({command: 'npm run start:product', cwd: '../playbooks', name: 'playbooks', prefixColor: 'green'});
     }
 
     return commands;
