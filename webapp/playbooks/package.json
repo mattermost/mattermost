@@ -9,7 +9,7 @@
     "@apollo/client": "3.7.3",
     "@floating-ui/react-dom-interactions": "0.6.3",
     "@mattermost/compass-icons": "0.1.32",
-    "@mattermost/types": "7.1.0",
+    "@mattermost/types": "*",
     "@mdi/js": "^6.5.95",
     "@mdi/react": "1.5.0",
     "@tippyjs/react": "4.2.6",
@@ -22,7 +22,7 @@
     "js-trim-multiline-string": "^1.0.8",
     "lodash": "4.17.21",
     "luxon": "2.3.1",
-    "mattermost-webapp": "github:mattermost/mattermost-webapp#c0f36d4502e9f14aca250d885881ee8ec5efa56b",
+    "mattermost-webapp": "*",
     "parse-duration": "1.0.2",
     "qs": "6.10.2",
     "react": "^17.0.2",
@@ -55,7 +55,6 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@testing-library/react-hooks": "8.0.0",
     "@types/chart.js": "2.7.3",
-    "@types/chartjs-plugin-annotation": "^0.5.2",
     "@types/classnames": "2.3.1",
     "@types/debounce": "1.2.1",
     "@types/history": "4.7.8",
@@ -133,51 +132,7 @@
     "graphql": "graphql-codegen --config graphql_gen.ts",
     "report-unused-exports": "ts-prune",
     "build:product": "webpack --mode=production",
-    "start:product": "webpack serve --mode=development"    
-  },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/non_npm_dependencies/"
-    ],
-    "testEnvironment": "jsdom",
-    "clearMocks": true,
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}"
-    ],
-    "coverageReporters": [
-      "lcov",
-      "text-summary"
-    ],
-    "moduleNameMapper": {
-      "^.+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "identity-obj-proxy",
-      "^.+\\.(css|less|scss)$": "identity-obj-proxy",
-      "^.*i18n.*\\.(json)$": "<rootDir>/tests/i18n_mock.json",
-      "^bundle-loader\\?lazy\\!(.*)$": "$1",
-      "^reselect": "<rootDir>/node_modules/mattermost-webapp/packages/reselect/src",
-      "^mattermost-redux(.*)$": "<rootDir>/node_modules/mattermost-webapp/packages/mattermost-redux/src$1",
-      "^@mattermost/(types)/(.*)$": "<rootDir>/node_modules/mattermost-webapp/packages/$1/src/$2",
-      "^@mattermost/(client)$": "<rootDir>/node_modules/mattermost-webapp/packages/$1/src",
-      "^@mattermost/(components)$": "<rootDir>/node_modules/mattermost-webapp/packages/$1/src"
-    },
-    "moduleDirectories": [
-      "<rootDir>",
-      "node_modules",
-      "non_npm_dependencies"
-    ],
-    "reporters": [
-      "default",
-      "jest-junit"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules/(?!react-native|react-router|mattermost-webapp)"
-    ],
-    "setupFiles": [
-      "jest-canvas-mock"
-    ],
-    "testURL": "http://localhost:8065"
-  },
-  "jest-junit": {
-    "output": "build/test-results.xml"
+    "start:product": "webpack serve --mode=development",
+    "deploy:product": "node scripts/deploy.js"    
   }
 }
