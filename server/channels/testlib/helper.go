@@ -154,26 +154,19 @@ func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
 	basePath := os.Getenv("MM_SERVER_PATH")
-	relPath := "testlib/testdata"
+	if basePath == "" {
+		basePath = "mattermost-server/server"
+	}
+	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		var finalPath string
-		if basePath != "" {
-			finalPath = filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
-		} else {
-			finalPath = filepath.Join("mattermost-server", relPath, "postgres_migration_warmup.sql")
-		}
+		finalPath := filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DatabaseDriverMysql:
-		var finalPath string
-		if basePath != "" {
-			finalPath = filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
-		} else {
-			finalPath = filepath.Join("mattermost-server", relPath, "mysql_migration_warmup.sql")
-		}
+		finalPath := filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
