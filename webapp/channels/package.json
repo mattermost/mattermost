@@ -222,7 +222,6 @@
     "yup": "0.32.11"
   },
   "scripts": {
-    "postinstall": "npm run build --workspaces && node skip_integrity_check.js",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
     "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
     "build": "cross-env NODE_ENV=production webpack",
