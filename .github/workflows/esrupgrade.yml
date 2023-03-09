@@ -106,11 +106,8 @@ jobs:
           curl $DB_DUMP_URL | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
       - name: Run migration through script
         run : |
-          # Build the image with the migration wrapper
           cd scripts/esrupgrades
-          docker build -t esrupgrade .
-          # Run the image with the expected driver, DSN, and migration file
-          docker run -i --rm --net ghactions_mm-test esrupgrade mysql "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" esr.5.37-7.8.mysql.up.sql
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < esr.5.37-7.8.mysql.up.sql
       - name: Cleanup DB
         run : |
           cd scripts/esrupgrades

@@ -22,6 +22,7 @@ DEALLOCATE PREPARE createIndexIfNotExists;
 total root message count, mention count, and mention count in root messages for users
 who have viewed the channel after the last post in the channel */
 
+DELIMITER //
 CREATE PROCEDURE MigrateCRTChannelMembershipCounts ()
 BEGIN
 	IF(
@@ -42,9 +43,10 @@ BEGIN
 		INSERT INTO Systems
 			VALUES('CRTChannelMembershipCountsMigrationComplete', 'true');
 	END IF;
-END;
-	CALL MigrateCRTChannelMembershipCounts ();
-	DROP PROCEDURE IF EXISTS MigrateCRTChannelMembershipCounts;
+END//
+DELIMITER ;
+CALL MigrateCRTChannelMembershipCounts ();
+DROP PROCEDURE IF EXISTS MigrateCRTChannelMembershipCounts;
 
 /* ==> mysql/000055_create_crt_thread_count_and_unreads.up.sql <== */
 /* fixCRTThreadCountsAndUnreads Marks threads as read for users where the last
@@ -53,6 +55,7 @@ Marking a thread means setting the mention count to zero and setting the
 last viewed at time of the the thread as the last viewed at time
 of the channel */
 
+DELIMITER //
 CREATE PROCEDURE MigrateCRTThreadCountsAndUnreads ()
 BEGIN
 	IF(SELECT EXISTS(SELECT * FROM Systems WHERE Name = 'CRTThreadCountsAndUnreadsMigrationComplete') = 0) THEN
@@ -75,9 +78,10 @@ BEGIN
 		INSERT INTO Systems
 			VALUES('CRTThreadCountsAndUnreadsMigrationComplete', 'true');
 	END IF;
-END;
-	CALL MigrateCRTThreadCountsAndUnreads ();
-	DROP PROCEDURE IF EXISTS MigrateCRTThreadCountsAndUnreads;
+END//
+DELIMITER ;
+CALL MigrateCRTThreadCountsAndUnreads ();
+DROP PROCEDURE IF EXISTS MigrateCRTThreadCountsAndUnreads;
 
 /* ==> mysql/000056_upgrade_channels_v6.0.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -127,6 +131,7 @@ DEALLOCATE PREPARE removeIndexIfExists;
 
 /* ==> mysql/000057_upgrade_command_webhooks_v6.0.up.sql <== */
 
+DELIMITER //
 CREATE PROCEDURE MigrateRootId_CommandWebhooks () BEGIN DECLARE ParentId_EXIST INT;
 SELECT COUNT(*)
 FROM INFORMATION_SCHEMA.COLUMNS
@@ -136,8 +141,8 @@ WHERE TABLE_NAME = 'CommandWebhooks'
 IF(ParentId_EXIST > 0) THEN
     UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
 END IF;
-END;
-
+END//
+DELIMITER ;
 CALL MigrateRootId_CommandWebhooks ();
 DROP PROCEDURE IF EXISTS MigrateRootId_CommandWebhooks;
 
@@ -448,6 +453,7 @@ EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
 /* ==> mysql/000066_upgrade_posts_v6.0.up.sql <== */
+DELIMITER //
 CREATE PROCEDURE MigrateRootId_Posts ()
 BEGIN
 DECLARE ParentId_EXIST INT;
@@ -475,8 +481,8 @@ IF (Alter_Props OR Alter_FileIds) THEN
 		ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON;
 	END IF;
 END IF;
-END;
-
+END//
+DELIMITER ;
 CALL MigrateRootId_Posts ();
 DROP PROCEDURE IF EXISTS MigrateRootId_Posts;
 
@@ -561,6 +567,7 @@ EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
 /* ==> mysql/000070_upgrade_cte_v6.1.up.sql <== */
+DELIMITER //
 CREATE PROCEDURE Migrate_LastRootPostAt ()
 BEGIN
 DECLARE
@@ -589,9 +596,10 @@ DECLARE
 				GROUP BY
 					Channels.Id) AS q ON q.channelid = Channels.Id SET LastRootPostAt = lastrootpost;
 	END IF;
-END;
-	CALL Migrate_LastRootPostAt ();
-	DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt;
+END//
+DELIMITER ;
+CALL Migrate_LastRootPostAt ();
+DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt;
 
 /* ==> mysql/000071_upgrade_sessions_v6.1.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -706,6 +714,7 @@ EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000075_alter_upload_sessions_index.up.sql <== */
+DELIMITER //
 CREATE PROCEDURE AlterIndex()
 BEGIN
     DECLARE columnName varchar(26) default '';
@@ -721,12 +730,13 @@ BEGIN
         DROP INDEX idx_uploadsessions_user_id ON UploadSessions;
         CREATE INDEX idx_uploadsessions_user_id ON UploadSessions(UserId);
     END IF;
-END;
-
+END//
+DELIMITER ;
 CALL AlterIndex();
-
 DROP PROCEDURE IF EXISTS AlterIndex;
+
 /* ==> mysql/000076_upgrade_lastrootpostat.up.sql <== */
+DELIMITER //
 CREATE PROCEDURE Migrate_LastRootPostAt_Default ()
 BEGIN
 	IF (
@@ -738,10 +748,12 @@ BEGIN
 		) = 1 THEN
 		ALTER TABLE Channels ALTER COLUMN LastRootPostAt SET DEFAULT 0;
 	END IF;
-END;
-	CALL Migrate_LastRootPostAt_Default ();
-	DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Default;
+END//
+DELIMITER ;
+CALL Migrate_LastRootPostAt_Default ();
+DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Default;
 
+DELIMITER //
 CREATE PROCEDURE Migrate_LastRootPostAt_Fix ()
 BEGIN
 	IF (
@@ -771,9 +783,10 @@ BEGIN
 		-- sets LastRootPostAt to 0, for channels with no posts
 		UPDATE Channels SET LastRootPostAt=0 WHERE LastRootPostAt IS NULL;
 	END IF;
-END;
-	CALL Migrate_LastRootPostAt_Fix ();
-	DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Fix;
+END//
+DELIMITER ;
+CALL Migrate_LastRootPostAt_Fix ();
+DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Fix;
 
 /* ==> mysql/000077_upgrade_users_v6.5.up.sql <== */
 
