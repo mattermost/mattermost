@@ -1,0 +1,175 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu should match snapshot 1`] = `
+<div
+  className="SidebarMenu MenuWrapper"
+>
+  <Menu
+    menu={
+      Object {
+        "aria-label": "Edit category menu",
+        "id": "SidebarCategorySortingMenu-MenuList-category_id",
+        "onToggle": [Function],
+      }
+    }
+    menuButton={
+      Object {
+        "aria-label": "Category options",
+        "children": <DotsVerticalIcon
+          size={16}
+        />,
+        "class": "SidebarMenu_menuButton sortingMenu",
+        "id": "SidebarCategorySortingMenu-Button-category_id",
+      }
+    }
+    menuButtonTooltip={
+      Object {
+        "class": "hidden-xs",
+        "id": "SidebarCategorySortingMenu-ButtonTooltip-category_id",
+        "text": "Category options",
+      }
+    }
+  >
+    <SubMenu
+      id="sortDirectMessages-category_id"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Sort"
+          id="sidebar.sort"
+        />
+      }
+      leadingElement={
+        <SortAlphabeticalAscendingIcon
+          size={18}
+        />
+      }
+      menuId="sortDirectMessages-category_id-menu"
+      trailingElements={
+        <React.Fragment>
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Alphabetically"
+            id="user.settings.sidebar.sortAlpha"
+          />
+          <ChevronRightIcon
+            size={16}
+          />
+        </React.Fragment>
+      }
+    >
+      <MenuItem
+        id="sortAlphabetical-category_id"
+        labels={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Alphabetically"
+            id="user.settings.sidebar.sortAlpha"
+          />
+        }
+        onClick={[Function]}
+      />
+      <MenuItem
+        id="sortByMostRecent-category_id"
+        labels={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Recent Activity"
+            id="sidebar.sortedByRecencyLabel"
+          />
+        }
+        onClick={[Function]}
+      />
+    </SubMenu>
+    <SubMenu
+      id="showMessagesCount-category_id"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Show"
+          id="sidebar.show"
+        />
+      }
+      leadingElement={
+        <AccountMultipleOutlineIcon
+          size={18}
+        />
+      }
+      menuId="showMessagesCount-category_id-menu"
+      trailingElements={
+        <React.Fragment>
+          <span>
+            10
+          </span>
+          <ChevronRightIcon
+            size={16}
+          />
+        </React.Fragment>
+      }
+    >
+      <MenuItem
+        id="showAllDms-category_id"
+        labels={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="All direct messages"
+            id="sidebar.allDirectMessages"
+          />
+        }
+        onClick={[Function]}
+      />
+      <MenuItemSeparator />
+      <MenuItem
+        id="showDmCount-category_id-10"
+        key="showDmCount-category_id-10"
+        labels={
+          <span>
+            10
+          </span>
+        }
+        onClick={[Function]}
+      />
+      <MenuItem
+        id="showDmCount-category_id-15"
+        key="showDmCount-category_id-15"
+        labels={
+          <span>
+            15
+          </span>
+        }
+        onClick={[Function]}
+      />
+      <MenuItem
+        id="showDmCount-category_id-20"
+        key="showDmCount-category_id-20"
+        labels={
+          <span>
+            20
+          </span>
+        }
+        onClick={[Function]}
+      />
+      <MenuItem
+        id="showDmCount-category_id-40"
+        key="showDmCount-category_id-40"
+        labels={
+          <span>
+            40
+          </span>
+        }
+        onClick={[Function]}
+      />
+    </SubMenu>
+    <MenuItemSeparator />
+    <MenuItem
+      id="openDirectMessage-category_id"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Open a direct message"
+          id="sidebar.openDirectMessage"
+        />
+      }
+      leadingElement={
+        <AccountPlusOutlineIcon
+          size={18}
+        />
+      }
+      onClick={[MockFunction]}
+    />
+  </Menu>
+</div>
+`;

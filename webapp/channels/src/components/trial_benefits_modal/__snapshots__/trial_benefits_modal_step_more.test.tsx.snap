@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/trial_benefits_modal/trial_benefits_modal_step_more should match snapshot 1`] = `
+<a
+  className="TrialBenefitsModalStepMore learn-more-button"
+  onClick={[Function]}
+>
+  Test Message
+</a>
+`;

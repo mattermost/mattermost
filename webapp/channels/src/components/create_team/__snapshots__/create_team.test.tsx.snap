@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/create_team should match snapshot default 1`] = `
+<div>
+  <Connect(_class) />
+  <BackButton
+    url="/undefined/channels/undefined"
+  />
+  <div
+    className="col-sm-12"
+  >
+    <div
+      className="signup-team__container"
+    >
+      <SiteNameAndDescription
+        customDescriptionText=""
+        siteName=""
+      />
+      <div
+        className="signup__content"
+      >
+        <Switch>
+          <Route
+            path="/display_name"
+            render={[Function]}
+          />
+          <Route
+            path="/team_url"
+            render={[Function]}
+          />
+          <Redirect
+            to="/display_name"
+          />
+        </Switch>
+      </div>
+    </div>
+  </div>
+</div>
+`;

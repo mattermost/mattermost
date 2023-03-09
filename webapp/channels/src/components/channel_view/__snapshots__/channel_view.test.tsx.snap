@@ -1,0 +1,153 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_view Should match snapshot if channel is archived 1`] = `
+<div
+  className="app__content"
+  id="app-content"
+>
+  <FileUploadOverlay
+    overlayType="center"
+  />
+  <withRouter(Connect(injectIntl(ChannelHeader)))
+    channelId="channelId"
+    channelIsArchived={true}
+    deactivatedChannel={false}
+    enableOnboardingFlow={true}
+    goToLastViewedChannel={[MockFunction]}
+    history={Object {}}
+    isCloud={false}
+    isFirstAdmin={false}
+    location={Object {}}
+    match={
+      Object {
+        "params": Object {},
+        "url": "/team/channel/channelId",
+      }
+    }
+    teamUrl="/team"
+    viewArchivedChannels={false}
+  />
+  <DeferredRenderWrapper
+    channelId="channelId"
+  />
+  <div
+    className="post-create__container"
+    id="post-create"
+  >
+    <div
+      className="channel-archived__message"
+      id="channelArchivedMessage"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="You are viewing an **archived channel**. New messages cannot be posted."
+        id="archivedChannelMessage"
+      />
+      <button
+        className="btn btn-primary channel-archived__close-btn"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Close Channel"
+          id="center_panel.archived.closeChannel"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/channel_view Should match snapshot if channel is deactivated 1`] = `
+<div
+  className="app__content"
+  id="app-content"
+>
+  <FileUploadOverlay
+    overlayType="center"
+  />
+  <withRouter(Connect(injectIntl(ChannelHeader)))
+    channelId="channelId"
+    channelIsArchived={false}
+    deactivatedChannel={true}
+    enableOnboardingFlow={true}
+    goToLastViewedChannel={[MockFunction]}
+    history={Object {}}
+    isCloud={false}
+    isFirstAdmin={false}
+    location={Object {}}
+    match={
+      Object {
+        "params": Object {},
+        "url": "/team/channel/channelId",
+      }
+    }
+    teamUrl="/team"
+    viewArchivedChannels={false}
+  />
+  <DeferredRenderWrapper
+    channelId="channelId"
+  />
+  <div
+    className="post-create__container"
+    id="post-create"
+  >
+    <div
+      className="channel-archived__message"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="You are viewing an archived channel with a **deactivated user**. New messages cannot be posted."
+        id="create_post.deactivated"
+      />
+      <button
+        className="btn btn-primary channel-archived__close-btn"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Close Channel"
+          id="center_panel.archived.closeChannel"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/channel_view Should match snapshot with base props 1`] = `
+<div
+  className="app__content"
+  id="app-content"
+>
+  <FileUploadOverlay
+    overlayType="center"
+  />
+  <withRouter(Connect(injectIntl(ChannelHeader)))
+    channelId="channelId"
+    channelIsArchived={false}
+    deactivatedChannel={false}
+    enableOnboardingFlow={true}
+    goToLastViewedChannel={[MockFunction]}
+    history={Object {}}
+    isCloud={false}
+    isFirstAdmin={false}
+    location={Object {}}
+    match={
+      Object {
+        "params": Object {},
+        "url": "/team/channel/channelId",
+      }
+    }
+    teamUrl="/team"
+    viewArchivedChannels={false}
+  />
+  <DeferredRenderWrapper
+    channelId="channelId"
+  />
+  <div
+    className="post-create__container AdvancedTextEditor__ctr"
+    id="post-create"
+  >
+    <Connect(AdvancedCreatePost)
+      getChannelView={[Function]}
+    />
+  </div>
+</div>
+`;

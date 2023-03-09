@@ -1,0 +1,338 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/signup/Signup should match snapshot for all signup options enabled with isLicensed disabled 1`] = `
+<div
+  className="signup-body"
+>
+  <div
+    className="signup-body-content"
+  >
+    <div
+      className="signup-body-message with-alternate-link"
+    >
+      <h1
+        className="signup-body-message-title"
+      >
+        Let’s get started
+      </h1>
+      <p
+        className="signup-body-message-subtitle"
+      >
+        Create your Mattermost account to start collaborating with your team
+      </p>
+      <div
+        className="signup-body-message-svg"
+      >
+        <Svg />
+      </div>
+    </div>
+    <div
+      className="signup-body-action"
+    >
+      <AlternateLink
+        alternateLinkLabel="Log in"
+        alternateLinkPath="/login"
+        alternateMessage="Already have an account?"
+        className="signup-body-alternate-link"
+      />
+      <div
+        className="signup-body-card"
+      >
+        <div
+          className="signup-body-card-content"
+          onKeyDown={[Function]}
+          tabIndex={0}
+        >
+          <p
+            className="signup-body-card-title"
+          >
+            Create your account
+          </p>
+          <div
+            className="signup-body-card-form"
+          >
+            <ForwardRef
+              autoFocus={true}
+              className="signup-body-card-form-email-input"
+              customMessage={null}
+              disabled={false}
+              inputSize="large"
+              name="email"
+              onChange={[Function]}
+              placeholder="Email address"
+              type="text"
+              value=""
+            />
+            <ForwardRef
+              autoFocus={false}
+              className="signup-body-card-form-name-input"
+              customMessage={
+                Object {
+                  "type": "info",
+                  "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
+                }
+              }
+              disabled={false}
+              inputSize="large"
+              name="name"
+              onChange={[Function]}
+              placeholder="Choose a Username"
+              type="text"
+              value=""
+            />
+            <ForwardRef
+              className="signup-body-card-form-password-input"
+              createMode={true}
+              disabled={false}
+              error=""
+              info="Must be 5-64 characters long."
+              inputSize="large"
+              onChange={[Function]}
+              value=""
+            />
+            <SaveButton
+              btnClass="btn-primary"
+              defaultMessage="Create account"
+              disabled={true}
+              extraClasses="signup-body-card-form-button-submit large"
+              onClick={[Function]}
+              saving={false}
+              savingMessage="Creating account…"
+            />
+          </div>
+          <div
+            className="signup-body-card-form-divider"
+          >
+            <span
+              className="signup-body-card-form-divider-label"
+            >
+              or create an account with
+            </span>
+          </div>
+          <div
+            className="signup-body-card-form-login-options"
+          >
+            <ExternalLoginButton
+              icon={<LoginGitlabIcon />}
+              id="gitlab"
+              key="gitlab"
+              label="GitLab"
+              style={
+                Object {
+                  "borderColor": "",
+                  "color": "",
+                }
+              }
+              url="/oauth/gitlab/signup"
+            />
+          </div>
+          <p
+            className="signup-body-card-agreement"
+          >
+            <FormattedMarkdownMessage
+              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
+              id="create_team.agreement"
+              values={
+                Object {
+                  "PrivacyPolicyLink": "!undefined",
+                  "TermsOfServiceLink": "!undefined",
+                  "siteName": "Mattermost",
+                }
+              }
+            />
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/signup/Signup should match snapshot for all signup options enabled with isLicensed enabled 1`] = `
+<div
+  className="signup-body"
+>
+  <div
+    className="signup-body-content"
+  >
+    <div
+      className="signup-body-message with-alternate-link"
+    >
+      <h1
+        className="signup-body-message-title"
+      >
+        Let’s get started
+      </h1>
+      <p
+        className="signup-body-message-subtitle"
+      >
+        Create your Mattermost account to start collaborating with your team
+      </p>
+      <div
+        className="signup-body-message-svg"
+      >
+        <Svg />
+      </div>
+    </div>
+    <div
+      className="signup-body-action"
+    >
+      <AlternateLink
+        alternateLinkLabel="Log in"
+        alternateLinkPath="/login"
+        alternateMessage="Already have an account?"
+        className="signup-body-alternate-link"
+      />
+      <div
+        className="signup-body-card"
+      >
+        <div
+          className="signup-body-card-content"
+          onKeyDown={[Function]}
+          tabIndex={0}
+        >
+          <p
+            className="signup-body-card-title"
+          >
+            Create your account
+          </p>
+          <div
+            className="signup-body-card-form"
+          >
+            <ForwardRef
+              autoFocus={true}
+              className="signup-body-card-form-email-input"
+              customMessage={null}
+              disabled={false}
+              inputSize="large"
+              name="email"
+              onChange={[Function]}
+              placeholder="Email address"
+              type="text"
+              value=""
+            />
+            <ForwardRef
+              autoFocus={false}
+              className="signup-body-card-form-name-input"
+              customMessage={
+                Object {
+                  "type": "info",
+                  "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
+                }
+              }
+              disabled={false}
+              inputSize="large"
+              name="name"
+              onChange={[Function]}
+              placeholder="Choose a Username"
+              type="text"
+              value=""
+            />
+            <ForwardRef
+              className="signup-body-card-form-password-input"
+              createMode={true}
+              disabled={false}
+              error=""
+              info="Must be 5-64 characters long."
+              inputSize="large"
+              onChange={[Function]}
+              value=""
+            />
+            <SaveButton
+              btnClass="btn-primary"
+              defaultMessage="Create account"
+              disabled={true}
+              extraClasses="signup-body-card-form-button-submit large"
+              onClick={[Function]}
+              saving={false}
+              savingMessage="Creating account…"
+            />
+          </div>
+          <div
+            className="signup-body-card-form-divider"
+          >
+            <span
+              className="signup-body-card-form-divider-label"
+            >
+              or create an account with
+            </span>
+          </div>
+          <div
+            className="signup-body-card-form-login-options"
+          >
+            <ExternalLoginButton
+              icon={<LoginGitlabIcon />}
+              id="gitlab"
+              key="gitlab"
+              label="GitLab"
+              style={
+                Object {
+                  "borderColor": "",
+                  "color": "",
+                }
+              }
+              url="/oauth/gitlab/signup"
+            />
+            <ExternalLoginButton
+              icon={<LoginGoggleIcon />}
+              id="google"
+              key="google"
+              label="Google"
+              url="/oauth/google/signup"
+            />
+            <ExternalLoginButton
+              icon={<LoginOffice365Icon />}
+              id="office365"
+              key="office365"
+              label="Office 365"
+              url="/oauth/office365/signup"
+            />
+            <ExternalLoginButton
+              icon={<LoginOpenIdIcon />}
+              id="openid"
+              key="openid"
+              label="Open ID"
+              style={
+                Object {
+                  "borderColor": "",
+                  "color": "",
+                }
+              }
+              url="/oauth/openid/signup"
+            />
+            <ExternalLoginButton
+              icon={<LockIcon />}
+              id="ldap"
+              key="ldap"
+              label="AD/LDAP Credentials"
+              url="/login?extra=create_ldap"
+            />
+            <ExternalLoginButton
+              icon={<LockIcon />}
+              id="saml"
+              key="saml"
+              label="SAML"
+              url="/login/sso/saml?action=signup"
+            />
+          </div>
+          <p
+            className="signup-body-card-agreement"
+          >
+            <FormattedMarkdownMessage
+              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
+              id="create_team.agreement"
+              values={
+                Object {
+                  "PrivacyPolicyLink": "!undefined",
+                  "TermsOfServiceLink": "!undefined",
+                  "siteName": "Mattermost",
+                }
+              }
+            />
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

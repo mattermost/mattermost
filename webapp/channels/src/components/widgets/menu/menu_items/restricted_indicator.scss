@@ -1,0 +1,51 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.RestrictedIndicator__icon-tooltip-container {
+    display: flex;
+    height: 100%;
+    flex: 1;
+    align-self: stretch;
+    padding: 0 10px;
+
+    .RestrictedIndicator__button {
+        padding: 0 !important;
+    }
+
+    .RestrictedIndicator__icon-tooltip {
+        padding: 5px 0;
+        color: var(--denim-button-bg);
+        line-height: 22px;
+
+        &.trial::before {
+            content: "\26a1"; /* High Voltage Sign */
+        }
+    }
+}
+
+a,
+button {
+    &:focus,
+    &:hover {
+        & + .RestrictedIndicator__icon-tooltip-container {
+            background-color: rgba(var(--center-channel-color-rgb), 0.1);
+        }
+    }
+}
+
+.RestrictedIndicator__icon-tooltip {
+    max-width: 240px;
+    align-items: center;
+
+    .title {
+        display: block;
+        line-height: 15px;
+    }
+
+    .message {
+        font-size: 11px;
+        letter-spacing: 0.02em;
+        line-height: 16px;
+        opacity: 0.56;
+    }
+}

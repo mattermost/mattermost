@@ -1,0 +1,38 @@
+.search-grid-container {
+    position: relative;
+    width: 100%;
+    height: 336px;
+    margin: 0 auto;
+    overflow-x: hidden;
+}
+
+.empty-search {
+    margin: 2rem auto;
+    color: #a0a0a0;
+    font-size: 1.6rem;
+    text-align: center;
+
+    a {
+        text-decoration: none;
+    }
+
+    .empty-search-button {
+        display: inline-block;
+        padding: 0.6rem 1.6rem;
+        background-color: #1b70ff;
+        border-radius: 0.6rem;
+        color: #fff;
+        font-size: 1.2rem;
+        line-height: 1.5;
+    }
+}
+
+.empty-search-image {
+    width: 100%;
+    height: 9rem;
+    margin-bottom: 2rem;
+    background-image: url('../../static/search_end.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}

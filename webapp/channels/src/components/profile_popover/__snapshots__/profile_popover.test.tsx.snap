@@ -1,0 +1,4502 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ProfilePopover should disable start call button when user is in another call 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  isUserInCall={true}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="startCallTooltip"
+              >
+                some_username is in another call
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <button
+              aria-disabled={true}
+              className="btn icon-btn icon-btn-disabled"
+              id="startCallButton"
+              type="button"
+            >
+              <PhoneInTalkIcon
+                aria-label="some_username is in another call"
+                size={18}
+              />
+            </button>
+          </OverlayTrigger>
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should hide add-to-channel option if not on team 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={false}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for shared_user"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_shared_user"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="shared_user"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1"
+        data-testid="popover-fullname-shared_user"
+        key="user-popover-fullname"
+      >
+        <span
+          className="user-profile-popover__heading"
+        >
+          shared
+        </span>
+        <SharedUserIndicator
+          className="shared-user-icon"
+          withTooltip={true}
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @shared_user
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "shared",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "remote_id": "fakeuser",
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "shared_user",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "shared",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "remote_id": "fakeuser",
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "shared_user",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "shared",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "remote_id": "fakeuser",
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "shared_user",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot when calls are disabled 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={false}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot with custom status 1`] = `
+<Popover
+  customStatus={
+    Object {
+      "duration": "today",
+      "emoji": "calendar",
+      "expires_at": "2021-05-03T23:59:59.000Z",
+      "text": "In a meeting",
+    }
+  }
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="user-popover__time-status-container"
+        id="user-popover-status"
+        key="user-popover-status"
+      >
+        <span
+          className="user-popover__subtitle"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Status"
+            id="user_profile.custom_status"
+          />
+          <Memo(ExpiryTime)
+            className="ml-1"
+            time="2021-05-03T23:59:59.000Z"
+            withinBrackets={true}
+          />
+        </span>
+        <div
+          className="d-flex align-items-center"
+        >
+          <Memo(CustomStatusEmoji)
+            emojiStyle={
+              Object {
+                "marginRight": 4,
+                "marginTop": 1,
+              }
+            }
+            showTooltip={false}
+            userID="user_id"
+          />
+          <CustomStatusText
+            className="user-popover__email"
+            text="In a meeting"
+            tooltipDirection="top"
+          />
+        </div>
+      </div>
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot with custom status expired 1`] = `
+<Popover
+  customStatus={
+    Object {
+      "duration": "today",
+      "emoji": "calendar",
+      "expires_at": "2021-05-03T23:59:59.000Z",
+      "text": "In a meeting",
+    }
+  }
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={true}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot with custom status not set but can set 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="user-popover__time-status-container"
+        id="user-popover-status"
+        key="user-popover-status"
+      >
+        <span
+          className="user-popover__subtitle"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Status"
+            id="user_profile.custom_status"
+          />
+        </span>
+        <button
+          className="user-popover__set-custom-status-btn"
+          onClick={[Function]}
+        >
+          <EmoticonHappyOutlineIcon
+            size={14}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Set a status"
+            id="user_profile.custom_status.set_status"
+          />
+        </button>
+      </div>
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-settings"
+      >
+        <button
+          className="btn"
+          id="editProfileButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <AccountOutlineIcon
+            aria-label="Edit Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Edit Profile"
+            id="user_profile.account.editProfile"
+          />
+        </button>
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              id="sendMessageTooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Send yourself a message"
+                id="user_profile.send.dm.yourself"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="btn icon-btn"
+            onClick={[Function]}
+            type="button"
+          >
+            <SendIcon
+              aria-label="Send Message Icon"
+              size={18}
+            />
+          </button>
+        </OverlayTrigger>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot with last active display 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={true}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="user-popover-last-active"
+        key="user-popover-last-active"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Last online {timestamp}"
+          id="channel_header.lastActive"
+          values={
+            Object {
+              "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                style="short"
+                units={
+                  Array [
+                    "now",
+                    "minute",
+                    "hour",
+                  ]
+                }
+                useTime={false}
+                value={1632146562846}
+              />,
+            }
+          }
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should match snapshot with no last active display because it is disabled 1`] = `
+<Popover
+  customStatus={null}
+  enableLastActiveTime={false}
+  id="user-profile-popover"
+  isAnyModalOpen={false}
+  isCallsDefaultEnabledOnAllChannels={true}
+  isCallsEnabled={true}
+  isCustomStatusEnabled={true}
+  isCustomStatusExpired={false}
+  isInCurrentTeam={true}
+  isMobileView={false}
+  lastActivityTimestamp={1632146562846}
+  placement="right"
+  popoverSize="sm"
+  popoverStyle="info"
+  teammateNameDisplay="username"
+  timestampUnits={
+    Array [
+      "now",
+      "minute",
+      "hour",
+    ]
+  }
+>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+  <div
+    aria-label="Profile for some_username"
+    aria-modal={true}
+    className="a11y__popup"
+    onKeyDown={[Function]}
+    role="dialog"
+  >
+    <div
+      className="popover-title popover-title_height"
+    >
+      <span
+        data-testid="profilePopoverTitle_some_username"
+      >
+        <button
+          className="user-popover__close"
+          onClick={[Function]}
+        >
+          <CloseIcon
+            size={18}
+          />
+        </button>
+      </span>
+    </div>
+    <div
+      className="user-profile-popover__content"
+    >
+      <div
+        className="user-popover-image"
+        key="user-popover-image"
+      >
+        <Memo(Avatar)
+          id="userAvatar"
+          size="xxl"
+          tabIndex={-1}
+          url="src"
+          username="some_username"
+        />
+        <StatusIcon
+          button={true}
+          className="status user-popover-status"
+          status="offline"
+        />
+      </div>
+      <div
+        className="overflow--ellipsis pb-1 user-profile-popover__heading"
+        id="userPopoverUsername"
+        key="user-popover-username"
+      >
+        @some_username
+      </div>
+      <hr
+        className="divider divider--expanded"
+        key="user-popover-hr"
+      />
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable2"
+        pluggableName="PopoverUserAttributes"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+      <div
+        className="popover__row first"
+        data-toggle="tooltip"
+        key="user-popover-dm"
+      >
+        <button
+          className="btn"
+          id="messageButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <SendIcon
+            aria-label="Send Message Icon"
+            size={16}
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Message"
+            id="user_profile.send.dm"
+          />
+        </button>
+        <div
+          className="popover_row-controlContainer"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="addToChannelTooltip"
+              >
+                Add to a Channel
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div>
+              <Connect(ToggleModalButton)
+                ariaLabel="Add to a Channel"
+                className="btn icon-btn"
+                dialogProps={
+                  Object {
+                    "onExited": [Function],
+                    "user": Object {
+                      "auth_service": "",
+                      "bot_description": "",
+                      "create_at": 0,
+                      "delete_at": 0,
+                      "email": "",
+                      "first_name": "",
+                      "id": "user_id",
+                      "is_bot": false,
+                      "last_activity_at": 0,
+                      "last_name": "",
+                      "last_password_update": 0,
+                      "last_picture_update": 0,
+                      "locale": "",
+                      "mfa_active": false,
+                      "nickname": "",
+                      "notify_props": Object {
+                        "channel": "false",
+                        "comments": "never",
+                        "desktop": "default",
+                        "desktop_sound": "false",
+                        "email": "false",
+                        "first_name": "false",
+                        "mark_unread": "mention",
+                        "mention_keys": "",
+                        "push": "none",
+                        "push_status": "offline",
+                      },
+                      "password": "",
+                      "position": "",
+                      "props": Object {},
+                      "roles": "",
+                      "terms_of_service_create_at": 0,
+                      "terms_of_service_id": "",
+                      "update_at": 0,
+                      "username": "some_username",
+                    },
+                  }
+                }
+                dialogType={
+                  Object {
+                    "$$typeof": Symbol(react.memo),
+                    "WrappedComponent": [Function],
+                    "compare": null,
+                    "type": [Function],
+                  }
+                }
+                id="addToChannelButton"
+                modalId="add_user_to_channel"
+                onClick={[Function]}
+              >
+                <AccountPlusOutlineIcon
+                  aria-label="Add User to Channel Icon"
+                  size={18}
+                />
+              </Connect(ToggleModalButton)>
+            </div>
+          </OverlayTrigger>
+          <Connect(ProfilePopoverCallButton)
+            customButton={
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="startCallTooltip"
+                  >
+                    Start Call
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <button
+                  className="btn icon-btn"
+                  id="startCallButton"
+                  type="button"
+                >
+                  <PhoneInTalkIcon
+                    aria-label="Start Call"
+                    size={18}
+                  />
+                </button>
+              </OverlayTrigger>
+            }
+            userId="0"
+          />
+        </div>
+      </div>
+      <Connect(Pluggable)
+        hide={[MockFunction]}
+        key="profilePopoverPluggable3"
+        pluggableName="PopoverUserActions"
+        status="offline"
+        user={
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some_username",
+          }
+        }
+      />
+    </div>
+  </div>
+  <span
+    onFocus={[Function]}
+    tabIndex={0}
+  />
+</Popover>
+`;
+
+exports[`components/ProfilePopover should show the start call button when isCallsDefaultEnabledOnAllChannels, isCallsCanBeDisabledOnSpecificChannels is false and callsChannelState.enabled is true 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <injectIntl(ProfilePopover)
+    actions={
+      Object {
+        "closeModal": [MockFunction],
+        "getMembershipForEntities": [MockFunction] {
+          "calls": Array [
+            Array [
+              "team_id",
+              "0",
+              undefined,
+            ],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": undefined,
+            },
+          ],
+        },
+        "loadBot": [MockFunction],
+        "openDirectChannelToUserId": [MockFunction],
+        "openModal": [MockFunction],
+      }
+    }
+    canManageAnyChannelMembersInCurrentTeam={true}
+    currentTeamId="team_id"
+    currentUserId=""
+    enableLastActiveTime={true}
+    enableTimezone={false}
+    hide={[MockFunction]}
+    isAnyModalOpen={false}
+    isCallsCanBeDisabledOnSpecificChannels={false}
+    isCallsDefaultEnabledOnAllChannels={false}
+    isCallsEnabled={true}
+    isChannelAdmin={false}
+    isCustomStatusEnabled={true}
+    isCustomStatusExpired={false}
+    isInCurrentTeam={true}
+    isMobileView={false}
+    isTeamAdmin={false}
+    lastActivityTimestamp={1632146562846}
+    src="src"
+    teamUrl=""
+    teammateNameDisplay="username"
+    timestampUnits={
+      Array [
+        "now",
+        "minute",
+        "hour",
+      ]
+    }
+    user={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "",
+        "id": "user_id",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "some_username",
+      }
+    }
+    userId="0"
+  >
+    <ProfilePopover
+      actions={
+        Object {
+          "closeModal": [MockFunction],
+          "getMembershipForEntities": [MockFunction] {
+            "calls": Array [
+              Array [
+                "team_id",
+                "0",
+                undefined,
+              ],
+            ],
+            "results": Array [
+              Object {
+                "type": "return",
+                "value": undefined,
+              },
+            ],
+          },
+          "loadBot": [MockFunction],
+          "openDirectChannelToUserId": [MockFunction],
+          "openModal": [MockFunction],
+        }
+      }
+      canManageAnyChannelMembersInCurrentTeam={true}
+      currentTeamId="team_id"
+      currentUserId=""
+      customStatus={null}
+      enableLastActiveTime={true}
+      enableTimezone={false}
+      hasMention={false}
+      hide={[MockFunction]}
+      intl={
+        Object {
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+          "wrapRichTextChunksInFragment": undefined,
+        }
+      }
+      isAnyModalOpen={false}
+      isCallsCanBeDisabledOnSpecificChannels={false}
+      isCallsDefaultEnabledOnAllChannels={false}
+      isCallsEnabled={true}
+      isChannelAdmin={false}
+      isCustomStatusEnabled={true}
+      isCustomStatusExpired={false}
+      isInCurrentTeam={true}
+      isMobileView={false}
+      isRHS={false}
+      isTeamAdmin={false}
+      lastActivityTimestamp={1632146562846}
+      src="src"
+      status="offline"
+      teamUrl=""
+      teammateNameDisplay="username"
+      timestampUnits={
+        Array [
+          "now",
+          "minute",
+          "hour",
+        ]
+      }
+      user={
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "user_id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some_username",
+        }
+      }
+      userId="0"
+    >
+      <Popover
+        customStatus={null}
+        enableLastActiveTime={true}
+        id="user-profile-popover"
+        isAnyModalOpen={false}
+        isCallsCanBeDisabledOnSpecificChannels={false}
+        isCallsDefaultEnabledOnAllChannels={false}
+        isCallsEnabled={true}
+        isCustomStatusEnabled={true}
+        isCustomStatusExpired={false}
+        isInCurrentTeam={true}
+        isMobileView={false}
+        lastActivityTimestamp={1632146562846}
+        placement="right"
+        popoverSize="sm"
+        popoverStyle="info"
+        teammateNameDisplay="username"
+        timestampUnits={
+          Array [
+            "now",
+            "minute",
+            "hour",
+          ]
+        }
+      >
+        <Popover
+          bsClass="popover"
+          bsSize="small"
+          bsStyle="info"
+          id="user-profile-popover"
+          placement="right"
+        >
+          <div
+            className="popover popover-sm popover-info right"
+            id="user-profile-popover"
+            role="tooltip"
+            style={
+              Object {
+                "display": "block",
+                "left": undefined,
+                "top": undefined,
+              }
+            }
+          >
+            <div
+              className="arrow"
+              style={
+                Object {
+                  "left": undefined,
+                  "top": undefined,
+                }
+              }
+            />
+            <div
+              className="popover-content"
+            >
+              <span
+                onFocus={[Function]}
+                tabIndex={0}
+              />
+              <div
+                aria-label="Profile for some_username"
+                aria-modal={true}
+                className="a11y__popup"
+                onKeyDown={[Function]}
+                role="dialog"
+              >
+                <div
+                  className="popover-title popover-title_height"
+                >
+                  <span
+                    data-testid="profilePopoverTitle_some_username"
+                  >
+                    <button
+                      className="user-popover__close"
+                      onClick={[Function]}
+                    >
+                      <CloseIcon
+                        size={18}
+                      >
+                        <svg
+                          fill="currentColor"
+                          height={18}
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width={18}
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                          />
+                        </svg>
+                      </CloseIcon>
+                    </button>
+                  </span>
+                </div>
+                <div
+                  className="user-profile-popover__content"
+                >
+                  <div
+                    className="user-popover-image"
+                    key="user-popover-image"
+                  >
+                    <Memo(Avatar)
+                      id="userAvatar"
+                      size="xxl"
+                      tabIndex={-1}
+                      url="src"
+                      username="some_username"
+                    >
+                      <img
+                        alt="some_username profile image"
+                        className="Avatar Avatar-xxl"
+                        id="userAvatar"
+                        loading="lazy"
+                        onError={[Function]}
+                        src="src"
+                        tabIndex={-1}
+                      />
+                    </Memo(Avatar)>
+                    <StatusIcon
+                      button={true}
+                      className="status user-popover-status"
+                      status="offline"
+                    >
+                      <StatusOfflineIcon
+                        className="status user-popover-status"
+                      >
+                        <span
+                          className="status user-popover-status"
+                        >
+                          <svg
+                            aria-label="Offline Icon"
+                            className="offline--icon"
+                            height="100%"
+                            role="img"
+                            style={
+                              Object {
+                                "clipRule": "evenodd",
+                                "fillRule": "evenodd",
+                                "strokeLinejoin": "round",
+                                "strokeMiterlimit": 1.41421,
+                              }
+                            }
+                            viewBox="0 0 20 20"
+                            width="100%"
+                          >
+                            <path
+                              d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                            />
+                          </svg>
+                        </span>
+                      </StatusOfflineIcon>
+                    </StatusIcon>
+                  </div>
+                  <div
+                    className="user-popover-last-active"
+                    key="user-popover-last-active"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Last online {timestamp}"
+                      id="channel_header.lastActive"
+                      values={
+                        Object {
+                          "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                            style="short"
+                            units={
+                              Array [
+                                "now",
+                                "minute",
+                                "hour",
+                              ]
+                            }
+                            useTime={false}
+                            value={1632146562846}
+                          />,
+                        }
+                      }
+                    >
+                      <span>
+                        Last online 
+                        <Connect(injectIntl(Timestamp))
+                          key=".$.1"
+                          style="short"
+                          units={
+                            Array [
+                              "now",
+                              "minute",
+                              "hour",
+                            ]
+                          }
+                          useTime={false}
+                          value={1632146562846}
+                        >
+                          <injectIntl(Timestamp)
+                            dispatch={[Function]}
+                            hourCycle="h12"
+                            style="short"
+                            units={
+                              Array [
+                                "now",
+                                "minute",
+                                "hour",
+                              ]
+                            }
+                            useTime={false}
+                            value={1632146562846}
+                          >
+                            <Timestamp
+                              day="2-digit"
+                              dispatch={[Function]}
+                              hour="numeric"
+                              hourCycle="h12"
+                              intl={
+                                Object {
+                                  "defaultFormats": Object {},
+                                  "defaultLocale": "en",
+                                  "defaultRichTextElements": undefined,
+                                  "formatDate": [Function],
+                                  "formatDateTimeRange": [Function],
+                                  "formatDateToParts": [Function],
+                                  "formatDisplayName": [Function],
+                                  "formatList": [Function],
+                                  "formatListToParts": [Function],
+                                  "formatMessage": [Function],
+                                  "formatNumber": [Function],
+                                  "formatNumberToParts": [Function],
+                                  "formatPlural": [Function],
+                                  "formatRelativeTime": [Function],
+                                  "formatTime": [Function],
+                                  "formatTimeToParts": [Function],
+                                  "formats": Object {},
+                                  "formatters": Object {
+                                    "getDateTimeFormat": [Function],
+                                    "getDisplayNames": [Function],
+                                    "getListFormat": [Function],
+                                    "getMessageFormat": [Function],
+                                    "getNumberFormat": [Function],
+                                    "getPluralRules": [Function],
+                                    "getRelativeTimeFormat": [Function],
+                                  },
+                                  "locale": "en",
+                                  "messages": Object {},
+                                  "onError": [Function],
+                                  "textComponent": "span",
+                                  "timeZone": "Etc/UTC",
+                                  "wrapRichTextChunksInFragment": undefined,
+                                }
+                              }
+                              minute="numeric"
+                              month="long"
+                              numeric="auto"
+                              relNearest={1}
+                              second="numeric"
+                              style="short"
+                              timeZoneName="short"
+                              units={
+                                Array [
+                                  "now",
+                                  "minute",
+                                  "hour",
+                                ]
+                              }
+                              useTime={false}
+                              value={1632146562846}
+                              weekday="long"
+                              year="numeric"
+                            >
+                              <Memo(SemanticTime)
+                                value={2021-09-20T14:02:42.846Z}
+                              >
+                                <time
+                                  dateTime="2021-09-20T14:02:42.846"
+                                >
+                                  September 20, 2021
+                                </time>
+                              </Memo(SemanticTime)>
+                            </Timestamp>
+                          </injectIntl(Timestamp)>
+                        </Connect(injectIntl(Timestamp))>
+                      </span>
+                    </FormattedMessage>
+                  </div>
+                  <div
+                    className="overflow--ellipsis pb-1 user-profile-popover__heading"
+                    id="userPopoverUsername"
+                    key="user-popover-username"
+                  >
+                    @some_username
+                  </div>
+                  <hr
+                    className="divider divider--expanded"
+                    key="user-popover-hr"
+                  />
+                  <Connect(Pluggable)
+                    hide={[MockFunction]}
+                    key="profilePopoverPluggable2"
+                    pluggableName="PopoverUserAttributes"
+                    status="offline"
+                    user={
+                      Object {
+                        "auth_service": "",
+                        "bot_description": "",
+                        "create_at": 0,
+                        "delete_at": 0,
+                        "email": "",
+                        "first_name": "",
+                        "id": "user_id",
+                        "is_bot": false,
+                        "last_activity_at": 0,
+                        "last_name": "",
+                        "last_password_update": 0,
+                        "last_picture_update": 0,
+                        "locale": "",
+                        "mfa_active": false,
+                        "nickname": "",
+                        "notify_props": Object {
+                          "channel": "false",
+                          "comments": "never",
+                          "desktop": "default",
+                          "desktop_sound": "false",
+                          "email": "false",
+                          "first_name": "false",
+                          "mark_unread": "mention",
+                          "mention_keys": "",
+                          "push": "none",
+                          "push_status": "offline",
+                        },
+                        "password": "",
+                        "position": "",
+                        "props": Object {},
+                        "roles": "",
+                        "terms_of_service_create_at": 0,
+                        "terms_of_service_id": "",
+                        "update_at": 0,
+                        "username": "some_username",
+                      }
+                    }
+                  >
+                    <Pluggable
+                      components={
+                        Object {
+                          "CallButton": Array [],
+                        }
+                      }
+                      dispatch={[Function]}
+                      hide={[MockFunction]}
+                      pluggableName="PopoverUserAttributes"
+                      status="offline"
+                      theme={
+                        Object {
+                          "awayIndicator": "#ffbc1f",
+                          "buttonBg": "#1c58d9",
+                          "buttonColor": "#ffffff",
+                          "centerChannelBg": "#ffffff",
+                          "centerChannelColor": "#3f4350",
+                          "codeTheme": "github",
+                          "dndIndicator": "#d24b4e",
+                          "errorTextColor": "#d24b4e",
+                          "linkColor": "#386fe5",
+                          "mentionBg": "#ffffff",
+                          "mentionBj": "#ffffff",
+                          "mentionColor": "#1e325c",
+                          "mentionHighlightBg": "#ffd470",
+                          "mentionHighlightLink": "#1b1d22",
+                          "newMessageSeparator": "#cc8f00",
+                          "onlineIndicator": "#3db887",
+                          "sidebarBg": "#1e325c",
+                          "sidebarHeaderBg": "#192a4d",
+                          "sidebarHeaderTextColor": "#ffffff",
+                          "sidebarTeamBarBg": "#14213e",
+                          "sidebarText": "#ffffff",
+                          "sidebarTextActiveBorder": "#5d89ea",
+                          "sidebarTextActiveColor": "#ffffff",
+                          "sidebarTextHoverBg": "#28427b",
+                          "sidebarUnreadText": "#ffffff",
+                          "type": "Denim",
+                        }
+                      }
+                      user={
+                        Object {
+                          "auth_service": "",
+                          "bot_description": "",
+                          "create_at": 0,
+                          "delete_at": 0,
+                          "email": "",
+                          "first_name": "",
+                          "id": "user_id",
+                          "is_bot": false,
+                          "last_activity_at": 0,
+                          "last_name": "",
+                          "last_password_update": 0,
+                          "last_picture_update": 0,
+                          "locale": "",
+                          "mfa_active": false,
+                          "nickname": "",
+                          "notify_props": Object {
+                            "channel": "false",
+                            "comments": "never",
+                            "desktop": "default",
+                            "desktop_sound": "false",
+                            "email": "false",
+                            "first_name": "false",
+                            "mark_unread": "mention",
+                            "mention_keys": "",
+                            "push": "none",
+                            "push_status": "offline",
+                          },
+                          "password": "",
+                          "position": "",
+                          "props": Object {},
+                          "roles": "",
+                          "terms_of_service_create_at": 0,
+                          "terms_of_service_id": "",
+                          "update_at": 0,
+                          "username": "some_username",
+                        }
+                      }
+                    />
+                  </Connect(Pluggable)>
+                  <div
+                    className="popover__row first"
+                    data-toggle="tooltip"
+                    key="user-popover-dm"
+                  >
+                    <button
+                      className="btn"
+                      id="messageButton"
+                      onClick={[Function]}
+                      type="button"
+                    >
+                      <SendIcon
+                        aria-label="Send Message Icon"
+                        size={16}
+                      >
+                        <svg
+                          aria-label="Send Message Icon"
+                          fill="currentColor"
+                          height={16}
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width={16}
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                          />
+                        </svg>
+                      </SendIcon>
+                      <FormattedMessage
+                        defaultMessage="Message"
+                        id="user_profile.send.dm"
+                      >
+                        <span>
+                          Message
+                        </span>
+                      </FormattedMessage>
+                    </button>
+                    <div
+                      className="popover_row-controlContainer"
+                    >
+                      <OverlayTrigger
+                        defaultOverlayShown={false}
+                        delayShow={400}
+                        overlay={
+                          <Tooltip
+                            id="addToChannelTooltip"
+                          >
+                            Add to a Channel
+                          </Tooltip>
+                        }
+                        placement="top"
+                        trigger={
+                          Array [
+                            "hover",
+                            "focus",
+                          ]
+                        }
+                      >
+                        <OverlayTrigger
+                          defaultOverlayShown={false}
+                          delayShow={400}
+                          overlay={
+                            <OverlayWrapper
+                              id="addToChannelTooltip"
+                              intl={
+                                Object {
+                                  "defaultFormats": Object {},
+                                  "defaultLocale": "en",
+                                  "defaultRichTextElements": undefined,
+                                  "formatDate": [Function],
+                                  "formatDateTimeRange": [Function],
+                                  "formatDateToParts": [Function],
+                                  "formatDisplayName": [Function],
+                                  "formatList": [Function],
+                                  "formatListToParts": [Function],
+                                  "formatMessage": [Function],
+                                  "formatNumber": [Function],
+                                  "formatNumberToParts": [Function],
+                                  "formatPlural": [Function],
+                                  "formatRelativeTime": [Function],
+                                  "formatTime": [Function],
+                                  "formatTimeToParts": [Function],
+                                  "formats": Object {},
+                                  "formatters": Object {
+                                    "getDateTimeFormat": [Function],
+                                    "getDisplayNames": [Function],
+                                    "getListFormat": [Function],
+                                    "getMessageFormat": [Function],
+                                    "getNumberFormat": [Function],
+                                    "getPluralRules": [Function],
+                                    "getRelativeTimeFormat": [Function],
+                                  },
+                                  "locale": "en",
+                                  "messages": Object {},
+                                  "onError": [Function],
+                                  "textComponent": "span",
+                                  "timeZone": "Etc/UTC",
+                                  "wrapRichTextChunksInFragment": undefined,
+                                }
+                              }
+                            >
+                              Add to a Channel
+                            </OverlayWrapper>
+                          }
+                          placement="top"
+                          trigger={
+                            Array [
+                              "hover",
+                              "focus",
+                            ]
+                          }
+                        >
+                          <div
+                            onBlur={[Function]}
+                            onClick={null}
+                            onFocus={[Function]}
+                            onMouseOut={[Function]}
+                            onMouseOver={[Function]}
+                          >
+                            <Connect(ToggleModalButton)
+                              ariaLabel="Add to a Channel"
+                              className="btn icon-btn"
+                              dialogProps={
+                                Object {
+                                  "onExited": [Function],
+                                  "user": Object {
+                                    "auth_service": "",
+                                    "bot_description": "",
+                                    "create_at": 0,
+                                    "delete_at": 0,
+                                    "email": "",
+                                    "first_name": "",
+                                    "id": "user_id",
+                                    "is_bot": false,
+                                    "last_activity_at": 0,
+                                    "last_name": "",
+                                    "last_password_update": 0,
+                                    "last_picture_update": 0,
+                                    "locale": "",
+                                    "mfa_active": false,
+                                    "nickname": "",
+                                    "notify_props": Object {
+                                      "channel": "false",
+                                      "comments": "never",
+                                      "desktop": "default",
+                                      "desktop_sound": "false",
+                                      "email": "false",
+                                      "first_name": "false",
+                                      "mark_unread": "mention",
+                                      "mention_keys": "",
+                                      "push": "none",
+                                      "push_status": "offline",
+                                    },
+                                    "password": "",
+                                    "position": "",
+                                    "props": Object {},
+                                    "roles": "",
+                                    "terms_of_service_create_at": 0,
+                                    "terms_of_service_id": "",
+                                    "update_at": 0,
+                                    "username": "some_username",
+                                  },
+                                }
+                              }
+                              dialogType={
+                                Object {
+                                  "$$typeof": Symbol(react.memo),
+                                  "WrappedComponent": [Function],
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
+                              id="addToChannelButton"
+                              modalId="add_user_to_channel"
+                              onClick={[Function]}
+                            >
+                              <ToggleModalButton
+                                actions={
+                                  Object {
+                                    "openModal": [Function],
+                                  }
+                                }
+                                ariaLabel="Add to a Channel"
+                                className="btn icon-btn"
+                                dialogProps={
+                                  Object {
+                                    "onExited": [Function],
+                                    "user": Object {
+                                      "auth_service": "",
+                                      "bot_description": "",
+                                      "create_at": 0,
+                                      "delete_at": 0,
+                                      "email": "",
+                                      "first_name": "",
+                                      "id": "user_id",
+                                      "is_bot": false,
+                                      "last_activity_at": 0,
+                                      "last_name": "",
+                                      "last_password_update": 0,
+                                      "last_picture_update": 0,
+                                      "locale": "",
+                                      "mfa_active": false,
+                                      "nickname": "",
+                                      "notify_props": Object {
+                                        "channel": "false",
+                                        "comments": "never",
+                                        "desktop": "default",
+                                        "desktop_sound": "false",
+                                        "email": "false",
+                                        "first_name": "false",
+                                        "mark_unread": "mention",
+                                        "mention_keys": "",
+                                        "push": "none",
+                                        "push_status": "offline",
+                                      },
+                                      "password": "",
+                                      "position": "",
+                                      "props": Object {},
+                                      "roles": "",
+                                      "terms_of_service_create_at": 0,
+                                      "terms_of_service_id": "",
+                                      "update_at": 0,
+                                      "username": "some_username",
+                                    },
+                                  }
+                                }
+                                dialogType={
+                                  Object {
+                                    "$$typeof": Symbol(react.memo),
+                                    "WrappedComponent": [Function],
+                                    "compare": null,
+                                    "type": [Function],
+                                  }
+                                }
+                                id="addToChannelButton"
+                                modalId="add_user_to_channel"
+                                onClick={[Function]}
+                              >
+                                <button
+                                  aria-label="Add to a Channel dialog"
+                                  className="style--none btn icon-btn"
+                                  id="addToChannelButton"
+                                  onClick={[Function]}
+                                >
+                                  <AccountPlusOutlineIcon
+                                    aria-label="Add User to Channel Icon"
+                                    size={18}
+                                  >
+                                    <svg
+                                      aria-label="Add User to Channel Icon"
+                                      fill="currentColor"
+                                      height={18}
+                                      version="1.1"
+                                      viewBox="0 0 24 24"
+                                      width={18}
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
+	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
+	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
+	c-0.548,0.66-1.247,1.087-2.076,1.087c-0.268,0-0.522-0.044-0.763-0.126c-0.12-0.041-0.237-0.092-0.35-0.151
+	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
+	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
+	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
+                                      />
+                                    </svg>
+                                  </AccountPlusOutlineIcon>
+                                </button>
+                              </ToggleModalButton>
+                            </Connect(ToggleModalButton)>
+                          </div>
+                        </OverlayTrigger>
+                      </OverlayTrigger>
+                      <Connect(ProfilePopoverCallButton)
+                        customButton={
+                          <OverlayTrigger
+                            defaultOverlayShown={false}
+                            delayShow={400}
+                            overlay={
+                              <Tooltip
+                                id="startCallTooltip"
+                              >
+                                Start Call
+                              </Tooltip>
+                            }
+                            placement="top"
+                            trigger={
+                              Array [
+                                "hover",
+                                "focus",
+                              ]
+                            }
+                          >
+                            <button
+                              className="btn icon-btn"
+                              id="startCallButton"
+                              type="button"
+                            >
+                              <PhoneInTalkIcon
+                                aria-label="Start Call"
+                                size={18}
+                              />
+                            </button>
+                          </OverlayTrigger>
+                        }
+                        userId="0"
+                      >
+                        <ProfilePopoverCallButton
+                          currentUserId=""
+                          customButton={
+                            <OverlayTrigger
+                              defaultOverlayShown={false}
+                              delayShow={400}
+                              overlay={
+                                <Tooltip
+                                  id="startCallTooltip"
+                                >
+                                  Start Call
+                                </Tooltip>
+                              }
+                              placement="top"
+                              trigger={
+                                Array [
+                                  "hover",
+                                  "focus",
+                                ]
+                              }
+                            >
+                              <button
+                                className="btn icon-btn"
+                                id="startCallButton"
+                                type="button"
+                              >
+                                <PhoneInTalkIcon
+                                  aria-label="Start Call"
+                                  size={18}
+                                />
+                              </button>
+                            </OverlayTrigger>
+                          }
+                          dispatch={[Function]}
+                          pluginCallComponents={Array []}
+                          sidebarOpen={false}
+                          userId="0"
+                        />
+                      </Connect(ProfilePopoverCallButton)>
+                    </div>
+                  </div>
+                  <Connect(Pluggable)
+                    hide={[MockFunction]}
+                    key="profilePopoverPluggable3"
+                    pluggableName="PopoverUserActions"
+                    status="offline"
+                    user={
+                      Object {
+                        "auth_service": "",
+                        "bot_description": "",
+                        "create_at": 0,
+                        "delete_at": 0,
+                        "email": "",
+                        "first_name": "",
+                        "id": "user_id",
+                        "is_bot": false,
+                        "last_activity_at": 0,
+                        "last_name": "",
+                        "last_password_update": 0,
+                        "last_picture_update": 0,
+                        "locale": "",
+                        "mfa_active": false,
+                        "nickname": "",
+                        "notify_props": Object {
+                          "channel": "false",
+                          "comments": "never",
+                          "desktop": "default",
+                          "desktop_sound": "false",
+                          "email": "false",
+                          "first_name": "false",
+                          "mark_unread": "mention",
+                          "mention_keys": "",
+                          "push": "none",
+                          "push_status": "offline",
+                        },
+                        "password": "",
+                        "position": "",
+                        "props": Object {},
+                        "roles": "",
+                        "terms_of_service_create_at": 0,
+                        "terms_of_service_id": "",
+                        "update_at": 0,
+                        "username": "some_username",
+                      }
+                    }
+                  >
+                    <Pluggable
+                      components={
+                        Object {
+                          "CallButton": Array [],
+                        }
+                      }
+                      dispatch={[Function]}
+                      hide={[MockFunction]}
+                      pluggableName="PopoverUserActions"
+                      status="offline"
+                      theme={
+                        Object {
+                          "awayIndicator": "#ffbc1f",
+                          "buttonBg": "#1c58d9",
+                          "buttonColor": "#ffffff",
+                          "centerChannelBg": "#ffffff",
+                          "centerChannelColor": "#3f4350",
+                          "codeTheme": "github",
+                          "dndIndicator": "#d24b4e",
+                          "errorTextColor": "#d24b4e",
+                          "linkColor": "#386fe5",
+                          "mentionBg": "#ffffff",
+                          "mentionBj": "#ffffff",
+                          "mentionColor": "#1e325c",
+                          "mentionHighlightBg": "#ffd470",
+                          "mentionHighlightLink": "#1b1d22",
+                          "newMessageSeparator": "#cc8f00",
+                          "onlineIndicator": "#3db887",
+                          "sidebarBg": "#1e325c",
+                          "sidebarHeaderBg": "#192a4d",
+                          "sidebarHeaderTextColor": "#ffffff",
+                          "sidebarTeamBarBg": "#14213e",
+                          "sidebarText": "#ffffff",
+                          "sidebarTextActiveBorder": "#5d89ea",
+                          "sidebarTextActiveColor": "#ffffff",
+                          "sidebarTextHoverBg": "#28427b",
+                          "sidebarUnreadText": "#ffffff",
+                          "type": "Denim",
+                        }
+                      }
+                      user={
+                        Object {
+                          "auth_service": "",
+                          "bot_description": "",
+                          "create_at": 0,
+                          "delete_at": 0,
+                          "email": "",
+                          "first_name": "",
+                          "id": "user_id",
+                          "is_bot": false,
+                          "last_activity_at": 0,
+                          "last_name": "",
+                          "last_password_update": 0,
+                          "last_picture_update": 0,
+                          "locale": "",
+                          "mfa_active": false,
+                          "nickname": "",
+                          "notify_props": Object {
+                            "channel": "false",
+                            "comments": "never",
+                            "desktop": "default",
+                            "desktop_sound": "false",
+                            "email": "false",
+                            "first_name": "false",
+                            "mark_unread": "mention",
+                            "mention_keys": "",
+                            "push": "none",
+                            "push_status": "offline",
+                          },
+                          "password": "",
+                          "position": "",
+                          "props": Object {},
+                          "roles": "",
+                          "terms_of_service_create_at": 0,
+                          "terms_of_service_id": "",
+                          "update_at": 0,
+                          "username": "some_username",
+                        }
+                      }
+                    />
+                  </Connect(Pluggable)>
+                </div>
+              </div>
+              <span
+                onFocus={[Function]}
+                tabIndex={0}
+              />
+            </div>
+          </div>
+        </Popover>
+      </Popover>
+    </ProfilePopover>
+  </injectIntl(ProfilePopover)>
+</Provider>
+`;

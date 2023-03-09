@@ -1,0 +1,85 @@
+@charset "UTF-8";
+
+@import 'sass/utils/variables';
+
+.nav-pills__unread-indicator {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    width: 188px;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    margin-left: 50%;
+    background: var(--mention-bg);
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+    color: var(--mention-color);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 16px;
+    opacity: 0;
+    text-align: center;
+    transform: translateX(-50%);
+    visibility: hidden;
+
+    .icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+    }
+
+    body.enable-animations & {
+        transition-delay: 0s;
+        transition-duration: $transition-quick;
+        transition-property: opacity, visibility;
+        transition-timing-function: ease-out, step-start;
+    }
+
+    svg {
+        fill: var(--mention-color);
+    }
+
+    &-top {
+        top: 16px;
+
+        .icon {
+            svg {
+                transform: rotate(180deg);
+            }
+        }
+    }
+
+    &-bottom {
+        bottom: 16px;
+    }
+
+    &--visible {
+        opacity: 1;
+        visibility: visible;
+
+        body.enable-animations & {
+            transition-delay: 0s;
+            transition-duration: $transition-quick;
+            transition-property: opacity, visibility;
+            transition-timing-function: ease-out, step-start;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        width: 260px;
+    }
+
+    @media screen and (max-width: 480px) {
+        width: 230px;
+    }
+
+    @media screen and (max-width: 320px) {
+        .multi-teams & {
+            width: 190px;
+        }
+    }
+}

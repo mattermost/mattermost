@@ -1,0 +1,1008 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AboutBuildModal should match snapshot for cloud edition 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <AboutBuildModalCloud
+    config={
+      Object {
+        "BuildDate": "21 January 2017",
+        "BuildEnterpriseReady": "true",
+        "BuildHash": "abcdef1234567890",
+        "BuildHashEnterprise": "0123456789abcdef",
+        "BuildNumber": "3.6.2",
+        "PrivacyPolicyLink": "https://about.custom.com/privacy-policy/",
+        "SQLDriverName": "Postgres",
+        "SchemaVersion": "77",
+        "TermsOfServiceLink": "https://about.custom.com/default-terms/",
+        "Version": "3.6.0",
+      }
+    }
+    doHide={[MockFunction]}
+    license={
+      Object {
+        "Cloud": "true",
+        "Company": "Mattermost Inc",
+        "IsLicensed": "true",
+      }
+    }
+    onExited={[MockFunction]}
+    show={true}
+  />
+</ContextProvider>
+`;
+
+exports[`components/AboutBuildModal should match snapshot for enterprise edition 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="aboutModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="aboutModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="About {appTitle}"
+        id="about.title"
+        values={
+          Object {
+            "appTitle": "Mattermost",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="about-modal__content"
+    >
+      <div
+        className="about-modal__logo"
+      >
+        <MattermostLogo />
+      </div>
+      <div>
+        <h3
+          className="about-modal__title"
+        >
+          <strong>
+            Mattermost
+             
+            <MemoizedFormattedMessage
+              defaultMessage="Enterprise Edition"
+              id="about.enterpriseEditione1"
+            />
+          </strong>
+        </h3>
+        <p
+          className="about-modal__subtitle pb-2"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Modern communication from behind your firewall."
+            id="about.enterpriseEditionSt"
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Mattermost Version:"
+              id="about.version"
+            />
+            <span
+              id="versionString"
+            >
+               3.6.2
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database Schema Version:"
+              id="about.dbversion"
+            />
+            <span
+              id="dbversionString"
+            >
+               77
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database:"
+              id="about.database"
+            />
+             Postgres
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Licensed to:"
+            id="about.licensed"
+          />
+          <Nbsp />
+          Mattermost Inc
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__footer"
+    >
+      <div>
+        <MemoizedFormattedMessage
+          defaultMessage="Learn more about Enterprise Edition at "
+          id="about.enterpriseEditionLearn"
+        />
+        <ExternalLink
+          href="https://mattermost.com/"
+          location="about_build_modal"
+        >
+          mattermost.com
+        </ExternalLink>
+      </div>
+      <div
+        className="form-group"
+      >
+        <div
+          className="about-modal__copyright"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
+            id="about.copyright"
+            values={
+              Object {
+                "currentYear": 2017,
+              }
+            }
+          />
+        </div>
+        <div
+          className="about-modal__links"
+        >
+          <ExternalLink
+            href="https://mattermost.com/terms-of-use/"
+            id="tosLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Terms of Use"
+              id="about.tos"
+            />
+          </ExternalLink>
+           - 
+          <ExternalLink
+            href="https://mattermost.com/privacy-policy/"
+            id="privacyLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Privacy Policy"
+              id="about.privacy"
+            />
+          </ExternalLink>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__notice form-group pt-3"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps."
+          id="about.notice"
+          values={
+            Object {
+              "linkDesktop": [Function],
+              "linkMobile": [Function],
+              "linkServer": [Function],
+            }
+          }
+        />
+      </p>
+    </div>
+    <div
+      className="about-modal__hash"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Hash:"
+          id="about.hash"
+        />
+        <Nbsp />
+        abcdef1234567890
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="EE Build Hash:"
+          id="about.hashee"
+        />
+        <Nbsp />
+        0123456789abcdef
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="Webapp Build Hash:"
+          id="about.hashwebapp"
+        />
+        <Nbsp />
+        0a1b2c3d4f
+      </p>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Date:"
+          id="about.date"
+        />
+        <Nbsp />
+        21 January 2017
+      </p>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/AboutBuildModal should match snapshot for team edition 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="aboutModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="aboutModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="About {appTitle}"
+        id="about.title"
+        values={
+          Object {
+            "appTitle": "Mattermost",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="about-modal__content"
+    >
+      <div
+        className="about-modal__logo"
+      >
+        <MattermostLogo />
+      </div>
+      <div>
+        <h3
+          className="about-modal__title"
+        >
+          <strong>
+            Mattermost
+             
+            <MemoizedFormattedMessage
+              defaultMessage="Team Edition"
+              id="about.teamEditiont0"
+            />
+          </strong>
+        </h3>
+        <p
+          className="about-modal__subtitle pb-2"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="All your team communication in one place, instantly searchable and accessible anywhere."
+            id="about.teamEditionSt"
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Mattermost Version:"
+              id="about.version"
+            />
+            <span
+              id="versionString"
+            >
+               3.6.2
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database Schema Version:"
+              id="about.dbversion"
+            />
+            <span
+              id="dbversionString"
+            >
+               77
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database:"
+              id="about.database"
+            />
+             Postgres
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__footer"
+    >
+      <div>
+        <MemoizedFormattedMessage
+          defaultMessage="Join the Mattermost community at "
+          id="about.teamEditionLearn"
+        />
+        <ExternalLink
+          href="https://mattermost.com/community/"
+          location="about_build_modal"
+        >
+          mattermost.com/community/
+        </ExternalLink>
+      </div>
+      <div
+        className="form-group"
+      >
+        <div
+          className="about-modal__copyright"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
+            id="about.copyright"
+            values={
+              Object {
+                "currentYear": 2017,
+              }
+            }
+          />
+        </div>
+        <div
+          className="about-modal__links"
+        >
+          <ExternalLink
+            href="https://mattermost.com/terms-of-use/"
+            id="tosLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Terms of Use"
+              id="about.tos"
+            />
+          </ExternalLink>
+           - 
+          <ExternalLink
+            href="https://mattermost.com/privacy-policy/"
+            id="privacyLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Privacy Policy"
+              id="about.privacy"
+            />
+          </ExternalLink>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__notice form-group pt-3"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps."
+          id="about.notice"
+          values={
+            Object {
+              "linkDesktop": [Function],
+              "linkMobile": [Function],
+              "linkServer": [Function],
+            }
+          }
+        />
+      </p>
+    </div>
+    <div
+      className="about-modal__hash"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Hash:"
+          id="about.hash"
+        />
+        <Nbsp />
+        abcdef1234567890
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="EE Build Hash:"
+          id="about.hashee"
+        />
+        <Nbsp />
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="Webapp Build Hash:"
+          id="about.hashwebapp"
+        />
+        <Nbsp />
+        0a1b2c3d4f
+      </p>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Date:"
+          id="about.date"
+        />
+        <Nbsp />
+        21 January 2017
+      </p>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/AboutBuildModal should show ci if a ci build 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="aboutModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="aboutModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="About {appTitle}"
+        id="about.title"
+        values={
+          Object {
+            "appTitle": "Mattermost",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="about-modal__content"
+    >
+      <div
+        className="about-modal__logo"
+      >
+        <MattermostLogo />
+      </div>
+      <div>
+        <h3
+          className="about-modal__title"
+        >
+          <strong>
+            Mattermost
+             
+            <MemoizedFormattedMessage
+              defaultMessage="Team Edition"
+              id="about.teamEditiont0"
+            />
+          </strong>
+        </h3>
+        <p
+          className="about-modal__subtitle pb-2"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="All your team communication in one place, instantly searchable and accessible anywhere."
+            id="about.teamEditionSt"
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Mattermost Version:"
+              id="about.version"
+            />
+            <span
+              id="versionString"
+            >
+               ci
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database Schema Version:"
+              id="about.dbversion"
+            />
+            <span
+              id="dbversionString"
+            >
+               77
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Build Number:"
+              id="about.buildnumber"
+            />
+            <span
+              id="buildnumberString"
+            >
+               123
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database:"
+              id="about.database"
+            />
+             Postgres
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__footer"
+    >
+      <div>
+        <MemoizedFormattedMessage
+          defaultMessage="Join the Mattermost community at "
+          id="about.teamEditionLearn"
+        />
+        <ExternalLink
+          href="https://mattermost.com/community/"
+          location="about_build_modal"
+        >
+          mattermost.com/community/
+        </ExternalLink>
+      </div>
+      <div
+        className="form-group"
+      >
+        <div
+          className="about-modal__copyright"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
+            id="about.copyright"
+            values={
+              Object {
+                "currentYear": 2017,
+              }
+            }
+          />
+        </div>
+        <div
+          className="about-modal__links"
+        >
+          <ExternalLink
+            href="https://mattermost.com/terms-of-use/"
+            id="tosLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Terms of Use"
+              id="about.tos"
+            />
+          </ExternalLink>
+           - 
+          <ExternalLink
+            href="https://mattermost.com/privacy-policy/"
+            id="privacyLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Privacy Policy"
+              id="about.privacy"
+            />
+          </ExternalLink>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__notice form-group pt-3"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps."
+          id="about.notice"
+          values={
+            Object {
+              "linkDesktop": [Function],
+              "linkMobile": [Function],
+              "linkServer": [Function],
+            }
+          }
+        />
+      </p>
+    </div>
+    <div
+      className="about-modal__hash"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Hash:"
+          id="about.hash"
+        />
+        <Nbsp />
+        abcdef1234567890
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="EE Build Hash:"
+          id="about.hashee"
+        />
+        <Nbsp />
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="Webapp Build Hash:"
+          id="about.hashwebapp"
+        />
+        <Nbsp />
+        0a1b2c3d4f
+      </p>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Date:"
+          id="about.date"
+        />
+        <Nbsp />
+        21 January 2017
+      </p>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/AboutBuildModal should show dev if this is a dev build 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="aboutModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="aboutModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="About {appTitle}"
+        id="about.title"
+        values={
+          Object {
+            "appTitle": "Mattermost",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="about-modal__content"
+    >
+      <div
+        className="about-modal__logo"
+      >
+        <MattermostLogo />
+      </div>
+      <div>
+        <h3
+          className="about-modal__title"
+        >
+          <strong>
+            Mattermost
+             
+            <MemoizedFormattedMessage
+              defaultMessage="Team Edition"
+              id="about.teamEditiont0"
+            />
+          </strong>
+        </h3>
+        <p
+          className="about-modal__subtitle pb-2"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="All your team communication in one place, instantly searchable and accessible anywhere."
+            id="about.teamEditionSt"
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Mattermost Version:"
+              id="about.version"
+            />
+            <span
+              id="versionString"
+            >
+               dev
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database Schema Version:"
+              id="about.dbversion"
+            />
+            <span
+              id="dbversionString"
+            >
+               77
+            </span>
+          </div>
+          <div>
+            <MemoizedFormattedMessage
+              defaultMessage="Database:"
+              id="about.database"
+            />
+             Postgres
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__footer"
+    >
+      <div>
+        <MemoizedFormattedMessage
+          defaultMessage="Join the Mattermost community at "
+          id="about.teamEditionLearn"
+        />
+        <ExternalLink
+          href="https://mattermost.com/community/"
+          location="about_build_modal"
+        >
+          mattermost.com/community/
+        </ExternalLink>
+      </div>
+      <div
+        className="form-group"
+      >
+        <div
+          className="about-modal__copyright"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
+            id="about.copyright"
+            values={
+              Object {
+                "currentYear": 2017,
+              }
+            }
+          />
+        </div>
+        <div
+          className="about-modal__links"
+        >
+          <ExternalLink
+            href="https://mattermost.com/terms-of-use/"
+            id="tosLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Terms of Use"
+              id="about.tos"
+            />
+          </ExternalLink>
+           - 
+          <ExternalLink
+            href="https://mattermost.com/privacy-policy/"
+            id="privacyLink"
+            location="about_build_modal"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Privacy Policy"
+              id="about.privacy"
+            />
+          </ExternalLink>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__notice form-group pt-3"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps."
+          id="about.notice"
+          values={
+            Object {
+              "linkDesktop": [Function],
+              "linkMobile": [Function],
+              "linkServer": [Function],
+            }
+          }
+        />
+      </p>
+    </div>
+    <div
+      className="about-modal__hash"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Hash:"
+          id="about.hash"
+        />
+        <Nbsp />
+        abcdef1234567890
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="EE Build Hash:"
+          id="about.hashee"
+        />
+        <Nbsp />
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="Webapp Build Hash:"
+          id="about.hashwebapp"
+        />
+        <Nbsp />
+        0a1b2c3d4f
+      </p>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Build Date:"
+          id="about.date"
+        />
+        <Nbsp />
+        21 January 2017
+      </p>
+    </div>
+  </ModalBody>
+</Modal>
+`;

@@ -1,0 +1,11 @@
+.image_preview {
+    &__image {
+        max-height: calc(100vh - 168px);
+        border-radius: 8px;
+        cursor: default;
+
+        @media screen and (max-width: 768px) {
+            border-radius: 0;
+        }
+    }
+}

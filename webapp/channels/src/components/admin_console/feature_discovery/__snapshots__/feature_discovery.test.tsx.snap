@@ -1,0 +1,138 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/feature_discovery FeatureDiscovery should match snapshot 1`] = `
+<div
+  className="FeatureDiscovery"
+>
+  <div
+    className="FeatureDiscovery_copyWrapper"
+  >
+    <div
+      className="FeatureDiscovery_title"
+      data-testid="featureDiscovery_title"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Foo"
+        id="translation.test.title"
+      />
+    </div>
+    <div
+      className="FeatureDiscovery_copy"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Bar"
+        id="translation.test.copy"
+      />
+    </div>
+    <StartTrialBtn
+      btnClass="btn btn-primary"
+      message="Start trial"
+      renderAsButton={true}
+      telemetryId="start_self_hosted_trial_from_test"
+      trackingPage="test"
+    />
+    <ExternalLink
+      className="btn btn-secondary"
+      data-testid="featureDiscovery_secondaryCallToAction"
+      href="https://test.mattermost.com/secondary/"
+      location="feature_discovery"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Learn more"
+        id="admin.ldap_feature_discovery.call_to_action.secondary"
+      />
+    </ExternalLink>
+    <p
+      className="trial-legal-terms"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="By clicking <highlight>Start trial</highlight>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy> and receiving product emails."
+        id="admin.feature_discovery.trial-request.accept-terms"
+        values={
+          Object {
+            "highlight": [Function],
+            "linkEvaluation": [Function],
+            "linkPrivacy": [Function],
+          }
+        }
+      />
+    </p>
+  </div>
+  <div
+    className="FeatureDiscovery_imageWrapper"
+  >
+    <SamlSVG />
+  </div>
+</div>
+`;
+
+exports[`components/feature_discovery FeatureDiscovery should match snapshot when is cloud environment 1`] = `
+<div
+  className="FeatureDiscovery"
+>
+  <div
+    className="FeatureDiscovery_copyWrapper"
+  >
+    <div
+      className="FeatureDiscovery_title"
+      data-testid="featureDiscovery_title"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Foo"
+        id="translation.test.title"
+      />
+    </div>
+    <div
+      className="FeatureDiscovery_copy"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Bar"
+        id="translation.test.copy"
+      />
+    </div>
+    <CloudStartTrialButton
+      extraClass="btn btn-primary"
+      message="Try free for 30 days"
+      telemetryId="start_cloud_trial_from_test"
+    />
+    <ExternalLink
+      className="btn btn-secondary"
+      data-testid="featureDiscovery_secondaryCallToAction"
+      href="https://test.mattermost.com/secondary/"
+      location="feature_discovery"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Learn more"
+        id="admin.ldap_feature_discovery.call_to_action.secondary"
+      />
+    </ExternalLink>
+    <p
+      className="trial-legal-terms"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails."
+        id="admin.feature_discovery.trial-request.accept-terms.cloudFree"
+        values={
+          Object {
+            "highlight": [Function],
+            "linkEvaluation": [Function],
+            "linkPrivacy": [Function],
+            "trialLength": 30,
+          }
+        }
+      />
+    </p>
+  </div>
+  <div
+    className="FeatureDiscovery_imageWrapper"
+  >
+    <SamlSVG />
+  </div>
+</div>
+`;
+
+exports[`components/feature_discovery FeatureDiscovery should match snapshot when is cloud environment and subscription is not loaded yet in redux store 1`] = `
+<LoadingSpinner
+  text={null}
+/>
+`;

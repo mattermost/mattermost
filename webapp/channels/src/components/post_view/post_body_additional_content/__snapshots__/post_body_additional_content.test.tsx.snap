@@ -1,0 +1,344 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PostBodyAdditionalContent with a YouTube video should not render content when isEmbedVisible is false 1`] = `
+<div>
+  <button
+    aria-label="Toggle Embed Visibility"
+    className="style--none post__embed-visibility color--link pull-left"
+    data-expanded={false}
+    key="toggle"
+    onClick={[Function]}
+  />
+  <span>
+    some children
+  </span>
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a YouTube video should render correctly 1`] = `
+<div>
+  <button
+    aria-label="Toggle Embed Visibility"
+    className="style--none post__embed-visibility color--link pull-left"
+    data-expanded={true}
+    key="toggle"
+    onClick={[Function]}
+  />
+  <span>
+    some children
+  </span>
+  <Connect(YoutubeVideo)
+    link="https://www.youtube.com/watch?v=d-YO3v-wJts"
+    postId="post_id_1"
+    show={true}
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a YouTube video should render the toggle after a message containing more than just a link 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <button
+    aria-label="Toggle Embed Visibility"
+    className="style--none post__embed-visibility color--link "
+    data-expanded={true}
+    key="toggle"
+    onClick={[Function]}
+  />
+  <Connect(YoutubeVideo)
+    link="https://www.youtube.com/watch?v=d-YO3v-wJts"
+    postId="post_id_1"
+    show={true}
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a message attachment should render correctly 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <MessageAttachmentList
+    attachments={Array []}
+    imagesMetadata={Object {}}
+    postId="post_id_1"
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a normal link Should render nothing if the plugin matches but isEmbedVisible is false 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a normal link Should render nothing if the registered plugins don't match 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a normal link Should render the plugin component if it matches and is not toggeable 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <EmbedMP3
+    embed={
+      Object {
+        "type": "link",
+        "url": "https://example.com/song.mp3",
+      }
+    }
+    webSocketClient={
+      WebSocketClient {
+        "closeCallback": null,
+        "closeListeners": Set {},
+        "conn": null,
+        "connectFailCount": 0,
+        "connectionId": "",
+        "connectionUrl": null,
+        "errorCallback": null,
+        "errorListeners": Set {},
+        "eventCallback": null,
+        "firstConnectCallback": null,
+        "firstConnectListeners": Set {},
+        "messageListeners": Set {},
+        "missedEventCallback": null,
+        "missedMessageListeners": Set {},
+        "reconnectCallback": null,
+        "reconnectListeners": Set {},
+        "responseCallbacks": Object {},
+        "responseSequence": 1,
+        "serverSequence": 0,
+      }
+    }
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a normal link Should render the plugin component if it matches and is toggeable 1`] = `
+<div>
+  <button
+    aria-label="Toggle Embed Visibility"
+    className="style--none post__embed-visibility color--link pull-left"
+    data-expanded={true}
+    key="toggle"
+    onClick={[Function]}
+  />
+  <span>
+    some children
+  </span>
+  <EmbedMP3
+    embed={
+      Object {
+        "type": "link",
+        "url": "https://example.com/song.mp3",
+      }
+    }
+    webSocketClient={
+      WebSocketClient {
+        "closeCallback": null,
+        "closeListeners": Set {},
+        "conn": null,
+        "connectFailCount": 0,
+        "connectionId": "",
+        "connectionUrl": null,
+        "errorCallback": null,
+        "errorListeners": Set {},
+        "eventCallback": null,
+        "firstConnectCallback": null,
+        "firstConnectListeners": Set {},
+        "messageListeners": Set {},
+        "missedEventCallback": null,
+        "missedMessageListeners": Set {},
+        "reconnectCallback": null,
+        "reconnectListeners": Set {},
+        "responseCallbacks": Object {},
+        "responseSequence": 1,
+        "serverSequence": 0,
+      }
+    }
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a permalinklink Render permalink preview 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <Connect(PostMessagePreview)
+    handleFileDropdownOpened={[MockFunction]}
+    metadata={
+      Object {
+        "channel_display_name": "channel1",
+        "channel_id": "channel_id",
+        "channel_type": "O",
+        "post_id": "post_id123",
+        "team_name": "core",
+      }
+    }
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with a permalinklink Render permalink preview with no data 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with an image preview should render correctly 1`] = `
+<div>
+  <button
+    aria-label="Toggle Embed Visibility"
+    className="style--none post__embed-visibility color--link pull-left"
+    data-expanded={true}
+    key="toggle"
+    onClick={[Function]}
+  />
+  <span>
+    some children
+  </span>
+  <Connect(PostImage)
+    imageMetadata={Object {}}
+    link="https://example.com/image.png"
+    post={
+      Object {
+        "channel_id": "channel_id",
+        "create_at": 1,
+        "id": "post_id_1",
+        "message": "https://example.com/image.png",
+        "metadata": Object {
+          "embeds": Array [
+            Object {
+              "type": "image",
+              "url": "https://example.com/image.png",
+            },
+          ],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {
+            "https://example.com/image.png": Object {},
+          },
+          "reactions": Array [],
+        },
+        "root_id": "root_id",
+      }
+    }
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with an image preview should render the toggle after a message containing more than just a link 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <button
+    aria-label="Toggle Embed Visibility"
+    className="style--none post__embed-visibility color--link "
+    data-expanded={true}
+    key="toggle"
+    onClick={[Function]}
+  />
+  <Connect(PostImage)
+    imageMetadata={Object {}}
+    link="https://example.com/image.png"
+    post={
+      Object {
+        "channel_id": "channel_id",
+        "create_at": 1,
+        "id": "post_id_1",
+        "message": "This is an image: https://example.com/image.png",
+        "metadata": Object {
+          "embeds": Array [
+            Object {
+              "type": "image",
+              "url": "https://example.com/image.png",
+            },
+          ],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {
+            "https://example.com/image.png": Object {},
+          },
+          "reactions": Array [],
+        },
+        "root_id": "root_id",
+      }
+    }
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with an opengraph preview should render correctly 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <Connect(PostAttachmentOpenGraph)
+    isEmbedVisible={true}
+    link="https://example.com/image.png"
+    post={
+      Object {
+        "channel_id": "channel_id",
+        "create_at": 1,
+        "id": "post_id_1",
+        "message": "https://example.com/image.png",
+        "metadata": Object {
+          "embeds": Array [
+            Object {
+              "type": "opengraph",
+              "url": "https://example.com/image.png",
+            },
+          ],
+        },
+        "root_id": "root_id",
+      }
+    }
+    postId="post_id_1"
+    toggleEmbedVisibility={[Function]}
+  />
+</div>
+`;
+
+exports[`PostBodyAdditionalContent with an opengraph preview should render the toggle after a message containing more than just a link 1`] = `
+<div>
+  <span>
+    some children
+  </span>
+  <Connect(PostAttachmentOpenGraph)
+    isEmbedVisible={true}
+    link="https://example.com/image.png"
+    post={
+      Object {
+        "channel_id": "channel_id",
+        "create_at": 1,
+        "id": "post_id_1",
+        "message": "This is a link: https://example.com/image.png",
+        "metadata": Object {
+          "embeds": Array [
+            Object {
+              "type": "opengraph",
+              "url": "https://example.com/image.png",
+            },
+          ],
+        },
+        "root_id": "root_id",
+      }
+    }
+    postId="post_id_1"
+    toggleEmbedVisibility={[Function]}
+  />
+</div>
+`;

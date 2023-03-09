@@ -1,0 +1,325 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/delete_post_modal should match snapshot for delete_post_modal with 0 comments 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="deletePostModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={false}
+  id="deletePostModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntered={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Confirm {term} Delete"
+        id="delete_post.confirm"
+        values={
+          Object {
+            "term": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Post"
+              id="delete_post.post"
+            />,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Are you sure you want to delete this {term}?"
+      id="delete_post.question"
+      values={
+        Object {
+          "term": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Post"
+            id="delete_post.post"
+          />,
+        }
+      }
+    />
+    <br />
+    <br />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="delete_post.cancel"
+      />
+    </button>
+    <button
+      autoFocus={true}
+      className="btn btn-danger"
+      id="deletePostModalButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Delete"
+        id="delete_post.del"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/delete_post_modal should match snapshot for delete_post_modal with 1 comment 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="deletePostModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={false}
+  id="deletePostModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntered={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Confirm {term} Delete"
+        id="delete_post.confirm"
+        values={
+          Object {
+            "term": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Post"
+              id="delete_post.post"
+            />,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Are you sure you want to delete this {term}?"
+      id="delete_post.question"
+      values={
+        Object {
+          "term": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Post"
+            id="delete_post.post"
+          />,
+        }
+      }
+    />
+    <br />
+    <br />
+    <MemoizedFormattedMessage
+      defaultMessage="This post has {count, number} {count, plural, one {comment} other {comments}} on it."
+      id="delete_post.warning"
+      values={
+        Object {
+          "count": 1,
+        }
+      }
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="delete_post.cancel"
+      />
+    </button>
+    <button
+      autoFocus={true}
+      className="btn btn-danger"
+      id="deletePostModalButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Delete"
+        id="delete_post.del"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/delete_post_modal should match snapshot for post with 1 commentCount and is not rootPost 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="deletePostModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={false}
+  id="deletePostModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntered={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Confirm {term} Delete"
+        id="delete_post.confirm"
+        values={
+          Object {
+            "term": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Comment"
+              id="delete_post.comment"
+            />,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Are you sure you want to delete this {term}?"
+      id="delete_post.question"
+      values={
+        Object {
+          "term": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Comment"
+            id="delete_post.comment"
+          />,
+        }
+      }
+    />
+    <br />
+    <br />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="delete_post.cancel"
+      />
+    </button>
+    <button
+      autoFocus={true}
+      className="btn btn-danger"
+      id="deletePostModalButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Delete"
+        id="delete_post.del"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "types": ["cypress", "cypress-wait-until", "@testing-library/cypress", "node"],
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noEmit": true,
+    "paths": {
+      "@mattermost/types/*": ["node_modules/@mattermost/types/lib/*"]
+    }
+  },
+  "include": ["**/*.ts"]
+}

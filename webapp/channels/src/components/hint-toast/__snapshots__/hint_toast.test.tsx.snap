@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/HintToast should match snapshot 1`] = `
+<div
+  className="hint-toast__wrapper"
+>
+  <div
+    className="hint-toast"
+  >
+    <div
+      className="hint-toast__message"
+    >
+      A hint
+    </div>
+    <div
+      className="hint-toast__dismiss"
+      data-testid="dismissHintToast"
+      onClick={[Function]}
+    >
+      <CloseIcon
+        className="close-btn"
+        id="dismissHintToast"
+      />
+    </div>
+  </div>
+</div>
+`;

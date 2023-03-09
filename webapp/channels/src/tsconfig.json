@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "baseUrl": ".",
+    "useUnknownInCatchVariables": false,
+    "paths": {
+        "@mattermost/client": ["packages/client/src"],
+        "@mattermost/components": ["packages/components/src"],
+        "@mattermost/types/*": ["packages/types/src/*"],
+        "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
+        "reselect": ["packages/reselect/src"],
+        "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
+        "!!file-loader*": ["utils/empty-string"],
+        "@e2e-support/*": ["e2e/playwright/support/*"],
+        "@e2e-test.config": ["e2e/playwright/test.config.ts"]
+    }
+  },
+  "include": [
+    "./**/*"
+  ],
+  "exclude": [
+    "dist",
+    "e2e/cypress",
+    "e2e/playwright",
+    "!node_modules/@types",
+    "coverage"
+  ],
+  "references": [
+    {"path": "./packages/client"},
+    {"path": "./packages/types"}
+  ]
+}

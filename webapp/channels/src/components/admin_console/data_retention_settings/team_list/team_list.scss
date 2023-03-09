@@ -1,0 +1,23 @@
+
+.PolicyTeamsList {
+    .TeamList__nameColumn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+
+        .TeamList__lowerOpacity .TeamIcon {
+            background-color: rgba(var(--sys-center-channel-color-rgb), 0.16);
+        }
+
+        .TeamList__nameText {
+            padding-left: 12px;
+        }
+    }
+
+    .TeamList__actionColumn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+}

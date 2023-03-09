@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ColorInput should match snapshot, click on picker 1`] = `
+<div
+  className="color-input input-group"
+>
+  <input
+    className="form-control"
+    id="sidebarBg-inputColorValue"
+    maxLength={7}
+    onBlur={[Function]}
+    onChange={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    type="text"
+    value="#ffffff"
+  />
+  <span
+    className="input-group-addon color-pad"
+    id="sidebarBg-squareColorIcon"
+    onClick={[Function]}
+  >
+    <i
+      className="color-icon"
+      id="sidebarBg-squareColorIconValue"
+      style={
+        Object {
+          "backgroundColor": "#ffffff",
+        }
+      }
+    />
+  </span>
+  <div
+    className="color-popover"
+    id="sidebarBg-ChromePickerModal"
+  >
+    <ColorPicker
+      color="#ffffff"
+      disableAlpha={true}
+      onChange={[Function]}
+      styles={Object {}}
+      width={225}
+    />
+  </div>
+</div>
+`;
+
+exports[`components/ColorInput should match snapshot, init 1`] = `
+<div
+  className="color-input input-group"
+>
+  <input
+    className="form-control"
+    id="sidebarBg-inputColorValue"
+    maxLength={7}
+    onBlur={[Function]}
+    onChange={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    type="text"
+    value="#ffffff"
+  />
+  <span
+    className="input-group-addon color-pad"
+    id="sidebarBg-squareColorIcon"
+    onClick={[Function]}
+  >
+    <i
+      className="color-icon"
+      id="sidebarBg-squareColorIconValue"
+      style={
+        Object {
+          "backgroundColor": "#ffffff",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`components/ColorInput should match snapshot, opened 1`] = `
+<div
+  className="color-input input-group"
+>
+  <input
+    className="form-control"
+    id="sidebarBg-inputColorValue"
+    maxLength={7}
+    onBlur={[Function]}
+    onChange={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    type="text"
+    value="#ffffff"
+  />
+  <span
+    className="input-group-addon color-pad"
+    id="sidebarBg-squareColorIcon"
+    onClick={[Function]}
+  >
+    <i
+      className="color-icon"
+      id="sidebarBg-squareColorIconValue"
+      style={
+        Object {
+          "backgroundColor": "#ffffff",
+        }
+      }
+    />
+  </span>
+  <div
+    className="color-popover"
+    id="sidebarBg-ChromePickerModal"
+  >
+    <ColorPicker
+      color="#ffffff"
+      disableAlpha={true}
+      onChange={[Function]}
+      styles={Object {}}
+      width={225}
+    />
+  </div>
+</div>
+`;
+
+exports[`components/ColorInput should match snapshot, toggle picker 1`] = `
+<div
+  className="color-input input-group"
+>
+  <input
+    className="form-control"
+    id="sidebarBg-inputColorValue"
+    maxLength={7}
+    onBlur={[Function]}
+    onChange={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    type="text"
+    value="#ffffff"
+  />
+  <span
+    className="input-group-addon color-pad"
+    id="sidebarBg-squareColorIcon"
+    onClick={[Function]}
+  >
+    <i
+      className="color-icon"
+      id="sidebarBg-squareColorIconValue"
+      style={
+        Object {
+          "backgroundColor": "#ffffff",
+        }
+      }
+    />
+  </span>
+</div>
+`;

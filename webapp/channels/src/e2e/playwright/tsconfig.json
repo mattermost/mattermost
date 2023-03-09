@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "baseUrl": ".",
+        "paths": {
+            "@mattermost/client/*": ["../../packages/client/lib/*"],
+            "@mattermost/types/*": ["../../packages/types/lib/*"],
+            "@e2e-support/*": ["support/*"],
+            "@e2e-test.config": ["test.config.ts"]
+        }
+    },
+    "include": ["./**/*"]
+}

@@ -1,0 +1,195 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/drafts/panel/panel_header should match snapshot 1`] = `
+<header
+  className="PanelHeader"
+>
+  <div
+    className="PanelHeader__left"
+  >
+    <div>
+      title
+    </div>
+  </div>
+  <div
+    className="PanelHeader__right"
+  >
+    <div
+      className="PanelHeader__actions"
+    >
+      <div>
+        actions
+      </div>
+    </div>
+    <div
+      className="PanelHeader__info"
+    >
+      <div
+        className="PanelHeader__timestamp"
+      >
+        <Connect(injectIntl(Timestamp))
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+              "week",
+              "month",
+              "year",
+            ]
+          }
+          useSemanticOutput={false}
+          useTime={false}
+          value={1970-01-01T00:00:12.345Z}
+        />
+      </div>
+      <Memo(Tag)
+        text="draft"
+        uppercase={true}
+        variant="danger"
+      />
+    </div>
+  </div>
+</header>
+`;
+
+exports[`components/drafts/panel/panel_header should show draft actions when hovered 1`] = `
+<header
+  className="PanelHeader"
+>
+  <div
+    className="PanelHeader__left"
+  >
+    <div>
+      title
+    </div>
+  </div>
+  <div
+    className="PanelHeader__right"
+  >
+    <div
+      className="PanelHeader__actions show"
+    >
+      <div>
+        actions
+      </div>
+    </div>
+    <div
+      className="PanelHeader__info hide"
+    >
+      <div
+        className="PanelHeader__timestamp"
+      >
+        <Connect(injectIntl(Timestamp))
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+              "week",
+              "month",
+              "year",
+            ]
+          }
+          useSemanticOutput={false}
+          useTime={false}
+          value={1970-01-01T00:00:12.345Z}
+        />
+      </div>
+      <Memo(Tag)
+        text="draft"
+        uppercase={true}
+        variant="danger"
+      />
+    </div>
+  </div>
+</header>
+`;
+
+exports[`components/drafts/panel/panel_header should show sync icon when draft is from server 1`] = `
+<header
+  className="PanelHeader"
+>
+  <div
+    className="PanelHeader__left"
+  >
+    <div>
+      title
+    </div>
+  </div>
+  <div
+    className="PanelHeader__right"
+  >
+    <div
+      className="PanelHeader__actions"
+    >
+      <div>
+        actions
+      </div>
+    </div>
+    <div
+      className="PanelHeader__info"
+    >
+      <div
+        className="PanelHeader__sync-icon"
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              id="drafts-sync-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Updated from another device"
+                id="drafts.info.sync"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <SyncIcon
+            size={18}
+          />
+        </OverlayTrigger>
+      </div>
+      <div
+        className="PanelHeader__timestamp"
+      >
+        <Connect(injectIntl(Timestamp))
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+              "week",
+              "month",
+              "year",
+            ]
+          }
+          useSemanticOutput={false}
+          useTime={false}
+          value={1970-01-01T00:00:12.345Z}
+        />
+      </div>
+      <Memo(Tag)
+        text="draft"
+        uppercase={true}
+        variant="danger"
+      />
+    </div>
+  </div>
+</header>
+`;

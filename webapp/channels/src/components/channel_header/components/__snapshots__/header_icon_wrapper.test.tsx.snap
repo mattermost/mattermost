@@ -1,0 +1,260 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on ChannelFilesIcon 1`] = `
+<div>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        className="channel-files"
+        id="channelFilesTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Channel files"
+          id="channel_header.channelFiles"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="channel_files_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-file-document-outline"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on FlagIcon 1`] = `
+<div>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        className="text-nowrap"
+        id="flaggedTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saved posts"
+          id="channel_header.flagged"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="button_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <FlagIcon
+        aria-hidden="true"
+        className="icon icon__flag"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on MentionsIcon 1`] = `
+<div>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        className=""
+        id="recentMentionsTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Recent mentions"
+          id="channel_header.recentMentions"
+        />
+        <Memo(KeyboardShortcutSequence)
+          hideDescription={true}
+          isInsideTooltip={true}
+          shortcut={
+            Object {
+              "default": Object {
+                "defaultMessage": "Recent mentions:	Ctrl|Shift|M",
+                "id": "shortcuts.nav.recent_mentions",
+              },
+              "mac": Object {
+                "defaultMessage": "Recent mentions:	⌘|Shift|M",
+                "id": "shortcuts.nav.recent_mentions.mac",
+              },
+            }
+          }
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="button_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <MentionsIcon
+        aria-hidden="true"
+        className="icon icon__mentions"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on PinIcon 1`] = `
+<div>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        className="pinned-posts"
+        id="pinnedPostTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Pinned posts"
+          id="channel_header.pinnedPosts"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="pinned_posts_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <PinIcon
+        aria-hidden="true"
+        className="icon icon__pin"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on PluginIcon with tooltipText 1`] = `
+<div>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        className=""
+        id="pluginTooltip"
+      >
+        <span>
+          plugin_tooltip_text
+        </span>
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="button_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <i
+        className="fa fa-anchor"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on PluginIcon without tooltipText 1`] = `
+<Fragment>
+  <div
+    className="flex-child"
+  >
+    <button
+      className="button_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <i
+        className="fa fa-anchor"
+      />
+    </button>
+  </div>
+</Fragment>
+`;
+
+exports[`components/channel_header/components/HeaderIconWrapper should match snapshot, on SearchIcon 1`] = `
+<div>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        className=""
+        id="searchTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Search"
+          id="channel_header.search"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="search_class"
+      id="button_id"
+      onClick={[Function]}
+    >
+      <SearchIcon
+        aria-hidden="true"
+        className="icon icon__search"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;

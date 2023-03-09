@@ -1,0 +1,28 @@
+.job-table__data-retention {
+    .job-table__table {
+        border: none;
+    }
+
+    .table > thead > tr > th,
+    .table > tbody > tr > th,
+    .table > tfoot > tr > th,
+    .table > thead > tr > td,
+    .table > tbody > tr > td,
+    .table > tfoot > tr > td {
+        border-top: none;
+    }
+
+    .table > thead > tr > th {
+        border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+    }
+
+    .help-text {
+        padding: 10px 16px;
+        background: rgba(var(--sys-center-channel-color-rgb), 0.04);
+        color: var(--sys-center-channel-color);
+    }
+
+    .cancel-button-field {
+        width: 30px;
+    }
+}

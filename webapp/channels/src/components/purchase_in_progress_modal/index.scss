@@ -1,0 +1,14 @@
+.PurchaseInProgressModal {
+    &__body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        text-align: center;
+    }
+
+    &__progress-description {
+        padding-top: 20px;
+    }
+}

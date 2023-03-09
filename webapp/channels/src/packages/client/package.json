@@ -1,0 +1,40 @@
+{
+  "name": "@mattermost/client",
+  "version": "7.9.0",
+  "description": "JavaScript/TypeScript client for Mattermost",
+  "keywords": [
+    "mattermost"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost-webapp/tree/master/packages/client#readme",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "main": "./lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "github:mattermost/mattermost-webapp",
+    "directory": "packages/client"
+  },
+  "dependencies": {
+    "form-data": "4.0.0"
+  },
+  "devDependencies": {
+    "jest": "*",
+    "nock": "*"
+  },
+  "peerDependencies": {
+    "@mattermost/types": "*",
+    "typescript": "^4.3"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --verbose",
+    "run": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf tsconfig.tsbuildinfo ./lib"
+  }
+}

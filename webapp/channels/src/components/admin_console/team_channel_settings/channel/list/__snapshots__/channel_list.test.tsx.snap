@@ -1,0 +1,1013 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/channel/ChannelList should match snapshot 1`] = `
+<div
+  className="ChannelsList"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+          "width": 4,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+          "width": 1.5,
+        },
+        Object {
+          "field": "management",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Management"
+            id="admin.channel_settings.channel_list.managementHeader"
+          />,
+        },
+        Object {
+          "field": "edit",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={1}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+          "channels",
+          "management",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "channels": Object {
+            "keys": Array [
+              "public",
+              "private",
+              "deleted",
+            ],
+            "name": "Channels",
+            "values": Object {
+              "deleted": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Archived"
+                  id="admin.channel_list.archived"
+                />,
+                "value": false,
+              },
+              "private": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Private"
+                  id="admin.channel_list.private"
+                />,
+                "value": false,
+              },
+              "public": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Public"
+                  id="admin.channel_list.public"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "management": Object {
+            "keys": Array [
+              "group_constrained",
+              "exclude_group_constrained",
+            ],
+            "name": "Management",
+            "values": Object {
+              "exclude_group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_list.manual_invites"
+                />,
+                "value": false,
+              },
+              "group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Group Sync"
+                  id="admin.channel_list.group_sync"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No channels found"
+        id="admin.channel_settings.channel_list.no_channels_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/123"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "123",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+      ]
+    }
+    rowsContainerStyles={
+      Object {
+        "minHeight": "40px",
+      }
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={1}
+  />
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelList should match snapshot with paging 1`] = `
+<div
+  className="ChannelsList"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+          "width": 4,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+          "width": 1.5,
+        },
+        Object {
+          "field": "management",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Management"
+            id="admin.channel_settings.channel_list.managementHeader"
+          />,
+        },
+        Object {
+          "field": "edit",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={10}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+          "channels",
+          "management",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "channels": Object {
+            "keys": Array [
+              "public",
+              "private",
+              "deleted",
+            ],
+            "name": "Channels",
+            "values": Object {
+              "deleted": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Archived"
+                  id="admin.channel_list.archived"
+                />,
+                "value": false,
+              },
+              "private": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Private"
+                  id="admin.channel_list.private"
+                />,
+                "value": false,
+              },
+              "public": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Public"
+                  id="admin.channel_list.public"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "management": Object {
+            "keys": Array [
+              "group_constrained",
+              "exclude_group_constrained",
+            ],
+            "name": "Management",
+            "values": Object {
+              "exclude_group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_list.manual_invites"
+                />,
+                "value": false,
+              },
+              "group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Group Sync"
+                  id="admin.channel_list.group_sync"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No channels found"
+        id="admin.channel_settings.channel_list.no_channels_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id0"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id0",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN0
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id1"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id1",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN1
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id2"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id2",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN2
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id3"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id3",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN3
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id4"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id4",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN4
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id5"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id5",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN5
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id6"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id6",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN6
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id7"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id7",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN7
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id8"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id8",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN8
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/id9"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "id9",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <GlobeIcon
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN9
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+      ]
+    }
+    rowsContainerStyles={
+      Object {
+        "minHeight": "400px",
+      }
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={30}
+  />
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelList should match snapshot with shared channel 1`] = `
+<div
+  className="ChannelsList"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+          "width": 4,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+          "width": 1.5,
+        },
+        Object {
+          "field": "management",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Management"
+            id="admin.channel_settings.channel_list.managementHeader"
+          />,
+        },
+        Object {
+          "field": "edit",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={1}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+          "channels",
+          "management",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "channels": Object {
+            "keys": Array [
+              "public",
+              "private",
+              "deleted",
+            ],
+            "name": "Channels",
+            "values": Object {
+              "deleted": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Archived"
+                  id="admin.channel_list.archived"
+                />,
+                "value": false,
+              },
+              "private": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Private"
+                  id="admin.channel_list.private"
+                />,
+                "value": false,
+              },
+              "public": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Public"
+                  id="admin.channel_list.public"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "management": Object {
+            "keys": Array [
+              "group_constrained",
+              "exclude_group_constrained",
+            ],
+            "name": "Management",
+            "values": Object {
+              "exclude_group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_list.manual_invites"
+                />,
+                "value": false,
+              },
+              "group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Group Sync"
+                  id="admin.channel_list.group_sync"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No channels found"
+        id="admin.channel_settings.channel_list.no_channels_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/123"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "123",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Manual Invites"
+                id="admin.channel_settings.channel_row.managementMethod.manual"
+              />
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <SharedChannelIndicator
+                channelType="O"
+                className="channel-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                DN
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+      ]
+    }
+    rowsContainerStyles={
+      Object {
+        "minHeight": "40px",
+      }
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={1}
+  />
+</div>
+`;

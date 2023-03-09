@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "declaration": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react",
+        "outDir": "./lib",
+        "rootDir": "./src",
+        "composite": true,
+        "paths": {
+            "@mattermost/types/*": ["../types/lib/*"]
+        }
+    },
+    "exclude": ["**/node_modules", "**/lib", "**/*.test.js", "**/*.test.ts"],
+    "references": [
+        {"path": "../types"}
+    ]
+}

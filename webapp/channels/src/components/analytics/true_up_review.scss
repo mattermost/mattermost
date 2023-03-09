@@ -1,0 +1,59 @@
+.TrueUpReview {
+    &__card {
+        width: 100%;
+        height: '463px';
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        background-color: var(--sys-center-channel-bg);
+        border-radius: 4px;
+        box-shadow: var(--elevation-1);
+        color: var(--sys-center-channel-color);
+    }
+
+    &__cardHeader {
+        display: flex;
+        align-items: center;
+        padding: 28px 32px 24px 32px;
+        border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    }
+
+    &__cardHeaderText-top {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__cardBody {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    &__cardBody > * {
+        margin-bottom: 10px;
+    }
+
+    &__cardBody > svg {
+        margin-left: 15px;
+    }
+
+    &__dueDate {
+        :first-child {
+            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        }
+    }
+
+    &__warning {
+        color: var(--warning-text);
+        font-size: 24px;
+    }
+
+    &__submit {
+        font-weight: 600;
+
+        &--error {
+            background: rgba(var(--button-bg-rgb), 0.16) !important;
+            color: var(--button-bg) !important;
+            font-weight: 600;
+        }
+    }
+}

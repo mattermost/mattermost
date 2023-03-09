@@ -1,0 +1,428 @@
+.insights-modal {
+    &.modal-dialog {
+        margin-top: calc(50vh - 340px);
+    }
+
+    &.join-channel-modal {
+        max-width: 600px;
+    }
+
+    .modal-content {
+        .modal-header {
+            align-items: flex-start;
+            padding: 22px 32px 26px;
+
+            .title-section {
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+
+                .subtitle {
+                    margin-top: 6px;
+                    margin-bottom: 0;
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    font-family: 'Open Sans';
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 16px;
+                }
+            }
+
+            .react-select {
+                margin-right: 40px;
+            }
+
+            .close {
+                top: 16px;
+            }
+        }
+
+        .modal-body {
+            padding: 4px 32px 28px;
+
+            .InsightsTable {
+                padding: 0;
+                background: var(--center-channel-bg);
+
+                &.TopPlaybooksTable,
+                &.TopBoardsTable,
+                &.TopThreadsTable {
+                    .DataGrid_row {
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+                &.TopDMsTable {
+                    .DataGrid_header {
+                        .DataGrid_cell {
+                            &:nth-of-type(3),
+                            &:nth-of-type(4) {
+                                text-align: right;
+                            }
+                        }
+                    }
+                }
+
+                &.LeastActiveChannelsTable {
+                    .DataGrid_header {
+                        .DataGrid_cell {
+                            &:nth-of-type(4) {
+                                text-align: right;
+                            }
+                        }
+                    }
+                }
+
+                .DataGrid_header {
+                    padding: 12px 0;
+                    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                    border-radius: 4px 4px 0 0;
+                    color: var(--center-channel-color);
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: 20px;
+
+                    &:last-child {
+                        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                    }
+
+                    .DataGrid_cell {
+                        padding: 0 16px;
+                    }
+                }
+
+                .DataGrid_rows {
+                    background: transparent;
+
+                    .DataGrid_loading {
+                        padding: 234px 0;
+                    }
+
+                    .DataGrid_row {
+                        display: flex;
+                        flex-direction: row;
+                        padding: 0;
+                        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                        border-left: none;
+                        background-color: var(--center-channel-bg);
+                        color: var(--center-channel-color);
+
+                        &:hover {
+                            border-left: none;
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            color: var(--center-channel-color);
+                        }
+
+                        &:nth-of-type(2) {
+                            span.horizontal-bar {
+                                opacity: 0.9;
+                            }
+                        }
+
+                        &:nth-of-type(3) {
+                            span.horizontal-bar {
+                                opacity: 0.8;
+                            }
+                        }
+
+                        &:nth-of-type(4) {
+                            span.horizontal-bar {
+                                opacity: 0.7;
+                            }
+                        }
+
+                        &:nth-of-type(5) {
+                            span.horizontal-bar {
+                                opacity: 0.6;
+                            }
+                        }
+
+                        &:nth-of-type(6) {
+                            span.horizontal-bar {
+                                opacity: 0.5;
+                            }
+                        }
+
+                        &:nth-of-type(7) {
+                            span.horizontal-bar {
+                                opacity: 0.5;
+                            }
+                        }
+
+                        &:nth-of-type(8) {
+                            span.horizontal-bar {
+                                opacity: 0.4;
+                            }
+                        }
+
+                        &:nth-of-type(9) {
+                            span.horizontal-bar {
+                                opacity: 0.3;
+                            }
+                        }
+
+                        &:nth-of-type(10) {
+                            span.horizontal-bar {
+                                opacity: 0.3;
+                            }
+                        }
+
+                        .DataGrid_cell {
+                            display: flex;
+                            align-items: center;
+                            padding: 0 16px;
+                            margin: 0;
+                            white-space: normal;
+
+                            &.message-count {
+                                justify-content: end;
+                            }
+
+                            &.rankCell {
+                                flex: 0.2 0;
+                            }
+
+                            .emoticon {
+                                margin: 12px 12px 12px 0;
+                            }
+
+                            span.replies,
+                            span.cell-text {
+                                display: inline-block;
+                                padding: 14px 0;
+                                font-family: 'Open Sans';
+                                font-size: 14px;
+                                font-style: normal;
+                                font-weight: 400;
+                                line-height: 20px;
+                            }
+
+                            .channel-display-name {
+                                display: flex;
+                                overflow: hidden;
+                                color: var(--center-channel-color);
+
+                                &:hover {
+                                    text-decoration: none;
+                                }
+
+                                .icon {
+                                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                                }
+
+                                span.cell-text {
+                                    overflow: hidden;
+                                    margin-left: 4px;
+                                    font-weight: 600;
+                                    text-overflow: ellipsis;
+                                    white-space: nowrap;
+                                }
+                            }
+
+                            .times-used-container {
+                                display: flex;
+                                width: 100%;
+                                align-items: center;
+
+                                span.cell-text {
+                                    flex: 0.1 0;
+                                    text-align: right;
+                                }
+
+                                span.horizontal-bar {
+                                    height: 8px;
+                                    margin-left: 16px;
+                                    background: var(--button-bg);
+                                    border-radius: 6px;
+
+                                    &.top-dms {
+                                        background: var(--online-indicator);
+                                        opacity: 1;
+                                    }
+                                }
+                            }
+
+                            .thread-item {
+                                width: 100%;
+                                padding: 12px 0;
+
+                                .preview {
+                                    height: auto;
+                                }
+                            }
+
+                            .board-item {
+                                display: flex;
+                                align-items: center;
+
+                                span.board-icon {
+                                    display: flex;
+                                    width: 24px;
+                                    height: 24px;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 24px;
+                                }
+
+                                span.board-title {
+                                    overflow: hidden;
+                                    max-width: 409px;
+                                    margin-left: 12px;
+                                    font-family: 'Open Sans';
+                                    font-size: 14px;
+                                    font-style: normal;
+                                    font-weight: 600;
+                                    line-height: 20px;
+                                    text-overflow: ellipsis;
+                                    white-space: nowrap;
+                                }
+                            }
+
+                            .replies,
+                            span.board-updates,
+                            .Avatars___xs {
+                                margin-left: auto;
+                            }
+
+                            &.last-activity {
+                                justify-content: flex-end;
+                                margin-right: 8px;
+
+                                .timestamp {
+                                    overflow: hidden;
+                                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                                    text-overflow: ellipsis;
+
+                                    time {
+                                        white-space: nowrap;
+                                    }
+                                }
+                            }
+
+                            .role {
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                            }
+
+                            &.actions {
+                                overflow: visible;
+                            }
+
+                            .user-info {
+                                display: flex;
+                                overflow: hidden;
+                                align-items: center;
+
+                                &:hover {
+                                    text-decoration: none;
+                                }
+
+                                .display-name {
+                                    overflow: hidden;
+                                    margin-left: 12px;
+                                    color: var(--center-channel-color);
+                                    font-family: 'Open Sans';
+                                    font-size: 14px;
+                                    font-style: normal;
+                                    font-weight: 600;
+                                    line-height: 20px;
+                                    text-overflow: ellipsis;
+                                    white-space: nowrap;
+                                }
+                            }
+
+                            time {
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .button-footer {
+                padding-top: 24px;
+                text-align: right;
+
+                button {
+                    height: 40px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    font-weight: 600;
+
+                    &.join-channel-cancel {
+                        padding: 13px 20px;
+                        margin-right: 8px;
+                        background: rgba(var(--button-bg-rgb), 0.08);
+                        color: rgb(var(--button-bg-rgb));
+                        line-height: 14px;
+                    }
+
+                    &.save-button {
+                        padding: 0 20px;
+                    }
+                }
+            }
+
+            .pagination-buttons {
+                display: flex;
+                align-items: center;
+                justify-content: end;
+
+                .pagination {
+                    margin-right: 4px;
+                    color: var(--center-channel-color);
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+
+                .pagination-button {
+                    padding: 8px;
+                    border: none;
+                    background: none;
+                    border-radius: 4px;
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+                    &:hover {
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                    }
+
+                    &:disabled {
+                        &:hover {
+                            background-color: transparent;
+                            color: rgba(var(--center-channel-color-rgb), 0.56);
+                        }
+                    }
+
+                    &:nth-of-type(1) {
+                        margin-right: 4px;
+                    }
+
+                    i {
+                        width: 16px;
+                        height: 16px;
+                        font-size: 16px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 768px) {
+    .insights-modal {
+        width: 800px;
+    }
+}

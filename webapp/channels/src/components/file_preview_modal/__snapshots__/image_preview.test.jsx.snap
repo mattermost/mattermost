@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/view_image/ImagePreview should match snapshot, with preview 1`] = `
+<a
+  className="image_preview"
+  href="#"
+>
+  <img
+    alt="preview url image"
+    className="image_preview__image"
+    data-testid="imagePreview"
+    loading="lazy"
+    src="/api/v4/files/file_id_1/preview"
+  />
+</a>
+`;
+
+exports[`components/view_image/ImagePreview should match snapshot, with preview, cannot download 1`] = `
+<img
+  src="/api/v4/files/file_id_1/preview"
+/>
+`;
+
+exports[`components/view_image/ImagePreview should match snapshot, without preview 1`] = `
+<a
+  className="image_preview"
+  href="#"
+>
+  <img
+    alt="preview url image"
+    className="image_preview__image"
+    data-testid="imagePreview"
+    loading="lazy"
+    src="/api/v4/files/file_id?download=1"
+  />
+</a>
+`;
+
+exports[`components/view_image/ImagePreview should match snapshot, without preview, cannot download 1`] = `
+<img
+  src="/api/v4/files/file_id?download=1"
+/>
+`;

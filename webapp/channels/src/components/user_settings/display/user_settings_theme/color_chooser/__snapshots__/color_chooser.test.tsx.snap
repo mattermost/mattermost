@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/display/ColorChooser should match, init 1`] = `
+<Fragment>
+  <label
+    className="custom-label"
+  >
+    Choose color
+  </label>
+  <ColorInput
+    id="choose-color"
+    onChange={[Function]}
+    value="#ffeec0"
+  />
+</Fragment>
+`;

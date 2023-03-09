@@ -1,0 +1,19 @@
+@charset 'UTF-8';
+
+.docs__page {
+    padding-bottom: 20px;
+    line-height: 1.7;
+
+    > div {
+        width: 1170px;
+        max-width: 100%;
+        padding: 0 15px;
+        margin: 0 auto;
+    }
+
+    h1.markdown__heading {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #ddd;
+        margin: 1em 0 1em;
+    }
+}

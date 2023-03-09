@@ -1,0 +1,411 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render installed app 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-outline"
+        disabled={true}
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Installed"
+          id="marketplace_modal.list.installed"
+        />
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    id="id"
+    installed={true}
+    installing={false}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with empty list of labels 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    labels={Array []}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    iconSource="http://localhost:8065/plugins/com.mattermost.apps/apps/com.mattermost.servicenow/static/now-mobile-icon.png"
+    iconURL="http://localhost:8065/plugins/com.mattermost.apps/apps/com.mattermost.servicenow/static/now-mobile-icon.png"
+    id="id"
+    installed={false}
+    installing={false}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with no homepage url 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    id="id"
+    installed={false}
+    installing={false}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with no plugin description 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with one labels 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    labels={
+      Array [
+        Object {
+          "description": "some description",
+          "name": "someName",
+          "url": "http://example.com/info",
+        },
+      ]
+    }
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with server error 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Try Again"
+            id="marketplace_modal.list.try_again"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    error="An error occurred."
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem should render with two labels 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    labels={
+      Array [
+        Object {
+          "description": "some description",
+          "name": "someName",
+          "url": "http://example.com/info",
+        },
+        Object {
+          "description": "some description2",
+          "name": "someName2",
+          "url": "http://example.com/info2",
+        },
+      ]
+    }
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;
+
+exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
+<Fragment>
+  <MarketplaceItem
+    actions={
+      Object {
+        "closeMarketplaceModal": [MockFunction],
+        "installApp": [MockFunction],
+      }
+    }
+    button={
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <LoadingWrapper
+          loading={false}
+          text="Installing..."
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Install"
+            id="marketplace_modal.list.install"
+          />
+        </LoadingWrapper>
+      </button>
+    }
+    description="test plugin"
+    homepageUrl="http://example.com"
+    id="id"
+    installed={false}
+    installing={false}
+    isInstalling={true}
+    name="name"
+    trackEvent={[MockFunction]}
+    updateDetails={null}
+    versionLabel={null}
+  />
+</Fragment>
+`;

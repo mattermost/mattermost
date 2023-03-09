@@ -1,0 +1,86 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewModalMainNav should match snapshot with multiple files 1`] = `
+<div
+  className="file_preview_modal_main_nav"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="previewArrowLeft"
+    overlay={
+      <Tooltip
+        id="close-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Close"
+          id="generic.previous"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="file_preview_modal_main_nav__prev"
+      id="previewArrowLeft"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon icon-chevron-left"
+      />
+    </button>
+  </OverlayTrigger>
+  <span
+    className="modal-bar-file-count"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="{count, number} of {total, number}"
+      id="file_preview_modal_main_nav.file"
+      values={
+        Object {
+          "count": 2,
+          "total": 2,
+        }
+      }
+    />
+  </span>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    key="publicLink"
+    overlay={
+      <Tooltip
+        id="close-icon-tooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Next"
+          id="generic.next"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="file_preview_modal_main_nav__next"
+      id="previewArrowRight"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon icon-chevron-right"
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;

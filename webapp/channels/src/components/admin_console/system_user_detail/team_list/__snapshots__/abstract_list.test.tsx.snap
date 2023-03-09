@@ -1,0 +1,613 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_user_detail/team_list/AbstractList should match snapshot if loading 1`] = `
+<div
+  className="AbstractList"
+>
+  <div
+    className="AbstractList__body"
+  >
+    <div
+      className="AbstractList__loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList should match snapshot no data 1`] = `
+<div
+  className="AbstractList"
+>
+  <div
+    className="AbstractList__body"
+  >
+    <div
+      className="AbstractList__empty"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="No teams found"
+        id="admin.team_settings.team_list.no_teams_found"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList should match snapshot when on second page of pagination 1`] = `
+<div
+  className="AbstractList"
+>
+  <div
+    className="AbstractList__header"
+  >
+    <div
+      className="AbstractList__header-label"
+      key="0"
+      style={
+        Object {
+          "flexGrow": 1,
+          "marginLeft": "16px",
+          "minWidth": "284px",
+        }
+      }
+    >
+      Name
+    </div>
+    <div
+      className="AbstractList__header-label"
+      key="1"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    >
+      Type
+    </div>
+    <div
+      className="AbstractList__header-label"
+      key="2"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    >
+      Role
+    </div>
+  </div>
+  <div
+    className="AbstractList__body"
+  >
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id11"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 11 description",
+          "display_name": "Team 11",
+          "id": "id11",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id12"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 12 description",
+          "display_name": "Team 12",
+          "id": "id12",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id13"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 13 description",
+          "display_name": "Team 13",
+          "id": "id13",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id14"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 14 description",
+          "display_name": "Team 14",
+          "id": "id14",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id15"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 15 description",
+          "display_name": "Team 15",
+          "id": "id15",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id16"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 16 description",
+          "display_name": "Team 16",
+          "id": "id16",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id17"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 17 description",
+          "display_name": "Team 17",
+          "id": "id17",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id18"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 18 description",
+          "display_name": "Team 18",
+          "id": "id18",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id19"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 19 description",
+          "display_name": "Team 19",
+          "id": "id19",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id20"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 20 description",
+          "display_name": "Team 20",
+          "id": "id20",
+        }
+      }
+    />
+  </div>
+  <div
+    className="AbstractList__footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.team_channel_settings.list.paginatorCount"
+        values={
+          Object {
+            "endCount": 20,
+            "startCount": 11,
+            "total": 30,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList should match snapshot with enough teams data to require paging 1`] = `
+<div
+  className="AbstractList"
+>
+  <div
+    className="AbstractList__header"
+  >
+    <div
+      className="AbstractList__header-label"
+      key="0"
+      style={
+        Object {
+          "flexGrow": 1,
+          "marginLeft": "16px",
+          "minWidth": "284px",
+        }
+      }
+    >
+      Name
+    </div>
+    <div
+      className="AbstractList__header-label"
+      key="1"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    >
+      Type
+    </div>
+    <div
+      className="AbstractList__header-label"
+      key="2"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    >
+      Role
+    </div>
+  </div>
+  <div
+    className="AbstractList__body"
+  >
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id1"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 1 description",
+          "display_name": "Team 1",
+          "id": "id1",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id2"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "The 2 description",
+          "display_name": "Team 2",
+          "id": "id2",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id3"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 3 description",
+          "display_name": "Team 3",
+          "id": "id3",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id4"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 4 description",
+          "display_name": "Team 4",
+          "id": "id4",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id5"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 5 description",
+          "display_name": "Team 5",
+          "id": "id5",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id6"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 6 description",
+          "display_name": "Team 6",
+          "id": "id6",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id7"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 7 description",
+          "display_name": "Team 7",
+          "id": "id7",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id8"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 8 description",
+          "display_name": "Team 8",
+          "id": "id8",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id9"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 9 description",
+          "display_name": "Team 9",
+          "id": "id9",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id10"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 10 description",
+          "display_name": "Team 10",
+          "id": "id10",
+        }
+      }
+    />
+  </div>
+  <div
+    className="AbstractList__footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.team_channel_settings.list.paginatorCount"
+        values={
+          Object {
+            "endCount": 10,
+            "startCount": 1,
+            "total": 30,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList should match snapshot with teams data populated 1`] = `
+<div
+  className="AbstractList"
+>
+  <div
+    className="AbstractList__header"
+  >
+    <div
+      className="AbstractList__header-label"
+      key="0"
+      style={
+        Object {
+          "flexGrow": 1,
+          "marginLeft": "16px",
+          "minWidth": "284px",
+        }
+      }
+    >
+      Name
+    </div>
+    <div
+      className="AbstractList__header-label"
+      key="1"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    >
+      Type
+    </div>
+    <div
+      className="AbstractList__header-label"
+      key="2"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    >
+      Role
+    </div>
+  </div>
+  <div
+    className="AbstractList__body"
+  >
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id1"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "Team 1 description",
+          "display_name": "Team 1",
+          "id": "id1",
+        }
+      }
+    />
+    <TeamRow
+      doMakeUserTeamAdmin={[MockFunction]}
+      doMakeUserTeamMember={[MockFunction]}
+      doRemoveUserFromTeam={[MockFunction]}
+      key="id2"
+      onRowClick={[MockFunction]}
+      team={
+        Object {
+          "description": "The 2 description",
+          "display_name": "Team 2",
+          "id": "id2",
+        }
+      }
+    />
+  </div>
+  <div
+    className="AbstractList__footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.team_channel_settings.list.paginatorCount"
+        values={
+          Object {
+            "endCount": 2,
+            "startCount": 1,
+            "total": 2,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;

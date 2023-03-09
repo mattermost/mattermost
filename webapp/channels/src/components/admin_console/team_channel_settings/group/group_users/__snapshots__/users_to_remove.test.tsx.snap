@@ -1,0 +1,417 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot loading 1`] = `
+<div
+  className="UsersToRemove"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_channel_settings.user_list.nameHeader"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "role",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Role"
+            id="admin.team_channel_settings.user_list.roleHeader"
+          />,
+          "width": 2,
+        },
+        Object {
+          "field": "groups",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Groups"
+            id="admin.team_channel_settings.user_list.groupsHeader"
+          />,
+          "width": 3,
+        },
+      ]
+    }
+    endCount={2}
+    filterProps={
+      Object {
+        "keys": Array [
+          "role",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "role": Object {
+            "keys": Array [
+              "system_guest",
+              "team_user",
+              "team_admin",
+              "system_admin",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Role"
+              id="admin.user_grid.role"
+            />,
+            "values": Object {
+              "system_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Admin"
+                  id="admin.user_grid.system_admin"
+                />,
+                "value": false,
+              },
+              "system_guest": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest"
+                  id="admin.user_grid.guest"
+                />,
+                "value": false,
+              },
+              "team_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Team Admin"
+                  id="admin.user_grid.team_admin"
+                />,
+                "value": false,
+              },
+              "team_user": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Member"
+                  id="admin.user_item.member"
+                />,
+                "value": false,
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No users found"
+        id="admin.member_list_group.notFound"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={2}
+  />
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot searching with filters 1`] = `
+<div
+  className="UsersToRemove"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_channel_settings.user_list.nameHeader"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "role",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Role"
+            id="admin.team_channel_settings.user_list.roleHeader"
+          />,
+          "width": 2,
+        },
+        Object {
+          "field": "groups",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Groups"
+            id="admin.team_channel_settings.user_list.groupsHeader"
+          />,
+          "width": 3,
+        },
+      ]
+    }
+    endCount={2}
+    filterProps={
+      Object {
+        "keys": Array [
+          "role",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "role": Object {
+            "keys": Array [
+              "system_guest",
+              "team_user",
+              "team_admin",
+              "system_admin",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Role"
+              id="admin.user_grid.role"
+            />,
+            "values": Object {
+              "system_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Admin"
+                  id="admin.user_grid.system_admin"
+                />,
+                "value": false,
+              },
+              "system_guest": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest"
+                  id="admin.user_grid.guest"
+                />,
+                "value": false,
+              },
+              "team_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Team Admin"
+                  id="admin.user_grid.team_admin"
+                />,
+                "value": false,
+              },
+              "team_user": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Member"
+                  id="admin.user_item.member"
+                />,
+                "value": false,
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No users found"
+        id="admin.member_list_group.notFound"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    searchPlaceholder=""
+    startCount={1}
+    term="foo"
+    total={2}
+  />
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot with 2 users 1`] = `
+<div
+  className="UsersToRemove"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_channel_settings.user_list.nameHeader"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "role",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Role"
+            id="admin.team_channel_settings.user_list.roleHeader"
+          />,
+          "width": 2,
+        },
+        Object {
+          "field": "groups",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Groups"
+            id="admin.team_channel_settings.user_list.groupsHeader"
+          />,
+          "width": 3,
+        },
+      ]
+    }
+    endCount={2}
+    filterProps={
+      Object {
+        "keys": Array [
+          "role",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "role": Object {
+            "keys": Array [
+              "system_guest",
+              "team_user",
+              "team_admin",
+              "system_admin",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Role"
+              id="admin.user_grid.role"
+            />,
+            "values": Object {
+              "system_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Admin"
+                  id="admin.user_grid.system_admin"
+                />,
+                "value": false,
+              },
+              "system_guest": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest"
+                  id="admin.user_grid.guest"
+                />,
+                "value": false,
+              },
+              "team_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Team Admin"
+                  id="admin.user_grid.team_admin"
+                />,
+                "value": false,
+              },
+              "team_user": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Member"
+                  id="admin.user_item.member"
+                />,
+                "value": false,
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No users found"
+        id="admin.member_list_group.notFound"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={2}
+  />
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot with guests disabled 1`] = `
+<div
+  className="UsersToRemove"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_channel_settings.user_list.nameHeader"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "role",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Role"
+            id="admin.team_channel_settings.user_list.roleHeader"
+          />,
+          "width": 2,
+        },
+        Object {
+          "field": "groups",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Groups"
+            id="admin.team_channel_settings.user_list.groupsHeader"
+          />,
+          "width": 3,
+        },
+      ]
+    }
+    endCount={2}
+    filterProps={
+      Object {
+        "keys": Array [
+          "role",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "role": Object {
+            "keys": Array [
+              "team_user",
+              "team_admin",
+              "system_admin",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Role"
+              id="admin.user_grid.role"
+            />,
+            "values": Object {
+              "system_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Admin"
+                  id="admin.user_grid.system_admin"
+                />,
+                "value": false,
+              },
+              "team_admin": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Team Admin"
+                  id="admin.user_grid.team_admin"
+                />,
+                "value": false,
+              },
+              "team_user": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Member"
+                  id="admin.user_item.member"
+                />,
+                "value": false,
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No users found"
+        id="admin.member_list_group.notFound"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={2}
+  />
+</div>
+`;

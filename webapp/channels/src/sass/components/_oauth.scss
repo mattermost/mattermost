@@ -1,0 +1,47 @@
+@charset 'UTF-8';
+
+.prompt {
+    width: 600px;
+    max-width: 90%;
+    padding: 1em 2em 0;
+    border: 1px solid $light-gray;
+    margin: 50px auto;
+    background: $white;
+
+    .prompt__heading {
+        display: table;
+        width: 100%;
+        margin: 1em 0;
+        font-size: em(18px);
+        line-height: normal;
+        table-layout: fixed;
+
+        > div {
+            display: table-cell;
+            vertical-align: top;
+
+            &:first-child {
+                width: 70px;
+            }
+        }
+
+        img {
+            margin-right: 15px;
+        }
+    }
+
+    .prompt__allow {
+        margin: 1em 0;
+        font-size: em(20px);
+    }
+
+    .prompt__buttons {
+        padding: 1.5em 0;
+        border-top: 1px solid $light-gray;
+        text-align: right;
+    }
+
+    .prompt__error {
+        display: inline-block;
+    }
+}

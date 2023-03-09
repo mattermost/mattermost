@@ -1,0 +1,17 @@
+{
+    "attachments": [{
+        "pretext": "This is the attachment pretext.",
+        "text": "This is the attachment text.",
+        "actions": [{
+            "name": "Select an option...",
+            "integration": {
+                "url": "http://localhost:3000/message_menus_datasource",
+                "context": {
+                    "action": "do_something"
+                }
+            },
+            "type": "select",
+            "data_source": "channels"
+        }]
+    }]
+}

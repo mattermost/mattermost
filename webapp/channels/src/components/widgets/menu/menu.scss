@@ -1,0 +1,173 @@
+.Menu {
+    z-index: 10000;
+
+    .dropdown-menu {
+        display: block;
+        min-width: 220px;
+        max-width: 270px;
+        max-height: 80vh;
+        padding: 8px 0;
+        border-radius: 4px;
+
+        ul {
+            padding: 8px 0;
+            margin: 0;
+        }
+
+        li {
+            list-style: none;
+
+            a {
+                color: inherit;
+            }
+        }
+    }
+
+    &.Menu-enter {
+        .dropdown-menu {
+            opacity: 0;
+
+            @media screen and (min-width: 768px) {
+                overflow: hidden;
+                max-height: 0;
+                overflow-y: hidden;
+            }
+        }
+    }
+
+    &.Menu-enter-active {
+        .dropdown-menu {
+            opacity: 1;
+
+            @media screen and (min-width: 768px) {
+                max-height: 80vh;
+                overflow-y: hidden;
+                transition: max-height 1000ms ease-in, opacity 250ms linear;
+            }
+
+            @media screen and (max-width: 640px) {
+                transition: opacity 1000ms linear;
+            }
+        }
+    }
+
+    &.Menu-enter-done {
+        .dropdown-menu {
+            opacity: 1;
+
+            @media screen and (min-width: 768px) {
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+        }
+    }
+
+    &.Menu-exit {
+        .dropdown-menu {
+            opacity: 0;
+
+            @media screen and (min-width: 768px) {
+                max-height: 0;
+                overflow-y: hidden;
+                transition: max-height 1000ms ease-in 0ms, opacity 250ms linear 750ms;
+            }
+
+            @media screen and (max-width: 768px) {
+                transition: opacity 1000ms linear;
+            }
+        }
+    }
+
+    #ChannelMenu-moveToDivider {
+        height: 1px;
+        padding: 0;
+        margin: 8px 0;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        pointer-events: none;
+
+        span {
+            display: none;
+        }
+
+        @media screen and (max-width: 768px) {
+            background: none;
+
+            .menu-divider {
+                margin: 0;
+            }
+        }
+    }
+
+    .SubMenuItemContainer:not(.hasDivider) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .styleSelectableItem {
+        .MenuItem {
+            width: 100%;
+
+            div:hover,
+            div:focus {
+                background: none !important;
+            }
+        }
+
+        .SubMenu__icon-right {
+            padding: 0 9px 0 8px;
+            margin-right: 0;
+            line-height: 28px;
+
+            &.mobile {
+                padding: 0 4px 0 9px;
+            }
+        }
+
+        .styleSelectableItemDiv {
+            display: flex;
+            height: 34px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            width: 100%;
+            grid-template-columns: auto 1fr auto auto;
+        }
+
+        .flex {
+            width: 100%;
+        }
+
+        .sorting-menu-checkbox {
+            width: 0;
+            padding-right: 30px;
+
+            i {
+                color: var(--button-bg);
+            }
+        }
+    }
+
+    // global header style adjustments
+    > .product-switcher-menu {
+        .MenuItem {
+            .MenuItem__primary-text {
+                line-height: 26px;
+            }
+
+            a,
+            button {
+                padding: 0 20px;
+
+                .icon {
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                }
+            }
+        }
+    }
+}

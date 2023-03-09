@@ -1,0 +1,223 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_role_permission_dropdown should match snapshot 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  isDisabled={false}
+>
+  <button
+    aria-expanded="true"
+    className="PermissionSectionDropdownButton dropdown-toggle theme"
+    id="systemRolePermissionDropdownenvironemnt"
+    type="button"
+  >
+    <div
+      className="PermissionSectionDropdownButton_text"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Read only"
+        id="admin.permissions.system_role_permissions.read.title"
+      />
+    </div>
+    <div
+      className="PermissionSectionDropdownButton_icon"
+    >
+      <DropdownIcon />
+    </div>
+  </button>
+  <Menu
+    ariaLabel="Change role access on a system console section"
+  >
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text={
+        <div
+          className="PermissionSectionDropdownOptions"
+        >
+          <div
+            className="PermissionSectionDropdownOptions_label"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Can edit"
+              id="admin.permissions.system_role_permissions.write.title"
+            />
+          </div>
+          <div
+            className="PermissionSectionDropdownOptions_description"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Can add, edit and delete anything in this section."
+              id="admin.permissions.system_role_permissions.write.description"
+            />
+          </div>
+        </div>
+      }
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text={
+        <div
+          className="PermissionSectionDropdownOptions"
+        >
+          <div
+            className="PermissionSectionDropdownOptions_label"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Read only"
+              id="admin.permissions.system_role_permissions.read.title"
+            />
+          </div>
+          <div
+            className="PermissionSectionDropdownOptions_description"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Can view this section but can't edit anything in it"
+              id="admin.permissions.system_role_permissions.read.description"
+            />
+          </div>
+        </div>
+      }
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text={
+        <div
+          className="PermissionSectionDropdownOptions"
+        >
+          <div
+            className="PermissionSectionDropdownOptions_label"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="No access"
+              id="admin.permissions.system_role_permissions.no_access.title"
+            />
+          </div>
+          <div
+            className="PermissionSectionDropdownOptions_description"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="No access to this section and it will be hidden in the navigation."
+              id="admin.permissions.system_role_permissions.no_access.description"
+            />
+          </div>
+        </div>
+      }
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`admin_console/system_role_permission_dropdown should match snapshot with isDisabledTrue 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  isDisabled={true}
+>
+  <button
+    aria-expanded="true"
+    className="PermissionSectionDropdownButton dropdown-toggle theme"
+    id="systemRolePermissionDropdownenvironemnt"
+    type="button"
+  >
+    <div
+      className="PermissionSectionDropdownButton_text"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Read only"
+        id="admin.permissions.system_role_permissions.read.title"
+      />
+    </div>
+    <div
+      className="PermissionSectionDropdownButton_icon"
+    >
+      <DropdownIcon />
+    </div>
+  </button>
+  <Menu
+    ariaLabel="Change role access on a system console section"
+  >
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text={
+        <div
+          className="PermissionSectionDropdownOptions"
+        >
+          <div
+            className="PermissionSectionDropdownOptions_label"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Can edit"
+              id="admin.permissions.system_role_permissions.write.title"
+            />
+          </div>
+          <div
+            className="PermissionSectionDropdownOptions_description"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Can add, edit and delete anything in this section."
+              id="admin.permissions.system_role_permissions.write.description"
+            />
+          </div>
+        </div>
+      }
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text={
+        <div
+          className="PermissionSectionDropdownOptions"
+        >
+          <div
+            className="PermissionSectionDropdownOptions_label"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Read only"
+              id="admin.permissions.system_role_permissions.read.title"
+            />
+          </div>
+          <div
+            className="PermissionSectionDropdownOptions_description"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Can view this section but can't edit anything in it"
+              id="admin.permissions.system_role_permissions.read.description"
+            />
+          </div>
+        </div>
+      }
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text={
+        <div
+          className="PermissionSectionDropdownOptions"
+        >
+          <div
+            className="PermissionSectionDropdownOptions_label"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="No access"
+              id="admin.permissions.system_role_permissions.no_access.title"
+            />
+          </div>
+          <div
+            className="PermissionSectionDropdownOptions_description"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="No access to this section and it will be hidden in the navigation."
+              id="admin.permissions.system_role_permissions.no_access.description"
+            />
+          </div>
+        </div>
+      }
+    />
+  </Menu>
+</MenuWrapper>
+`;

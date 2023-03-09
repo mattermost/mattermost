@@ -1,0 +1,400 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when the channel doesn't exists 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="invalid_id"
+    permissions={
+      Array [
+        "test_channel_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="invalid_id"
+      dispatch={[Function]}
+      hasPermission={false}
+      permissions={
+        Array [
+          "test_channel_permission",
+        ]
+      }
+      teamId="team_id"
+    />
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user does not have permissions in DM and GM 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    permissions={
+      Array [
+        "invalid_permission",
+      ]
+    }
+    teamId=""
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={false}
+      permissions={
+        Array [
+          "invalid_permission",
+        ]
+      }
+      teamId=""
+    />
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user have at least on of the permissions 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(TeamPermissionGate)
+    permissions={
+      Array [
+        "test_team_permission",
+        "not_existing_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <TeamPermissionGate
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={false}
+      permissions={
+        Array [
+          "test_team_permission",
+          "not_existing_permission",
+        ]
+      }
+      teamId="team_id"
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </TeamPermissionGate>
+  </Connect(TeamPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user have permission 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    permissions={
+      Array [
+        "test_channel_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={true}
+      permissions={
+        Array [
+          "test_channel_permission",
+        ]
+      }
+      teamId="team_id"
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </ChannelPermissionGate>
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user have permission and use invert 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    invert={true}
+    permissions={
+      Array [
+        "test_channel_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={true}
+      invert={true}
+      permissions={
+        Array [
+          "test_channel_permission",
+        ]
+      }
+      teamId="team_id"
+    />
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user have permission system wide 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    permissions={
+      Array [
+        "test_system_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={true}
+      permissions={
+        Array [
+          "test_system_permission",
+        ]
+      }
+      teamId="team_id"
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </ChannelPermissionGate>
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user have permission team wide 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    permissions={
+      Array [
+        "test_team_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={true}
+      permissions={
+        Array [
+          "test_team_permission",
+        ]
+      }
+      teamId="team_id"
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </ChannelPermissionGate>
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user have permissions in DM and GM 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    permissions={
+      Array [
+        "test_channel_permission",
+      ]
+    }
+    teamId=""
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={true}
+      permissions={
+        Array [
+          "test_channel_permission",
+        ]
+      }
+      teamId=""
+    >
+      <p>
+        Valid permission (shown)
+      </p>
+    </ChannelPermissionGate>
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user haven't permission 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    permissions={
+      Array [
+        "invalid_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={false}
+      permissions={
+        Array [
+          "invalid_permission",
+        ]
+      }
+      teamId="team_id"
+    />
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;
+
+exports[`components/permissions_gates ChannelPermissionGate should match snapshot when user not have permission and use invert 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ChannelPermissionGate)
+    channelId="channel_id"
+    invert={true}
+    permissions={
+      Array [
+        "invalid_permission",
+      ]
+    }
+    teamId="team_id"
+  >
+    <ChannelPermissionGate
+      channelId="channel_id"
+      dispatch={[Function]}
+      hasPermission={false}
+      invert={true}
+      permissions={
+        Array [
+          "invalid_permission",
+        ]
+      }
+      teamId="team_id"
+    >
+      <p>
+        Invalid permission but inverted (shown)
+      </p>
+    </ChannelPermissionGate>
+  </Connect(ChannelPermissionGate)>
+</Provider>
+`;

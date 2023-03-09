@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/MsgTyping should match snapshot, on multiple users typing 1`] = `
+<span
+  className="msg-typing"
+>
+  <MemoizedFormattedMessage
+    defaultMessage="{users} and {last} are typing..."
+    id="msg_typing.areTyping"
+    values={
+      Object {
+        "last": "another.user",
+        "users": "test.user, other.test.user",
+      }
+    }
+  />
+</span>
+`;
+
+exports[`components/MsgTyping should match snapshot, on nobody typing 1`] = `
+<span
+  className="msg-typing"
+/>
+`;
+
+exports[`components/MsgTyping should match snapshot, on one user typing 1`] = `
+<span
+  className="msg-typing"
+>
+  <MemoizedFormattedMessage
+    defaultMessage="{user} is typing..."
+    id="msg_typing.isTyping"
+    values={
+      Object {
+        "user": "test.user",
+      }
+    }
+  />
+</span>
+`;

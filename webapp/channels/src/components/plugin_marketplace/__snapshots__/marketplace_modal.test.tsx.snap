@@ -1,0 +1,442 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/marketplace/ AllListing should render with no plugins 1`] = `
+<div
+  className="no_plugins_div"
+>
+  <br />
+  <PluginIcon
+    className="icon__plugin"
+  />
+  <div
+    className="mt-3 light"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="There are no plugins available at this time."
+      id="marketplace_modal.no_plugins"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/marketplace/ AllListing should render with one plugin 1`] = `
+<MarketplaceList
+  listing={
+    Array [
+      Object {
+        "author_type": "mattermost",
+        "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+        "enterprise": false,
+        "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
+        "installed_version": "",
+        "manifest": Object {
+          "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
+          "id": "com.mattermost.nps",
+          "min_server_version": "5.14.0",
+          "name": "User Satisfaction Surveys",
+          "version": "1.0.3",
+        },
+        "release_stage": "production",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`components/marketplace/ AllListing should render with plugins 1`] = `
+<MarketplaceList
+  listing={
+    Array [
+      Object {
+        "author_type": "mattermost",
+        "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+        "enterprise": false,
+        "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
+        "installed_version": "",
+        "manifest": Object {
+          "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
+          "id": "com.mattermost.nps",
+          "min_server_version": "5.14.0",
+          "name": "User Satisfaction Surveys",
+          "version": "1.0.3",
+        },
+        "release_stage": "production",
+      },
+      Object {
+        "author_type": "mattermost",
+        "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+        "enterprise": false,
+        "homepage_url": "https://github.com/mattermost/mattermost-test",
+        "installed_version": "1.0.3",
+        "manifest": Object {
+          "description": "This plugin is to test",
+          "id": "com.mattermost.test",
+          "min_server_version": "5.14.0",
+          "name": "Test",
+          "version": "1.0.3",
+        },
+        "release_stage": "production",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`components/marketplace/ InstalledPlugins should render with multiple plugins 1`] = `
+<MarketplaceList
+  listing={
+    Array [
+      Object {
+        "author_type": "mattermost",
+        "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+        "enterprise": false,
+        "homepage_url": "https://github.com/mattermost/mattermost-test",
+        "installed_version": "1.0.3",
+        "manifest": Object {
+          "description": "This plugin is to test",
+          "id": "com.mattermost.test",
+          "min_server_version": "5.14.0",
+          "name": "Test",
+          "version": "1.0.3",
+        },
+        "release_stage": "production",
+      },
+      Object {
+        "author_type": "mattermost",
+        "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+        "enterprise": false,
+        "homepage_url": "https://github.com/mattermost/mattermost-test",
+        "installed_version": "1.0.3",
+        "manifest": Object {
+          "description": "This plugin is to test",
+          "id": "com.mattermost.test",
+          "min_server_version": "5.14.0",
+          "name": "Test",
+          "version": "1.0.3",
+        },
+        "release_stage": "production",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`components/marketplace/ InstalledPlugins should render with no plugins 1`] = `
+<div
+  className="no_plugins_div"
+>
+  <br />
+  <PluginIcon
+    className="icon__plugin"
+  />
+  <div
+    className="mt-3 light"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="You do not have any plugins installed."
+      id="marketplace_modal.no_plugins_installed"
+    />
+  </div>
+  <button
+    className="mt-5 style--none color--link"
+    data-testid="Install-Plugins-button"
+    onClick={[Function]}
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Install Plugins"
+      id="marketplace_modal.install_plugins"
+    />
+  </button>
+</div>
+`;
+
+exports[`components/marketplace/ InstalledPlugins should render with one plugin 1`] = `
+<MarketplaceList
+  listing={
+    Array [
+      Object {
+        "author_type": "mattermost",
+        "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+        "enterprise": false,
+        "homepage_url": "https://github.com/mattermost/mattermost-test",
+        "installed_version": "1.0.3",
+        "manifest": Object {
+          "description": "This plugin is to test",
+          "id": "com.mattermost.test",
+          "min_server_version": "5.14.0",
+          "name": "Test",
+          "version": "1.0.3",
+        },
+        "release_stage": "production",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`components/marketplace/ MarketplaceModal should render with error banner 1`] = `
+<RootPortal>
+  <injectIntl(FullScreenModal)
+    ariaLabel="Marketplace"
+    onClose={[Function]}
+    overrideTargetEvent={true}
+    show={true}
+  >
+    <div
+      className="error-bar"
+      id="error_bar"
+    >
+      <div
+        className="error-bar__content"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="Error connecting to the marketplace server. Please check your settings in the [System Console]({siteURL}/admin_console/plugins/plugin_management)."
+          id="app.plugin.marketplace_plugins.app_error"
+          values={
+            Object {
+              "siteURL": "http://example.com",
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="modal-marketplace"
+      id="modal_marketplace"
+    >
+      <h1>
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="Marketplace"
+            id="marketplace_modal.title"
+          />
+        </strong>
+      </h1>
+      <div
+        className="filter-row filter-row--full"
+      >
+        <div
+          className="col-sm-12"
+        >
+          <QuickInput
+            className="form-control filter-textbox search_input"
+            clearable={true}
+            id="searchMarketplaceTextbox"
+            inputComponent={
+              Object {
+                "$$typeof": Symbol(react.forward_ref),
+                "render": [Function],
+              }
+            }
+            onClear={[Function]}
+            onInput={[Function]}
+            placeholder={
+              Object {
+                "defaultMessage": "Search Marketplace",
+                "id": "marketplace_modal.search",
+              }
+            }
+            value=""
+          />
+        </div>
+      </div>
+      <Uncontrolled(Tabs)
+        activeKey="allListing"
+        className="tabs"
+        defaultActiveKey="allListing"
+        id="marketplaceTabs"
+        onSelect={[Function]}
+        unmountOnExit={true}
+      >
+        <Tab
+          eventKey="allListing"
+          title="All"
+        >
+          <LoadingScreen />
+        </Tab>
+        <Tab
+          eventKey="installed"
+          title="Installed (0)"
+        >
+          <InstalledListing
+            changeTab={[Function]}
+            installedItems={Array []}
+          />
+        </Tab>
+      </Uncontrolled(Tabs)>
+    </div>
+  </injectIntl(FullScreenModal)>
+</RootPortal>
+`;
+
+exports[`components/marketplace/ MarketplaceModal should render with no plugins installed 1`] = `
+<RootPortal>
+  <injectIntl(FullScreenModal)
+    ariaLabel="Marketplace"
+    onClose={[Function]}
+    overrideTargetEvent={true}
+    show={true}
+  >
+    <div
+      className="modal-marketplace"
+      id="modal_marketplace"
+    >
+      <h1>
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="Marketplace"
+            id="marketplace_modal.title"
+          />
+        </strong>
+      </h1>
+      <div
+        className="filter-row filter-row--full"
+      >
+        <div
+          className="col-sm-12"
+        >
+          <QuickInput
+            className="form-control filter-textbox search_input"
+            clearable={true}
+            id="searchMarketplaceTextbox"
+            inputComponent={
+              Object {
+                "$$typeof": Symbol(react.forward_ref),
+                "render": [Function],
+              }
+            }
+            onClear={[Function]}
+            onInput={[Function]}
+            placeholder={
+              Object {
+                "defaultMessage": "Search Marketplace",
+                "id": "marketplace_modal.search",
+              }
+            }
+            value=""
+          />
+        </div>
+      </div>
+      <Uncontrolled(Tabs)
+        activeKey="allListing"
+        className="tabs"
+        defaultActiveKey="allListing"
+        id="marketplaceTabs"
+        onSelect={[Function]}
+        unmountOnExit={true}
+      >
+        <Tab
+          eventKey="allListing"
+          title="All"
+        >
+          <LoadingScreen />
+        </Tab>
+        <Tab
+          eventKey="installed"
+          title="Installed (0)"
+        >
+          <InstalledListing
+            changeTab={[Function]}
+            installedItems={Array []}
+          />
+        </Tab>
+      </Uncontrolled(Tabs)>
+    </div>
+  </injectIntl(FullScreenModal)>
+</RootPortal>
+`;
+
+exports[`components/marketplace/ MarketplaceModal should render with plugins installed 1`] = `
+<RootPortal>
+  <injectIntl(FullScreenModal)
+    ariaLabel="Marketplace"
+    onClose={[Function]}
+    overrideTargetEvent={true}
+    show={true}
+  >
+    <div
+      className="modal-marketplace"
+      id="modal_marketplace"
+    >
+      <h1>
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="Marketplace"
+            id="marketplace_modal.title"
+          />
+        </strong>
+      </h1>
+      <div
+        className="filter-row filter-row--full"
+      >
+        <div
+          className="col-sm-12"
+        >
+          <QuickInput
+            className="form-control filter-textbox search_input"
+            clearable={true}
+            id="searchMarketplaceTextbox"
+            inputComponent={
+              Object {
+                "$$typeof": Symbol(react.forward_ref),
+                "render": [Function],
+              }
+            }
+            onClear={[Function]}
+            onInput={[Function]}
+            placeholder={
+              Object {
+                "defaultMessage": "Search Marketplace",
+                "id": "marketplace_modal.search",
+              }
+            }
+            value=""
+          />
+        </div>
+      </div>
+      <Uncontrolled(Tabs)
+        activeKey="allListing"
+        className="tabs"
+        defaultActiveKey="allListing"
+        id="marketplaceTabs"
+        onSelect={[Function]}
+        unmountOnExit={true}
+      >
+        <Tab
+          eventKey="allListing"
+          title="All"
+        >
+          <LoadingScreen />
+        </Tab>
+        <Tab
+          eventKey="installed"
+          title="Installed (1)"
+        >
+          <InstalledListing
+            changeTab={[Function]}
+            installedItems={
+              Array [
+                Object {
+                  "author_type": "mattermost",
+                  "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                  "enterprise": false,
+                  "homepage_url": "https://github.com/mattermost/mattermost-test",
+                  "installed_version": "1.0.3",
+                  "manifest": Object {
+                    "description": "This plugin is to test",
+                    "id": "com.mattermost.test",
+                    "min_server_version": "5.14.0",
+                    "name": "Test",
+                    "version": "1.0.3",
+                  },
+                  "release_stage": "production",
+                },
+              ]
+            }
+          />
+        </Tab>
+      </Uncontrolled(Tabs)>
+    </div>
+  </injectIntl(FullScreenModal)>
+</RootPortal>
+`;
