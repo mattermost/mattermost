@@ -13,6 +13,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/mattermost/logr/v2"
+	"github.com/mattermost/mattermost-server/v6/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -74,6 +76,13 @@ func (ps *PlatformService) initLogging() error {
 	if err := ps.ConfigureLogger("notification logging", ps.notificationsLogger, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
+			return err
+		}
+	}
+
+	if ps.DebugBar.IsEnabled() {
+		err := ps.logger.AddTarget(debugbar.NewDebugBarLogTarget(ps.DebugBar), "debugbar", &debugbar.DebugBarLogFilter{}, &debugbar.DebugBarLogFormatter{}, logr.DefaultMaxQueueSize)
+		if err != nil {
 			return err
 		}
 	}

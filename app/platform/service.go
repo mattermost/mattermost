@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
@@ -23,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/debugbarlayer"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
 	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
@@ -34,9 +36,11 @@ import (
 // responsible for non-entity related functionalities that are required
 // by a product such as database access, configuration access, licensing etc.
 type PlatformService struct {
-	sqlStore *sqlstore.SqlStore
-	Store    store.Store
-	newStore func() (store.Store, error)
+	sqlStore   *sqlstore.SqlStore
+	DebugBar   *debugbar.DebugBar
+	Store      store.Store
+	newStore   func() (store.Store, error)
+	LastUserID string
 
 	WebSocketRouter *WebSocketRouter
 
@@ -125,6 +129,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
 	}
+	ps.DebugBar = debugbar.New(ps.Publish)
 
 	// Step 1: Cache provider.
 	// At the moment we only have this implementation
@@ -186,7 +191,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace, ps.DebugBar.SendSqlQuery)
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(ps.sqlStore),
@@ -214,10 +219,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				ps.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return timerlayer.New(
+			timerStore := timerlayer.New(
 				searchStore,
 				ps.metricsIFace,
-			), nil
+			)
+
+			if ps.DebugBar.IsEnabled() {
+				return debugbarlayer.New(timerStore, ps.DebugBar), nil
+			}
+			return timerStore, nil
 		}
 	}
 
