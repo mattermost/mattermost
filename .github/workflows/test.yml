@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run docker compose
         run: |
-          cd build
+          cd server/build
           docker-compose --no-ansi run --rm start_dependencies
           cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
