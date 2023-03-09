@@ -36,7 +36,7 @@ jobs:
             export RACE_MODE="-race"
           fi
           mkdir -p client/plugins
-          cd build
+          cd server/build
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=dotenv/test.env \
