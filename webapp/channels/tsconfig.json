@@ -23,9 +23,9 @@
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "paths": {
-        "@mattermost/client": ["packages/client/src"],
-        "@mattermost/components": ["packages/components/src"],
-        "@mattermost/types/*": ["packages/types/src/*"],
+        "@mattermost/client": ["../../platform/client/src"],
+        "@mattermost/components": ["../../platform/components/src"],
+        "@mattermost/types/*": ["../../platform/types/src/*"],
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
         "reselect": ["packages/reselect/src"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
@@ -45,7 +45,7 @@
     "coverage"
   ],
   "references": [
-    {"path": "./src/packages/client"},
-    {"path": "./src/packages/types"}
+    {"path": "../platform/client"},
+    {"path": "../platform/types"}
   ]
 }

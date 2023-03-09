@@ -37,7 +37,7 @@ const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 const boardsDevServerUrl = process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006';
 
 const STANDARD_EXCLUDE = [
-    path.join(__dirname, 'node_modules'),
+    /node_modules/,
 ];
 
 let publicPath = '/static/';
