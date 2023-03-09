@@ -152,7 +152,7 @@
       }
     },
     {
-      "files": ["tests/**", "**/*.test.*", "tests/*.js", "packages/mattermost-redux/test/*"],
+      "files": ["src/tests/**", "**/*.test.*", "src/tests/*.js", "src/packages/mattermost-redux/test/*"],
       "env": {
         "jest": true
       },

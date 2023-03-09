@@ -20,7 +20,7 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "paths": {
         "@mattermost/client": ["packages/client/src"],
@@ -35,7 +35,7 @@
     }
   },
   "include": [
-    "./**/*"
+    "./src/**/*"
   ],
   "exclude": [
     "dist",
@@ -45,7 +45,7 @@
     "coverage"
   ],
   "references": [
-    {"path": "./packages/client"},
-    {"path": "./packages/types"}
+    {"path": "./src/packages/client"},
+    {"path": "./src/packages/types"}
   ]
 }

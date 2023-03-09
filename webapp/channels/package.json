@@ -223,8 +223,8 @@
   },
   "scripts": {
     "postinstall": "npm run build --workspaces && node skip_integrity_check.js",
-    "check": "eslint --ext .js,.jsx,.tsx,.ts . --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
-    "fix": "eslint --ext .js,.jsx,.tsx,.ts . --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
+    "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
     "build": "node scripts/build",
     "build:webapp": "cross-env NODE_ENV=production webpack",
     "run": "node scripts/run",
@@ -240,15 +240,15 @@
     "test:watch": "cross-env TZ=Etc/UTC jest --watch",
     "test:coverage": "cross-env TZ=Etc/UTC jest --coverage",
     "mmjstool": "mmjstool",
-    "i18n-extract": "npm run mmjstool -- i18n extract-webapp",
-    "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir .",
-    "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir .",
+    "i18n-extract": "npm run mmjstool -- i18n extract-webapp --webapp-dir ./src",
+    "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
+    "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
   },
   "workspaces": [
-    "packages/client",
-    "packages/types",
-    "packages/components"
+    "src/packages/client",
+    "src/packages/types",
+    "src/packages/components"
   ]
 }
