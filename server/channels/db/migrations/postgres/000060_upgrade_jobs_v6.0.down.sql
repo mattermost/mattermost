@@ -1,0 +1,1 @@
+ALTER TABLE jobs ALTER COLUMN data TYPE varchar(1024);

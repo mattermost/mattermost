@@ -1,0 +1,21 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody" background-color="#FFFFFF">
+    <mj-wrapper mj-class="email">
+      <mj-include path="./partials/logo.mjml" />
+      <mj-include path="./partials/header.mjml" />
+      <mj-section padding="0px">
+        <mj-column>
+          <mj-image src="{{.Props.SiteURL}}/static/images/forgot_password_illustration.png" width="312px" padding="0px" />
+          <mj-text css-class="info" padding="0px">
+            {{.Props.Info}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="./partials/questions_footer.mjml" />
+      <mj-include path="./partials/email_footer.mjml" />
+    </mj-wrapper>s
+  </mj-body>
+</mjml>

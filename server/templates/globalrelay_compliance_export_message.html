@@ -1,0 +1,11 @@
+{{define "globalrelay_compliance_export_message"}}
+<li class="message">
+    <span class="sent_time">{{.Props.SentTime}}</span>
+    <span class="username">@{{.Props.Username}}</span>
+    <span class="postusername">{{.Props.PostUsername}}</span>
+    <span class="usertype">{{.Props.UserType}}</span>
+    <span class="email">({{.Props.Email}}):</span>
+    <span class="message">{{.Props.Message}}</span>
+    <span class="previews_post">{{.Props.PreviewsPost}}</span>
+</li>
+{{end}}

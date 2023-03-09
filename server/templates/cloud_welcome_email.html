@@ -1,0 +1,171 @@
+{{define "cloud_welcome_email"}}
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&amp;display=swap" rel="stylesheet">
+    <style type="text/css">
+        @import url(https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&amp;display=swap);
+    </style>
+</head>
+
+<body>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
+        style="margin-top: 20px; line-height: 1.7; color: #3D3C40;">
+        <tr>
+            <td>
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
+                    style="width: 724px; padding: 32px; background: #FFFFFF; color: #3D3C40;">
+                    <tr>
+                        <td style="padding: 24px 54px; border-radius: 8px; background: #FFFFFF; color: #3D3C40;">
+                            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
+                                style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="padding: 20px 20px 10px; text-align:center;">
+                                        <img src="{{.Props.WorkSpacePath}}/static/images/logo-email.png"
+                                            style="height: 21.7px;" alt="logo_email">
+                                    </td>
+                                </tr>
+                            </table>
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <p
+                                            style="font-family: Open Sans, Arial; font-style: normal; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.02em; color: #3D3C40;">
+                                            {{.Props.Title}}
+                                        </p>
+                                        <p
+                                            style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: #3D3C40;">
+                                            {{.Props.Info}} <a href="{{.Props.WorkSpacePath}}" target="_blank"
+                                                rel="noopener noreferrer"
+                                                style="text-decoration: none; color: #6DA4EB;">{{.Props.DNS}}.</a>
+                                            {{.Props.Info2}}
+                                        </p>
+                                        <p style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
+                                            <a href="{{.Props.WorkSpacePath}}" target="_blank" rel="noopener noreferrer"
+                                                style="padding: 14px 24px; position: static; background: #1C58D9; border-radius: 4px; margin: 0px 150px; font-family: Open Sans, Arial; font-style: normal; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; text-decoration: none;">{{.Props.Button}}<a />
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <p
+                                            style="font-family: Open Sans, Arial; font-weight: 600; font-size: 22px; line-height: 28px; color: #3D3C40;">
+                                            {{.Props.SubTitle}}
+                                        </p>
+                                        <p
+                                            style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40;">
+                                            {{.Props.SubTitleInfo}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                <tr>
+                                    <td>
+                                        <div style="position: relative;">
+                                            <span>
+                                                <img src="{{.Props.WorkSpacePath}}/static/images/c_avatar.png"
+                                                    style="height: 15px; width: 15px; transform: translateY(2px);" alt="c_avatar">
+                                            </span>
+                                            <span
+                                                style="font-family: Open Sans, Arial; font-style: normal; font-weight: 600; font-size: 16px; line-height: 24px; color: #3D3C40; margin-left: 8px;">
+                                                {{.Props.InviteInfo}}
+                                            </span>
+                                            <p
+                                                style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; margin-left: 26px;">
+                                                {{.Props.InviteSubInfo}}
+                                                <a style="text-decoration: none; color: #6DA4EB;" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    href="{{.Props.InviteSubInfoLink}}">{{.Props.InviteSubInfoLink}}</a>
+                                            </p>
+                                        </div>
+
+                                        <div style="position: relative;">
+                                            <span>
+                                                <span>
+                                                    <img src="{{.Props.WorkSpacePath}}/static/images/c_socket.png"
+                                                        style="height: 15px; width: 15px; transform: translateY(2px);" alt="c_avatar">
+                                                </span>
+                                            </span>
+                                            <span
+                                                style="font-family: Open Sans, Arial; font-style: normal; font-weight: 600; font-size: 16px; line-height: 24px; color: #3D3C40; margin-left: 8px;">
+                                                {{.Props.AddAppsInfo}}
+                                            </span>
+                                            <p
+                                                style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; margin-left: 26px;">
+                                                {{.Props.AddAppsSubInfo}}
+                                                <a style="text-decoration: none; color: #6DA4EB;" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    href="{{.Props.AppMarketPlaceLink}}">{{.Props.AppMarketPlace}}</a>
+                                            </p>
+                                        </div>
+
+                                        <div style="position: relative;">
+                                            <span>
+                                                <span>
+                                                    <img src="{{.Props.WorkSpacePath}}/static/images/c_download.png"
+                                                        style="height: 17px; width: 15px; transform: translateY(5px);" alt="c_avatar">
+                                                </span>
+                                            </span>
+                                            <span
+                                                style="font-family: Open Sans, Arial; font-style: normal; font-weight: 600; font-size: 16px; line-height: 24px; color: #3D3C40; margin-left: 8px;">
+                                                {{.Props.DownloadMMInfo}}
+                                            </span>
+                                            <p
+                                                style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40;  margin-left: 26px;">
+                                                {{.Props.SignInSubInfo}} <a
+                                                    style="text-decoration: none; color: #6DA4EB;" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    href="{{.Props.DownloadMMAppsLink}}">{{.Props.MMApps}}</a>
+                                                {{.Props.SignInSubInfo2}}
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table border="0" cellpadding="0" cellspacing="0" style="margin-top: 50px;">
+                                <tr>
+                                    <td>
+                                        <p
+                                            style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40;">
+                                            {{.Props.GettingStartedQuestions}} <a
+                                                style="text-decoration: none; color: #6DA4EB;"
+                                                href="mailto:support@mattermost.com">support@mattermost.com.</a>
+                                        </p>
+
+                                    </td>
+                                </tr>
+                            </table>
+                            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding: 20px 20px 10px; text-align:center;">
+                                        <img src="{{.Props.WorkSpacePath}}/static/images/invite_illustration.png"
+                                            width="320px" alt="invite_illustration">
+
+                                    </td>
+                                </tr>
+                            </table>
+                            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <p style="font-family: Open Sans, Arial; font-style: normal; font-weight: 400; font-size: 12px; line-height: 16px; text-align: center; color: rgba(61, 60, 64, 0.56);">{{.Props.Organization}}
+                                            {{.Props.FooterV2}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+    </table>
+
+</body>
+
+</html>
+{{end}}

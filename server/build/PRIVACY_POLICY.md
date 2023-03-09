@@ -1,0 +1,1 @@
+https://mattermost.com/privacy-policy/

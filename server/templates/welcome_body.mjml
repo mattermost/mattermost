@@ -1,0 +1,29 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody" background-color="#FFFFFF">
+    <mj-wrapper mj-class="email">
+      <mj-include path="./partials/logo.mjml" />
+      <mj-include path="./partials/header_verify.mjml" />
+      <mj-include path="./partials/verify.mjml" />
+      <mj-section padding="16px 0px 40px 0px">
+        <mj-column padding="0px 24px 0px 24px">
+          <mj-raw>{{if .Props.AppDownloadLink}}</mj-raw>
+          <mj-image width="150px" height="25.5px" padding="0px 0px 12px 0px" src="{{.Props.SiteURL}}/static/images/appIcons.png" />
+          <mj-text css-class="footerTitle" padding="0px">
+            {{.Props.AppDownloadTitle}}
+          </mj-text>
+          <mj-text css-class="footerInfo" padding="0px">
+            {{.Props.AppDownloadInfo}}
+          </mj-text>
+          <mj-button css-class="appDownloadButton" padding="12px 0px 0px 0px" href="{{.Props.AppDownloadLink}}">
+            {{.Props.AppDownloadButton}}
+          </mj-button>
+          <mj-raw>{{end}}</mj-raw>
+        </mj-column> 
+      </mj-section>
+      <mj-include path="./partials/email_footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>

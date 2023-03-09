@@ -1,0 +1,92 @@
+{{define "globalrelay_compliance_export"}}
+<style type="text/css">
+    body {
+        font-family:Arial, sans-serif;
+        font-size:14px;
+        font-weight:normal;
+    }
+
+    .summary-list ul {
+        padding: 0px;
+        list-style:none;
+    }
+    .summary-list li {
+        display: inline;
+        padding: 0 1em 0 0;
+    }
+    .summary-list .bold {
+        font-weight: bold;
+    }
+
+    .participants {
+        border-collapse:collapse;
+        border-spacing:0;
+    }
+    .participants td {
+        padding:10px 5px;
+        border:1px solid black;
+        overflow:hidden;
+        text-align: center;
+        word-break:normal;
+    }
+    .participants th {
+        padding:10px 5px;
+        border:1px solid black;
+        overflow:hidden;
+        word-break:normal;
+    }
+    .participants th,td {
+        vertical-align:top
+    }
+
+    .message-list ul {
+        list-style:none;
+        padding: 0;
+    }
+    .message-list li {
+        padding: 0 0 1em 0;
+    }
+    .message .sent_time {
+        font-weight:bold;
+    }
+    .message .username {
+        font-weight:bold;
+    }
+    .message .email {
+        font-weight: bold;
+    }
+</style>
+
+<h1>Mattermost Compliance Export</h1>
+
+<h2>Conversation Summary</h2>
+<div class="summary-list">
+    <ul>
+        <li><span class="bold">Channel:&nbsp;</span>{{.Props.ChannelName}}</li>
+        <li><span class="bold">Started:&nbsp;</span>{{.Props.Started}}</li>
+        <li><span class="bold">Ended:&nbsp;</span>{{.Props.Ended}}</li>
+        <li><span class="bold">Duration:&nbsp;</span>{{.Props.Duration}}</li>
+    </ul>
+</div>
+<table class="participants">
+    <tr>
+        <th class="username">Username<br></th>
+        <th class="usertype">UserType<br></th>
+        <th class="email">Email</th>
+        <th class="joined">Joined</th>
+        <th class="left">Left</th>
+        <th class="duration">Duration</th>
+        <th class="messages">Messages</th>
+    </tr>
+    {{.Props.ParticipantRows}}
+</table>
+
+<h2>Messages</h2>
+<div class="message-list">
+    <ul>
+        {{.Props.Messages}}
+    </ul>
+</div>
+
+<p>Exported on {{.Props.ExportDate}}</p>
+{{end}}

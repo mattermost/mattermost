@@ -1,0 +1,93 @@
+query Playbook($id: String!) {
+    playbook(id: $id) {
+        id
+        title
+		description
+		team_id: teamID
+		public
+		delete_at: deleteAt
+		default_playbook_member_role: defaultPlaybookMemberRole
+		invited_user_ids: invitedUserIDs
+		broadcast_channel_ids: broadcastChannelIDs
+		webhook_on_creation_urls: webhookOnCreationURLs
+		reminder_timer_default_seconds: reminderTimerDefaultSeconds
+		reminder_message_template: reminderMessageTemplate
+		broadcast_enabled: broadcastEnabled
+		webhook_on_status_update_enabled: webhookOnStatusUpdateEnabled
+		webhook_on_status_update_urls: webhookOnStatusUpdateURLs
+		status_update_enabled: statusUpdateEnabled
+		retrospective_enabled: retrospectiveEnabled
+		retrospective_reminder_interval_seconds: retrospectiveReminderIntervalSeconds
+		retrospective_template: retrospectiveTemplate
+		default_owner_id: defaultOwnerID
+		run_summary_template: runSummaryTemplate
+		run_summary_template_enabled: runSummaryTemplateEnabled
+		message_on_join: messageOnJoin
+		category_name: categoryName
+		invite_users_enabled: inviteUsersEnabled
+		default_owner_enabled: defaultOwnerEnabled
+		webhook_on_creation_enabled: webhookOnCreationEnabled
+		message_on_join_enabled: messageOnJoinEnabled
+		categorize_channel_enabled: categorizeChannelEnabled
+		create_public_playbook_run: createPublicPlaybookRun
+		channel_name_template: channelNameTemplate
+		create_channel_member_on_new_participant: createChannelMemberOnNewParticipant
+		remove_channel_member_on_removed_participant: removeChannelMemberOnRemovedParticipant
+		channel_id: channelID
+		channel_mode: channelMode
+		is_favorite: isFavorite
+		checklists {
+			title
+			items {
+				title
+				description
+				state
+				state_modified: stateModified
+				assignee_id: assigneeID
+				assignee_modified: assigneeModified
+				command
+				command_last_run: commandLastRun
+				due_date: dueDate
+				task_actions: taskActions {
+					trigger: trigger {
+						type
+						payload
+					}
+					actions: actions {
+						type
+						payload
+					}
+				}
+			}
+        	}
+		members {
+			user_id: userID
+			roles
+			scheme_roles: schemeRoles
+		}
+		metrics {
+			id
+			title
+			description
+			type
+			target
+		}
+    }
+}
+
+mutation UpdatePlaybookFavorite($id: String!, $favorite: Boolean!) {
+  updatePlaybookFavorite(id: $id, favorite: $favorite)
+}
+
+mutation UpdatePlaybook($id: String!, $updates: PlaybookUpdates!) {
+  updatePlaybook(id: $id, updates: $updates)
+}
+
+
+mutation AddPlaybookMember($playbookID: String!, $userID: String!) {
+	addPlaybookMember(playbookID: $playbookID, userID: $userID)
+}
+
+mutation RemovePlaybookMember($playbookID: String!, $userID: String!) {
+	removePlaybookMember(playbookID: $playbookID, userID: $userID)
+}

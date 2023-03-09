@@ -1,0 +1,1 @@
+-- It is intentionally to not have rollback for removing AcceptedServiceTermsId column.

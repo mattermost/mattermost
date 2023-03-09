@@ -1,0 +1,301 @@
+
+{{define "unsupported_browser-browser"}}
+    <div 
+        class='browser-container' 
+        data-mattermost-hover='browser'
+    >
+        <div class='browser'>
+            <img 
+                class='browser-image' 
+                src='{{.LogoSrc}}'
+            />
+            <div class='browser-top-text'>{{.Title}}</div>
+            <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
+        </div>
+        <div 
+            class='browser browser-hover hidden' 
+            data-mattermost-click='{{.Src}}'
+        >
+            <img 
+                class='browser-image' 
+                src='{{.LogoSrc}}'
+            />
+            <div class='browser-top-text'>{{.GetLatestString}}</div>
+        </div>
+    </div>
+{{end}}
+{{define "unsupported_browser-system_browser"}}
+    <div 
+        class='browser-container' 
+        data-mattermost-hover='browser'
+    >
+        <div class='browser'>
+            <img 
+                class='browser-image' 
+                src='{{.LogoSrc}}'
+            />
+            <div class='browser-top-text'>{{.Title}}</div>
+            <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
+        </div>
+        <div class='browser browser-hover no-pointer hidden'>
+            <img 
+                class='browser-image' 
+                src='{{.LogoSrc}}'
+            />
+            <div 
+                class='browser-top-text pointer' 
+                data-mattermost-click='{{.LinkOpen}}'
+            >
+                <p>{{.LabelOpen}}</p>
+            </div>
+            <div class='browser-bottom-text'>{{.OrString}}</div>
+            <div 
+                class='browser-top-text pointer' 
+                data-mattermost-click='{{.LinkMakeDefault}}'
+            >
+                <p>{{.MakeDefaultString}}</p>
+            </div>
+        </div>
+    </div>
+{{end}}
+{{define "unsupported_browser-app"}}
+    <div 
+        class='mattermost-app-container' 
+        data-mattermost-hover='mattermost-app'
+    >
+        <div class='mattermost-app'>
+            <img 
+                class='mattermost-app-image' 
+                src='{{.LogoSrc}}'
+            />
+            <div class='browser-top-text'>{{.Title}}</div>
+            <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
+        </div>
+        <div class='mattermost-app mattermost-app-hover hidden'>
+            <img 
+                class='mattermost-app-image' 
+                src='{{.LogoSrc}}'
+            />
+            <button 
+                class='mattermost-app-button' 
+                data-mattermost-click='{{.Link}}'
+            >
+                {{.Label}}
+            </button>
+            <div class='mattermost-app-hover-alt'>
+                <a href='{{.InstallGuideLink}}' target='_blank'>{{.InstallGuide}}</a>
+            </div>
+        </div>
+    </div>
+{{end}}
+{{define "unsupported_browser"}}
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <style>
+                body {
+                    overflow: hidden;
+                }
+                .hidden {
+                    display: none;
+                }
+                .content {	
+                    height: 540px;
+                    width: 100%;
+                    position: absolute;
+                    top: 50%;
+                    margin-top: -270px;
+                }
+                .we-no-longer-support {	
+                    height: 55px;	
+                    color: #3D3C40;	
+                    font-family: "Open Sans";	
+                    font-size: 40px;	
+                    font-weight: 600;	
+                    letter-spacing: -0.2px;	
+                    line-height: 55px;	
+                    text-align: center;
+                }
+                .download-the-matterm {	
+                    height: 26px;	
+                    color: #3D3C40;	
+                    font-family: "Open Sans";	
+                    font-size: 20px;	
+                    line-height: 26px;	
+                    text-align: center;
+                    padding-top: 24px;
+                }
+                .downloads {	
+                    height: 212px;	
+                    width: 100%;
+                    padding-top: 40px;
+                    text-align: center;
+                    font-size: 0;
+                }
+                .learn-more-about-sup {	
+                    height: 22px;
+                    width: 100%;	
+                    line-height: 22px;	
+                    text-align: center;
+                    position: absolute;
+                    bottom: 0px;
+                }
+                .learn-more-about-sup a {	
+                    color: #145DBF;
+                    text-decoration: none;
+                    font-family: "Open Sans";	
+                    font-size: 14px;	
+                }
+                .learn-more-about-sup a:hover {
+                    text-decoration: underline;
+                }
+                .vr {
+                    display: inline-block;
+                    vertical-align: top;
+                    margin-left: 32px;
+                    margin-right: 30px;
+                    width: 1px;
+                    background-color: #D8D8D8;
+                    height: 164px;
+                    position: relative;
+                    top: 24px;
+                }
+                .mattermost-app {	
+                    height: 148px;	
+                    width: 188px;
+                    padding: 32px 30px;
+                }
+                .mattermost-app-container {	
+                    height: 212px;	
+                    width: 248px;
+                    display: inline-block;
+                    vertical-align: top;
+                }
+                .browser {	
+                    height: 212px;	
+                    width: 164px;
+                    padding-left: 14px;
+                    padding-right: 14px;
+                }
+                .browser-container {	
+                    height: 212px;	
+                    width: 192px;
+                    display: inline-block;
+                    vertical-align: top;
+                    padding: 0 2px;
+                }
+                .browser-image {
+                    height: 80px;
+                    padding: 32px 42px 24px 42px;
+                }
+                .mattermost-app-image {
+                    height: 80px;
+                    padding: 0px 54px 24px 54px;
+                }
+                .browser-bottom-text {	
+                    font-family: "Open Sans";
+                    font-size: 14px;	
+                    line-height: 22px;	
+                    text-align: center;
+                    color: rgba(61,60,64,0.7);
+                }
+                .browser-top-text {
+                    color: #145DBF;
+                    font-family: "Open Sans";
+                    font-size: 16px;
+                    letter-spacing: -0.2px;
+                    line-height: 22px;
+                    text-align: center;
+                }
+                .browser-top-text p {
+                    margin: 0;
+                }
+                .browser-top-text p:hover {
+                    text-decoration: underline;
+                }
+                .container-hover {
+                    background-color: #EDF2FA;
+                    border-radius: 4px;
+                    border: 0;
+                }
+                .browser-hover {
+                    cursor: pointer;
+                }
+                .browser-hover .browser-top-text {
+                    font-weight: 600;
+                    width: 128px;
+                    padding: 0 18px;
+                }
+                .mattermost-app-button {
+                    height: 36px;	
+                    width: 156px;	
+                    border: 0;
+                    border-radius: 4px;	
+                    background-color: #145DBF;
+                    padding: 8px 16px;
+                    color: #FFFFFF;	
+                    font-family: "Open Sans";	
+                    font-size: 14px;	
+                    line-height: 20px;
+                    cursor: pointer;
+                }
+                .mattermost-app.mattermost-app-hover {
+                    padding-bottom: 0;
+                }
+                .no-pointer {
+                    cursor: auto;
+                }
+                .pointer {
+                    cursor: pointer;
+                }
+                .mattermost-app-hover-alt {
+                    height: 18px;
+                    font-family: "Open Sans";	
+                    font-size: 12px;	
+                    line-height: 18px;	
+                    text-align: center;
+                    padding-top: 10px;
+                }
+                .mattermost-app-hover-alt a {
+                    text-decoration: none;
+                    color: #145DBF;	
+                }
+                .mattermost-app-hover-alt a:hover {
+                    text-decoration: underline;
+                }
+            </style>
+            <link 
+                href='https://fonts.googleapis.com/css?family=Open+Sans&display=swap' 
+                rel='stylesheet'
+            />
+            <script 
+                type='text/javascript' 
+                src='/unsupported_browser.js'
+            >
+            </script>
+        </head>
+        <body>
+            <div class='content'>
+                <div class='we-no-longer-support'>
+                    {{.Props.NoLongerSupportString}}
+                </div>
+                <div class='download-the-matterm'>
+                    {{.Props.DownloadAppOrUpgradeBrowserString}}
+                </div>
+                <div class='downloads'>
+                    {{template "unsupported_browser-app" .Props.App}}
+                    <div class='vr'></div>
+                    {{range .Props.Browsers}}
+                        {{template "unsupported_browser-browser" .}}
+                    {{end}}
+                    {{if .Props.SystemBrowser}}
+                        {{template "unsupported_browser-system_browser" .Props.SystemBrowser}}
+                    {{end}}
+                    <div class='learn-more-about-sup'>
+                        <a href='https://docs.mattermost.com/install/requirements.html#pc-web' target='_blank' rel='noopener noreferrer'>{{.Props.LearnMoreString}}</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </html>
+{{end}}

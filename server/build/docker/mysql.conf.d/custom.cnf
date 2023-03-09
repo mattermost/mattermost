@@ -1,0 +1,19 @@
+[mysqld]
+bind-address = 0.0.0.0
+
+log-output = NONE
+slow-query-log = 0
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = nosync
+innodb_lock_wait_timeout = 50
+innodb_log_buffer_size = 3M
+innodb_buffer_pool_size = 180M
+
+max_connect_errors = 1000000
+max_connections = 900
+
+character-set-server = utf8
+sql_mode = ""
+innodb = FORCE
+default-storage-engine = Memory
+max_allowed_packet = 256M

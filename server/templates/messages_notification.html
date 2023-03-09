@@ -1,0 +1,851 @@
+{{define "messages_notification"}}
+
+<!-- FILE: messages_notification.mjml -->
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+  <title>
+  </title>
+  <!--[if !mso]><!-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!--<![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style type="text/css">
+    #outlook a {
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+
+    table,
+    td {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+
+    p {
+      display: block;
+      margin: 13px 0;
+    }
+  </style>
+  <!--[if mso]>
+        <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG/>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+        </xml>
+        <![endif]-->
+  <!--[if lte mso 11]>
+        <style type="text/css">
+          .mj-outlook-group-fix { width:100% !important; }
+        </style>
+        <![endif]-->
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700" rel="stylesheet" type="text/css">
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700);
+  </style>
+  <!--<![endif]-->
+  <style type="text/css">
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+
+      .mj-column-per-33-333333333333336 {
+        width: 33.333333333333336% !important;
+        max-width: 33.333333333333336%;
+      }
+
+      .mj-column-per-90 {
+        width: 90% !important;
+        max-width: 90%;
+      }
+    }
+  </style>
+  <style media="screen and (min-width:480px)">
+    .moz-text-html .mj-column-per-100 {
+      width: 100% !important;
+      max-width: 100%;
+    }
+
+    .moz-text-html .mj-column-per-33-333333333333336 {
+      width: 33.333333333333336% !important;
+      max-width: 33.333333333333336%;
+    }
+
+    .moz-text-html .mj-column-per-90 {
+      width: 90% !important;
+      max-width: 90%;
+    }
+  </style>
+  <style type="text/css">
+    @media only screen and (max-width:480px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+  </style>
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700);
+
+    .emailBody {
+      background-color: #F3F3F3
+    }
+
+    .emailBody a {
+      text-decoration: none !important;
+      color: #1C58D9;
+    }
+
+    .title div {
+      font-weight: 600 !important;
+      font-size: 28px !important;
+      line-height: 36px !important;
+      letter-spacing: -0.01em !important;
+      color: #3F4350 !important;
+      font-family: Open Sans, sans-serif !important;
+    }
+
+    .subTitle div {
+      font-size: 16px !important;
+      line-height: 24px !important;
+      color: rgba(63, 67, 80, 0.64) !important;
+    }
+
+    .subTitle a {
+      color: rgb(28, 88, 217) !important;
+    }
+
+    .button a {
+      background-color: #1C58D9 !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      line-height: 18px !important;
+      color: #FFFFFF !important;
+      padding: 15px 24px !important;
+    }
+
+    .button-cloud a {
+      background-color: #1C58D9 !important;
+      font-weight: 400 !important;
+      font-size: 16px !important;
+      line-height: 18px !important;
+      color: #FFFFFF !important;
+      padding: 15px 24px !important;
+    }
+
+    .messageButton a {
+      background-color: #FFFFFF !important;
+      border: 1px solid #FFFFFF !important;
+      box-sizing: border-box !important;
+      color: #1C58D9 !important;
+      padding: 12px 20px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 14px !important;
+    }
+
+    .info div {
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3F4350 !important;
+      padding: 40px 0px !important;
+    }
+
+    .footerTitle div {
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      line-height: 24px !important;
+      color: #3F4350 !important;
+      padding: 0px 0px 4px 0px !important;
+    }
+
+    .footerInfo div {
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3F4350 !important;
+      padding: 0px 48px 0px 48px !important;
+    }
+
+    .footerInfo a {
+      color: #1C58D9 !important;
+    }
+
+    .appDownloadButton a {
+      background-color: #FFFFFF !important;
+      border: 1px solid #1C58D9 !important;
+      box-sizing: border-box !important;
+      color: #1C58D9 !important;
+      padding: 13px 20px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 14px !important;
+    }
+
+    .emailFooter div {
+      font-size: 12px !important;
+      line-height: 16px !important;
+      color: rgba(63, 67, 80, 0.56) !important;
+      padding: 8px 24px 8px 24px !important;
+    }
+
+    .postCard {
+      padding: 0px 24px 40px 24px !important;
+    }
+
+    .messageCard {
+      background: #FFFFFF !important;
+      border: 1px solid rgba(61, 60, 64, 0.08) !important;
+      box-sizing: border-box !important;
+      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
+      border-radius: 4px !important;
+      padding: 32px !important;
+    }
+
+    .messageAvatar img {
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0px !important;
+      border-radius: 32px !important;
+    }
+
+    .messageAvatarCol {
+      width: 32px !important;
+    }
+
+    .postNameAndTime {
+      padding: 0px 0px 4px 0px !important;
+      display: flex;
+    }
+
+    .senderName {
+      font-family: Open Sans, sans-serif;
+      text-align: left !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3F4350 !important;
+    }
+
+    .time {
+      font-family: Open Sans, sans-serif;
+      font-size: 12px;
+      line-height: 16px;
+      color: rgba(63, 67, 80, 0.56);
+      padding: 2px 6px;
+      align-items: center;
+      float: left;
+    }
+
+    .channelBg {
+      background: rgba(63, 67, 80, 0.08);
+      border-radius: 4px;
+      display: flex;
+      padding-left: 4px;
+    }
+
+    .channelLogo {
+      width: 10px;
+      height: 10px;
+      padding: 5px 4px 5px 6px;
+      float: left;
+    }
+
+    .channelName {
+      font-family: Open Sans, sans-serif;
+      font-weight: 600;
+      font-size: 10px;
+      line-height: 16px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: rgba(63, 67, 80, 0.64);
+      padding: 2px 6px 2px 0px;
+    }
+
+    .gmChannelCount {
+      background-color: rgba(63, 67, 80, 0.2);
+      padding: 0 5px;
+      border-radius: 2px;
+      margin-right: 2px;
+    }
+
+    .senderMessage div {
+      text-align: left !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3F4350 !important;
+      padding: 0px !important;
+    }
+
+    .senderInfoCol {
+      width: 394px !important;
+      padding: 0px 0px 0px 12px !important;
+    }
+
+    @media all and (min-width: 541px) {
+      .emailBody {
+        padding: 32px !important;
+      }
+    }
+
+    @media all and (max-width: 540px) and (min-width: 401px) {
+      .emailBody {
+        padding: 16px !important;
+      }
+
+      .messageCard {
+        padding: 16px !important;
+      }
+
+      .senderInfoCol {
+        width: 80% !important;
+        padding: 0px 0px 0px 12px !important;
+      }
+    }
+
+    @media all and (max-width: 400px) {
+      .emailBody {
+        padding: 0px !important;
+      }
+
+      .footerInfo div {
+        padding: 0px !important;
+      }
+
+      .messageCard {
+        padding: 16px !important;
+      }
+
+      .postCard {
+        padding: 0px 0px 40px 0px !important;
+      }
+
+      .senderInfoCol {
+        width: 80% !important;
+        padding: 0px 0px 0px 12px !important;
+      }
+    }
+
+    @media only screen and (min-width:480px) {
+      .mj-column-per-50 {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+
+    .messageAttachments * {
+      font-family: Open Sans, sans-serif !important;
+    }
+
+    .messageAttachmentContent {
+      padding: 0px;
+      border: 1px solid rgba(63, 67, 80, 0.16);
+      margin-bottom: 20px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .messageAttachmentContent>table,
+    .attachment__body {
+      font-family: Open Sans, sans-serif;
+      text-align: left;
+      font-size: 14px;
+      line-height: 20px;
+      color: #3F4350;
+    }
+
+    .messageAttachmentContent .attachment__author-icon {
+      width: 14px;
+      height: 14px;
+      margin-right: 5px;
+      border-radius: 50px;
+      vertical-align: middle;
+    }
+
+    .attachment__author-name {
+      opacity: 0.6;
+    }
+
+    .messageAttachmentContent p {
+      margin: 0;
+    }
+
+    .attachment__title {
+      padding: 0;
+      margin: 5px 0;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 18px;
+    }
+
+    .attachment__image {
+      max-height: 300px;
+      border: 1px solid transparent;
+      margin-bottom: 1em;
+    }
+
+    .attachment__thumb-image {
+      max-width: 100%;
+      max-height: 75px;
+    }
+
+    .attachment__thumb-container {
+      max-width: 80px;
+      width: max-content;
+    }
+
+    .attachment__wrapper {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+    }
+
+    .attachment__body {
+      flex: 1;
+    }
+
+    .messageAttachmentContent>table.attachment__footer-container {
+      color: #a3a3a3;
+      font-size: 12px;
+    }
+
+    .attachment__footer-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .attachment__footer-container {
+      color: #a3a3a3;
+      font-size: 12px;
+    }
+
+    .messageAttachment_title {
+      padding-top: 1em;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .pretext h1 {
+      font-size: 28px;
+      line-height: 32px;
+    }
+
+    .pretext h2 {
+      font-size: 25px;
+      line-height: 30px;
+    }
+
+    .pretext h3 {
+      font-size: 22px;
+      line-height: 25px;
+    }
+
+    .pretext h4 {
+      font-size: 19px;
+      line-height: 24px;
+    }
+
+    .pretext h5 {
+      font-size: 15px;
+      line-height: 20px;
+    }
+
+    .pretext h6 {
+      font-size: 1em;
+      line-height: 1.4em;
+    }
+
+    .pretext>* {
+      margin-bottom: 16px;
+    }
+
+    .messageAttachments {
+      margin-top: 22px;
+    }
+
+    .messageAttachments h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-weight: 500;
+    }
+
+    code {
+      padding: 2px 4px;
+      font-size: 90%;
+      background-color: rgba(63, 67, 80, 0.1);
+      border-radius: 4px;
+    }
+
+    .messageAttachments a {
+      background-color: unset !important;
+      border: none !important;
+      padding: unset !important;
+    }
+  </style>
+  <!-- this empty mj attribute tag is required by MJML to compile successfully -->
+</head>
+
+<body style="word-spacing:normal;">
+  <div class="emailBody" style="background-color: #F3F3F3;">
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;border-radius:8px;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;border-radius:8px;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:24px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="direction:ltr;font-size:0px;padding:0px 0px 40px 0px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                            <tbody>
+                              <tr>
+                                <td align="center" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                    <tbody>
+                                      <tr>
+                                        <td style="width:132px;">
+                                          <img alt height="21" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="direction:ltr;font-size:0px;padding:0px 24px 40px 24px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:504px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                            <tbody>
+                              <tr>
+                                <td align="center" class="title" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <div style="text-align: center; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: Open Sans, sans-serif;">{{.Props.Title}}</div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 16px 24px;word-break:break-word;">
+                                  <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 16px; line-height: 24px; color: rgba(63, 67, 80, 0.64);">{{.Props.SubTitle}}</div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td align="center" vertical-align="middle" class="button" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                                    <tr>
+                                      <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
+                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
+                                          {{.Props.Button}}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              {{range .Props.Posts}}
+              <div class="postCard" style="padding: 0px 24px 40px 24px;">
+                <!--[if mso | IE]><tr><td class="messageCard-outlook" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="messageCard-outlook" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                <div class="messageCard" style="margin: 0px auto; max-width: 552px; background: #FFFFFF; border: 1px solid rgba(61, 60, 64, 0.08); box-sizing: border-box; box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12); border-radius: 4px; padding: 32px;">
+                  <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                    <tbody>
+                      <tr>
+                        <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="width:552px;" ><![endif]-->
+                          <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;">
+                            <!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" role="presentation" ><tr><td style="vertical-align:top;width:184px;" ><![endif]-->
+                            <div class="mj-column-per-33-333333333333336 mj-outlook-group-fix messageAvatarCol" style="font-size: 0px; text-align: left; direction: ltr; display: inline-block; vertical-align: top; width: 32px;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                <tbody>
+                                  <tr>
+                                    <td align="center" class="messageAvatar" style="font-size:0px;padding:0px;word-break:break-word;">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                        <tbody>
+                                          <tr>
+                                            <td style="width:184px;">
+                                              <img alt height="32" src="cid:{{.SenderPhoto}}" style="border: 0; display: block; outline: none; text-decoration: none; font-size: 13px; width: 32px; height: 32px; padding: 0px; border-radius: 32px;" width="32">
+                                            </td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <!--[if mso | IE]></td><td style="vertical-align:top;width:496px;" ><![endif]-->
+                            <div class="mj-column-per-90 mj-outlook-group-fix senderInfoCol" style="font-size: 0px; text-align: left; direction: ltr; display: inline-block; vertical-align: top; width: 394px; padding: 0px 0px 0px 12px;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <div class="postNameAndTime" style="display: flex; padding: 0px 0px 4px 0px;">
+                                        <div class="senderName" style="font-family: Open Sans, sans-serif; text-align: left; font-weight: 600; font-size: 14px; line-height: 20px; color: #3F4350;">{{.SenderName}}</div>
+                                        {{if .Time}}
+                                        <div class="time" style="font-family: Open Sans, sans-serif; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 2px 6px; align-items: center; float: left;">{{.Time}}</div>
+                                        {{end}}
+                                        {{if .ChannelName}}
+                                        <div class="channelBg" style="background: rgba(63, 67, 80, 0.08); border-radius: 4px; display: flex; padding-left: 4px;">
+                                          {{if .ShowChannelIcon}}
+                                          <div class="channelLogo" style="width: 10px; height: 10px; padding: 5px 4px 5px 6px; float: left;"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width="10px" height="10px"></div>
+                                          {{end}}
+                                          <div class="channelName" style="font-family: Open Sans, sans-serif; font-weight: 600; font-size: 10px; line-height: 16px; letter-spacing: 0.01em; text-transform: uppercase; color: rgba(63, 67, 80, 0.64); padding: 2px 6px 2px 0px;">
+                                            {{if .OtherChannelMembersCount}}
+                                            <span class="gmChannelCount" style="background-color: rgba(63, 67, 80, 0.2); padding: 0 5px; border-radius: 2px; margin-right: 2px;">{{.OtherChannelMembersCount}}</span>
+                                            {{end}}
+                                            {{.ChannelName}}
+                                          </div>
+                                        </div>
+                                        {{end}}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td align="center" class="senderMessage" style="font-size:0px;padding:0px;word-break:break-word;">
+                                      <div style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">{{.Message}}</div>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <!--[if mso | IE]></td><![endif]-->
+                            {{if .MessageAttachments}}
+                            <div class="messageAttachments" style="margin-top: 22px;">
+                              {{range .MessageAttachments}}
+                              <div class="messageAttachment" style="vertical-align: top; font-family: Open Sans, sans-serif;" width="100%">
+                                <div class="pretext" style="text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px; font-family: Open Sans, sans-serif;">
+                                  {{.Pretext}}
+                                </div>
+                                <div class="messageAttachmentContent" style="border: 1px solid rgba(63, 67, 80, 0.16); margin-bottom: 20px; border-radius: 0 4px 4px 0; border-left: 4px solid {{.Color}}; padding: 12px; font-family: Open Sans, sans-serif;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="text-align: left; line-height: 20px; color: #3F4350; vertical-align: top; font-size: 14px; font-family: Open Sans, sans-serif;" width="100%" valign="top" align="left">
+                                    <tbody style="font-family: Open Sans, sans-serif;">
+                                      {{if or .AuthorIcon .AuthorName}}
+                                      <tr style="font-family: Open Sans, sans-serif;">
+                                        <td style="font-family: Open Sans, sans-serif;">
+                                          {{if .AuthorLink}}<a href="{{.AuthorLink}}" style="color: #1C58D9; font-family: Open Sans, sans-serif; text-decoration: none; background-color: unset; border: none; padding: unset;">{{end}}
+                                            {{if .AuthorIcon}}<img class="attachment__author-icon" alt="attachment author icon" src="{{.AuthorIcon}}" style="width: 14px; height: 14px; margin-right: 5px; border-radius: 50px; vertical-align: middle; font-family: Open Sans, sans-serif;" width="14" height="14">{{end}}
+                                            {{if .AuthorName}}<span class="attachment__author-name" style="opacity: 0.6; font-family: Open Sans, sans-serif;">{{.AuthorName}}</span>{{end}}
+                                            {{if .AuthorLink}}</a>{{end}}
+                                        </td>
+                                      </tr>
+                                      {{end}}
+                                      {{if .Title}}
+                                      <tr style="font-family: Open Sans, sans-serif;">
+                                        <td style="font-family: Open Sans, sans-serif;">
+                                          <h1 class="attachment__title" style="padding: 0; margin: 5px 0; font-size: 14px; line-height: 18px; font-weight: 500; font-family: Open Sans, sans-serif;">
+                                            {{if .TitleLink}}<a href="{{.TitleLink}}" style="color: #1C58D9; font-family: Open Sans, sans-serif; text-decoration: none; background-color: unset; border: none; padding: unset;">{{end}}
+                                              {{.Title}}
+                                              {{if .Title}}</a>{{end}}
+                                          </h1>
+                                        </td>
+                                      </tr>
+                                      {{end}}
+                                    </tbody>
+                                  </table>
+                                  <div class="attachment__wrapper" style="width: 100%; display: flex; flex-direction: row; gap: 12px; font-family: Open Sans, sans-serif;">
+                                    <div class="attachment__body" style="text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; flex: 1; font-family: Open Sans, sans-serif;">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align: top; font-size: 14px; color: #3F4350; font-family: Open Sans, sans-serif;" width="100%" valign="top">
+                                        <tbody style="font-family: Open Sans, sans-serif;">
+                                          <tr style="font-family: Open Sans, sans-serif;">
+                                            <td vertical-align="middle" class="messageButton" style="font-family: Open Sans, sans-serif;">
+                                              <div style="font-family: Open Sans, sans-serif;">{{.Text}}</div>
+                                            </td>
+                                          </tr>
+                                          {{if .ImageURL}}
+                                          <tr style="font-family: Open Sans, sans-serif;">
+                                            <td style="font-family: Open Sans, sans-serif;">
+                                              <img class="attachment__image" src="{{.ImageURL}}" style="max-height: 300px; border: 1px solid transparent; margin-bottom: 1em; font-family: Open Sans, sans-serif;">
+                                            </td>
+                                          </tr>
+                                          {{end}}
+                                        </tbody>
+                                      </table>
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align: top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em; font-family: Open Sans, sans-serif;" width="100%" valign="top">
+                                        {{range .FieldRows}}
+                                        <tr class="messageAttachment_row" style="font-family: Open Sans, sans-serif;">
+                                          {{ $length := len .Cells }}
+                                          {{range .Cells}}
+                                          <td class="messageAttachment_field" {{ if eq $length 1 }}colspan="2" {{end}} style="font-family: Open Sans, sans-serif;">
+                                            <div class="messageAttachment_title" style="padding-top: 1em; font-weight: 600; margin-bottom: 4px; font-family: Open Sans, sans-serif;">{{.Title}}</div>
+                                            <div style="font-family: Open Sans, sans-serif;">{{.Value}}</div>
+                                          </td>
+                                          {{end}}
+                                        </tr>
+                                        {{end}}
+                                      </table>
+                                    </div>
+                                    {{if .ThumbURL}}
+                                    <div class="attachment__thumb-container" style="max-width: 80px; width: max-content; font-family: Open Sans, sans-serif;">
+                                      <img class="attachment__thumb-image" src="{{.ThumbURL}}" style="max-width: 100%; max-height: 75px; font-family: Open Sans, sans-serif;">
+                                    </div>
+                                    {{end}}
+                                  </div>
+                                  {{if .Footer}}
+                                  <table class="attachment__footer-container" border="0" cellpadding="0" cellspacing="0" role="presentation" style="text-align: left; line-height: 20px; color: #a3a3a3; vertical-align: top; font-size: 14px; font-family: Open Sans, sans-serif;" width="100%" valign="top" align="left">
+                                    <tbody style="font-family: Open Sans, sans-serif;">
+                                      <tr style="font-family: Open Sans, sans-serif;">
+                                        <td style="font-family: Open Sans, sans-serif;">
+                                          {{if .FooterIcon}}<img class="attachment__footer-icon" src="{{.FooterIcon}}" style="width: 16px; height: 16px; vertical-align: middle; font-family: Open Sans, sans-serif;" width="16" height="16">{{end}}
+                                          <span style="font-size: 12px; font-family: Open Sans, sans-serif;">{{.Footer}}</span>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  {{end}}
+                                </div>
+                              </div>
+                              {{end}}
+                            </div>
+                            {{end}}
+                            <!--[if mso | IE]><td style="vertical-align:top;width:552px;" ><![endif]-->
+                            <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                <tbody>
+                                  {{if .MessageURL}}
+                                  <tr>
+                                    <td align="center" vertical-align="middle" class="messageButton" style="font-size:0px;padding:16px 0px 0px 0px;word-break:break-word;">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                                        <tr>
+                                          <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
+                                            <a href="{{.MessageURL}}" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #FFFFFF; border: 1px solid #FFFFFF; box-sizing: border-box; color: #1C58D9; padding: 12px 20px; font-weight: 600; font-size: 14px; line-height: 14px;" target="_blank">
+                                              {{$.Props.MessageButton}}
+                                            </a>
+                                          </td>
+                                        </tr>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                  {{end}}
+                                </tbody>
+                              </table>
+                            </div>
+                            <!--[if mso | IE]></td></tr></table><![endif]-->
+                          </div>
+                          <!--[if mso | IE]></td></tr></table><![endif]-->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              </div>{{end}}
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="direction:ltr;font-size:0px;padding:16px 0px 40px 0px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                            <tbody>
+                              <tr>
+                                <td align="center" class="footerTitle" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <div style="font-family: Open Sans, sans-serif; text-align: center; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.NotificationFooterTitle}}</div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td align="center" class="footerInfo" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px 48px 0px 48px;"><a href="{{.Props.SiteURL}}" style="text-decoration: none; color: #1C58D9;">{{.Props.NotificationFooterInfoLogin}}</a>{{.Props.NotificationFooterInfo}}</div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                            <tbody>
+                              <tr>
+                                <td align="center" class="emailFooter" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.Organization}}
+                                    {{.Props.FooterV2}}
+                                  </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+  </div>
+</body>
+
+</html>
+
+{{end}}

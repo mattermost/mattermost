@@ -1,0 +1,14 @@
+<mj-raw>{{if .Props.SupportEmail}}</mj-raw>
+<mj-section padding="16px 0px 40px 0px">
+  <mj-column>
+    <mj-text css-class="footerTitle" padding="0px">
+      {{.Props.QuestionTitle}}
+    </mj-text>
+    <mj-text css-class="footerInfo" padding="0px">
+      {{.Props.QuestionInfo}}
+      <a href="mailto:{{.Props.SupportEmail}}">
+      {{.Props.SupportEmail}}</a>
+    </mj-text>
+  </mj-column>
+</mj-section>
+<mj-raw>{{end}}</mj-raw>

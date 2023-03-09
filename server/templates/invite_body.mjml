@@ -1,0 +1,43 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody">
+    <mj-wrapper mj-class="email">
+      <mj-include path="./partials/logo.mjml" />
+      <mj-include path="./partials/header.mjml" />
+      <mj-raw>{{if .Props.Message}}</mj-raw>
+          <mj-raw>{{range .Props.Posts}}<div class="postCard"></mj-raw>
+            <mj-section css-class="messageCard" padding="0px">
+              <mj-group>
+                <mj-include path="./partials/message_avatar_col.mjml" />
+                <mj-include path="./partials/sender_info_col.mjml" />
+                <mj-include path="./partials/message_button.mjml" />
+              </mj-group>
+            </mj-section>
+          <mj-raw></div>{{end}}</mj-raw>
+      <mj-raw>{{else}}</mj-raw>
+      <mj-section padding="0px 0px 40px 0px">
+        <mj-column>
+          <mj-image src="{{.Props.SiteURL}}/static/images/invite_illustration.png" width="246px" padding="0px" />
+        </mj-column>
+      </mj-section>
+      <mj-raw>{{end}}</mj-raw>
+      <mj-section padding="16px 0px 40px 0px">
+        <mj-column>
+          <mj-text css-class="footerTitle" padding="0px">
+            {{.Props.InviteFooterTitle}}
+          </mj-text>
+          <mj-text css-class="footerInfo" padding="0px">
+            {{.Props.InviteFooterInfo}}
+          </mj-text>
+          <mj-text css-class="footerInfo" padding="4px 0px 0px 0px" font-weight="600">
+              <a href="mattermost.com" color="#1C58D9">
+            {{.Props.InviteFooterLearnMore}}</a>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="./partials/email_footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>

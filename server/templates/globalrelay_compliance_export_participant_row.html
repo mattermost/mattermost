@@ -1,0 +1,11 @@
+{{define "globalrelay_compliance_export_participant_row"}}
+<tr>
+    <td class="username">@{{.Props.Username}}</td>
+    <td class="usertype">{{.Props.UserType}}</td>
+    <td class="email">{{.Props.Email}}</td>
+    <td class="joined">{{.Props.Joined}}</td>
+    <td class="left">{{.Props.Left}}</td>
+    <td class="duration">{{.Props.Duration}}</td>
+    <td class="messages">{{.Props.NumMessages}}</td>
+</tr>
+{{end}}

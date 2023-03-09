@@ -1,0 +1,61 @@
+{
+    "message": "Hello world",
+    "props": {
+        "attachments": [
+            {
+                "color": "#7CD197",
+                "fields": [
+                    {
+                        "short": false,
+                        "title": "Area",
+                        "value": "Testing with a very long piece of text that will take up the whole width of the table. This is one more sentence to really make it a long field."
+                    },
+                    {
+                        "short": true,
+                        "title": "Iteration",
+                        "value": "Testing"
+                    },
+                    {
+                        "short": true,
+                        "title": "State",
+                        "value": "New"
+                    },
+                    {
+                        "short": false,
+                        "title": "Reason",
+                        "value": "New defect reported"
+                    },
+                    {
+                        "short": false,
+                        "title": "Random field",
+                        "value": "This is a field which is not marked as short so it should be rendered on a separate row"
+                    },
+                    {
+                        "short": true,
+                        "title": "Short 1",
+                        "value": "Short field"
+                    },
+                    {
+                        "short": true,
+                        "title": "Short 2",
+                        "value": "Another one"
+                    },
+                    {
+                        "short": true,
+                        "title": "Field with link",
+                        "value": "<http://example.com|Link>"
+                    }
+                ],
+                "mrkdwn_in": [
+                    "pretext"
+                ],
+                "pretext": "Some text here",
+                "text": "This is the text of the attachment. It should appear just above the image",
+                "thumb_url": "https://slack.global.ssl.fastly.net/7bf4/img/services/jenkins-ci_128.png",
+                "title": "A slack attachment",
+                "title_link": "https://www.google.com"
+            }
+        ]
+    },
+    "type": "slack_attachment"
+}

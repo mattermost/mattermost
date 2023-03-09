@@ -1,0 +1,33 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+    <mj-include path="partials/message_attachment_styles.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody">
+    <mj-wrapper mj-class="email">
+      <mj-include path="./partials/logo.mjml" />
+      <mj-include path="./partials/header.mjml" />
+      <mj-raw>{{range .Props.Posts}}<div class="postCard"></mj-raw>
+        <mj-section css-class="messageCard" padding="0px">
+          <mj-group>
+            <mj-include path="./partials/message_avatar_col.mjml" />
+            <mj-include path="./partials/sender_info_col.mjml" />
+            <mj-include path="partials/message_attachment.html" type="html" />
+            <mj-include path="./partials/message_button.mjml" />
+          </mj-group>
+        </mj-section>
+      <mj-raw></div>{{end}}</mj-raw>
+      <mj-section padding="16px 0px 40px 0px">
+        <mj-column>
+          <mj-text css-class="footerTitle" padding="0px">
+            {{.Props.NotificationFooterTitle}}
+          </mj-text>
+          <mj-text css-class="footerInfo" padding="0px">
+            <a href="{{.Props.SiteURL}}">{{.Props.NotificationFooterInfoLogin}}</a>{{.Props.NotificationFooterInfo}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="./partials/email_footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>
