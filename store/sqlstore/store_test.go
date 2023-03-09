@@ -171,7 +171,7 @@ func tearDownStores() {
 // Keeping it here to help avoiding future regressions.
 func TestStoreLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DatabaseDriverPostgres)
-	store := New(*settings, nil)
+	store := New(*settings, nil, nil)
 	defer func() {
 		store.Close()
 		storetest.CleanupSqlSettings(settings)
@@ -546,7 +546,7 @@ func TestUpAndDownMigrations(t *testing.T) {
 	for _, driver := range testDrivers {
 		t.Run("Should be reversible for "+driver, func(t *testing.T) {
 			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer store.Close()
 
 			err := store.migrate(migrationsDirectionDown)
@@ -635,7 +635,7 @@ func TestGetAllConns(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -819,7 +819,7 @@ func TestGetDBSchemaVersion(t *testing.T) {
 		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
 			require.NoError(t, err)
@@ -853,7 +853,7 @@ func TestGetAppliedMigrations(t *testing.T) {
 		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
 			require.NoError(t, err)
