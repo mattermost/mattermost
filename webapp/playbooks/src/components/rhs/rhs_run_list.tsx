@@ -20,7 +20,7 @@ import {DateTime} from 'luxon';
 import {debounce} from 'lodash';
 import {GlobalState} from '@mattermost/types/store';
 import {getCurrentChannel, getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUserId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/common';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import appIcon from 'src/components/assets/app-bar-icon.png';
 import {useUpdateRun} from 'src/graphql/hooks';

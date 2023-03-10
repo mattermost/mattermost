@@ -9,9 +9,9 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import {useSelector} from 'react-redux';
 
-import {getTeammateNameDisplaySetting} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/preferences';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 
-import {displayUsername} from 'mattermost-webapp/packages/mattermost-redux/src/utils/user_utils';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import Profile from 'src/components/profile/profile';
 

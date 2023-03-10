@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {generateId} from 'mattermost-redux/utils/helpers';
-import {getCurrentChannelId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/common';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {Store} from 'src/types/store';
 import {promptUpdateStatus, setClientId, toggleRHS} from 'src/actions';

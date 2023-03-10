@@ -7,7 +7,7 @@ import {useUpdateEffect} from 'react-use';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {Redirect, useLocation, useRouteMatch} from 'react-router-dom';
-import {selectTeam} from 'mattermost-webapp/packages/mattermost-redux/src/actions/teams';
+import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import qs from 'qs';
 

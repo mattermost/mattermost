@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import {useSelector} from 'react-redux';
-import {getCurrentUser} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {followPlaybookRun, telemetryEvent, unfollowPlaybookRun} from 'src/client';
 import DotMenu from 'src/components/dot_menu';

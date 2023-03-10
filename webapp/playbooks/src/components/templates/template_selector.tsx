@@ -5,8 +5,8 @@ import React from 'react';
 import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import {getCurrentUser} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/common';
-import {getCurrentTeamId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {savePlaybook, telemetryEventForTemplate} from 'src/client';
 import {StyledSelect} from 'src/components/backstage/styles';
