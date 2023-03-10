@@ -2,6 +2,7 @@ node_modules
 
 *.tsbuildinfo
 
+boards/dist
 platform/*/dist
 platform/*/lib
 

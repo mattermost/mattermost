@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkfocalboard=self.webpackChunkfocalboard||[]).push([[428,59,811],{80059:(a,s,o)=>{o.d(s,{default:()=>d});const d={id:"boards",version:"boards"}}}]);
