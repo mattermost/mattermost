@@ -23,6 +23,7 @@
     "platform/client",
     "platform/components",
     "platform/types",
-    "playbooks"
+    "playbooks",
+    "boards"
   ]
 }

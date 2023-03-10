@@ -1,0 +1,133 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/boardSelectorItem renders board without title 1`] = `
+<div>
+  <div
+    class="BoardSelectorItem"
+  >
+    <div
+      class="BoardSelectorItem-info"
+    >
+      <div
+        class="d-flex"
+      >
+        <span
+          class="icon"
+        >
+          <i
+            class="CompassIcon icon-product-boards"
+          />
+        </span>
+        <div
+          class="resultTitle"
+        >
+          Untitled board
+        </div>
+      </div>
+      <div
+        class="resultDescription"
+      />
+    </div>
+    <div
+      class="linkUnlinkButton"
+    >
+      <button
+        class="Button emphasis--secondary"
+        type="button"
+      >
+        <span>
+          Unlink
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/boardSelectorItem renders linked board 1`] = `
+<div>
+  <div
+    class="BoardSelectorItem"
+  >
+    <div
+      class="BoardSelectorItem-info"
+    >
+      <div
+        class="d-flex"
+      >
+        <span
+          class="icon"
+        >
+          <i
+            class="CompassIcon icon-product-boards"
+          />
+        </span>
+        <div
+          class="resultTitle"
+        >
+          Test title
+        </div>
+      </div>
+      <div
+        class="resultDescription"
+      />
+    </div>
+    <div
+      class="linkUnlinkButton"
+    >
+      <button
+        class="Button emphasis--secondary"
+        type="button"
+      >
+        <span>
+          Unlink
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/boardSelectorItem renders not linked board 1`] = `
+<div>
+  <div
+    class="BoardSelectorItem"
+  >
+    <div
+      class="BoardSelectorItem-info"
+    >
+      <div
+        class="d-flex"
+      >
+        <span
+          class="icon"
+        >
+          <i
+            class="CompassIcon icon-product-boards"
+          />
+        </span>
+        <div
+          class="resultTitle"
+        >
+          Test title
+        </div>
+      </div>
+      <div
+        class="resultDescription"
+      />
+    </div>
+    <div
+      class="linkUnlinkButton"
+    >
+      <button
+        class="Button emphasis--primary"
+        type="button"
+      >
+        <span>
+          Link
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

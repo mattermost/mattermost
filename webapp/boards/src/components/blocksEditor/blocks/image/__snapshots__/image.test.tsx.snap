@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/blocks/image should match Display snapshot 1`] = `
+<div>
+  <img
+    class="ImageView"
+    data-testid="image"
+    src="test.jpg"
+  />
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/image should match Display snapshot with empty value 1`] = `<div />`;
+
+exports[`components/blocksEditor/blocks/image should match Input snapshot 1`] = `
+<div>
+  <div>
+    <img
+      class="ImageView"
+      src="test"
+    />
+    <input
+      accept="image/*"
+      class="Image"
+      data-testid="image-input"
+      type="file"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/image should match Input snapshot with empty input 1`] = `
+<div>
+  <div>
+    
+    <input
+      accept="image/*"
+      class="Image"
+      data-testid="image-input"
+      type="file"
+    />
+  </div>
+</div>
+`;

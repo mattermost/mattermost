@@ -1,0 +1,169 @@
+@import 'src/styles/z-index';
+
+.Sidebar {
+    flex: 0 0 240px;
+    max-width: 240px;
+    display: flex;
+    flex-direction: column;
+
+    min-height: 100%;
+    color: rgb(var(--sidebar-text-rgb));
+    background-color: rgb(var(--sidebar-bg-rgb));
+    padding: 24px 0 12px;
+
+    &.hidden {
+        @include z-index(sidebar-hidden);
+        position: absolute;
+        top: 0;
+        left: 0;
+        min-height: 0;
+        height: 50px;
+        width: 50px;
+        background: none;
+        padding: 0;
+        padding-left: 10px;
+        display: block !important;
+
+        > div {
+            padding: 0;
+            margin: auto;
+        }
+    }
+
+    > * {
+        flex: 0 0 auto;
+    }
+
+    &__onboarding {
+        text-align: center;
+        padding: 16px 32px;
+
+        div {
+            margin-top: 32px;
+            font-weight: 600;
+            opacity: 0.6;
+        }
+    }
+
+    .IconButton {
+        padding: 0;
+
+        .Icon {
+            width: 24px;
+            height: 24px;
+            margin: 0;
+        }
+    }
+
+    .WorkspaceTitle {
+        display: flex;
+        flex-direction: row;
+        padding: 0 16px;
+        font-weight: 600;
+    }
+
+    .octo-sidebar-list {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        max-width: 100%;
+        margin-top: 12px;
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(var(--sidebar-text-rgb), 0.24);
+        }
+
+        > div:last-child {
+            margin-bottom: 16px;
+        }
+    }
+
+    .octo-sidebar-header {
+        display: flex;
+        flex-direction: row;
+        font-weight: 600;
+        padding: 3px 16px;
+        margin-bottom: 16px;
+        height: 48px;
+        align-items: center;
+
+        &:hover {
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        > .heading {
+            line-height: 30px;
+            cursor: default;
+            flex-grow: 1;
+        }
+
+        > .IconButton {
+            background-color: var(--sidebar-bg-rgb);
+
+            &:hover {
+                background-color: rgba(var(--sidebar-text-rgb), 0.1);
+            }
+        }
+
+        &.show-button {
+            .hamburger-icon {
+                display: block;
+            }
+
+            .show-icon {
+                display: none;
+            }
+
+            &:hover {
+                .hamburger-icon {
+                    display: none;
+                }
+
+                .show-icon {
+                    display: block;
+                }
+            }
+        }
+    }
+
+    .IconButton {
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+
+        &:hover {
+            color: rgb(var(--sidebar-text-rgb));
+        }
+    }
+
+    .DisclosureTriangleIcon,
+    .DotIcon {
+        fill: rgba(var(--sidebar-text-rgb), 0.56);
+        flex-shrink: 0;
+    }
+
+    .Menu .OptionsIcon {
+        color: unset;
+    }
+
+    .HideSidebarIcon {
+        stroke: rgba(var(--sidebar-text-rgb), 0.5);
+        stroke-width: 6px;
+    }
+
+    .add-board {
+        display: flex;
+        padding: 0 16px 0 20px;
+        cursor: pointer;
+        color: rgba(var(--sidebar-text-rgb), 0.64);
+        height: 36px;
+        align-items: center;
+
+        &:hover {
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+    }
+
+    @media screen and (min-width: 768px) {
+        .WorkspaceTitle .sidebarSwitcher {
+            display: none;
+        }
+    }
+}

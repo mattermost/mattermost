@@ -1,0 +1,367 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in plugin mode 1`] = `
+<div>
+  <div
+    class="user-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <i
+        class="CompassIcon icon-mattermost user-item__img"
+      />
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Everyone at Test Team Team
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          None
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Editor"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex menu-option__check"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <div
+                        class="empty-icon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Editor
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  aria-label="Commenter"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <div
+                        class="empty-icon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Commenter
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  aria-label="Viewer"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <div
+                        class="empty-icon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Viewer
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  aria-label="None"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex menu-option__check"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <svg
+                        class="CheckIcon Icon"
+                        viewBox="0 0 100 100"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <polyline
+                          points="20,60 40,80 80,40"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      None
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in template 1`] = `
+<div>
+  <div
+    class="user-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <i
+        class="CompassIcon icon-mattermost user-item__img"
+      />
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Everyone at Test Team Team
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          None
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div />
+              <div />
+              <div>
+                <div
+                  aria-label="Viewer"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <div
+                        class="empty-icon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Viewer
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  aria-label="None"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex menu-option__check"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <svg
+                        class="CheckIcon Icon"
+                        viewBox="0 0 100 100"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <polyline
+                          points="20,60 40,80 80,40"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      None
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

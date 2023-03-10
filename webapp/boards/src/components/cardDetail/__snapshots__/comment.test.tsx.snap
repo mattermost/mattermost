@@ -1,0 +1,618 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/cardDetail/comment return comment 1`] = `
+<div>
+  <div
+    class="Comment comment"
+  >
+    <div
+      class="comment-header"
+    >
+      <img
+        class="comment-avatar"
+        src="data:image/svg+xml"
+      />
+      <div
+        class="comment-username"
+      >
+        username_1
+      </div>
+      <div
+        class="octo-tooltip tooltip-top"
+        data-tooltip="October 01, 2020, 12:00 AM"
+      >
+        <div
+          class="comment-date"
+        >
+          a day ago
+        </div>
+      </div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="IconButton"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-horizontal OptionsIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Delete"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="comment-text"
+    >
+      <p>
+        Test comment
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/cardDetail/comment return comment and delete comment 1`] = `
+<div>
+  <div
+    class="Comment comment"
+  >
+    <div
+      class="comment-header"
+    >
+      <img
+        class="comment-avatar"
+        src="data:image/svg+xml"
+      />
+      <div
+        class="comment-username"
+      >
+        username_1
+      </div>
+      <div
+        class="octo-tooltip tooltip-top"
+        data-tooltip="October 01, 2020, 12:00 AM"
+      >
+        <div
+          class="comment-date"
+        >
+          a day ago
+        </div>
+      </div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="IconButton"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-horizontal OptionsIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Delete"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="comment-text"
+    >
+      <p>
+        Test comment
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/cardDetail/comment return comment readonly 1`] = `
+<div>
+  <div
+    class="Comment comment"
+  >
+    <div
+      class="comment-header"
+    >
+      <img
+        class="comment-avatar"
+        src="data:image/svg+xml"
+      />
+      <div
+        class="comment-username"
+      >
+        username_1
+      </div>
+      <div
+        class="octo-tooltip tooltip-top"
+        data-tooltip="October 01, 2020, 12:00 AM"
+      >
+        <div
+          class="comment-date"
+        >
+          a day ago
+        </div>
+      </div>
+    </div>
+    <div
+      class="comment-text"
+    >
+      <p>
+        Test comment
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/cardDetail/comment return guest comment 1`] = `
+<div>
+  <div
+    class="Comment comment"
+  >
+    <div
+      class="comment-header"
+    >
+      <img
+        class="comment-avatar"
+        src="data:image/svg+xml"
+      />
+      <div
+        class="comment-username"
+      >
+        username_1
+      </div>
+      <div
+        class="GuestBadge"
+      >
+        <div
+          class="GuestBadge__box"
+        >
+          Guest
+        </div>
+      </div>
+      <div
+        class="octo-tooltip tooltip-top"
+        data-tooltip="October 01, 2020, 12:00 AM"
+      >
+        <div
+          class="comment-date"
+        >
+          a day ago
+        </div>
+      </div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="IconButton"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-horizontal OptionsIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Delete"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="comment-text"
+    >
+      <p>
+        Test comment
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/cardDetail/comment return guest comment and delete comment 1`] = `
+<div>
+  <div
+    class="Comment comment"
+  >
+    <div
+      class="comment-header"
+    >
+      <img
+        class="comment-avatar"
+        src="data:image/svg+xml"
+      />
+      <div
+        class="comment-username"
+      >
+        username_1
+      </div>
+      <div
+        class="GuestBadge"
+      >
+        <div
+          class="GuestBadge__box"
+        >
+          Guest
+        </div>
+      </div>
+      <div
+        class="octo-tooltip tooltip-top"
+        data-tooltip="October 01, 2020, 12:00 AM"
+      >
+        <div
+          class="comment-date"
+        >
+          a day ago
+        </div>
+      </div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="IconButton"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-horizontal OptionsIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Delete"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="comment-text"
+    >
+      <p>
+        Test comment
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/cardDetail/comment return guest comment readonly 1`] = `
+<div>
+  <div
+    class="Comment comment"
+  >
+    <div
+      class="comment-header"
+    >
+      <img
+        class="comment-avatar"
+        src="data:image/svg+xml"
+      />
+      <div
+        class="comment-username"
+      >
+        username_1
+      </div>
+      <div
+        class="GuestBadge"
+      >
+        <div
+          class="GuestBadge__box"
+        >
+          Guest
+        </div>
+      </div>
+      <div
+        class="octo-tooltip tooltip-top"
+        data-tooltip="October 01, 2020, 12:00 AM"
+      >
+        <div
+          class="comment-date"
+        >
+          a day ago
+        </div>
+      </div>
+    </div>
+    <div
+      class="comment-text"
+    >
+      <p>
+        Test comment
+      </p>
+    </div>
+  </div>
+</div>
+`;

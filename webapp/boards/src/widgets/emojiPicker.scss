@@ -1,0 +1,24 @@
+.EmojiPicker {
+    .emoji-mart {
+        color: rgb(var(--center-channel-color-rgb));
+        background: rgb(var(--center-channel-bg-rgb));
+        border-color: rgba(var(--center-channel-color-rgb), 0.16);
+
+        .emoji-mart-bar {
+            border: 0 solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-bottom-width: 1px;
+        }
+
+        .emoji-mart-search input {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        .emoji-mart-category-label span {
+            background: rgb(var(--center-channel-bg-rgb));
+        }
+
+        .emoji-mart-search-icon svg {
+            fill: rgb(var(--center-channel-color-rgb));
+        }
+    }
+}

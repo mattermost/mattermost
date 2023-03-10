@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/rhsChannelBoardsHeader renders the header 1`] = `
+<div>
+  <div>
+    <img
+      class="boards-rhs-header-logo"
+      src="test-file-stub"
+    />
+    <span>
+      Boards
+    </span>
+    <span
+      class="style--none sidebar--right__title__subtitle"
+    >
+      Channel Name
+    </span>
+  </div>
+</div>
+`;

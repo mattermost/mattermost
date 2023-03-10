@@ -1,0 +1,311 @@
+@import 'src/styles/z-index';
+
+.Table {
+    margin-top: 16px;
+    margin-left: 0 !important;
+    overflow: auto;
+    position: relative;
+    flex: 1;
+
+    .octo-group-header-cell {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        height: 50px;
+        margin-right: 15px;
+        margin-top: 15px;
+        vertical-align: middle;
+        border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+
+        &.narrow {
+            width: 220px;
+        }
+
+        > div {
+            margin-right: 8px;
+            height: auto;
+
+            &:first-child {
+                padding-left: 0;
+                border: 0;
+
+                &:hover {
+                    background-color: transparent;
+                }
+
+                &:focus-within {
+                    background: transparent;
+                    border: 0;
+                }
+            }
+
+            &:last-child {
+                margin: 0;
+            }
+        }
+
+        .IconButton {
+            background-color: unset;
+
+            &:hover:not(.readonly) {
+                background-color: rgba(var(--center-channel-color-rgb), 0.1);
+            }
+
+            &.readonly {
+                opacity: 0.5;
+            }
+        }
+
+        .Label {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 3px;
+            line-height: 20px;
+            margin: 0 4px 0 0;
+            color: rgba(var(--center-channel-color-rgb), 1);
+            white-space: nowrap;
+            text-transform: none;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            height: 32px;
+
+            input {
+                background: transparent;
+                width: 100%;
+                text-transform: none;
+                font-size: inherit;
+                color: inherit;
+                padding: 0;
+            }
+        }
+
+        > .Button {
+            cursor: auto;
+
+            &.IconButton:not(.readonly) {
+                cursor: pointer;
+            }
+        }
+
+        &.expanded {
+            .icon-menu-right {
+                transform: rotate(90deg);
+            }
+        }
+    }
+
+    .octo-table-cell__expand {
+        margin-right: 4px;
+        font-size: 24px;
+
+        i {
+            font-size: inherit;
+        }
+    }
+
+    .octo-table-cell {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: row;
+        color: rgb(var(--center-channel-color-rgb));
+        border-right: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+        border-left: 1px solid transparent;
+        border-top: 1px solid transparent;
+        box-sizing: border-box;
+        padding: 8px;
+        height: 44px;
+        font-size: 14px;
+        position: relative;
+        text-overflow: ellipsis;
+
+        .optionsMenu {
+            display: none;
+        }
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.05);
+
+            .optionsMenu {
+                display: block;
+            }
+        }
+
+        &.title-cell {
+            &:hover {
+                background: transparent;
+            }
+        }
+
+        .octo-icontitle {
+            flex: 1 1 auto;
+            font-weight: 600;
+
+            .octo-icon {
+                min-width: 20px;
+                margin-top: 3px;
+                font-size: 16px;
+                margin-right: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 20px;
+                height: 20px;
+            }
+
+            .Editable {
+                flex: 1 1 auto;
+            }
+        }
+
+        &.header-cell {
+            padding-right: 0;
+
+            .Icon {
+                width: 16px;
+                height: 16px;
+                vertical-align: middle;
+                margin-left: 5px;
+            }
+        }
+
+        &:focus-within {
+            background-color: rgba(46, 170, 220, 0.15);
+            border: 1px solid rgba(46, 170, 220, 0.6);
+        }
+
+        .Editable {
+            padding: 0 5px;
+            left: -5px;
+        }
+
+        .Editable.Editable.active {
+            overflow: hidden;
+        }
+
+        .octo-propertyvalue {
+            line-height: 17px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            .Label {
+                margin: 0 5px;
+                padding: 0 8px;
+            }
+        }
+
+        .Editable,
+        .octo-propertyvalue {
+            text-align: left;
+            white-space: nowrap;
+            width: inherit;
+        }
+
+        .MultiPerson.octo-propertyvalue,
+        .Person.octo-propertyvalue,
+        .DateRange.octo-propertyvalue {
+            overflow: unset;
+        }
+    }
+
+    .octo-table-body {
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+    }
+
+    .octo-table-header,
+    .octo-table-footer {
+        display: flex;
+        flex-direction: row;
+        border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.09);
+        margin-left: 32px;
+
+        &.hidden {
+            display: none;
+        }
+    }
+
+    .octo-table-row {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .octo-table-header {
+        @include z-index(table-header);
+        position: sticky;
+        top: -2px;
+        background: rgb(var(--center-channel-bg-rgb));
+        width: fit-content;
+
+        .octo-table-cell {
+            color: rgba(var(--center-channel-color-rgb), 0.6);
+            background: rgb(var(--center-channel-bg-rgb));
+
+            .Label {
+                color: rgba(var(--center-channel-color-rgb), 0.6);
+            }
+        }
+    }
+
+    .table-row-container {
+        width: fit-content;
+
+        .octo-table-cell {
+            align-items: center;
+
+            .octo-propertyvalue {
+                font-size: inherit;
+                font-weight: normal;
+            }
+
+        }
+    }
+
+    .octo-table-footer {
+        .octo-table-cell {
+            color: rgba(var(--center-channel-color-rgb), 0.6);
+            cursor: pointer;
+            width: 100%;
+            padding-left: 15px;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
+    }
+
+    .MenuWrapper {
+        max-width: calc(100% - 5px);
+
+        .Label {
+            width: 100%;
+            display: inline-block;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    }
+
+    .MultiPerson .react-select__value-container--is-multi {
+        display: block;
+        white-space: nowrap;
+
+        .react-select__multi-value {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 24px;
+            display: inline-flex;
+            color: rgb(var(--center-channel-color-rgb));
+
+            .MultiPerson-item,
+            .react-select__multi-value__label {
+                color: inherit;
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        margin-left: 0 !important;
+    }
+}

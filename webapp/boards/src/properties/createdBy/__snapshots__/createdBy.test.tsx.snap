@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`properties/createdBy should match snapshot 1`] = `
+<div>
+  <div
+    class="Person octo-propertyvalue octo-propertyvalue--readonly"
+  >
+    <div
+      class="Person-item"
+    >
+      username_1
+    </div>
+  </div>
+</div>
+`;
+
+exports[`properties/createdBy should match snapshot as guest 1`] = `
+<div>
+  <div
+    class="Person octo-propertyvalue octo-propertyvalue--readonly"
+  >
+    <div
+      class="Person-item"
+    >
+      username_1
+      <div
+        class="GuestBadge"
+      >
+        <div
+          class="GuestBadge__box"
+        >
+          Guest
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

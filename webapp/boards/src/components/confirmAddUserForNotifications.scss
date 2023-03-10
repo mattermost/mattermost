@@ -1,0 +1,32 @@
+@import 'src/styles/z-index';
+
+.ConfirmAddUserForNotifications {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .select {
+        text-align: left;
+        width: 250px;
+        margin-top: 10px;
+    }
+
+    .permissions-title {
+        width: 250px;
+        position: relative;
+        top: -3px;
+        left: 6px;
+        height: 0;
+        text-align: left;
+        font-size: 12px;
+
+        label {
+            @include z-index(modal-permissions-label);
+            position: absolute;
+            padding: 0 5px;
+            margin: 0;
+            background-color: rgb(var(--center-channel-bg-rgb));
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+        }
+    }
+}

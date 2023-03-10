@@ -1,0 +1,203 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/viewHeader/dateFilter handle clear 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter handles \`Today\` button click event 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter handles calendar click event 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={Object {}}
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <DateFilter
+    filter={
+      Object {
+        "condition": "is",
+        "propertyId": "myPropertyId",
+        "values": Array [],
+      }
+    }
+    view={
+      Object {
+        "boardId": "testBoardID",
+        "createAt": 1672228800000,
+        "createdBy": "",
+        "deleteAt": 0,
+        "fields": Object {
+          "cardOrder": Array [
+            "card1",
+            "card2",
+            "card3",
+          ],
+          "collapsedOptionIds": Array [],
+          "columnCalculations": Object {},
+          "columnWidths": Object {
+            "column1": 100,
+            "column2": 200,
+          },
+          "dateDisplayPropertyId": undefined,
+          "defaultTemplateId": "",
+          "filter": Object {
+            "filters": Array [
+              Object {
+                "condition": "is",
+                "propertyId": "myPropertyId",
+                "values": Array [],
+              },
+            ],
+            "operation": "and",
+          },
+          "groupById": "property1",
+          "hiddenOptionIds": Array [
+            "value1",
+          ],
+          "kanbanCalculations": Object {},
+          "sortOptions": Array [
+            Object {
+              "propertyId": "property1",
+              "reversed": true,
+            },
+            Object {
+              "propertyId": "property2",
+              "reversed": false,
+            },
+          ],
+          "viewType": "board",
+          "visibleOptionIds": Array [],
+          "visiblePropertyIds": Array [],
+        },
+        "id": "testViewID",
+        "limited": false,
+        "modifiedBy": "",
+        "parentId": "",
+        "schema": 1,
+        "title": "view title",
+        "type": "view",
+        "updateAt": 1672228800000,
+      }
+    }
+  />
+</IntlProvider>
+`;
+
+exports[`components/viewHeader/dateFilter return dateFilter default value 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter return dateFilter invalid value 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Invalid Date
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter return dateFilter valid value 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter returns local correctly - es local 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        15 de junio
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter set via text input 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;

@@ -1,0 +1,42 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
+        "jsx": "react",
+        "target": "ESNext",
+        "module": "ES2022",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "forceConsistentCasingInFileNames": true,
+        "sourceMap": true,
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "incremental": false,
+        "baseUrl": ".",
+        "outDir": "dist",
+        "noEmit": true,
+        "typeRoots": [ "./src/types", "./node_modules/@types"],
+        "paths": {
+            "@mattermost/types/*": ["../platform/packages/types/src/*"],
+            "@mattermost/client": ["../platform/client/src"],
+            "@mattermost/components": ["../platform/components/src"],
+            //"mattermost-redux/*": ["../channels/src/packages/mattermost-redux/src/*"],
+            //"reselect": ["../channels/src/packages/reselect/src"]
+        }
+    },
+    "include": [
+      "**/*"
+    ],
+    "exclude": [
+        ".git",
+        "node_modules",
+        "dist",
+    ]
+}

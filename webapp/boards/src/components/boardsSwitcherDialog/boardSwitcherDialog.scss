@@ -1,0 +1,30 @@
+.blockSearchResult {
+    display: flex;
+    gap: 12px;
+    overflow: hidden;
+    flex-direction: row;
+    width: 100%;
+
+    .CompassIcon {
+        font-size: 18px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    span {
+        display: inline-block;
+        height: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .resultTitle {
+        max-width: 60%;
+    }
+
+    .teamTitle {
+        right: auto;
+        margin-left: auto;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}

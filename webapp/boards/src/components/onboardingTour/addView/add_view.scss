@@ -1,0 +1,14 @@
+.AddViewTourStep {
+    &.tutorial-tour-tip__pulsating-dot-ctr {
+        left: 91%;
+        top: 100%;
+    }
+
+    .tippy-arrow {
+        left: 21px !important;
+    }
+
+    &.tippy-box.tutorial-tour-tip__box {
+        right: 22px;
+    }
+}

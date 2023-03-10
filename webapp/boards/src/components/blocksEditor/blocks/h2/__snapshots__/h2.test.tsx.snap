@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/blocks/h2 should match Display snapshot 1`] = `
+<div>
+  <div>
+    <h2
+      id="test-value"
+    >
+      test-value
+    </h2>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/h2 should match Input snapshot 1`] = `
+<div>
+  <input
+    class="H2"
+    data-testid="h2"
+    value="test-value"
+  />
+</div>
+`;

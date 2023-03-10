@@ -1,0 +1,35 @@
+.boards-rhs-icon {
+    font-size: 20px;
+}
+
+.focalboard-body .RightControlsContainer-eacbOh {
+    flex-basis: auto;
+}
+
+.focalboard-body .feature-global-header>header {
+    z-index: 1000; /* stylelint-disable-line property-disallowed-list  */
+
+    .Menu {
+        a,
+        button {
+            color: inherit;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+
+                div {
+                    color: rgb(var(--link-color-rgb));
+                }
+            }
+        }
+    }
+}
+
+img.boards-rhs-header-logo {
+    color: white; /* stylelint-disable-line color-named  */
+    background: var(--button-bg);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+}

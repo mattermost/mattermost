@@ -1,0 +1,141 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/table/calculation/CalculationRow should match snapshot 1`] = `
+<div>
+  <div
+    class="CalculationRow octo-table-row"
+  >
+    <div
+      class="Calculation count octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Count
+      </span>
+      <span
+        class="calculationValue"
+      >
+        2
+      </span>
+    </div>
+    <div
+      class="Calculation count octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Count
+      </span>
+      <span
+        class="calculationValue"
+      >
+        2
+      </span>
+    </div>
+    <div
+      class="Calculation countValue octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Values
+      </span>
+      <span
+        class="calculationValue"
+      >
+        1
+      </span>
+    </div>
+    <div
+      class="Calculation countUniqueValue octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Unique
+      </span>
+      <span
+        class="calculationValue"
+      >
+        1
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/table/calculation/CalculationRow should render three calculation elements 1`] = `
+<div>
+  <div
+    class="CalculationRow octo-table-row"
+  >
+    <div
+      class="Calculation count octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Count
+      </span>
+      <span
+        class="calculationValue"
+      >
+        2
+      </span>
+    </div>
+    <div
+      class="Calculation none octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Calculate
+      </span>
+      <i
+        class="CompassIcon icon-chevron-up ChevronUpIcon"
+      />
+    </div>
+    <div
+      class="Calculation none octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Calculate
+      </span>
+      <i
+        class="CompassIcon icon-chevron-up ChevronUpIcon"
+      />
+    </div>
+    <div
+      class="Calculation none octo-table-cell   "
+      style="width: 100px;"
+      tabindex="0"
+    >
+      <span
+        class="calculationLabel"
+      >
+        Calculate
+      </span>
+      <i
+        class="CompassIcon icon-chevron-up ChevronUpIcon"
+      />
+    </div>
+  </div>
+</div>
+`;

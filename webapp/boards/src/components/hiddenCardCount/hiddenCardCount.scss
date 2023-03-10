@@ -1,0 +1,17 @@
+.HiddenCardCount {
+    display: flex;
+    height: 30px;
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    .hidden-card-title {
+        background: rgba(243, 192, 199, 0.2);
+        color: #d24b4e;
+        padding: 3px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+}

@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/blocks/video should match Display snapshot 1`] = `
+<div>
+  <video
+    class="VideoView"
+    controls=""
+    data-testid="video"
+    height="240"
+    width="320"
+  >
+    <source
+      src="test.jpg"
+    />
+  </video>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/video should match Display snapshot with empty value 1`] = `<div />`;
+
+exports[`components/blocksEditor/blocks/video should match Input snapshot 1`] = `
+<div>
+  <input
+    accept="video/*"
+    class="Video"
+    data-testid="video-input"
+    type="file"
+  />
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/video should match Input snapshot with empty input 1`] = `
+<div>
+  <input
+    accept="video/*"
+    class="Video"
+    data-testid="video-input"
+    type="file"
+  />
+</div>
+`;

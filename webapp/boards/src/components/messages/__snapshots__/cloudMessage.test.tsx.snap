@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/messages/CloudMessage plugin mode, no display 1`] = `
+<div>
+  <div
+    class="CloudMessage"
+  >
+    <div
+      class="banner"
+    >
+      <i
+        class="CompassIcon icon-information-outline CompassIcon"
+      />
+      Get your own free cloud server.
+      <button
+        class="Button emphasis--primary size--xsmall"
+        title="Learn more"
+        type="button"
+      >
+        <span>
+          Learn more
+        </span>
+      </button>
+    </div>
+    <button
+      aria-label="Close dialog"
+      class="IconButton margin-right size--small"
+      title="Close dialog"
+      type="button"
+    >
+      <i
+        class="CompassIcon icon-close CloseIcon"
+      />
+    </button>
+  </div>
+</div>
+`;

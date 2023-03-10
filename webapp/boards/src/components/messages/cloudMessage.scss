@@ -1,0 +1,38 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+.CloudMessage {
+    background-color: rgb(var(--sidebar-text-active-border-rgb));
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: center;
+    font-weight: 600;
+
+    div {
+        width: 100%;
+    }
+
+    > .banner {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        color: #fff;
+
+        .CompassIcon {
+            font-size: 18px;
+            margin-right: 2px;
+        }
+
+        .Button {
+            margin-left: 8px;
+            background-color: rgba(255, 255, 255, 0.16);
+        }
+    }
+
+    .IconButton {
+        float: right;
+        color: #fff;
+    }
+}

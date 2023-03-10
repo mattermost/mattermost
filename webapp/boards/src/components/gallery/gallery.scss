@@ -1,0 +1,32 @@
+.Gallery {
+    display: flex;
+    flex-wrap: wrap;
+    overflow: auto;
+    margin-top: 10px;
+
+    .octo-gallery-new {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.09);
+        border-radius: var(--default-rad);
+        color: rgba(var(--center-channel-color-rgb), 0.3);
+        cursor: pointer;
+        width: 280px;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+
+        &.selected {
+            background-color: rgba(90, 200, 255, 0.2);
+        }
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.05);
+        }
+    }
+
+    .gallery-hidden-cards {
+        margin-left: 6px;
+    }
+}

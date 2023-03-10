@@ -1,0 +1,266 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/rootInput should match Display snapshot 1`] = `
+<div>
+  <div
+    class="RootInput css-b62m3t-container"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-2-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class=" css-4bb158-control"
+    >
+      <div
+        class=" css-30zlo3-ValueContainer"
+      >
+        <div
+          class=" css-nkozic-Input"
+          data-value="test-value"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-describedby="react-select-2-placeholder"
+            aria-expanded="false"
+            aria-haspopup="true"
+            autocapitalize="none"
+            autocomplete="off"
+            autocorrect="off"
+            class=""
+            id="react-select-2-input"
+            role="combobox"
+            spellcheck="false"
+            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+            tabindex="0"
+            type="text"
+            value="test-value"
+          />
+        </div>
+      </div>
+      <div
+        class=" css-1hb7zxy-IndicatorsContainer"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/rootInput should match Input snapshot 1`] = `
+<div>
+  <div
+    class="RootInput css-b62m3t-container"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-3-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class=" css-4bb158-control"
+    >
+      <div
+        class=" css-30zlo3-ValueContainer"
+      >
+        <div
+          class=" css-nkozic-Input"
+          data-value="test-value"
+        >
+          <input
+            aria-autocomplete="list"
+            aria-describedby="react-select-3-placeholder"
+            aria-expanded="false"
+            aria-haspopup="true"
+            autocapitalize="none"
+            autocomplete="off"
+            autocorrect="off"
+            class=""
+            id="react-select-3-input"
+            role="combobox"
+            spellcheck="false"
+            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+            tabindex="0"
+            type="text"
+            value="test-value"
+          />
+        </div>
+      </div>
+      <div
+        class=" css-1hb7zxy-IndicatorsContainer"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/rootInput should match Input snapshot with menu open 1`] = `
+<div>
+  <div
+    class="RootInput css-b62m3t-container"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-4-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class=" css-4bb158-control"
+    >
+      <div
+        class=" css-30zlo3-ValueContainer"
+      >
+        <div
+          class=" css-14el2xx-placeholder"
+          id="react-select-4-placeholder"
+        >
+          Introduce your text or your slash command
+        </div>
+        <div
+          class=" css-g5309v-Input"
+          data-value=""
+        >
+          <input
+            aria-autocomplete="list"
+            aria-controls="react-select-4-listbox"
+            aria-describedby="react-select-4-placeholder"
+            aria-expanded="true"
+            aria-haspopup="true"
+            aria-owns="react-select-4-listbox"
+            autocapitalize="none"
+            autocomplete="off"
+            autocorrect="off"
+            class=""
+            id="react-select-4-input"
+            role="combobox"
+            spellcheck="false"
+            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+            tabindex="0"
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+      <div
+        class=" css-1hb7zxy-IndicatorsContainer"
+      />
+    </div>
+    <div
+      class=" css-1aj7brc"
+    >
+      <div
+        class=" css-1rsmi4x-menu"
+        id="react-select-4-listbox"
+      >
+        <div
+          class=" css-g29tl0-MenuList"
+        >
+          <div
+            aria-disabled="false"
+            class=" css-erqggd-option"
+            id="react-select-4-option-0"
+            tabindex="-1"
+          >
+            /title Creates a new Title block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-1"
+            tabindex="-1"
+          >
+            /subtitle Creates a new Sub title block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-2"
+            tabindex="-1"
+          >
+            /subsubtitle Creates a new Sub Sub title block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-3"
+            tabindex="-1"
+          >
+            /image Creates a new Image block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-4"
+            tabindex="-1"
+          >
+            /text Creates a new Text block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-5"
+            tabindex="-1"
+          >
+            /divider Creates a new Divider block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-6"
+            tabindex="-1"
+          >
+            /list-item Creates a new List item block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-7"
+            tabindex="-1"
+          >
+            /attachment Creates a new Attachment block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-8"
+            tabindex="-1"
+          >
+            /quote Creates a new Quote block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-9"
+            tabindex="-1"
+          >
+            /video Creates a new Video block.
+          </div>
+          <div
+            aria-disabled="false"
+            class=" css-14xsrqy-option"
+            id="react-select-4-option-10"
+            tabindex="-1"
+          >
+            /checkbox Creates a new Checkbox block.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
