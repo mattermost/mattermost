@@ -861,11 +861,7 @@ func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddr
 
 	category = getSendGridCategory(category, license.IsCloud())
 
-	err := mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
-	if es.debugBar != nil && es.debugBar() != nil && es.debugBar().IsEnabled() {
-		es.debugBar().SendEmailSent(to, subject, htmlBody, nil, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category, err)
-	}
-	return err
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
 }
 
 func (es *Service) sendMailWithCC(to, subject, htmlBody, ccMail, category string) error {
@@ -874,11 +870,7 @@ func (es *Service) sendMailWithCC(to, subject, htmlBody, ccMail, category string
 
 	category = getSendGridCategory(category, license.IsCloud())
 
-	err := mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail, category)
-	if es.debugBar != nil && es.debugBar() != nil && es.debugBar().IsEnabled() {
-		es.debugBar().SendEmailSent(to, subject, htmlBody, nil, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail, category, err)
-	}
-	return err
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail, category)
 }
 
 func (es *Service) SendMailWithEmbeddedFilesAndCustomReplyTo(to, subject, htmlBody, replyToAddress string, embeddedFiles map[string]io.Reader, category string) error {
@@ -887,11 +879,7 @@ func (es *Service) SendMailWithEmbeddedFilesAndCustomReplyTo(to, subject, htmlBo
 
 	category = getSendGridCategory(category, license.IsCloud())
 
-	err := mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
-	if es.debugBar != nil && es.debugBar() != nil && es.debugBar().IsEnabled() {
-		es.debugBar().SendEmailSent(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category, err)
-	}
-	return err
+	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", category)
 }
 
 func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error {
@@ -900,11 +888,7 @@ func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embed
 
 	category = getSendGridCategory(category, license.IsCloud())
 
-	err := mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "", category)
-	if es.debugBar != nil && es.debugBar() != nil && es.debugBar().IsEnabled() {
-		es.debugBar().SendEmailSent(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "", category, err)
-	}
-	return err
+	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "", category)
 }
 
 func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppError {
