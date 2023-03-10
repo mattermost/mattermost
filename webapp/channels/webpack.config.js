@@ -4,8 +4,6 @@
 /* eslint-disable no-console, no-process-env */
 
 const childProcess = require('child_process');
-const http = require('http');
-const https = require('https');
 const path = require('path');
 
 const url = require('url');
@@ -340,31 +338,6 @@ async function initializeModuleFederation() {
         return sharedObject;
     }
 
-    function isWebpackDevServerAvailable(baseUrl) {
-        return new Promise((resolve) => {
-            if (!DEV) {
-                resolve(false);
-                return;
-            }
-
-            const requestModule = baseUrl.startsWith('https:') ? https : http;
-            const req = requestModule.request(`${baseUrl}/remote_entry.js`, (response) => {
-                return resolve(response.statusCode === 200);
-            });
-
-            req.setTimeout(100, () => {
-                // If this times out, we've connected to the dev server even if it's not ready yet
-                resolve(true);
-            });
-
-            req.on('error', () => {
-                resolve(false);
-            });
-
-            req.end();
-        });
-    }
-
     async function getRemoteContainers() {
         const products = [
             {name: 'boards', baseUrl: boardsDevServerUrl},
@@ -376,23 +349,9 @@ async function initializeModuleFederation() {
         if (process.env.MM_DONT_INCLUDE_PRODUCTS) {
             console.warn('Skipping initialization of products');
         } else if (DEV) {
-            // For development, identify which product dev servers are available
-
-            // Wait for 5 seconds for product dev servers to start up if they were started at the same time as this one
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-
-            const productsFound = await Promise.all(products.map((product) => isWebpackDevServerAvailable(product.baseUrl)));
-            for (let i = 0; i < products.length; i++) {
-                const product = products[i];
-                const found = productsFound[i];
-
-                if (found) {
-                    console.log(`Product ${product.name} found at ${product.baseUrl}, adding as remote module`);
-
-                    remotes[product.name] = `${product.name}@${product.baseUrl}/remote_entry.js`;
-                } else {
-                    console.log(`Product ${product.name} not found at ${product.baseUrl}`);
-                }
+            // For development, we use Webpack dev servers for each product
+            for (const product of products) {
+                remotes[product.name] = `${product.name}@${product.baseUrl}/remote_entry.js`;
             }
         } else {
             // For production, hardcode the URLs of product containers to be based on the web app URL

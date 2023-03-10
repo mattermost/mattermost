@@ -7,7 +7,7 @@
 		"i18n-extract": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" \"../**/*.d.ts\" --out-file i18n/tmp.json && formatjs compile i18n/tmp.json --out-file i18n/en.json && npx rimraf i18n/tmp.json",
 		"build": "webpack --mode=production",
 		"build:watch": "webpack --mode=production --watch",
-		"start": "webpack serve --mode=development",
+		"start:product": "webpack serve --mode=development",
 		"debug": "webpack --mode=none",
 		"debug:watch": "webpack --mode=development --watch",
 		"check-lint": "eslint --ignore-pattern ../.git-ignore --ignore-pattern dist --ext js,jsx,tsx,ts . --quiet --cache",

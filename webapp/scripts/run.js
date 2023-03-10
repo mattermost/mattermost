@@ -16,8 +16,8 @@ async function watchAll(useRunner) {
 
     const commands = [
         {command: 'npm:run --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
-        // {command: 'npm:run --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        // {command: 'npm:run --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
+        {command: 'npm:start:product --workspace=boards', name: 'boards', prefixColor: 'blue'},
+        {command: 'npm:start:product --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
     ];
 
     commands.push(...getPlatformCommands('run'));

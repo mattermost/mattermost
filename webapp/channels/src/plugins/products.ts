@@ -37,8 +37,8 @@ function configureClient() {
 
 function loadRemoteModules() {
     /* eslint-disable no-console */
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const config = getConfig(getState());
+    return async (/*dispatch: DispatchFunc, getState: GetStateFunc*/) => {
+        // const config = getConfig(getState());
 
         /**
          * products contains a map of product IDs to a function that will load all of their parts. Calling that
@@ -50,12 +50,20 @@ function loadRemoteModules() {
         const products = [
             {
                 id: 'boards',
-                featureFlagEnabled: config.FeatureFlagBoardsProduct === 'true',
                 load: () => ({
                     index: import('boards'),
-                    manifest: import('boards/manifest'),
+
+                    // manifest: import('boards/manifest'),
                 }),
             },
+            // {
+            //     id: 'playbooks',
+            //     load: () => ({
+            //         index: import('playbooks'),
+
+            //         // manifest: import('boards/manifest'),
+            //     }),
+            // },
         ];
 
         await Promise.all(products.map(async (product) => {

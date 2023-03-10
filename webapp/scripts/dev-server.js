@@ -13,8 +13,8 @@ async function watchAllWithDevServer() {
 
     const commands = [
         {command: 'npm:dev-server:webapp', name: 'webapp', prefixColor: 'cyan'},
-        // {command: 'npm:run --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        // {command: 'npm:run --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
+        {command: 'npm:start:product --workspace=boards', name: 'boards', prefixColor: 'blue'},
+        {command: 'npm:start:product --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
     ];
 
     commands.push(...getWorkspaceCommands('run'));
