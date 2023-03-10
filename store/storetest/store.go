@@ -133,8 +133,6 @@ func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 func (s *Store) ReplicaLagAbs() error  { return nil }
 func (s *Store) ReplicaLagTime() error { return nil }
 
-func (s *Store) Explain(query string, args []any) (string, error) { return "", nil }
-
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
 		&s.TeamStore,
