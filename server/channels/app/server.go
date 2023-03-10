@@ -31,7 +31,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/email"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/teams"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
@@ -142,14 +141,6 @@ type Server struct {
 	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
-}
-
-func (s *Server) DebugBar() *debugbar.DebugBar {
-	if s.platform != nil {
-		return s.platform.DebugBar
-	}
-
-	return nil
 }
 
 func (s *Server) Store() store.Store {
@@ -376,7 +367,6 @@ func NewServer(options ...Option) (*Server, error) {
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
 		LicenseFn:          s.License,
-		DebugBar:           s.DebugBar,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),

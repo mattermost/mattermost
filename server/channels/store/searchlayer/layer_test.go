@@ -24,7 +24,7 @@ func TestUpdateConfigRace(t *testing.T) {
 		driverName = model.DatabaseDriverPostgres
 	}
 	settings := storetest.MakeSqlSettings(driverName, false)
-	store := sqlstore.New(*settings, nil, nil)
+	store := sqlstore.New(*settings, nil)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

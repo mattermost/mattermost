@@ -1659,10 +1659,6 @@
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
-    "id": "api.debugbar.getSystemInfo.disabled_debugbar.error",
-    "translation": "DebugBar feature is disabled."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -7350,14 +7346,6 @@
   {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
-  },
-  {
-    "id": "debugbar.info.session-count.error",
-    "translation": "Unable to count sessions."
-  },
-  {
-    "id": "debugbar.query_explain.error",
-    "translation": "Unable to execute the query explain."
   },
   {
     "id": "ent.account_migration.get_all_failed",

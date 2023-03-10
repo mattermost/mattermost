@@ -88,7 +88,6 @@ type Store interface {
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
 	TrueUpReview() TrueUpReviewStore
-	Explain(query string, args []interface{}) (string, error)
 }
 
 type RetentionPolicyStore interface {
