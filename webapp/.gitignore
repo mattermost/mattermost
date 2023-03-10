@@ -3,6 +3,8 @@ junit.xml
 node_modules
 *.tsbuildinfo
 
+channels/dist
+playbooks/dist
 boards/dist
 platform/*/dist
 platform/*/lib
