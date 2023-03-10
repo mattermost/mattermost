@@ -59,16 +59,34 @@ func (rec *Record) Fail() {
 }
 
 // AddEventParameter adds a parameter, e.g. query or post body, to the event
-func (rec *Record) AddEventParameter(key string, val interface{}) {
+func AddEventParameter[T string | bool | int | int64 | []string | map[string]string | map[string]any](rec *Record, key string, val T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]interface{})
 	}
 
-	if auditableVal, ok := val.(Auditable); ok {
-		rec.EventData.Parameters[key] = auditableVal.Auditable()
-	} else {
-		rec.EventData.Parameters[key] = val
+	rec.EventData.Parameters[key] = val
+}
+
+// AddEventParameterObject adds an object that is of type Auditable to the event
+func AddEventParameterObject(rec *Record, key string, val Auditable) {
+	if rec.EventData.Parameters == nil {
+		rec.EventData.Parameters = make(map[string]interface{})
 	}
+
+	rec.EventData.Parameters[key] = val.Auditable()
+}
+
+func AddEventParameterObjectArray[T Auditable](rec *Record, key string, val []T) {
+	if rec.EventData.Parameters == nil {
+		rec.EventData.Parameters = make(map[string]interface{})
+	}
+
+	processedAuditables := make([]map[string]interface{}, 0, len(val))
+	for _, auditableVal := range val {
+		processedAuditables = append(processedAuditables, auditableVal.Auditable())
+	}
+
+	rec.EventData.Parameters[key] = processedAuditables
 }
 
 // AddEventPriorState adds the prior state of the modified object to the audit record

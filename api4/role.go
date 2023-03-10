@@ -123,7 +123,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchRole", audit.Fail)
-	auditRec.AddEventParameter("role_patch", patch)
+	audit.AddEventParameterObject(auditRec, "role_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	oldRole, appErr := c.App.GetRole(c.Params.RoleId)

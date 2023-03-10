@@ -42,7 +42,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createUpload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("upload", us)
+	audit.AddEventParameterObject(auditRec, "upload", &us)
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
@@ -122,7 +122,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("uploadData", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("upload_id", c.Params.UploadId)
+	audit.AddEventParameter(auditRec, "upload_id", c.Params.UploadId)
 
 	c.AppContext.SetContext(app.WithMaster(c.AppContext.Context()))
 	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)

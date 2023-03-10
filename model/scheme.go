@@ -68,8 +68,22 @@ type SchemePatch struct {
 	Description *string `json:"description"`
 }
 
+func (scheme *SchemePatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"name":         scheme.Name,
+		"display_name": scheme.DisplayName,
+		"description":  scheme.Description,
+	}
+}
+
 type SchemeIDPatch struct {
 	SchemeID *string `json:"scheme_id"`
+}
+
+func (p *SchemeIDPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"scheme_id": p.SchemeID,
+	}
 }
 
 // SchemeConveyor is used for importing and exporting a Scheme and its associated Roles.

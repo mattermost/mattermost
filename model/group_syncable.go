@@ -153,6 +153,13 @@ type GroupSyncablePatch struct {
 	SchemeAdmin *bool `json:"scheme_admin"`
 }
 
+func (syncable *GroupSyncablePatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"auto_add":     syncable.AutoAdd,
+		"scheme_admin": syncable.SchemeAdmin,
+	}
+}
+
 func (syncable *GroupSyncable) Patch(patch *GroupSyncablePatch) {
 	if patch.AutoAdd != nil {
 		syncable.AutoAdd = *patch.AutoAdd

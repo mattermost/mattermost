@@ -43,7 +43,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteExport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("export_name", c.Params.ExportName)
+	audit.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)

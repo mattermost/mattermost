@@ -59,7 +59,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddEventParameter("post", &post)
+	audit.AddEventParameterObject(auditRec, "post", &post)
 
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
@@ -537,7 +537,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddEventParameter("post_id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 
 	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
@@ -775,7 +775,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	auditRec.AddEventParameter("post", post.Auditable())
+	audit.AddEventParameter(auditRec, "post", post.Auditable())
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
@@ -841,8 +841,8 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	auditRec.AddEventParameter("id", c.Params.PostId)
-	auditRec.AddEventParameter("patch", post.Auditable())
+	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "patch", post.Auditable())
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
@@ -952,7 +952,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
-	auditRec.AddEventParameter("post_id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {

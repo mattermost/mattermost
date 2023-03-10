@@ -118,7 +118,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
 
-	// auditRec.AddEventParameter("config", cfg)  // TODO We can do this but do we want to?
+	// audit.AddEventParameter(auditRec, "config", cfg)  // TODO We can do this but do we want to?
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()

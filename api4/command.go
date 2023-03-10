@@ -37,7 +37,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
-	auditRec.AddEventParameter("command", cmd)
+	audit.AddEventParameterObject(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -79,7 +79,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
-	auditRec.AddEventParameter("command", cmd)
+	audit.AddEventParameterObject(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -139,7 +139,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
-	auditRec.AddEventParameter("command_move_request", cmr)
+	audit.AddEventParameter(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -191,7 +191,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
-	auditRec.AddEventParameter("command_id", c.Params.CommandId)
+	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -323,7 +323,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("command_args", commandArgs)
+	audit.AddEventParameterObject(auditRec, "command_args", &commandArgs)
 	auditRec.AddMeta("commandargs", commandArgs)
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
@@ -461,7 +461,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("command", cmd)
-	auditRec.AddEventParameter("command_id", c.Params.CommandId)
+	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")

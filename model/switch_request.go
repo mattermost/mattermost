@@ -13,6 +13,15 @@ type SwitchRequest struct {
 	LdapLoginId    string `json:"ldap_id"`
 }
 
+func (o *SwitchRequest) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"current_service": o.CurrentService,
+		"new_service":     o.NewService,
+		"email":           o.Email,
+		"ldap_login_id":   o.LdapLoginId,
+	}
+}
+
 func (o *SwitchRequest) EmailToOAuth() bool {
 	return o.CurrentService == UserAuthServiceEmail &&
 		(o.NewService == UserAuthServiceSaml ||

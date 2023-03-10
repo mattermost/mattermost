@@ -154,6 +154,13 @@ type RemoteClusterFrame struct {
 	Msg      RemoteClusterMsg `json:"msg"`
 }
 
+func (f *RemoteClusterFrame) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"remote_id": f.RemoteId,
+		"msg":       f.Msg,
+	}
+}
+
 func (f *RemoteClusterFrame) IsValid() *AppError {
 	if !IsValidId(f.RemoteId) {
 		return NewAppError("RemoteClusterFrame.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "RemoteId="+f.RemoteId, http.StatusBadRequest)

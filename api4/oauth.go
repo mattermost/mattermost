@@ -32,7 +32,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createOAuthApp", audit.Fail)
-	auditRec.AddEventParameter("oauth_app", oauthApp)
+	audit.AddEventParameterObject(auditRec, "oauth_app", &oauthApp)
 
 	defer c.LogAuditRec(auditRec)
 
@@ -72,7 +72,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("oauth_app_id", c.Params.AppId)
+	audit.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
@@ -85,7 +85,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
-	auditRec.AddEventParameter("oauth_app", oauthApp)
+	audit.AddEventParameterObject(auditRec, "oauth_app", &oauthApp)
 
 	// The app being updated in the payload must be the same one as indicated in the URL.
 	if oauthApp.Id != c.Params.AppId {
@@ -209,7 +209,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("oauth_app_id", c.Params.AppId)
+	audit.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
@@ -250,7 +250,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("regenerateOAuthAppSecret", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("oauth_app_id", c.Params.AppId)
+	audit.AddEventParameter(auditRec, "oauth_app_id", c.Params.AppId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)

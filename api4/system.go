@@ -273,8 +273,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddEventParameter("page", c.Params.Page)
-	auditRec.AddEventParameter("audits_per_page", c.Params.LogsPerPage)
+	audit.AddEventParameter(auditRec, "page", c.Params.Page)
+	audit.AddEventParameter(auditRec, "audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -393,8 +393,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddEventParameter("page", c.Params.Page)
-	auditRec.AddEventParameter("logs_per_page", c.Params.LogsPerPage)
+	audit.AddEventParameter(auditRec, "page", c.Params.Page)
+	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJSON(lines)))
 }
@@ -686,7 +686,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("seconds", i)
+	audit.AddEventParameter(auditRec, "seconds", i)
 
 	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
@@ -1001,8 +1001,8 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec.AddEventParameter("install_plugin", onboardingRequest.InstallPlugins)
-	auditRec.AddEventParameter("onboarding_request", onboardingRequest)
+	audit.AddEventParameter(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
+	audit.AddEventParameterObject(auditRec, "onboarding_request", onboardingRequest)
 
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {
