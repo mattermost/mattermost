@@ -104,6 +104,7 @@ const (
 	ServiceSettingsDefaultTLSKeyFile       = ""
 	ServiceSettingsDefaultReadTimeout      = 300
 	ServiceSettingsDefaultWriteTimeout     = 300
+	ServiceSettingsDefaultInteractiveDialogTriggerTimeout = 5000
 	ServiceSettingsDefaultIdleTimeout      = 60
 	ServiceSettingsDefaultMaxLoginAttempts = 10
 	ServiceSettingsDefaultAllowCorsFrom    = ""
@@ -299,6 +300,8 @@ type ServiceSettings struct {
 	TrustedProxyIPHeader                []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	ReadTimeout                         *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	WriteTimeout                        *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	// In milliseconds
+	InteractiveDialogTriggerTimeout     *int  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	IdleTimeout                         *int     `access:"write_restrictable,cloud_restrictable"`
 	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -541,6 +544,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.WriteTimeout == nil {
 		s.WriteTimeout = NewInt(ServiceSettingsDefaultWriteTimeout)
+	}
+
+	if s.InteractiveDialogTriggerTimeout == nil {
+		s.InteractiveDialogTriggerTimeout = NewInt(ServiceSettingsDefaultInteractiveDialogTriggerTimeout)
 	}
 
 	if s.IdleTimeout == nil {

@@ -585,7 +585,7 @@ func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*h
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
+	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), *a.ch.srv.platform.Config().ServiceSettings.InteractiveDialogTriggerTimeout)
 	if appErr != nil {
 		return appErr
 	}
