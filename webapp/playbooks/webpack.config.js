@@ -119,6 +119,8 @@ config.plugins.push(new ModuleFederationPlugin({
             'react-redux',
             'react-router-dom',
             'styled-components',
+            'react-bootstrap',
+            'luxon',
         ]),
     ],
 }));
