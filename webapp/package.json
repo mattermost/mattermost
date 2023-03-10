@@ -2,12 +2,21 @@
   "name": "@mattermost/webapp",
   "private": true,
   "scripts": {
-    "postinstall": "node skip_integrity_check.js",
-    "run": "",
-    "check": "",
-    "check-types": "",
-    "test": "",
-    "clean": ""
+    "postinstall": "node scripts/skip_integrity_check.js",
+    "build": "node scripts/build.js",
+    "run": "node scripts/run.js",
+    "dev-server": "node scripts/dev-server.js",
+    "test": "npm run test --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "fix": "npm run fix --workspaces --if-present",
+    "check-types": "npm run check-types --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "blessed": "0.1.81",
+    "chalk": "4.1.2",
+    "concurrently": "7.6.0",
+    "strip-ansi": "6.0.1"
   },
   "workspaces": [
     "channels",

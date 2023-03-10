@@ -12,7 +12,6 @@ mattermost-webapp.iml
 .vscode/
 junit.xml
 coverage
-config.override.mk
 *.tsbuildinfo
 
 # Environment variables

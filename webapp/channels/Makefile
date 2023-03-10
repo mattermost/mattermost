@@ -4,64 +4,12 @@ BUILD_SERVER_DIR = ../mattermost-server
 
 export NODE_OPTIONS=--max-old-space-size=4096
 
--include config.override.mk
-include config.mk
-
-RUN_IN_BACKGROUND ?=
-ifeq ($(RUN_CLIENT_IN_BACKGROUND),true)
-	RUN_IN_BACKGROUND := &
-endif
-
-# The CI environment variable is set automatically in CircleCI and GitLab CI
-CI ?= false
-
-check-style: node_modules ## Checks JS file for ESLint confirmity
-	@echo Checking for style guide compliance
-
-	npm run check
-
-fix-style: node_modules ## Fix JS file ESLint issues
-	@echo Fixing lint issues to follow style guide
-
-	npm run fix
-
-check-types: node_modules e2e/playwright/node_modules ## Checks TS file for TypeScript confirmity
-	@echo Checking for TypeScript compliance
-
-	npm run check-types
-
-test: node_modules ## Runs tests
-	@echo Running jest unit/component testing
-
-	npm run test
-
 i18n-extract: ## Extract strings for translation from the source code
 	npm run mmjstool -- i18n extract-webapp
-
-node_modules: package.json package-lock.json
-	@echo Getting dependencies using npm
-
-	node skip_integrity_check.js
-
-ifeq ($(CI),false)
-	npm install
-else
-	# This runs in CI with NODE_ENV=production which doesn't install devDependencies without this flag
-	npm ci --include=dev
-
-endif
-
-	touch $@
 
 e2e/playwright/node_modules:
 	@echo Install Playwright and its dependencies
 	cd e2e/playwright && npm install
-
-build: node_modules ## Builds app
-	@echo Building Mattermost Web App
-
-	rm -rf dist
-	npm run build
 
 dist: node_modules build ## Builds and packages app
 	@echo Packaging Mattermost Web App
@@ -71,39 +19,6 @@ dist: node_modules build ## Builds and packages app
 	tar -C tmp -czf mattermost-webapp.tar.gz client
 	mv tmp/client dist
 	rmdir tmp
-
-run: node_modules ## Runs app
-	@echo Running Mattermost Web App for development
-
-	npm run run $(RUN_IN_BACKGROUND)
-
-dev: node_modules ## Runs webpack-dev-server
-	npm run dev-server
-
-run-fullmap: node_modules ## Legacy alias to run
-	@echo Running Mattermost Web App for development
-
-	npm run run $(RUN_IN_BACKGROUND)
-
-stop: ## Stops webpack
-	@echo Stopping changes watching
-
-ifeq ($(OS),Windows_NT)
-	wmic process where "Caption='node.exe' and CommandLine like '%webpack%'" call terminate
-else
-	@pkill -f webpack || true
-endif
-
-restart: | stop run ## Restarts the app
-
-clean: ## Clears cached; deletes node_modules and dist directories
-	@echo Cleaning Web App
-
-	rm -rf dist
-	rm -rf node_modules
-
-	rm -f .eslintcache
-	rm -f .stylelintcache
 
 e2e-test: node_modules
 	@echo E2E: Running mattermost-mysql-e2e
