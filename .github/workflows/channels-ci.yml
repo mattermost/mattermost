@@ -1,15 +1,19 @@
-name: ci
+name: Channels CI
 on:
   pull_request:
   push:
     branches:
       - master
+      - mono-repo*
 defaults:
   run:
     shell: bash
 jobs:
   check-lint:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -19,6 +23,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
       # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
       #   id: npm-cache
       #   with:
@@ -31,12 +36,16 @@ jobs:
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          make e2e/playwright/node_modules
+          # make channels/e2e/playwright/node_modules
       - name: ci/lint
+        working-directory: webapp/channels
         run: |
           npm run check
   check-i18n:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -46,6 +55,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
       # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
       #   id: npm-cache
       #   with:
@@ -58,8 +68,9 @@ jobs:
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          make e2e/playwright/node_modules
+          # make channels/e2e/playwright/node_modules
       - name: ci/lint
+        working-directory: webapp/channels
         run: |
           cp i18n/en.json /tmp/en.json
           mkdir -p /tmp/fake-mobile-dir/assets/base/i18n/
@@ -72,6 +83,9 @@ jobs:
           rm -rf tmp
   check-type:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -81,6 +95,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
       # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
       #   id: npm-cache
       #   with:
@@ -93,8 +108,9 @@ jobs:
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          make e2e/playwright/node_modules
+          # make channels/e2e/playwright/node_modules
       - name: ci/lint
+        working-directory: webapp/channels
         run: |
           npm run check-types
   tests:
@@ -103,6 +119,9 @@ jobs:
     permissions:
       checks: write
       pull-requests: write
+    defaults:
+      run:
+        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -112,6 +131,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
       # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
       #   id: npm-cache
       #   with:
@@ -124,22 +144,26 @@ jobs:
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          make e2e/playwright/node_modules
+          # make channels/e2e/playwright/node_modules
       - name: ci/detect-cpu-core
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@c508d404ab007faae80a014072fd8c0e17792118 # v1.1.0
       - name: ci/test
+        working-directory: webapp/channels
         run: |
           npm run test-ci -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
       - name: ci/publish-test-results
         uses: EnricoMi/publish-unit-test-result-action@a3caf02865c0604ad3dc1ecfcc5cdec9c41b7936  # v2.3.0
         if: always()
         with:
-          junit_files: "build/**/*.xml"
+          junit_files: "webapp/channels/build/**/*.xml"
           comment_mode: always
           compare_to_earlier_commit: false
   build:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -149,6 +173,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
       # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
       #   id: npm-cache
       #   with:
@@ -161,8 +186,9 @@ jobs:
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          make e2e/playwright/node_modules
+          # make channels/e2e/playwright/node_modules
       - name: ci/build
+        working-directory: webapp/channels
         run: |
           node --version
           npm version
@@ -171,7 +197,7 @@ jobs:
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: webapp-artifact
-          path: mattermost-webapp.tar.gz
+          path: channels/mattermost-webapp.tar.gz
           retention-days: 14
   upload-s3:
     runs-on: ubuntu-22.04
@@ -286,7 +312,7 @@ jobs:
         wget https://raw.githubusercontent.com/mattermost/mattermost-server/master/build/entrypoint.sh
         chmod +x entrypoint.sh
         export MM_PACKAGE=https://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.event.pull_request.head.sha || github.sha }}/mattermost-enterprise-linux-amd64.tar.gz
-        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-ee-test:${TAG} --provenance=false . 
-  run-performance-bechmarks:
-    uses: ./.github/workflows/performance-benchmarks.yml
-    needs: prepare-docker-build
+        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-ee-test:${TAG} --provenance=false .
+  # run-performance-bechmarks:
+  #   uses: ./.github/workflows/performance-benchmarks.yml
+  #   needs: prepare-docker-build
