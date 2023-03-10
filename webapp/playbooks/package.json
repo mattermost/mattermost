@@ -133,6 +133,7 @@
     "report-unused-exports": "ts-prune",
     "build:product": "webpack --mode=production",
     "start:product": "webpack serve --mode=development",
-    "deploy:product": "node scripts/deploy.js"    
+    "deploy:product": "node scripts/deploy.js",
+    "clean": "rm -rf node_modules"
   }
 }

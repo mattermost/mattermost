@@ -22,7 +22,8 @@
 		"test": "jest --forceExit --detectOpenHandles --verbose",
 		"test:watch": "jest --watch",
 		"test:updatesnapshot": "jest --updateSnapshot",
-		"test-ci": "jest --forceExit --detectOpenHandles --maxWorkers=2"
+		"test-ci": "jest --forceExit --detectOpenHandles --maxWorkers=2",
+		"clean": "rm -rf node_modules .eslintcache"
 	},
 	"dependencies": {
 		"@draft-js-plugins/editor": "^4.1.2",
