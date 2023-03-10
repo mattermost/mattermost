@@ -131,17 +131,6 @@ config.output = {
     path: path.join(__dirname, '/dist'),
     chunkFilename: '[name].[contenthash].js',
 };
-config.externals = {
-    react: 'React',
-    'react-dom': 'ReactDOM',
-    redux: 'Redux',
-    luxon: 'Luxon',
-    'react-redux': 'ReactRedux',
-    'prop-types': 'PropTypes',
-    'react-bootstrap': 'ReactBootstrap',
-    'react-router-dom': 'ReactRouterDom',
-    'react-intl': 'ReactIntl',
-};
 
 if (NPM_TARGET === 'start:product') {
     const url = new URL(process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007');
