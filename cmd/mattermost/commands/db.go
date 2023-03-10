@@ -92,7 +92,7 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 	}
 	defer configStore.Close()
 
-	sqlStore := sqlstore.New(configStore.Get().SqlSettings, nil, nil)
+	sqlStore := sqlstore.New(configStore.Get().SqlSettings, nil)
 	defer sqlStore.Close()
 
 	fmt.Println("Database store correctly initialised")
@@ -140,7 +140,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	}
 	config := cfgStore.Get()
 
-	store := sqlstore.New(config.SqlSettings, nil, nil)
+	store := sqlstore.New(config.SqlSettings, nil)
 	defer store.Close()
 
 	CommandPrettyPrintln("Database successfully migrated")
@@ -156,7 +156,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 	}
 	config := cfgStore.Get()
 
-	store := sqlstore.New(config.SqlSettings, nil, nil)
+	store := sqlstore.New(config.SqlSettings, nil)
 	defer store.Close()
 
 	allFlag, _ := command.Flags().GetBool("all")

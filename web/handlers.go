@@ -401,20 +401,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
-
-	if c.App.Srv().DebugBar().IsEnabled() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
-		var endpoint string
-		if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-			// It's a graphQL query, so use the operation name.
-			endpoint = c.GraphQLOperationName
-		} else {
-			endpoint = h.HandlerName
-		}
-
-		c.App.Srv().DebugBar().SendApiCall(endpoint, r.Method, statusCode, elapsed)
-	}
-
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
