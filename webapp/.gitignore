@@ -1,5 +1,6 @@
+.eslintcache
+junit.xml
 node_modules
-
 *.tsbuildinfo
 
 boards/dist
