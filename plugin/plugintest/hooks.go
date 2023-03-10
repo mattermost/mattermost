@@ -209,6 +209,11 @@ func (_m *Hooks) Implemented() ([]string, error) {
 	return r0, r1
 }
 
+// MessageHasBeenDeleted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+	_m.Called(c, post)
+}
+
 // MessageHasBeenPosted provides a mock function with given fields: c, post
 func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	_m.Called(c, post)

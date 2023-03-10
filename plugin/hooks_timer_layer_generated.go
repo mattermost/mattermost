@@ -114,6 +114,12 @@ func (hooks *hooksTimerLayer) MessageHasBeenUpdated(c *Context, newPost, oldPost
 	hooks.recordTime(startTime, "MessageHasBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
+	hooks.recordTime(startTime, "MessageHasBeenDeleted", true)
+}
+
 func (hooks *hooksTimerLayer) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.ChannelHasBeenCreated(c, channel)
