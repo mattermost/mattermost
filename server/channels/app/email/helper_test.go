@@ -122,7 +122,6 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		license:            licenseFn,
 		config:             configStore.Get,
 		templatesContainer: htmlTemplateWatcher,
-		goFn:               func(f func()) { go f() },
 	}
 
 	if err := service.setUpRateLimiters(); err != nil {

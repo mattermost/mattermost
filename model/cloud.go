@@ -125,8 +125,9 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
-type SubscriptionExpandStatus struct {
+type SubscriptionLicenseSelfServeStatusResponse struct {
 	IsExpandable bool `json:"is_expandable"`
+	IsRenewable  bool `json:"is_renewable"`
 }
 
 // CloudCustomerInfo represents editable info of a customer.

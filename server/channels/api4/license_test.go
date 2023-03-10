@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
 	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
 	mocks2 "github.com/mattermost/mattermost-server/v6/server/channels/utils/mocks"
@@ -264,11 +263,11 @@ func TestRequestTrialLicense(t *testing.T) {
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
-
+		originalCwsUrl := *th.App.Srv().Config().CloudSettings.CWSURL
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = testServer.URL })
 		defer func(requestTrialURL string) {
-			platform.RequestTrialURL = requestTrialURL
-		}(platform.RequestTrialURL)
-		platform.RequestTrialURL = testServer.URL
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
+		}(originalCwsUrl)
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
@@ -295,10 +294,11 @@ func TestRequestTrialLicense(t *testing.T) {
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
+		originalCwsUrl := *th.App.Srv().Config().CloudSettings.CWSURL
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = testServer.URL })
 		defer func(requestTrialURL string) {
-			platform.RequestTrialURL = requestTrialURL
-		}(platform.RequestTrialURL)
-		platform.RequestTrialURL = testServer.URL
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
+		}(originalCwsUrl)
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		require.Error(t, err)

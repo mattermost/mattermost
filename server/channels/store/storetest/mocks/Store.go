@@ -224,6 +224,27 @@ func (_m *Store) Emoji() store.EmojiStore {
 	return r0
 }
 
+// Explain provides a mock function with given fields: query, args
+func (_m *Store) Explain(query string, args []interface{}) (string, error) {
+	ret := _m.Called(query, args)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, []interface{}) string); ok {
+		r0 = rf(query, args)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []interface{}) error); ok {
+		r1 = rf(query, args)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FileInfo provides a mock function with given fields:
 func (_m *Store) FileInfo() store.FileInfoStore {
 	ret := _m.Called()

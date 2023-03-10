@@ -31,6 +31,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/email"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
+	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/teams"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
@@ -141,6 +142,14 @@ type Server struct {
 	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
+}
+
+func (s *Server) DebugBar() *debugbar.DebugBar {
+	if s.platform != nil {
+		return s.platform.DebugBar
+	}
+
+	return nil
 }
 
 func (s *Server) Store() store.Store {
@@ -367,7 +376,7 @@ func NewServer(options ...Option) (*Server, error) {
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
 		LicenseFn:          s.License,
-		GoFn:               s.Go,
+		DebugBar:           s.DebugBar,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
@@ -719,6 +728,10 @@ func (s *Server) Shutdown() {
 	if err = s.platform.ShutdownMetrics(); err != nil {
 		s.Log().Warn("Failed to stop metrics server", mlog.Err(err))
 	}
+
+	// Stopping email service after HTTP server has stopped to prevent
+	// any stray notifications from being queued.
+	s.EmailService.Stop()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
@@ -1289,9 +1302,14 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
+	if err != nil {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// we want to at least have one email sent out to an admin
@@ -1302,7 +1320,16 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		if name == "" {
 			name = user.Username
 		}
-		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
+		T := i18n.GetUserTranslations(user.Locale)
+		ctaTitle := T("api.templates.license_up_for_renewal_subtitle_two")
+		ctaText := T("api.templates.license_up_for_renewal_renew_now")
+		if !status.IsRenewable {
+			ctaTitle = ""
+			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
+			ctaLink = "https://mattermost.com/contact-sales/"
+		}
+
+		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, ctaTitle, ctaLink, ctaText, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
 			countNotOks++
 		}
@@ -1367,9 +1394,15 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
-		mlog.Error("Error while sending the license expired email.", mlog.Err(appErr))
+		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr).Error())
+		return
+	}
+
+	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
+	if err != nil {
+		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err).Error())
 		return
 	}
 
@@ -1381,9 +1414,16 @@ func (s *Server) doLicenseExpirationCheck() {
 			continue
 		}
 
+		T := i18n.GetUserTranslations(user.Locale)
+		ctaText := T("api.templates.remove_expired_license.body.renew_button")
+		if !status.IsRenewable {
+			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
+			ctaLink = "https://mattermost.com/contact-sales/"
+		}
+
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.platform.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, ctaText, ctaLink, user.Locale, *s.platform.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1395,9 +1435,9 @@ func (s *Server) doLicenseExpirationCheck() {
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale, siteURL string) *model.AppError {
+func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, siteURL string) *model.AppError {
 
-	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
+	if err := s.EmailService.SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

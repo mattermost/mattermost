@@ -28,6 +28,9 @@ func isError(typeName string) bool {
 }
 
 func main() {
+	if err := buildDebugBarLayer(); err != nil {
+		log.Fatal(err)
+	}
 	if err := buildTimerLayer(); err != nil {
 		log.Fatal(err)
 	}
@@ -63,6 +66,19 @@ func buildTimerLayer() error {
 	}
 
 	return os.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
+}
+
+func buildDebugBarLayer() error {
+	code, err := generateLayer("DebugBarLayer", "debugbar_layer.go.tmpl")
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(code)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path.Join("debugbarlayer", "debugbarlayer.go"), formatedCode, 0644)
 }
 
 func buildOpenTracingLayer() error {
