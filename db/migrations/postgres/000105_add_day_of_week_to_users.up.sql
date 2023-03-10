@@ -1,0 +1,1 @@
+ALTER TABLE Users ADD COLUMN IF NOT EXISTS FirstDayOfWeek integer DEFAULT 0;
