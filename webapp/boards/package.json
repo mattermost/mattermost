@@ -66,9 +66,9 @@
 		"trim-newlines": "^4.0.2"
 	},
 	"jest": {
-    "transform": {
-      "^.+\\.(js|tsx|ts|tsx)$": "@swc/jest"
-    },
+		"transform": {
+			"^.+\\.(js|tsx|ts|tsx)$": "@swc/jest"
+		},
 		"transformIgnorePatterns": [
 			"/nanoevents/",
 			"node_modules/(?!react-native|react-router|mattermost-webapp|react-day-picker)"
@@ -80,7 +80,7 @@
 			"src/**/*.{ts,tsx,js,jsx}",
 			"!src/test/**"
 		],
-    "moduleFileExtensions": ["js", "jsx", "ts", "tsx"],
+    	"moduleFileExtensions": ["js", "jsx", "ts", "tsx"],
 		"testPathIgnorePatterns": [
 			"/node_modules/",
 			"/non_npm_dependencies/"
@@ -97,7 +97,7 @@
 			"^react$": "<rootDir>/node_modules/react",
 			"^react-redux$": "<rootDir>/node_modules/react-redux",
 			"^react-intl$": "<rootDir>/node_modules/react-intl",
-      "^src(.*)$": "<rootDir>/src$1"
+      		"^src(.*)$": "<rootDir>/src$1"
 		},
 		"moduleDirectories": [
 			"src",
@@ -144,7 +144,7 @@
 		"@types/marked": "^4.0.3",
 		"@types/nanoevents": "^1.0.0",
 		"@types/node": "17.0.23",
-    "@types/react": "^17.0.43",
+    	"@types/react": "^17.0.43",
 		"@types/react-beautiful-dnd": "^13.1.2",
 		"@types/react-dom": "^17.0.14",
 		"@types/react-redux": "^7.1.23",
@@ -153,7 +153,7 @@
 		"@types/redux-mock-store": "1.0.3",
 		"@typescript-eslint/eslint-plugin": "5.16.0",
 		"@typescript-eslint/parser": "5.16.0",
-    "babel-eslint": "10.1.0",
+    	"babel-eslint": "10.1.0",
 		"cross-env": "^7.0.3",
 		"css-loader": "6.7.1",
 		"eslint": "^8.11.0",
@@ -192,7 +192,7 @@
 		"stylelint-config-sass-guidelines": "^9.0.1",
 		"ts-loader": "9.4.2",
 		"typescript": "4.6.2",
-		"webpack": "5.70.0",
+		"webpack": "5.74.0",
 		"webpack-cli": "4.10.0",
 		"webpack-dev-server": "4.10.0"
 	}

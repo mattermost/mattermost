@@ -27,8 +27,8 @@
             "@mattermost/types/*": ["../platform/packages/types/src/*"],
             "@mattermost/client": ["../platform/client/src"],
             "@mattermost/components": ["../platform/components/src"],
-            //"mattermost-redux/*": ["../channels/src/packages/mattermost-redux/src/*"],
-            //"reselect": ["../channels/src/packages/reselect/src"]
+            // "mattermost-redux/*": ["../channels/src/packages/mattermost-redux/src/*"],
+            // "reselect": ["../channels/src/packages/reselect/src"]
         }
     },
     "include": [
@@ -36,7 +36,7 @@
     ],
     "exclude": [
         ".git",
-        "node_modules",
+        "!node_modules/@types",
         "dist",
     ]
 }

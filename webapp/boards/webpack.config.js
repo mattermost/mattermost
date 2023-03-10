@@ -59,9 +59,9 @@ const config = {
             '@mattermost/components': path.resolve(__dirname, '../platform/components/src/'),
         },
         modules: [
-            'src',
+            path.resolve(__dirname, './src'),
+            path.resolve(__dirname, '.'),
             'node_modules',
-            '.'
         ],
         extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
     },
