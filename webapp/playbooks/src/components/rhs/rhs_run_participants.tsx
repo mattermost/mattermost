@@ -4,7 +4,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeam} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/teams';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {RHSContainer, RHSContent} from 'src/components/rhs/rhs_shared';
 

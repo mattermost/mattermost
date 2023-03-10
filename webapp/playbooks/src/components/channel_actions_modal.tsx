@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIntl} from 'react-intl';
 
-import {getCurrentChannelId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/common';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {fetchChannelActions, saveChannelAction} from 'src/client';
 import {hideChannelActionsModal} from 'src/actions';

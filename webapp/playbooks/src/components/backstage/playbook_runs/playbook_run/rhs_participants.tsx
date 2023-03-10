@@ -6,10 +6,10 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {useDispatch, useSelector} from 'react-redux';
-import {getProfilesByIds} from 'mattermost-webapp/packages/mattermost-redux/src/actions/users';
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {UserProfile} from 'mattermost-webapp/packages/types/src/users';
-import {sortByUsername} from 'mattermost-webapp/packages/mattermost-redux/src/utils/user_utils';
-import {getCurrentUser} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/users';
+import {sortByUsername} from 'mattermost-redux/utils/user_utils';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import Profile from 'src/components/profile/profile';
 import Tooltip from 'src/components/widgets/tooltip';

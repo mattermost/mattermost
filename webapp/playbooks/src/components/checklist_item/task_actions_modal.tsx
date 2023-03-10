@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {OptionTypeBase, StylesConfig} from 'react-select';
 import styled from 'styled-components';
 
-import {searchProfiles} from 'mattermost-webapp/packages/mattermost-redux/src/actions/users';
+import {searchProfiles} from 'mattermost-redux/actions/users';
 import {getUsers} from 'mattermost-redux/selectors/entities/common';
 
 import ActionsModal from 'src/components/actions_modal';

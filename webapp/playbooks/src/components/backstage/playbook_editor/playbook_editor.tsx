@@ -19,7 +19,7 @@ import {fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {useDispatch, useSelector} from 'react-redux';
 import {StarIcon, StarOutlineIcon} from '@mattermost/compass-icons/components';
-import {getCurrentUserId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/common';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import {pluginErrorUrl} from 'src/browser_routing';
 import {useForceDocumentTitle, useStats} from 'src/hooks';

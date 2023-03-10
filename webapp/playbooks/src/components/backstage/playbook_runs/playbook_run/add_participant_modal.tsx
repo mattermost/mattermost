@@ -6,11 +6,11 @@ import {useIntl} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
-import {searchProfiles} from 'mattermost-webapp/packages/mattermost-redux/src/actions/users';
+import {searchProfiles} from 'mattermost-redux/actions/users';
 import {UserProfile} from 'mattermost-webapp/packages/types/src/users';
 import {LightningBoltOutlineIcon} from '@mattermost/compass-icons/components';
 import {OptionTypeBase, StylesConfig} from 'react-select';
-import {General} from 'mattermost-webapp/packages/mattermost-redux/src/constants';
+import {General} from 'mattermost-redux/constants';
 
 import GenericModal from 'src/components/widgets/generic_modal';
 import {PlaybookRun} from 'src/types/playbook_run';

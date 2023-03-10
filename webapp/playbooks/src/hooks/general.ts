@@ -25,7 +25,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import {ClientError} from '@mattermost/client';
 import {useHistory, useLocation} from 'react-router-dom';
 import qs from 'qs';
-import {haveITeamPermission} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/roles';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {useUpdateEffect} from 'react-use';
 import {debounce, isEqual} from 'lodash';
 

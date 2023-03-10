@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import {getCurrentUserId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/users';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {useLHSRefresh} from 'src/components/backstage/lhs_navigation';
 import {showRunActionsModal} from 'src/actions';

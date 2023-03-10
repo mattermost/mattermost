@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {LightningBoltOutlineIcon} from '@mattermost/compass-icons/components';
 import {useSelector} from 'react-redux';
-import {General} from 'mattermost-webapp/packages/mattermost-redux/src/constants';
-import {getCurrentUserId} from 'mattermost-webapp/packages/mattermost-redux/src/selectors/entities/common';
+import {General} from 'mattermost-redux/constants';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import GenericModal from 'src/components/widgets/generic_modal';
 
