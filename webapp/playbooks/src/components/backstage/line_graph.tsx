@@ -3,6 +3,8 @@
 
 import React from 'react';
 import {Line} from 'react-chartjs-2';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 import styled from 'styled-components';
 
 const GraphBoxContainer = styled.div`
@@ -28,59 +30,63 @@ const LineGraph = (props: LineGraphProps) => {
         <GraphBoxContainer className={props.className}>
             {/*@ts-ignore*/}
             <Line
-                legend={{display: false}}
                 options={{
-                    title: {
-                        display: true,
-                        text: props.title,
-                        fontColor: centerChannelFontColor,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: props.title,
+                            color: centerChannelFontColor,
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title(tooltipItems: any) {
+                                    if (props.labels) {
+                                        const label = props.labels[tooltipItems[0].dataIndex];
+                                        if (props.tooltipTitleCallback) {
+                                            return props.tooltipTitleCallback(label);
+                                        }
+
+                                        return label;
+                                    }
+
+                                    return tooltipItems[0].label;
+                                },
+                                label(tooltipItem: any) {
+                                    if (props.tooltipLabelCallback) {
+                                        return props.tooltipLabelCallback(tooltipItem.formattedValue);
+                                    }
+                                    return tooltipItem.formattedValue;
+                                },
+                            },
+                            displayColors: false,
+                        },
                     },
                     scales: {
-                        yAxes: [{
+                        y: {
                             ticks: {
                                 callback: (val: any) => {
                                     return (val % 1 === 0) ? val : null;
                                 },
-                                fontColor: centerChannelFontColor,
+                                color: centerChannelFontColor,
                             },
-                        }],
-                        xAxes: [{
-                            scaleLabel: {
+                        },
+                        x: {
+                            title: {
                                 display: Boolean(props.xlabel),
-                                labelString: props.xlabel,
-                                fontColor: centerChannelFontColor,
+                                text: props.xlabel,
+                                color: centerChannelFontColor,
                             },
                             ticks: {
                                 callback: (val: any, index: number) => {
                                     return (index % 2) === 0 ? val : '';
                                 },
-                                fontColor: centerChannelFontColor,
+                                color: centerChannelFontColor,
                                 maxRotation: 0,
                             },
-                        }],
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title(tooltipItems: any) {
-                                if (props.labels) {
-                                    const label = props.labels[tooltipItems[0].index];
-                                    if (props.tooltipTitleCallback) {
-                                        return props.tooltipTitleCallback(label);
-                                    }
-
-                                    return label;
-                                }
-
-                                return tooltipItems[0].xLabel;
-                            },
-                            label(tooltipItem: any) {
-                                if (props.tooltipLabelCallback) {
-                                    return props.tooltipLabelCallback(tooltipItem.yLabel);
-                                }
-                                return tooltipItem.yLabel;
-                            },
                         },
-                        displayColors: false,
                     },
                     onClick(event: any, element: any) {
                         if (!props.onClick) {
@@ -94,7 +100,7 @@ const LineGraph = (props: LineGraphProps) => {
                     },
                     onHover(event: any) {
                         if (props.onClick) {
-                            event.target.style.cursor = 'pointer';
+                            event.native.target.style.cursor = 'pointer';
                         }
                     },
                     maintainAspectRatio: false,

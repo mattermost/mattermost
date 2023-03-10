@@ -1,11 +1,6 @@
 -include config.override.mk
 include config.mk
 
-RUN_IN_BACKGROUND ?=
-ifeq ($(RUN_CLIENT_IN_BACKGROUND),true)
-	RUN_IN_BACKGROUND := &
-endif
-
 # The CI environment variable is set automatically in CircleCI and GitLab CI
 CI ?= false
 
@@ -13,7 +8,7 @@ CI ?= false
 run: node_modules ## Runs app
 	@echo Running Mattermost Web App for development
 
-	npm run run $(RUN_IN_BACKGROUND)
+	npm run run
 
 .PHONY: stop
 stop: ## Stops webpack

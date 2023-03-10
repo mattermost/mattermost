@@ -36,60 +36,64 @@ const BarGraph = (props: BarGraphProps) => {
     return (
         <GraphBoxContainer className={props.className}>
             <Bar
-                legend={{display: false}}
                 options={{
-                    title: {
-                        display: true,
-                        text: props.title,
-                        fontColor: centerChannelFontColor,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: props.title,
+                            fontColor: centerChannelFontColor,
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title(tooltipItems: any) {
+                                    if (props.labels) {
+                                        const label = props.labels[tooltipItems[0].dataIndex];
+                                        if (props.tooltipTitleCallback) {
+                                            return props.tooltipTitleCallback(label);
+                                        }
+
+                                        return label;
+                                    }
+
+                                    return tooltipItems[0].label;
+                                },
+                                label(tooltipItem: any) {
+                                    if (props.tooltipLabelCallback) {
+                                        return props.tooltipLabelCallback(tooltipItem.formattedValue);
+                                    }
+                                    return tooltipItem.formattedValue;
+                                },
+                            },
+                            displayColors: false,
+                        },
                     },
                     scales: {
-                        yAxes: [{
+                        y: {
                             ticks: {
                                 callback: props.yAxesTicksCallback ? props.yAxesTicksCallback : (val: any) => {
                                     return (val % 1 === 0) ? val : null;
                                 },
                                 beginAtZero: true,
-                                fontColor: centerChannelFontColor,
+                                color: centerChannelFontColor,
                             },
-                        }],
-                        xAxes: [{
+                        },
+                        x: {
                             scaleLabel: {
                                 display: Boolean(props.xlabel),
-                                labelString: props.xlabel,
-                                fontColor: centerChannelFontColor,
+                                text: props.xlabel,
+                                color: centerChannelFontColor,
                             },
                             ticks: {
                                 callback: props.xAxesTicksCallback ? props.xAxesTicksCallback : (val: any, index: number) => {
                                     return (index % 2) === 0 ? val : '';
                                 },
-                                fontColor: centerChannelFontColor,
+                                color: centerChannelFontColor,
                                 maxRotation: 0,
                             },
-                        }],
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title(tooltipItems: any) {
-                                if (props.labels) {
-                                    const label = props.labels[tooltipItems[0].index];
-                                    if (props.tooltipTitleCallback) {
-                                        return props.tooltipTitleCallback(label);
-                                    }
-
-                                    return label;
-                                }
-
-                                return tooltipItems[0].xLabel;
-                            },
-                            label(tooltipItem: any) {
-                                if (props.tooltipLabelCallback) {
-                                    return props.tooltipLabelCallback(tooltipItem.yLabel);
-                                }
-                                return tooltipItem.yLabel;
-                            },
                         },
-                        displayColors: false,
                     },
                     onClick(event: any, element: any) {
                         if (!props.onClick) {
@@ -103,7 +107,7 @@ const BarGraph = (props: BarGraphProps) => {
                     },
                     onHover(event: any) {
                         if (props.onClick) {
-                            event.target.style.cursor = 'pointer';
+                            event.native.target.style.cursor = 'pointer';
                         }
                     },
                     maintainAspectRatio: false,
@@ -113,13 +117,12 @@ const BarGraph = (props: BarGraphProps) => {
                 data={{
                     labels: props.labels,
                     datasets: [{
-                        fill: false,
                         backgroundColor: color,
                         borderColor: color,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: color,
+                        // pointBackgroundColor: color,
+                        // pointBorderColor: '#fff',
+                        // pointHoverBackgroundColor: '#fff',
+                        // pointHoverBorderColor: color,
 
                         // This is okay, it can take nulls and numbers
                         data: props.data as number[],
