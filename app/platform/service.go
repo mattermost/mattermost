@@ -191,7 +191,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace, ps.DebugBar.SendSqlQuery)
+			if ps.DebugBar != nil && ps.DebugBar.IsEnabled() {
+				ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace, ps.DebugBar.SendSqlQuery)
+			} else {
+				ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace, nil)
+			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(ps.sqlStore),
