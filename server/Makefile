@@ -89,6 +89,7 @@ endif
 # Boards
 BUILD_BOARDS = true
 BUILD_HASH_BOARDS = $(BUILD_HASH)
+export MM_FEATUREFLAGS_BoardsProduct=true
 
 # Playbooks
 BUILD_PLAYBOOKS ?= true
