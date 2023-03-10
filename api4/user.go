@@ -558,12 +558,14 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelID := r.URL.Query().Get("in_channel")
 	includeDeleted := r.URL.Query().Get("include_deleted")
 	includeBotAccounts := r.URL.Query().Get("include_bots")
+	includeRemoteUsers := r.URL.Query().Get("include_remote_users")
 	rolesString := r.URL.Query().Get("roles")
 	channelRolesString := r.URL.Query().Get("channel_roles")
 	teamRolesString := r.URL.Query().Get("team_roles")
 
 	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
 	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+	includeRemoteUsersBool, _ := strconv.ParseBool(includeRemoteUsers)
 
 	roles := []string{}
 	var rolesValid bool
@@ -594,6 +596,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	options := &model.UserCountOptions{
 		IncludeDeleted:     includeDeletedBool,
 		IncludeBotAccounts: includeBotAccountsBool,
+		IncludeRemoteUsers: includeRemoteUsersBool,
 		TeamId:             teamID,
 		ChannelId:          channelID,
 		Roles:              roles,

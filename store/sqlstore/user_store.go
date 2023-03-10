@@ -1311,6 +1311,10 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 		query = query.Where("u.DeleteAt = 0")
 	}
 
+	if !options.IncludeRemoteUsers {
+		query = query.Where("u.RemoteId = '' || u.RemoteId IS NULL")
+	}
+
 	if options.IncludeBotAccounts {
 		if options.ExcludeRegularUsers {
 			query = query.Join("Bots ON u.Id = Bots.UserId")
@@ -1357,6 +1361,10 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
 	}
 
+	if !options.IncludeRemoteUsers {
+		query = query.Where("Users.RemoteId = '' || Users.RemoteId IS NULL")
+	}
+
 	if !options.IncludeDeleted {
 		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
 	}
@@ -1380,6 +1388,10 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 
 	if !options.IncludeBotAccounts {
 		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where("Users.RemoteId = '' || Users.RemoteId IS NULL")
 	}
 
 	if !options.IncludeDeleted {
