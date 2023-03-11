@@ -24,7 +24,6 @@ import (
 const (
 	PostActionTypeButton                        = "button"
 	PostActionTypeSelect                        = "select"
-	InteractiveDialogTriggerTimeoutMilliseconds = 3000
 )
 
 var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
