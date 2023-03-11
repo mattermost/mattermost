@@ -125,6 +125,7 @@ type User {
 	roles: [Role]!
 	preferences: [Preference!]!
 	sessions: [Session]!
+	firstDayOfWeek: Float!
 }
 
 type CustomStatus {

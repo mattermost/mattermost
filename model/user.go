@@ -103,6 +103,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	FirstDayOfWeek         int       `json:"first_day_of_week"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -134,6 +135,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"terms_of_service_id":        u.TermsOfServiceId,
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
+		"first_day_of_week":          u.FirstDayOfWeek,
 	}
 }
 
@@ -151,33 +153,35 @@ type UserUpdate struct {
 
 //msgp:ignore UserPatch
 type UserPatch struct {
-	Username    *string   `json:"username"`
-	Password    *string   `json:"password,omitempty"`
-	Nickname    *string   `json:"nickname"`
-	FirstName   *string   `json:"first_name"`
-	LastName    *string   `json:"last_name"`
-	Position    *string   `json:"position"`
-	Email       *string   `json:"email"`
-	Props       StringMap `json:"props,omitempty"`
-	NotifyProps StringMap `json:"notify_props,omitempty"`
-	Locale      *string   `json:"locale"`
-	Timezone    StringMap `json:"timezone"`
-	RemoteId    *string   `json:"remote_id"`
+	Username       *string   `json:"username"`
+	Password       *string   `json:"password,omitempty"`
+	Nickname       *string   `json:"nickname"`
+	FirstName      *string   `json:"first_name"`
+	LastName       *string   `json:"last_name"`
+	Position       *string   `json:"position"`
+	Email          *string   `json:"email"`
+	Props          StringMap `json:"props,omitempty"`
+	NotifyProps    StringMap `json:"notify_props,omitempty"`
+	Locale         *string   `json:"locale"`
+	Timezone       StringMap `json:"timezone"`
+	RemoteId       *string   `json:"remote_id"`
+	FirstDayOfWeek *int      `json:"first_day_of_week,omitempty"`
 }
 
 func (u *UserPatch) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"username":     u.Username,
-		"nickname":     u.Nickname,
-		"first_name":   u.FirstName,
-		"last_name":    u.LastName,
-		"position":     u.Position,
-		"email":        u.Email,
-		"props":        u.Props,
-		"notify_props": u.NotifyProps,
-		"locale":       u.Locale,
-		"timezone":     u.Timezone,
-		"remote_id":    u.RemoteId,
+		"username":          u.Username,
+		"nickname":          u.Nickname,
+		"first_name":        u.FirstName,
+		"last_name":         u.LastName,
+		"position":          u.Position,
+		"email":             u.Email,
+		"props":             u.Props,
+		"notify_props":      u.NotifyProps,
+		"locale":            u.Locale,
+		"timezone":          u.Timezone,
+		"remote_id":         u.RemoteId,
+		"first_day_of_week": u.FirstDayOfWeek,
 	}
 }
 
@@ -508,6 +512,10 @@ func (u *User) TermsOfServiceCreateAt_() float64 {
 	return float64(u.TermsOfServiceCreateAt)
 }
 
+func (u *User) FirstDayOfWeek_() float64 {
+	return float64(u.FirstDayOfWeek)
+}
+
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
 	u.Username = SanitizeUnicode(u.Username)
@@ -633,6 +641,10 @@ func (u *User) Patch(patch *UserPatch) {
 
 	if patch.RemoteId != nil {
 		u.RemoteId = patch.RemoteId
+	}
+
+	if patch.FirstDayOfWeek != nil {
+		u.FirstDayOfWeek = *patch.FirstDayOfWeek
 	}
 }
 
