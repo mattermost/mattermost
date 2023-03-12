@@ -221,7 +221,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.TestEmail(c.AppContext, c.AppContext.Session().UserId, cfg)
+	appErr := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -248,7 +248,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.TestSiteURL(c.AppContext, siteURL)
+	appErr := c.App.TestSiteURL(siteURL)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -348,7 +348,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
+	logs, logerr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
 	if logerr != nil {
 		c.Err = logerr
 		return
@@ -483,7 +483,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion(c.AppContext, "https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	resp, appErr := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
 	if appErr != nil {
 		c.Err = appErr
 		return
