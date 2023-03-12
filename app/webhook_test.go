@@ -732,6 +732,122 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 }
 
+func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
+	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
+		return &model.OutgoingWebhookPayload{
+			Token:       hook.Token,
+			TeamId:      hook.TeamId,
+			TeamDomain:  th.BasicTeam.Name,
+			ChannelId:   channel.Id,
+			ChannelName: channel.Name,
+			Timestamp:   th.BasicPost.CreateAt,
+			UserId:      th.BasicPost.UserId,
+			UserName:    th.BasicUser.Username,
+			PostId:      th.BasicPost.Id,
+			Text:        th.BasicPost.Message,
+			TriggerWord: "Abracadabra",
+			FileIds:     strings.Join(th.BasicPost.FileIds, ","),
+		}
+	}
+
+	waitUntilWebhookResponseIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
+		go func() {
+			for i := 0; i < 5; i++ {
+				time.Sleep(time.Second)
+				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
+				if len(posts.Posts) > 0 {
+					for _, post := range posts.Posts {
+						createdPost <- post
+						return
+					}
+				}
+			}
+		}()
+	}
+
+	createOutgoingWebhook := func(channel *model.Channel, testCallBackURLs []string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
+		outgoingWebhook := model.OutgoingWebhook{
+			ChannelId:    channel.Id,
+			TeamId:       channel.TeamId,
+			CallbackURLs: testCallBackURLs,
+			Username:     "some-user-name",
+			IconURL:      "http://some-icon/",
+			DisplayName:  "some-display-name",
+			Description:  "some-description",
+			CreatorId:    th.BasicUser.Id,
+			TriggerWords: []string{"Abracadabra"},
+			ContentType:  "application/json",
+		}
+
+		return th.App.CreateOutgoingWebhook(&outgoingWebhook)
+	}
+
+	type TestCaseOutgoing struct {
+		CallBackURLs []string
+	}
+
+	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"text": "sample response text from test server 1"}`))
+
+	}))
+	defer ts1.Close()
+
+	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"text": "sample response text from test server 2"}`))
+
+	}))
+	defer ts2.Close()
+
+	getTestCases := func() map[string]TestCaseOutgoing {
+
+		testCasesOutgoing := map[string]TestCaseOutgoing{
+
+			"One WebhookURL": {
+				CallBackURLs: []string{ts1.URL},
+			},
+			"Two WebhookURLs": {
+				CallBackURLs: []string{ts1.URL, ts2.URL},
+			},
+		}
+		return testCasesOutgoing
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+	createdPost := make(chan *model.Post)
+
+	for name, testCase := range getTestCases() {
+		t.Run(name, func(t *testing.T) {
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
+			})
+
+			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
+			payload := getPayload(hook, th, channel)
+
+			th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
+
+			waitUntilWebhookResponseIsCreatedAsPost(channel, th, createdPost)
+
+			select {
+			case webhookPost := <-createdPost:
+				assert.Equal(t, webhookPost.Message, "sample response text from test server")
+				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
+
+			case <-time.After(5 * time.Second):
+				require.Fail(t, "Timeout, webhook response not created as post")
+			}
+
+		})
+	}
+}
+
 type InfiniteReader struct {
 	Prefix string
 }
