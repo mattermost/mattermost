@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var latestVersionCache = cache.NewLRU(cache.LRUOptions{
@@ -34,7 +33,7 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		} else {
-			mlog.Error("Could not get cluster info")
+			c.Logger().Error("Could not get cluster info")
 		}
 	}
 
@@ -148,14 +147,14 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 }
 
 func (a *App) RecycleDatabaseConnection(c request.CTX) {
-	mlog.Info("Attempting to recycle database connections.")
+	c.Logger().Info("Attempting to recycle database connections.")
 
 	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
 	// This allows in gradually closing connections as they expire. In future, we can think
 	// of exposing this as a param from the REST api.
 	a.Srv().Store().RecycleDBConnections(10 * time.Second)
 
-	mlog.Info("Finished recycling database connections.")
+	c.Logger().Info("Finished recycling database connections.")
 }
 
 func (a *App) TestSiteURL(c request.CTX, siteURL string) *model.AppError {
