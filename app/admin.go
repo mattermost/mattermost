@@ -56,7 +56,7 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 	return lines, nil
 }
 
-func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
 	serverName := "default"
@@ -66,7 +66,7 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			serverName = info.Hostname
 		} else {
-			mlog.Error("Could not get cluster info")
+			c.Logger().Error("Could not get cluster info")
 		}
 	}
 
@@ -111,8 +111,8 @@ func AddLocalLogs(logData map[string][]string, s *Server, page, perPage int, ser
 	return nil
 }
 
-func (a *App) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
-	return a.Srv().QueryLogs(page, perPage, logFilter)
+func (a *App) QueryLogs(c request.CTX, cpage, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	return a.Srv().QueryLogs(c, cpage, perPage, logFilter)
 }
 
 func (a *App) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
@@ -123,11 +123,11 @@ func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) 
 	return s.platform.GetLogsSkipSend(page, perPage, logFilter)
 }
 
-func (a *App) GetLogsSkipSend(c request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+func (a *App) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	return a.Srv().GetLogsSkipSend(page, perPage, logFilter)
 }
 
-func (a *App) GetClusterStatus(c request.CTX) []*model.ClusterInfo {
+func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
 	if a.Cluster() != nil {
@@ -157,7 +157,7 @@ func (a *App) RecycleDatabaseConnection(c request.CTX) {
 	c.Logger().Info("Finished recycling database connections.")
 }
 
-func (a *App) TestSiteURL(c request.CTX, siteURL string) *model.AppError {
+func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
 	res, err := http.Get(url)
 	if err != nil || res.StatusCode != 200 {
@@ -171,7 +171,7 @@ func (a *App) TestSiteURL(c request.CTX, siteURL string) *model.AppError {
 	return nil
 }
 
-func (a *App) TestEmail(c request.CTX, userID string, cfg *model.Config) *model.AppError {
+func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	if *cfg.EmailSettings.SMTPServer == "" {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
@@ -202,7 +202,7 @@ func (a *App) TestEmail(c request.CTX, userID string, cfg *model.Config) *model.
 	return nil
 }
 
-func (a *App) GetLatestVersion(c request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	var cachedLatestVersion *model.GithubReleaseInfo
 	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
@@ -238,6 +238,6 @@ func (a *App) GetLatestVersion(c request.CTX, latestVersionUrl string) (*model.G
 	return releaseInfoResponse, nil
 }
 
-func (a *App) ClearLatestVersionCache(c request.CTX) {
+func (a *App) ClearLatestVersionCache() {
 	latestVersionCache.Remove("latest_version_cache")
 }

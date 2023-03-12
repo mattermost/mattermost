@@ -37,13 +37,13 @@ func TestGetLatestVersion(t *testing.T) {
 	defer ts.Close()
 
 	t.Run("get latest mm version happy path", func(t *testing.T) {
-		_, err := th.App.GetLatestVersion(th.Context, ts.URL)
+		_, err := th.App.GetLatestVersion(ts.URL)
 		require.Nil(t, err)
 	})
 
 	t.Run("get latest mm version from cache", func(t *testing.T) {
-		th.App.ClearLatestVersionCache(th.Context)
-		originalResult, err := th.App.GetLatestVersion(th.Context, ts.URL)
+		th.App.ClearLatestVersionCache()
+		originalResult, err := th.App.GetLatestVersion(ts.URL)
 		require.Nil(t, err)
 
 		// Call same function but mock the GET request to return a different result.
@@ -66,14 +66,14 @@ func TestGetLatestVersion(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		cachedResult, err := th.App.GetLatestVersion(th.Context, updatedServer.URL)
+		cachedResult, err := th.App.GetLatestVersion(updatedServer.URL)
 		require.Nil(t, err)
 
 		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
-		th.App.ClearLatestVersionCache(th.Context)
+		th.App.ClearLatestVersionCache()
 		errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`
@@ -84,7 +84,7 @@ func TestGetLatestVersion(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
+		_, appErr := th.App.GetLatestVersion(errorServer.URL)
 		require.NotNil(t, appErr)
 	})
 }
