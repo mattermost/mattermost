@@ -98,11 +98,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = true
+	f.BoardsProduct = false
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = true
+	f.WorkTemplate = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
