@@ -136,8 +136,9 @@ jobs:
         run: |
           gzip -d upgraded-dump-server/dump.7.8.server.sql.gz
           gzip -d upgraded-dump-script/dump.7.8.script.sql.gz
-          diff upgraded-dump-server/dump.7.8.server.sql upgraded-dump-script/dump.7.8.script.sql > diff.7.8.sql && echo "No differences found" || echo "Differences found"
+          diff upgraded-dump-server/dump.7.8.server.sql upgraded-dump-script/dump.7.8.script.sql > diff.7.8.sql
       - name: Upload diff
+        if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
         uses: actions/upload-artifact@v3
         with:
           name: dumps-diff
