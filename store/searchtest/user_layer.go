@@ -876,28 +876,65 @@ func testSearchUserBySubstringInAnyName(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 		defer th.deleteUser(userAlternate)
 
+		// searching user without specifying team
 		options := createDefaultOptions(true, false, false)
-		users, err := th.Store.User().Search(th.Team.Id, "hello", options)
+		users, err := th.Store.User().Search("", "hello", options)
+		require.NoError(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
+
+		// adding user to team to search by team
+		err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
+		require.NoError(t, err)
+
+		err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})
+		require.NoError(t, err)
+
+		options = createDefaultOptions(true, false, false)
+		users, err = th.Store.User().Search(th.Team.Id, "hello", options)
 		require.NoError(t, err)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
 	})
-	t.Run("Should search users by substring in first name", func(t *testing.T) {
+	t.Run("Should search users by substring in last name name", func(t *testing.T) {
 		userAlternate, err := th.createUser("user-alternate", "user-alternate", "alternate", "alternate helloooo last name")
 		require.NoError(t, err)
 		defer th.deleteUser(userAlternate)
 
 		options := createDefaultOptions(true, false, false)
-		users, err := th.Store.User().Search(th.Team.Id, "hello", options)
+		users, err := th.Store.User().Search("", "hello", options)
+		require.NoError(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
+
+		// adding user to team to search by team
+		err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
+		require.NoError(t, err)
+
+		err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})
+		require.NoError(t, err)
+
+		options = createDefaultOptions(true, false, false)
+		users, err = th.Store.User().Search(th.Team.Id, "hello", options)
 		require.NoError(t, err)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
 	})
-	t.Run("Should search users by substring in first name", func(t *testing.T) {
+	t.Run("Should search users by substring in nickname name", func(t *testing.T) {
 		userAlternate, err := th.createUser("user-alternate", "alternate helloooo nickname", "alternate hello first name", "alternate")
 		require.NoError(t, err)
 		defer th.deleteUser(userAlternate)
 
 		options := createDefaultOptions(true, false, false)
-		users, err := th.Store.User().Search(th.Team.Id, "hello", options)
+		users, err := th.Store.User().Search("", "hello", options)
+		require.NoError(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
+
+		// adding user to team to search by team
+		err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
+		require.NoError(t, err)
+
+		err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})
+		require.NoError(t, err)
+
+		options = createDefaultOptions(true, false, false)
+		users, err = th.Store.User().Search(th.Team.Id, "hello", options)
 		require.NoError(t, err)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
 	})
