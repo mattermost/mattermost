@@ -40,6 +40,10 @@
         }
     }
 
+    &__purchase-body {
+        overflow-y: auto;
+    }
+
     >div {
         &.processing {
             display: none;
