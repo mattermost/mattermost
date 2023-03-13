@@ -147,7 +147,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	audit.AddEventParameter(auditRec, "team", newTeam)
+	audit.AddEventParameterObject(auditRec, "team", newTeam)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
