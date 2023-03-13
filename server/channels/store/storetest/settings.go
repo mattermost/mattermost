@@ -157,7 +157,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	return settings
 }
 
-// execAsRoot executes the given sql as root against the testing database
+// execAsRoot executes the given SQL as root against the testing database.
 func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	var dsn string
 	var driver = *settings.DriverName
