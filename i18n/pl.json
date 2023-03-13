@@ -10012,15 +10012,7 @@
     "translation": "Kontakt ze sprzedażą"
   },
   {
-    "id": "debugbar.query_explain.error",
-    "translation": "Nie można wykonać zapytania."
-  },
-  {
     "id": "debugbar.info.session-count.error",
     "translation": "Nie można policzyć sesji."
-  },
-  {
-    "id": "api.debugbar.getSystemInfo.disabled_debugbar.error",
-    "translation": "Funkcja DebugBar jest wyłączona."
   }
 ]
