@@ -10011,15 +10011,7 @@
     "translation": "Vertrieb kontaktieren"
   },
   {
-    "id": "debugbar.query_explain.error",
-    "translation": "Das Abfrage-Explain kann nicht ausgeführt werden."
-  },
-  {
     "id": "debugbar.info.session-count.error",
     "translation": "Konnte die Anzahl der Sitzungen nicht abrufen."
-  },
-  {
-    "id": "api.debugbar.getSystemInfo.disabled_debugbar.error",
-    "translation": "Die DebugBar-Funktion ist deaktiviert."
   }
 ]
