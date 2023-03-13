@@ -92,3 +92,4 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 
 Please see [CONTRIBUTING.md](./CONTRIBUTING.md).
 [Join the Mattermost Contributors server](https://community.mattermost.com/signup_user_complete/?id=codoy5s743rq5mk18i7u5ksz7e) to join community discussions about contributions, development, and more.
+
