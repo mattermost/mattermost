@@ -465,6 +465,7 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"self_hosted_expansion":                                   *cfg.ServiceSettings.SelfHostedExpansion,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
