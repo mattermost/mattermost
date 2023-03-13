@@ -1,0 +1,39 @@
+.shipping-address-section {
+    display: flex;
+    align-content: flex-start;
+    // padding: 0 96px;
+    padding-bottom: 24px;
+    font-weight: normal;
+
+    button.no-style {
+        padding-left: 0;
+        background: transparent;
+        outline: unset;
+        border: none;
+        text-align: left;
+
+        &:focus {
+            outline: unset;
+        }
+    }
+
+    #address-same-than-billing-address {
+        width: 17px;
+        height: 17px;
+        flex-shrink: 0;
+    }
+
+    .Form-checkbox-label {
+        padding-left: 12px;
+        cursor: default;
+        font-family: 'Open Sans', sans-serif;
+        vertical-align: middle;
+    }
+
+    .billing_address_btn_text {
+        color: var(--center-channel-color);
+        font-family: 'Open Sans', sans-serif;
+        font-weight: bold;
+    }
+}
+

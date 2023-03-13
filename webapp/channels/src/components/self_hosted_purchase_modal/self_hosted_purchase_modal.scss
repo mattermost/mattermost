@@ -48,6 +48,9 @@
             .DropdownInput {
                 position: relative;
                 z-index: 999999;
+                &--has-younger-sibling {
+                    z-index: 9999;
+                }
                 height: 36px;
                 margin-bottom: 24px;
 
@@ -518,6 +521,9 @@
         }
 
         input[type=checkbox] {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
             margin-right: 12px;
         }
 

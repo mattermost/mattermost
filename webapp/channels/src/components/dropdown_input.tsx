@@ -18,6 +18,7 @@ type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
     value?: T;
     legend?: string;
     error?: string;
+    wrapperClassName?: string;
     onChange: (value: T, action: ActionMeta<T>) => void;
     testId?: string;
 };
@@ -113,7 +114,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
 
     return (
         <div
-            className='DropdownInput Input_container'
+            className={classNames({'DropdownInput Input_container': true, [props.wrapperClassName!]: Boolean(props.wrapperClassName)})}
             data-testid={testId || ''}
         >
             <fieldset

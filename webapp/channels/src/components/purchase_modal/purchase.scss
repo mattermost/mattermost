@@ -2,44 +2,6 @@
     overflow: hidden;
     height: 100%;
 
-    .shipping-address-section {
-        display: flex;
-        align-content: center;
-        padding: 0 96px;
-        padding-bottom: 28px;
-        font-weight: normal;
-
-        button.no-style {
-            padding-left: 0;
-            background: transparent;
-            outline: unset;
-
-            &:focus {
-                outline: unset;
-            }
-        }
-
-        #address-same-than-billing-address {
-            width: 20px;
-            height: 20px;
-            margin-top: auto;
-            margin-bottom: auto;
-        }
-
-        .Form-checkbox-label {
-            padding-left: 12px;
-            cursor: default;
-            font-family: 'Open Sans', sans-serif;
-            vertical-align: middle;
-        }
-
-        .billing_address_btn_text {
-            color: var(--center-channel-color);
-            font-family: 'Open Sans', sans-serif;
-            font-weight: normal;
-        }
-    }
-
     &__purchase-body {
         overflow-y: auto;
     }

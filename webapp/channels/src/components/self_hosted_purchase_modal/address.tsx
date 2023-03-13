@@ -62,6 +62,7 @@ export default function Address(props: Props) {
                     id: 'payment_form.country',
                     defaultMessage: 'Country',
                 })}
+                wrapperClassName={props.type === 'shipping' ? 'DropdownInput Input_container DropdownInput--has-younger-sibling' : ''}
                 name={'billing_dropdown'}
             />
             <div className='form-row'>
