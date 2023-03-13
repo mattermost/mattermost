@@ -70,6 +70,14 @@ type TeamPatch struct {
 	CloudLimitsArchived *bool   `json:"cloud_limits_archived"`
 }
 
+func (o *TeamPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"allow_open_invite":     o.AllowOpenInvite,
+		"group_constrained":     o.GroupConstrained,
+		"cloud_limits_archived": o.CloudLimitsArchived,
+	}
+}
+
 type TeamForExport struct {
 	Team
 	SchemeName *string

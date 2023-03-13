@@ -346,7 +346,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("group_id", c.Params.GroupId)
 	auditRec.AddEventParameter("syncable_id", syncableID)
-	auditRec.AddEventParameter("syncable_type", syncableType)
+	auditRec.AddEventParameter("syncable_type", &syncableType)
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -1192,7 +1192,7 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("restoreGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddEventParameter("group_id", c.Params.GroupId)
 
 	_, err = c.App.RestoreGroup(c.Params.GroupId)
 	if err != nil {

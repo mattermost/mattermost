@@ -113,7 +113,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("job", job)
+	auditRec.AddEventParameter("job", &job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {

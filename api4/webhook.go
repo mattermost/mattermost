@@ -42,8 +42,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("incoming_webhook", hook)
-	auditRec.AddMeta("channel", channel)
+	auditRec.AddEventParameter("incoming_webhook", &hook)
+	auditRec.AddEventParameter("channel", channel)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageIncomingWebhooks) {
@@ -110,7 +110,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateIncomingHook", audit.Fail)
 	auditRec.AddEventParameter("hook_id", c.Params.HookId)
-	auditRec.AddEventParameter("updated_hook", updatedHook)
+	auditRec.AddEventParameter("updated_hook", &updatedHook)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -357,7 +357,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateOutgoingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("updated_hook", updatedHook)
+	auditRec.AddEventParameter("updated_hook", &updatedHook)
 	c.LogAudit("attempt")
 
 	oldHook, err := c.App.GetOutgoingWebhook(c.Params.HookId)
@@ -410,7 +410,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createOutgoingHook", audit.Fail)
-	auditRec.AddEventParameter("hook", hook)
+	auditRec.AddEventParameter("hook", &hook)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

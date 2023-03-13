@@ -13,6 +13,13 @@ type GuestsInvite struct {
 	Message  string   `json:"message"`
 }
 
+func (i *GuestsInvite) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"emails":   i.Emails,
+		"channels": i.Channels,
+	}
+}
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (i *GuestsInvite) IsValid() *AppError {

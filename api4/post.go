@@ -775,7 +775,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	auditRec.AddEventParameter("post", post.Auditable())
+	auditRec.AddEventParameter("post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
@@ -842,7 +842,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
 	auditRec.AddEventParameter("id", c.Params.PostId)
-	auditRec.AddEventParameter("patch", post.Auditable())
+	auditRec.AddEventParameter("patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

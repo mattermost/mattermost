@@ -42,7 +42,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createUpload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("upload", us)
+	auditRec.AddEventParameter("upload", &us)
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {

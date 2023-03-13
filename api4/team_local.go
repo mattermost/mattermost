@@ -254,7 +254,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("team", team)
+	auditRec.AddEventParameter("team", &team)
 
 	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {
@@ -266,7 +266,6 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(rteam)
 	auditRec.AddEventObjectType("type")
 	auditRec.Success()
-	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {

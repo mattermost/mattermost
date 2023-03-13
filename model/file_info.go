@@ -59,6 +59,21 @@ type FileInfo struct {
 	Archived        bool    `json:"archived"`
 }
 
+func (fi *FileInfo) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         fi.Id,
+		"creator_id": fi.CreatorId,
+		"post_id":    fi.PostId,
+		"channel_id": fi.ChannelId,
+		"create_at":  fi.CreateAt,
+		"update_at":  fi.UpdateAt,
+		"delete_at":  fi.DeleteAt,
+		"name":       fi.Name,
+		"extension":  fi.Extension,
+		"size":       fi.Size,
+	}
+}
+
 func (fi *FileInfo) PreSave() {
 	if fi.Id == "" {
 		fi.Id = NewId()
