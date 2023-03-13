@@ -1235,7 +1235,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 	if (newUser.Username != userUpdate.Old.Username) && (newUser.LastPictureUpdate <= 0) {
 		// When a username is updated and the profile is still using a default profile picture, generate a new one based on their username
-		if err := a.UpdateDefaultProfileImage(newUser); err != nil {
+		if err := a.UpdateDefaultProfileImage(c, newUser); err != nil {
 			c.Logger().Warn("Error with updating default profile image", mlog.Err(err))
 		}
 
