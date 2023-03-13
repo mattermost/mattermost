@@ -1,11 +1,17 @@
 name: ESR Upgrade
 on:
   pull_request:
+    paths:
+      - 'scripts/esrupgrades/*'
+      - '.github/workflows/esr*'
   push:
     branches:
       - master
       - cloud
       - release-*
+    paths:
+      - 'scripts/esrupgrades/*'
+      - '.github/workflows/esr*'
 env:
   COMPOSE_PROJECT_NAME: ghactions
   BUILD_IMAGE: mattermost/mattermost-enterprise-edition:7.8
