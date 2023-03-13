@@ -1192,7 +1192,7 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("restoreGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
+	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
 	_, err = c.App.RestoreGroup(c.Params.GroupId)
 	if err != nil {

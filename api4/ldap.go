@@ -169,8 +169,6 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("ldap_group", ldapGroup)
-
 	if ldapGroup == nil {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
 		return
@@ -182,7 +180,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if group != nil {
-		auditRec.AddMeta("group", group)
+		audit.AddEventParameter(auditRec, "group", group)
 	}
 
 	var status int
@@ -295,7 +293,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
-	audit.AddEventParameter(auditRec, "props", props)
+	audit.AddEventParameter(auditRec, "to_attribute", toAttribute)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {

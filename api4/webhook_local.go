@@ -52,7 +52,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec := c.MakeAuditRecord("localCreateIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterObject(auditRec, "hook", &hook)
-	auditRec.AddMeta("channel", channel)
+	audit.AddEventParameterObject(auditRec, "channel", &channel)
 	c.LogAudit("attempt")
 
 	incomingHook, err := c.App.CreateIncomingWebhookForChannel(hook.UserId, channel, &hook)

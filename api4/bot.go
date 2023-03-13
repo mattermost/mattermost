@@ -296,7 +296,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("convertBotToUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterObject(auditRec, "bot", bot)
-	audit.AddEventParameterObject(auditRec, "userPatch", &userPatch)
+	audit.AddEventParameterObject(auditRec, "user_patch", &userPatch)
 	audit.AddEventParameter(auditRec, "set_system_admin", systemAdmin)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {

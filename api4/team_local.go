@@ -266,7 +266,6 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(rteam)
 	auditRec.AddEventObjectType("type")
 	auditRec.Success()
-	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {

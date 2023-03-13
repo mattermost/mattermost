@@ -41,6 +41,19 @@ type RemoteCluster struct {
 	CreatorId    string `json:"creator_id"`
 }
 
+func (rc *RemoteCluster) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"remote_id":      rc.RemoteId,
+		"remote_team_id": rc.RemoteTeamId,
+		"name":           rc.Name,
+		"display_name":   rc.DisplayName,
+		"site_url":       rc.SiteURL,
+		"create_at":      rc.CreateAt,
+		"last_ping_at":   rc.LastPingAt,
+		"creator_id":     rc.CreatorId,
+	}
+}
+
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
 		rc.RemoteId = NewId()

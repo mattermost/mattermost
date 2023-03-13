@@ -106,7 +106,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	auditRec.AddMeta("remoteCluster", rc)
+	audit.AddEventParameter(auditRec, "remote_cluster", rc)
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -153,7 +153,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	auditRec.AddMeta("remoteCluster", rc)
+	audit.AddEventParameter(auditRec, "remote_cluster", rc)
 
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
@@ -272,7 +272,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("user_id")
 		return
 	}
-	auditRec.AddMeta("user", user)
+	audit.AddEventParameter(auditRec, "user", user)
 
 	imageData := imageArray[0]
 	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {

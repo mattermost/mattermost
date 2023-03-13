@@ -56,7 +56,6 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("success")
-	auditRec.AddMeta("command", rcmd)
 	auditRec.AddEventResultState(rcmd)
 	auditRec.AddEventObjectType("command")
 
@@ -85,11 +84,11 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		auditRec.AddMeta("command_id", c.Params.CommandId)
+		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
-	auditRec.AddMeta("command", oldCmd)
+	auditRec.AddEventPriorState(oldCmd)
 
 	if cmd.TeamId != oldCmd.TeamId {
 		c.Err = model.NewAppError("updateCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.AppContext.Session().UserId, http.StatusBadRequest)
@@ -148,7 +147,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	auditRec.AddMeta("team", newTeam)
+	audit.AddEventParameter(auditRec, "team", newTeam)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -161,7 +160,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
-	auditRec.AddMeta("command", cmd)
+	auditRec.AddEventPriorState(cmd)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -200,7 +199,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
-	auditRec.AddMeta("command", cmd)
+	auditRec.AddEventPriorState(cmd)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -222,7 +221,6 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddEventResultState(cmd)
 	auditRec.AddEventObjectType("command")
 	auditRec.Success()
 	c.LogAudit("success")
@@ -324,7 +322,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterObject(auditRec, "command_args", &commandArgs)
-	auditRec.AddMeta("commandargs", commandArgs)
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionUseSlashCommands) {
@@ -357,8 +354,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.T = c.AppContext.T
 	commandArgs.SiteURL = c.GetSiteURLHeader()
 	commandArgs.Session = *c.AppContext.Session()
-
-	auditRec.AddMeta("commandargs", commandArgs) // overwrite in case teamid changed. TODO do we need to log this too? is the original commandArgs not enough
 
 	response, err := c.App.ExecuteCommand(c.AppContext, &commandArgs)
 	if err != nil {
@@ -456,11 +451,11 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		auditRec.AddMeta("command_id", c.Params.CommandId)
+		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
-	auditRec.AddMeta("command", cmd)
+	auditRec.AddEventPriorState(cmd)
 	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
@@ -482,7 +477,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-
+	auditRec.AddEventResultState(rcmd)
 	auditRec.Success()
 	c.LogAudit("success")
 
