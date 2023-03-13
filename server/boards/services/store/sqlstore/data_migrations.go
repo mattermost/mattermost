@@ -796,14 +796,6 @@ func (s *SQLStore) getCollationAndCharset(tableName string) (string, string, err
 }
 
 func (s *SQLStore) RunDeDuplicateCategoryBoardsMigration(currentMigration int) error {
-	// not supported for SQLite
-	if s.dbType == model.SqliteDBType {
-		if mErr := s.setSystemSetting(s.db, DeDuplicateCategoryBoardTableMigrationKey, strconv.FormatBool(true)); mErr != nil {
-			return fmt.Errorf("cannot mark migration %s as completed: %w", "RunDeDuplicateCategoryBoardsMigration", mErr)
-		}
-		return nil
-	}
-
 	setting, err := s.GetSystemSetting(DeDuplicateCategoryBoardTableMigrationKey)
 	if err != nil {
 		return fmt.Errorf("cannot get DeDuplicateCategoryBoardTableMigration state: %w", err)
