@@ -209,7 +209,7 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
 		// Give the user a LastPictureUpdate to mimic having a custom profile picture
-		err := th.App.Srv().Store.User().UpdateLastPictureUpdate(user.Id)
+		err := th.App.Srv().Store().User().UpdateLastPictureUpdate(user.Id)
 		require.NoError(t, err)
 		iUser, errGetUser := th.App.GetUser(user.Id)
 		require.Nil(t, errGetUser)

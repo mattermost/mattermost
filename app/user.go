@@ -814,7 +814,10 @@ func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.
 
 func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 
-	a.UpdateDefaultProfileImage(c, user)
+	if err := a.UpdateDefaultProfileImage(c, user); err != nil {
+		c.Logger().Error("Failed to update default profile image for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		return err
+	}
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
