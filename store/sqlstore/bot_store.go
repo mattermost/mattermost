@@ -96,7 +96,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 	var conditions []string
 	var conditionsSql string
 	var additionalJoin string
-	var args []interface{}
+	var args []any
 
 	if !options.IncludeDeleted {
 		conditions = append(conditions, "b.DeleteAt = 0")
@@ -144,7 +144,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 
 	bots := []*model.Bot{}
 	if err := us.GetReplicaX().Select(&bots, sql, args...); err != nil {
-		return nil, errors.Wrap(err, "select")
+		return nil, errors.Wrap(err, "error selecting all bots")
 	}
 
 	return bots, nil
@@ -215,7 +215,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 func (us SqlBotStore) PermanentDelete(botUserId string) error {
 	query := "DELETE FROM Bots WHERE UserId = ?"
 	if _, err := us.GetMasterX().Exec(query, botUserId); err != nil {
-		return store.NewErrInvalidInput("Bot", "UserId", botUserId)
+		return store.NewErrInvalidInput("Bot", "UserId", botUserId).Wrap(err)
 	}
 	return nil
 }

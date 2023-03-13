@@ -54,7 +54,11 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 		return nil, errors.Wrapf(err, "failed to update UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
 	}
 
-	if updatedRows, _ := result.RowsAffected(); updatedRows == 0 {
+	updatedRows, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve the number of affected rows for the update of UserTermsOfService")
+	}
+	if updatedRows == 0 {
 		query := `
 			INSERT INTO UserTermsOfService
 				(UserId, TermsOfServiceId, CreateAt)

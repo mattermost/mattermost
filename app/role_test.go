@@ -6,7 +6,7 @@ package app
 import (
 	"context"
 	"encoding/csv"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -114,15 +114,15 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	defer th.App.DeleteScheme(channelScheme.Id)
 
 	team := th.CreateTeam()
-	defer th.App.PermanentDeleteTeamId(team.Id)
+	defer th.App.PermanentDeleteTeamId(th.Context, team.Id)
 
 	// Make a channel
-	channel := th.CreateChannel(team)
-	defer th.App.PermanentDeleteChannel(channel)
+	channel := th.CreateChannel(th.Context, team)
+	defer th.App.PermanentDeleteChannel(th.Context, channel)
 
 	// Set the channel scheme
 	channel.SchemeId = &channelScheme.Id
-	channel, err = th.App.UpdateChannelScheme(channel)
+	channel, err = th.App.UpdateChannelScheme(th.Context, channel)
 	require.Nil(t, err)
 
 	// Get the truth table from CSV
@@ -130,7 +130,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	require.NoError(t, e)
 	defer file.Close()
 
-	b, e := ioutil.ReadAll(file)
+	b, e := io.ReadAll(file)
 	require.NoError(t, e)
 
 	r := csv.NewReader(strings.NewReader(string(b)))

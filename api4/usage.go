@@ -18,20 +18,18 @@ func (api *API) InitUsage() {
 	api.BaseRoutes.Usage.Handle("/storage", api.APISessionRequired(getStorageUsage)).Methods("GET")
 	// GET /api/v4/usage/teams
 	api.BaseRoutes.Usage.Handle("/teams", api.APISessionRequired(getTeamsUsage)).Methods("GET")
-	// GET /api/v4/usage/integrations
-	api.BaseRoutes.Usage.Handle("/integrations", api.APISessionRequired(getIntegrationsUsage)).Methods("GET")
 }
 
 func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	count, appErr := c.App.GetPostsUsage()
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getPostsUsage", "app.post.analytics_posts_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getPostsUsage", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 
 	json, err := json.Marshal(&model.PostsUsage{Count: count})
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getPostsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getPostsUsage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -41,14 +39,14 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	usage, appErr := c.App.GetStorageUsage()
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getStorageUsage", "app.usage.get_storage_usage.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getStorageUsage", "app.usage.get_storage_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 
-	usage = utils.RoundOffToZeroes(float64(usage))
+	usage = utils.RoundOffToZeroesResolution(float64(usage), 8)
 	json, err := json.Marshal(&model.StorageUsage{Bytes: usage})
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getStorageUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getStorageUsage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -58,44 +56,17 @@ func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamsUsage, appErr := c.App.GetTeamsUsage()
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 
 	if teamsUsage == nil {
-		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	json, err := json.Marshal(teamsUsage)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getTeamsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(json)
-}
-
-func getIntegrationsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		json, err := json.Marshal(&model.IntegrationsUsage{})
-		if err != nil {
-			c.Err = model.NewAppError("Api4.getIntegrationsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Write(json)
-		return
-	}
-
-	usage, appErr := c.App.GetIntegrationsUsage()
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	json, err := json.Marshal(usage)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getIntegrationsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

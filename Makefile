@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race migrations-bindata new-migration migrations-extract
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race new-migration migrations-extract
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -33,10 +33,19 @@ IS_CI ?= false
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
+
+# Go tags
+GOTAGS ?= $(GOTAGS:)
+
 # If we don't set the build number it defaults to dev
 ifeq ($(BUILD_NUMBER),)
 	BUILD_DATE := n/a
 	BUILD_NUMBER := dev
+endif
+
+ifeq ($(BUILD_NUMBER),dev)
+	export MM_FEATUREFLAGS_GRAPHQL = true
+	GOTAGS += "testlicensekey"
 endif
 
 # Enterprise
@@ -89,6 +98,22 @@ else
     BUILD_BOARDS = false
 endif
 
+# Playbooks
+BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
+BUILD_PLAYBOOKS ?= false
+BUILD_HASH_PLAYBOOKS = none
+
+ifneq ($(wildcard $(BUILD_PLAYBOOKS_DIR)/.),)
+  ifeq ($(BUILD_PLAYBOOKS),true)
+    BUILD_PLAYBOOKS = true
+    BUILD_HASH_PLAYBOOKS = $(shell cd $(BUILD_PLAYBOOKS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_PLAYBOOKS = false
+  endif
+else
+    BUILD_PLAYBOOKS = false
+endif
+
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
 # and docker will add '/', so we need to set the go-build cache location or we'll get
@@ -112,6 +137,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterpr
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashPlaybooks=$(BUILD_HASH_PLAYBOOKS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -145,19 +171,22 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.6.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.14.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.28.2
+PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.36.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
+PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
+PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.0.1
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
+PLUGIN_PACKAGES += focalboard-v7.9.1
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -180,12 +209,21 @@ endif
 # Prepare optional Boards build.
 BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
 ifeq ($(BUILD_BOARDS),true)
-    ALL_PACKAGES += $(BOARDS_PACKAGES)
+# We removed `ALL_PACKAGES += $(BOARDS_PACKAGES)` since board tests needs `-tag 'json1'` in the tests.
+# Adding that flag to server breaks the build with unsupported flag error.
+# PR: https://github.com/mattermost/mattermost-server/pull/20772
+# Ticket: https://mattermost.atlassian.net/browse/CLD-3800
 	IGNORE:=$(shell echo Boards build selected, preparing)
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
 	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
 else
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
+endif
+
+ifeq ($(BUILD_PLAYBOOKS),true)
+IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/playbooks_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -302,7 +340,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -313,7 +351,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 ifeq ($(BUILD_BOARDS),true)
   ifneq ($(MM_NO_BOARDS_LINT),true)
-		$(GOBIN)/golangci-lint run $(BUILD_BOARDS_DIR)/server/...
+		cd $(BUILD_BOARDS_DIR); make server-lint
   endif
 endif
 
@@ -323,11 +361,11 @@ app-layers: ## Extract interface from App struct
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@v0.0.0-20210721133912-8b250bf4d0f6
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@fdf2cd651b261bcd511a32da33dd76febedd44a8
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
 i18n-check: ## Exit on empty translation strings and translation source strings
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@v0.0.0-20210721133912-8b250bf4d0f6
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@fdf2cd651b261bcd511a32da33dd76febedd44a8
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
@@ -342,6 +380,9 @@ telemetry-mocks: ## Creates mock files.
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
+generate-worktemplates: ## Generate work templates
+	$(GO) generate $(GOFLAGS) ./app/worktemplates
+
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GO) install github.com/mattermost/morph/cmd/morph@master
 	@echo "Generating new migration for mysql"
@@ -349,8 +390,6 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 
 	@echo "Generating new migration for postgres"
 	$(GOBIN)/morph generate $(name) --driver postgres --dir db/migrations --sequence
-
-	@echo "When you are done writing your migration, run 'make migrations-bindata'"
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
@@ -382,13 +421,24 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
 	$(GOBIN)/mockery --dir utils --name LicenseValidatorIface --output utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
+	$(GOBIN)/mockery --dir app --name WorkTemplateExecutor --output app/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
 	$(GOBIN)/mockery --dir app/email --name ServiceInterface --output app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
+platform-mocks: ## Creates mocks for platform interfaces.
+	$(GO) install github.com/vektra/mockery/v2/...@v2.14.0
+	$(GOBIN)/mockery --dir app/platform --name SuiteIFace --output app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
+
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
+
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks
+
+layers: app-layers store-layers pluginapi
+
+generated: mocks layers
 
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
@@ -400,8 +450,9 @@ endif
 
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
+setup-go-work: export BUILD_PLAYBOOKS := $(BUILD_PLAYBOOKS)
 setup-go-work: ## Sets up your go.work file
-	./scripts/setup_go_work.sh
+	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 
@@ -418,14 +469,6 @@ test-compile: ## Compile tests.
 	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
-
-test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh 6.0.0
-	./scripts/psql-migration-test.sh 6.0.0
-
-test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh 5.0.0
-	./scripts/psql-migration-test.sh 5.0.0
 
 gomodtidy:
 	@cp go.mod go.mod.orig
@@ -562,7 +605,7 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -586,7 +629,7 @@ run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
+	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
 
 run-client: ## Runs the webapp.
 	@echo Running mattermost client for development
@@ -643,7 +686,7 @@ restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
+	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
 
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
@@ -710,6 +753,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f imports/imports.go
 endif
 
+ifeq ($(BUILD_BOARDS),true)
+	@echo Boards repository detected, temporarily removing boards_imports.go
+	rm -f imports/boards_imports.go
+endif
+
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
@@ -718,6 +766,10 @@ endif
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
+endif
+
+ifeq ($(BUILD_BOARDS),true)
+	cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/
 endif
 
 vet: ## Run mattermost go vet specific checks

@@ -1784,17 +1784,17 @@ func TestGetAfterDateMillis(t *testing.T) {
 }
 
 func TestIsSearchParamsListValid(t *testing.T) {
-	var err *AppError
+	var appErr *AppError
 
-	err = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: true}})
-	assert.Nil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: true}})
+	assert.Nil(t, appErr)
 
-	err = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: false}})
-	assert.NotNil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}, {IncludeDeletedChannels: false}})
+	assert.NotNil(t, appErr)
 
-	err = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}})
-	assert.Nil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{{IncludeDeletedChannels: true}})
+	assert.Nil(t, appErr)
 
-	err = IsSearchParamsListValid([]*SearchParams{})
-	assert.Nil(t, err)
+	appErr = IsSearchParamsListValid([]*SearchParams{})
+	assert.Nil(t, appErr)
 }

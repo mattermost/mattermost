@@ -4,7 +4,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -61,9 +60,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 	defer th.TearDown()
 
 	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("mattermost.log", d1, 0777)
+	err := os.WriteFile("mattermost.log", d1, 0777)
 	require.NoError(t, err)
-	err = ioutil.WriteFile("notifications.log", d1, 0777)
+	err = os.WriteFile("notifications.log", d1, 0777)
 	require.NoError(t, err)
 
 	fileDatas := th.App.GenerateSupportPacket()
@@ -111,11 +110,11 @@ func TestGetNotificationsLog(t *testing.T) {
 
 	fileData, warning = th.App.getNotificationsLog()
 	assert.Nil(t, fileData)
-	assert.Contains(t, warning, "ioutil.ReadFile(notificationsLog) Error:")
+	assert.Contains(t, warning, "os.ReadFile(notificationsLog) Error:")
 
 	// Happy path where we have file and no warning
 	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("notifications.log", d1, 0777)
+	err := os.WriteFile("notifications.log", d1, 0777)
 	defer os.Remove("notifications.log")
 	require.NoError(t, err)
 
@@ -149,11 +148,11 @@ func TestGetMattermostLog(t *testing.T) {
 
 	fileData, warning = th.App.getMattermostLog()
 	assert.Nil(t, fileData)
-	assert.Contains(t, warning, "ioutil.ReadFile(mattermostLog) Error:")
+	assert.Contains(t, warning, "os.ReadFile(mattermostLog) Error:")
 
 	// Happy path where we get a log file and no warning
 	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("mattermost.log", d1, 0777)
+	err := os.WriteFile("mattermost.log", d1, 0777)
 	defer os.Remove("mattermost.log")
 	require.NoError(t, err)
 

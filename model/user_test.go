@@ -76,38 +76,38 @@ func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 
 func TestUserIsValid(t *testing.T) {
 	user := User{}
-	err := user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "id", ""), "expected user is valid error: %s", err.Error())
+	appErr := user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "id", "", user.Id), "expected user is valid error: %s", appErr.Error())
 
 	user.Id = NewId()
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "create_at", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "create_at", user.Id, user.CreateAt), "expected user is valid error: %s", appErr.Error())
 
 	user.CreateAt = GetMillis()
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "update_at", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "update_at", user.Id, user.UpdateAt), "expected user is valid error: %s", appErr.Error())
 
 	user.UpdateAt = GetMillis()
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "username", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
 	user.Username = NewId() + "^hello#"
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "username", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
 	user.Username = NewId()
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "email", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
 	user.Email = strings.Repeat("01234567890", 20)
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "email", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
 	user.Email = "user@example.com"
 
 	user.Nickname = strings.Repeat("a", 65)
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "nickname", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "nickname", user.Id, user.Nickname), "expected user is valid error: %s", appErr.Error())
 
 	user.Nickname = strings.Repeat("a", 64)
 	require.Nil(t, user.IsValid())
@@ -117,33 +117,33 @@ func TestUserIsValid(t *testing.T) {
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "first_name", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "first_name", user.Id, user.FirstName), "expected user is valid error: %s", appErr.Error())
 
 	user.FirstName = strings.Repeat("a", 64)
 	user.LastName = strings.Repeat("a", 65)
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "last_name", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "last_name", user.Id, user.LastName), "expected user is valid error: %s", appErr.Error())
 
 	user.LastName = strings.Repeat("a", 64)
 	user.Position = strings.Repeat("a", 128)
 	require.Nil(t, user.IsValid())
 
 	user.Position = strings.Repeat("a", 129)
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "position", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "position", user.Id, user.Position), "expected user is valid error: %s", appErr.Error())
 	user.Position = ""
 
 	user.Roles = strings.Repeat("a", UserRolesMaxLength)
-	err = user.IsValid()
-	require.Nil(t, err)
+	appErr = user.IsValid()
+	require.Nil(t, appErr)
 
 	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
-	err = user.IsValid()
-	require.True(t, HasExpectedUserIsValidError(err, "roles_limit", user.Id), "expected user is valid error: %s", err.Error())
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "roles_limit", user.Id, user.Roles), "expected user is valid error: %s", appErr.Error())
 }
 
-func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string) bool {
+func HasExpectedUserIsValidError(err *AppError, fieldName, userId string, fieldValue any) bool {
 	if err == nil {
 		return false
 	}
@@ -151,7 +151,7 @@ func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string)
 	return err.Where == "User.IsValid" &&
 		err.Id == fmt.Sprintf("model.user.is_valid.%s.app_error", fieldName) &&
 		err.StatusCode == http.StatusBadRequest &&
-		(userId == "" || err.DetailedError == "user_id="+userId)
+		(userId == "" || err.DetailedError == fmt.Sprintf("user_id=%s %s=%v", userId, fieldName, fieldValue))
 }
 
 func TestUserGetFullName(t *testing.T) {
@@ -261,7 +261,7 @@ func TestCleanUsername(t *testing.T) {
 	assert.Equal(t, CleanUsername("PUNCH"), "punch", "didn't clean name properly")
 	assert.Equal(t, CleanUsername("spin'punch"), "spin-punch", "didn't clean name properly")
 	assert.Equal(t, CleanUsername("spin"), "spin", "didn't clean name properly")
-	assert.Equal(t, len(CleanUsername("all")), 27, "didn't clean name properly")
+	assert.Len(t, CleanUsername("all"), 27, "didn't clean name properly")
 }
 
 func TestRoles(t *testing.T) {
@@ -338,18 +338,18 @@ func TestUserSlice(t *testing.T) {
 		slice := UserSlice([]*User{user0, user1, user2})
 
 		activeUsers := slice.FilterByActive(true)
-		assert.Equal(t, 2, len(activeUsers))
+		assert.Len(t, activeUsers, 2)
 		for _, user := range activeUsers {
 			assert.True(t, user.DeleteAt == 0)
 		}
 
 		inactiveUsers := slice.FilterByActive(false)
-		assert.Equal(t, 1, len(inactiveUsers))
+		assert.Len(t, inactiveUsers, 1)
 		for _, user := range inactiveUsers {
 			assert.True(t, user.DeleteAt != 0)
 		}
 
 		nonBotUsers := slice.FilterWithoutBots()
-		assert.Equal(t, 1, len(nonBotUsers))
+		assert.Len(t, nonBotUsers, 1)
 	})
 }

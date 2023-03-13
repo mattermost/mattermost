@@ -1084,10 +1084,6 @@
     "translation": "Imposibil de a încărca fișier(e). Aveți {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Imposibil de încărcat fișiere. Număr incorect de fișiere specificate."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Fişier dimensiunile maxime de mai sus nu ar putea fi încărcate: {{.Filename}}"
   },
@@ -5592,14 +5588,6 @@
     "translation": "Canalele invitației trebuie să facă parte din echipa invitației."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Licența dvs. nu acceptă conturile de invitați"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Conturile oaspeților sunt dezactivate"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Eroare la invalidarea invitațiilor de e-mail."
   },
@@ -5950,10 +5938,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Nu puteți obține postarea în așteptare."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nu se poate solicita o licență de încercare. Vă rugăm să configurați o adresă URL a site-ului în secțiunea server web din cea mai importantă consolă de sistem."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -6636,14 +6620,6 @@
     "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Ar putea analiza mesaj export job ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Ar putea analiza mesaj export job BatchSize."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Clustering API final nu a fost găsit."
   },
@@ -6714,10 +6690,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensiuni ({{.Width}} de {{.Height}} pixeli) depășesc limitele."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Imposibil de încărcat fișierul. Fișierul este prea mare."
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -7292,10 +7264,6 @@
     "translation": "Eroare internă la solicitarea api cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Repară acum"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Trimiteți-ne un e-mail oricând la "
   },
@@ -7618,10 +7586,6 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Nu s-a putut muta fișierul încărcat."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nu se poate răspunde."
   },
   {
     "id": "app.upload.get.app_error",
@@ -8652,22 +8616,6 @@
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, versiunea de încercare de 14 zile a Mattermost Cloud Professional se încheie în 3 zile, pe {{.TrialEnd}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud trial se încheie"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Adăugați metoda de plată"
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
   },
@@ -8698,22 +8646,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Nu se poate trimite un răspuns automat de la utilizator."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Procesul Mattermost cloud s-a încheiat"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Începeți abonamentul"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",

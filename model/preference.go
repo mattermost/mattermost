@@ -33,6 +33,9 @@ const (
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 	PreferenceNameInsights                = "insights_tutorial_state"
 
+	// initial onboarding preferences
+	PreferenceOnboarding = "onboarding"
+
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 
@@ -59,6 +62,7 @@ const (
 	PreferenceEmailIntervalFifteenAsSeconds  = "900"
 	PreferenceEmailIntervalHour              = "hour"
 	PreferenceEmailIntervalHourAsSeconds     = "3600"
+	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
 )
 
 type Preference struct {
@@ -90,23 +94,21 @@ func (o *Preference) IsValid() *AppError {
 	if o.Category == PreferenceCategoryTheme {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
-			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	return nil
 }
 
+var preUpdateColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+
 func (o *Preference) PreUpdate() {
 	if o.Category == PreferenceCategoryTheme {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
-		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {
-			// just continue, the invalid preference value should get caught by IsValid before saving
-			return
-		}
-
-		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+		// just continue, the invalid preference value should get caught by IsValid before saving
+		json.NewDecoder(strings.NewReader(o.Value)).Decode(&props)
 
 		// blank out any invalid theme values
 		for name, value := range props {
@@ -114,7 +116,7 @@ func (o *Preference) PreUpdate() {
 				continue
 			}
 
-			if !colorPattern.MatchString(value) {
+			if !preUpdateColorPattern.MatchString(value) {
 				props[name] = "#ffffff"
 			}
 		}

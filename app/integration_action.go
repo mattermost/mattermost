@@ -23,7 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -51,7 +51,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	// IsPinned and HasReaction attributes, and preserve its entire
 	// original Props set unless the plugin returns a replacement value.
 	// originalXxx variables are used to preserve these values.
-	var originalProps map[string]interface{}
+	var originalProps map[string]any
 	originalIsPinned := false
 	originalHasReactions := false
 
@@ -59,7 +59,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	// need to preserve some original values, as listed in
 	// model.PostActionRetainPropKeys. remove and retain track these.
 	remove := []string{}
-	retain := map[string]interface{}{}
+	retain := map[string]any{}
 
 	datasource := ""
 	upstreamURL := ""
@@ -73,21 +73,21 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(postID, false)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
 
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv().Store.Channel().GetForPost(postID)
+		channel, err := a.Srv().Store().Channel().GetForPost(postID)
 		cchan <- store.StoreResult{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(context.Background(), upstreamRequest.UserId)
+		user, err := a.Srv().Store().User().Get(context.Background(), upstreamRequest.UserId)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -98,9 +98,9 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(result.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
 		if cookie.Integration == nil {
@@ -111,14 +111,14 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
-		channel, err := a.Srv().Store.Channel().Get(cookie.ChannelId, true)
+		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -137,7 +137,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		post := result.Data.(*model.Post)
 		result = <-cchan
 		if result.NErr != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 		channel := result.Data.(*model.Channel)
 
@@ -186,7 +186,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			return
 		}
 
-		team, err := a.Srv().Store.Team().Get(upstreamRequest.TeamId)
+		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
 		teamChan <- store.StoreResult{Data: team, NErr: err}
 	}()
 
@@ -195,9 +195,9 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
 		default:
-			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
+			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
 	user := ur.Data.(*model.User)
@@ -209,9 +209,9 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(tr.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, tr.NErr.Error(), http.StatusInternalServerError)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 			}
 		}
 
@@ -222,7 +222,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	if upstreamRequest.Type == model.PostActionTypeSelect {
 		if selectedOption != "" {
 			if upstreamRequest.Context == nil {
-				upstreamRequest.Context = map[string]interface{}{}
+				upstreamRequest.Context = map[string]any{}
 			}
 			upstreamRequest.DataSource = datasource
 			upstreamRequest.Context["selected_option"] = selectedOption
@@ -234,7 +234,6 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		return "", appErr
 	}
 
-	var resp *http.Response
 	if strings.HasPrefix(upstreamURL, "/warn_metrics/") {
 		appErr = a.doLocalWarnMetricsRequest(c, upstreamURL, upstreamRequest)
 		if appErr != nil {
@@ -242,25 +241,26 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		}
 		return "", nil
 	}
-	requestJSON, jsonErr := json.Marshal(upstreamRequest)
-	if jsonErr != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+
+	requestJSON, err := json.Marshal(upstreamRequest)
+	if err != nil {
+		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	resp, appErr = a.DoActionRequest(c, upstreamURL, requestJSON)
+	resp, appErr := a.DoActionRequest(c, upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if len(respBytes) > 0 {
 		if err = json.Unmarshal(respBytes, &response); err != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -301,7 +301,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
-		a.SendEphemeralPost(userID, ephemeralPost)
+		a.SendEphemeralPost(c, userID, ephemeralPost)
 	}
 
 	return clientTriggerId, nil
@@ -313,7 +313,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	rawURLPath := path.Clean(rawURL)
@@ -323,7 +323,7 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -435,7 +435,7 @@ func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, v
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		Header:     w.headers,
-		Body:       ioutil.NopCloser(bytes.NewReader(w.data)),
+		Body:       io.NopCloser(bytes.NewReader(w.data)),
 	}
 	if resp.StatusCode == 0 {
 		resp.StatusCode = http.StatusOK
@@ -447,7 +447,7 @@ func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, v
 func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
 	_, err := url.Parse(rawURL)
 	if err != nil {
-		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	warnMetricId := filepath.Base(rawURL)
@@ -548,23 +548,23 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody
-	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})
 	mailBody += "\r\n"
-	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]any{"Email": user.Email})
 	mailBody += "\r\n"
 
-	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
-		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
+		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
 	}
 
-	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]any{"SiteUrl": a.GetSiteURL()})
 	mailBody += "\r\n"
 
-	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.TelemetryId()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]any{"DiagnosticId": a.TelemetryId()})
 	mailBody += "\r\n"
 
 	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")
@@ -585,16 +585,19 @@ func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*h
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	clientTriggerId, userID, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
-	if err != nil {
-		return err
+	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
+	if appErr != nil {
+		return appErr
 	}
 
 	request.TriggerId = clientTriggerId
 
-	jsonRequest, _ := json.Marshal(request)
+	jsonRequest, err := json.Marshal(request)
+	if err != nil {
+		a.ch.srv.Log().Warn("Error encoding request", mlog.Err(err))
+	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil, "")
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 
@@ -606,23 +609,19 @@ func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDi
 	request.URL = ""
 	request.Type = "dialog_submission"
 
-	b, jsonErr := json.Marshal(request)
-	if jsonErr != nil {
-		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
-	}
-
-	resp, err := a.DoActionRequest(c, url, b)
+	b, err := json.Marshal(request)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	resp, appErr := a.DoActionRequest(c, url, b)
+	if appErr != nil {
+		return nil, appErr
+	}
 	defer resp.Body.Close()
 
 	var response model.SubmitDialogResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		// Don't fail, an empty response is acceptable
-		return &response, nil
-	}
+	json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
 
 	return &response, nil
 }

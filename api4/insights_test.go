@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 // Top Reactions
@@ -19,9 +21,6 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
@@ -156,7 +155,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -200,7 +199,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 				EmojiName: "confused",
 			}
 
-			_, err = th.App.Srv().Store.Reaction().Save(reaction)
+			_, err = th.App.Srv().Store().Reaction().Save(reaction)
 			require.NoError(t, err)
 		}
 
@@ -233,22 +232,31 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-reactions-for-team-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, "7_days", 0, 5)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-reactions-for-team-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("get-top-reactions-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopReactionsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 
@@ -383,7 +391,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -423,6 +431,12 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-reactions-for-user-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForUserSince(teamId, "7_days", 0, 5)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-reactions-for-user-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopReactionsForUserSince(teamId, model.TimeRangeToday, 0, 5)
@@ -437,9 +451,6 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
@@ -448,9 +459,9 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	channel4 := th.CreatePublicChannel()
 	channel5 := th.CreatePrivateChannel()
 	channel6 := th.CreatePrivateChannel()
-	th.App.AddUserToChannel(th.BasicUser, channel4, false)
-	th.App.AddUserToChannel(th.BasicUser, channel5, false)
-	th.App.AddUserToChannel(th.BasicUser, channel6, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel4, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel5, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel6, false)
 
 	channelIDs := [6]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id, channel4.Id, channel5.Id, channel6.Id}
 
@@ -524,11 +535,25 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-channels-for-team-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, "7_days", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-channels-for-team-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("get-top-channels-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
 	})
 }
 
@@ -536,20 +561,15 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
 	client := th.Client
 	userId := th.BasicUser.Id
 
 	channel4 := th.CreatePublicChannel()
 	channel5 := th.CreatePrivateChannel()
 	channel6 := th.CreatePrivateChannel()
-	th.App.AddUserToChannel(th.BasicUser, channel4, false)
-	th.App.AddUserToChannel(th.BasicUser, channel5, false)
-	th.App.AddUserToChannel(th.BasicUser, channel6, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel4, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel5, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel6, false)
 
 	channelIDs := [6]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id, channel4.Id, channel5.Id, channel6.Id}
 
@@ -604,6 +624,12 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-channels-for-user-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForUserSince(teamId, "7_days", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-channels-for-user-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopChannelsForUserSince(teamId, model.TimeRangeToday, 0, 5)
@@ -617,10 +643,6 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 	defer th.TearDown()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
 	th.LoginBasic()
 	client := th.Client
 
@@ -628,9 +650,9 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 
 	channelPublic := th.BasicChannel
 	channelPrivate := th.BasicPrivateChannel
-	th.App.AddUserToChannel(th.BasicUser, channelPublic, false)
-	th.App.AddUserToChannel(th.BasicUser, channelPrivate, false)
-	th.App.AddUserToChannel(th.BasicUser2, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPrivate, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, channelPublic, false)
 	th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channelPrivate)
 
 	// create two threads: one in public channel, one in private
@@ -700,16 +722,19 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 	topTeamThreadsByUser2IncludingPrivate, _, _ := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
 	require.Nil(t, appErr)
 	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
+
+	t.Run("get-top-threads-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopThreadsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	th.LoginBasic()
 	client := th.Client
@@ -718,9 +743,9 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 
 	channelPublic := th.BasicChannel
 	channelPrivate := th.BasicPrivateChannel
-	th.App.AddUserToChannel(th.BasicUser, channelPublic, false)
-	th.App.AddUserToChannel(th.BasicUser, channelPrivate, false)
-	th.App.AddUserToChannel(th.BasicUser2, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPrivate, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, channelPublic, false)
 
 	// create two threads: one in public channel, one in private
 	// post in public channel has both users interacting, post in private only has user1 interacting
@@ -790,7 +815,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Equal(t, topUser2Threads.Items[0].Post.ReplyCount, int64(1))
 
 	// deleting the root post results in the thread not making it to top threads list
-	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
+	_, appErr = th.App.DeletePost(th.Context, rootPostPublicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	client.Logout()
@@ -823,10 +848,10 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
 
 	// deleting reply, and unfollowing thread
-	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
+	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -835,4 +860,384 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	topUser2ThreadsAfterPrivateReplyDelete, _, _ := client.GetTopThreadsForUserSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
 	require.Nil(t, appErr)
 	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
+}
+
+func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// delete offtopic, town-square, th.basicchannel channel - which interferes with 'least' active channel results
+	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
+	require.Nil(t, appErr)
+	townSquareChannel, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, townSquareChannel)
+	require.Nil(t, appErr)
+	basicChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, basicChannel)
+	require.Nil(t, appErr)
+	basicChannel2, appErr := th.App.GetChannel(th.Context, th.BasicChannel2.Id)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, basicChannel2)
+	require.Nil(t, appErr)
+	basicPrivateChannel, appErr := th.App.GetChannel(th.Context, th.BasicPrivateChannel.Id)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, basicPrivateChannel)
+	require.Nil(t, appErr)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	client := th.Client
+	userId := th.BasicUser.Id
+
+	channel4Req := &model.Channel{
+		DisplayName: "channel4",
+		Name:        GenerateTestChannelName(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+		CreateAt:    1,
+	}
+	channel4, _, err := client.CreateChannel(channel4Req)
+	require.NoError(t, err)
+
+	channel5Req := &model.Channel{
+		DisplayName: "channel4",
+		Name:        GenerateTestChannelName(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreateAt:    1,
+	}
+	channel5, _, err := client.CreateChannel(channel5Req)
+	require.NoError(t, err)
+
+	channel6Req := &model.Channel{
+		DisplayName: "channel4",
+		Name:        GenerateTestChannelName(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreateAt:    1,
+	}
+	channel6, _, err := client.CreateChannel(channel6Req)
+	require.NoError(t, err)
+
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel4, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel5, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel6, false)
+
+	channelIDs := [3]string{channel4.Id, channel5.Id, channel6.Id}
+
+	i := len(channelIDs)
+	for _, channelID := range channelIDs {
+		for j := i; j > 0; j-- {
+			_, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: channelID, Message: "zz" + model.NewId() + "a"})
+			require.NoError(t, err)
+		}
+		i--
+	}
+
+	teamId := th.BasicChannel.TeamId
+
+	expectedTopChannels := []struct {
+		ID           string
+		MessageCount int64
+	}{{
+		ID: channel6.Id, MessageCount: 1},
+		{ID: channel5.Id, MessageCount: 2},
+		{ID: channel4.Id, MessageCount: 3},
+	}
+
+	t.Run("get-top-inactive-channels-for-team-since", func(t *testing.T) {
+		topInactiveChannels, _, err := client.GetTopInactiveChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 2)
+		require.NoError(t, err)
+
+		for i, channel := range topInactiveChannels.Items {
+			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
+		}
+
+		topInactiveChannels, _, err = client.GetTopInactiveChannelsForTeamSince(teamId, model.TimeRangeToday, 1, 2)
+		require.NoError(t, err)
+		assert.Equal(t, channel4.Id, topInactiveChannels.Items[0].ID)
+	})
+
+	t.Run("get-top-channels-for-user-since exclude channels user is not member of", func(t *testing.T) {
+		excludedChannel := th.CreatePrivateChannel()
+
+		for i := 0; i < 10; i++ {
+			_, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: excludedChannel.Id, Message: "zz" + model.NewId() + "a"})
+			require.NoError(t, err)
+		}
+
+		th.RemoveUserFromChannel(th.BasicUser, excludedChannel)
+
+		topInactiveChannels, _, err := client.GetTopInactiveChannelsForUserSince(teamId, model.TimeRangeToday, 0, 3)
+		require.NoError(t, err)
+
+		for i, channel := range topInactiveChannels.Items {
+			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
+		}
+	})
+
+	t.Run("get-top-inactive-channels-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopInactiveChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+}
+
+func TestGetTopDMsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.TeamSettings.EnableUserDeactivation = true
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
+
+	// basicuser1 - bu1, basicuser - bu
+	// create dm channels for  bu-bu, bu1-bu1, bu-bu1, bot-bu
+	basicUser := th.BasicUser
+	basicUser1 := th.BasicUser2
+
+	th.LoginBasic2()
+	client := th.Client
+	channelBu1Bu1, _, err := client.CreateDirectChannel(basicUser1.Id, basicUser1.Id)
+	require.NoError(t, err)
+
+	th.LoginBasic()
+	client = th.Client
+	channelBuBu, _, err := client.CreateDirectChannel(basicUser.Id, basicUser.Id)
+	require.NoError(t, err)
+	channelBuBu1, _, err := client.CreateDirectChannel(basicUser.Id, basicUser1.Id)
+	require.NoError(t, err)
+
+	// bot creation with permission
+	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserRoleId, false)
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+		UserId:      model.NewId(),
+	}
+
+	createdBot, resp, err := th.Client.CreateBot(bot)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(createdBot.UserId)
+	channelBuBot, _, err := client.CreateDirectChannel(basicUser.Id, createdBot.UserId)
+	require.NoError(t, err)
+
+	// create 2 posts in channelBu, 1 in channelBu1, 3 in channelBu12
+	postsGenConfig := []map[string]interface{}{
+		{
+			"chId":      channelBuBu.Id,
+			"postCount": 2,
+		},
+		{
+			"chId":      channelBu1Bu1.Id,
+			"postCount": 1,
+		},
+		{
+			"chId":      channelBuBu1.Id,
+			"postCount": 3,
+		},
+		{
+			"chId":      channelBuBot.Id,
+			"postCount": 4,
+		},
+	}
+
+	for _, postGen := range postsGenConfig {
+		postCount := postGen["postCount"].(int)
+		for i := 0; i < postCount; i++ {
+			if postGen["chId"] == channelBu1Bu1.Id {
+				th.LoginBasic2()
+				client = th.Client
+				userId := basicUser1.Id
+				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
+				_, _, err = client.CreatePost(post)
+				require.NoError(t, err)
+			} else {
+				th.LoginBasic()
+				client = th.Client
+				userId := basicUser.Id
+				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
+				_, _, err = client.CreatePost(post)
+				require.NoError(t, err)
+			}
+		}
+	}
+
+	// get top dms for bu
+	t.Run("get top dms for basic user 1", func(t *testing.T) {
+		th.LoginBasic()
+		client = th.Client
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, basicUser1.Id)
+
+		// test pagination
+		topDMsPage0PerPage1, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 2)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMsPage0PerPage1.Items, 1)
+		require.Equal(t, topDMsPage0PerPage1.HasNext, false)
+		require.Equal(t, topDMsPage0PerPage1.Items[0].SecondParticipant.Id, basicUser1.Id)
+	})
+
+	// get top dms for bu1
+	t.Run("get top dms for basic user 2", func(t *testing.T) {
+		th.LoginBasic2()
+		client = th.Client
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+	})
+	// deactivate basicuser1
+	_, err = th.Client.DeleteUser(basicUser1.Id)
+	require.NoError(t, err)
+	// deactivated users DMs should show in topDMs
+	t.Run("get top dms for basic user 1", func(t *testing.T) {
+		th.LoginBasic()
+		client = th.Client
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+	})
+}
+
+func TestNewTeamMembersSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.LoginBasic()
+
+	team := th.CreateTeam()
+
+	t.Run("accepts only starter or professional license skus", func(t *testing.T) {
+		_, resp, _ := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE10))
+		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
+		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		_, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("rejects guests", func(t *testing.T) {
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		th.App.DemoteUserToGuest(th.Context, th.BasicUser)
+		defer th.App.PromoteGuestToUser(th.Context, th.BasicUser, "")
+
+		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("includes all data for the user", func(t *testing.T) {
+		checkUser := func(ntm *model.NewTeamMember, hasProfilePicture bool) {
+			require.Equal(t, th.BasicUser.Id, ntm.Id)
+			require.Equal(t, th.BasicUser.Username, ntm.Username)
+			require.Equal(t, th.BasicUser.FirstName, ntm.FirstName)
+			require.Equal(t, th.BasicUser.LastName, ntm.LastName)
+			require.Equal(t, th.BasicUser.Position, ntm.Position)
+			require.Equal(t, th.BasicUser.Nickname, ntm.Nickname)
+			member, err := th.App.GetTeamMember(team.Id, th.BasicUser.Id)
+			require.Nil(t, err)
+			require.Equal(t, member.CreateAt, ntm.CreateAt)
+			if hasProfilePicture {
+				require.Truef(t, ntm.LastPictureUpdate > int64(0), "should be greater than 0, but was %d", ntm.LastPictureUpdate)
+			} else {
+				require.Equal(t, int64(0), ntm.LastPictureUpdate)
+			}
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		checkUser(list.Items[0], false)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		_, err = th.Client.SetProfileImage(th.BasicUser.Id, data)
+		require.NoError(t, err)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		checkUser(list.Items[0], true)
+	})
+
+	t.Run("implements pagination", func(t *testing.T) {
+		// check the first page of results
+		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Equal(t, int(list.TotalCount), 1)
+		require.Len(t, list.Items, 1)
+		require.False(t, list.HasNext)
+
+		// check the 2nd page
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 1, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.GreaterOrEqual(t, len(list.Items), 0)
+
+		// add a few new team members and re-test the pagination
+		user := th.CreateUser()
+		_, appErr := th.App.AddTeamMember(th.Context, team.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddTeamMember(th.Context, team.Id, user.Id)
+		require.Nil(t, appErr)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, 3, int(list.TotalCount))
+		require.Len(t, list.Items, 2)
+		require.True(t, list.HasNext)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 1, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(list.TotalCount), 3)
+		require.Len(t, list.Items, 1)
+		require.False(t, list.HasNext)
+	})
+
+	t.Run("get-new-team-members-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }

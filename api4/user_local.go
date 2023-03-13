@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitUserLocal() {
@@ -56,7 +58,78 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("active")
 	inactive := r.URL.Query().Get("inactive")
 	role := r.URL.Query().Get("role")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
 	sort := r.URL.Query().Get("sort")
+	roleNamesAll := []string{}
+	// MM-47378: validate 'role' related parameters
+	if role != "" || rolesString != "" || channelRolesString != "" || teamRolesString != "" {
+		// fetch all role names
+		rolesAll, err := c.App.GetAllRoles()
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getUsers", "api.user.get_users.validation.app_error", nil, "Error fetching roles during validation.", http.StatusBadRequest)
+			return
+		}
+		for _, role := range rolesAll {
+			roleNamesAll = append(roleNamesAll, role.Name)
+		}
+	}
+
+	var roles []string
+	var rolesValid bool
+
+	if role != "" {
+		_, rolesValid = model.CleanRoleNames([]string{role})
+		if !rolesValid {
+			c.SetInvalidParam("role")
+			return
+		}
+		roleValid := utils.StringInSlice(role, roleNamesAll)
+		if !roleValid {
+			c.SetInvalidParam("role")
+			return
+		}
+	}
+
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, roles)
+		if len(validRoleNames) != len(roles) {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	var channelRoles []string
+	if channelRolesString != "" && inChannelId != "" {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, channelRoles)
+		if len(validRoleNames) != len(channelRoles) {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	var teamRoles []string
+	if teamRolesString != "" && inTeamId != "" {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, teamRoles)
+		if len(validRoleNames) != len(teamRoles) {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
 
 	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidURLParam("team_id")
@@ -100,45 +173,47 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		ViewRestrictions: nil,
 	}
 
-	var err *model.AppError
-	var profiles []*model.User
-	etag := ""
+	var (
+		appErr   *model.AppError
+		profiles []*model.User
+		etag     string
+	)
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
-		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+		profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if notInTeamId != "" {
 		etag = c.App.GetUsersNotInTeamEtag(inTeamId, "")
 		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if inTeamId != "" {
 		if sort == "last_activity_at" {
-			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else if sort == "create_at" {
-			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, "")
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else {
-		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -146,9 +221,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
-	js, jsonErr := json.Marshal(profiles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("localGetUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -170,23 +245,23 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, parseError := strconv.ParseInt(sinceString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("since")
+		since, err := strconv.ParseInt(sinceString, 10, 64)
+		if err != nil {
+			c.SetInvalidParamWithErr("since", err)
 			return
 		}
 		options.Since = since
 	}
 
-	users, err := c.App.GetUsersByIds(userIds, options)
-	if err != nil {
-		c.Err = err
+	users, appErr := c.App.GetUsersByIds(userIds, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(users)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(users)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -225,7 +300,7 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -245,7 +320,9 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("user", user)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventPriorState(user)
+	auditRec.AddEventObjectType("user")
 
 	if c.Params.Permanent {
 		err = c.App.PermanentDeleteUser(c.AppContext, user)
@@ -306,7 +383,7 @@ func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -337,21 +414,22 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	uss, appErr := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(uss)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("localGetUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(uss)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUploadsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }

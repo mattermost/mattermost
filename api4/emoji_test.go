@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"image"
 	_ "image/gif"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -100,7 +99,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	path, _ := fileutils.FindDir("tests")
-	bytes, err := ioutil.ReadFile(filepath.Join(path, "testwebp.webp"))
+	bytes, err := os.ReadFile(filepath.Join(path, "testwebp.webp"))
 	require.NoError(t, err)
 	newEmoji, _, err = client.CreateEmoji(emoji, bytes, "image.webp")
 	require.NoError(t, err)

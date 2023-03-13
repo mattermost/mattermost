@@ -11,7 +11,7 @@ import (
 	"image/draw"
 	"image/png"
 	"io"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -160,7 +160,10 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 
 	buf := new(bytes.Buffer)
 
-	if imgErr := png.Encode(buf, dstImg); imgErr != nil {
+	enc := png.Encoder{
+		CompressionLevel: png.BestCompression,
+	}
+	if imgErr := enc.Encode(buf, dstImg); imgErr != nil {
 		return nil, ImageEncodingError
 	}
 
@@ -174,7 +177,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 	}
 
 	fontDir, _ := fileutils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
+	fontBytes, err := os.ReadFile(filepath.Join(fontDir, initialFont))
 	if err != nil {
 		return nil, err
 	}

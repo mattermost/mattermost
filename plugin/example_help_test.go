@@ -75,7 +75,7 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 		return errors.Wrapf(err, "failed to find team %s", configuration.TeamName)
 	}
 
-	channel, err := p.API.GetChannelByName(configuration.ChannelName, team.Id, false)
+	channel, err := p.API.GetChannelByName(team.Id, configuration.ChannelName, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to find channel %s", configuration.ChannelName)
 	}
@@ -109,7 +109,7 @@ func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	p.API.SendEphemeralPost(post.UserId, &model.Post{
 		ChannelId: configuration.channelID,
 		Message:   "You asked for help? Checkout https://support.mattermost.com/hc/en-us",
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"sent_by_plugin": true,
 		},
 	})

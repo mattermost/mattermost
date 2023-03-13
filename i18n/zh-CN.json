@@ -619,7 +619,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "打开 Mattermost 帮助页面"
+    "translation": "显示 Mattermost 帮助信息"
   },
   {
     "id": "api.command_help.name",
@@ -647,15 +647,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[用户名] ~[频道]"
+    "translation": "@[用户名]... ~[频道]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "缺少用户名和频道。"
+    "translation": "缺少用户名和/或频道。"
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "我们无法找到该用户。他们可能已被系统管理员停用。"
+    "translation": "我们无法找到用户 {{.User}}。他们可能已被系统管理员停用。"
   },
   {
     "id": "api.command_invite.name",
@@ -667,7 +667,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "无法找到频道 {{.Channel}}。请使用频道识别查找频道。"
+    "translation": "无法找到频道 {{.Channel}}。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)查找频道。"
   },
   {
     "id": "api.command_invite.success",
@@ -997,7 +997,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "无法创建表情符。图片必须小于 1MB。"
+    "translation": "无法创建表情符。图片必须小于 512 KB。"
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -1078,10 +1078,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "无法上传文件。{{.NumFiles}} 个文件拥有 {{.NumClientIds}} 个 client_ids。"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "无法上传文件。指定的文件数不匹配。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1777,7 +1773,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "您已更新电子邮件地址"
+    "translation": "您已成功更新您的电子邮件"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1853,7 +1849,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "查看消息"
+    "translation": "在 Mattermost 中回复"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -4569,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab 的使用条款已更新。请到 gitlab.com 接受新的使用条款后再尝试登入 Mattermost。"
+    "translation": "GitLab 的使用条款已更新。请到 {{.URL}} 接受新的使用条款后再尝试登入 Mattermost。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5381,7 +5377,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "无效的频道名。用户 id 不能作为私信以外的频道名。"
+    "translation": "频道名称不能为 16 进制格式。请输入其他的频道名称。"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -5616,10 +5612,6 @@
     "translation": "作废邮件邀请错误。"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "您的许可证不支持访客帐号"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "无法从组受限团队移除用户。"
   },
@@ -5630,10 +5622,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "仅搜索公共团队不支持分页。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "访客帐号已停用"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -5825,27 +5813,27 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 12+"
+    "translation": "版本 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 78+"
+    "translation": "版本 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 44+"
+    "translation": "版本 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 89+"
+    "translation": "版本 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6158,10 +6146,6 @@
   {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "永久删除团队功能未开启。请联系系统管理员。"
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "无法请求试用许可证。请在 Mattermost 系统控制台设置站点网址。"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -6496,14 +6480,6 @@
     "translation": "AD/LDAP 同步任务超时。"
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "无法解析 BatchSize 导出任务消息。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "未找到机群 API 接口。"
   },
@@ -6650,10 +6626,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "获取上传失败。"
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "无法上传文件。文件过大。"
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",
@@ -7468,10 +7440,6 @@
     "translation": "无法获取帖子的文件信息。"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "立刻修复"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "随时通过电子邮件发送给我们 "
   },
@@ -7564,10 +7532,6 @@
     "translation": "插入出错"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "无法封装响应。"
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "群组成员已存在"
   },
@@ -7617,15 +7581,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "付款失败"
+    "translation": "付款不成功"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "需要采取的措施：Mattermost Cloud 付款失败"
+    "translation": "需要采取的措施：Mattermost {{.Plan}} 付款失败"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "为确保不间断地订阅 Mattermost Cloud，请与您的金融机构联系以解决潜在问题或更新您的付款信息。付款信息更新后，Mattermost 将尝试结清任何未结余额。"
+    "translation": "为确保不间断地使用 Mattermost {{.Plan}}，请与您的金融机构联系以解决潜在问题或更新您的付款信息。付款信息更新后，Mattermost 将尝试结清任何未结余额。"
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8157,7 +8121,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "您的{{.WorkSpace}}工作区的 14 天试用已准备就绪！"
+    "translation": "您工作区的 14 天试用已准备就绪！"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8197,7 +8161,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "使用 Github、Jira 以及 Zoom 等工具简化您的工作.探索我们的所有集成产品。"
+    "translation": "使用 Github、Jira 以及 Zoom 等工具简化您的工作.探索我们的所有集成产品"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8520,14 +8484,6 @@
     "translation": "无法邀请来自其他地方的共享频道到安全连接。"
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost 云试用已结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "开始订阅"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "图像限制检查失败。分辨率过高。"
   },
@@ -8581,7 +8537,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "此 Mattermost 企业版的试用许可证密钥已过期。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
+    "translation": "无法应用新的试用授权。您已经给这个 Mattermost 实例应用过试用授权了。如果您想延长试用期，请[联系我们的销售团队](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -8706,22 +8662,6 @@
   {
     "id": "api.templates.license_up_for_renewal_renew_now",
     "translation": "立刻续订"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "您的 Mattermost 14 天免费试用即将结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost 云试用结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "添加付款方式"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "您的 Mattermost 14 天免费试用已结束"
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -8868,14 +8808,6 @@
     "translation": "Mattermost 是一个灵活的开源通讯平台，可实现安全的团队协作。"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受 Mattermost 云的好处。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 企业云 14 天免费试用已于{{.TodayDate}}结束，。请添加您的付款信息，以确保您的团队可以继续享受企业云的好处。"
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "功能需要升级到企业版。"
   },
@@ -8938,10 +8870,6 @@
   {
     "id": "app.notification.body.thread_channel.subTitle",
     "translation": "当您不在时，{{.SenderName}} 回复了您关注的话题。"
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "处理批量导入附件时出错。"
   },
   {
     "id": "api.unmarshal_error",
@@ -9025,7 +8953,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve  Bulk索引的的大小，不能小于{{.BatchSize}}."
+    "translation": "Bleve Bulk索引的的大小不能小于{{.BatchSize}}."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9056,14 +8984,6 @@
     "translation": "无法按类型和状态获取所有工作内容。"
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " 添加该组的用户名冲突 "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " 获取该组的用户名失败 "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "无法展现/执行此源类型。"
   },
@@ -9074,10 +8994,6 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "无法统计该频道的文件数量"
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " 该用户组无效 "
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9093,7 +9009,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "嗨!打开最重要的事情，以提高您的团队的生产力!"
+    "translation": "快来打开 Mattermost 以提高您团队的生产力！"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9117,7 +9033,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请你加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -9125,7 +9041,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的{{ .ChannelName }} 频道"
+    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelName }} 频道"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
@@ -9134,10 +9050,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "您已经完成升级更新！"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "您的“ {{.WorkspaceName}}” 工作空间现在已经升级。您将收到{{.TrialEnd}}的账单通知"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9169,7 +9081,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " 禁用“观点”功能 "
+    "translation": "Insights 位于未启用的特性标志后面。"
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9250,5 +9162,701 @@
   {
     "id": "app.recent_searches.app_error",
     "translation": "获取最近搜索错误"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "无法获取团队使用情况"
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights 功能已禁用。"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "不支持通过 mmctl 上传到 Cloud 实例。 请在此处查看文档：https://docs.mattermost.com/manage/cloud-data-export.html。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "无法恢复团队，因为已达到团队限制"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "无法创建团队，因为已达到团队限制"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理员"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "无效的解码器并发 {{.Value}}。 应该是正数或 -1。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch 批量索引的批量大小必须至少是 {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "无效的超时值 {{.Value}}.应该是一个正数。"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "无法将值：{{.Value}} 解析为 int64"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "无法获取存储使用情况。"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "无法从上传的数据生成文件信息。"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "无法获得团队人数"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "清除团队成员缓存时出错"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "无法为用户获取顶级线程。"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "无法为团队获取顶级线程。"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "无法为用户获取顶级 DMs。"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "无法获取帖子，因为它超过了云的计划限制。"
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "获取最后可访问的帖子时出错"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "更新付款"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "您的许可证不支持访客帐号"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含三个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[Playbooks](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n**[Boards](/boards)** - 在看板结构中管理项目和任务，以帮助您的团队实现关键里程碑。\n\n[查看文档和指南]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "缺少发送拖欠电子邮件的必填字段。"
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "您的 Mattermost {{.Plan}} 付款已逾期"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "访客帐户已禁用"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "商城"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "打开商城"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "您的 Mattermost {{.Plan}} 将在 15 天内被降级"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "降级到 Cloud Free 版"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "更新支付信息"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "您的支付尚未完成"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "为了保持您的 {{.Plan}} 计划可用，请尽快联系您的金融机构。并在之后根据需要更新您的支付信息。"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "我们无法处理您近期的一次支付。"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "更新支付信息"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "您的 Mattermost 工作区将在 30 天内被降级"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "请现在更新您的支付信息或者降级到 Cloud Free 及以下版本。"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "如果我们无法处理您的付款，我们将会在 30 天内自动降级您的工作区。"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "请尽快更新您的支付信息以处理逾期的支付。"
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "需要行动：工作区将在 30 天内被降级"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "降级至 Cloud Free 版"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "更新支付信息"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "您的工作区将很快被降级"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "请立刻更新您的信用卡信息。"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "工作区降级后可能会给关键的工作流以及其他与您的工作区有关的业务活动带来负面影响。"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "我们自 {{.DeliquencyDate}} 后便无法通过您提供的支付信息进行扣款。您的工作区有被降级的风险。"
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "注意：您的 Mattermost {{.Plan}} 将很快被降级"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "更新支付信息"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "您的工作区将很快被降级"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "如果您什么都不做，您的工作区将被降级并且以下数据将被归档："
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "为了继续使用您的 Mattermost {{.Plan}} 功能"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "查看所有限制文档。"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "更新支付信息"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "信息历史"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "文件"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "尚未收到付款"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "请联系相关金融机构以解决问题后，再根据需要更新您的付款信息。"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "我们无法通过已经记载的信用卡信息进行扣费。这意味着您的工作区随时有可能降级至 Cloud Free 版。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "查看您的发票"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "您的工作区 {{.WorkspaceName}} 已经升级。"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "您的工作区 {{.WorkspaceName}} 已经升级。计费起始日 {{.Date}}"
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS 服务器不可用。"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "无法获得传出 Webhook 总数"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "无法获得传入 Webhook 总数"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "无法获得活跃用户总数"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "草稿功能已被禁用。"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "无法将草稿保存至已删除的频道"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "服务器翻译文件更新失败。"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "marketplace 命令在您的设备上不受支持。"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "无法将用户加入 group-teams 和 group-channels"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "您无法在已归档的频道中新增已读标识。"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "您无法在 5 分钟后移除已读标识。"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "您无法从已归档的频道中移除已阅标识。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "此外，由于 Cloud Free 版本的限制，您的数据已经被归档。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "您的 Mattermost Cloud 工作区已被降级"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "查看套餐与价格"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "更新支付信息"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "您的工作区将在 15 天内被降级"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "立刻更新您的支付信息，或者降级至 Cloud Free 版。"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "您的工作区将被降级至 Cloud Free 版。您的 {{.Plan}} 功能将被锁定，并且部分工作区数据将被锁定直到所有逾期账单均被妥善处理。"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "这是自 {{.DelinquencyDate}} 后我们尚未收到您的 Mattermost Cloud 工作区付款的最后提醒。"
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "模板"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "打开从模板创建窗口"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "您还有时间保持您的 Mattermost {{.Plan}} 可用，但是在那之前您需要解决一些与支付有关的问题。"
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "产品团队"
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "领导"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "全公司"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "不正确的时间范围。"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "群组名称已作为保留名称存在"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "不正确的 user id。"
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "更新与必须是一个合法的时间。"
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "不正确的 root id。"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "不正确的 props。"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "不正确的优先级"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "不正确的消息。"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "不正确的 file id。"
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "创建于必须是一个合法的时间。"
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "不正确的 channel id。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "不正确的 user id。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "不正确的 post id。"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML 无法成功读取认证公钥，请联系您的系统管理员。"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "无法打开 Elasticsearch 客户密钥文件"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "无法打开 Elasticsearch 客户证书"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "解码 Elasticsearch 客户证书失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "无法打开 Elasticsearch CA 文件"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "解码 Elasticsearch CA 失败"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "无法取得作业模板"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "无法取得作业模板目录"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "找不到与 Playbook 关联的频道。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "创建 Playbook 时发生错误。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "名称栏目中无法输入超过 64 个字符的内容。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "在创建频道时发生错误。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "在创建 Board 时发生错误。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "在执行作业模板时发生错误。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "您的授权不支持私密 Playbook。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "您没有创建公开 Playbook 的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "您没有创建公开频道的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "您没有创建公开 Board 的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "您没有创建私密 Playbook 的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "您没有创建私密频道的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "您没有创建私密 Board 的权限。"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "无法获取用户的奖章数目。"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "未找到产品密钥"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "接口不是预期的类型"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "更新 Board 时发生错误"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "在创建 Board 时发生错误"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "在取得 Board 模板时发生错误"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "在复制 Board 时发生错误"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "无法取得消息的优先级"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "在生产模式中无法启用 {{.Name}} 插件。"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "无法发送通知消息。"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "无法保存通知数据。"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "在取得最后访问的文件时发生错误"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "作业执行过程中发生错误。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "无效的认证服务：{{.AuthService}}"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "用户名“{{.Username}}”已存在。"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "由于云订阅的限制，无法取得文件。"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "无法更新草稿。"
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "无法保存草稿。"
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "无法取得草稿的文件。"
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "无法取得用户的草稿。"
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "无法取得草稿。"
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "草稿功能已被禁用。"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "无法删除草稿。"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic 类型已存在。"
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection 类型已存在。"
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请工作区的升级： "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已要求工作区的升级： "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请 Enterprise 版的试用： "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请 Enterprise 版的试用： "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "订阅状态正常"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "无法取得云订阅信息"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "无法获取当前 Plan 的名字"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "无法取得云产品信息"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "无法取得消息的优先级"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "无法为消息保存已读确认。"
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "无法从消息中获得已读确认。"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "指定日期之后的紧急消息无法计数。"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "无法获得已读确认。"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "无法删除已读确认。"
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "工作模板已被禁用。"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "在获取用户权限的过程中发生错误。"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "不是 LADP 用户"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "无法上传文件。文件尺寸过大。"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "您的 Mattermost workspace 已经被降级"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "要解除冻结您的数据并继续使用付费功能，请更新您的支付信息。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "您将无法在重要业务操作中继续使用 Cloud Professional 或者 Enterprise 的功能，同时您将经历性能降级的体验。"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "无效的日志过滤器"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal 无法在自托管实例中使用。"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "该服务仅在 Mattermost Enterprise 版本中可用"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS 服务器删除工作区时失败。"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "您的设备不支持模板命令。"
   }
 ]

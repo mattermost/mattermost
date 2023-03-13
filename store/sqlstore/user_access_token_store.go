@@ -41,13 +41,13 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 	return token, nil
 }
 
-func (s SqlUserAccessTokenStore) Delete(tokenId string) error {
+func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := s.deleteSessionsAndTokensById(transaction, tokenId); err == nil {
 		if err := transaction.Commit(); err != nil {
@@ -85,12 +85,12 @@ func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, to
 	return nil
 }
 
-func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) error {
+func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 	if err := s.deleteSessionsandTokensByUser(transaction, userId); err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]
 func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, error) {
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
-	params := []interface{}{term, term, term}
+	params := []any{term, term, term}
 	query := `
 		SELECT
 			uat.*
@@ -197,12 +197,12 @@ func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
 	return nil
 }
 
-func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) error {
+func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := s.deleteSessionsAndDisableToken(transaction, tokenId); err != nil {
 		return err

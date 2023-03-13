@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -44,7 +44,7 @@ func TestPlugin(t *testing.T) {
 		})
 
 		path, _ := fileutils.FindDir("tests")
-		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		// Install from URL
@@ -287,7 +287,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
-	th.Server.Cluster = testCluster
+	th.Server.Platform().SetCluster(testCluster)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -295,7 +295,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	})
 
 	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
 	testCluster.ClearMessages()
@@ -342,7 +342,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]interface{})) == 0 {
+				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]any)) == 0 {
 					done <- true
 					return
 				}
@@ -378,7 +378,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 func TestDisableOnRemove(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -723,7 +723,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	}
 
 	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
 	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
@@ -752,7 +752,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		manifest, _, err := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		require.NoError(t, err)
 
-		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		testIcon, err := os.ReadFile(filepath.Join(path, "test.svg"))
 		require.NoError(t, err)
 		require.True(t, svg.Is(testIcon))
 		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
@@ -860,13 +860,13 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	}
 
 	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	tarDataV2, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+	tarDataV2, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 
-	testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+	testIcon, err := os.ReadFile(filepath.Join(path, "test.svg"))
 	require.NoError(t, err)
 	require.True(t, svg.Is(testIcon))
 	testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
@@ -1021,7 +1021,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		// Upload one local plugin
 		path, _ := fileutils.FindDir("tests")
-		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		manifest, _, err := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
@@ -1050,13 +1050,13 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		// Upload one local plugin
 		path, _ := fileutils.FindDir("tests")
-		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		manifest, _, err := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		require.NoError(t, err)
 
-		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		testIcon, err := os.ReadFile(filepath.Join(path, "test.svg"))
 		require.NoError(t, err)
 		require.True(t, svg.Is(testIcon))
 		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
@@ -1090,13 +1090,13 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		// Upload one local plugin
 		path, _ := fileutils.FindDir("tests")
-		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		manifest, _, err := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		require.NoError(t, err)
 
-		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		testIcon, err := os.ReadFile(filepath.Join(path, "test.svg"))
 		require.NoError(t, err)
 		require.True(t, svg.Is(testIcon))
 		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
@@ -1124,6 +1124,62 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
 	})
+}
+
+func TestGetRemotePluginInMarketplace(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: "www.github.com/example",
+				Manifest: &model.Manifest{
+					Id:               "testplugin2",
+					Name:             "testplugin2",
+					Description:      "a second plugin",
+					Version:          "1.2.2",
+					MinServerVersion: "",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.EnableRemoteMarketplace = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.MarketplaceURL = testServer.URL
+	})
+
+	// Upload one local plugin
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	require.NoError(t, err)
+
+	plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{RemoteOnly: true})
+	require.NoError(t, err)
+
+	require.Len(t, plugins, 1)
+	require.Equal(t, samplePlugins[0], plugins[0])
+
+	_, err = th.SystemAdminClient.RemovePlugin(manifest.Id)
+	require.NoError(t, err)
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
@@ -1262,11 +1318,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 	require.NoError(t, err)
-	sigFile, err := ioutil.ReadAll(signatureFileReader)
+	sigFile, err := io.ReadAll(signatureFileReader)
 	require.NoError(t, err)
 	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
@@ -1622,7 +1678,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		th2.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			pluginSignatureFile, err := os.Open(filepath.Join(path, "testplugin.tar.gz.asc"))
 			require.NoError(t, err)
-			pluginSignatureData, err := ioutil.ReadAll(pluginSignatureFile)
+			pluginSignatureData, err := io.ReadAll(pluginSignatureFile)
 			require.NoError(t, err)
 
 			key, err := os.Open(filepath.Join(path, "development-private-key.asc"))

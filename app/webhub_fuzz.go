@@ -6,7 +6,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -101,7 +100,7 @@ type actionData struct {
 	selectTeamID         string
 	invalidateConnUserID string
 	updateConnUserID     string
-	attachment           map[string]interface{}
+	attachment           map[string]any
 }
 
 func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionData {
@@ -131,7 +130,7 @@ func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionDa
 	input.updateConnUserID = userIDs[int(data[4])%len(userIDs)]
 	input.event = events[int(data[5])%len(events)]
 	data = data[6:]
-	input.attachment = make(map[string]interface{})
+	input.attachment = make(map[string]any)
 	for len(data) >= 4 { // 2 bytes key, 2 bytes value
 		k := data[:2]
 		v := data[2:4]
@@ -230,7 +229,7 @@ func Fuzz(data []byte) int {
 					msg := model.NewWebSocketEvent(input.event,
 						input.selectTeamID,
 						input.selectChannelID,
-						input.createUserID, nil)
+						input.createUserID, nil, "")
 					for k, v := range input.attachment {
 						msg.Add(k, v)
 					}
@@ -273,7 +272,7 @@ func generateInitialCorpus() error {
 		if err != nil {
 			return err
 		}
-		err = ioutil.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
+		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err
 		}

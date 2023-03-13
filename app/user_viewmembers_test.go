@@ -20,23 +20,23 @@ func TestRestrictedViewMembers(t *testing.T) {
 	user1 := th.CreateUser()
 	user1.Nickname = "test user1"
 	user1.Username = "test-user-1"
-	th.App.UpdateUser(user1, false)
+	th.App.UpdateUser(th.Context, user1, false)
 	user2 := th.CreateUser()
 	user2.Username = "test-user-2"
 	user2.Nickname = "test user2"
-	th.App.UpdateUser(user2, false)
+	th.App.UpdateUser(th.Context, user2, false)
 	user3 := th.CreateUser()
 	user3.Username = "test-user-3"
 	user3.Nickname = "test user3"
-	th.App.UpdateUser(user3, false)
+	th.App.UpdateUser(th.Context, user3, false)
 	user4 := th.CreateUser()
 	user4.Username = "test-user-4"
 	user4.Nickname = "test user4"
-	th.App.UpdateUser(user4, false)
+	th.App.UpdateUser(th.Context, user4, false)
 	user5 := th.CreateUser()
 	user5.Username = "test-user-5"
 	user5.Nickname = "test user5"
-	th.App.UpdateUser(user5, false)
+	th.App.UpdateUser(th.Context, user5, false)
 
 	// user1 is member of all the channels and teams because is the creator
 	th.BasicUser = user1
@@ -44,9 +44,9 @@ func TestRestrictedViewMembers(t *testing.T) {
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
 
-	channel1 := th.CreateChannel(team1)
-	channel2 := th.CreateChannel(team1)
-	channel3 := th.CreateChannel(team2)
+	channel1 := th.CreateChannel(th.Context, team1)
+	channel2 := th.CreateChannel(th.Context, team1)
+	channel3 := th.CreateChannel(th.Context, team2)
 
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user2, team1)

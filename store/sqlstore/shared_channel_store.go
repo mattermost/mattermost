@@ -29,7 +29,7 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 }
 
 // Save inserts a new shared channel record.
-func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
+func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedChannel, err error) {
 	sc.PreSave()
 	if err := sc.IsValid(); err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChann
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannels").
 		Columns("ChannelId", "TeamId", "Home", "ReadOnly", "ShareName", "ShareDisplayName", "SharePurpose", "ShareHeader", "CreatorId", "CreateAt", "UpdateAt", "RemoteId").
@@ -246,12 +246,12 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 
 // Delete deletes a single shared channel plus associated SharedChannelRemotes.
 // Returns true if shared channel found and deleted, false if not found.
-func (s SqlSharedChannelStore) Delete(channelId string) (bool, error) {
+func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	squery, args, err := s.getQueryBuilder().
 		Delete("SharedChannels").

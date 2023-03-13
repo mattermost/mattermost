@@ -11,8 +11,8 @@ func (api *API) InitSystem() {
 	api.Router.Handle("ping", api.APIWebSocketHandler(ping))
 }
 
-func ping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	data := map[string]interface{}{}
+func ping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
+	data := map[string]any{}
 	data["text"] = "pong"
 	data["version"] = model.CurrentVersion
 	data["server_time"] = model.GetMillis()

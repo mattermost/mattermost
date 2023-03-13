@@ -44,6 +44,22 @@ type Team struct {
 	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
 }
 
+func (o *Team) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    o.Id,
+		"create_at":             o.CreateAt,
+		"update_at":             o.UpdateAt,
+		"delete_at":             o.DeleteAt,
+		"type":                  o.Type,
+		"invite_id":             o.InviteId,
+		"allow_open_invite":     o.AllowOpenInvite,
+		"scheme_id":             o.SchemeId,
+		"group_constrained":     o.GroupConstrained,
+		"policy_id":             o.PolicyID,
+		"cloud_limits_archived": o.CloudLimitsArchived,
+	}
+}
+
 type TeamPatch struct {
 	DisplayName         *string `json:"display_name"`
 	Description         *string `json:"description"`
@@ -269,8 +285,16 @@ func (o *Team) ShallowCopy() *Team {
 // so we have to pass the data in float64. The _ at the end is
 // a hack to keep the attribute name same in GraphQL schema.
 
+func (o *Team) CreateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
 func (o *Team) UpdateAt_() float64 {
 	return float64(o.UpdateAt)
+}
+
+func (o *Team) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
 }
 
 func (o *Team) LastTeamIconUpdate_() float64 {

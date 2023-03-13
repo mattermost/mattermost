@@ -28,92 +28,140 @@ func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SidebarCategoryDeadlock", func(t *testing.T) { testSidebarCategoryDeadlock(t, ss) })
 }
 
+func setupTeam(t *testing.T, ss store.Store, userIds ...string) *model.Team {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Name",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	assert.NoError(t, err)
+
+	members := make([]*model.TeamMember, 0, len(userIds))
+	for _, userId := range userIds {
+		members = append(members, &model.TeamMember{
+			TeamId: team.Id,
+			UserId: userId,
+		})
+	}
+	if len(members) > 0 {
+		_, err = ss.Team().SaveMultipleMembers(members, len(userIds)+1)
+		assert.NoError(t, err)
+	}
+
+	return team
+}
+
 func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 	t.Run("should create initial favorites/channels/DMs categories", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		team := setupTeam(t, ss, userId)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		assert.NoError(t, nErr)
-		assert.Len(t, res.Categories, 3)
+		require.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
-		res2, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		assert.NoError(t, err)
 		assert.Equal(t, res, res2)
 	})
 
 	t.Run("should create initial favorites/channels/DMs categories for multiple users", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		userId2 := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		team := setupTeam(t, ss, userId, userId2)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		userId2 := model.NewId()
-
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId2, teamId)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId2, opts)
 		assert.NoError(t, nErr)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
-		res2, err := ss.Channel().GetSidebarCategories(userId2, teamId)
+		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId2, team.Id)
 		assert.NoError(t, err)
 		assert.Equal(t, res, res2)
 	})
 
 	t.Run("should create initial favorites/channels/DMs categories on different teams", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		team := setupTeam(t, ss, userId)
+		team2 := setupTeam(t, ss, userId)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		teamId2 := model.NewId()
-
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId2)
+		opts = &store.SidebarCategorySearchOpts{
+			TeamID:      team2.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		assert.NoError(t, nErr)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
-		res2, err := ss.Channel().GetSidebarCategories(userId, teamId2)
+		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team2.Id)
 		assert.NoError(t, err)
 		assert.Equal(t, res, res2)
 	})
 
 	t.Run("shouldn't create additional categories when ones already exist", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		team := setupTeam(t, ss, userId)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Equal(t, res, initialCategories)
 
 		// Calling CreateInitialSidebarCategories a second time shouldn't create any new categories
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		assert.NoError(t, nErr)
 		assert.NotEmpty(t, res)
 
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		assert.NoError(t, err)
 		assert.Equal(t, initialCategories.Categories, res.Categories)
 	})
 
 	t.Run("shouldn't create additional categories when ones already exist even when ran simultaneously", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+
+		team := setupTeam(t, ss, userId)
 
 		var wg sync.WaitGroup
 
@@ -123,24 +171,29 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 			go func() {
 				defer wg.Done()
 
-				_, _ = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+				opts := &store.SidebarCategorySearchOpts{
+					TeamID:      team.Id,
+					ExcludeTeam: false,
+				}
+				_, _ = ss.Channel().CreateInitialSidebarCategories(userId, opts)
 			}()
 		}
 
 		wg.Wait()
 
-		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		assert.NoError(t, err)
 		assert.Len(t, res.Categories, 3)
 	})
 
 	t.Run("should populate the Favorites category with regular channels", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+
+		team := setupTeam(t, ss, userId)
 
 		// Set up two channels, one favorited and one not
 		channel1, nErr := ss.Channel().Save(&model.Channel{
-			TeamId: teamId,
+			TeamId: team.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "channel1",
 		}, 1000)
@@ -153,7 +206,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		channel2, nErr := ss.Channel().Save(&model.Channel{
-			TeamId: teamId,
+			TeamId: team.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "channel2",
 		}, 1000)
@@ -176,7 +229,11 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Create the categories
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -185,18 +242,19 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, []string{channel2.Id}, categories.Categories[1].Channels)
 
 		// Get and check the categories for channels
-		categories2, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
 	})
 
 	t.Run("should populate the Favorites category in alphabetical order", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+
+		team := setupTeam(t, ss, userId)
 
 		// Set up two channels
 		channel1, nErr := ss.Channel().Save(&model.Channel{
-			TeamId:      teamId,
+			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 			Name:        "channel1",
 			DisplayName: "zebra",
@@ -210,7 +268,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		channel2, nErr := ss.Channel().Save(&model.Channel{
-			TeamId:      teamId,
+			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 			Name:        "channel2",
 			DisplayName: "aardvark",
@@ -240,21 +298,26 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Create the categories
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Equal(t, []string{channel2.Id, channel1.Id}, categories.Categories[0].Channels)
 
 		// Get and check the categories for channels
-		categories2, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
 	})
 
 	t.Run("should populate the Favorites category with DMs and GMs", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+
+		team := setupTeam(t, ss, userId)
 
 		otherUserId1 := model.NewId()
 		otherUserId2 := model.NewId()
@@ -303,7 +366,11 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Create the categories
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -312,19 +379,20 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, []string{dmChannel2.Id}, categories.Categories[2].Channels)
 
 		// Get and check the categories for channels
-		categories2, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Equal(t, categories, categories2)
 	})
 
 	t.Run("should not populate the Favorites category with channels from other teams", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
-		teamId2 := model.NewId()
+
+		team := setupTeam(t, ss, userId)
+		team2 := setupTeam(t, ss, userId)
 
 		// Set up a channel on another team and favorite it
 		channel1, nErr := ss.Channel().Save(&model.Channel{
-			TeamId: teamId2,
+			TeamId: team2.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "channel1",
 		}, 1000)
@@ -347,7 +415,11 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Create the categories
-		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		categories, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -356,9 +428,53 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, []string{}, categories.Categories[1].Channels)
 
 		// Get and check the categories for channels
-		categories2, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
+	})
+
+	t.Run("graphQL path to create initial favorites/channels/DMs categories on different teams", func(t *testing.T) {
+		userId := model.NewId()
+
+		t1 := &model.Team{
+			DisplayName: "DisplayName",
+			Name:        NewTestId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+			InviteId:    model.NewId(),
+		}
+		t1, err := ss.Team().Save(t1)
+		require.NoError(t, err)
+
+		m1 := &model.TeamMember{TeamId: t1.Id, UserId: userId}
+		_, nErr := ss.Team().SaveMember(m1, -1)
+		require.NoError(t, nErr)
+
+		t2 := &model.Team{
+			DisplayName: "DisplayName2",
+			Name:        NewTestId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+			InviteId:    model.NewId(),
+		}
+		t2, err = ss.Team().Save(t2)
+		require.NoError(t, err)
+
+		m2 := &model.TeamMember{TeamId: t2.Id, UserId: userId}
+		_, nErr = ss.Team().SaveMember(m2, -1)
+		require.NoError(t, nErr)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      t1.Id,
+			ExcludeTeam: true,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
+		require.NoError(t, nErr)
+		require.NotEmpty(t, res)
+
+		for _, cat := range res.Categories {
+			assert.Equal(t, t2.Id, cat.TeamId)
+		}
 	})
 }
 
@@ -381,14 +497,19 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 
 	t.Run("should place the new category second if Favorites comes first", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		team := setupTeam(t, ss, userId)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
 		// Create the category
-		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		created, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: model.NewId(),
 			},
@@ -396,7 +517,7 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Confirm that it comes second
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -406,19 +527,24 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 
 	t.Run("should place the new category first if Favorites is not first", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		team := setupTeam(t, ss, userId)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
 		// Re-arrange the categories so that Favorites comes last
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 
-		err = ss.Channel().UpdateSidebarCategoryOrder(userId, teamId, []string{
+		err = ss.Channel().UpdateSidebarCategoryOrder(userId, team.Id, []string{
 			categories.Categories[1].Id,
 			categories.Categories[2].Id,
 			categories.Categories[0].Id,
@@ -426,7 +552,7 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Create the category
-		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		created, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: model.NewId(),
 			},
@@ -434,7 +560,7 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// Confirm that it comes first
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 		assert.Equal(t, model.SidebarCategoryCustom, res.Categories[0].Type)
@@ -443,28 +569,32 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 
 	t.Run("should create the category with its channels", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
 		// Create some channels
 		channel1, err := ss.Channel().Save(&model.Channel{
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 			Name:   model.NewId(),
 		}, 100)
 		require.NoError(t, err)
 		channel2, err := ss.Channel().Save(&model.Channel{
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 			Name:   model.NewId(),
 		}, 100)
 		require.NoError(t, err)
 
 		// Create the category
-		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		created, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: model.NewId(),
 			},
@@ -481,13 +611,17 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 
 	t.Run("should remove any channels from their previous categories", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 
@@ -499,13 +633,13 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 		// Create some channels
 		channel1, nErr := ss.Channel().Save(&model.Channel{
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 			Name:   model.NewId(),
 		}, 100)
 		require.NoError(t, nErr)
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 			Name:   model.NewId(),
 		}, 100)
 		require.NoError(t, nErr)
@@ -513,14 +647,14 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 		// Assign them to categories
 		favoritesCategory.Channels = []string{channel1.Id}
 		channelsCategory.Channels = []string{channel2.Id}
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			favoritesCategory,
 			channelsCategory,
 		})
 		require.NoError(t, err)
 
 		// Create the category
-		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		created, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: model.NewId(),
 			},
@@ -543,21 +677,25 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("should return a custom category with its Channels field set", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		channelId1 := model.NewId()
 		channelId2 := model.NewId()
 		channelId3 := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
 		// Create a category and assign some channels to it
-		created, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		created, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId:      userId,
-				TeamId:      teamId,
+				TeamId:      team.Id,
 				DisplayName: model.NewId(),
 			},
 			Channels: []string{channelId1, channelId2, channelId3},
@@ -576,14 +714,18 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("should return any orphaned channels with the Channels category", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the channels category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		channelsCategory := categories.Categories[1]
@@ -593,7 +735,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		channel1, nErr := ss.Channel().Save(&model.Channel{
 			Name:        "channel1",
 			DisplayName: "DEF",
-			TeamId:      teamId,
+			TeamId:      team.Id,
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
@@ -607,7 +749,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Name:        "channel2",
 			DisplayName: "ABC",
-			TeamId:      teamId,
+			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
@@ -640,14 +782,18 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("shouldn't return orphaned channels on another team with the Channels category", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the channels category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 
@@ -679,14 +825,18 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("shouldn't return non-orphaned channels with the Channels category", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
 		// Create the initial categories and find the channels category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -698,7 +848,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		channel1, nErr := ss.Channel().Save(&model.Channel{
 			Name:        "channel1",
 			DisplayName: "DEF",
-			TeamId:      teamId,
+			TeamId:      team.Id,
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
@@ -712,7 +862,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Name:        "channel2",
 			DisplayName: "ABC",
-			TeamId:      teamId,
+			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
@@ -724,7 +874,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, nErr)
 
 		// And assign one to another category
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{channel2.Id},
@@ -742,14 +892,18 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("should return any orphaned DM channels with the Direct Messages category", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the DMs category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 
@@ -783,14 +937,18 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("should return any orphaned GM channels with the Direct Messages category", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the DMs category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 
@@ -821,14 +979,18 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("should return orphaned DM channels in the DMs category which are in a custom category on another team", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the DMs category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 
@@ -853,16 +1015,19 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, nErr)
 
 		// Create another team and assign the DM to a custom category on that team
-		otherTeamId := model.NewId()
-
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, otherTeamId)
+		otherTeam := setupTeam(t, ss, userId)
+		opts = &store.SidebarCategorySearchOpts{
+			TeamID:      otherTeam.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		_, err = ss.Channel().CreateSidebarCategory(userId, otherTeamId, &model.SidebarCategoryWithChannels{
+		_, err = ss.Channel().CreateSidebarCategory(userId, otherTeam.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId: userId,
-				TeamId: teamId,
+				TeamId: team.Id,
 			},
 			Channels: []string{dmChannel.Id},
 		})
@@ -880,9 +1045,13 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 func testGetSidebarCategories(t *testing.T, ss store.Store) {
 	t.Run("should return channels in the same order between different ways of getting categories", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -892,7 +1061,7 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 			model.NewId(),
 		}
 
-		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		newCategory, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			Channels: channelIds,
 		})
 		require.NoError(t, err)
@@ -901,7 +1070,7 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 		gotCategory, err := ss.Channel().GetSidebarCategory(newCategory.Id)
 		require.NoError(t, err)
 
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 
@@ -912,19 +1081,83 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, gotCategory.Channels, res.Categories[1].Channels)
 		assert.Equal(t, channelIds, res.Categories[1].Channels)
 	})
+	t.Run("should not return categories for teams deleted, or no longer a member", func(t *testing.T) {
+		userId := model.NewId()
+
+		teamMember1 := setupTeam(t, ss, userId)
+		teamMember2 := setupTeam(t, ss, userId)
+		teamDeleted := setupTeam(t, ss, userId)
+		teamDeleted.DeleteAt = model.GetMillis()
+		ss.Team().Update(teamDeleted)
+		teamNotMember := setupTeam(t, ss)
+		teamDeletedMember := setupTeam(t, ss, userId)
+
+		members, err := ss.Team().GetMembersByIds(teamDeletedMember.Id, []string{userId}, nil)
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		member := members[0]
+		member.DeleteAt = model.GetMillis()
+		ss.Team().UpdateMember(member)
+
+		teamIds := []string{
+			teamMember1.Id,
+			teamMember2.Id,
+			teamDeleted.Id,
+			teamNotMember.Id,
+			teamDeletedMember.Id,
+		}
+
+		for _, id := range teamIds {
+			res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, &store.SidebarCategorySearchOpts{TeamID: id})
+			require.NoError(t, nErr)
+			require.NotEmpty(t, res)
+		}
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      teamMember1.Id,
+			ExcludeTeam: false,
+		}
+
+		// Team member and not exclude
+		res, err := ss.Channel().GetSidebarCategories(userId, opts)
+		require.NoError(t, err)
+		assert.Equal(t, 3, len(res.Categories))
+
+		// No team member and not exclude
+		opts.TeamID = teamDeleted.Id
+		res, err = ss.Channel().GetSidebarCategories(userId, opts)
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(res.Categories))
+
+		// No team member and exclude
+		opts.ExcludeTeam = true
+		res, err = ss.Channel().GetSidebarCategories(userId, opts)
+		require.NoError(t, err)
+		assert.Equal(t, 6, len(res.Categories))
+
+		// Team member and exclude
+		opts.TeamID = teamMember1.Id
+		res, err = ss.Channel().GetSidebarCategories(userId, opts)
+		require.NoError(t, err)
+		assert.Equal(t, 3, len(res.Categories))
+	})
 }
 
 func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 	t.Run("ensure the query to update SidebarCategories hasn't been polluted by UpdateSidebarCategoryOrder", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories
-		res, err := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, err := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -932,7 +1165,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		dmsCategory := initialCategories.Categories[2]
 
 		// And then update one of them
-		updated, _, err := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updated, _, err := ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			channelsCategory,
 		})
 		require.NoError(t, err)
@@ -940,7 +1173,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, "Channels", updated[0].DisplayName)
 
 		// And then reorder the categories
-		err = ss.Channel().UpdateSidebarCategoryOrder(userId, teamId, []string{dmsCategory.Id, favoritesCategory.Id, channelsCategory.Id})
+		err = ss.Channel().UpdateSidebarCategoryOrder(userId, team.Id, []string{dmsCategory.Id, favoritesCategory.Id, channelsCategory.Id})
 		require.NoError(t, err)
 
 		// Which somehow blanks out stuff because ???
@@ -951,14 +1184,18 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("categories should be returned in their original order", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories
-		res, err := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, err := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -966,7 +1203,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		dmsCategory := initialCategories.Categories[2]
 
 		// And then update them
-		updatedCategories, _, err := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, _, err := ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			favoritesCategory,
 			channelsCategory,
 			dmsCategory,
@@ -979,20 +1216,24 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should silently fail to update read only fields", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
 		channelsCategory := initialCategories.Categories[1]
 		dmsCategory := initialCategories.Categories[2]
 
-		customCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
+		customCategory, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{})
 		require.NoError(t, err)
 
 		categoriesToUpdate := []*model.SidebarCategoryWithChannels{
@@ -1030,7 +1271,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 			},
 		}
 
-		updatedCategories, _, err := ss.Channel().UpdateSidebarCategories(userId, teamId, categoriesToUpdate)
+		updatedCategories, _, err := ss.Channel().UpdateSidebarCategories(userId, team.Id, categoriesToUpdate)
 		assert.NoError(t, err)
 
 		assert.NotEqual(t, "Favorites", categoriesToUpdate[0].DisplayName)
@@ -1045,14 +1286,18 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should add and remove favorites preferences based on the Favorites category", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the favorites category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1062,7 +1307,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1073,7 +1318,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Assign it to favorites
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1090,7 +1335,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		channelsCategory := categories.Categories[1]
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1106,14 +1351,18 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should add and remove favorites preferences for DMs", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the favorites category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1139,7 +1388,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.NoError(t, nErr)
 
 		// Assign it to favorites
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{dmChannel.Id},
@@ -1156,7 +1405,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		dmsCategory := categories.Categories[2]
 		require.Equal(t, model.SidebarCategoryDirectMessages, dmsCategory.Type)
 
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: dmsCategory.SidebarCategory,
 				Channels:        []string{dmChannel.Id},
@@ -1172,25 +1421,33 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should add and remove favorites preferences, even if the channel is already favorited in preferences", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
-		teamId2 := model.NewId()
+		team := setupTeam(t, ss, userId)
+		team2 := setupTeam(t, ss, userId)
 
 		// Create the initial categories and find the favorites categories in each team
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
 		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
 
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId2)
+		opts = &store.SidebarCategorySearchOpts{
+			TeamID:      team2.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories2, err := ss.Channel().GetSidebarCategories(userId, teamId2)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team2.Id)
 		require.NoError(t, err)
 
 		favoritesCategory2 := categories2.Categories[0]
@@ -1216,7 +1473,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.NoError(t, nErr)
 
 		// Assign it to favorites on the first team. The favorites preference gets set for all teams.
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{dmChannel.Id},
@@ -1230,7 +1487,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, "true", res2.Value)
 
 		// Assign it to favorites on the second team. The favorites preference is already set.
-		updated, _, err := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updated, _, err := ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{dmChannel.Id},
@@ -1245,7 +1502,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, "true", res2.Value)
 
 		// Remove it from favorites on the first team. This clears the favorites preference for all teams.
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{},
@@ -1258,7 +1515,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Nil(t, res2)
 
 		// Remove it from favorites on the second team. The favorites preference was already deleted.
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId2, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{},
@@ -1273,14 +1530,19 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should not affect other users' favorites preferences", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		userId2 := model.NewId()
+		team := setupTeam(t, ss, userId, userId2)
 
 		// Create the initial categories and find the favorites category
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1289,13 +1551,11 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Create the other users' categories
-		userId2 := model.NewId()
-
-		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId2, teamId)
+		res, nErr = ss.Channel().CreateInitialSidebarCategories(userId2, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories2, err := ss.Channel().GetSidebarCategories(userId2, teamId)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId2, team.Id)
 		require.NoError(t, err)
 
 		favoritesCategory2 := categories2.Categories[0]
@@ -1307,7 +1567,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1324,7 +1584,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Have user1 favorite it
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1346,7 +1606,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Nil(t, res2)
 
 		// And user2 favorite it
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId2, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId2, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1369,7 +1629,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, "true", res2.Value)
 
 		// And then user1 unfavorite it
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1391,7 +1651,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, "true", res2.Value)
 
 		// And finally user2 favorite it
-		_, _, err = ss.Channel().UpdateSidebarCategories(userId2, teamId, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userId2, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory2.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1414,13 +1674,13 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("channels removed from Channels or DMs categories should be re-added", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Create some channels
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
@@ -1447,12 +1707,16 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		)
 		require.NoError(t, nErr)
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
 		// And some categories
-		initialCategories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -1473,7 +1737,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 			},
 		}
 
-		updatedCategories, _, nErr := ss.Channel().UpdateSidebarCategories(userId, teamId, categoriesToUpdate)
+		updatedCategories, _, nErr := ss.Channel().UpdateSidebarCategories(userId, team.Id, categoriesToUpdate)
 		assert.NoError(t, nErr)
 
 		// The channels should still exist in the category because they would otherwise be orphaned
@@ -1483,7 +1747,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should be able to move DMs into and out of custom categories", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		otherUserId := model.NewId()
 		dmChannel, nErr := ss.Channel().SaveDirectChannel(
@@ -1502,19 +1766,23 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		)
 		require.NoError(t, nErr)
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
 		// The DM should start in the DMs category
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, err)
 
 		dmsCategory := initialCategories.Categories[2]
 		require.Equal(t, []string{dmChannel.Id}, dmsCategory.Channels)
 
 		// Now move the DM into a custom category
-		customCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
+		customCategory, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{})
 		require.NoError(t, err)
 
 		categoriesToUpdate := []*model.SidebarCategoryWithChannels{
@@ -1528,7 +1796,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 			},
 		}
 
-		updatedCategories, _, err := ss.Channel().UpdateSidebarCategories(userId, teamId, categoriesToUpdate)
+		updatedCategories, _, err := ss.Channel().UpdateSidebarCategories(userId, team.Id, categoriesToUpdate)
 		assert.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, updatedCategories[0].Id)
 		assert.Equal(t, []string{}, updatedCategories[0].Channels)
@@ -1555,7 +1823,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 			},
 		}
 
-		updatedCategories, _, err = ss.Channel().UpdateSidebarCategories(userId, teamId, categoriesToUpdate)
+		updatedCategories, _, err = ss.Channel().UpdateSidebarCategories(userId, team.Id, categoriesToUpdate)
 		assert.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, updatedCategories[0].Id)
 		assert.Equal(t, []string{dmChannel.Id}, updatedCategories[0].Channels)
@@ -1573,13 +1841,13 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should successfully move channels between categories", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Join a channel
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
@@ -1590,21 +1858,25 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// And then create the initial categories so that it includes the channel
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
 		require.Equal(t, []string{channel.Id}, channelsCategory.Channels)
 
-		customCategory, nErr := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
+		customCategory, nErr := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{})
 		require.NoError(t, nErr)
 
 		// Move the channel one way
-		updatedCategories, _, nErr := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, _, nErr := ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{},
@@ -1620,7 +1892,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, []string{channel.Id}, updatedCategories[1].Channels)
 
 		// And then the other
-		updatedCategories, _, nErr = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, _, nErr = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1637,13 +1909,13 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 	t.Run("should correctly return the original categories that were modified", func(t *testing.T) {
 		userId := model.NewId()
-		teamId := model.NewId()
+		team := setupTeam(t, ss, userId)
 
 		// Join a channel
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
-			TeamId: teamId,
+			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
@@ -1654,17 +1926,21 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		// And then create the initial categories so that Channels includes the channel
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
 		require.Equal(t, []string{channel.Id}, channelsCategory.Channels)
 
-		customCategory, nErr := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+		customCategory, nErr := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: "originalName",
 			},
@@ -1672,7 +1948,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Rename the custom category
-		updatedCategories, originalCategories, nErr := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, originalCategories, nErr := ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: model.SidebarCategory{
 					Id:          customCategory.Id,
@@ -1686,7 +1962,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, "updatedName", updatedCategories[0].DisplayName)
 
 		// Move a channel
-		updatedCategories, originalCategories, nErr = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, originalCategories, nErr = ss.Channel().UpdateSidebarCategories(userId, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{},
@@ -1710,17 +1986,21 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 
 func setupInitialSidebarCategories(t *testing.T, ss store.Store) (string, string) {
 	userId := model.NewId()
-	teamId := model.NewId()
+	team := setupTeam(t, ss, userId)
 
-	res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      team.Id,
+		ExcludeTeam: false,
+	}
+	res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 	require.NoError(t, nErr)
 	require.NotEmpty(t, res)
 
-	res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+	res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
 	require.NoError(t, err)
 	require.Len(t, res.Categories, 3)
 
-	return userId, teamId
+	return userId, team.Id
 }
 
 func testClearSidebarOnTeamLeave(t *testing.T, ss store.Store, s SqlStore) {
@@ -1833,13 +2113,17 @@ func testClearSidebarOnTeamLeave(t *testing.T, ss store.Store, s SqlStore) {
 		}
 
 		// Create a second team and set up the sidebar categories for it
-		teamId2 := model.NewId()
+		team2 := setupTeam(t, ss, userId)
 
-		res, err := ss.Channel().CreateInitialSidebarCategories(userId, teamId2)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team2.Id,
+			ExcludeTeam: false,
+		}
+		res, err := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId2)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team2.Id)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
 
@@ -1862,12 +2146,12 @@ func testClearSidebarOnTeamLeave(t *testing.T, ss store.Store, s SqlStore) {
 		// Do the same on the second team
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Name:   model.NewId(),
-			TeamId: teamId2,
+			TeamId: team2.Id,
 			Type:   model.ChannelTypeOpen,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		_, err = ss.Channel().CreateSidebarCategory(userId, teamId2, &model.SidebarCategoryWithChannels{
+		_, err = ss.Channel().CreateSidebarCategory(userId, team2.Id, &model.SidebarCategoryWithChannels{
 			Channels: []string{channel2.Id, dmChannel1.Id},
 		})
 		require.NoError(t, err)
@@ -1896,7 +2180,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, ss store.Store, s SqlStore) {
 		assert.Equal(t, int64(2), count)
 
 		// Confirm that the categories on the second team are unchanged
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId2)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team2.Id)
 		require.NoError(t, err)
 		assert.Len(t, res.Categories, 4)
 
@@ -1915,7 +2199,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		require.NotNil(t, newCategory)
 
 		// Ensure that the category was created properly
-		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, teamId)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 
@@ -1923,7 +2207,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		err = ss.Channel().DeleteSidebarCategory(newCategory.Id)
 		assert.NoError(t, err)
 
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, teamId)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
 	})
@@ -1967,7 +2251,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		require.NotNil(t, newCategory)
 
 		// Ensure that the categories are set up correctly
-		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, teamId)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 
@@ -1979,7 +2263,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		assert.NoError(t, err)
 
 		// Confirm that the category was deleted...
-		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, teamId)
 		assert.NoError(t, err)
 		assert.Len(t, res.Categories, 3)
 
@@ -1999,7 +2283,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("should not allow you to remove non-custom categories", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, ss)
 		defer ss.User().PermanentDelete(userId)
-		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, teamId)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
 		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -2022,7 +2306,11 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 		userId := model.NewId()
 		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      teamId,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -2047,7 +2335,11 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 		userId := model.NewId()
 		teamId := model.NewId()
 
-		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      teamId,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
 		assert.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
@@ -2068,13 +2360,13 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 // to catch a bug.
 func testSidebarCategoryDeadlock(t *testing.T, ss store.Store) {
 	userID := model.NewId()
-	teamID := model.NewId()
+	team := setupTeam(t, ss, userID)
 
 	// Join a channel
 	channel, err := ss.Channel().Save(&model.Channel{
 		Name:   "channel",
 		Type:   model.ChannelTypeOpen,
-		TeamId: teamID,
+		TeamId: team.Id,
 	}, 10)
 	require.NoError(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
@@ -2085,17 +2377,21 @@ func testSidebarCategoryDeadlock(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// And then create the initial categories so that it includes the channel
-	res, err := ss.Channel().CreateInitialSidebarCategories(userID, teamID)
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      team.Id,
+		ExcludeTeam: false,
+	}
+	res, err := ss.Channel().CreateInitialSidebarCategories(userID, opts)
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
 
-	initialCategories, err := ss.Channel().GetSidebarCategories(userID, teamID)
+	initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
 	require.NoError(t, err)
 
 	channelsCategory := initialCategories.Categories[1]
 	require.Equal(t, []string{channel.Id}, channelsCategory.Channels)
 
-	customCategory, err := ss.Channel().CreateSidebarCategory(userID, teamID, &model.SidebarCategoryWithChannels{})
+	customCategory, err := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{})
 	require.NoError(t, err)
 
 	var wg sync.WaitGroup
@@ -2103,7 +2399,7 @@ func testSidebarCategoryDeadlock(t *testing.T, ss store.Store) {
 
 	go func() {
 		defer wg.Done()
-		_, _, err := ss.Channel().UpdateSidebarCategories(userID, teamID, []*model.SidebarCategoryWithChannels{
+		_, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{},

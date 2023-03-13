@@ -50,8 +50,8 @@ func TestMoveCommand(t *testing.T) {
 	assert.Nil(t, err)
 
 	defer func() {
-		th.App.PermanentDeleteTeam(sourceTeam)
-		th.App.PermanentDeleteTeam(targetTeam)
+		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
+		th.App.PermanentDeleteTeam(th.Context, targetTeam)
 	}()
 
 	// Move a command and check the team is updated.
@@ -106,7 +106,7 @@ func TestExecuteCommand(t *testing.T) {
 				TeamId:    th.BasicTeam.Id,
 				ChannelId: th.BasicChannel.Id,
 				UserId:    th.BasicUser.Id,
-				T:         func(s string, args ...interface{}) string { return s },
+				T:         func(s string, args ...any) string { return s },
 			}
 			resp, err := th.App.ExecuteCommand(th.Context, args)
 			require.Nil(t, err)
@@ -119,7 +119,7 @@ func TestExecuteCommand(t *testing.T) {
 	t.Run("missing slash character", func(t *testing.T) {
 		argsMissingSlashCharacter := &model.CommandArgs{
 			Command: "missing leading slash character",
-			T:       func(s string, args ...interface{}) string { return s },
+			T:       func(s string, args ...any) string { return s },
 		}
 		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
@@ -128,7 +128,7 @@ func TestExecuteCommand(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		argsMissingSlashCharacter := &model.CommandArgs{
 			Command: "",
-			T:       func(s string, args ...interface{}) string { return s },
+			T:       func(s string, args ...any) string { return s },
 		}
 		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
@@ -525,7 +525,7 @@ func TestMentionsToTeamMembers(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualMap := th.App.MentionsToTeamMembers(data.message, data.inTeam)
+		actualMap := th.App.MentionsToTeamMembers(th.Context, data.message, data.inTeam)
 		require.Equal(t, actualMap, data.expectedMap)
 	}
 }
@@ -610,7 +610,7 @@ func TestMentionsToPublicChannels(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualMap := th.App.MentionsToPublicChannels(data.message, data.inTeam)
+		actualMap := th.App.MentionsToPublicChannels(th.Context, data.message, data.inTeam)
 		require.Equal(t, actualMap, data.expectedMap)
 	}
 }

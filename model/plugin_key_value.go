@@ -22,11 +22,11 @@ type PluginKeyValue struct {
 
 func (kv *PluginKeyValue) IsValid() *AppError {
 	if kv.PluginId == "" || utf8.RuneCountInString(kv.PluginId) > KeyValuePluginIdMaxRunes {
-		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.plugin_id.app_error", map[string]interface{}{"Max": KeyValueKeyMaxRunes, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
+		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.plugin_id.app_error", map[string]any{"Max": KeyValueKeyMaxRunes, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
 	}
 
 	if kv.Key == "" || utf8.RuneCountInString(kv.Key) > KeyValueKeyMaxRunes {
-		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.key.app_error", map[string]interface{}{"Max": KeyValueKeyMaxRunes, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
+		return NewAppError("PluginKeyValue.IsValid", "model.plugin_key_value.is_valid.key.app_error", map[string]any{"Max": KeyValueKeyMaxRunes, "Min": 0}, "key="+kv.Key, http.StatusBadRequest)
 	}
 
 	return nil

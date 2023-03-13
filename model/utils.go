@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/mail"
@@ -34,9 +33,13 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
+	maxPropSizeBytes = 1024 * 1024
 )
 
-type StringInterface map[string]interface{}
+var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
+
+type StringInterface map[string]any
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
@@ -77,6 +80,14 @@ func (sa StringArray) Equals(input StringArray) bool {
 
 // Value converts StringArray to database value
 func (sa StringArray) Value() (driver.Value, error) {
+	sz := 0
+	for i := range sa {
+		sz += len(sa[i])
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
+		}
+	}
+
 	j, err := json.Marshal(sa)
 	if err != nil {
 		return nil, err
@@ -86,7 +97,7 @@ func (sa StringArray) Value() (driver.Value, error) {
 }
 
 // Scan converts database column value to StringArray
-func (sa *StringArray) Scan(value interface{}) error {
+func (sa *StringArray) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -105,7 +116,7 @@ func (sa *StringArray) Scan(value interface{}) error {
 }
 
 // Scan converts database column value to StringMap
-func (m *StringMap) Scan(value interface{}) error {
+func (m *StringMap) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -127,6 +138,15 @@ func (m *StringMap) Scan(value interface{}) error {
 func (m StringMap) Value() (driver.Value, error) {
 	ok := m[BinaryParamKey]
 	delete(m, BinaryParamKey)
+
+	sz := 0
+	for k := range m {
+		sz += len(k) + len(m[k])
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
+		}
+	}
+
 	buf, err := json.Marshal(m)
 	if err != nil {
 		return nil, err
@@ -148,7 +168,7 @@ func (m StringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]string)(m))
 }
 
-func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
+func (m *StringMap) UnmarshalGraphQL(input any) error {
 	json, ok := input.(map[string]string)
 	if !ok {
 		return errors.New("wrong type")
@@ -158,7 +178,7 @@ func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
 	return nil
 }
 
-func (si *StringInterface) Scan(value interface{}) error {
+func (si *StringInterface) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -182,8 +202,31 @@ func (si StringInterface) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(j) > maxPropSizeBytes {
+		return nil, ErrMaxPropSizeExceeded
+	}
+
 	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
 	return string(j), err
+}
+
+func (StringInterface) ImplementsGraphQLType(name string) bool {
+	return name == "StringInterface"
+}
+
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
+}
+
+func (si *StringInterface) UnmarshalGraphQL(input any) error {
+	json, ok := input.(map[string]any)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*si = json
+	return nil
 }
 
 var translateFunc i18n.TranslateFunc
@@ -203,11 +246,36 @@ type AppError struct {
 	StatusCode    int    `json:"status_code,omitempty"` // The http status code
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]interface{}
+	params        map[string]any
+	wrapped       error
 }
 
 func (er *AppError) Error() string {
-	return er.Where + ": " + er.Message + ", " + er.DetailedError
+	var sb strings.Builder
+
+	// render the error information
+	sb.WriteString(er.Where)
+	sb.WriteString(": ")
+	if er.Message != NoTranslation {
+		sb.WriteString(er.Message)
+	}
+
+	// only render the detailed error when it's present
+	if er.DetailedError != "" {
+		if er.Message != NoTranslation {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(er.DetailedError)
+	}
+
+	// render the wrapped error
+	err := er.wrapped
+	if err != nil {
+		sb.WriteString(", ")
+		sb.WriteString(err.Error())
+	}
+
+	return sb.String()
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {
@@ -231,14 +299,43 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
+	detailed := er.DetailedError
+	defer func() {
+		er.DetailedError = detailed
+	}()
+
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
+}
+
+func (er *AppError) wrappedToDetailed() {
+	if er.wrapped == nil {
+		return
+	}
+
+	if er.DetailedError != "" {
+		er.DetailedError += ", "
+	}
+
+	er.DetailedError += er.wrapped.Error()
+}
+
+func (er *AppError) Unwrap() error {
+	return er.wrapped
+}
+
+func (er *AppError) Wrap(err error) *AppError {
+	er.wrapped = err
+	return er
 }
 
 // AppErrorFromJSON will decode the input and return an AppError
 func AppErrorFromJSON(data io.Reader) *AppError {
 	str := ""
-	bytes, rerr := ioutil.ReadAll(data)
+	bytes, rerr := io.ReadAll(data)
 	if rerr != nil {
 		str = rerr.Error()
 	} else {
@@ -249,20 +346,21 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	var er AppError
 	err := decoder.Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
+		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
 	}
 	return &er
 }
 
-func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
-	ap := &AppError{}
-	ap.Id = id
-	ap.params = params
-	ap.Message = id
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = status
-	ap.IsOAuth = false
+func NewAppError(where string, id string, params map[string]any, details string, status int) *AppError {
+	ap := &AppError{
+		Id:            id,
+		params:        params,
+		Message:       id,
+		Where:         where,
+		DetailedError: details,
+		StatusCode:    status,
+		IsOAuth:       false,
+	}
 	ap.Translate(translateFunc)
 	return ap
 }
@@ -356,23 +454,25 @@ func MapBoolToJSON(objmap map[string]bool) string {
 
 // MapFromJSON will decode the key/value pair map
 func MapFromJSON(data io.Reader) map[string]string {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]string)
 	}
+
 	return objmap
 }
 
 // MapFromJSON will decode the key/value pair map
 func MapBoolFromJSON(data io.Reader) map[string]bool {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]bool
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]bool)
 	}
+
 	return objmap
 }
 
@@ -382,19 +482,20 @@ func ArrayToJSON(objmap []string) string {
 }
 
 func ArrayFromJSON(data io.Reader) []string {
-	decoder := json.NewDecoder(data)
-
 	var objmap []string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make([]string, 0)
 	}
+
 	return objmap
 }
 
-func ArrayFromInterface(data interface{}) []string {
+func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
-	dataArray, ok := data.([]interface{})
+	dataArray, ok := data.([]any)
 	if !ok {
 		return stringArray
 	}
@@ -408,23 +509,24 @@ func ArrayFromInterface(data interface{}) []string {
 	return stringArray
 }
 
-func StringInterfaceToJSON(objmap map[string]interface{}) string {
+func StringInterfaceToJSON(objmap map[string]any) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJSON(data io.Reader) map[string]interface{} {
-	decoder := json.NewDecoder(data)
+func StringInterfaceFromJSON(data io.Reader) map[string]any {
+	var objmap map[string]any
 
-	var objmap map[string]interface{}
-	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]interface{})
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make(map[string]any)
 	}
+
 	return objmap
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
-func ToJSON(v interface{}) []byte {
+func ToJSON(v any) []byte {
 	b, _ := json.Marshal(v)
 	return b
 }
@@ -531,7 +633,7 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
 }
 
-func Etag(parts ...interface{}) string {
+func Etag(parts ...any) string {
 
 	etag := CurrentVersion
 

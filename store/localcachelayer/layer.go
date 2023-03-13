@@ -408,11 +408,11 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 	}
 }
 
-func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value interface{}) {
+func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value any) {
 	cache.SetWithDefaultExpiry(key, value)
 }
 
-func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value interface{}) error {
+func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value any) error {
 	err := cache.Get(key, value)
 	if err == nil {
 		if s.metrics != nil {

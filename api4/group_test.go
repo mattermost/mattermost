@@ -98,7 +98,7 @@ func TestCreateGroup(t *testing.T) {
 
 	_, response, err := th.SystemAdminClient.CreateGroup(gbroken)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	validGroup := &model.Group{
 		DisplayName:    "dn_" + model.NewId(),
@@ -137,7 +137,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 	unReferenceableCustomGroup.AllowReference = true
 	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.NoError(t, err)
@@ -152,7 +152,17 @@ func TestCreateGroup(t *testing.T) {
 	}
 	_, response, err = th.SystemAdminClient.CreateGroup(customGroupWithRemoteID)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
+
+	reservedNameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("here"),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(reservedNameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.CreateGroup(g)
@@ -178,16 +188,16 @@ func TestDeleteGroup(t *testing.T) {
 
 	_, response, err := th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
 	require.Error(t, err)
@@ -204,6 +214,39 @@ func TestDeleteGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 }
+
+func TestUndeleteGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	validGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewString("name" + model.NewId()),
+		Source:      model.GroupSourceCustom,
+	})
+	assert.Nil(t, appErr)
+
+	_, response, err := th.Client.DeleteGroup(validGroup.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+	// shouldn't allow restoring unless user has required permission
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, response)
+
+	th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
+}
+
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -293,6 +336,12 @@ func TestPatchGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	require.Equal(t, true, patchedG2.AllowReference)
+
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name: model.NewString("here"),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.PatchGroup(group.Id, gp)
@@ -939,7 +988,11 @@ func TestGetGroupsByChannel(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByChannel(th.BasicChannel.Id, opts)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		if client == th.SystemAdminClient {
+			CheckNotImplementedStatus(t, response)
+		} else {
+			CheckForbiddenStatus(t, response)
+		}
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -1098,7 +1151,11 @@ func TestGetGroupsByTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		if client == th.SystemAdminClient {
+			CheckNotImplementedStatus(t, response)
+		} else {
+			CheckForbiddenStatus(t, response)
+		}
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -1240,6 +1297,28 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
 
+	// Test IncludeChannelMemberCount url param is working
+	opts.IncludeChannelMemberCount = th.BasicChannel.Id
+	opts.IncludeTimezones = true
+	opts.Q = "-fOo"
+	opts.IncludeMemberCount = true
+
+	groups, _, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.Equal(t, *groups[0].MemberCount, int(0))
+	assert.Equal(t, *groups[0].ChannelMemberCount, int(0))
+
+	_, appErr = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
+	assert.Nil(t, appErr)
+
+	groups, _, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.NotNil(t, groups[0].MemberCount)
+	assert.Equal(t, *groups[0].ChannelMemberCount, int(1))
+
+	opts.IncludeChannelMemberCount = ""
+	opts.IncludeTimezones = false
+	opts.Q = ""
+	opts.IncludeMemberCount = false
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableCustomGroups = false
 	})
@@ -1248,7 +1327,7 @@ func TestGetGroups(t *testing.T) {
 	opts.Source = model.GroupSourceCustom
 	_, response, err := th.Client.GetGroups(opts)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	// Specify ldap groups source when custom groups feature is disabled
 	opts.Source = model.GroupSourceLdap
@@ -1494,7 +1573,7 @@ func TestAddMembersToGroup(t *testing.T) {
 
 	assert.Len(t, groupMembers, 2)
 
-	count, countErr := th.App.GetGroupMemberCount(group.Id)
+	count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
 	assert.Nil(t, countErr)
 
 	assert.Equal(t, count, int64(2))
@@ -1527,7 +1606,7 @@ func TestAddMembersToGroup(t *testing.T) {
 	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(ldapGroup.Id, members)
 
 	require.Error(t, upsertErr)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestDeleteMembersFromGroup(t *testing.T) {
@@ -1605,5 +1684,5 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(ldapGroup.Id, members)
 
 	require.Error(t, deleteErr)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 }

@@ -20,6 +20,7 @@ func AssertLog(t *testing.T, logs io.Reader, level, message string) {
 		if err := dec.Decode(&log); err == io.EOF {
 			break
 		} else if err != nil {
+			t.Logf("Error decoding log entry: %s", err)
 			continue
 		}
 
@@ -42,6 +43,7 @@ func AssertNoLog(t *testing.T, logs io.Reader, level, message string) {
 		if err := dec.Decode(&log); err == io.EOF {
 			break
 		} else if err != nil {
+			t.Logf("Error decoding log entry: %s", err)
 			continue
 		}
 

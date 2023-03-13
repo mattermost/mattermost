@@ -16,6 +16,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,11 +24,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store/storetest"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -59,81 +60,6 @@ func TestStartServerSuccess(t *testing.T) {
 	require.NoError(t, serverErr)
 }
 
-func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
-	cfg := model.Config{}
-	cfg.SetDefaults()
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
-	dsn := ""
-	if driverName == model.DatabaseDriverPostgres {
-		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
-	} else {
-		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
-	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
-	if dsn != "" {
-		cfg.SqlSettings.DataSource = &dsn
-	}
-	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
-	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
-
-	t.Run("Read Replicas with no License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = &configWrapper{srv: server, Store: configStore}
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
-		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
-	})
-
-	t.Run("Read Replicas With License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = &configWrapper{srv: server, Store: configStore}
-			server.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
-		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
-	})
-
-	t.Run("Search Replicas with no License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = &configWrapper{srv: server, Store: configStore}
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
-		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
-	})
-
-	t.Run("Search Replicas With License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			server.configStore = &configWrapper{srv: server, Store: configStore}
-			server.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
-		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
-	})
-}
-
 func TestStartServerPortUnavailable(t *testing.T) {
 	s, err := NewServer()
 	require.NoError(t, err)
@@ -143,7 +69,7 @@ func TestStartServerPortUnavailable(t *testing.T) {
 	require.NoError(t, err)
 
 	// Attempt to listen on the port used above.
-	s.UpdateConfig(func(cfg *model.Config) {
+	s.platform.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
 	})
 
@@ -164,24 +90,29 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+	configStore, _ := config.NewFileStore("config.json", true)
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+
+	cfg := store.Get()
+	cfg.FileSettings = model.FileSettings{
+		DriverName:              model.NewString(model.ImageDriverS3),
+		AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
+		AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
+		AmazonS3Bucket:          model.NewString("nosuchbucket"),
+		AmazonS3Endpoint:        model.NewString(s3Endpoint),
+		AmazonS3Region:          model.NewString(""),
+		AmazonS3PathPrefix:      model.NewString(""),
+		AmazonS3SSL:             model.NewBool(false),
+	}
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	_, _, err := store.Set(cfg)
+	require.NoError(t, err)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		server.configStore = &configWrapper{srv: server, Store: store}
-		server.UpdateConfig(func(cfg *model.Config) {
-			cfg.FileSettings = model.FileSettings{
-				DriverName:              model.NewString(model.ImageDriverS3),
-				AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
-				AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
-				AmazonS3Bucket:          model.NewString("nosuchbucket"),
-				AmazonS3Endpoint:        model.NewString(s3Endpoint),
-				AmazonS3Region:          model.NewString(""),
-				AmazonS3PathPrefix:      model.NewString(""),
-				AmazonS3SSL:             model.NewBool(false),
-			}
-			*cfg.ServiceSettings.ListenAddress = ":0"
-		})
+		var err2 error
+		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
+		require.NoError(t, err2)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -190,6 +121,8 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	defer s.Shutdown()
 
 	// ensure that a new bucket was created
+	require.IsType(t, &filestore.S3FileBackend{}, s.FileBackend())
+
 	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
 	require.NoError(t, err)
 }
@@ -383,17 +316,18 @@ func TestPanicLog(t *testing.T) {
 	logger.LockConfiguration()
 
 	// Creating a server with logger
-	s, err := NewServer(SetLogger(logger))
+	s, err := NewServer()
 	require.NoError(t, err)
+	s.Platform().SetLogger(logger)
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		s.Log.Info("inside panic handler")
+		s.Log().Info("inside panic handler")
 		panic("log this panic")
 	})
 
 	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
+	s.platform.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
@@ -543,4 +477,13 @@ func TestSentry(t *testing.T) {
 			require.Fail(t, "Sentry report didn't arrive")
 		}
 	})
+}
+
+func TestCancelTaskSetsTaskToNil(t *testing.T) {
+	var taskMut sync.Mutex
+	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
+	require.NotNil(t, task)
+	cancelTask(&taskMut, &task)
+	require.Nil(t, task)
+	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }

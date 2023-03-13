@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -38,27 +39,48 @@ const (
 )
 
 type Channel struct {
-	Id                string                 `json:"id"`
-	CreateAt          int64                  `json:"create_at"`
-	UpdateAt          int64                  `json:"update_at"`
-	DeleteAt          int64                  `json:"delete_at"`
-	TeamId            string                 `json:"team_id"`
-	Type              ChannelType            `json:"type"`
-	DisplayName       string                 `json:"display_name"`
-	Name              string                 `json:"name"`
-	Header            string                 `json:"header"`
-	Purpose           string                 `json:"purpose"`
-	LastPostAt        int64                  `json:"last_post_at"`
-	TotalMsgCount     int64                  `json:"total_msg_count"`
-	ExtraUpdateAt     int64                  `json:"extra_update_at"`
-	CreatorId         string                 `json:"creator_id"`
-	SchemeId          *string                `json:"scheme_id"`
-	Props             map[string]interface{} `json:"props"`
-	GroupConstrained  *bool                  `json:"group_constrained"`
-	Shared            *bool                  `json:"shared"`
-	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
-	PolicyID          *string                `json:"policy_id"`
-	LastRootPostAt    int64                  `json:"last_root_post_at"`
+	Id                string         `json:"id"`
+	CreateAt          int64          `json:"create_at"`
+	UpdateAt          int64          `json:"update_at"`
+	DeleteAt          int64          `json:"delete_at"`
+	TeamId            string         `json:"team_id"`
+	Type              ChannelType    `json:"type"`
+	DisplayName       string         `json:"display_name"`
+	Name              string         `json:"name"`
+	Header            string         `json:"header"`
+	Purpose           string         `json:"purpose"`
+	LastPostAt        int64          `json:"last_post_at"`
+	TotalMsgCount     int64          `json:"total_msg_count"`
+	ExtraUpdateAt     int64          `json:"extra_update_at"`
+	CreatorId         string         `json:"creator_id"`
+	SchemeId          *string        `json:"scheme_id"`
+	Props             map[string]any `json:"props"`
+	GroupConstrained  *bool          `json:"group_constrained"`
+	Shared            *bool          `json:"shared"`
+	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
+	PolicyID          *string        `json:"policy_id"`
+	LastRootPostAt    int64          `json:"last_root_post_at"`
+}
+
+func (o *Channel) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"create_at":            o.CreateAt,
+		"creator_id":           o.CreatorId,
+		"delete_at":            o.DeleteAt,
+		"extra_group_at":       o.ExtraUpdateAt,
+		"group_constrained":    o.GroupConstrained,
+		"id":                   o.Id,
+		"last_post_at":         o.LastPostAt,
+		"last_root_post_at":    o.LastRootPostAt,
+		"policy_id":            o.PolicyID,
+		"props":                o.Props,
+		"scheme_id":            o.SchemeId,
+		"shared":               o.Shared,
+		"team_id":              o.TeamId,
+		"total_msg_count_root": o.TotalMsgCountRoot,
+		"type":                 o.Type,
+		"update_at":            o.UpdateAt,
+	}
 }
 
 type ChannelWithTeamData struct {
@@ -79,6 +101,14 @@ type ChannelPatch struct {
 	Header           *string `json:"header"`
 	Purpose          *string `json:"purpose"`
 	GroupConstrained *bool   `json:"group_constrained"`
+}
+
+func (c *ChannelPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"header":            c.Header,
+		"group_constrained": c.GroupConstrained,
+		"purpose":           c.Purpose,
+	}
 }
 
 type ChannelForExport struct {
@@ -127,11 +157,10 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup     string
 	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool
+	IncludeDeleted           bool // If true, deleted channels will be included in the results.
 	Deleted                  bool
 	ExcludeChannelNames      []string
 	TeamIds                  []string
@@ -145,7 +174,7 @@ type ChannelSearchOpts struct {
 	Private                  bool
 	Page                     *int
 	PerPage                  *int
-	LastDeleteAt             int
+	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
 	LastUpdateAt             int
 }
 
@@ -156,6 +185,8 @@ type ChannelMemberCountByGroup struct {
 }
 
 type ChannelOption func(channel *Channel)
+
+var gmNameRegex = regexp.MustCompile("^[a-f0-9]{40}$")
 
 func WithID(ID string) ChannelOption {
 	return func(channel *Channel) {
@@ -186,6 +217,22 @@ func (o *Channel) LastPostAt_() float64 {
 
 func (o *Channel) TotalMsgCount_() float64 {
 	return float64(o.TotalMsgCount)
+}
+
+func (o *Channel) TotalMsgCountRoot_() float64 {
+	return float64(o.TotalMsgCountRoot)
+}
+
+func (o *Channel) LastRootPostAt_() float64 {
+	return float64(o.LastRootPostAt)
+}
+
+func (o *Channel) ExtraUpdateAt_() float64 {
+	return float64(o.ExtraUpdateAt)
+}
+
+func (o *Channel) Props_() StringInterface {
+	return StringInterface(o.Props)
 }
 
 func (o *Channel) DeepCopy() *Channel {
@@ -237,9 +284,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	userIds := strings.Split(o.Name, "__")
-	if o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	if o.Type != ChannelTypeDirect && o.Type != ChannelTypeGroup {
+		userIds := strings.Split(o.Name, "__")
+		if ok := gmNameRegex.MatchString(o.Name); ok || (o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1])) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
@@ -252,8 +301,9 @@ func (o *Channel) PreSave() {
 
 	o.Name = SanitizeUnicode(o.Name)
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
-
-	o.CreateAt = GetMillis()
+	if o.CreateAt == 0 {
+		o.CreateAt = GetMillis()
+	}
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
 }
@@ -296,11 +346,11 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 func (o *Channel) MakeNonNil() {
 	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+		o.Props = make(map[string]any)
 	}
 }
 
-func (o *Channel) AddProp(key string, value interface{}) {
+func (o *Channel) AddProp(key string, value any) {
 	o.MakeNonNil()
 
 	o.Props[key] = value
@@ -342,7 +392,7 @@ func (t ChannelType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
 }
 
-func (t *ChannelType) UnmarshalGraphQL(input interface{}) error {
+func (t *ChannelType) UnmarshalGraphQL(input any) error {
 	chType, ok := input.(string)
 	if !ok {
 		return errors.New("wrong type")

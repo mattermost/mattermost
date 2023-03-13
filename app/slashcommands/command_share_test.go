@@ -33,13 +33,13 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		th.Server.SetRemoteClusterService(mockRemoteCluster)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(false))
 
 		args := &model.CommandArgs{
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			ChannelId: channel.Id,
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -69,12 +69,12 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		th.Server.SetRemoteClusterService(mockRemoteCluster)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
 		args := &model.CommandArgs{
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			ChannelId: channel.Id,
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,

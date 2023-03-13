@@ -40,19 +40,19 @@ func (n *ProductNotice) TeamAdminOnly() bool {
 }
 
 type Conditions struct {
-	Audience              *NoticeAudience        `json:"audience,omitempty"`
-	ClientType            *NoticeClientType      `json:"clientType,omitempty"`     // Only show the notice on specific clients. Defaults to 'all'
-	DesktopVersion        []string               `json:"desktopVersion,omitempty"` // What desktop client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	DisplayDate           *string                `json:"displayDate,omitempty"`    // When to display the notice.; Examples:; "2020-03-01T00:00:00Z" - show on specified date; ">= 2020-03-01T00:00:00Z" - show after specified date; "< 2020-03-01T00:00:00Z" - show before the specified date; "> 2020-03-01T00:00:00Z <= 2020-04-01T00:00:00Z" - show only between the specified dates
-	InstanceType          *NoticeInstanceType    `json:"instanceType,omitempty"`
-	MobileVersion         []string               `json:"mobileVersion,omitempty"` // What mobile client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	NumberOfPosts         *int64                 `json:"numberOfPosts,omitempty"` // Only show the notice when server has more than specified number of posts
-	NumberOfUsers         *int64                 `json:"numberOfUsers,omitempty"` // Only show the notice when server has more than specified number of users
-	ServerConfig          map[string]interface{} `json:"serverConfig,omitempty"`  // Map of mattermost server config paths and their values. Notice will be displayed only if; the values match the target server config; Example: serverConfig: { "PluginSettings.Enable": true, "GuestAccountsSettings.Enable":; false }
-	ServerVersion         []string               `json:"serverVersion,omitempty"` // What server versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	Sku                   *NoticeSKU             `json:"sku,omitempty"`
-	UserConfig            map[string]interface{} `json:"userConfig,omitempty"`             // Map of user's settings and their values. Notice will be displayed only if the values; match the viewing users' config; Example: userConfig: { "new_sidebar.disabled": true }
-	DeprecatingDependency *ExternalDependency    `json:"deprecating_dependency,omitempty"` // External dependency which is going to be deprecated
+	Audience              *NoticeAudience     `json:"audience,omitempty"`
+	ClientType            *NoticeClientType   `json:"clientType,omitempty"`     // Only show the notice on specific clients. Defaults to 'all'
+	DesktopVersion        []string            `json:"desktopVersion,omitempty"` // What desktop client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
+	DisplayDate           *string             `json:"displayDate,omitempty"`    // When to display the notice.; Examples:; "2020-03-01T00:00:00Z" - show on specified date; ">= 2020-03-01T00:00:00Z" - show after specified date; "< 2020-03-01T00:00:00Z" - show before the specified date; "> 2020-03-01T00:00:00Z <= 2020-04-01T00:00:00Z" - show only between the specified dates
+	InstanceType          *NoticeInstanceType `json:"instanceType,omitempty"`
+	MobileVersion         []string            `json:"mobileVersion,omitempty"` // What mobile client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
+	NumberOfPosts         *int64              `json:"numberOfPosts,omitempty"` // Only show the notice when server has more than specified number of posts
+	NumberOfUsers         *int64              `json:"numberOfUsers,omitempty"` // Only show the notice when server has more than specified number of users
+	ServerConfig          map[string]any      `json:"serverConfig,omitempty"`  // Map of mattermost server config paths and their values. Notice will be displayed only if; the values match the target server config; Example: serverConfig: { "PluginSettings.Enable": true, "GuestAccountsSettings.Enable":; false }
+	ServerVersion         []string            `json:"serverVersion,omitempty"` // What server versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
+	Sku                   *NoticeSKU          `json:"sku,omitempty"`
+	UserConfig            map[string]any      `json:"userConfig,omitempty"`             // Map of user's settings and their values. Notice will be displayed only if the values; match the viewing users' config; Example: userConfig: { "new_sidebar.disabled": true }
+	DeprecatingDependency *ExternalDependency `json:"deprecating_dependency,omitempty"` // External dependency which is going to be deprecated
 }
 
 type NoticeMessageInternal struct {

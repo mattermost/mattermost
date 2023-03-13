@@ -29,36 +29,6 @@ func (ch *channel) Team(ctx context.Context) (*model.Team, error) {
 	return getGraphQLTeam(ctx, ch.TeamId)
 }
 
-// match with api4.getChannelStats
-func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
-	c, err := getCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return nil, c.Err
-	}
-
-	memberCount, appErr := c.App.GetChannelMemberCount(ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	guestCount, appErr := c.App.GetChannelGuestCount(ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	return &model.ChannelStats{ChannelId: ch.Id, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}, nil
-}
-
 func (ch *channel) Cursor() *string {
 	cursor := string(channelCursorPrefix) + "-" + ch.Id
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))
@@ -71,28 +41,34 @@ func parseChannelCursor(cursor string) (channelID string, ok bool) {
 		return "", false
 	}
 
-	parts := strings.Split(string(decoded), "-")
-	if len(parts) != 2 {
+	prefix, id, found := strings.Cut(string(decoded), "-")
+	if !found {
 		return "", false
 	}
 
-	if cursorPrefix(parts[0]) != channelCursorPrefix {
+	if cursorPrefix(prefix) != channelCursorPrefix {
 		return "", false
 	}
 
-	return parts[1], true
+	return id, true
 }
 
 func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel, error) {
 	// This approach becomes effectively similar to a dataloader if the displayName computation
 	// were to be done at the field level per channel.
 
-	// Get DM/GM channelIDs
+	// Get DM/GM channelIDs and set empty maps as well.
 	var channelIDs []string
 	for _, ch := range channels {
 		if ch.IsGroupOrDirect() {
 			channelIDs = append(channelIDs, ch.Id)
 		}
+
+		// This is needed to avoid sending null, which
+		// does not match with the schema since props is not nullable.
+		// And making it nullable would mean taking pointer of a map,
+		// which is not very idiomatic.
+		ch.MakeNonNil()
 	}
 
 	var nameFormat string
@@ -101,7 +77,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 
 	// Avoiding unnecessary queries unless necessary.
 	if len(channelIDs) > 0 {
-		userInfo, err = c.App.Srv().Store.Channel().GetMembersInfoByChannelIds(channelIDs)
+		userInfo, err = c.App.Srv().Store().Channel().GetMembersInfoByChannelIds(channelIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -111,8 +87,9 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 	}
 
 	// Convert to the wrapper format.
-	res := make([]*channel, 0, len(channels))
-	for _, ch := range channels {
+	nameCache := make(map[string]string)
+	res := make([]*channel, len(channels))
+	for i, ch := range channels {
 		prettyName := ch.DisplayName
 
 		if ch.IsGroupOrDirect() {
@@ -121,37 +98,39 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			if users == nil {
 				return nil, fmt.Errorf("user info not found for channel id: %s", ch.Id)
 			}
-			prettyName = getPrettyDNForUsers(nameFormat, users, c.AppContext.Session().UserId)
+			prettyName = getPrettyDNForUsers(nameFormat, users, c.AppContext.Session().UserId, nameCache)
 		}
 
-		res = append(res, &channel{Channel: *ch, PrettyDisplayName: prettyName})
+		res[i] = &channel{Channel: *ch, PrettyDisplayName: prettyName}
 	}
 
 	return res, nil
 }
 
-func getPrettyDNForUsers(displaySetting string, users []*model.User, omitUserId string) string {
+func getPrettyDNForUsers(displaySetting string, users []*model.User, omitUserId string, cache map[string]string) string {
 	displayNames := make([]string, 0, len(users))
-	// TODO: optimize this logic.
-	// Name computation happens repeatedly for the same user from
-	// multiple channels.
 	for _, u := range users {
 		if u.Id == omitUserId {
 			continue
 		}
-		displayNames = append(displayNames, getPrettyDNForUser(displaySetting, u))
+		displayNames = append(displayNames, getPrettyDNForUser(displaySetting, u, cache))
 	}
 
 	sort.Strings(displayNames)
 	result := strings.Join(displayNames, ", ")
 	if result == "" {
 		// Self DM
-		result = getPrettyDNForUser(displaySetting, users[0])
+		result = getPrettyDNForUser(displaySetting, users[0], cache)
 	}
 	return result
 }
 
-func getPrettyDNForUser(displaySetting string, user *model.User) string {
+func getPrettyDNForUser(displaySetting string, user *model.User, cache map[string]string) string {
+	// use the cache first
+	if name, ok := cache[user.Id]; ok {
+		return name
+	}
+
 	var displayName string
 	switch displaySetting {
 	case "nickname_full_name":
@@ -170,6 +149,9 @@ func getPrettyDNForUser(displaySetting string, user *model.User) string {
 	default: // the "username" case also falls under this one.
 		displayName = user.Username
 	}
+
+	// update the cache
+	cache[user.Id] = displayName
 
 	return displayName
 }

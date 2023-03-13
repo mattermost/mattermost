@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -33,9 +34,10 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 
 	mockServer := scs.server.(*MockServerIface)
 	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("Log").Return(mlog.NewLogger())
 
 	mockApp := scs.app.(*MockAppIface)
-	mockApp.On("SendEphemeralPost", "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
+	mockApp.On("SendEphemeralPost", mock.Anything, "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
 	defer mockApp.AssertExpectations(t)
 
 	t.Run("same channel", func(t *testing.T) {

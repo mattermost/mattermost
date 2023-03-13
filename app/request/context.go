@@ -38,14 +38,15 @@ func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acce
 	}
 }
 
-func EmptyContext() *Context {
+func EmptyContext(logger mlog.LoggerIFace) *Context {
 	return &Context{
 		t:       i18n.T,
+		logger:  logger,
 		context: context.Background(),
 	}
 }
 
-func (c *Context) T(translationID string, args ...interface{}) string {
+func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
 func (c *Context) Session() *model.Session {
@@ -115,4 +116,28 @@ func (c *Context) SetAppError(err *model.AppError) {
 
 func (c *Context) AppError() *model.AppError {
 	return c.err
+}
+
+type CTX interface {
+	T(string, ...interface{}) string
+	Session() *model.Session
+	RequestId() string
+	IPAddress() string
+	Path() string
+	UserAgent() string
+	AcceptLanguage() string
+	Context() context.Context
+	SetSession(s *model.Session)
+	SetT(i18n.TranslateFunc)
+	SetRequestId(string)
+	SetIPAddress(string)
+	SetUserAgent(string)
+	SetAcceptLanguage(string)
+	SetPath(string)
+	SetContext(ctx context.Context)
+	GetT() i18n.TranslateFunc
+	SetLogger(mlog.LoggerIFace)
+	Logger() mlog.LoggerIFace
+	SetAppError(*model.AppError)
+	AppError() *model.AppError
 }

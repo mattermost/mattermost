@@ -21,7 +21,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	th.addPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -38,7 +38,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	th.removePermissionFromRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 	}
 
@@ -51,7 +51,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	th.addPermissionToRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -63,7 +63,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	th.removePermissionFromRole(model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 	}
 
@@ -77,7 +77,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	groupChannel := th.createGroupChannel(user1, user2)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: groupChannel.Id,
 	}
 
@@ -88,7 +88,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	directChannel := th.createDmChannel(user1)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: directChannel.Id,
 	}
 

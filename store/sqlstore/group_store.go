@@ -81,18 +81,18 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Group, error) {
+func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.Group, err error) {
 	if g.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", g.Id)
 	}
 
 	// Check if group values are formatted correctly
-	if err := g.IsValidForCreate(); err != nil {
-		return nil, err
+	if appErr := g.IsValidForCreate(); appErr != nil {
+		return nil, appErr
 	}
 
 	// Check Users exist
-	if err := s.checkUsersExist(g.UserIds); err != nil {
+	if err = s.checkUsersExist(g.UserIds); err != nil {
 		return nil, err
 	}
 
@@ -118,7 +118,8 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Gro
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransactionX(txn)
+	defer finalizeTransactionX(txn, &err)
+
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
@@ -199,7 +200,7 @@ func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
 	return nil
 }
 
-func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []string) (query string, args []interface{}, err error) {
+func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []string) (query string, args []any, err error) {
 	if len(userIds) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
@@ -359,6 +360,25 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	return &group, nil
 }
 
+func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
+	var group model.Group
+	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Group", groupID)
+		}
+		return nil, errors.Wrapf(err, "failed to get Group with id=%s", groupID)
+	}
+
+	time := model.GetMillis()
+	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
+		SET DeleteAt=0, UpdateAt=?
+		WHERE Id=? AND DeleteAt!=0`, time, groupID); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
+	}
+
+	return &group, nil
+}
+
 func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("*").
@@ -400,58 +420,93 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	return s.GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, model.ShowUsername)
+}
+
+func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-			AND GroupId = ?
-		ORDER BY
-			GroupMembers.CreateAt DESC
-		LIMIT
-			?
-		OFFSET
-			?`
+	userQuery := s.getQueryBuilder().
+		Select(`u.*`).
+		From("GroupMembers").
+		Join("Users u ON u.Id = GroupMembers.UserId").
+		Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"GroupId": groupID})
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, perPage, page*perPage); err != nil {
+	userQuery = applyViewRestrictionsFilter(userQuery, viewRestrictions, true)
+	queryString, args, err := userQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	orderQuery := s.getQueryBuilder().
+		Select("u.*").
+		From("(" + queryString + ") AS u")
+
+	if teammateNameDisplay == model.ShowNicknameFullName {
+		orderQuery = orderQuery.OrderBy(`
+		CASE
+			WHEN u.Nickname != '' THEN u.Nickname
+			WHEN u.FirstName !=  '' AND u.LastName != '' THEN CONCAT(u.FirstName, ' ', u.LastName)
+			WHEN u.FirstName != '' THEN u.FirstName
+			WHEN u.LastName != '' THEN u.LastName
+			ELSE u.Username
+		END`)
+	} else if teammateNameDisplay == model.ShowFullName {
+		orderQuery = orderQuery.OrderBy(`
+		CASE
+			WHEN u.FirstName !=  '' AND u.LastName != '' THEN CONCAT(u.FirstName, ' ', u.LastName)
+			WHEN u.FirstName != '' THEN u.FirstName
+			WHEN u.LastName != '' THEN u.LastName
+			ELSE u.Username
+		END`)
+	} else {
+		orderQuery = orderQuery.OrderBy("u.Username")
+	}
+
+	orderQuery = orderQuery.
+		Limit(uint64(perPage)).
+		Offset(uint64(page * perPage))
+
+	queryString, _, err = orderQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
 	if err := s.GetReplicaX().Get(&model.Group{}, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
 		return nil, errors.Wrap(err, "GetNonMemberUsersPage")
 	}
 
-	query := `
-	SELECT 
-		Users.*
-	FROM
-		Users
-	LEFT JOIN 
-		GroupMembers ON (GroupMembers.UserId = Users.Id AND GroupMembers.GroupId = ?)
-	WHERE
-		Users.DeleteAt = 0
-		AND ( GroupMembers.UserId IS NULL OR GroupMembers.DeleteAt != 0)
-	ORDER BY
-		GroupMembers.CreateAt DESC
-	LIMIT
-		?
-	OFFSET
-		?`
+	query := s.getQueryBuilder().
+		Select("u.*").
+		From("Users u").
+		LeftJoin("GroupMembers ON (GroupMembers.UserId = u.Id AND GroupMembers.GroupId = ?)", groupID).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where("(GroupMembers.UserID IS NULL OR GroupMembers.DeleteAt != 0)").
+		Limit(uint64(perPage)).
+		Offset(uint64(page * perPage)).
+		OrderBy("u.Username ASC")
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, perPage, page*perPage); err != nil {
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
@@ -459,19 +514,27 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 }
 
 func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
-	query := `
-		SELECT
-			count(*)
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.GroupId = ?
-			AND Users.DeleteAt = 0
-			AND GroupMembers.DeleteAt = 0`
+	return s.GetMemberCountWithRestrictions(groupID, nil)
+}
+
+func (s *SqlGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(DISTINCT u.Id)").
+		From("GroupMembers").
+		Join("Users u ON u.Id = GroupMembers.UserId").
+		Where(sq.Eq{"GroupMembers.GroupId": groupID}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"GroupMembers.DeleteAt": 0})
+
+	query = applyViewRestrictionsFilter(query, viewRestrictions, false)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "")
+	}
 
 	var count int64
-	err := s.GetReplicaX().Get(&count, query, groupID)
+	err = s.GetReplicaX().Get(&count, queryString, args...)
 	if err != nil {
 		return int64(0), errors.Wrapf(err, "failed to count member Users for Group with id=%s", groupID)
 	}
@@ -631,7 +694,7 @@ func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, sync
 
 func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	var err error
-	var result interface{}
+	var result any
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
@@ -1027,34 +1090,38 @@ func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupS
 }
 
 type group struct {
-	Id             string
-	Name           *string
-	DisplayName    string
-	Description    string
-	Source         model.GroupSource
-	RemoteId       *string
-	CreateAt       int64
-	UpdateAt       int64
-	DeleteAt       int64
-	HasSyncables   bool
-	MemberCount    *int
-	AllowReference bool
+	Id                          string
+	Name                        *string
+	DisplayName                 string
+	Description                 string
+	Source                      model.GroupSource
+	RemoteId                    *string
+	CreateAt                    int64
+	UpdateAt                    int64
+	DeleteAt                    int64
+	HasSyncables                bool
+	MemberCount                 *int
+	AllowReference              bool
+	ChannelMemberCount          *int
+	ChannelMemberTimezonesCount *int
 }
 
 func (g group) ToModel() *model.Group {
 	return &model.Group{
-		Id:             g.Id,
-		Name:           g.Name,
-		DisplayName:    g.DisplayName,
-		Description:    g.Description,
-		Source:         g.Source,
-		RemoteId:       g.RemoteId,
-		CreateAt:       g.CreateAt,
-		UpdateAt:       g.UpdateAt,
-		DeleteAt:       g.DeleteAt,
-		HasSyncables:   g.HasSyncables,
-		AllowReference: g.AllowReference,
-		MemberCount:    g.MemberCount,
+		Id:                          g.Id,
+		Name:                        g.Name,
+		DisplayName:                 g.DisplayName,
+		Description:                 g.Description,
+		Source:                      g.Source,
+		RemoteId:                    g.RemoteId,
+		CreateAt:                    g.CreateAt,
+		UpdateAt:                    g.UpdateAt,
+		DeleteAt:                    g.DeleteAt,
+		HasSyncables:                g.HasSyncables,
+		AllowReference:              g.AllowReference,
+		MemberCount:                 g.MemberCount,
+		ChannelMemberCount:          g.ChannelMemberCount,
+		ChannelMemberTimezonesCount: g.ChannelMemberTimezonesCount,
 	}
 }
 
@@ -1378,26 +1445,80 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 	groups := map[string][]*model.GroupWithSchemeAdmin{}
 	for _, tgroup := range tgroups {
 		group := tgroup.groupWithSchemeAdmin.ToModel()
-
-		if val, ok := groups[tgroup.ChannelId]; ok {
-			groups[tgroup.ChannelId] = append(val, group)
-		} else {
-			groups[tgroup.ChannelId] = []*model.GroupWithSchemeAdmin{group}
-		}
+		groups[tgroup.ChannelId] = append(groups[tgroup.ChannelId], group)
 	}
 
 	return groups, nil
 }
 
-func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 	groupsVar := groups{}
 
-	groupsQuery := s.getQueryBuilder().Select("g.*")
+	selectQuery := []string{"g.*"}
 
 	if opts.IncludeMemberCount {
-		groupsQuery = s.getQueryBuilder().
-			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id")
+		selectQuery = append(selectQuery, "coalesce(Members.MemberCount, 0) AS MemberCount")
+	}
+
+	if opts.IncludeChannelMemberCount != "" {
+		selectQuery = append(selectQuery, "coalesce(ChannelMembers.ChannelMemberCount, 0) AS ChannelMemberCount")
+		if opts.IncludeTimezones {
+			selectQuery = append(selectQuery, "coalesce(ChannelMembers.ChannelMemberTimezonesCount, 0) AS ChannelMemberTimezonesCount")
+		}
+	}
+
+	groupsQuery := s.getQueryBuilder().Select(strings.Join(selectQuery, ", "))
+
+	if opts.IncludeMemberCount {
+		countQuery := s.getQueryBuilder().
+			Select("GroupMembers.GroupId, COUNT(DISTINCT u.Id) AS MemberCount").
+			From("GroupMembers").
+			LeftJoin("Users u ON u.Id = GroupMembers.UserId").
+			Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
+			Where(sq.Eq{"u.DeleteAt": 0}).
+			GroupBy("GroupId")
+
+		countQuery = applyViewRestrictionsFilter(countQuery, viewRestrictions, false)
+
+		countString, params, err := countQuery.PlaceholderFormat(sq.Question).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "get_groups_tosql")
+		}
+		groupsQuery = groupsQuery.
+			LeftJoin("("+countString+") AS Members ON Members.GroupId = g.Id", params...)
+	}
+
+	if opts.IncludeChannelMemberCount != "" {
+		selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
+		joinStr := ""
+
+		if opts.IncludeTimezones {
+			if s.DriverName() == model.DatabaseDriverMysql {
+				selectStr += `,
+					COUNT(DISTINCT
+					(
+						CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.automaticTimezone'))) > 0
+						THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
+						WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'false' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.manualTimezone'))) > 0
+						THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
+						END
+					)) AS ChannelMemberTimezonesCount`
+			} else if s.DriverName() == model.DatabaseDriverPostgres {
+				selectStr += `,
+					COUNT(DISTINCT
+					(
+						CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
+						THEN Timezone->>'automaticTimezone'
+						WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
+						THEN Timezone->>'manualTimezone'
+						END
+					)) AS ChannelMemberTimezonesCount`
+			}
+			joinStr = "LEFT JOIN Users ON Users.Id = GroupMembers.UserId"
+		}
+
+		groupsQuery = groupsQuery.
+			LeftJoin("(SELECT "+selectStr+" FROM ChannelMembers LEFT JOIN GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0 "+joinStr+" WHERE ChannelMembers.ChannelId = ? GROUP BY GroupId) AS ChannelMembers ON ChannelMembers.GroupId = g.Id", opts.IncludeChannelMemberCount)
 	}
 
 	if opts.FilterHasMember != "" {
@@ -1768,7 +1889,7 @@ func (s *SqlGroupStore) countTable(tableName string) (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(*)", tableName, nil)
 }
 
-func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]interface{}) (int64, error) {
+func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]any) (int64, error) {
 	if whereStmt == nil {
 		whereStmt = sq.Eq{"DeleteAt": 0}
 	}
@@ -1802,7 +1923,7 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*mode
 	return members, err
 }
 
-func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
+func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []any, err error) {
 	var retrievedGroup model.Group
 	// Check Group exists
 	if err = s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
@@ -1854,7 +1975,7 @@ func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*mode
 	return members, err
 }
 
-func (s *SqlGroupStore) buildDeleteMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
+func (s *SqlGroupStore) buildDeleteMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []any, err error) {
 	membersSelectQuery, membersSelectArgs, err := s.getQueryBuilder().
 		Select("*").
 		From("GroupMembers").

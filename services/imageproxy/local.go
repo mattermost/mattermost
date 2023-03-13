@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net"
 	"net/http"
@@ -134,7 +133,7 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 		return nil, "", ErrLocalRequestFailed
 	}
 
-	return ioutil.NopCloser(recorder.Body), recorder.Header().Get("Content-Type"), nil
+	return io.NopCloser(recorder.Body), recorder.Header().Get("Content-Type"), nil
 }
 
 func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request) {
@@ -176,7 +175,7 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 	if contentType == "" || contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
 		// try to detect content type
 		b := bufio.NewReader(resp.Body)
-		resp.Body = ioutil.NopCloser(b)
+		resp.Body = io.NopCloser(b)
 		contentType = peekContentType(b)
 	}
 	if resp.ContentLength != 0 && !contentTypeMatches(imageContentTypes, contentType) {

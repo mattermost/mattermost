@@ -6,6 +6,7 @@ package mail
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"mime"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -52,10 +54,13 @@ type mailData struct {
 	htmlBody      string
 	embeddedFiles map[string]io.Reader
 	mimeHeaders   map[string]string
+	messageID     string
+	inReplyTo     string
+	references    string
+	category      string
 }
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
-//
 type smtpClient interface {
 	Mail(string) error
 	Rcpt(string) error
@@ -230,7 +235,7 @@ func TestConnection(config *SMTPConfig) error {
 	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string, category string) error {
 	fromMail := mail.Address{Name: config.FeedbackName, Address: config.FeedbackEmail}
 	replyTo := mail.Address{Name: config.FeedbackName, Address: config.ReplyToAddress}
 
@@ -243,13 +248,17 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		subject:       subject,
 		htmlBody:      htmlBody,
 		embeddedFiles: embeddedFiles,
+		messageID:     messageID,
+		inReplyTo:     inReplyTo,
+		references:    references,
+		category:      category,
 	}
 
 	return sendMailUsingConfigAdvanced(mail, config)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
-	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, ccMail)
+func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail, category string) error {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, messageID, inReplyTo, references, ccMail, category)
 }
 
 // allows for sending an email with differing MIME/SMTP recipients
@@ -277,10 +286,12 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 	defer c.Quit()
 	defer c.Close()
 
-	return SendMail(c, mail, time.Now())
+	return sendMail(c, mail, time.Now(), config)
 }
 
-func SendMail(c smtpClient, mail mailData, date time.Time) error {
+const SendGridXSMTPAPIHeader = "X-SMTPAPI"
+
+func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody
@@ -300,12 +311,33 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 		"Precedence":                {"bulk"},
 	}
 
+	if mail.category != "" {
+		sendgridHeader := fmt.Sprintf(`{"category": %q}`, mail.category)
+		headers[SendGridXSMTPAPIHeader] = []string{sendgridHeader}
+	}
+
 	if mail.replyTo.Address != "" {
 		headers["Reply-To"] = []string{mail.replyTo.String()}
 	}
 
 	if mail.cc != "" {
 		headers["CC"] = []string{mail.cc}
+	}
+
+	if mail.messageID != "" {
+		headers["Message-ID"] = []string{mail.messageID}
+	} else {
+		randomStringLength := 16
+		msgID := fmt.Sprintf("<%s-%d@%s>", model.NewRandomString(randomStringLength), time.Now().Unix(), config.Hostname)
+		headers["Message-ID"] = []string{msgID}
+	}
+
+	if mail.inReplyTo != "" {
+		headers["In-Reply-To"] = []string{mail.inReplyTo}
+	}
+
+	if mail.references != "" {
+		headers["References"] = []string{mail.references}
 	}
 
 	for k, v := range mail.mimeHeaders {

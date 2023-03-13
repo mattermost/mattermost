@@ -50,22 +50,6 @@ func (_m *MockServerIface) Config() *model.Config {
 	return r0
 }
 
-// GetLogger provides a mock function with given fields:
-func (_m *MockServerIface) GetLogger() mlog.LoggerIFace {
-	ret := _m.Called()
-
-	var r0 mlog.LoggerIFace
-	if rf, ok := ret.Get(0).(func() mlog.LoggerIFace); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(mlog.LoggerIFace)
-		}
-	}
-
-	return r0
-}
-
 // GetRemoteClusterService provides a mock function with given fields:
 func (_m *MockServerIface) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
 	ret := _m.Called()
@@ -107,6 +91,22 @@ func (_m *MockServerIface) IsLeader() bool {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// Log provides a mock function with given fields:
+func (_m *MockServerIface) Log() *mlog.Logger {
+	ret := _m.Called()
+
+	var r0 *mlog.Logger
+	if rf, ok := ret.Get(0).(func() *mlog.Logger); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*mlog.Logger)
+		}
 	}
 
 	return r0

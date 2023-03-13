@@ -20,8 +20,8 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 		Value: "true",
 	}
 
-	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
-		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().Store().System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -53,7 +53,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 				return
 			}
 
-			hooks, err := pluginsEnvironment.HooksForPlugin(id)
+			hooks, err := a.ch.HooksForPluginOrProduct(id)
 			if err != nil {
 				mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
 				return
@@ -72,7 +72,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {
-	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminSetupComplete)
+	firstAdminCompleteSetupObj, err := a.Srv().Store().System().GetByName(model.SystemFirstAdminSetupComplete)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -82,7 +82,7 @@ func (a *App) GetOnboarding() (*model.System, *model.AppError) {
 				Value: "false",
 			}, nil
 		default:
-			return nil, model.NewAppError("getFirstAdminCompleteSetup", "api.error_get_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getFirstAdminCompleteSetup", "api.error_get_first_admin_complete_setup", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return firstAdminCompleteSetupObj, nil

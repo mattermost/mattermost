@@ -5,7 +5,7 @@ package api4
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +21,7 @@ type testHandler struct {
 }
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	bb, err := ioutil.ReadAll(r.Body)
+	bb, err := io.ReadAll(r.Body)
 	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
 	var poir model.PostActionIntegrationRequest
@@ -65,7 +65,7 @@ func TestPostActionCookies(t *testing.T) {
 				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
@@ -80,7 +80,7 @@ func TestPostActionCookies(t *testing.T) {
 				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
@@ -95,7 +95,7 @@ func TestPostActionCookies(t *testing.T) {
 				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
@@ -112,7 +112,7 @@ func TestPostActionCookies(t *testing.T) {
 				ChannelId: th.BasicChannel.Id,
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
-				Props: map[string]interface{}{
+				Props: map[string]any{
 					"attachments": []*model.SlackAttachment{
 						{
 							Title:     "some-title",
@@ -226,7 +226,7 @@ func TestSubmitDialog(t *testing.T) {
 		UserId:     th.BasicUser.Id,
 		ChannelId:  th.BasicChannel.Id,
 		TeamId:     th.BasicTeam.Id,
-		Submission: map[string]interface{}{"somename": "somevalue"},
+		Submission: map[string]any{"somename": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

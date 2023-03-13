@@ -39,6 +39,15 @@ var (
 	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 696 hours (29 days) + 23 hours, 59 mins and 59 seconds
 )
 
+const (
+	TrueUpReviewTelemetryName          = "true_up_review_sent"
+	TrueUpReviewAuthFeaturesMfa        = "multi_factor_authentication"
+	TrueUpReviewAuthFeaturesADLdap     = "ad_ldap_sign_in"
+	TrueUpReviewAuthFeaturesSaml       = "saml_sign_in"
+	TrueUpReviewAuthFeatureOpenId      = "openid_connect"
+	TrueUpReviewAuthFeatureGuestAccess = "guest_access"
+)
+
 type LicenseRecord struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
@@ -56,6 +65,7 @@ type License struct {
 	SkuShortName string    `json:"sku_short_name"`
 	IsTrial      bool      `json:"is_trial"`
 	IsGovSku     bool      `json:"is_gov_sku"`
+	SignupJWT    *string   `json:"signup_jwt"`
 }
 
 type Customer struct {
@@ -111,8 +121,8 @@ type Features struct {
 	FutureFeatures *bool `json:"future_features"`
 }
 
-func (f *Features) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (f *Features) ToMap() map[string]any {
+	return map[string]any{
 		"ldap":                        *f.LDAP,
 		"ldap_groups":                 *f.LDAPGroups,
 		"mfa":                         *f.MFA,
@@ -289,6 +299,10 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
+func (l *License) IsCloud() bool {
+	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
+}
+
 func (l *License) IsTrialLicense() bool {
 	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds() || (l.ExpiresAt-l.StartsAt) == adminTrialDuration.Milliseconds()
 }
@@ -307,6 +321,16 @@ func (l *License) HasEnterpriseMarketplacePlugins() bool {
 		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
+func (l *License) HasSharedChannels() bool {
+	if l == nil {
+		return false
+	}
+
+	return (l.Features != nil && l.Features.SharedChannels != nil && *l.Features.SharedChannels) ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
@@ -319,6 +343,25 @@ func NewTestLicense(features ...string) *License {
 	featureMap := map[string]bool{}
 	for _, feature := range features {
 		featureMap[feature] = true
+	}
+	featureJson, _ := json.Marshal(featureMap)
+	json.Unmarshal(featureJson, &ret.Features)
+
+	return ret
+}
+
+// NewTestLicense returns a license that expires in the future and set as false the given features.
+func NewTestLicenseWithFalseDefaults(features ...string) *License {
+	ret := &License{
+		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
+		Customer:  &Customer{},
+		Features:  &Features{},
+	}
+	ret.Features.SetDefaults()
+
+	featureMap := map[string]bool{}
+	for _, feature := range features {
+		featureMap[feature] = false
 	}
 	featureJson, _ := json.Marshal(featureMap)
 	json.Unmarshal(featureJson, &ret.Features)

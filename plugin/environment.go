@@ -4,11 +4,12 @@
 package plugin
 
 import (
+	"bytes"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +33,7 @@ type apiImplCreatorFunc func(*model.Manifest) API
 type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
+	Error      string
 
 	supervisor *supervisor
 }
@@ -50,7 +52,6 @@ type PrepackagedPlugin struct {
 // of active plugins.
 type Environment struct {
 	registeredPlugins      sync.Map
-	registeredProducts     sync.Map
 	pluginHealthCheckJob   *PluginHealthCheckJob
 	logger                 *mlog.Logger
 	metrics                einterfaces.MetricsInterface
@@ -58,15 +59,20 @@ type Environment struct {
 	dbDriver               Driver
 	pluginDir              string
 	webappPluginDir        string
+	patchReactDOM          bool
 	prepackagedPlugins     []*PrepackagedPlugin
 	prepackagedPluginsLock sync.RWMutex
 }
 
-func NewEnvironment(newAPIImpl apiImplCreatorFunc,
+func NewEnvironment(
+	newAPIImpl apiImplCreatorFunc,
 	dbDriver Driver,
-	pluginDir string, webappPluginDir string,
+	pluginDir string,
+	webappPluginDir string,
+	patchReactDOM bool,
 	logger *mlog.Logger,
-	metrics einterfaces.MetricsInterface) (*Environment, error) {
+	metrics einterfaces.MetricsInterface,
+) (*Environment, error) {
 	return &Environment{
 		logger:          logger,
 		metrics:         metrics,
@@ -74,6 +80,7 @@ func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
+		patchReactDOM:   patchReactDOM,
 	}, nil
 }
 
@@ -85,7 +92,7 @@ func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 //
 // Plugins are found non-recursively and paths beginning with a dot are always ignored.
 func scanSearchPath(path string) ([]*model.BundleInfo, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +127,7 @@ func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
 // The returned list should not be modified.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		plugin := value.(registeredPlugin)
 		if env.IsActive(plugin.BundleInfo.Manifest.Id) {
 			activePlugins = append(activePlugins, plugin.BundleInfo)
@@ -135,6 +142,22 @@ func (env *Environment) Active() []*model.BundleInfo {
 // IsActive returns true if the plugin with the given id is active.
 func (env *Environment) IsActive(id string) bool {
 	return env.GetPluginState(id) == model.PluginStateRunning
+}
+
+func (env *Environment) SetPluginError(id string, err string) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.Error = err
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
+func (env *Environment) getPluginError(id string) string {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		return rp.(registeredPlugin).Error
+	}
+
+	return ""
 }
 
 // GetPluginState returns the current state of a plugin (disabled, running, or error)
@@ -185,6 +208,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			PluginId:    plugin.Manifest.Id,
 			PluginPath:  filepath.Dir(plugin.ManifestPath),
 			State:       pluginState,
+			Error:       env.getPluginError(plugin.Manifest.Id),
 			Name:        plugin.Manifest.Name,
 			Description: plugin.Manifest.Description,
 			Version:     plugin.Manifest.Version,
@@ -214,6 +238,14 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
+	defer func() {
+		if reterr != nil {
+			env.SetPluginError(id, reterr.Error())
+		} else {
+			env.SetPluginError(id, "")
+		}
+	}()
+
 	// Check if we are already active
 	if env.IsActive(id) {
 		return nil, false, nil
@@ -298,15 +330,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("unable to start plugin: must at least have a web app or server component")
 	}
 
+	mlog.Debug("Plugin activated", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
+
 	return pluginInfo.Manifest, true, nil
-}
-
-func (env *Environment) AddProduct(productID string, hooks ProductHooks) {
-	env.registeredProducts.Store(productID, newRegisteredProduct(productID, hooks))
-}
-
-func (env *Environment) RemoveProduct(productID string) {
-	env.registeredProducts.Delete(productID)
 }
 
 func (env *Environment) RemovePlugin(id string) {
@@ -353,7 +379,7 @@ func (env *Environment) Shutdown() {
 	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -387,7 +413,7 @@ func (env *Environment) Shutdown() {
 
 	wg.Wait()
 
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		env.registeredPlugins.Delete(key)
 
 		return true
@@ -430,9 +456,20 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 
 	sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
 
-	sourceBundleFileContents, err := ioutil.ReadFile(sourceBundleFilepath)
+	sourceBundleFileContents, err := os.ReadFile(sourceBundleFilepath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+	}
+
+	if env.patchReactDOM {
+		newContents, changed := patchReactDOM(sourceBundleFileContents)
+		if changed {
+			sourceBundleFileContents = newContents
+			err = os.WriteFile(sourceBundleFilepath, sourceBundleFileContents, 0644)
+			if err != nil {
+				return nil, errors.Wrapf(err, "unable to overwrite webapp bundle: %v", id)
+			}
+		}
 	}
 
 	hash := fnv.New64a()
@@ -449,6 +486,52 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	}
 
 	return manifest, nil
+}
+
+func patchReactDOM(initialBytes []byte) ([]byte, bool) {
+	if !bytes.Contains(initialBytes, []byte("react-dom.production.min.js")) {
+		return initialBytes, false
+	}
+
+	initial := string(initialBytes)
+	nameIndex := strings.Index(initial, "react-dom.production.min.js")
+
+	beginning := strings.LastIndex(initial[:nameIndex], "{")
+	var end int
+
+	argDefBeginning := strings.LastIndex(initial[:beginning], "function") + 9
+	argDefEnd := strings.LastIndex(initial[:beginning], ")") - 1
+	argsNames := strings.Split(initial[argDefBeginning:argDefEnd], ",")
+	if len(argsNames) != 3 {
+		return initialBytes, false
+	}
+
+	exportsArgName := strings.TrimSpace(argsNames[1])
+
+	numOpenBraces := 0
+	for i, c := range initial[beginning:] {
+		if end != 0 {
+			break
+		}
+		switch c {
+		case '}':
+			numOpenBraces--
+
+			if numOpenBraces == 0 {
+				end = beginning + i
+			}
+		case '{':
+			numOpenBraces++
+		}
+	}
+
+	beforePatch := initial[:end]
+	afterPatch := initial[end:]
+
+	patch := fmt.Sprintf("; Object.assign(%s, window.ReactDOM)", exportsArgName)
+
+	result := fmt.Sprintf("%s%s%s", beforePatch, patch, afterPatch)
+	return []byte(result), true
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
@@ -472,7 +555,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	startTime := time.Now()
 
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -485,24 +568,6 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
 			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
-		}
-
-		return result
-	})
-
-	env.registeredProducts.Range(func(key, value interface{}) bool {
-		rp := value.(*registeredProduct)
-
-		if !rp.Implements(hookId) {
-			return true
-		}
-
-		hookStartTime := time.Now()
-		result := hookRunnerFunc(rp.adapter)
-
-		if env.metrics != nil {
-			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
-			env.metrics.ObservePluginMultiHookIterationDuration(rp.productID, elapsedTime)
 		}
 
 		return result

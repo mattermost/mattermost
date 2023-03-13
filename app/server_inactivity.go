@@ -17,22 +17,22 @@ const inactivityEmailSent = "INACTIVITY"
 
 func (s *Server) doInactivityCheck() {
 
-	if *s.Config().ServiceSettings.EnableDeveloper {
+	if *s.platform.Config().ServiceSettings.EnableDeveloper {
 		mlog.Info("No activity check because developer mode is enabled")
 		return
 	}
 
-	if !*s.Config().EmailSettings.EnableInactivityEmail {
+	if !*s.platform.Config().EmailSettings.EnableInactivityEmail {
 		mlog.Info("No activity check because EnableInactivityEmail is false")
 		return
 	}
 
-	if !s.Config().FeatureFlags.EnableInactivityCheckJob {
+	if !s.platform.Config().FeatureFlags.EnableInactivityCheckJob {
 		mlog.Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
 		return
 	}
 
-	_, sysValErr := s.Store.System().GetByName(inactivityEmailSent)
+	_, sysValErr := s.Store().System().GetByName(inactivityEmailSent)
 	// if there is no error which may include *store.ErrNotFound, it means this check was already flagged as done
 	if sysValErr == nil {
 		return
@@ -48,7 +48,7 @@ func (s *Server) doInactivityCheck() {
 	// The first time this job runs. We check if the user has not made any posts in last inactivityDurationHours
 	// and remind them to use the workspace. If no posts have been made. We check the last time
 	// they logged in (session) for the last inactivityDurationHours and send a reminder.
-	lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
+	lastPostAt, _ := s.Store().Post().GetLastPostRowCreateAt()
 	if lastPostAt != 0 {
 		posT := time.Unix(lastPostAt/1000, 0)
 		timeForLastPost := time.Since(posT).Hours()
@@ -58,7 +58,7 @@ func (s *Server) doInactivityCheck() {
 		return
 	}
 
-	lastSessionAt, _ := s.Store.Session().GetLastSessionRowCreateAt()
+	lastSessionAt, _ := s.Store().Session().GetLastSessionRowCreateAt()
 	if lastSessionAt != 0 {
 		sesT := time.Unix(lastSessionAt/1000, 0)
 		timeForLastSession := time.Since(sesT).Hours()
@@ -70,16 +70,16 @@ func (s *Server) doInactivityCheck() {
 }
 
 func (s *Server) takeInactivityAction() {
-	siteURL := *s.Config().ServiceSettings.SiteURL
+	siteURL := *s.platform.Config().ServiceSettings.SiteURL
 	if siteURL == "" {
 		mlog.Warn("No SiteURL configured")
 	}
 
-	properties := map[string]interface{}{
+	properties := map[string]any{
 		"SiteURL": siteURL,
 	}
 	s.GetTelemetryService().SendTelemetry("inactive_server", properties)
-	users, err := s.Store.User().GetSystemAdminProfiles()
+	users, err := s.Store().User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for inactivity check from Mattermost.")
 		return
@@ -110,7 +110,7 @@ func (s *Server) takeInactivityAction() {
 
 	// Mark that we sent emails.
 	sysVar := &model.System{Name: inactivityEmailSent, Value: "true"}
-	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := s.Store().System().SaveOrUpdate(sysVar); err != nil {
 		mlog.Error("Unable to save INACTIVITY", mlog.Err(err))
 	}
 

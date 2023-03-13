@@ -18,6 +18,11 @@ export MM_SERVER_PATH=$PWD
 echo "Packages to test: $PACKAGES"
 echo "GOFLAGS: $GOFLAGS"
 
+if [[ $GOFLAGS == "-race " && $IS_CI == "true" ]] ;
+then
+	export GOMAXPROCS=4
+fi
+
 find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
 find . -type d -name data -not -path './data' | xargs rm -rf
 

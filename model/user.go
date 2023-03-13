@@ -105,6 +105,38 @@ type User struct {
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
 }
 
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                         u.Id,
+		"create_at":                  u.CreateAt,
+		"update_at":                  u.UpdateAt,
+		"delete_at":                  u.DeleteAt,
+		"username":                   u.Username,
+		"auth_service":               u.AuthService,
+		"email":                      u.Email,
+		"email_verified":             u.EmailVerified,
+		"position":                   u.Position,
+		"roles":                      u.Roles,
+		"allow_marketing":            u.AllowMarketing,
+		"props":                      u.Props,
+		"notify_props":               u.NotifyProps,
+		"last_password_update":       u.LastPasswordUpdate,
+		"last_picture_update":        u.LastPictureUpdate,
+		"failed_attempts":            u.FailedAttempts,
+		"locale":                     u.Locale,
+		"timezone":                   u.Timezone,
+		"mfa_active":                 u.MfaActive,
+		"remote_id":                  u.RemoteId,
+		"last_activity_at":           u.LastActivityAt,
+		"is_bot":                     u.IsBot,
+		"bot_description":            u.BotDescription,
+		"bot_last_icon_update":       u.BotLastIconUpdate,
+		"terms_of_service_id":        u.TermsOfServiceId,
+		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
+		"disable_welcome_email":      u.DisableWelcomeEmail,
+	}
+}
+
 //msgp UserMap
 
 // UserMap is a map from a userId to a user object.
@@ -133,11 +165,33 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
+func (u *UserPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"username":     u.Username,
+		"nickname":     u.Nickname,
+		"first_name":   u.FirstName,
+		"last_name":    u.LastName,
+		"position":     u.Position,
+		"email":        u.Email,
+		"props":        u.Props,
+		"notify_props": u.NotifyProps,
+		"locale":       u.Locale,
+		"timezone":     u.Timezone,
+		"remote_id":    u.RemoteId,
+	}
+}
+
 //msgp:ignore UserAuth
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *UserAuth) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"auth_service": u.AuthService,
+	}
 }
 
 //msgp:ignore UserForIndexing
@@ -264,89 +318,90 @@ func (u *User) DeepCopy() *User {
 // correctly.
 func (u *User) IsValid() *AppError {
 	if !IsValidId(u.Id) {
-		return InvalidUserError("id", "")
+		return InvalidUserError("id", "", u.Id)
 	}
 
 	if u.CreateAt == 0 {
-		return InvalidUserError("create_at", u.Id)
+		return InvalidUserError("create_at", u.Id, u.CreateAt)
 	}
 
 	if u.UpdateAt == 0 {
-		return InvalidUserError("update_at", u.Id)
+		return InvalidUserError("update_at", u.Id, u.UpdateAt)
 	}
 
 	if u.IsRemote() {
 		if !IsValidUsernameAllowRemote(u.Username) {
-			return InvalidUserError("username", u.Id)
+			return InvalidUserError("username", u.Id, u.Username)
 		}
 	} else {
 		if !IsValidUsername(u.Username) {
-			return InvalidUserError("username", u.Id)
+			return InvalidUserError("username", u.Id, u.Username)
 		}
 	}
 
 	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
-		return InvalidUserError("email", u.Id)
+		return InvalidUserError("email", u.Id, u.Email)
 	}
 
 	if utf8.RuneCountInString(u.Nickname) > UserNicknameMaxRunes {
-		return InvalidUserError("nickname", u.Id)
+		return InvalidUserError("nickname", u.Id, u.Nickname)
 	}
 
 	if utf8.RuneCountInString(u.Position) > UserPositionMaxRunes {
-		return InvalidUserError("position", u.Id)
+		return InvalidUserError("position", u.Id, u.Position)
 	}
 
 	if utf8.RuneCountInString(u.FirstName) > UserFirstNameMaxRunes {
-		return InvalidUserError("first_name", u.Id)
+		return InvalidUserError("first_name", u.Id, u.FirstName)
 	}
 
 	if utf8.RuneCountInString(u.LastName) > UserLastNameMaxRunes {
-		return InvalidUserError("last_name", u.Id)
+		return InvalidUserError("last_name", u.Id, u.LastName)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > UserAuthDataMaxLength {
-		return InvalidUserError("auth_data", u.Id)
+		return InvalidUserError("auth_data", u.Id, u.AuthData)
 	}
 
 	if u.AuthData != nil && *u.AuthData != "" && u.AuthService == "" {
-		return InvalidUserError("auth_data_type", u.Id)
+		return InvalidUserError("auth_data_type", u.Id, *u.AuthData+" "+u.AuthService)
 	}
 
 	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
-		return InvalidUserError("auth_data_pwd", u.Id)
+		return InvalidUserError("auth_data_pwd", u.Id, *u.AuthData)
 	}
 
 	if len(u.Password) > UserPasswordMaxLength {
-		return InvalidUserError("password_limit", u.Id)
+		return InvalidUserError("password_limit", u.Id, "")
 	}
 
 	if !IsValidLocale(u.Locale) {
-		return InvalidUserError("locale", u.Id)
+		return InvalidUserError("locale", u.Id, u.Locale)
 	}
 
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
-			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
-			return InvalidUserError("timezone_limit", u.Id)
+			return InvalidUserError("timezone_limit", u.Id, u.Timezone)
 		}
 	}
 
 	if len(u.Roles) > UserRolesMaxLength {
 		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id+" roles_limit="+u.Roles, http.StatusBadRequest)
 	}
 
 	return nil
 }
 
-func InvalidUserError(fieldName string, userId string) *AppError {
+func InvalidUserError(fieldName, userId string, fieldValue any) *AppError {
 	id := fmt.Sprintf("model.user.is_valid.%s.app_error", fieldName)
 	details := ""
 	if userId != "" {
 		details = "user_id=" + userId
 	}
+	details += fmt.Sprintf(" %s=%v", fieldName, fieldValue)
 	return NewAppError("User.IsValid", id, nil, details, http.StatusBadRequest)
 }
 
@@ -382,7 +437,9 @@ func (u *User) PreSave() {
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
-	u.CreateAt = GetMillis()
+	if u.CreateAt == 0 {
+		u.CreateAt = GetMillis()
+	}
 	u.UpdateAt = u.CreateAt
 
 	u.LastPasswordUpdate = u.CreateAt
@@ -423,8 +480,32 @@ func (u *User) DeleteAt_() float64 {
 	return float64(u.DeleteAt)
 }
 
-func (u *User) LastPictureUpdateAt() float64 {
+func (u *User) UpdateAt_() float64 {
+	return float64(u.UpdateAt)
+}
+
+func (u *User) LastPictureUpdate_() float64 {
 	return float64(u.LastPictureUpdate)
+}
+
+func (u *User) LastPasswordUpdate_() float64 {
+	return float64(u.LastPasswordUpdate)
+}
+
+func (u *User) FailedAttempts_() float64 {
+	return float64(u.FailedAttempts)
+}
+
+func (u *User) LastActivityAt_() float64 {
+	return float64(u.LastActivityAt)
+}
+
+func (u *User) BotLastIconUpdate_() float64 {
+	return float64(u.BotLastIconUpdate)
+}
+
+func (u *User) TermsOfServiceCreateAt_() float64 {
+	return float64(u.TermsOfServiceCreateAt)
 }
 
 // PreUpdate should be run before updating the user in the db.

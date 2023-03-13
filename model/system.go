@@ -31,6 +31,9 @@ const (
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
+	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
+	SystemLastAccessibleFileTime           = "LastAccessibleFileTime"
+	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 )
@@ -177,4 +180,16 @@ type SendWarnMetricAck struct {
 type AppliedMigration struct {
 	Version int    `json:"version"`
 	Name    string `json:"name"`
+}
+
+type LogFilter struct {
+	ServerNames []string `json:"server_names"`
+	LogLevels   []string `json:"log_levels"`
+	DateFrom    string   `json:"date_from"`
+	DateTo      string   `json:"date_to"`
+}
+
+type LogEntry struct {
+	Timestamp string
+	Level     string
 }
