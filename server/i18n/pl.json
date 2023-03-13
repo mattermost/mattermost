@@ -10010,5 +10010,9 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Kontakt ze sprzedażą"
+  },
+  {
+    "id": "debugbar.info.session-count.error",
+    "translation": "Nie można policzyć sesji."
   }
 ]
