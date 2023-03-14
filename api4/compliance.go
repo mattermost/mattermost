@@ -30,7 +30,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("createComplianceReport", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "compliance", &job)
+	audit.AddEventParameterAuditable(auditRec, "compliance", &job)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateComplianceExportJob) {

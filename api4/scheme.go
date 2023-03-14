@@ -31,7 +31,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "scheme", &scheme)
+	audit.AddEventParameterAuditable(auditRec, "scheme", &scheme)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -191,7 +191,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchScheme", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "scheme_patch", &patch)
+	audit.AddEventParameterAuditable(auditRec, "scheme_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil || (!*c.App.Channels().License().Features.CustomPermissionsSchemes && c.App.Channels().License().SkuShortName != model.LicenseShortSkuProfessional) {

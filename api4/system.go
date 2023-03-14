@@ -1002,7 +1002,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	audit.AddEventParameter(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
-	audit.AddEventParameterObject(auditRec, "onboarding_request", onboardingRequest)
+	audit.AddEventParameterAuditable(auditRec, "onboarding_request", onboardingRequest)
 
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {

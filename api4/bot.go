@@ -39,7 +39,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "bot", bot)
+	audit.AddEventParameterAuditable(auditRec, "bot", bot)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateBot) {
 		c.SetPermissionError(model.PermissionCreateBot)
@@ -91,7 +91,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", botUserId)
-	audit.AddEventParameterObject(auditRec, "bot", botPatch)
+	audit.AddEventParameterAuditable(auditRec, "bot", botPatch)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
@@ -295,8 +295,8 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("convertBotToUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "bot", bot)
-	audit.AddEventParameterObject(auditRec, "user_patch", &userPatch)
+	audit.AddEventParameterAuditable(auditRec, "bot", bot)
+	audit.AddEventParameterAuditable(auditRec, "user_patch", &userPatch)
 	audit.AddEventParameter(auditRec, "set_system_admin", systemAdmin)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {

@@ -47,7 +47,7 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localCreateChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "channel", channel)
+	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 
 	sc, appErr := c.App.CreateChannel(c.AppContext, channel, false)
 	if appErr != nil {
@@ -193,7 +193,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterObject(auditRec, "channel", channel)
+	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
@@ -302,7 +302,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localPatchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "channel_patch", patch)
+	audit.AddEventParameterAuditable(auditRec, "channel_patch", patch)
 
 	channel.Patch(patch)
 	rchannel, appErr := c.App.UpdateChannel(c.AppContext, channel)

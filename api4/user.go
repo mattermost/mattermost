@@ -125,7 +125,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "invite_id", inviteId)
 	audit.AddEventParameter(auditRec, "redirect", redirect)
-	audit.AddEventParameterObject(auditRec, "user", &user)
+	audit.AddEventParameterAuditable(auditRec, "user", &user)
 
 	// No permission check required
 
@@ -518,7 +518,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = err
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "user", user)
+	audit.AddEventParameterAuditable(auditRec, "user", user)
 
 	if err := c.App.SetDefaultProfileImage(c.AppContext, user); err != nil {
 		c.Err = err
@@ -1242,7 +1242,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterObject(auditRec, "user", &user)
+	audit.AddEventParameterAuditable(auditRec, "user", &user)
 	// The user being updated in the payload must be the same one as indicated in the URL.
 	if user.Id != c.Params.UserId {
 		c.SetInvalidParam("user_id")
@@ -1322,7 +1322,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "user_patch", &patch)
+	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -1585,7 +1585,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterObject(auditRec, "user_auth", &userAuth)
+	audit.AddEventParameterAuditable(auditRec, "user_auth", &userAuth)
 
 	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
@@ -1633,7 +1633,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	props := model.StringInterfaceFromJSON(r.Body)
@@ -1712,7 +1712,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var canUpdatePassword bool
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 
 		if user.IsSystemAdmin() {
 			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
@@ -2001,7 +2001,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "user", user)
+	audit.AddEventParameterAuditable(auditRec, "user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
 	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
 	if err != nil {
@@ -2238,7 +2238,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -2328,7 +2328,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("switchAccountType", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "switch_request", &switchRequest)
+	audit.AddEventParameterAuditable(auditRec, "switch_request", &switchRequest)
 
 	link := ""
 	var err *model.AppError
@@ -2373,7 +2373,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	if c.AppContext.Session().IsOAuth {
@@ -2559,7 +2559,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
@@ -2604,7 +2604,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
@@ -2649,7 +2649,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), accessToken.UserId) {
@@ -2689,7 +2689,7 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	audit.AddEventParameter(auditRec, "accepted", accepted)
 
 	if user, err := c.App.GetUser(userId); err == nil {
-		audit.AddEventParameterObject(auditRec, "user", user)
+		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
 	if _, err := c.App.GetTermsOfService(termsOfServiceId); err != nil {
@@ -2895,7 +2895,7 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("convertUserToBot", audit.Fail)
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "user", user)
+	audit.AddEventParameterAuditable(auditRec, "user", user)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -3057,7 +3057,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "from", from)
 	audit.AddEventParameter(auditRec, "auto", auto)
-	audit.AddEventParameter(auditRec, "matches", matches)
+	audit.AddEventParameter(auditRec, "users_map", usersMap)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)

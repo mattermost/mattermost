@@ -32,7 +32,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createOAuthApp", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "oauth_app", &oauthApp)
+	audit.AddEventParameterAuditable(auditRec, "oauth_app", &oauthApp)
 
 	defer c.LogAuditRec(auditRec)
 
@@ -85,7 +85,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "oauth_app", &oauthApp)
+	audit.AddEventParameterAuditable(auditRec, "oauth_app", &oauthApp)
 
 	// The app being updated in the payload must be the same one as indicated in the URL.
 	if oauthApp.Id != c.Params.AppId {

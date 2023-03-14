@@ -88,7 +88,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "channel", channel)
+	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 
 	if channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePublicChannel) {
 		c.SetPermissionError(model.PermissionCreatePublicChannel)
@@ -137,7 +137,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateChannel", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "channel", channel)
+	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 	defer c.LogAuditRec(auditRec)
 
 	originalOldChannel, appErr := c.App.GetChannel(c.AppContext, channel.Id)
@@ -318,7 +318,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "channel", patch)
+	audit.AddEventParameterAuditable(auditRec, "channel", patch)
 	auditRec.AddEventPriorState(oldChannel)
 
 	switch oldChannel.Type {
@@ -1562,7 +1562,7 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 	auditRec := c.MakeAuditRecord("updateChannelMemberSchemeRoles", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	audit.AddEventParameterObject(auditRec, "roles", &schemeRoles)
+	audit.AddEventParameterAuditable(auditRec, "roles", &schemeRoles)
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles) {
 		c.SetPermissionError(model.PermissionManageChannelRoles)
@@ -2019,7 +2019,7 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		c.Err = appErr
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "channel", channel)
+	audit.AddEventParameterAuditable(auditRec, "channel", channel)
 
 	var channelModerationsPatch []*model.ChannelModerationPatch
 	err := json.NewDecoder(r.Body).Decode(&channelModerationsPatch)
@@ -2033,9 +2033,7 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		c.Err = appErr
 		return
 	}
-	for _, patch := range channelModerationsPatch {
-		audit.AddEventParameterObject(auditRec, "patch", patch)
-	}
+	audit.AddEventParameterAuditableArray(auditRec, "channel_moderations_patch", channelModerationsPatch)
 
 	b, err := json.Marshal(channelModerations)
 	if err != nil {

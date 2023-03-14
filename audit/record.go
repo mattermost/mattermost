@@ -59,7 +59,7 @@ func (rec *Record) Fail() {
 }
 
 // AddEventParameter adds a parameter, e.g. query or post body, to the event
-func AddEventParameter[T string | bool | int | int64 | []string | map[string]string | map[string]any](rec *Record, key string, val T) {
+func AddEventParameter[T string | bool | int | int64 | []string | map[string]string](rec *Record, key string, val T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]interface{})
 	}
@@ -67,8 +67,8 @@ func AddEventParameter[T string | bool | int | int64 | []string | map[string]str
 	rec.EventData.Parameters[key] = val
 }
 
-// AddEventParameterObject adds an object that is of type Auditable to the event
-func AddEventParameterObject(rec *Record, key string, val Auditable) {
+// AddEventParameterAuditable adds an object that is of type Auditable to the event
+func AddEventParameterAuditable(rec *Record, key string, val Auditable) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]interface{})
 	}
@@ -76,7 +76,8 @@ func AddEventParameterObject(rec *Record, key string, val Auditable) {
 	rec.EventData.Parameters[key] = val.Auditable()
 }
 
-func AddEventParameterObjectArray[T Auditable](rec *Record, key string, val []T) {
+// AddEventParameterAuditableArray adds an array of objects of type Auditable to the event
+func AddEventParameterAuditableArray[T Auditable](rec *Record, key string, val []T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]interface{})
 	}

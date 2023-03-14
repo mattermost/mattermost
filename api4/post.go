@@ -59,7 +59,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameterObject(auditRec, "post", &post)
+	audit.AddEventParameterAuditable(auditRec, "post", &post)
 
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
@@ -775,7 +775,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "post", &post)
+	audit.AddEventParameterAuditable(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
@@ -842,7 +842,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
 	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
-	audit.AddEventParameterObject(auditRec, "patch", &post)
+	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

@@ -92,7 +92,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "remote_cluster_frame", &frame)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -106,7 +106,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "remote_cluster", rc)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -139,7 +139,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "remote_cluster_frame", &frame)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -153,7 +153,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "remote_cluster", rc)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
 
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
@@ -272,7 +272,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("user_id")
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "user", user)
+	audit.AddEventParameterAuditable(auditRec, "user", user)
 
 	imageData := imageArray[0]
 	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {

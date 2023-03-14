@@ -37,7 +37,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "command", &cmd)
+	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -78,7 +78,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "command", &cmd)
+	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -147,7 +147,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	audit.AddEventParameterObject(auditRec, "team", newTeam)
+	audit.AddEventParameterAuditable(auditRec, "team", newTeam)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -321,7 +321,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "command_args", &commandArgs)
+	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionUseSlashCommands) {

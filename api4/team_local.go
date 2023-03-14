@@ -107,7 +107,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("localInviteUsersToTeam", audit.Fail)
-	audit.AddEventParameterObject(auditRec, "member_invite", memberInvite)
+	audit.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
@@ -254,7 +254,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "team", &team)
+	audit.AddEventParameterAuditable(auditRec, "team", &team)
 
 	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {

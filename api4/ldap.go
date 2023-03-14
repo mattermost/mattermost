@@ -180,7 +180,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if group != nil {
-		audit.AddEventParameterObject(auditRec, "group", group)
+		audit.AddEventParameterAuditable(auditRec, "group", group)
 	}
 
 	var status int

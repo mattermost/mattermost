@@ -185,7 +185,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "group", group)
+	audit.AddEventParameterAuditable(auditRec, "group", group)
 
 	newGroup, appErr := c.App.CreateGroupWithUserIds(group)
 	if appErr != nil {
@@ -253,7 +253,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "group", group)
+	audit.AddEventParameterAuditable(auditRec, "group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
 		if groupPatch.Name == nil {
@@ -355,7 +355,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterObject(auditRec, "patch", patch)
+	audit.AddEventParameterAuditable(auditRec, "patch", patch)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
@@ -530,7 +530,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterObject(auditRec, "patch", patch)
+	audit.AddEventParameterAuditable(auditRec, "patch", patch)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.ldap_groups.license_error", nil, "",

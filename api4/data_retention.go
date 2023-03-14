@@ -122,7 +122,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "policy", &policy)
+	audit.AddEventParameterAuditable(auditRec, "policy", &policy)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
@@ -158,7 +158,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterObject(auditRec, "patch", &patch)
+	audit.AddEventParameterAuditable(auditRec, "patch", &patch)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy)
