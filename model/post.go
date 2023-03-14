@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -777,6 +778,9 @@ func (o *Post) ToNilIfInvalid() *Post {
 func (o *Post) ForPlugin() *Post {
 	p := o.Clone()
 	p.Metadata = nil
+	if p.Type == fmt.Sprintf("%sup_notification", PostCustomTypePrefix) {
+		p.DelProp("requested_features")
+	}
 	return p
 }
 
