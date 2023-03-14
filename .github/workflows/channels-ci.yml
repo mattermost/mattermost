@@ -1,4 +1,4 @@
-name: Channels CI
+name: Web App CI
 on:
   pull_request:
   push:
