@@ -5,6 +5,8 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -215,9 +217,10 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 		TeamId:                "ccc",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		OmitConnectionId:      "ddd",
 	}
 
-	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "")
+	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "ddd")
 
 	ev.Add("post", &Post{})
 	ev.SetBroadcast(broadcast)
@@ -233,4 +236,19 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 		Id: "test",
 	})
 	require.NotEqual(t, ev.data, evCopy.data)
+}
+
+var err error
+
+func BenchmarkEncodeJSON(b *testing.B) {
+	message := NewWebSocketEvent(WebsocketEventUserAdded, "", "channelID", "", nil, "")
+	message.Add("user_id", "userID")
+	message.Add("team_id", "teamID")
+
+	ev := message.PrecomputeJSON()
+
+	enc := json.NewEncoder(io.Discard)
+	for i := 0; i < b.N; i++ {
+		err = ev.Encode(enc)
+	}
 }

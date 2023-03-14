@@ -241,7 +241,12 @@ const (
 
 	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
-	OpenidSettingsDefaultScope    = "profile openid email"
+	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
+	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
+	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
+	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
+
+	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 )
@@ -373,8 +378,8 @@ type ServiceSettings struct {
 	EnableInlineLatex                                 *bool `access:"site_posts"`
 	PostPriority                                      *bool `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
-	EnableLocalMode                                   *bool
-	LocalModeSocketLocation                           *string // telemetry: none
+	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
+	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
 	EnableAWSMetering                                 *bool   // telemetry: none
 	SplitKey                                          *string `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
@@ -383,6 +388,9 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
+	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
+	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	SelfHostedExpansion                               *bool   `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -480,7 +488,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableOAuthServiceProvider == nil {
-		s.EnableOAuthServiceProvider = NewBool(false)
+		s.EnableOAuthServiceProvider = NewBool(true)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -845,7 +853,19 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PostPriority == nil {
-		s.PostPriority = NewBool(false)
+		s.PostPriority = NewBool(true)
+	}
+
+	if s.AllowSyncedDrafts == nil {
+		s.AllowSyncedDrafts = NewBool(true)
+	}
+
+	if s.SelfHostedPurchase == nil {
+		s.SelfHostedPurchase = NewBool(true)
+	}
+
+	if s.SelfHostedExpansion == nil {
+		s.SelfHostedExpansion = NewBool(false)
 	}
 }
 
@@ -958,6 +978,7 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
+	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -991,6 +1012,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
+	}
+
+	if s.PatchPluginsReactDOM == nil {
+		s.PatchPluginsReactDOM = NewBool(false)
 	}
 }
 
@@ -1220,6 +1245,7 @@ type LogSettings struct {
 	FileLocation           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
@@ -1261,6 +1287,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.VerboseDiagnostics == nil {
+		s.VerboseDiagnostics = NewBool(false)
 	}
 
 	if s.EnableSentry == nil {
@@ -2543,6 +2573,9 @@ type ElasticsearchSettings struct {
 	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
@@ -2557,6 +2590,18 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Password == nil {
 		s.Password = NewString(ElasticsearchSettingsDefaultPassword)
+	}
+
+	if s.CA == nil {
+		s.CA = NewString("")
+	}
+
+	if s.ClientCert == nil {
+		s.ClientCert = NewString("")
+	}
+
+	if s.ClientKey == nil {
+		s.ClientKey = NewString("")
 	}
 
 	if s.EnableIndexing == nil {
@@ -2741,9 +2786,15 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		if !isProdLicensePublicKey {
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+		}
 	}
 	if s.CWSAPIURL == nil {
 		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		if !isProdLicensePublicKey {
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
+		}
 	}
 }
 

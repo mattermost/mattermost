@@ -1401,17 +1401,13 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 }
 
 func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, error) {
-	var totalMsgCountColumn = "c.TotalMsgCount"
-	var msgCountColumn = "cm.MsgCount"
 	var mentionCountColumn = "cm.MentionCount"
 	if isCRTEnabled {
-		totalMsgCountColumn = "c.TotalMsgCountRoot"
-		msgCountColumn = "cm.MsgCountRoot"
 		mentionCountColumn = "cm.MentionCountRoot"
 	}
 
 	query := `
-		SELECT SUM(CASE WHEN c.Type = ? THEN (` + totalMsgCountColumn + ` - ` + msgCountColumn + `) ELSE ` + mentionCountColumn + ` END)
+		SELECT SUM(` + mentionCountColumn + `)
 		FROM Channels c
 		INNER JOIN ChannelMembers cm
 			ON cm.ChannelId = c.Id
@@ -1420,7 +1416,7 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 	`
 
 	var count int64
-	err := us.GetReplicaX().Get(&count, query, model.ChannelTypeDirect, userId)
+	err := us.GetReplicaX().Get(&count, query, userId)
 	if err != nil {
 		return count, errors.Wrapf(err, "failed to count unread Channels for userId=%s", userId)
 	}

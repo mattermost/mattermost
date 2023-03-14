@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -117,7 +116,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user != nil {
-		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, fmt.Sprintf("user name %s exists", val), http.StatusBadRequest)
+		return model.NewAppError("isUniqueToUsernames", "app.group.username_conflict", map[string]interface{}{"Username": val}, "", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -250,8 +249,8 @@ func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppErro
 	return users, nil
 }
 
-func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError) {
-	members, err := a.Srv().Store().Group().GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
+func (a *App) GetGroupMemberUsersSortedPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions, teammateNameDisplay string) ([]*model.User, int, *model.AppError) {
+	members, err := a.Srv().Store().Group().GetMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, teammateNameDisplay)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupMemberUsersPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -261,6 +260,10 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int, vie
 		return nil, 0, appErr
 	}
 	return a.sanitizeProfiles(members, false), int(count), nil
+}
+
+func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError) {
+	return a.GetGroupMemberUsersSortedPage(groupID, page, perPage, viewRestrictions, model.ShowUsername)
 }
 
 func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {

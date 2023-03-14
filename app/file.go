@@ -161,6 +161,10 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
+func (a *App) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
+	return a.Srv().writeFileContext(ctx, fr, path)
+}
+
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	return a.Srv().writeFile(fr, path)
 }
@@ -171,6 +175,16 @@ func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
+}
+
+func (s *Server) writeFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
+	// Check if we can provide a custom context, otherwise just use the default method.
+	written, err := filestore.TryWriteFileContext(s.FileBackend(), ctx, fr, path)
+	if err != nil {
+		return written, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return written, nil
 }
 
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
@@ -796,6 +810,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		_, aerr := t.writeFile(r, path)
 		if aerr != nil {
 			mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
+			r.CloseWithError(aerr) // always returns nil
 			return
 		}
 	}
@@ -895,29 +910,27 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionError *model.AppError
-		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			var newBytes bytes.Buffer
-			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
-			if rejectionReason != "" {
-				rejectionError = model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
-				return false
-			}
-			if replacementInfo != nil {
-				info = replacementInfo
-			}
-			if newBytes.Len() != 0 {
-				data = newBytes.Bytes()
-				info.Size = int64(len(data))
-			}
-
-			return true
-		}, plugin.FileWillBeUploadedID)
-		if rejectionError != nil {
-			return nil, data, rejectionError
+	var rejectionError *model.AppError
+	pluginContext := pluginContext(c)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		var newBytes bytes.Buffer
+		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
+		if rejectionReason != "" {
+			rejectionError = model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+			return false
 		}
+		if replacementInfo != nil {
+			info = replacementInfo
+		}
+		if newBytes.Len() != 0 {
+			data = newBytes.Bytes()
+			info.Size = int64(len(data))
+		}
+
+		return true
+	}, plugin.FileWillBeUploadedID)
+	if rejectionError != nil {
+		return nil, data, rejectionError
 	}
 
 	if _, err := a.WriteFile(bytes.NewReader(data), info.Path); err != nil {
@@ -1378,6 +1391,28 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 	limit, appErr := a.getCloudFilesSizeLimit()
 	if appErr != nil {
 		return appErr
+	}
+
+	if limit == 0 {
+		// All files are accessible - we must check if a previous value was set so we can clear it
+		systemValue, err := a.Srv().Store().System().GetByName(model.SystemLastAccessibleFileTime)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				// All files are already accessible
+				return nil
+			default:
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		if systemValue != nil {
+			// Previous value was set, so we must clear it
+			if _, err := a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		return nil
 	}
 
 	createdAt, err := a.Srv().GetStore().FileInfo().GetUptoNSizeFileTime(limit)

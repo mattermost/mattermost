@@ -105,10 +105,9 @@ func TestMetrics(t *testing.T) {
 
 		// there is no config listener for the metrics
 		// we handle it on config save step
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.MetricsSettings.Enable = model.NewBool(true)
-		})
-		th.Service.SaveConfig(th.Service.Config(), false)
+		cfg := th.Service.Config().Clone()
+		cfg.MetricsSettings.Enable = model.NewBool(true)
+		th.Service.SaveConfig(cfg, false)
 
 		require.NotNil(t, th.Service.metrics)
 		metricsAddr := strings.Replace(th.Service.metrics.listenAddr, "[::]", "http://localhost", 1)
@@ -117,17 +116,14 @@ func TestMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.MetricsSettings.Enable = model.NewBool(false)
-		})
-		th.Service.SaveConfig(th.Service.Config(), false)
+		cfg.MetricsSettings.Enable = model.NewBool(false)
+		th.Service.SaveConfig(cfg, false)
 
 		_, err = http.Get(metricsAddr)
 		require.Error(t, err)
 	})
 
 	t.Run("ensure the metrics server is started with advanced metrics", func(t *testing.T) {
-		t.Skip("MM-47635")
 		th := Setup(t, StartMetrics())
 		defer th.TearDown()
 
@@ -145,6 +141,7 @@ func TestMetrics(t *testing.T) {
 		mockMetricsImpl := &mocks.MetricsInterface{}
 		mockMetricsImpl.On("Register").Return()
 		mockMetricsImpl.On("ObserveStoreMethodDuration", mock.Anything, mock.Anything, mock.Anything).Return()
+		mockMetricsImpl.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
 		th := Setup(t, StartMetrics(), func(ps *PlatformService) error {
 			ps.metricsIFace = mockMetricsImpl

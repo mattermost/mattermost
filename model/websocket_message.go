@@ -5,8 +5,8 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"strconv"
 )
 
 const (
@@ -76,7 +76,12 @@ const (
 	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
 	WebsocketEventThreadReadChanged                   = "thread_read_changed"
 	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
-	WebsocketEventIntegrationsUsageChanged            = "integrations_usage_changed"
+	WebsocketEventDraftCreated                        = "draft_created"
+	WebsocketEventDraftUpdated                        = "draft_updated"
+	WebsocketEventDraftDeleted                        = "draft_deleted"
+	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
+	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
+	WebsocketEventHostedCustomerSignupProgressUpdated = "hosted_customer_signup_progress_updated"
 )
 
 type WebSocketMessage interface {
@@ -86,14 +91,14 @@ type WebSocketMessage interface {
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers             map[string]bool `json:"omit_users"`         // broadcast is omitted for users listed here
-	UserId                string          `json:"user_id"`            // broadcast only occurs for this user
-	ChannelId             string          `json:"channel_id"`         // broadcast only occurs for users in this channel
-	TeamId                string          `json:"team_id"`            // broadcast only occurs for users in this team
-	ConnectionId          string          `json:"connection_id"`      // broadcast only occurs for this connection
-	OmitConnectionId      string          `json:"omit_connection_id"` // broadcast is omitted for this connection
-	ContainsSanitizedData bool            `json:"-"`
-	ContainsSensitiveData bool            `json:"-"`
+	OmitUsers             map[string]bool `json:"omit_users"`                        // broadcast is omitted for users listed here
+	UserId                string          `json:"user_id"`                           // broadcast only occurs for this user
+	ChannelId             string          `json:"channel_id"`                        // broadcast only occurs for users in this channel
+	TeamId                string          `json:"team_id"`                           // broadcast only occurs for users in this team
+	ConnectionId          string          `json:"connection_id"`                     // broadcast only occurs for this connection
+	OmitConnectionId      string          `json:"omit_connection_id"`                // broadcast is omitted for this connection
+	ContainsSanitizedData bool            `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
+	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
@@ -276,7 +281,7 @@ func (ev *WebSocketEvent) EventType() string {
 
 func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 	if ev.precomputedJSON != nil {
-		return []byte(fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.GetSequence())), nil
+		return ev.precomputedJSONBuf(), nil
 	}
 	return json.Marshal(webSocketEventJSON{
 		ev.event,
@@ -289,9 +294,7 @@ func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 // Encode encodes the event to the given encoder.
 func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
 	if ev.precomputedJSON != nil {
-		return enc.Encode(json.RawMessage(
-			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.sequence),
-		))
+		return enc.Encode(json.RawMessage(ev.precomputedJSONBuf()))
 	}
 
 	return enc.Encode(webSocketEventJSON{
@@ -300,6 +303,20 @@ func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
 		ev.broadcast,
 		ev.sequence,
 	})
+}
+
+// We write optimal code here sacrificing readability for
+// performance.
+func (ev *WebSocketEvent) precomputedJSONBuf() []byte {
+	return []byte(`{"event": ` +
+		string(ev.precomputedJSON.Event) +
+		`, "data": ` +
+		string(ev.precomputedJSON.Data) +
+		`, "broadcast": ` +
+		string(ev.precomputedJSON.Broadcast) +
+		`, "seq": ` +
+		strconv.Itoa(int(ev.sequence)) +
+		`}`)
 }
 
 func WebSocketEventFromJSON(data io.Reader) (*WebSocketEvent, error) {

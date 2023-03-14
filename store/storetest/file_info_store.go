@@ -17,7 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFileInfoStore(t *testing.T, ss store.Store) {
+func TestFileInfoStore(t *testing.T, ss store.Store, s SqlStore) {
+	t.Cleanup(func() {
+		s.GetMasterX().Exec("TRUNCATE FileInfo")
+	})
 	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, ss) })
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, ss) })
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
@@ -32,7 +35,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
-	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, ss) })
+	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, ss, s) })
 }
 
 func testFileInfoSaveGet(t *testing.T, ss store.Store) {
@@ -809,7 +812,7 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(30), usage)
 }
 
-func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
+func testGetUptoNSizeFileTime(t *testing.T, ss store.Store, s SqlStore) {
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
@@ -829,6 +832,7 @@ func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
 		CreateAt:  now,
 	})
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(f1.Id)
 	now = now + diff
 	f2, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
@@ -838,6 +842,7 @@ func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
 		CreateAt:  now,
 	})
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(f2.Id)
 	now = now + diff
 	f3, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
@@ -847,8 +852,9 @@ func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
 		CreateAt:  now,
 	})
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(f3.Id)
 	now = now + diff
-	_, err = ss.FileInfo().Save(&model.FileInfo{
+	tmp, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
 		Size:      10,
@@ -856,6 +862,7 @@ func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
 		CreateAt:  now,
 	})
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(tmp.Id)
 
 	createAt, err := ss.FileInfo().GetUptoNSizeFileTime(20)
 	require.NoError(t, err)

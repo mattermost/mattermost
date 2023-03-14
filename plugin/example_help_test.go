@@ -75,7 +75,7 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 		return errors.Wrapf(err, "failed to find team %s", configuration.TeamName)
 	}
 
-	channel, err := p.API.GetChannelByName(configuration.ChannelName, team.Id, false)
+	channel, err := p.API.GetChannelByName(team.Id, configuration.ChannelName, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to find channel %s", configuration.ChannelName)
 	}

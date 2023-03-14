@@ -235,23 +235,6 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	return nil
 }
 
-func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
-	now := model.GetMillis()
-
-	a.UpdateWebConnUserActivity(session, now)
-
-	if now-session.LastActivityAt < model.SessionActivityTimeout {
-		return
-	}
-
-	if err := a.Srv().Store().Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
-	}
-
-	session.LastActivityAt = now
-	a.ch.srv.platform.AddSessionToCache(&session)
-}
-
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.

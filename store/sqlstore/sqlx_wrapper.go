@@ -224,8 +224,12 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 }
 
 func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
+	return w.SelectCtx(context.Background(), dest, query, args...)
+}
+
+func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, args ...any) error {
 	query = w.DB.Rebind(query)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
+	ctx, cancel := context.WithTimeout(ctx, w.queryTimeout)
 	defer cancel()
 
 	if w.trace {

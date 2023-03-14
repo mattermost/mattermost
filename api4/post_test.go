@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -851,6 +850,32 @@ func TestUpdatePost(t *testing.T) {
 		assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 	})
 
+	t.Run("change message, but post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		rpost4, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, false, true)
+		require.Nil(t, appErr)
+
+		up4 := &model.Post{
+			Id:        rpost4.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 4",
+		}
+		_, resp, err := client.UpdatePost(rpost4.Id, up4)
+		require.Error(t, err, "should fail on update old post")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout()
 		_, resp, err := client.UpdatePost(rpost.Id, rpost)
@@ -1035,6 +1060,31 @@ func TestPatchPost(t *testing.T) {
 
 		_, _, err = client.PatchPost(post.Id, patch)
 		require.NoError(t, err)
+	})
+
+	t.Run("time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		post2 := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		post2, _, err := th.SystemAdminClient.CreatePost(post2)
+		require.NoError(t, err)
+
+		patch2 := &model.PostPatch{
+			Message: model.NewString("new message"),
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(post2.Id, patch2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
 	})
 }
 
@@ -2954,8 +3004,6 @@ func TestSetChannelUnread(t *testing.T) {
 }
 
 func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3074,6 +3122,73 @@ func TestGetPostsByIds(t *testing.T) {
 	_, response, err = client.GetPostsByIds([]string{"abc123"})
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
+}
+
+func TestGetEditHistoryForPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "new message",
+		UserId:    th.BasicUser.Id,
+	}
+
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Millisecond)
+
+	t.Run("unedited post", func(t *testing.T) {
+		history, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Len(t, history, 0)
+	})
+
+	// update the post message
+	patch := &model.PostPatch{
+		Message: model.NewString("new message edited"),
+	}
+
+	// Patch the post
+	_, response1, err1 := client.PatchPost(rpost.Id, patch)
+	require.NoError(t, err1)
+	CheckOKStatus(t, response1)
+
+	// update the post message again
+	patch = &model.PostPatch{
+		Message: model.NewString("new message edited again"),
+	}
+
+	_, response2, err2 := client.PatchPost(rpost.Id, patch)
+	require.NoError(t, err2)
+	CheckOKStatus(t, response2)
+
+	t.Run("update history correctly", func(t *testing.T) {
+		history, response3, err3 := client.GetEditHistoryForPost(rpost.Id)
+		require.NoError(t, err3)
+		CheckOKStatus(t, response3)
+
+		require.Len(t, history, 2)
+		require.Equal(t, "new message edited", history[0].Message)
+		require.Equal(t, "new message", history[1].Message)
+	})
+
+	t.Run("logged out", func(t *testing.T) {
+		client.Logout()
+		_, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
@@ -3341,4 +3456,344 @@ func TestPostReminder(t *testing.T) {
 	}()
 
 	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
+}
+
+func TestPostGetInfo(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	sysadminClient := th.SystemAdminClient
+	sysadminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
+
+	openChannel, _, err := client.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, Name: "open-channel", DisplayName: "Open Channel"})
+	require.NoError(t, err)
+	sysadminClient.AddChannelMember(openChannel.Id, th.SystemAdminUser.Id)
+	openPost, _, err := client.CreatePost(&model.Post{ChannelId: openChannel.Id})
+	require.NoError(t, err)
+
+	privateChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, Name: "private-channel", DisplayName: "Private Channel"})
+	require.NoError(t, err)
+	privatePost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: privateChannel.Id})
+	require.NoError(t, err)
+
+	privateChannelBasicUser, _, err := client.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, Name: "private-channel-basic-user", DisplayName: "Private Channel - Basic User"})
+	require.NoError(t, err)
+	privatePostBasicUser, _, err := client.CreatePost(&model.Post{ChannelId: privateChannelBasicUser.Id})
+	require.NoError(t, err)
+
+	user3 := th.CreateUser()
+	gmChannel, _, err := client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+	require.NoError(t, err)
+	gmPost, _, err := client.CreatePost(&model.Post{ChannelId: gmChannel.Id})
+	require.NoError(t, err)
+
+	dmChannel, _, err := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.NoError(t, err)
+	dmPost, _, err := client.CreatePost(&model.Post{ChannelId: dmChannel.Id})
+	require.NoError(t, err)
+
+	openTeam, _, err := sysadminClient.CreateTeam(&model.Team{Type: model.TeamOpen, Name: "open-team", DisplayName: "Open Team"})
+	require.NoError(t, err)
+	openTeamOpenChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: openTeam.Id, Type: model.ChannelTypeOpen, Name: "open-team-open-channel", DisplayName: "Open Team - Open Channel"})
+	require.NoError(t, err)
+	openTeamOpenPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: openTeamOpenChannel.Id})
+	require.NoError(t, err)
+
+	// Alt team is a team without the sysadmin in it.
+	altOpenTeam, _, err := client.CreateTeam(&model.Team{Type: model.TeamOpen, Name: "alt-open-team", DisplayName: "Alt Open Team"})
+	require.NoError(t, err)
+	altOpenTeamOpenChannel, _, err := client.CreateChannel(&model.Channel{TeamId: altOpenTeam.Id, Type: model.ChannelTypeOpen, Name: "alt-open-team-open-channel", DisplayName: "Open Team - Open Channel"})
+	require.NoError(t, err)
+	altOpenTeamOpenPost, _, err := client.CreatePost(&model.Post{ChannelId: altOpenTeamOpenChannel.Id})
+	require.NoError(t, err)
+
+	inviteTeam, _, err := sysadminClient.CreateTeam(&model.Team{Type: model.TeamInvite, Name: "invite-team", DisplayName: "Invite Team"})
+	require.NoError(t, err)
+	inviteTeamOpenChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: inviteTeam.Id, Type: model.ChannelTypeOpen, Name: "invite-team-open-channel", DisplayName: "Invite Team - Open Channel"})
+	require.NoError(t, err)
+	inviteTeamOpenPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: inviteTeamOpenChannel.Id})
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name             string
+		team             *model.Team
+		hasJoinedTeam    bool
+		channel          *model.Channel
+		hasJoinedChannel bool
+		post             *model.Post
+		client           *model.Client4
+		hasAccess        bool
+	}{
+		// Open channel - Current Team
+		{
+			name:             "Open post - Current team - Basic user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          openChannel,
+			hasJoinedChannel: true,
+			post:             openPost,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:             "Open post - Current team - Sysadmin user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          openChannel,
+			hasJoinedChannel: true,
+			post:             openPost,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+
+		// Private channel - Current Team
+		{
+			name:      "Private post by sysadmin - Current team - Basic user",
+			team:      th.BasicTeam,
+			channel:   privateChannel,
+			post:      privatePost,
+			client:    client,
+			hasAccess: false,
+		},
+		{
+			name:             "Private post by sysadmin - Current team - Sysadmin user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          privateChannel,
+			hasJoinedChannel: true,
+			post:             privatePost,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+		{
+			name:             "Private post by basic user - Current team - Basic user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          privateChannelBasicUser,
+			hasJoinedChannel: true,
+			post:             privatePostBasicUser,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:             "Private post by basic user - Current team - Sysadmin user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          privateChannelBasicUser,
+			hasJoinedChannel: false,
+			post:             privatePostBasicUser,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+
+		// GM channel
+		{
+			name:             "GM post - Current team - Basic user",
+			team:             nil,
+			channel:          gmChannel,
+			hasJoinedChannel: true,
+			post:             gmPost,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:      "GM post - Current team - Sysadmin user",
+			team:      nil,
+			channel:   gmChannel,
+			post:      gmPost,
+			client:    sysadminClient,
+			hasAccess: false,
+		},
+
+		// DM channel
+		{
+			name:             "DM post - Current team - Basic user",
+			team:             nil,
+			channel:          dmChannel,
+			hasJoinedChannel: true,
+			post:             dmPost,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:      "DM post - Current team - Sysadmin user",
+			team:      nil,
+			channel:   dmChannel,
+			post:      dmPost,
+			client:    sysadminClient,
+			hasAccess: false,
+		},
+
+		// Open channel - Open Team
+		{
+			name:             "Open post - Open team - Basic user",
+			team:             openTeam,
+			hasJoinedTeam:    false,
+			channel:          openTeamOpenChannel,
+			hasJoinedChannel: false,
+			post:             openTeamOpenPost,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:             "Open post - Open team - Sysadmin user",
+			team:             openTeam,
+			hasJoinedTeam:    true,
+			channel:          openTeamOpenChannel,
+			hasJoinedChannel: true,
+			post:             openTeamOpenPost,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+
+		// Open channel - Alt Open Team
+		{
+			name:             "Open post - Alt open team - Basic user",
+			team:             altOpenTeam,
+			hasJoinedTeam:    true,
+			channel:          altOpenTeamOpenChannel,
+			hasJoinedChannel: true,
+			post:             altOpenTeamOpenPost,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:             "Open post - Alt open team - Sysadmin user",
+			team:             altOpenTeam,
+			hasJoinedTeam:    false,
+			channel:          altOpenTeamOpenChannel,
+			hasJoinedChannel: false,
+			post:             altOpenTeamOpenPost,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+
+		// Open channel - Invite Team
+		{
+			name:      "Open post - Invite team - Basic user",
+			team:      inviteTeam,
+			channel:   inviteTeamOpenChannel,
+			post:      inviteTeamOpenPost,
+			client:    client,
+			hasAccess: false,
+		},
+		{
+			name:             "Open post - Invite team - Sysadmin user",
+			team:             inviteTeam,
+			hasJoinedTeam:    true,
+			channel:          inviteTeamOpenChannel,
+			hasJoinedChannel: true,
+			post:             inviteTeamOpenPost,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, resp, err := tc.client.GetPostInfo(tc.post.Id)
+			if !tc.hasAccess {
+				require.Error(t, err)
+				CheckNotFoundStatus(t, resp)
+				return
+			}
+
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Equal(t, tc.channel.Id, info.ChannelId)
+			require.Equal(t, tc.channel.Type, info.ChannelType)
+			require.Equal(t, tc.channel.DisplayName, info.ChannelDisplayName)
+			require.Equal(t, tc.hasJoinedChannel, info.HasJoinedChannel)
+			if tc.team != nil {
+				require.Equal(t, tc.team.Id, info.TeamId)
+				require.Equal(t, tc.team.Type, info.TeamType)
+				require.Equal(t, tc.team.DisplayName, info.TeamDisplayName)
+				require.Equal(t, tc.hasJoinedTeam, info.HasJoinedTeam)
+			}
+		})
+	}
+}
+
+func TestAcknowledgePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	client := th.Client
+
+	post := th.BasicPost
+	ack, _, err := client.AcknowledgePost(post.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+
+	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 1)
+	require.Equal(t, acks[0], ack)
+
+	_, resp, err := client.AcknowledgePost("junk", th.BasicUser.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(GenerateTestId(), th.BasicUser.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(post.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser2.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	client.Logout()
+	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, _, err = th.SystemAdminClient.AcknowledgePost(post.Id, th.SystemAdminUser.Id)
+	require.NoError(t, err)
+}
+
+func TestUnacknowledgePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	client := th.Client
+
+	post := th.BasicPost
+	ack, _, err := client.AcknowledgePost(post.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+
+	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 1)
+	require.Equal(t, acks[0], ack)
+
+	resp, err := client.UnacknowledgePost("junk", th.BasicUser.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(GenerateTestId(), th.BasicUser.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(post.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(post.Id, th.BasicUser2.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, err = client.UnacknowledgePost(post.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+
+	acks, appErr = th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 0)
+
+	client.Logout()
+	resp, err = client.UnacknowledgePost(post.Id, th.BasicUser.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }

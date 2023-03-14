@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Помилка оновлення поточного каналу."
+    "translation": "Помилка оновлення заголовка каналу."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Помилка оновлення поточного каналу."
+    "translation": "Помилка оновлення цілі каналу."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -621,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Відкрийте сторінку за допомогою Mattermost"
+    "translation": "Показати довідкове повідомлення Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -649,15 +649,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@ [Ім'я користувача] ~ [канал]"
+    "translation": "@ [Ім'я користувача]... ~[канал]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Відсутнє ім'я користувача і канал."
+    "translation": "Відсутнє ім’я користувача та/або канал."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Ми не змогли знайти користувача. Можливо він заблокований Системним адміністратором."
+    "translation": "Ми не змогли знайти користувача {{.User}}. Можливо він заблокований Системним адміністратором."
   },
   {
     "id": "api.command_invite.name",
@@ -669,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Не вдалося знайти канал {{.Channel}}. Для ідентифікації каналів використовуйте ручку каналу."
+    "translation": "Не вдалося знайти канал {{.Channel}}. Використовуйте [дескриптор каналу](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), щоб ідентифікувати канали."
   },
   {
     "id": "api.command_invite.success",
@@ -6336,14 +6336,6 @@
     "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Не знайдена кінцева точка API кластера."
   },
@@ -6582,10 +6574,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -6862,5 +6850,177 @@
   {
     "id": "Channels",
     "translation": "Канали"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Подія Webhook не оброблена. Або вона відсутня, або недійсна."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Неможливо створити прямий канал між цими користувачами, оскільки вони не мають спільної команди."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "не вдалося додати користувача до group-teams та group-channels"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Не вдалося скинути поле AuthData в Email."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Підтвердження в архівному каналі неможливо."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Ви не можете видалити підтвердження після закінчення 5 хвилин."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Ви не можете видалити підтвердження в заархівованому каналі."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Сценарії"
+  },
+  {
+    "id": "Boards",
+    "translation": "Дошки"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Запросіть безпечне з'єднання"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Запрошення створено."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Зашифроване запрошення від безпечного з'єднання"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Запрошення від безпечного з'єднання"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Не вдалося розшифрувати запрошення. Неправильний пароль або зіпсоване запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[дія]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Не вдалося отримати безпечні з'єднання: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Не вдалося зашифрувати запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Відображуване ім’я для безпечного з’єднання"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Відображуване ім’я безпечного з’єднання"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Створіть безпечні з'єднання між екземплярами Mattermost."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Не вдалося розкодувати запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Безпечне з'єднання {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Не вдалося додати безпечне з'єднання: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Не вдалося прийняти запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Запрошення прийнято та підтверджено.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Прийміть запрошення від зовнішнього екземпляра Mattermost"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Команда marketplace не підтримується на вашому пристрої."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "магазин плагінів"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Відкрити Магазин плагінів"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost – це платформа з відкритим вихідним кодом для безпечного спілкування, співробітництва та організації роботи між командами з використанням різноманітних інструментів.\nMattermost складається з трьох ключових інструментів:\n\n**Channels** - Залишайтеся на зв’язку зі своєю командою за допомогою індивідуальних і групових повідомлень.\n**[Playbooks](/playbooks)** - Створіть і налаштуйте повторювані процеси для досягнення конкретних і передбачуваних результатів.\n**[Boards](/boards)** - Керуйте проектами та завданнями в структурі дошки Kanban, щоб допомогти вашій команді досягти ключових віх.\n\n[Переглянути документацію та посібники]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Ваш статус встановлено на “{{.EmojiName}} {{.StatusMessage}}”. Ви можете змінити свій статус у спливаючому вікні статусу в заголовку бічної панелі каналу."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "статус"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] чи скинути"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Встановити чи скинути ваш статус"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Ваш статус очищено."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Помилка очищення статусу."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Помилка встановлення статусу."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Введений текст перевищує ліміт символів. Призначення каналу обмежено символами {{.MaxLength}}."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Введений текст перевищує ліміт символів. Максимальна кількість символів у заголовку каналу: {{.MaxLength}}."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Неможливо відновити команду, тому що досягнуто ліміту команд"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Не вдалося створити команду, оскільки досягнуто ліміту команд"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Адміністратору вже повідомлено"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Відсутні обов’язкові поля для надсилання електронного листа про прострочення."
   }
 ]

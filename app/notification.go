@@ -43,7 +43,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		return []string{}, nil
 	}
 
-	isCRTAllowed := a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
+	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -315,7 +315,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mentionedUsersList = append(mentionedUsersList, id)
 	}
 
-	nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
+	nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "", post.IsUrgent())
+
 	if nErr != nil {
 		mlog.Warn(
 			"Failed to update mention count",
@@ -606,7 +607,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					}
 					threadMembership = tm
 				}
-				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true)
+				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}

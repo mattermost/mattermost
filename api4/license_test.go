@@ -10,8 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
-	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -242,7 +240,6 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
-		t.Skip("MM-48416")
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewInt(nUsers)
@@ -266,11 +263,11 @@ func TestRequestTrialLicense(t *testing.T) {
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
-
+		originalCwsUrl := *th.App.Srv().Config().CloudSettings.CWSURL
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = testServer.URL })
 		defer func(requestTrialURL string) {
-			app.RequestTrialURL = requestTrialURL
-		}(app.RequestTrialURL)
-		app.RequestTrialURL = testServer.URL
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
+		}(originalCwsUrl)
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
@@ -297,10 +294,11 @@ func TestRequestTrialLicense(t *testing.T) {
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
+		originalCwsUrl := *th.App.Srv().Config().CloudSettings.CWSURL
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = testServer.URL })
 		defer func(requestTrialURL string) {
-			platform.RequestTrialURL = requestTrialURL
-		}(platform.RequestTrialURL)
-		platform.RequestTrialURL = testServer.URL
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
+		}(originalCwsUrl)
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		require.Error(t, err)
@@ -328,5 +326,79 @@ func TestRequestRenewalLink(t *testing.T) {
 		resp, err := th.SystemAdminClient.DoAPIGet("/license/renewal", "")
 		CheckErrorID(t, err, "app.license.generate_renewal_token.no_license")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+func TestRequestTrueUpReview(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+}
+
+func TestTrueUpReviewStatus(t *testing.T) {
+	th := Setup(t)
+
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	t.Run("returns 200 when status retrieved", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+	})
+
+	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 }
