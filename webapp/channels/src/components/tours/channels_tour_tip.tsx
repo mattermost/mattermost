@@ -8,8 +8,15 @@ import {Placement} from 'tippy.js';
 
 import {TourTip, PunchOutCoordsHeightAndWidth} from '@mattermost/components';
 
+import {t} from 'utils/i18n';
+
 import {getLastStep} from './utils';
 import {useTourTipManager} from './tour_manager';
+
+// TODO MM-51399 These strings are properly defined in @mattermost/components, but the i18n tooling currently can't
+// find them there, so we've had to redefine them here
+t('tutorial_tip.out');
+t('tutorial_tip.seen');
 
 export type ChannelsTourTipProps = {
     screen: JSX.Element;
