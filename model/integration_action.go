@@ -279,7 +279,7 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 	return clientTriggerId, triggerId, nil
 }
 
-func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, InteractiveDialogTriggerTimeout int) (string, string, *AppError) {
+func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, interactiveDialogTriggerTimeout int) (string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
 		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
@@ -296,8 +296,8 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, Interactive
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
 
 	now := GetMillis()
-	if now-timestamp > int64(InteractiveDialogTriggerTimeout) {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Seconds": InteractiveDialogTriggerTimeout / 1000}, "", http.StatusBadRequest)
+	if now-timestamp > int64(interactiveDialogTriggerTimeout) {
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Seconds": interactiveDialogTriggerTimeout / 1000}, "", http.StatusBadRequest)
 	}
 
 	signature, err := base64.StdEncoding.DecodeString(split[3])
@@ -326,8 +326,8 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, Interactive
 	return clientTriggerId, userId, nil
 }
 
-func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, InteractiveDialogTriggerTimeout int) (string, string, *AppError) {
-	return DecodeAndVerifyTriggerId(r.TriggerId, s, InteractiveDialogTriggerTimeout)
+func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, interactiveDialogTriggerTimeout int) (string, string, *AppError) {
+	return DecodeAndVerifyTriggerId(r.TriggerId, s, interactiveDialogTriggerTimeout)
 }
 
 func (o *Post) StripActionIntegrations() {
