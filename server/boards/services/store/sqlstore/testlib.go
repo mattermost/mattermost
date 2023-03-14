@@ -52,8 +52,8 @@ func RunStoreTests(t *testing.T, f func(*testing.T, store.Store)) {
 	var storeTypes []*storeType
 
 	storeTypes = append(storeTypes,
-		newStoreType(t, "PostgreSQL", model.PostgresDBType, true),
-		newStoreType(t, "MySQL", model.MysqlDBType, true),
+		newStoreType(t, "PostgreSQL", model.PostgresDBType, false),
+		newStoreType(t, "MySQL", model.MysqlDBType, false),
 	)
 
 	for _, st := range storeTypes {
@@ -70,8 +70,8 @@ func RunStoreTestsWithSqlStore(t *testing.T, f func(*testing.T, *SQLStore)) {
 	var storeTypes []*storeType
 
 	storeTypes = append(storeTypes,
-		newStoreType(t, "PostgreSQL", model.PostgresDBType, true),
-		newStoreType(t, "MySQL", model.MysqlDBType, true),
+		newStoreType(t, "PostgreSQL", model.PostgresDBType, false),
+		newStoreType(t, "MySQL", model.MysqlDBType, false),
 	)
 
 	for _, st := range storeTypes {
@@ -89,8 +89,8 @@ func RunStoreTestsWithFoundation(t *testing.T, f func(*testing.T, *foundation.Fo
 	var storeTypes []*storeType
 
 	storeTypes = append(storeTypes,
-		newStoreType(t, "PostgreSQL", model.PostgresDBType, false),
-		newStoreType(t, "MySQL", model.MysqlDBType, false),
+		newStoreType(t, "PostgreSQL", model.PostgresDBType, true),
+		newStoreType(t, "MySQL", model.MysqlDBType, true),
 	)
 
 	for _, st := range storeTypes {
