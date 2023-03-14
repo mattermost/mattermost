@@ -10005,5 +10005,9 @@
   {
     "id": "api.server.cws.delete_workspace.app_error",
     "translation": "CWS-servern kunde inte radera arbetsytan."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Kontakta försäljning"
   }
 ]

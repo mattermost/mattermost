@@ -14,8 +14,9 @@ import (
 // these system settings are created when running the data migrations,
 // so they will be present after the tests setup.
 var dataMigrationSystemSettings = map[string]string{
-	"UniqueIDsMigrationComplete":      "true",
-	"CategoryUuidIdMigrationComplete": "true",
+	"UniqueIDsMigrationComplete":            "true",
+	"CategoryUuidIdMigrationComplete":       "true",
+	"DeDuplicateCategoryBoardTableComplete": "true",
 }
 
 func addBaseSettings(m map[string]string) map[string]string {

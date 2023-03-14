@@ -40,7 +40,7 @@ func NewBoardsMigrator(store *SQLStore) *BoardsMigrator {
 	return &BoardsMigrator{
 		connString: store.connectionString,
 		driverName: store.dbType,
-		store:      store,
+		store: store,
 	}
 }
 
