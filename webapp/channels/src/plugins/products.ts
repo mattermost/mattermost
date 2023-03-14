@@ -67,11 +67,6 @@ function loadRemoteModules() {
         ];
 
         await Promise.all(products.map(async (product) => {
-            if ('featureFlagEnabled' in product && !product.featureFlagEnabled) {
-                console.log(`Feature flag for product ${product.id} not enabled. Not loading it.`);
-                return;
-            }
-
             if (!REMOTE_CONTAINERS[product.id]) {
                 console.log(`Product ${product.id} not found. Not loading it.`);
                 return;
