@@ -122,7 +122,7 @@ func openTestFile(t *testing.T, filename string) (*os.File, error) {
 	}
 	t.Log("working directory:", working)
 
-	path := filepath.Join("tests", filename)
+	path := filepath.Join("../tests", filename)
 	return os.Open(path)
 }
 
