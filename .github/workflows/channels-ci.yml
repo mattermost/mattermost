@@ -212,9 +212,9 @@ jobs:
     - name: ci/aws-configure
       uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
       with:
-        aws-region: ${{ secrets.WEBAPP_AWS_REGION }}
-        aws-access-key-id: ${{ secrets.WEBAPP_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WEBAPP_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
     # We need to sanitize the branch name before using it
     - name: ci/sanitize-branch-name
       id: branch
@@ -224,8 +224,8 @@ jobs:
       run: echo "BRANCH_NAME=$(echo ${{ steps.branch.outputs.sanitized-branch-name }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
     - name: ci/artifact-upload
       run: |
-        aws s3 cp mattermost-webapp.tar.gz s3://${{secrets.AWS_S3_BUCKET_PRS}}/$REPO_NAME/$BRANCH_NAME/ --cache-control no-cache
-        aws s3 cp mattermost-webapp.tar.gz s3://${{secrets.AWS_S3_BUCKET_PRS}}/$REPO_NAME/commit/${{ github.sha }}/ --cache-control no-cache
+        aws s3 cp mattermost-webapp.tar.gz s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --cache-control no-cache
+        aws s3 cp mattermost-webapp.tar.gz s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --cache-control no-cache
   prepare-docker-build:
     runs-on: ubuntu-22.04
     needs: upload-s3
@@ -281,12 +281,12 @@ jobs:
     - name: ci/aws-configure
       uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
       with:
-        aws-region: ${{ secrets.WEBAPP_AWS_REGION }}
-        aws-access-key-id: ${{ secrets.WEBAPP_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WEBAPP_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
     - name: ci/artifact-upload
       run: |
-        aws s3 cp mattermost-enterprise-linux-amd64.tar.gz s3://${{secrets.AWS_S3_BUCKET_PRS}}/$REPO_NAME/commit/${{ github.event.pull_request.head.sha || github.sha }}/ --cache-control no-cache
+        aws s3 cp mattermost-enterprise-linux-amd64.tar.gz s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.event.pull_request.head.sha || github.sha }}/ --cache-control no-cache
   build-docker:
     runs-on: ubuntu-22.04
     needs: prepare-docker-build
