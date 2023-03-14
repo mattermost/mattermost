@@ -14,41 +14,24 @@ import (
 )
 
 //nolint:dupl
-func StoreTestSubscriptionsStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestSubscriptionsStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("CreateSubscription", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testCreateSubscription(t, store)
+		runStoreTests(t, testCreateSubscription)
 	})
-
 	t.Run("DeleteSubscription", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDeleteSubscription(t, store)
+		runStoreTests(t, testDeleteSubscription)
 	})
-
 	t.Run("UndeleteSubscription", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUndeleteSubscription(t, store)
+		runStoreTests(t, testUndeleteSubscription)
 	})
-
 	t.Run("GetSubscription", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetSubscription(t, store)
+		runStoreTests(t, testGetSubscription)
 	})
-
 	t.Run("GetSubscriptions", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetSubscriptions(t, store)
+		runStoreTests(t, testGetSubscriptions)
 	})
-
 	t.Run("GetSubscribersForBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetSubscribersForBlock(t, store)
+		runStoreTests(t, testGetSubscribersForBlock)
 	})
 }
 

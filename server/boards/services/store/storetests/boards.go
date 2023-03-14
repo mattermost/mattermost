@@ -14,91 +14,57 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func StoreTestBoardStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestBoardStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoard(t, store)
+		runStoreTests(t, testGetBoard)
 	})
 	t.Run("GetBoardsForUserAndTeam", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoardsForUserAndTeam(t, store)
+		runStoreTests(t, testGetBoardsForUserAndTeam)
 	})
 	t.Run("GetBoardsInTeamByIds", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoardsInTeamByIds(t, store)
+		runStoreTests(t, testGetBoardsInTeamByIds)
 	})
 	t.Run("InsertBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testInsertBoard(t, store)
+		runStoreTests(t, testInsertBoard)
 	})
 	t.Run("PatchBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testPatchBoard(t, store)
+		runStoreTests(t, testPatchBoard)
 	})
 	t.Run("DeleteBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDeleteBoard(t, store)
+		runStoreTests(t, testDeleteBoard)
 	})
 	t.Run("UndeleteBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUndeleteBoard(t, store)
+		runStoreTests(t, testUndeleteBoard)
 	})
 	t.Run("InsertBoardWithAdmin", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testInsertBoardWithAdmin(t, store)
+		runStoreTests(t, testInsertBoardWithAdmin)
 	})
 	t.Run("SaveMember", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testSaveMember(t, store)
+		runStoreTests(t, testSaveMember)
 	})
 	t.Run("GetMemberForBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetMemberForBoard(t, store)
+		runStoreTests(t, testGetMemberForBoard)
 	})
 	t.Run("GetMembersForBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetMembersForBoard(t, store)
+		runStoreTests(t, testGetMembersForBoard)
 	})
 	t.Run("GetMembersForUser", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetMembersForUser(t, store)
+		runStoreTests(t, testGetMembersForUser)
 	})
 	t.Run("DeleteMember", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDeleteMember(t, store)
+		runStoreTests(t, testDeleteMember)
 	})
 	t.Run("SearchBoardsForUser", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testSearchBoardsForUser(t, store)
+		runStoreTests(t, testSearchBoardsForUser)
 	})
 	t.Run("SearchBoardsForUserInTeam", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testSearchBoardsForUserInTeam(t, store)
+		runStoreTests(t, testSearchBoardsForUserInTeam)
 	})
 	t.Run("GetBoardHistory", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoardHistory(t, store)
+		runStoreTests(t, testGetBoardHistory)
 	})
 	t.Run("GetBoardCount", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoardCount(t, store)
+		runStoreTests(t, testGetBoardCount)
 	})
 }
 

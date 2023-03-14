@@ -22,13 +22,8 @@ func (th *TestHelper) IsMySQL() bool {
 	return th.f.DB().DriverName() == "mysql"
 }
 
-func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
-	f := foundation.New(t, NewBoardsMigrator())
-
-	th := &TestHelper{
-		t: t,
-		f: f,
-	}
+func SetupTestHelper(t *testing.T, f *foundation.Foundation) (*TestHelper, func()) {
+	th := &TestHelper{t, f}
 
 	tearDown := func() {
 		th.f.TearDown()

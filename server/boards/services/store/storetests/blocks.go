@@ -23,71 +23,45 @@ const (
 	testBoardID = "board-id"
 )
 
-func StoreTestBlocksStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestBlocksStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("InsertBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testInsertBlock(t, store)
+		runStoreTests(t, testInsertBlock)
 	})
 	t.Run("InsertBlocks", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testInsertBlocks(t, store)
+		runStoreTests(t, testInsertBlocks)
 	})
 	t.Run("PatchBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testPatchBlock(t, store)
+		runStoreTests(t, testPatchBlock)
 	})
 	t.Run("PatchBlocks", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testPatchBlocks(t, store)
+		runStoreTests(t, testPatchBlocks)
 	})
 	t.Run("DeleteBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDeleteBlock(t, store)
+		runStoreTests(t, testDeleteBlock)
 	})
 	t.Run("UndeleteBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUndeleteBlock(t, store)
+		runStoreTests(t, testUndeleteBlock)
 	})
 	t.Run("GetSubTree2", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetSubTree2(t, store)
+		runStoreTests(t, testGetSubTree2)
 	})
 	t.Run("GetBlocks", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBlocks(t, store)
+		runStoreTests(t, testGetBlocks)
 	})
 	t.Run("GetBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBlock(t, store)
+		runStoreTests(t, testGetBlock)
 	})
 	t.Run("DuplicateBlock", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDuplicateBlock(t, store)
+		runStoreTests(t, testDuplicateBlock)
 	})
 	t.Run("GetBlockMetadata", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBlockMetadata(t, store)
+		runStoreTests(t, testGetBlockMetadata)
 	})
 	t.Run("UndeleteBlockChildren", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUndeleteBlockChildren(t, store)
+		runStoreTests(t, testUndeleteBlockChildren)
 	})
 	t.Run("GetBlockHistoryNewestChildren", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBlockHistoryNewestChildren(t, store)
+		runStoreTests(t, testGetBlockHistoryNewestChildren)
 	})
 }
 
@@ -100,10 +74,12 @@ func testInsertBlock(t *testing.T, store store.Store) {
 	initialCount := len(blocks)
 
 	t.Run("valid block", func(t *testing.T) {
+		fields := map[string]any{"Field": "Value"}
 		block := &model.Block{
 			ID:         "id-test",
 			BoardID:    boardID,
 			ModifiedBy: userID,
+			Fields:     fields,
 		}
 
 		err := store.InsertBlock(block, "user-id-1")
@@ -112,6 +88,10 @@ func testInsertBlock(t *testing.T, store store.Store) {
 		blocks, err := store.GetBlocksForBoard(boardID)
 		require.NoError(t, err)
 		require.Len(t, blocks, initialCount+1)
+
+		insertedBlock, err := store.GetBlock("id-test")
+		require.Equal(t, block.BoardID, insertedBlock.BoardID)
+		require.Equal(t, fields, insertedBlock.Fields)
 	})
 
 	t.Run("invalid rootid", func(t *testing.T) {

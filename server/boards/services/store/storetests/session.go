@@ -14,23 +14,15 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
 )
 
-func StoreTestSessionStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestSessionStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("CreateAndGetAndDeleteSession", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testCreateAndGetAndDeleteSession(t, store)
+		runStoreTests(t, testCreateAndGetAndDeleteSession)
 	})
-
 	t.Run("GetActiveUserCount", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetActiveUserCount(t, store)
+		runStoreTests(t, testGetActiveUserCount)
 	})
-
 	t.Run("UpdateSession", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUpdateSession(t, store)
+		runStoreTests(t, testUpdateSession)
 	})
 }
 

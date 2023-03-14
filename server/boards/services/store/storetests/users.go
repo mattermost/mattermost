@@ -16,41 +16,24 @@ import (
 )
 
 //nolint:dupl
-func StoreTestUserStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestUserStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetUsersByTeam", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetUsersByTeam(t, store)
+		runStoreTests(t, testGetUsersByTeam)
 	})
-
 	t.Run("CreateAndGetUser", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testCreateAndGetUser(t, store)
+		runStoreTests(t, testCreateAndGetUser)
 	})
-
 	t.Run("GetUsersList", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetUsersList(t, store)
+		runStoreTests(t, testGetUsersList)
 	})
-
 	t.Run("CreateAndUpdateUser", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testCreateAndUpdateUser(t, store)
+		runStoreTests(t, testCreateAndUpdateUser)
 	})
-
 	t.Run("CreateAndGetRegisteredUserCount", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testCreateAndGetRegisteredUserCount(t, store)
+		runStoreTests(t, testCreateAndGetRegisteredUserCount)
 	})
-
 	t.Run("TestPatchUserProps", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testPatchUserProps(t, store)
+		runStoreTests(t, testPatchUserProps)
 	})
 }
 

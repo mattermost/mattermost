@@ -29,11 +29,9 @@ func addBaseSettings(m map[string]string) map[string]string {
 	return r
 }
 
-func StoreTestSystemStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestSystemStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("SetGetSystemSettings", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testSetGetSystemSettings(t, store)
+		runStoreTests(t, testSetGetSystemSettings)
 	})
 }
 

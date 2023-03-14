@@ -16,29 +16,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
 )
 
-func StoreTestTeamStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestTeamStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetTeam", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetTeam(t, store)
+		runStoreTests(t, testGetTeam)
 	})
-
 	t.Run("UpsertTeamSignupToken", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUpsertTeamSignupToken(t, store)
+		runStoreTests(t, testUpsertTeamSignupToken)
 	})
-
 	t.Run("UpsertTeamSettings", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUpsertTeamSettings(t, store)
+		runStoreTests(t, testUpsertTeamSettings)
 	})
-
 	t.Run("GetAllTeams", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetAllTeams(t, store)
+		runStoreTests(t, testGetAllTeams)
 	})
 }
 

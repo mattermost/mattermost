@@ -3,22 +3,31 @@
 
 package migrationstests
 
-import "testing"
+import (
+	"testing"
 
-func Test35AddHIddenColumnToCategoryBoards(t *testing.T) {
-	t.Run("base case - column doesn't already exist", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-		th.f.MigrateToStep(35)
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
+	"github.com/mgdelacroix/foundation"
+)
+
+func Test35AddHiddenColumnToCategoryBoards(t *testing.T) {
+	sqlstore.RunStoreTestsWithFoundation(t, func(t *testing.T, f *foundation.Foundation) {
+		t.Run("base case - column doesn't already exist", func(t *testing.T) {
+			th, tearDown := SetupTestHelper(t, f)
+			defer tearDown()
+			th.f.MigrateToStep(35)
+		})
 	})
 
-	t.Run("column already exist", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
+	sqlstore.RunStoreTestsWithFoundation(t, func(t *testing.T, f *foundation.Foundation) {
+		t.Run("column already exist", func(t *testing.T) {
+			th, tearDown := SetupTestHelper(t, f)
+			defer tearDown()
 
-		th.f.MigrateToStep(34).
-			ExecFile("./fixtures/test35_add_hidden_column.sql")
+			th.f.MigrateToStep(34).
+				ExecFile("./fixtures/test35_add_hidden_column.sql")
 
-		th.f.MigrateToStep(35)
+			th.f.MigrateToStep(35)
+		})
 	})
 }

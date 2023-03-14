@@ -15,27 +15,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func StoreTestBoardsAndBlocksStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestBoardsAndBlocksStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("createBoardsAndBlocks", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testCreateBoardsAndBlocks(t, store)
+		runStoreTests(t, testCreateBoardsAndBlocks)
 	})
 	t.Run("patchBoardsAndBlocks", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testPatchBoardsAndBlocks(t, store)
+		runStoreTests(t, testPatchBoardsAndBlocks)
 	})
 	t.Run("deleteBoardsAndBlocks", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDeleteBoardsAndBlocks(t, store)
+		runStoreTests(t, testDeleteBoardsAndBlocks)
 	})
-
 	t.Run("duplicateBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDuplicateBoard(t, store)
+		runStoreTests(t, testDuplicateBoard)
 	})
 }
 

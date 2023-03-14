@@ -18,23 +18,22 @@ const (
 	categoryID = "category-id-test"
 )
 
-func StoreTestDataRetention(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestDataRetention(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("RunDataRetention", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
+		runStoreTests(t, func(t *testing.T, store store.Store) {
+			category := model.Category{
+				ID:     categoryID,
+				Name:   "TestCategory",
+				UserID: testUserID,
+				TeamID: testTeamID,
+			}
+			err := store.CreateCategory(category)
+			require.NoError(t, err)
 
-		category := model.Category{
-			ID:     categoryID,
-			Name:   "TestCategory",
-			UserID: testUserID,
-			TeamID: testTeamID,
-		}
-		err := store.CreateCategory(category)
-		require.NoError(t, err)
-
-		testRunDataRetention(t, store, 0)
-		testRunDataRetention(t, store, 2)
-		testRunDataRetention(t, store, 10)
+			testRunDataRetention(t, store, 0)
+			testRunDataRetention(t, store, 2)
+			testRunDataRetention(t, store, 10)
+		})
 	})
 }
 
