@@ -199,36 +199,9 @@ jobs:
           name: webapp-artifact
           path: webapp/channels/mattermost-webapp.tar.gz
           retention-days: 14
-  upload-s3:
-    runs-on: ubuntu-22.04
-    needs: build
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
-    steps:
-    - name: ci/artifacts-downloads
-      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
-      with:
-        name: webapp-artifact
-    - name: ci/aws-configure
-      uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
-      with:
-        aws-region: us-east-1
-        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
-    # We need to sanitize the branch name before using it
-    - name: ci/sanitize-branch-name
-      id: branch
-      uses: transferwise/sanitize-branch-name@b10b4d524ac5a7b645b43a3527db3a6cca017b9d # v1
-    # Search for the string "pull" and replace it with "PR" in branch-name
-    - name: ci/sanitize-branch-name-replace-pull-with-PR-
-      run: echo "BRANCH_NAME=$(echo ${{ steps.branch.outputs.sanitized-branch-name }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
-    - name: ci/artifact-upload
-      run: |
-        aws s3 cp mattermost-webapp.tar.gz s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --cache-control no-cache
-        aws s3 cp mattermost-webapp.tar.gz s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --cache-control no-cache
   prepare-docker-build:
     runs-on: ubuntu-22.04
-    needs: upload-s3
+    needs: build
     # Run this Job, on every branch except "master","cloud-*","release-*" branches
     if: |
       ${{ !(github.ref_name == 'master' ||
@@ -278,15 +251,6 @@ jobs:
         name: mattermost-enterprise-linux-artifact
         path: mattermost-enterprise-linux-amd64.tar.gz
         retention-days: 14
-    - name: ci/aws-configure
-      uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
-      with:
-        aws-region: us-east-1
-        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
-    - name: ci/artifact-upload
-      run: |
-        aws s3 cp mattermost-enterprise-linux-amd64.tar.gz s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.event.pull_request.head.sha || github.sha }}/ --cache-control no-cache
   build-docker:
     runs-on: ubuntu-22.04
     needs: prepare-docker-build
