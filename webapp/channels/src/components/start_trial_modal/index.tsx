@@ -24,6 +24,7 @@ import StartTrialModalSvg from './start_trial_modal_svg';
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefisModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
 import './start_trial_modal.scss';
+import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
 enum TrialLoadStatus {
     NotStarted = 'NOT_STARTED',
@@ -39,6 +40,7 @@ type Props = {
 function StartTrialModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
     const dispatch = useDispatch<DispatchFunc>();
+    const openTrialFormModal = useOpenStartTrialFormModal()
 
     const {formatMessage} = useIntl();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_MODAL));
