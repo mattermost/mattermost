@@ -1,5 +1,3 @@
-.PHONY: dist emojis help update-dependencies
-
 BUILD_SERVER_DIR = ../mattermost-server
 
 export NODE_OPTIONS=--max-old-space-size=4096
@@ -11,20 +9,6 @@ i18n-extract: ## Extract strings for translation from the source code
 e2e/playwright/node_modules:
 	@echo Install Playwright and its dependencies
 	cd e2e/playwright && npm install
-
-.PHONY: dist
-dist: ## Builds and packages app
-	@echo Building Mattermost Web App
-
-	npm run build
-
-	@echo Packaging Mattermost Web App
-
-	mkdir tmp
-	mv dist tmp/client
-	tar -C tmp -czf mattermost-webapp.tar.gz client
-	mv tmp/client dist
-	rmdir tmp
 
 .PHONY: e2e-test
 e2e-test:
