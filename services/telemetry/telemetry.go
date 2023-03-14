@@ -413,6 +413,7 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.ServiceSettingsDefaultTLSKeyFile),
 		"isdefault_read_timeout":                                  isDefault(*cfg.ServiceSettings.ReadTimeout, model.ServiceSettingsDefaultReadTimeout),
 		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.ServiceSettingsDefaultWriteTimeout),
+		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.InteractiveDialogTriggerTimeout, model.ServiceSettingsDefaultInteractiveDialogTriggerTimeout),
 		"isdefault_idle_timeout":                                  isDefault(*cfg.ServiceSettings.IdleTimeout, model.ServiceSettingsDefaultIdleTimeout),
 		"isdefault_google_developer_key":                          isDefault(cfg.ServiceSettings.GoogleDeveloperKey, ""),
 		"isdefault_allow_cors_from":                               isDefault(*cfg.ServiceSettings.AllowCorsFrom, model.ServiceSettingsDefaultAllowCorsFrom),
