@@ -29,6 +29,11 @@ func Test36AddUniqueConstraintToCategoryBoards(t *testing.T) {
 			th.f.DB().Get(&count, query)
 
 			require.Equal(t, 1, count)
+
+			// we remove the table to ensure subsequent runs of the
+			// test suite don't find information about it on the
+			// information_schema
+			th.f.DB().Exec(`DROP TABLE focalboard_category_boards`)
 		})
 	})
 
@@ -62,6 +67,11 @@ func Test36AddUniqueConstraintToCategoryBoards(t *testing.T) {
 				"AND table_name = 'focalboard_category_boards'"
 			th.f.DB().Get(&count, query)
 			require.Equal(t, 1, count)
+
+			// we remove the table to ensure subsequent runs of the
+			// test suite don't find information about it on the
+			// information_schema
+			th.f.DB().Exec(`DROP TABLE focalboard_category_boards`)
 		})
 	})
 }
