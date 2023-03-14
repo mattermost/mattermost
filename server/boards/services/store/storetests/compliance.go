@@ -15,21 +15,15 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 )
 
-func StoreTestComplianceHistoryStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestComplianceHistoryStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetBoardsForCompliance", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoardsForCompliance(t, store)
+		runStoreTests(t, testGetBoardsForCompliance)
 	})
 	t.Run("GetBoardsComplianceHistory", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBoardsComplianceHistory(t, store)
+		runStoreTests(t, testGetBoardsComplianceHistory)
 	})
 	t.Run("GetBlocksComplianceHistory", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetBlocksComplianceHistory(t, store)
+		runStoreTests(t, testGetBlocksComplianceHistory)
 	})
 }
 

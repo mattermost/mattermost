@@ -14,8 +14,9 @@ import (
 // these system settings are created when running the data migrations,
 // so they will be present after the tests setup.
 var dataMigrationSystemSettings = map[string]string{
-	"UniqueIDsMigrationComplete":      "true",
-	"CategoryUuidIdMigrationComplete": "true",
+	"UniqueIDsMigrationComplete":            "true",
+	"CategoryUuidIdMigrationComplete":       "true",
+	"DeDuplicateCategoryBoardTableComplete": "true",
 }
 
 func addBaseSettings(m map[string]string) map[string]string {
@@ -29,11 +30,9 @@ func addBaseSettings(m map[string]string) map[string]string {
 	return r
 }
 
-func StoreTestSystemStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestSystemStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("SetGetSystemSettings", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testSetGetSystemSettings(t, store)
+		runStoreTests(t, testSetGetSystemSettings)
 	})
 }
 

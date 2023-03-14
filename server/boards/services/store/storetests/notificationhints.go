@@ -15,29 +15,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 )
 
-func StoreTestNotificationHintsStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestNotificationHintsStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("UpsertNotificationHint", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUpsertNotificationHint(t, store)
+		runStoreTests(t, testUpsertNotificationHint)
 	})
-
 	t.Run("DeleteNotificationHint", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testDeleteNotificationHint(t, store)
+		runStoreTests(t, testDeleteNotificationHint)
 	})
-
 	t.Run("GetNotificationHint", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetNotificationHint(t, store)
+		runStoreTests(t, testGetNotificationHint)
 	})
-
 	t.Run("GetNextNotificationHint", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetNextNotificationHint(t, store)
+		runStoreTests(t, testGetNextNotificationHint)
 	})
 }
 
