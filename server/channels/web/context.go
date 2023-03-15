@@ -145,7 +145,7 @@ func (c *Context) CloudKeyRequired() {
 }
 
 func (c *Context) RemoteClusterTokenRequired() {
-	if license := c.App.Channels().License(); license == nil || !*license.Features.RemoteClusterService || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeRemoteclusterToken {
+	if license := c.App.Channels().License(); license == nil || !license.HasRemoteClusterService() || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeRemoteclusterToken {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}

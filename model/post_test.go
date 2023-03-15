@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -905,4 +906,35 @@ func TestPostAttachments(t *testing.T) {
 		assert.Equal(t, attachments[0].Fields[0].Value, ":emoji1:")
 		assert.Equal(t, attachments[0].Fields[1].Value, ":emoji2:")
 	})
+}
+
+func TestPostForPlugin(t *testing.T) {
+	t.Run("post type custom_up_notification for plugin should have no requested features prop", func(t *testing.T) {
+		p := &Post{
+			Type: fmt.Sprintf("%sup_notification", PostCustomTypePrefix),
+		}
+		props := make(StringInterface)
+		props["requested_features"] = "test_requested_features_map"
+		p.SetProps(props)
+
+		require.NotNil(t, p.GetProp("requested_features"))
+
+		pluginPost := p.ForPlugin()
+		require.Nil(t, pluginPost.GetProp("requested_features"))
+	})
+
+	t.Run("non post type custom_up_notification for plugin should have requested features prop", func(t *testing.T) {
+		p := &Post{
+			Type: PostTypeWelcomePost,
+		}
+		props := make(StringInterface)
+		props["requested_features"] = "test_requested_features_map"
+		p.SetProps(props)
+
+		require.NotNil(t, p.GetProp("requested_features"))
+
+		pluginPost := p.ForPlugin()
+		require.NotNil(t, pluginPost.GetProp("requested_features"))
+	})
+
 }
