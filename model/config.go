@@ -383,8 +383,8 @@ type ServiceSettings struct {
 	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
 	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
-	EnableLocalMode                                   *bool
-	LocalModeSocketLocation                           *string // telemetry: none
+	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
+	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
 	EnableAWSMetering                                 *bool   // telemetry: none
 	SplitKey                                          *string `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"experimental_feature_flags,write_restrictable"` // telemetry: none

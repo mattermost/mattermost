@@ -361,7 +361,11 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
+	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to initialize telemetry service")
+	}
+
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -580,7 +584,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	// Remote Cluster service
 
 	// License check (assume enabled if shared channels enabled)
-	if !*license.Features.RemoteClusterService && !license.HasSharedChannels() {
+	if !license.HasRemoteClusterService() && !license.HasSharedChannels() {
 		mlog.Debug("License does not have Remote Cluster services enabled")
 		return nil
 	}

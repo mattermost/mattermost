@@ -5,5 +5,3 @@ CREATE TABLE IF NOT EXISTS persistentnotifications (
     deleteat bigint,
     sentcount smallint
 );
-
-CREATE INDEX IF NOT EXISTS idx_persistentnotifications_createat_deleteat ON persistentnotifications(createat, deleteat);
