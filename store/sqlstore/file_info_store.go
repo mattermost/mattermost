@@ -184,6 +184,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 			"MiniPreview":     info.MiniPreview,
 			"Content":         info.Content,
 			"RemoteId":        info.RemoteId,
+			"ChannelId":       info.ChannelId,
 		}).
 		Where(sq.Eq{"Id": info.Id}).
 		ToSql()
