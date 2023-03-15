@@ -5068,10 +5068,6 @@
     "translation": "Unable to save the Draft."
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Unable to update the Draft."
-  },
-  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up."
   },
