@@ -319,11 +319,11 @@ boards-gen: ## Run generators for Boards
 	cd boards && $(GO) generate ./...
 
 i18n-extract: ## Extract strings for translation from the source code
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@61e110cc9f0b
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@monorepo
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
 i18n-check: ## Exit on empty translation strings and translation source strings
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@61e110cc9f0b
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@monorepo
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 

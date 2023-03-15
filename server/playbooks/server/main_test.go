@@ -176,36 +176,40 @@ func (e *TestEnvironment) CreateClients() {
 	e.T.Helper()
 
 	userPassword := "Password123!"
-	admin, _ := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
+	admin, appErr := e.A.CreateUserAsAdmin(request.EmptyContext(e.logger), &model.User{
 		Email:    "playbooksadmin@example.com",
 		Username: "playbooksadmin",
 		Password: userPassword,
-	})
+	}, "")
+	require.Nil(e.T, appErr)
 	e.AdminUser = admin
 
-	user, _ := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
+	user, appErr := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
 		Email:     "playbooksuser@example.com",
 		Username:  "playbooksuser",
 		Password:  userPassword,
 		FirstName: "First 1",
 		LastName:  "Last 1",
 	})
+	require.Nil(e.T, appErr)
 	e.RegularUser = user
 
-	user2, _ := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
+	user2, appErr := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
 		Email:     "playbooksuser2@example.com",
 		Username:  "playbooksuser2",
 		Password:  userPassword,
 		FirstName: "First 2",
 		LastName:  "Last 2",
 	})
+	require.Nil(e.T, appErr)
 	e.RegularUser2 = user2
 
-	notInTeam, _ := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
+	notInTeam, appErr := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
 		Email:    "playbooksusernotinteam@example.com",
 		Username: "playbooksusenotinteam",
 		Password: userPassword,
 	})
+	require.Nil(e.T, appErr)
 	e.RegularUserNotInTeam = notInTeam
 
 	siteURL := "http://localhost:9056"

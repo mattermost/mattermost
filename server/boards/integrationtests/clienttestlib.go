@@ -97,7 +97,8 @@ func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID 
 }
 
 func GetTestConfig() (*config.Configuration, error) {
-	dbType, connectionString, err := sqlstore.PrepareNewTestDatabase()
+	dbType := model.PostgresDBType
+	connectionString, err := sqlstore.PrepareNewTestDatabase(dbType)
 	if err != nil {
 		return nil, err
 	}

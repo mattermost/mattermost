@@ -1,9 +1,8 @@
-.PHONY: build dist test run clean stop check-style fix-style run-unit emojis help update-dependencies
-
 BUILD_SERVER_DIR = ../mattermost-server
 
 export NODE_OPTIONS=--max-old-space-size=4096
 
+.PHONY: i18n-extract
 i18n-extract: ## Extract strings for translation from the source code
 	npm run mmjstool -- i18n extract-webapp
 
@@ -11,16 +10,8 @@ e2e/playwright/node_modules:
 	@echo Install Playwright and its dependencies
 	cd e2e/playwright && npm install
 
-dist: node_modules build ## Builds and packages app
-	@echo Packaging Mattermost Web App
-
-	mkdir tmp
-	mv dist tmp/client
-	tar -C tmp -czf mattermost-webapp.tar.gz client
-	mv tmp/client dist
-	rmdir tmp
-
-e2e-test: node_modules
+.PHONY: e2e-test
+e2e-test:
 	@echo E2E: Running mattermost-mysql-e2e
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql-e2e) -eq 0 ]; then \
 		echo starting mattermost-mysql-e2e; \
@@ -56,6 +47,7 @@ e2e-test: node_modules
 
 	@echo E2E: Tests completed
 
+.PHONY: clean-e2e
 clean-e2e:
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql-e2e) -eq 1 ]; then \
 		echo stopping mattermost-mysql-e2e; \
@@ -66,6 +58,7 @@ clean-e2e:
 		cp config/config-backup.json config/config.json && echo "revert local config.json" || \
 		echo "config-backup.json not found" && sed -i'' -e 's|"DataSource": ".*"|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"|g' config/config.json
 
+.PHONY: emojis
 emojis: ## Creates emoji JSON, JSX and Go files and extracts emoji images from the system font
 	SERVER_DIR=$(BUILD_SERVER_DIR) npm run make-emojis
 	@if [ -e $(BUILD_SERVER_DIR)/model/emoji_data.go ]; then \
@@ -73,9 +66,11 @@ emojis: ## Creates emoji JSON, JSX and Go files and extracts emoji images from t
 	fi
 
 ## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+.PHONY: help
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+.PHONY: update-dependencies
 update-dependencies: # Updates the dependencies
 	npm update --depth 9999
 	npm audit fix

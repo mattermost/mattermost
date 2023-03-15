@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package migrationstests
+package sqlstore
 
 import (
 	"bytes"
@@ -23,24 +23,24 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
 )
 
 var tablePrefix = "focalboard_"
 
 type BoardsMigrator struct {
-	withMattermostMigrations bool
-	connString               string
-	driverName               string
-	db                       *sql.DB
-	store                    *sqlstore.SQLStore
-	morphEngine              *morph.Morph
-	morphDriver              drivers.Driver
+	connString  string
+	driverName  string
+	db          *sql.DB
+	store       *SQLStore
+	morphEngine *morph.Morph
+	morphDriver drivers.Driver
 }
 
-func NewBoardsMigrator(withMattermostMigrations bool) *BoardsMigrator {
+func NewBoardsMigrator(store *SQLStore) *BoardsMigrator {
 	return &BoardsMigrator{
-		withMattermostMigrations: withMattermostMigrations,
+		connString: store.connectionString,
+		driverName: store.dbType,
+		store:      store,
 	}
 }
 
@@ -109,7 +109,7 @@ func (bm *BoardsMigrator) getMorphConnection() (*morph.Morph, drivers.Driver, er
 		return nil, nil, err
 	}
 
-	assetsList, err := sqlstore.Assets.ReadDir("migrations")
+	assetsList, err := Assets.ReadDir("migrations")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -122,14 +122,14 @@ func (bm *BoardsMigrator) getMorphConnection() (*morph.Morph, drivers.Driver, er
 		"prefix":     tablePrefix,
 		"postgres":   bm.driverName == model.PostgresDBType,
 		"mysql":      bm.driverName == model.MysqlDBType,
-		"plugin":     bm.withMattermostMigrations,
+		"plugin":     true, // TODO: to be removed
 		"singleUser": false,
 	}
 
 	migrationAssets := &embedded.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			asset, mErr := sqlstore.Assets.ReadFile("migrations/" + name)
+			asset, mErr := Assets.ReadFile("migrations/" + name)
 			if mErr != nil {
 				return nil, mErr
 			}
@@ -164,11 +164,6 @@ func (bm *BoardsMigrator) getMorphConnection() (*morph.Morph, drivers.Driver, er
 
 func (bm *BoardsMigrator) Setup() error {
 	var err error
-	bm.driverName, bm.connString, err = sqlstore.PrepareNewTestDatabase()
-	if err != nil {
-		return err
-	}
-
 	if bm.driverName == model.MysqlDBType {
 		bm.connString, err = mmSqlStore.ResetReadTimeout(bm.connString)
 		if err != nil {
@@ -191,22 +186,20 @@ func (bm *BoardsMigrator) Setup() error {
 		return err2
 	}
 
-	if bm.withMattermostMigrations {
-		if err3 := bm.runMattermostMigrations(); err3 != nil {
-			return err3
-		}
+	if err3 := bm.runMattermostMigrations(); err3 != nil {
+		return err3
 	}
 
-	storeParams := sqlstore.Params{
+	storeParams := Params{
 		DBType:           bm.driverName,
 		ConnectionString: bm.connString,
 		TablePrefix:      tablePrefix,
 		Logger:           mlog.CreateConsoleTestLogger(false, mlog.LvlDebug),
 		DB:               bm.db,
-		IsPlugin:         bm.withMattermostMigrations,
+		IsPlugin:         true, // TODO: to be removed
 		SkipMigrations:   true,
 	}
-	bm.store, err = sqlstore.New(storeParams)
+	bm.store, err = New(storeParams)
 	if err != nil {
 		return err
 	}
