@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
@@ -48,13 +49,33 @@ func newStoreType(t *testing.T, name string, driver string, skipMigrations bool)
 	return &storeType{name, store, logger}
 }
 
-func RunStoreTests(t *testing.T, f func(*testing.T, store.Store)) {
+func initStores(t *testing.T, skipMigrations bool) []*storeType {
 	var storeTypes []*storeType
 
-	storeTypes = append(storeTypes,
-		newStoreType(t, "PostgreSQL", model.PostgresDBType, false),
-		newStoreType(t, "MySQL", model.MysqlDBType, false),
-	)
+	if os.Getenv("IS_CI") == "true" {
+		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
+		case "mysql":
+			storeTypes = append(storeTypes, newStoreType(t, "MySQL", model.MysqlDBType, skipMigrations))
+		case "postgres":
+			storeTypes = append(storeTypes, newStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations))
+		default:
+			t.Errorf(
+				"Invalid value %q for MM_SQLSETTINGS_DRIVERNAME when IS_CI=true",
+				os.Getenv("MM_SQLSETTINGS_DRIVERNAME"),
+			)
+		}
+	} else {
+		storeTypes = append(storeTypes,
+			newStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations),
+			newStoreType(t, "MySQL", model.MysqlDBType, skipMigrations),
+		)
+	}
+
+	return storeTypes
+}
+
+func RunStoreTests(t *testing.T, f func(*testing.T, store.Store)) {
+	storeTypes := initStores(t, false)
 
 	for _, st := range storeTypes {
 		st := st
@@ -67,12 +88,7 @@ func RunStoreTests(t *testing.T, f func(*testing.T, store.Store)) {
 }
 
 func RunStoreTestsWithSqlStore(t *testing.T, f func(*testing.T, *SQLStore)) {
-	var storeTypes []*storeType
-
-	storeTypes = append(storeTypes,
-		newStoreType(t, "PostgreSQL", model.PostgresDBType, false),
-		newStoreType(t, "MySQL", model.MysqlDBType, false),
-	)
+	storeTypes := initStores(t, false)
 
 	for _, st := range storeTypes {
 		st := st
@@ -86,12 +102,7 @@ func RunStoreTestsWithSqlStore(t *testing.T, f func(*testing.T, *SQLStore)) {
 }
 
 func RunStoreTestsWithFoundation(t *testing.T, f func(*testing.T, *foundation.Foundation)) {
-	var storeTypes []*storeType
-
-	storeTypes = append(storeTypes,
-		newStoreType(t, "PostgreSQL", model.PostgresDBType, true),
-		newStoreType(t, "MySQL", model.MysqlDBType, true),
-	)
+	storeTypes := initStores(t, true)
 
 	for _, st := range storeTypes {
 		st := st
