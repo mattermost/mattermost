@@ -4737,7 +4737,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4745,19 +4745,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 14.1+"
+    "translation": "Version 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 91+"
+    "translation": "Version 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 95+"
+    "translation": "Version 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 106+"
+    "translation": "Version 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9946,5 +9946,57 @@
   {
     "id": "api.command_templates.name",
     "translation": "templates"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS サーバーはワークスペースの削除に失敗しました。"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "テンプレートウィンドウから作成を開く"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "名称欄には64文字以上入力できません。"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "プロダクトキーが見つかりませんでした"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "インターフェースが期待された型ではありませんでした"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "Boardへのパッチ適用エラー"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "Board作成エラー"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "Boardsテンプレート取得エラー"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "重複したBoardによるエラー"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "不正な認証サービス: {{.AuthService}}"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "不正なログフィルターです"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "あなたのデバイスではテンプレートコマンドはサポートされていません。"
   }
 ]

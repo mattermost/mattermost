@@ -11,7 +11,7 @@ import (
 )
 
 func TestFileInfoStore(t *testing.T) {
-	StoreTest(t, storetest.TestFileInfoStore)
+	StoreTestWithSqlStore(t, storetest.TestFileInfoStore)
 }
 
 func TestSearchFileInfoStore(t *testing.T) {

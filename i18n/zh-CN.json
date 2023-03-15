@@ -5377,7 +5377,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "无效的频道名。用户 id 不能作为私信以外的频道名。"
+    "translation": "频道名称不能为 16 进制格式。请输入其他的频道名称。"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -5813,27 +5813,27 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 14.1+"
+    "translation": "版本 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 91+"
+    "translation": "版本 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 95+"
+    "translation": "版本 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 106+"
+    "translation": "版本 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9498,5 +9498,365 @@
   {
     "id": "api.command_templates.desc",
     "translation": "打开从模板创建窗口"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "您还有时间保持您的 Mattermost {{.Plan}} 可用，但是在那之前您需要解决一些与支付有关的问题。"
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "产品团队"
+  },
+  {
+    "id": "worktemplate.category.leadership",
+    "translation": "领导"
+  },
+  {
+    "id": "worktemplate.category.devops",
+    "translation": "Dev Ops"
+  },
+  {
+    "id": "worktemplate.category.companywide",
+    "translation": "全公司"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "不正确的时间范围。"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "群组名称已作为保留名称存在"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "不正确的 user id。"
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "更新与必须是一个合法的时间。"
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "不正确的 root id。"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "不正确的 props。"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "不正确的优先级"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "不正确的消息。"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "不正确的 file id。"
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "创建于必须是一个合法的时间。"
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "不正确的 channel id。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "不正确的 user id。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "不正确的 post id。"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML 无法成功读取认证公钥，请联系您的系统管理员。"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "无法打开 Elasticsearch 客户密钥文件"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "无法打开 Elasticsearch 客户证书"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "解码 Elasticsearch 客户证书失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "无法打开 Elasticsearch CA 文件"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "解码 Elasticsearch CA 失败"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "无法取得作业模板"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "无法取得作业模板目录"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
+    "translation": "找不到与 Playbook 关联的频道。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
+    "translation": "创建 Playbook 时发生错误。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "名称栏目中无法输入超过 64 个字符的内容。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.channels.create_error",
+    "translation": "在创建频道时发生错误。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.boards.create_error",
+    "translation": "在创建 Board 时发生错误。"
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.app_error",
+    "translation": "在执行作业模板时发生错误。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
+    "translation": "您的授权不支持私密 Playbook。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
+    "translation": "您没有创建公开 Playbook 的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
+    "translation": "您没有创建公开频道的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_public_board",
+    "translation": "您没有创建公开 Board 的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
+    "translation": "您没有创建私密 Playbook 的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
+    "translation": "您没有创建私密频道的权限。"
+  },
+  {
+    "id": "app.worktemplate.execution_request.cannot_create_private_board",
+    "translation": "您没有创建私密 Board 的权限。"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "无法获取用户的奖章数目。"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "未找到产品密钥"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "接口不是预期的类型"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "更新 Board 时发生错误"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "在创建 Board 时发生错误"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "在取得 Board 模板时发生错误"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "在复制 Board 时发生错误"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "无法取得消息的优先级"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "在生产模式中无法启用 {{.Name}} 插件。"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "无法发送通知消息。"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "无法保存通知数据。"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "在取得最后访问的文件时发生错误"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "作业执行过程中发生错误。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "无效的认证服务：{{.AuthService}}"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "用户名“{{.Username}}”已存在。"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "由于云订阅的限制，无法取得文件。"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "无法更新草稿。"
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "无法保存草稿。"
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "无法取得草稿的文件。"
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "无法取得用户的草稿。"
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "无法取得草稿。"
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "草稿功能已被禁用。"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "无法删除草稿。"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic 类型已存在。"
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection 类型已存在。"
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请工作区的升级： "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已要求工作区的升级： "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请 Enterprise 版的试用： "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请 Enterprise 版的试用： "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "订阅状态正常"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "无法取得云订阅信息"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "无法获取当前 Plan 的名字"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "无法取得云产品信息"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "无法取得消息的优先级"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "无法为消息保存已读确认。"
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "无法从消息中获得已读确认。"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "指定日期之后的紧急消息无法计数。"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "无法获得已读确认。"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "无法删除已读确认。"
+  },
+  {
+    "id": "api.work_templates.disabled",
+    "translation": "工作模板已被禁用。"
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "在获取用户权限的过程中发生错误。"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "不是 LADP 用户"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "无法上传文件。文件尺寸过大。"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "您的 Mattermost workspace 已经被降级"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "要解除冻结您的数据并继续使用付费功能，请更新您的支付信息。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "您将无法在重要业务操作中继续使用 Cloud Professional 或者 Enterprise 的功能，同时您将经历性能降级的体验。"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "无效的日志过滤器"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal 无法在自托管实例中使用。"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "该服务仅在 Mattermost Enterprise 版本中可用"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS 服务器删除工作区时失败。"
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "您的设备不支持模板命令。"
   }
 ]

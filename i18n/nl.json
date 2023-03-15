@@ -4765,7 +4765,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4773,19 +4773,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 14.1+"
+    "translation": "Versie 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 91+"
+    "translation": "Versie 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 95+"
+    "translation": "Versie 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 106+"
+    "translation": "Versie 110+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9997,5 +9997,13 @@
   {
     "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
     "translation": "fout bij het dupliceren van het bord"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Ongeldig logboekfilter"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS-server kon de werkruimte niet verwijderen."
   }
 ]

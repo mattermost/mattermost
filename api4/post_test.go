@@ -850,6 +850,32 @@ func TestUpdatePost(t *testing.T) {
 		assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 	})
 
+	t.Run("change message, but post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		rpost4, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, false, true)
+		require.Nil(t, appErr)
+
+		up4 := &model.Post{
+			Id:        rpost4.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 4",
+		}
+		_, resp, err := client.UpdatePost(rpost4.Id, up4)
+		require.Error(t, err, "should fail on update old post")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout()
 		_, resp, err := client.UpdatePost(rpost.Id, rpost)
@@ -1034,6 +1060,31 @@ func TestPatchPost(t *testing.T) {
 
 		_, _, err = client.PatchPost(post.Id, patch)
 		require.NoError(t, err)
+	})
+
+	t.Run("time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		post2 := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		post2, _, err := th.SystemAdminClient.CreatePost(post2)
+		require.NoError(t, err)
+
+		patch2 := &model.PostPatch{
+			Message: model.NewString("new message"),
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(post2.Id, patch2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
 	})
 }
 

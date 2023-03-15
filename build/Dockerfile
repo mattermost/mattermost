@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/7.8.0/mattermost-7.8.0-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/7.8.1/mattermost-7.8.1-linux-amd64.tar.gz?src=docker"
 
 # # Install needed packages and indirect dependencies
 RUN apt-get update \
@@ -58,7 +58,7 @@ RUN apt-get update \
   libxext6=2:1.3.3-1+b2 \
   libxrender1=1:0.9.10-1 \
   libcairo2=1.16.0-4+deb10u1 \
-  libcurl3-gnutls=7.64.0-4+deb10u4 \
+  libcurl3-gnutls=7.64.0-4+deb10u5 \
   libglib2.0-0=2.58.3-2+deb10u3 \
   libgsf-1-common=1.14.45-1 \
   libgsf-1-114=1.14.45-1 \
@@ -79,11 +79,11 @@ RUN apt-get update \
 
 # Set mattermost group/user and download Mattermost
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
-    && addgroup -gid ${PGID} mattermost \
-    && adduser -q --disabled-password --uid ${PUID} --gid ${PGID} --gecos "" --home /mattermost mattermost \
-    && if [ -n "$MM_PACKAGE" ]; then curl $MM_PACKAGE | tar -xvz ; \
-    else echo "please set the MM_PACKAGE" ; exit 127 ; fi \
-    && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+  && addgroup -gid ${PGID} mattermost \
+  && adduser -q --disabled-password --uid ${PUID} --gid ${PGID} --gecos "" --home /mattermost mattermost \
+  && if [ -n "$MM_PACKAGE" ]; then curl $MM_PACKAGE | tar -xvz ; \
+  else echo "please set the MM_PACKAGE" ; exit 127 ; fi \
+  && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
 # We should refrain from running as privileged user
 USER mattermost

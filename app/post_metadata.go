@@ -216,7 +216,9 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		post.Metadata.Embeds[0].Data = nil
+		for _, embed := range post.Metadata.Embeds {
+			embed.Data = nil
+		}
 	}
 
 	return post, nil

@@ -5841,23 +5841,23 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 106+"
+    "translation": "Версия 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 95+"
+    "translation": "Версия 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 91+"
+    "translation": "Версия 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 14.1+"
+    "translation": "Версия 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
@@ -9998,5 +9998,17 @@
   {
     "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
     "translation": "ошибка при дубликации доски"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Неверный фильтр журнала"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "Серверу CWS не удалось удалить рабочее пространство."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Контакты отдела продаж"
   }
 ]

@@ -138,7 +138,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	// We do a check outside the email handler, because otherwise, failing from
 	// inside the handler doesn't let the .Go() function exit cleanly, and it gets
 	// stuck during server shutdown, trying to wait for the goroutine to exit
-	require.Equal(t, atomic.LoadInt32(&wasCalled), int32(0), "email handler should not have been called")
+	require.Equal(t, int32(0), atomic.LoadInt32(&wasCalled), "email handler should not have been called")
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should've remove queued post since user acted")
