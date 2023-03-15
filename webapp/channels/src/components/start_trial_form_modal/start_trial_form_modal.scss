@@ -1,4 +1,7 @@
 .StartTrialFormModal {
+    &.error {
+        display: none !important;
+    }
     .modal-dialog {
         position: absolute;
         top: 50%;

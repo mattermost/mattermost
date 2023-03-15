@@ -159,7 +159,9 @@ const TrialBanner = ({
 
 
     const handleRequestLicense = () => {
-        openTrialForm({ trackingLocation: 'license_settings.trial_banner' });
+        if (openTrialForm) {
+            openTrialForm({ trackingLocation: 'license_settings.trial_banner' });
+        }
     }
 
     const onHandleUpgrade = () => {

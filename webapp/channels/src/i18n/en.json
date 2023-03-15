@@ -4983,6 +4983,18 @@
   "start_trial.modal.gettingTrial": "Getting Trial...",
   "start_trial.modal.loaded": "Loaded!",
   "start_trial.modal.loading": "Loading...",
+  "start_trial_form.modal_btn.start": "Start trial",
+  "start_trial_form.invalid_business_email": "Please enter a valid business email address.",
+  "start_trial_form.modal_title": "Start Trial",
+  "start_trial_form.modal_body": "Just a few quick items to help us tailor your trial experience",
+  "start_trial_form.name": "Name",
+  "start_trial_form.email": "Business Email",
+  "start_trial_form.company_name": "Company Name",
+  "start_trial_form.disclaimer": "By selecting Start trial, I agree to the <agreement>Mattermost Software Evaluation Agreement</agreement>, <privacypolicy>Privacy Policy</privacypolicy>, and receiving product emails.",
+  "start_trial_form_modal.failureModal.title": "Please try again",
+  "start_trial_form_modal.failureModal.subtitle": "There was in issue processing your trial request. Please try again or contact support.",
+
+
   "start_trial.tutorialTip.desc": "Explore our most requested premium features. Determine user access with Guest Accounts, automate compliance reports, and send secure ID-only mobile push notifications.",
   "start_trial.tutorialTip.title": "Try our premium features for free",
   "status_dropdown.dnd_sub_menu_header": "Disable notifications until:",

@@ -210,11 +210,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var trialRequest struct {
-		Users                 int  `json:"users"`
-		TermsAccepted         bool `json:"terms_accepted"`
-		ReceiveEmailsAccepted bool `json:"receive_emails_accepted"`
-	}
+	var trialRequest *model.TrialLicenseRequest
 
 	b, readErr := io.ReadAll(r.Body)
 	if readErr != nil {
