@@ -128,13 +128,13 @@ func testUpdateDraft(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("update drafts", func(t *testing.T) {
-		draftResp, err := ss.Draft().Update(draft1)
+		draftResp, err := ss.Draft().Save(draft1)
 		assert.NoError(t, err)
 
 		assert.Equal(t, draft1.Message, draftResp.Message)
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 
-		draftResp, err = ss.Draft().Update(draft2)
+		draftResp, err = ss.Draft().Save(draft2)
 		assert.NoError(t, err)
 
 		assert.Equal(t, draft2.Message, draftResp.Message)

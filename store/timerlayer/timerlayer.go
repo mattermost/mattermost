@@ -3054,22 +3054,6 @@ func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
-	start := time.Now()
-
-	result, err := s.DraftStore.Update(d)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Update", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 	start := time.Now()
 

@@ -100,8 +100,3 @@ func (o *Draft) PreCommit() {
 	// There's a rare bug where the client sends up duplicate FileIds so protect against that
 	o.FileIds = RemoveDuplicateStrings(o.FileIds)
 }
-
-func (o *Draft) PreUpdate() {
-	o.UpdateAt = GetMillis()
-	o.PreCommit()
-}
