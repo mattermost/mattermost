@@ -190,15 +190,7 @@ jobs:
       - name: ci/build
         working-directory: webapp/channels
         run: |
-          node --version
-          npm version
-          make dist
-      - name: ci/persist-artifact
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
-        with:
-          name: webapp-artifact
-          path: webapp/channels/mattermost-webapp.tar.gz
-          retention-days: 14
+          npm run build
   # run-performance-bechmarks:
   #   uses: ./.github/workflows/performance-benchmarks.yml
   #   needs: build
