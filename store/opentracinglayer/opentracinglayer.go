@@ -6885,7 +6885,25 @@ func (s *OpenTracingLayerPostPersistentNotificationStore) DeleteByTeam(teamIds [
 	return err
 }
 
-func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
+func (s *OpenTracingLayerPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.DeleteExpired")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.DeleteExpired(maxSentCount)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6894,31 +6912,31 @@ func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPe
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.PostPersistentNotificationStore.Get(params)
+	result, err := s.PostPersistentNotificationStore.Get(params)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, resultVar1, err
+	return result, err
 }
 
-func (s *OpenTracingLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
+func (s *OpenTracingLayerPostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.UpdateLastActivity")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.GetSingle")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
+	result, err := s.PostPersistentNotificationStore.GetSingle(postID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {

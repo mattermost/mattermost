@@ -1003,9 +1003,10 @@ type PostAcknowledgementStore interface {
 }
 
 type PostPersistentNotificationStore interface {
-	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error)
+	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
+	GetSingle(postID string) (*model.PostPersistentNotifications, error)
 	Delete(postIds []string) error
-	UpdateLastActivity(postIds []string) error
+	DeleteExpired(maxSentCount int16) error
 	DeleteByChannel(channelIds []string) error
 	DeleteByTeam(teamIds []string) error
 }

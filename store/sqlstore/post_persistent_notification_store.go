@@ -4,9 +4,10 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/utils"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
@@ -21,41 +22,84 @@ func newSqlPostPersistentNotificationStore(sqlStore *SqlStore) store.PostPersist
 	}
 }
 
-func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
-	if params.Pagination.PerPage == 0 {
-		params.Pagination.PerPage = 1000
+func (s *SqlPostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
+	builder := s.getQueryBuilder().
+		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
+		From("PersistentNotifications").
+		Where(sq.And{
+			sq.Eq{"DeleteAt": 0},
+			sq.Eq{"PostId": postID},
+		})
+
+	post := &model.PostPersistentNotifications{}
+	err := s.GetReplicaX().GetBuilder(post, builder)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Persistent Notification Post", postID)
+		}
+		return nil, errors.Wrapf(err, "failed to get the persistent notification post=%s", postID)
 	}
+	return post, nil
+}
+
+// Get returns only valid posts and then updates the tracking-counters for the returned posts.
+func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+	if params.PerPage == 0 {
+		params.PerPage = 1000
+	}
+
+	var transaction *sqlxTxWrapper
+	var err error
+
+	if transaction, err = s.GetMasterX().Beginx(); err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
 
 	builder := s.getQueryBuilder().
 		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
 		From("PersistentNotifications").
-		Where(sq.Eq{"DeleteAt": 0})
-
-	if params.PostID != "" {
-		builder = builder.Where(sq.Eq{"PostId": params.PostID})
-	}
-	if params.MaxCreateAt > 0 {
-		builder = builder.Where(sq.LtOrEq{"CreateAt": params.MaxCreateAt})
-	}
-	if params.MaxLastSentAt > 0 {
-		builder = builder.Where(sq.LtOrEq{"LastSentAt": params.MaxLastSentAt})
-	}
-
-	builder = getPersistentNotificationsPaginationBuilder(builder, params.Pagination)
+		Where(sq.And{
+			sq.Eq{"DeleteAt": 0},
+			sq.LtOrEq{"CreateAt": params.MaxCreateAt},
+			sq.LtOrEq{"LastSentAt": params.MaxLastSentAt},
+			sq.Lt{"SentCount": params.MaxSentCount},
+		}).
+		Limit(uint64(params.PerPage)).
+		Suffix("for update")
 
 	var posts []*model.PostPersistentNotifications
-	err := s.GetReplicaX().SelectBuilder(&posts, builder)
+	err = transaction.SelectBuilder(&posts, builder)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "failed to get notifications")
+		return nil, errors.Wrap(err, "failed to get notifications")
 	}
 
-	var hasNext bool
-	if len(posts) == utils.MinInt(params.Pagination.PerPage, 1000)+1 {
-		// Shave off the next-page item.
-		posts = posts[:len(posts)-1]
-		hasNext = true
+	postIds := make([]string, len(posts))
+	for i := range posts {
+		postIds[i] = posts[i].PostId
 	}
-	return posts, hasNext, nil
+
+	s.updateLastActivity(transaction, postIds)
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+	return posts, nil
+}
+
+func (s *SqlPostPersistentNotificationStore) updateLastActivity(transaction *sqlxTxWrapper, postIds []string) error {
+	builder := s.getQueryBuilder().
+		Update("PersistentNotifications").
+		Set("LastSentAt", model.GetMillis()).
+		Set("SentCount", sq.Expr("SentCount+1")).
+		Where(sq.Eq{"PostId": postIds})
+
+	_, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update last activity for posts %s", postIds)
+	}
+
+	return nil
 }
 
 func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
@@ -77,21 +121,18 @@ func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
 	return nil
 }
 
-func (s *SqlPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
-	count := len(postIds)
-	if count == 0 {
-		return nil
-	}
-
+func (s *SqlPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) error {
 	builder := s.getQueryBuilder().
 		Update("PersistentNotifications").
-		Set("LastSentAt", model.GetMillis()).
-		Set("SentCount", sq.Expr("SentCount+1")).
-		Where(sq.Eq{"PostId": postIds})
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.And{
+			sq.Eq{"DeleteAt": 0},
+			sq.GtOrEq{"SentCount": maxSentCount},
+		})
 
 	_, err := s.GetMasterX().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to update lastSentAt for posts %s", postIds)
+		return errors.Wrap(err, "failed to delete notifications")
 	}
 
 	return nil
@@ -166,38 +207,4 @@ func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) erro
 	}
 
 	return nil
-}
-
-func getPersistentNotificationsPaginationBuilder(builder sq.SelectBuilder, pagination model.CursorPagination) sq.SelectBuilder {
-	if pagination.Direction == "up" {
-		builder = builder.OrderBy("CreateAt ASC, PostId ASC")
-	} else if pagination.Direction == "down" {
-		builder = builder.OrderBy("CreateAt DESC, PostId DESC")
-	}
-
-	if pagination.FromCreateAt == 0 {
-		return builder.Limit(uint64(utils.MinInt(pagination.PerPage, 1000) + 1))
-	}
-
-	var whereCreateAt sq.Sqlizer
-	var whereID sq.Sqlizer
-	if pagination.Direction == "up" {
-		whereCreateAt = sq.Gt{"CreateAt": pagination.FromCreateAt}
-		whereID = sq.Gt{"PostId": pagination.FromID}
-	} else {
-		whereCreateAt = sq.Lt{"CreateAt": pagination.FromCreateAt}
-		whereID = sq.Lt{"PostId": pagination.FromID}
-	}
-
-	if pagination.FromID == "" {
-		return builder.Where(whereCreateAt)
-	}
-
-	return builder.Where(sq.Or{
-		whereCreateAt,
-		sq.And{
-			sq.Eq{"CreateAt": pagination.FromCreateAt},
-			whereID,
-		},
-	})
 }

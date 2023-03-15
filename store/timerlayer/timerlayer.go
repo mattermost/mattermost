@@ -6228,10 +6228,26 @@ func (s *TimerLayerPostPersistentNotificationStore) DeleteByTeam(teamIds []strin
 	return err
 }
 
-func (s *TimerLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
+func (s *TimerLayerPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) error {
 	start := time.Now()
 
-	result, resultVar1, err := s.PostPersistentNotificationStore.Get(params)
+	err := s.PostPersistentNotificationStore.DeleteExpired(maxSentCount)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.DeleteExpired", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+	start := time.Now()
+
+	result, err := s.PostPersistentNotificationStore.Get(params)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6241,13 +6257,13 @@ func (s *TimerLayerPostPersistentNotificationStore) Get(params model.GetPersiste
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.Get", success, elapsed)
 	}
-	return result, resultVar1, err
+	return result, err
 }
 
-func (s *TimerLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
+func (s *TimerLayerPostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
 	start := time.Now()
 
-	err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
+	result, err := s.PostPersistentNotificationStore.GetSingle(postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6255,9 +6271,9 @@ func (s *TimerLayerPostPersistentNotificationStore) UpdateLastActivity(postIds [
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.UpdateLastActivity", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.GetSingle", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {

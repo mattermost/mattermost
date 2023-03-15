@@ -56,8 +56,22 @@ func (_m *PostPersistentNotificationStore) DeleteByTeam(teamIds []string) error 
 	return r0
 }
 
+// DeleteExpired provides a mock function with given fields: maxSentCount
+func (_m *PostPersistentNotificationStore) DeleteExpired(maxSentCount int16) error {
+	ret := _m.Called(maxSentCount)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int16) error); ok {
+		r0 = rf(maxSentCount)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: params
-func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
+func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
 	ret := _m.Called(params)
 
 	var r0 []*model.PostPersistentNotifications
@@ -69,33 +83,35 @@ func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotific
 		}
 	}
 
-	var r1 bool
-	if rf, ok := ret.Get(1).(func(model.GetPersistentNotificationsPostsParams) bool); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPersistentNotificationsPostsParams) error); ok {
 		r1 = rf(params)
 	} else {
-		r1 = ret.Get(1).(bool)
+		r1 = ret.Error(1)
 	}
 
-	var r2 error
-	if rf, ok := ret.Get(2).(func(model.GetPersistentNotificationsPostsParams) error); ok {
-		r2 = rf(params)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
-// UpdateLastActivity provides a mock function with given fields: postIds
-func (_m *PostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
-	ret := _m.Called(postIds)
+// GetSingle provides a mock function with given fields: postID
+func (_m *PostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
+	ret := _m.Called(postID)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]string) error); ok {
-		r0 = rf(postIds)
+	var r0 *model.PostPersistentNotifications
+	if rf, ok := ret.Get(0).(func(string) *model.PostPersistentNotifications); ok {
+		r0 = rf(postID)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostPersistentNotifications)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

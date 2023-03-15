@@ -16,7 +16,6 @@ import (
 func TestPostPersistentNotificationStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("Get", func(t *testing.T) { testPostPersistentNotificationStoreGet(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostPersistentNotificationStoreDelete(t, ss) })
-	t.Run("UpdateLastSentAt", func(t *testing.T) { testPostPersistentNotificationStoreUpdateLastSentAt(t, ss) })
 }
 
 func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
@@ -88,76 +87,85 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 	t.Run("Get Single", func(t *testing.T) {
-		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: p1.Id})
+		pn, err := ss.PostPersistentNotification().GetSingle(p1.Id)
 		require.NoError(t, err)
-		require.Len(t, pn, 1)
-		assert.Equal(t, p1.Id, pn[0].PostId)
-		assert.Equal(t, p1.CreateAt, pn[0].CreateAt)
-		assert.Zero(t, pn[0].DeleteAt)
+		assert.Equal(t, p1.Id, pn.PostId)
 
-		pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: p3.Id})
+		pn, err = ss.PostPersistentNotification().GetSingle(p2.Id)
 		require.NoError(t, err)
-		require.Empty(t, pn)
+		assert.Equal(t, p2.Id, pn.PostId)
 
-		pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: p4.Id})
+		pn, err = ss.PostPersistentNotification().GetSingle(p5.Id)
 		require.NoError(t, err)
-		require.Empty(t, pn)
+		assert.Equal(t, p5.Id, pn.PostId)
+
+		pn, err = ss.PostPersistentNotification().GetSingle(p3.Id)
+		require.Error(t, err)
+		require.Zero(t, pn)
+
+		pn, err = ss.PostPersistentNotification().GetSingle(p4.Id)
+		require.Error(t, err)
+		require.Zero(t, pn)
 	})
 
 	t.Run("Get all before MaxCreateAt", func(t *testing.T) {
-		pn, hasNext, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 45,
-			Pagination: model.CursorPagination{
-				Direction: "up",
-				PerPage:   2,
-			},
+		maxLastSentAt := time.Now().Add(time.Hour).UnixMilli()
+		validIDs := []string{p1.Id, p2.Id, p5.Id}
+		getIDs := func(posts []*model.PostPersistentNotifications) (ids []string) {
+			for _, p := range posts {
+				ids = append(ids, p.PostId)
+			}
+			return
+		}
+
+		// Order of the following 3 "Get" calls is important
+		// p5 is filtered by maxCreateAt
+		// Increases the sentCount of p1 and p2
+		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt:   45,
+			MaxLastSentAt: maxLastSentAt,
+			MaxSentCount:  60,
+			PerPage:       20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 2)
-		assert.False(t, hasNext)
-		assert.Equal(t, p1.Id, pn[0].PostId)
-		assert.Equal(t, p2.Id, pn[1].PostId)
+		assert.Contains(t, getIDs(pn), p1.Id)
+		assert.Contains(t, getIDs(pn), p2.Id)
 
-		pn, hasNext, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 100,
-			Pagination: model.CursorPagination{
-				Direction: "up",
-				PerPage:   20,
-			},
+		// nothing is filtered out
+		// Increases the sent count of all 3 posts
+		pn, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt:   100,
+			MaxLastSentAt: maxLastSentAt,
+			MaxSentCount:  60,
+			PerPage:       20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 3)
-		assert.False(t, hasNext)
-		assert.Equal(t, p1.Id, pn[0].PostId)
-		assert.Equal(t, p2.Id, pn[1].PostId)
-		assert.Equal(t, p5.Id, pn[2].PostId)
+		assert.ElementsMatch(t, validIDs, getIDs(pn))
+		var pn1, pn2 int16
+		for _, p := range pn {
+			if p.PostId == p1.Id {
+				pn1 = p.SentCount
+			}
+			if p.PostId == p2.Id {
+				pn2 = p.SentCount
+			}
+		}
+		assert.EqualValues(t, 1, pn1)
+		assert.EqualValues(t, 1, pn2)
 
-		pn, hasNext, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 100,
-			Pagination: model.CursorPagination{
-				Direction: "up",
-				PerPage:   2,
-			},
-		})
-		require.NoError(t, err)
-		require.Len(t, pn, 2)
-		assert.True(t, hasNext)
-		assert.Equal(t, p1.Id, pn[0].PostId)
-		assert.Equal(t, p2.Id, pn[1].PostId)
-
-		pn, hasNext, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 100,
-			Pagination: model.CursorPagination{
-				Direction:    "up",
-				PerPage:      2,
-				FromID:       p2.Id,
-				FromCreateAt: p2.CreateAt,
-			},
+		// p1 and p2 are filtered out by MaxSentCount as the counter reached to 2 in the above two "Get" calls
+		pn, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt:   100,
+			MaxLastSentAt: maxLastSentAt,
+			MaxSentCount:  2,
+			PerPage:       20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 1)
-		assert.False(t, hasNext)
 		assert.Equal(t, p5.Id, pn[0].PostId)
+		assert.EqualValues(t, 1, pn[0].SentCount)
 	})
 }
 
@@ -212,12 +220,10 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		err = ss.PostPersistentNotification().Delete([]string{p1.Id, p3.Id})
 		require.NoError(t, err)
 
-		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 100,
-			Pagination: model.CursorPagination{
-				Direction: "up",
-				PerPage:   20,
-			},
+		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt:  100,
+			MaxSentCount: 6,
+			PerPage:      20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 1)
@@ -301,17 +307,14 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		err = ss.PostPersistentNotification().DeleteByChannel([]string{p1.ChannelId})
 		require.NoError(t, err)
 
-		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 100,
-			Pagination: model.CursorPagination{
-				Direction: "up",
-				PerPage:   20,
-			},
+		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt:  100,
+			MaxSentCount: 6,
+			PerPage:      20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 2)
-		assert.Equal(t, p4.Id, pn[0].PostId)
-		assert.Equal(t, p5.Id, pn[1].PostId)
+		assert.ElementsMatch(t, []string{p4.Id, p5.Id}, []string{pn[0].PostId, pn[1].PostId})
 	})
 
 	t.Run("Delete By Team", func(t *testing.T) {
@@ -413,88 +416,13 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		err = ss.PostPersistentNotification().DeleteByTeam([]string{t1.Id})
 		require.NoError(t, err)
 
-		pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt: 100,
-			Pagination: model.CursorPagination{
-				Direction: "up",
-				PerPage:   20,
-			},
+		pn, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt:  100,
+			MaxSentCount: 6,
+			PerPage:      20,
 		})
 		require.NoError(t, err)
 		require.Len(t, pn, 2)
-		assert.Equal(t, p4.Id, pn[0].PostId)
-		assert.Equal(t, p5.Id, pn[1].PostId)
+		assert.ElementsMatch(t, []string{p4.Id, p5.Id}, []string{pn[0].PostId, pn[1].PostId})
 	})
-}
-
-func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.Store) {
-	p1 := model.Post{}
-	p1.ChannelId = model.NewId()
-	p1.UserId = model.NewId()
-	p1.Message = NewTestId()
-	p1.CreateAt = 10
-	p1.Metadata = &model.PostMetadata{
-		Priority: &model.PostPriority{
-			Priority:                model.NewString("important"),
-			RequestedAck:            model.NewBool(false),
-			PersistentNotifications: model.NewBool(true),
-		},
-	}
-
-	_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1})
-	require.NoError(t, err)
-	require.Equal(t, -1, errIdx)
-
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
-	defer ss.PostPersistentNotification().Delete([]string{p1.Id})
-
-	// Update from 0 value
-	now := model.GetTimeForMillis(model.GetMillis())
-	delta := 2 * time.Second
-	err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
-	require.NoError(t, err)
-
-	pn, _, err := ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-		MaxCreateAt:   100,
-		MaxLastSentAt: model.GetMillisForTime(now.Add(delta)),
-		Pagination: model.CursorPagination{
-			Direction: "up",
-			PerPage:   20,
-		},
-	})
-	require.NoError(t, err)
-	require.Len(t, pn, 1)
-	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
-
-	time.Sleep(time.Second)
-
-	// Update from non-zero value
-	now = model.GetTimeForMillis(model.GetMillis())
-	delta = 2 * time.Second
-	err = ss.PostPersistentNotification().UpdateLastActivity([]string{p1.Id})
-	require.NoError(t, err)
-
-	pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-		MaxCreateAt:   100,
-		MaxLastSentAt: model.GetMillisForTime(now.Add(delta)),
-		Pagination: model.CursorPagination{
-			Direction: "up",
-			PerPage:   20,
-		},
-	})
-	require.NoError(t, err)
-	require.Len(t, pn, 1)
-	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
-
-	// should not fetch if maxLastSent is smaller than lastSentAt
-	pn, _, err = ss.PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-		MaxCreateAt:   100,
-		MaxLastSentAt: model.GetMillisForTime(now.Add(-delta)),
-		Pagination: model.CursorPagination{
-			Direction: "up",
-			PerPage:   20,
-		},
-	})
-	require.NoError(t, err)
-	assert.Len(t, pn, 0)
 }

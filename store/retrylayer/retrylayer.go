@@ -7802,32 +7802,11 @@ func (s *RetryLayerPostPersistentNotificationStore) DeleteByTeam(teamIds []strin
 
 }
 
-func (s *RetryLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
+func (s *RetryLayerPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) error {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostPersistentNotificationStore.Get(params)
-		if err == nil {
-			return result, resultVar1, nil
-		}
-		if !isRepeatableError(err) {
-			return result, resultVar1, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, resultVar1, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
-
-	tries := 0
-	for {
-		err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
+		err := s.PostPersistentNotificationStore.DeleteExpired(maxSentCount)
 		if err == nil {
 			return nil
 		}
@@ -7838,6 +7817,48 @@ func (s *RetryLayerPostPersistentNotificationStore) UpdateLastActivity(postIds [
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostPersistentNotificationStore.Get(params)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostPersistentNotificationStore.GetSingle(postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

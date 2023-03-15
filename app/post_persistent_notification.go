@@ -23,11 +23,16 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		return nil
 	}
 
-	if posts, _, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
-		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	} else if len(posts) == 0 {
-		// Either the notification post already deleted or was never a notification post
-		return nil
+	_, err := a.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			// Either the notification post is already deleted or was never a notification post
+			return nil
+		default:
+			return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	if !*a.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
@@ -79,78 +84,41 @@ func (a *App) SendPersistentNotifications() error {
 	// fetch posts for which first notificationInterval duration has passed
 	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
 
-	pagination := model.CursorPagination{
-		Direction: "up",
-		PerPage:   500,
-	}
-
 	// Pagination loop
 	for {
-		notificationPosts, hasNext, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+		notificationPosts, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt:   maxCreateAt,
 			MaxLastSentAt: maxCreateAt,
-			Pagination:    pagination,
+			MaxSentCount:  notificationMaxCount,
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to get posts for persistent notifications")
 		}
 
-		// No posts available at the moment for persistent notifications
+		// No posts left to send persistent notifications
 		if len(notificationPosts) == 0 {
-			return nil
+			break
 		}
 
-		notificationPostsMap := make(map[string]*model.PostPersistentNotifications, len(notificationPosts))
 		postIds := make([]string, 0, len(notificationPosts))
 		for _, p := range notificationPosts {
 			postIds = append(postIds, p.PostId)
-			notificationPostsMap[p.PostId] = p
 		}
 		posts, err := a.Srv().Store().Post().GetPostsByIds(postIds)
 		if err != nil {
 			return errors.Wrap(err, "failed to get posts by IDs")
 		}
 
-		var expiredPosts []*model.Post
-		var validPosts []*model.Post
-		for _, p := range posts {
-			if notificationPostsMap[p.Id].SentCount >= notificationMaxCount {
-				expiredPosts = append(expiredPosts, p)
-			} else {
-				validPosts = append(validPosts, p)
-			}
-		}
-
-		// Delete expired notifications posts
-		expiredPostsIds := make([]string, 0, len(expiredPosts))
-		for _, p := range expiredPosts {
-			expiredPostsIds = append(expiredPostsIds, p.Id)
-		}
-		if err := a.Srv().Store().PostPersistentNotification().Delete(expiredPostsIds); err != nil {
-			return errors.Wrapf(err, "failed to delete expired notifications: %v", expiredPostsIds)
-		}
-
-		// Send notifications to validPosts
-		if err := a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
+		// Send notifications
+		if err := a.forEachPersistentNotificationPost(posts, a.sendPersistentNotifications); err != nil {
 			return err
 		}
-
-		// Update last activity for valid notifications posts
-		validPostsIds := make([]string, 0, len(validPosts))
-		for _, p := range validPosts {
-			validPostsIds = append(validPostsIds, p.Id)
-		}
-		if err := a.Srv().Store().PostPersistentNotification().UpdateLastActivity(validPostsIds); err != nil {
-			return errors.Wrapf(err, "failed to update lastSentAt for valid notifications: %v", validPostsIds)
-		}
-
-		// Break pagination loop
-		if !hasNext {
-			break
-		}
-		pagination.FromID = notificationPosts[len(notificationPosts)-1].PostId
-		pagination.FromCreateAt = notificationPosts[len(notificationPosts)-1].CreateAt
 	}
+
+	if err := a.Srv().Store().PostPersistentNotification().DeleteExpired(notificationMaxCount); err != nil {
+		return errors.Wrap(err, "failed to delete expired notifications")
+	}
+
 	return nil
 }
 
