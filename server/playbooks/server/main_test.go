@@ -176,11 +176,11 @@ func (e *TestEnvironment) CreateClients() {
 	e.T.Helper()
 
 	userPassword := "Password123!"
-	admin, _ := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
+	admin, _ := e.A.CreateUserAsAdmin(request.EmptyContext(e.logger), &model.User{
 		Email:    "playbooksadmin@example.com",
 		Username: "playbooksadmin",
 		Password: userPassword,
-	})
+	}, "")
 	e.AdminUser = admin
 
 	user, _ := e.A.CreateUser(request.EmptyContext(e.logger), &model.User{
