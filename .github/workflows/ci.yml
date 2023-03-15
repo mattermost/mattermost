@@ -195,9 +195,6 @@ jobs:
   upload-s3:
     name: Upload to S3 bucket
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: server
     needs: 
       - build-mattermost-server
       - test-mysql
