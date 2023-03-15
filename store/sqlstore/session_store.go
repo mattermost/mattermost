@@ -221,17 +221,6 @@ func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 	return nil
 }
 
-func (me *SqlSessionStore) GetLastSessionRowCreateAt() (int64, error) {
-	query := `SELECT CREATEAT FROM Sessions ORDER BY CREATEAT DESC LIMIT 1`
-	var createAt int64
-	err := me.GetReplicaX().Get(&createAt, query)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get last session createat")
-	}
-
-	return createAt, nil
-}
-
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
 	_, err := me.GetMasterX().Exec("UPDATE Sessions SET LastActivityAt = ? WHERE Id = ?", time, sessionId)
 	if err != nil {

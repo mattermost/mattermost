@@ -408,7 +408,6 @@ func TestMailServiceConfig(t *testing.T) {
 					LoginButtonColor:                  new(string),
 					LoginButtonBorderColor:            new(string),
 					LoginButtonTextColor:              new(string),
-					EnableInactivityEmail:             new(bool),
 				},
 			}
 		},
