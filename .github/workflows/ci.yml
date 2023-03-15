@@ -175,32 +175,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Checkout mattermost-webapp
+      - name: build webapp
         run: |
-          cd ../..
-          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
-          cd mattermost-webapp
-          git checkout $GITHUB_HEAD_REF || git checkout master
-          export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
-          echo "$WEBAPP_GIT_COMMIT"
-          FILE_DIST=dist.tar.gz
-          runtime="2 minute"
-          endtime=$(date -ud "$runtime" +%s)
-          while [[ $(date -u +%s) -le $endtime ]]; do
-            if curl -s --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz; then
-              break
-            fi
-            echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
-            sleep 5
-          done
-          if [[ -f "$FILE_DIST" ]]; then
-            echo "Precompiled version of web app found"
-            mkdir dist && tar -xf $FILE_DIST -C dist --strip-components=1
-          else
-          echo "Building web app from source"
+          cd ../webapp
           make dist
-          fi
-          cd ../mattermost-server/server
       - name: Build
         run: |
           make config-reset
