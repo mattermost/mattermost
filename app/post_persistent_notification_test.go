@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("Get", mock.Anything).Return([]*model.PostPersistentNotifications{}, false, nil)
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(nil, &store.ErrNotFound{})
 		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
@@ -53,7 +54,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("Get", mock.Anything).Return([]*model.PostPersistentNotifications{{PostId: post.Id}}, false, nil)
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
 		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
 		mockChannel := storemocks.ChannelStore{}
@@ -90,7 +91,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("Get", mock.Anything).Return([]*model.PostPersistentNotifications{{PostId: post.Id}}, false, nil)
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
 		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
 		mockChannel := storemocks.ChannelStore{}
@@ -134,7 +135,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("Get", mock.Anything).Return([]*model.PostPersistentNotifications{{PostId: post.Id}}, false, nil)
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
 		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
 		mockChannel := storemocks.ChannelStore{}
@@ -172,7 +173,7 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("Get", mock.Anything).Return([]*model.PostPersistentNotifications{{PostId: post.Id}}, false, nil)
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
 		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
 		mockChannel := storemocks.ChannelStore{}
