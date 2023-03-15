@@ -55,7 +55,15 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 	if dsn == "" {
 		dsn = defaultMysqlDSN
 		mlog.Info("No TEST_DATABASE_MYSQL_DSN override, using default", mlog.String("default_dsn", dsn))
+	} else {
+		mlog.Info("Using TEST_DATABASE_MYSQL_DSN override", mlog.String("dsn", dsn))
 	}
+
+	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
+	}
+
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
@@ -79,6 +87,13 @@ func PostgreSQLSettings() *model.SqlSettings {
 	if dsn == "" {
 		dsn = defaultPostgresqlDSN
 		mlog.Info("No TEST_DATABASE_POSTGRESQL_DSN override, using default", mlog.String("default_dsn", dsn))
+	} else {
+		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
+	}
+
+	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
 	}
 
 	dsnURL, err := url.Parse(dsn)
