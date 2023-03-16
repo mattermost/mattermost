@@ -4,7 +4,7 @@ export NODE_OPTIONS=--max-old-space-size=4096
 
 .PHONY: i18n-extract
 i18n-extract: ## Extract strings for translation from the source code
-	npm run mmjstool -- i18n extract-webapp "--webapp-dir" "./src"
+	npm run i18n-extract
 
 e2e/playwright/node_modules:
 	@echo Install Playwright and its dependencies
