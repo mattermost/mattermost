@@ -10,8 +10,9 @@
         "skipLibCheck": true,
         "strictNullChecks": true,
         "isolatedModules": true,
-        "noEmit": true,
         "declaration": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "rootDir": "src",
+        "composite": true
     }
 }

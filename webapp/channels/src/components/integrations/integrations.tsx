@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams.js';
+import {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
