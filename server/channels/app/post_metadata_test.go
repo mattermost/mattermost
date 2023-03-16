@@ -18,6 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/dyatlov/go-opengraph/opengraph"
 	ogimage "github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/stretchr/testify/assert"
@@ -1309,6 +1313,48 @@ func TestGetImagesForPost(t *testing.T) {
 		}
 
 		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
+
+	t.Run("should not process OpenGraph image that's a Mattermost permalink", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		ogURL := "https://example.com/index.html"
+		imageURL := th.App.GetSiteURL() + "/pl/qwertyuiopasdfghjklzxcvbnm"
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedOpengraph,
+						URL:  ogURL,
+						Data: &opengraph.OpenGraph{
+							Images: []*ogimage.Image{
+								{
+									URL: imageURL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetSingle", "qwertyuiopasdfghjklzxcvbnm", false).RunFn = func(args mock.Arguments) {
+			assert.Fail(t, "should not have tried to process Mattermost permalink in OG image URL")
+		}
+
+		mockLinkMetadataStore := mocks.LinkMetadataStore{}
+		mockLinkMetadataStore.On("Get", mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("mock resource", "mock ID"))
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("LinkMetadata").Return(&mockLinkMetadataStore)
+
+		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		assert.Equal(t, 0, len(images))
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
 }
