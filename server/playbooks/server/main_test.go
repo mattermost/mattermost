@@ -97,7 +97,7 @@ func getEnvWithDefault(name, defaultValue string) string {
 	return defaultValue
 }
 
-func Setup(t *testing.T) *TestEnvironment {
+func Setup(t *testing.T) (*TestEnvironment, func()) {
 	// Ignore any locally defined SiteURL as we intend to host our own.
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
@@ -119,6 +119,11 @@ func Setup(t *testing.T) *TestEnvironment {
 	config.LogSettings.EnableConsole = model.NewBool(true)
 	config.LogSettings.EnableFile = model.NewBool(false)
 	config.LogSettings.ConsoleLevel = model.NewString("INFO")
+
+	// disable Boards through the feature flag
+	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
+	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
+	config.FeatureFlags.BoardsProduct = false
 
 	// override config with e2etest.config.json if it exists
 	textConfig, err := os.ReadFile("./e2etest.config.json")
@@ -158,6 +163,10 @@ func Setup(t *testing.T) *TestEnvironment {
 
 	ap := sapp.New(sapp.ServerConnector(server.Channels()))
 
+	teardown := func() {
+		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", boardsProductEnvValue)
+	}
+
 	return &TestEnvironment{
 		T:   t,
 		Srv: server,
@@ -169,7 +178,7 @@ func Setup(t *testing.T) *TestEnvironment {
 			},
 		},
 		logger: testLogger,
-	}
+	}, teardown
 }
 
 func (e *TestEnvironment) CreateClients() {
@@ -463,7 +472,8 @@ func (e *TestEnvironment) CreateBasic() {
 
 // TestTestFramework If this is failing you know the break is not exclusively in your test.
 func TestTestFramework(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 }
 
