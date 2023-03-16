@@ -14,7 +14,8 @@ import (
 )
 
 func TestSettings(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("get settings", func(t *testing.T) {

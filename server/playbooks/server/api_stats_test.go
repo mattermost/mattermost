@@ -16,7 +16,8 @@ import (
 )
 
 func TestGetSiteStats(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("get sites stats", func(t *testing.T) {
@@ -49,7 +50,8 @@ func TestGetSiteStats(t *testing.T) {
 }
 
 func TestPlaybookKeyMetricsStats(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("3 runs with published metrics, 2 runs without publishing", func(t *testing.T) {

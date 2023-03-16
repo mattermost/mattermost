@@ -19,7 +19,8 @@ import (
 )
 
 func TestRunCreation(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	incompletePlaybookID, err := e.PlaybooksAdminClient.Playbooks.Create(context.Background(), client.PlaybookCreateOptions{
@@ -313,7 +314,8 @@ func TestRunCreation(t *testing.T) {
 }
 
 func TestCreateRunInExistingChannel(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	// create playbook
@@ -408,7 +410,8 @@ func TestCreateRunInExistingChannel(t *testing.T) {
 }
 
 func TestCreateInvalidRuns(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("fails if description is longer than 4096", func(t *testing.T) {
@@ -425,7 +428,8 @@ func TestCreateInvalidRuns(t *testing.T) {
 }
 
 func TestRunRetrieval(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("by channel id", func(t *testing.T) {
@@ -506,7 +510,8 @@ func TestRunRetrieval(t *testing.T) {
 }
 
 func TestRunPostStatusUpdate(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("post an update", func(t *testing.T) {
@@ -566,7 +571,8 @@ func TestRunPostStatusUpdate(t *testing.T) {
 }
 
 func TestChecklistManagement(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	createNewRunWithNoChecklists := func(t *testing.T) *client.PlaybookRun {
@@ -1182,7 +1188,8 @@ func TestChecklistManagement(t *testing.T) {
 }
 
 func TestChecklisFailTooLarge(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("checklist creation - failure: too large checklist", func(t *testing.T) {
@@ -1206,7 +1213,8 @@ func TestChecklisFailTooLarge(t *testing.T) {
 }
 
 func TestRunGetStatusUpdates(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("public - get no updates", func(t *testing.T) {
@@ -1335,7 +1343,8 @@ func TestRunGetStatusUpdates(t *testing.T) {
 }
 
 func TestRequestUpdate(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("private - no viewer access ", func(t *testing.T) {
@@ -1428,7 +1437,8 @@ func TestRequestUpdate(t *testing.T) {
 }
 
 func TestReminderReset(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("reminder reset - timeline event created", func(t *testing.T) {
@@ -1475,7 +1485,8 @@ func TestReminderReset(t *testing.T) {
 }
 
 func TestChecklisItem_SetAssignee(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	addSimpleChecklistToTun := func(t *testing.T, runID string) *client.PlaybookRun {
@@ -1586,7 +1597,8 @@ func TestChecklisItem_SetAssignee(t *testing.T) {
 }
 
 func TestChecklisItem_SetCommand(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	run, err := e.PlaybooksClient.PlaybookRuns.Create(context.Background(), client.PlaybookRunCreateOptions{
@@ -1687,7 +1699,8 @@ func TestChecklisItem_SetCommand(t *testing.T) {
 }
 
 func TestGetOwners(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	ownerFromUser := func(u *model.User) client.OwnerInfo {
