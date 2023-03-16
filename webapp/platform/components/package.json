@@ -7,6 +7,7 @@
   "scripts": {
     "build": "rollup -c",
     "run": "rollup -c --watch",
+    "check-types": "tsc -b",
     "clean": "rm -rf node_modules dist"
   },
   "devDependencies": {
