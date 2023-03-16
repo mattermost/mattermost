@@ -121,7 +121,7 @@
     "debug": "webpack --mode=development",
     "debug:watch": "webpack --mode=development --watch",
     "dev-server": "webpack serve --mode=development",
-    "lint": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --cache",
+    "check": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --cache",
     "fix": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --fix --cache",
     "test": "jest --forceExit --detectOpenHandles --verbose",
     "test:watch": "jest --watch",
