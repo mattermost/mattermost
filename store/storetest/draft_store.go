@@ -325,16 +325,12 @@ func testGetDraftsForUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	draft1 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
 	}
 
 	draft2 := &model.Draft{
-		CreateAt:  00005,
-		UpdateAt:  00005,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -349,11 +345,8 @@ func testGetDraftsForUser(t *testing.T, ss store.Store) {
 	t.Run("get drafts", func(t *testing.T) {
 		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "")
 		assert.NoError(t, err)
+		assert.Len(t, draftResp, 2)
 
-		assert.Equal(t, draft2.Message, draftResp[0].Message)
-		assert.Equal(t, draft2.ChannelId, draftResp[0].ChannelId)
-
-		assert.Equal(t, draft1.Message, draftResp[1].Message)
-		assert.Equal(t, draft1.ChannelId, draftResp[1].ChannelId)
+		assert.ElementsMatch(t, []*model.Draft{draft1, draft2}, draftResp)
 	})
 }
