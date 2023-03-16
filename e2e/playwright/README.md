@@ -29,17 +29,17 @@ npm run test
 
 #### 1. Run docker container using latest focal version
 
-Change to root directory at `mattermost-webapp`, run docker container
+Change to root directory, run docker container
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost-webapp/" --ipc=host mcr.microsoft.com/playwright:v1.30.0-focal /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.30.0-focal /bin/bash
 ```
 
 #### 2. Inside the docker container
 
 ```
 export PW_BASE_URL=http://host.docker.internal:8065
-cd mattermost-webapp/e2e/playwright
+cd mattermost/e2e/playwright
 
 # Install npm packages. Use "npm ci" to match the automated environment
 npm ci
