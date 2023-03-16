@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -123,6 +124,9 @@ func testUpdateDraft(t *testing.T, ss store.Store) {
 
 		assert.NotEqual(t, draft1.CreateAt, 0)
 		assert.Equal(t, draft1.UpdateAt, draft1.CreateAt)
+
+		// Ensure update at timestamp changes
+		time.Sleep(time.Millisecond)
 
 		_, err = ss.Draft().Save(draft1)
 		assert.NoError(t, err)

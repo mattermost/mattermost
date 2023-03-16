@@ -6,6 +6,7 @@ package app
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -94,6 +95,9 @@ func TestUpsertDraft(t *testing.T) {
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 		assert.Equal(t, draft1.CreateAt, draftResp.CreateAt)
 		assert.Equal(t, draft1.UpdateAt, draftResp.CreateAt)
+
+		// Ensure update at timestamp changes
+		time.Sleep(time.Millisecond)
 
 		draftResp, err = th.App.UpsertDraft(th.Context, draft1, "")
 		assert.Nil(t, err)
