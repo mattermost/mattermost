@@ -38,7 +38,6 @@ jobs:
           make node_modules
           # make channels/e2e/playwright/node_modules
       - name: ci/lint
-        working-directory: webapp/channels
         run: |
           npm run check
   check-i18n:
@@ -110,7 +109,6 @@ jobs:
           make node_modules
           # make channels/e2e/playwright/node_modules
       - name: ci/lint
-        working-directory: webapp/channels
         run: |
           npm run check-types
   tests:
@@ -149,9 +147,8 @@ jobs:
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@c508d404ab007faae80a014072fd8c0e17792118 # v1.1.0
       - name: ci/test
-        working-directory: webapp/channels
         run: |
-          npm run test-ci -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+          npm run test -- --ci --maxWorkers=${{ steps.cpu-cores.outputs.count }}
       - name: ci/publish-test-results
         uses: EnricoMi/publish-unit-test-result-action@a3caf02865c0604ad3dc1ecfcc5cdec9c41b7936  # v2.3.0
         if: always()
@@ -188,7 +185,7 @@ jobs:
           make node_modules
           # make channels/e2e/playwright/node_modules
       - name: ci/build
-        working-directory: webapp/channels
+        working-directory: webapp
         run: |
           npm run build
   # run-performance-bechmarks:
