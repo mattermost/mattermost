@@ -36,7 +36,7 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 		clientTriggerId, triggerId, appErr := actionReq.GenerateTriggerId(key)
 		require.Nil(t, appErr)
 		dialogReq := &OpenDialogRequest{TriggerId: triggerId}
-		decodedClientTriggerId, decodedUserId, appErr := dialogReq.DecodeAndVerifyTriggerId(key)
+		decodedClientTriggerId, decodedUserId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, interactiveDialogTriggerTimeout)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, actionReq.UserId, decodedUserId)
