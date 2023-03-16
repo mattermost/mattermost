@@ -122,6 +122,10 @@ func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
 			"TABLE_NAME": s.tablePrefix + "schema_migrations",
 		})
 
+	if s.dbType == model.MysqlDBType {
+		query = query.Where(sq.Eq{"TABLE_SCHEMA": s.schemaName})
+	}
+
 	rows, err := query.Query()
 	if err != nil {
 		s.logger.Error("failed to fetch columns in schema_migrations table", mlog.Err(err))

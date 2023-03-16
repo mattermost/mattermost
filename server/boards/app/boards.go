@@ -354,12 +354,15 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 	var oldMembers []*model.BoardMember
 
 	if patch.Type != nil || patch.ChannelID != nil {
+		testChannel := ""
 		if patch.ChannelID != nil && *patch.ChannelID == "" {
 			var err error
 			oldMembers, err = a.GetMembersForBoard(boardID)
 			if err != nil {
 				a.logger.Error("Unable to get the board members", mlog.Err(err))
 			}
+		} else if patch.ChannelID != nil && *patch.ChannelID != "" {
+			testChannel = *patch.ChannelID
 		}
 
 		board, err := a.store.GetBoard(boardID)
@@ -371,6 +374,15 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 		}
 		oldChannelID = board.ChannelID
 		isTemplate = board.IsTemplate
+		if testChannel == "" {
+			testChannel = oldChannelID
+		}
+
+		if testChannel != "" {
+			if !a.permissions.HasPermissionToChannel(userID, testChannel, model.PermissionCreatePost) {
+				return nil, model.NewErrPermission("access denied to channel")
+			}
+		}
 	}
 	updatedBoard, err := a.store.PatchBoard(boardID, patch, userID)
 	if err != nil {

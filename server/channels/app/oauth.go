@@ -502,6 +502,10 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 		}
 	}
 
+	if err := a.Srv().Store().OAuth().RemoveAuthDataByClientId(appID, userID); err != nil {
+		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.remove_auth_data_by_client_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Deauthorize the app
 	if err := a.Srv().Store().Preference().Delete(userID, model.PreferenceCategoryAuthorizedOAuthApp, appID); err != nil {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

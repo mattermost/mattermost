@@ -34,7 +34,7 @@ const config = {
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
         '^bundle-loader\\?lazy\\!(.*)$': '$1',
     },
-    moduleDirectories: ['', 'node_modules'],
+    moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
     reporters: [
         'default',

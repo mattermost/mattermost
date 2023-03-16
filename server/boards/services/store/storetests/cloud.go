@@ -10,25 +10,20 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
 	storeservice "github.com/mattermost/mattermost-server/v6/server/boards/services/store"
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 )
 
-func StoreTestCloudStore(t *testing.T, setup func(t *testing.T) (storeservice.Store, func())) {
+func StoreTestCloudStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetUsedCardsCount", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetUsedCardsCount(t, store)
+		runStoreTests(t, testGetUsedCardsCount)
 	})
 	t.Run("TestGetCardLimitTimestamp", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetCardLimitTimestamp(t, store)
+		runStoreTests(t, testGetCardLimitTimestamp)
 	})
 	t.Run("TestUpdateCardLimitTimestamp", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUpdateCardLimitTimestamp(t, store)
+		runStoreTests(t, testUpdateCardLimitTimestamp)
 	})
 }
 

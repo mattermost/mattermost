@@ -10,9 +10,8 @@ import (
 )
 
 type TestHelper struct {
-	t        *testing.T
-	f        *foundation.Foundation
-	isPlugin bool
+	t *testing.T
+	f *foundation.Foundation
 }
 
 func (th *TestHelper) IsPostgres() bool {
@@ -23,21 +22,8 @@ func (th *TestHelper) IsMySQL() bool {
 	return th.f.DB().DriverName() == "mysql"
 }
 
-func SetupPluginTestHelper(t *testing.T) (*TestHelper, func()) {
-	return setupTestHelper(t, true)
-}
-func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
-	return setupTestHelper(t, false)
-}
-
-func setupTestHelper(t *testing.T, isPlugin bool) (*TestHelper, func()) {
-	f := foundation.New(t, NewBoardsMigrator(isPlugin))
-
-	th := &TestHelper{
-		t:        t,
-		f:        f,
-		isPlugin: isPlugin,
-	}
+func SetupTestHelper(t *testing.T, f *foundation.Foundation) (*TestHelper, func()) {
+	th := &TestHelper{t, f}
 
 	tearDown := func() {
 		th.f.TearDown()

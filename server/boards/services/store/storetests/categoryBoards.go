@@ -13,23 +13,15 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 )
 
-func StoreTestCategoryBoardsStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestCategoryBoardsStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetUserCategoryBoards", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testGetUserCategoryBoards(t, store)
+		runStoreTests(t, testGetUserCategoryBoards)
 	})
-
 	t.Run("AddUpdateCategoryBoard", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testAddUpdateCategoryBoard(t, store)
+		runStoreTests(t, testAddUpdateCategoryBoard)
 	})
-
 	t.Run("SetBoardVisibility", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testSetBoardVisibility(t, store)
+		runStoreTests(t, testSetBoardVisibility)
 	})
 }
 

@@ -15,7 +15,7 @@ import (
 
 type testFunc func(t *testing.T, store store.Store)
 
-func StoreTestCategoryStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestCategoryStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	tests := map[string]testFunc{
 		"CreateCategory":          testGetCreateCategory,
 		"UpdateCategory":          testUpdateCategory,
@@ -27,9 +27,7 @@ func StoreTestCategoryStore(t *testing.T, setup func(t *testing.T) (store.Store,
 
 	for name, f := range tests {
 		t.Run(name, func(t *testing.T) {
-			store, tearDown := setup(t)
-			defer tearDown()
-			f(t, store)
+			runStoreTests(t, f)
 		})
 	}
 }

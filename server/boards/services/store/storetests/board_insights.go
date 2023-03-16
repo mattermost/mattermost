@@ -17,11 +17,9 @@ const (
 	testInsightsUserID1 = "user-id-1"
 )
 
-func StoreTestBoardsInsightsStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestBoardsInsightsStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("GetBoardsInsights", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		getBoardsInsightsTest(t, store)
+		runStoreTests(t, getBoardsInsightsTest)
 	})
 }
 

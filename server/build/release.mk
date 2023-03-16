@@ -86,14 +86,14 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
-build: setup-go-work build-linux build-windows build-osx
+build: setup-go-work build-client build-linux build-windows build-osx
 
-build-cmd: setup-go-work build-cmd-linux build-cmd-windows build-cmd-osx
+build-cmd: setup-go-work build-client build-cmd-linux build-cmd-windows build-cmd-osx
 
 build-client:
 	@echo Building mattermost web app
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) dist
 
 package-prep:
 	@ echo Packaging mattermost
@@ -121,9 +121,9 @@ package-prep:
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 	chmod 600 $(DIST_PATH)/config/config.json
 
-	@# Package webapp
+	@# Package web app
 	mkdir -p $(DIST_PATH)/client
-	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
+	cp -RL $(BUILD_WEBAPP_DIR)/channels/dist/* $(DIST_PATH)/client
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -193,26 +193,6 @@ else
 		fi; \
 	done
 endif
-
-	@# Products
-
-	@if [ -d $(BUILD_BOARDS_DIR) ] ; then \
-		echo "Copying web app files for Boards product"; \
-		mkdir -p $(DIST_PATH_GENERIC)/client/products/boards; \
-		cp -R $(BUILD_BOARDS_DIR)/mattermost-plugin/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/boards/; \
-	else \
-		echo "Unable to find files for Boards product. Please ensure that the Focalboard repository is checked out alongside the server and run 'make build-product' in it."; \
-		exit 1; \
-	fi
-
-	@if [ -d $(BUILD_PLAYBOOKS_DIR) ] ; then \
-		echo "Copying web app files for Playbooks product"; \
-		mkdir -p $(DIST_PATH_GENERIC)/client/products/playbooks; \
-		cp -R $(BUILD_PLAYBOOKS_DIR)/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/playbooks/; \
-	else \
-		echo "Unable to find files for Playbooks product. Please ensure that the Playbooks repository is checked out alongside the server and run 'make build-product' in it."; \
-		exit 1; \
-	fi
 
 package-osx-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general

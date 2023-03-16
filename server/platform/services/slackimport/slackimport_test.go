@@ -5,6 +5,7 @@ package slackimport
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -114,8 +115,19 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 	assert.Equal(t, expectedPosts, slackConvertChannelMentions(channels, posts))
 }
 
+func openTestFile(t *testing.T, filename string) (*os.File, error) {
+	working, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	t.Log("working directory:", working)
+
+	path := filepath.Join("../tests", filename)
+	return os.Open(path)
+}
+
 func TestSlackParseChannels(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-channels.json")
+	file, err := openTestFile(t, "slack-import-test-channels.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -125,7 +137,7 @@ func TestSlackParseChannels(t *testing.T) {
 }
 
 func TestSlackParseDirectMessages(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-direct-messages.json")
+	file, err := openTestFile(t, "slack-import-test-direct-messages.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -135,7 +147,7 @@ func TestSlackParseDirectMessages(t *testing.T) {
 }
 
 func TestSlackParsePrivateChannels(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-private-channels.json")
+	file, err := openTestFile(t, "slack-import-test-private-channels.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -145,7 +157,7 @@ func TestSlackParsePrivateChannels(t *testing.T) {
 }
 
 func TestSlackParseGroupDirectMessages(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-group-direct-messages.json")
+	file, err := openTestFile(t, "slack-import-test-group-direct-messages.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -155,7 +167,7 @@ func TestSlackParseGroupDirectMessages(t *testing.T) {
 }
 
 func TestSlackParseUsers(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-users.json")
+	file, err := openTestFile(t, "slack-import-test-users.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -165,7 +177,7 @@ func TestSlackParseUsers(t *testing.T) {
 }
 
 func TestSlackParsePosts(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-posts.json")
+	file, err := openTestFile(t, "slack-import-test-posts.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -175,7 +187,7 @@ func TestSlackParsePosts(t *testing.T) {
 }
 
 func TestSlackParseMultipleAttachments(t *testing.T) {
-	file, err := os.Open("tests/slack-import-test-posts.json")
+	file, err := openTestFile(t, "slack-import-test-posts.json")
 	require.NoError(t, err)
 	defer file.Close()
 

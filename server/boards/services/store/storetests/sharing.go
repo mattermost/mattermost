@@ -12,11 +12,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
 )
 
-func StoreTestSharingStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {
+func StoreTestSharingStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("UpsertSharingAndGetSharing", func(t *testing.T) {
-		store, tearDown := setup(t)
-		defer tearDown()
-		testUpsertSharingAndGetSharing(t, store)
+		runStoreTests(t, testUpsertSharingAndGetSharing)
 	})
 }
 
