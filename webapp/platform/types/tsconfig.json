@@ -14,5 +14,10 @@
         "rootDir": "./src",
         "composite": true
     },
-    "exclude": ["**/node_modules", "**/lib", "**/*.test.js", "**/*.test.ts"]
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "**/*.test.*"
+    ]
 }

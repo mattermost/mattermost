@@ -13,11 +13,13 @@
         "outDir": "./lib",
         "rootDir": "./src",
         "composite": true,
-        "paths": {
-            "@mattermost/types/*": ["../types/lib/*"]
-        }
     },
-    "exclude": ["**/node_modules", "**/lib", "**/*.test.js", "**/*.test.ts"],
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "**/*.test.*"
+    ],
     "references": [
         {"path": "../types"}
     ]
