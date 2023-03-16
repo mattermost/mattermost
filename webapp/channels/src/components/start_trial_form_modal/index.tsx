@@ -27,11 +27,11 @@ import {RequestLicenseBody} from '@mattermost/types/config';
 import StartTrialFormModalResult from './failure_modal';
 import ExternalLink from 'components/external_link';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {trackEvent} from 'actions/telemetry_actions';
 
-// TODO: Handle embargoed entities explicitly?
+// TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
 
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefisModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
-
 
 enum TrialLoadStatus {
     NotStarted = 'NOT_STARTED',
@@ -66,6 +66,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
 
     useEffect(() => {
+        trackEvent('start_trial_form', 'form_opened');
         if (email) {
             handleValidateBusinessEmail(email);
         }
@@ -83,7 +84,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const handleErrorModalTryAgain = async () => {
         await dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT));
         setLoadStatus(TrialLoadStatus.NotStarted);
-    }
+    };
 
     const requestLicense = async () => {
         setLoadStatus(TrialLoadStatus.Started);
@@ -106,9 +107,9 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 dialogType: StartTrialFormModalResult,
                 dialogProps: {
                     onTryAgain: handleErrorModalTryAgain,
-                }
-            }))
-            return
+                },
+            }));
+            return;
         }
 
         setLoadStatus(TrialLoadStatus.Success);
@@ -138,25 +139,24 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         if (props.onClose) {
             props.onClose();
         }
+        trackEvent('start_trial_form', 'form_closed');
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
     };
 
-
     const getOrgSizeDropdownValue = () => {
         if (typeof orgSize === 'undefined') {
-            return orgSize
-        } else {
-            return {
-                value: orgSize,
-                label: OrgSize[orgSize as unknown as keyof typeof OrgSize],
-            }
+            return orgSize;
         }
-    }
+        return {
+            value: orgSize,
+            label: OrgSize[orgSize as unknown as keyof typeof OrgSize],
+        };
+    };
 
     const handleValidateBusinessEmail = async (email: string) => {
         if (!email) {
             setBusinessEmailError(undefined);
-            return
+            return;
         }
         const isBusinessEmail = await validateBusinessEmail(email)();
 
@@ -166,11 +166,11 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         }
 
         setBusinessEmailError({
-                type: 'error',
-                value: formatMessage({ id: 'start_trial_form.invalid_business_email', defaultMessage: 'Please enter a valid business email address.' }
-            )
+            type: 'error',
+            value: formatMessage({id: 'start_trial_form.invalid_business_email', defaultMessage: 'Please enter a valid business email address.'},
+            ),
         } as CustomMessageInputType);
-    }
+    };
 
     const isSubmitDisabled = () => {
         return (
@@ -184,7 +184,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             status === TrialLoadStatus.Success
         );
     };
-
 
     return (
         <Modal
@@ -230,7 +229,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     inputSize={SIZE.LARGE}
                     onChange={(e) => setEmail(e.target.value)}
                     required={true}
-                    placeholder={formatMessage({ id: 'start_trial_form.email', defaultMessage: 'Business Email' })}
+                    placeholder={formatMessage({id: 'start_trial_form.email', defaultMessage: 'Business Email'})}
                     customMessage={businessEmailError}
                 />
                 <Input
@@ -245,9 +244,11 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 />
                 <DropdownInput
                     className={'company_size_dropdown'}
-                    onChange={(e) => { setOrgSize(e.value as OrgSize)}}
+                    onChange={(e) => {
+                        setOrgSize(e.value as OrgSize);
+                    }}
                     value={getOrgSizeDropdownValue()}
-                    options={Object.keys(OrgSize).map((key) => ({value:key, label: OrgSize[key as keyof typeof OrgSize]}))}
+                    options={Object.keys(OrgSize).map((key) => ({value: key, label: OrgSize[key as keyof typeof OrgSize]}))}
                     legend={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
                     placeholder={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
                     name='company_size_dropdown'
@@ -273,7 +274,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                         name={'country_dropdown'}
                     />
                 </div>
-                <div className="disclaimer">
+                <div className='disclaimer'>
                     <FormattedMessage
                         id='start_trial_form.disclaimer'
                         defaultMessage='By selecting Start trial, I agree to the <agreement>Mattermost Software Evaluation Agreement</agreement>, <privacypolicy>Privacy Policy</privacypolicy>, and receiving product emails.'
@@ -305,7 +306,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     >
                         {btnText(status)}
                     </Button>
-                    </div>
+                </div>
             </Modal.Body>
         </Modal>
     );

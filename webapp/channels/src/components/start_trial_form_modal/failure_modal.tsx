@@ -6,9 +6,8 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
-import { ModalIdentifiers } from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 import LaptopAlertSvg from 'components/common/svg_images_components/laptop_with_warning_symbol_svg';
-
 
 import ResultModal from 'components/admin_console/billing/delete_workspace/result_modal';
 
@@ -24,7 +23,6 @@ export default function StartTrialFormModalResult(props: Props) {
             props.onTryAgain();
         }
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT));
-
     };
 
     const title = (
@@ -57,7 +55,7 @@ export default function StartTrialFormModalResult(props: Props) {
             subtitle={subtitle}
             title={title}
             ignoreExit={false}
-            type="small"
+            type='small'
             resultType='failure'
             icon={
                 <LaptopAlertSvg

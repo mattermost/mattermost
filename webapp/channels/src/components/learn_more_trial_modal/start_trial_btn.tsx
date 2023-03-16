@@ -5,11 +5,6 @@ import React from 'react';
 
 import {useIntl} from 'react-intl';
 
-import {useSelector} from 'react-redux';
-
-import {GlobalState} from 'types/store';
-
-
 import './start_trial_btn.scss';
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
@@ -35,6 +30,7 @@ const StartTrialBtn = ({
 
     const startTrial = async () => {
         openTrialForm();
+
         // reading status from here instead of normal flow because
         // by the time the function needs the updated value from requestLicense,
         // it will be too late to wait for the render cycle to happen again
@@ -43,7 +39,6 @@ const StartTrialBtn = ({
         // on click will execute whatever action is sent from the invoking place, if nothing is sent, open the trial benefits modal
         if (onClick) {
             onClick();
-            return;
         }
     };
 

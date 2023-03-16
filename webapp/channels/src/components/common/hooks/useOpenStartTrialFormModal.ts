@@ -6,18 +6,18 @@ import {useDispatch} from 'react-redux';
 import {openModal} from 'actions/views/modals';
 import {ModalIdentifiers} from 'utils/constants';
 import StartTrialFormModal from 'components/start_trial_form_modal';
-import { TelemetryProps } from './useOpenPricingModal';
-
+import {TelemetryProps} from './useOpenPricingModal';
 
 export default function useOpenStartTrialFormModal() {
     const dispatch = useDispatch();
-    return (telemetryProps?: TelemetryProps) => {
+    return (telemetryProps?: TelemetryProps, onClose?: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.START_TRIAL_FORM_MODAL,
             dialogType: StartTrialFormModal,
             dialogProps: {
                 page: telemetryProps?.trackingLocation,
-            }
+                onClose,
+            },
         }));
     };
 }

@@ -81,7 +81,7 @@ const ShowStartTrialModal = () => {
         const hasEnvMoreThan10Users = Number(totalUsers) > userThreshold;
         const hadAdminDismissedModal = preferences.some((pref: PreferenceType) => pref.name === Constants.TRIAL_MODAL_AUTO_SHOWN && pref.value === TRUE);
         if (isUserAdmin && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
-            openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'});
+            openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'}, handleOnClose);
             trackEvent(
                 TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_AUTO_MODAL,
                 'trigger_start_trial_auto_modal',

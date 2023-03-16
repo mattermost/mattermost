@@ -4,11 +4,9 @@
     }
 }
 
-
 .ResultModal__small {
     .modal-header {
         .close {
-
             &:hover,
             &:active,
             &:focus,
@@ -24,8 +22,9 @@
             height: 24px;
             border-radius: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.56) !important;
-            font-family: 'Open Sans',
-            sans-serif;
+            font-family:
+                'Open Sans',
+                sans-serif;
             font-size: 32px;
             font-weight: 400;
         }
@@ -40,10 +39,12 @@
         margin: auto;
         border-radius: 8px;
         transform: translate(-50%, -50%) !important;
+
         .modal-header {
-            background: var(--center-channel-bg) !important;
             border: none;
+            background: var(--center-channel-bg) !important;
         }
+
         .modal-content {
             height: 100%;
 

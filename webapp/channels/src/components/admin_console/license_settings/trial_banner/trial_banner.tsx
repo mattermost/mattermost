@@ -23,7 +23,7 @@ import store from 'stores/redux_store.jsx';
 import ExternalLink from 'components/external_link';
 
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import { TelemetryProps } from 'components/common/hooks/useOpenPricingModal';
+import {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 
 interface TrialBannerProps {
     isDisabled: boolean;
@@ -157,12 +157,11 @@ const TrialBanner = ({
         }
     }, [restartedAfterUpgradePrefs, clickedUpgradeAndTrialBtn]);
 
-
     const handleRequestLicense = () => {
         if (openTrialForm) {
-            openTrialForm({ trackingLocation: 'license_settings.trial_banner' });
+            openTrialForm({trackingLocation: 'license_settings.trial_banner'});
         }
-    }
+    };
 
     const onHandleUpgrade = () => {
         if (!handleUpgrade) {

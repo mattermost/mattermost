@@ -16,7 +16,7 @@ import './result_modal.scss';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {InquiryType} from 'selectors/cloud';
-import { Modal } from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 
 type Props = {
     type?: string;
@@ -53,11 +53,11 @@ export default function ResultModal(props: Props) {
     if (props.type === 'small') {
         return (
             <Modal
-                className="ResultModal__small"
+                className='ResultModal__small'
                 show={isResultModalOpen}
                 onHide={onHide}
             >
-                <Modal.Header closeButton={true} />
+                <Modal.Header closeButton={true}/>
                 <div className={modalType}>
                     <IconMessage
                         formattedTitle={props.title}
@@ -79,7 +79,7 @@ export default function ResultModal(props: Props) {
                     />
                 </div>
             </Modal>
-    );
+        );
     }
 
     return (
