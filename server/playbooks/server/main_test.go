@@ -103,7 +103,7 @@ func Setup(t *testing.T) *TestEnvironment {
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
 
 	// Environment Settings
-	driverName := getEnvWithDefault("TEST_DATABASE_DRIVERNAME", "postgres")
+	driverName := getEnvWithDefault("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 	sqlSettings := storetest.MakeSqlSettings(driverName, false)
 
 	// Create a test memory store and modify configuration appropriately
