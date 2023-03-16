@@ -7,7 +7,7 @@ import {Modal} from 'react-bootstrap';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
 import {searchProfiles} from 'mattermost-redux/actions/users';
-import {UserProfile} from 'mattermost-webapp/packages/types/src/users';
+import {UserProfile} from '@mattermost/types/users';
 import {LightningBoltOutlineIcon} from '@mattermost/compass-icons/components';
 import {OptionTypeBase, StylesConfig} from 'react-select';
 import {General} from 'mattermost-redux/constants';
