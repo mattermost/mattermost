@@ -166,6 +166,8 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 		return nil, err
 	}
 
+	// PostID and ChannelID are deliberately ignored
+	// from the list of fields to keep those two immutable.
 	queryString, args, err := fs.getQueryBuilder().
 		Update("FileInfo").
 		SetMap(map[string]any{
@@ -184,7 +186,6 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 			"MiniPreview":     info.MiniPreview,
 			"Content":         info.Content,
 			"RemoteId":        info.RemoteId,
-			"ChannelId":       info.ChannelId,
 		}).
 		Where(sq.Eq{"Id": info.Id}).
 		ToSql()
