@@ -97,8 +97,12 @@ func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID 
 }
 
 func GetTestConfig(t *testing.T) *config.Configuration {
-	driver := model.PostgresDBType
-	storeType := sqlstore.NewStoreType(t, "PostgreSQL", driver, true)
+	driver := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driver == "" {
+		driver = model.PostgresDBType
+	}
+
+	storeType := sqlstore.NewStoreType(t, driver, driver, true)
 
 	logging := `
 	{
