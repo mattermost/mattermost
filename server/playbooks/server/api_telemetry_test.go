@@ -11,7 +11,8 @@ import (
 )
 
 func TestCreateEvent(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("create an event with bad type fails", func(t *testing.T) {
