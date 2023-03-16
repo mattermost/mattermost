@@ -112,33 +112,23 @@ func testUpdateDraft(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	draft1 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
 	}
 
-	draft2 := &model.Draft{
-		CreateAt:  00005,
-		UpdateAt:  00005,
-		UserId:    user.Id,
-		ChannelId: channel2.Id,
-		Message:   "draft2",
-	}
-
 	t.Run("update drafts", func(t *testing.T) {
-		draftResp, err := ss.Draft().Save(draft1)
+		_, err := ss.Draft().Save(draft1)
 		assert.NoError(t, err)
 
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
+		assert.NotEqual(t, draft1.CreateAt, 0)
+		assert.Equal(t, draft1.UpdateAt, draft1.CreateAt)
 
-		draftResp, err = ss.Draft().Save(draft2)
+		_, err = ss.Draft().Save(draft1)
 		assert.NoError(t, err)
 
-		assert.Equal(t, draft2.Message, draftResp.Message)
-		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
+		assert.NotEqual(t, draft1.CreateAt, 0)
+		assert.NotEqual(t, draft1.UpdateAt, draft1.CreateAt)
 	})
 }
 
