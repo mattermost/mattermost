@@ -18,7 +18,7 @@ import {makeAsyncComponent} from 'components/async_load';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import {COUNTRIES} from 'utils/countries';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import './start_trial_form_modal.scss';
 import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
@@ -66,7 +66,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
 
     useEffect(() => {
-        trackEvent('start_trial_form', 'form_opened');
+        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_opened');
         if (email) {
             handleValidateBusinessEmail(email);
         }
@@ -139,7 +139,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         if (props.onClose) {
             props.onClose();
         }
-        trackEvent('start_trial_form', 'form_closed');
+        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_closed');
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
     };
 
