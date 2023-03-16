@@ -81,9 +81,11 @@ func (o *Draft) GetProps() StringInterface {
 func (o *Draft) PreSave() {
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
+		o.UpdateAt = o.CreateAt
+	} else {
+		o.UpdateAt = GetMillis()
 	}
 
-	o.UpdateAt = o.CreateAt
 	o.DeleteAt = 0
 	o.PreCommit()
 }

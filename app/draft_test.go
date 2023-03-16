@@ -81,33 +81,27 @@ func TestUpsertDraft(t *testing.T) {
 	channel := th.BasicChannel
 
 	draft1 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
 	}
 
-	draft2 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00002,
-		UserId:    user.Id,
-		ChannelId: channel.Id,
-		Message:   "draft2",
-	}
-
-	_, createDraftErr := th.App.UpsertDraft(th.Context, draft1, "")
-	assert.Nil(t, createDraftErr)
-
 	t.Run("upsert draft", func(t *testing.T) {
-		draftResp, err := th.App.UpsertDraft(th.Context, draft2, "")
+		draftResp, err := th.App.UpsertDraft(th.Context, draft1, "")
 		assert.Nil(t, err)
 
-		assert.Equal(t, draft2.Message, draftResp.Message)
-		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
-		assert.Equal(t, draft2.CreateAt, draftResp.CreateAt)
+		assert.Equal(t, draft1.Message, draftResp.Message)
+		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
+		assert.Equal(t, draft1.CreateAt, draftResp.CreateAt)
+		assert.Equal(t, draft1.UpdateAt, draftResp.CreateAt)
 
-		assert.NotEqual(t, draft1.UpdateAt, draftResp.UpdateAt)
+		draftResp, err = th.App.UpsertDraft(th.Context, draft1, "")
+		assert.Nil(t, err)
+
+		assert.Equal(t, draft1.Message, draftResp.Message)
+		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
+		assert.Equal(t, draft1.CreateAt, draftResp.CreateAt)
+		assert.NotEqual(t, draft1.UpdateAt, draftResp.CreateAt)
 	})
 
 	t.Run("upsert draft feature flag", func(t *testing.T) {

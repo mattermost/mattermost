@@ -98,9 +98,9 @@ func (s *SqlDraftStore) Save(draft *model.Draft) (*model.Draft, error) {
 	builder := s.getQueryBuilder().Insert("Drafts").Columns(draftSliceColumns()...).Values(draftToSlice(draft)...)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE  UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", model.GetMillis(), draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
+		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE  UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
 	} else {
-		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", model.GetMillis(), draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
+		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
 	}
 
 	query, args, err := builder.ToSql()
