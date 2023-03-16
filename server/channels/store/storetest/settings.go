@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const (
@@ -50,7 +51,19 @@ func log(message string) {
 // MySQLSettings returns the database settings to connect to the MySQL unittesting database.
 // The database name is generated randomly and must be created before use.
 func MySQLSettings(withReplica bool) *model.SqlSettings {
-	dsn := getEnv("TEST_DATABASE_MYSQL_DSN", defaultMysqlDSN)
+	dsn := os.Getenv("TEST_DATABASE_MYSQL_DSN")
+	if dsn == "" {
+		dsn = defaultMysqlDSN
+		mlog.Info("No TEST_DATABASE_MYSQL_DSN override, using default", mlog.String("default_dsn", dsn))
+	} else {
+		mlog.Info("Using TEST_DATABASE_MYSQL_DSN override", mlog.String("dsn", dsn))
+	}
+
+	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
+	}
+
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
@@ -70,7 +83,19 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 // PostgresSQLSettings returns the database settings to connect to the PostgreSQL unittesting database.
 // The database name is generated randomly and must be created before use.
 func PostgreSQLSettings() *model.SqlSettings {
-	dsn := getEnv("TEST_DATABASE_POSTGRESQL_DSN", defaultPostgresqlDSN)
+	dsn := os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
+	if dsn == "" {
+		dsn = defaultPostgresqlDSN
+		mlog.Info("No TEST_DATABASE_POSTGRESQL_DSN override, using default", mlog.String("default_dsn", dsn))
+	} else {
+		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
+	}
+
+	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
+	}
+
 	dsnURL, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())

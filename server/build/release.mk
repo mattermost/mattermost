@@ -86,9 +86,9 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
-build: setup-go-work build-linux build-windows build-osx
+build: setup-go-work build-client build-linux build-windows build-osx
 
-build-cmd: setup-go-work build-cmd-linux build-cmd-windows build-cmd-osx
+build-cmd: setup-go-work build-client build-cmd-linux build-cmd-windows build-cmd-osx
 
 build-client:
 	@echo Building mattermost web app

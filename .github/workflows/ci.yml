@@ -175,32 +175,6 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Checkout mattermost-webapp
-        run: |
-          cd ../..
-          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
-          cd mattermost-webapp
-          git checkout $GITHUB_HEAD_REF || git checkout master
-          export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
-          echo "$WEBAPP_GIT_COMMIT"
-          FILE_DIST=dist.tar.gz
-          runtime="2 minute"
-          endtime=$(date -ud "$runtime" +%s)
-          while [[ $(date -u +%s) -le $endtime ]]; do
-            if curl -s --max-time 30 -f -o $FILE_DIST https://pr-builds.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz; then
-              break
-            fi
-            echo "Waiting for webapp git commit $WEBAPP_GIT_COMMIT with sleep 5: `date +%H:%M:%S`"
-            sleep 5
-          done
-          if [[ -f "$FILE_DIST" ]]; then
-            echo "Precompiled version of web app found"
-            mkdir dist && tar -xf $FILE_DIST -C dist --strip-components=1
-          else
-          echo "Building web app from source"
-          make dist
-          fi
-          cd ../mattermost-server/server
       - name: Build
         run: |
           make config-reset
@@ -210,20 +184,17 @@ jobs:
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: server-dist-artifact
-          path: dist/
+          path: server/dist/
           retention-days: 14
       - name: Persist build artifacts
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: server-build-artifact
-          path: build/
+          path: server/build/
           retention-days: 14 
   upload-s3:
     name: Upload to S3 bucket
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: server
     needs: 
       - build-mattermost-server
       - test-mysql
@@ -236,7 +207,7 @@ jobs:
       uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
       with:
         name: server-dist-artifact
-        path: dist/
+        path: server/dist/
     - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
       with:
@@ -252,8 +223,8 @@ jobs:
       run: echo "BRANCH_NAME=$(echo ${{ steps.branch.outputs.sanitized-branch-name }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
     - name: ci/artifact-upload
       run: |
-        aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --acl public-read --cache-control "no-cache" --recursive
-        aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive
+        aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --acl public-read --cache-control "no-cache" --recursive
+        aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive
   build-docker:
     name: Build docker image
     runs-on: ubuntu-22.04
