@@ -70,7 +70,6 @@ func (s *Session) Auditable() map[string]interface{} {
 		"is_oauth":         s.IsOAuth,
 		"expired_notify":   s.ExpiredNotify,
 		"local":            s.Local,
-		// TODO: props and members?
 	}
 }
 
