@@ -92,6 +92,7 @@ func testInsertBlock(t *testing.T, store store.Store) {
 		insertedBlock, err := store.GetBlock("id-test")
 		require.Equal(t, block.BoardID, insertedBlock.BoardID)
 		require.Equal(t, fields, insertedBlock.Fields)
+		require.NoError(t, err)
 	})
 
 	t.Run("invalid rootid", func(t *testing.T) {
