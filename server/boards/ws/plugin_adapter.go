@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
-const websocketMessagePrefix = "custom_focalboard_"
+const websocketMessagePrefix = "custom_boards_"
 
 var errMissingTeamInCommand = fmt.Errorf("command doesn't contain teamId")
 
