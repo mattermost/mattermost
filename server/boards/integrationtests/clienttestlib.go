@@ -96,12 +96,9 @@ func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID 
 	return channelID == "valid-channel-id" || channelID == "valid-channel-id-2"
 }
 
-func GetTestConfig() (*config.Configuration, error) {
-	dbType := model.PostgresDBType
-	connectionString, err := sqlstore.PrepareNewTestDatabase(dbType)
-	if err != nil {
-		return nil, err
-	}
+func GetTestConfig(t *testing.T) *config.Configuration {
+	driver := model.PostgresDBType
+	storeType := sqlstore.NewStoreType(t, "PostgreSQL", driver, true)
 
 	logging := `
 	{
@@ -128,8 +125,8 @@ func GetTestConfig() (*config.Configuration, error) {
 	return &config.Configuration{
 		ServerRoot:        "http://localhost:8888",
 		Port:              8888,
-		DBType:            dbType,
-		DBConfigString:    connectionString,
+		DBType:            driver,
+		DBConfigString:    storeType.ConnString,
 		DBTablePrefix:     "test_",
 		WebPath:           "./pack",
 		FilesDriver:       "local",
@@ -137,28 +134,23 @@ func GetTestConfig() (*config.Configuration, error) {
 		LoggingCfgJSON:    logging,
 		SessionExpireTime: int64(30 * time.Second),
 		AuthMode:          "native",
-	}, nil
-}
-
-func newTestServer(singleUserToken string) *server.Server {
-	return newTestServerWithLicense(singleUserToken, LicenseNone)
-}
-
-func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *server.Server {
-	cfg, err := GetTestConfig()
-	if err != nil {
-		panic(err)
 	}
+}
+
+func newTestServer(t *testing.T, singleUserToken string) *server.Server {
+	return newTestServerWithLicense(t, singleUserToken, LicenseNone)
+}
+
+func newTestServerWithLicense(t *testing.T, singleUserToken string, licenseType LicenseType) *server.Server {
+	cfg := GetTestConfig(t)
 
 	logger, _ := mlog.NewLogger()
-	if err = logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
-		panic(err)
-	}
+	err := logger.Configure("", cfg.LoggingCfgJSON, nil)
+	require.NoError(t, err)
+
 	singleUser := singleUserToken != ""
 	innerStore, err := server.NewStore(cfg, singleUser, logger)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	var db store.Store
 
@@ -184,23 +176,19 @@ func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *
 	}
 
 	srv, err := server.New(params)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	return srv
 }
 
-func NewTestServerPluginMode() *server.Server {
-	cfg, err := GetTestConfig()
-	if err != nil {
-		panic(err)
-	}
+func NewTestServerPluginMode(t *testing.T) *server.Server {
+	cfg := GetTestConfig(t)
+
 	cfg.AuthMode = "mattermost"
 	cfg.EnablePublicSharedBoards = true
 
 	logger, _ := mlog.NewLogger()
-	if err = logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
+	if err := logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
 		panic(err)
 	}
 	innerStore, err := server.NewStore(cfg, false, logger)
@@ -227,22 +215,16 @@ func NewTestServerPluginMode() *server.Server {
 	return srv
 }
 
-func newTestServerLocalMode() *server.Server {
-	cfg, err := GetTestConfig()
-	if err != nil {
-		panic(err)
-	}
+func newTestServerLocalMode(t *testing.T) *server.Server {
+	cfg := GetTestConfig(t)
 	cfg.EnablePublicSharedBoards = true
 
 	logger, _ := mlog.NewLogger()
-	if err = logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
-		panic(err)
-	}
+	err := logger.Configure("", cfg.LoggingCfgJSON, nil)
+	require.NoError(t, err)
 
 	db, err := server.NewStore(cfg, false, logger)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	permissionsService := localpermissions.New(db, logger)
 
@@ -254,9 +236,7 @@ func newTestServerLocalMode() *server.Server {
 	}
 
 	srv, err := server.New(params)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	// Reduce password has strength for unit tests to dramatically speed up account creation and login
 	auth.PasswordHashStrength = 4
@@ -275,7 +255,7 @@ func SetupTestHelperWithToken(t *testing.T) *TestHelper {
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = newTestServer(sessionToken)
+	th.Server = newTestServer(t, sessionToken)
 	th.Client = client.NewClient(th.Server.Config().ServerRoot, sessionToken)
 	th.Client2 = client.NewClient(th.Server.Config().ServerRoot, sessionToken)
 	return th
@@ -294,7 +274,7 @@ func SetupTestHelperPluginMode(t *testing.T) *TestHelper {
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = NewTestServerPluginMode()
+	th.Server = NewTestServerPluginMode(t)
 	th.Start()
 	return th
 }
@@ -308,7 +288,7 @@ func SetupTestHelperLocalMode(t *testing.T) *TestHelper {
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = newTestServerLocalMode()
+	th.Server = newTestServerLocalMode(t)
 	th.Start()
 	return th
 }
@@ -322,7 +302,7 @@ func SetupTestHelperWithLicense(t *testing.T, licenseType LicenseType) *TestHelp
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = newTestServerWithLicense("", licenseType)
+	th.Server = newTestServerWithLicense(t, "", licenseType)
 	th.Client = client.NewClient(th.Server.Config().ServerRoot, "")
 	th.Client2 = client.NewClient(th.Server.Config().ServerRoot, "")
 	return th
