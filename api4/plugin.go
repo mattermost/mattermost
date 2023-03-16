@@ -77,7 +77,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.array.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-	auditRec.AddEventParameter("filename", pluginArray[0].Filename)
+	audit.AddEventParameter(auditRec, "filename", pluginArray[0].Filename)
 
 	file, err := pluginArray[0].Open()
 	if err != nil {
@@ -113,7 +113,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	force, _ := strconv.ParseBool(r.URL.Query().Get("force"))
 	downloadURL := r.URL.Query().Get("plugin_download_url")
-	auditRec.AddEventParameter("url", downloadURL)
+	audit.AddEventParameter(auditRec, "url", downloadURL)
 
 	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
@@ -149,7 +149,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	auditRec.AddEventParameter("plugin_id", pluginRequest.Id)
+	audit.AddEventParameter(auditRec, "plugin_id", pluginRequest.Id)
 
 	// Always install the latest compatible version
 	// https://mattermost.atlassian.net/browse/MM-41981
@@ -228,7 +228,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("removePlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("plugin_id", c.Params.PluginId)
+	audit.AddEventParameter(auditRec, "plugin_id", c.Params.PluginId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
 		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
@@ -327,7 +327,7 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("enablePlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("plugin_id", c.Params.PluginId)
+	audit.AddEventParameter(auditRec, "plugin_id", c.Params.PluginId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
 		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
@@ -356,7 +356,7 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("disablePlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("plugin_id", c.Params.PluginId)
+	audit.AddEventParameter(auditRec, "plugin_id", c.Params.PluginId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
 		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
