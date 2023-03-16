@@ -165,7 +165,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 
 	auditRec := c.MakeAuditRecord("uploadFileSimple", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 		c.SetPermissionError(model.PermissionUploadFile)
@@ -173,7 +173,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	}
 
 	clientId := r.Form.Get("client_id")
-	auditRec.AddEventParameter("client_id", clientId)
+	audit.AddEventParameter(auditRec, "client_id", clientId)
 
 	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
 		app.UploadFileSetTeamId(FileTeamId),
@@ -185,7 +185,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		c.Err = appErr
 		return nil
 	}
-	auditRec.AddMeta("file", info)
+	audit.AddEventParameterAuditable(auditRec, "file", info)
 
 	fileUploadResponse := &model.FileUploadResponse{
 		FileInfos: []*model.FileInfo{info},
@@ -335,8 +335,8 @@ NextPart:
 		}
 
 		auditRec := c.MakeAuditRecord("uploadFileMultipart", audit.Fail)
-		auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
-		auditRec.AddEventParameter("client_id", clientId)
+		audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+		audit.AddEventParameter(auditRec, "client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
 			app.UploadFileSetTeamId(FileTeamId),
@@ -349,7 +349,7 @@ NextPart:
 			c.LogAuditRec(auditRec)
 			return nil
 		}
-		auditRec.AddMeta("file", info)
+		audit.AddEventParameterAuditable(auditRec, "file", info)
 
 		auditRec.Success()
 		c.LogAuditRec(auditRec)
@@ -438,8 +438,8 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 
 		auditRec := c.MakeAuditRecord("uploadFileMultipartLegacy", audit.Fail)
 		defer c.LogAuditRec(auditRec)
-		auditRec.AddEventParameter("channel_id", channelId)
-		auditRec.AddEventParameter("client_id", clientId)
+		audit.AddEventParameter(auditRec, "channel_id", channelId)
+		audit.AddEventParameter(auditRec, "client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
 			app.UploadFileSetTeamId(FileTeamId),
@@ -453,7 +453,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			c.LogAuditRec(auditRec)
 			return nil
 		}
-		auditRec.AddMeta("file", info)
+		audit.AddEventParameterAuditable(auditRec, "file", info)
 
 		auditRec.Success()
 		c.LogAuditRec(auditRec)
@@ -477,7 +477,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("getFile", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("force_download", forceDownload)
+	audit.AddEventParameter(auditRec, "force_download", forceDownload)
 
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
@@ -485,7 +485,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		setInaccessibleFileHeader(w, err)
 		return
 	}
-	auditRec.AddMeta("file", info)
+	audit.AddEventParameterAuditable(auditRec, "file", info)
 
 	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
@@ -560,7 +560,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		setInaccessibleFileHeader(w, err)
 		return
 	}
-	auditRec.AddMeta("file", info)
+	audit.AddEventParameterAuditable(auditRec, "file", info)
 
 	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
@@ -577,7 +577,6 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp["link"] = link
 
 	auditRec.Success()
-	auditRec.AddMeta("link", link)
 
 	w.Write([]byte(model.MapToJSON(resp)))
 }
