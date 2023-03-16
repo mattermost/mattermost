@@ -124,33 +124,8 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("teamID", board.TeamID)
 	auditRec.AddMeta("filename", filename)
 
-	fileInfo, err := a.app.GetFileInfo(filename)
+	fileInfo, fileReader, err := a.app.GetFile(board.TeamID, boardID, filename)
 	if err != nil && !model.IsErrNotFound(err) {
-		a.errorResponse(w, r, err)
-		return
-	}
-
-	if fileInfo != nil && fileInfo.Archived {
-		fileMetadata := map[string]interface{}{
-			"archived":  true,
-			"name":      fileInfo.Name,
-			"size":      fileInfo.Size,
-			"extension": fileInfo.Extension,
-		}
-
-		data, jsonErr := json.Marshal(fileMetadata)
-		if jsonErr != nil {
-			a.logger.Error("failed to marshal archived file metadata", mlog.String("filename", filename), mlog.Err(jsonErr))
-			a.errorResponse(w, r, jsonErr)
-			return
-		}
-
-		jsonBytesResponse(w, http.StatusBadRequest, data)
-		return
-	}
-
-	fileReader, err := a.app.GetFileReader(board.TeamID, boardID, filename)
-	if err != nil && !errors.Is(err, app.ErrFileNotFound) {
 		a.errorResponse(w, r, err)
 		return
 	}
@@ -171,7 +146,14 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer fileReader.Close()
-	web.WriteFileResponse(filename, fileInfo.MimeType, fileInfo.Size, time.Now(), "", fileReader, false, w, r)
+
+	mimeType := ""
+	var fileSize int64
+	if fileInfo != nil {
+		mimeType = fileInfo.MimeType
+		fileSize = fileInfo.Size
+	}
+	web.WriteFileResponse(filename, mimeType, fileSize, time.Now(), "", fileReader, false, w, r)
 	auditRec.Success()
 }
 

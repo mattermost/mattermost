@@ -382,6 +382,7 @@ func (c *Client) GetCards(boardID string, page int, perPage int) ([]*model.Card,
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
+	defer closeBody(r)
 
 	var cards []*model.Card
 	if err := json.NewDecoder(r.Body).Decode(&cards); err != nil {
@@ -400,6 +401,7 @@ func (c *Client) PatchCard(cardID string, cardPatch *model.CardPatch, disableNot
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
+	defer closeBody(r)
 
 	var cardNew *model.Card
 	if err := json.NewDecoder(r.Body).Decode(&cardNew); err != nil {
@@ -414,6 +416,7 @@ func (c *Client) GetCard(cardID string) (*model.Card, *Response) {
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
+	defer closeBody(r)
 
 	var card *model.Card
 	if err := json.NewDecoder(r.Body).Decode(&card); err != nil {
@@ -452,6 +455,7 @@ func (c *Client) DeleteCategory(teamID, categoryID string) *Response {
 	if err != nil {
 		return BuildErrorResponse(r, err)
 	}
+	defer closeBody(r)
 
 	return BuildResponse(r)
 }
@@ -1051,6 +1055,7 @@ func (c *Client) HideBoard(teamID, categoryID, boardID string) *Response {
 	if err != nil {
 		return BuildErrorResponse(r, err)
 	}
+	defer closeBody(r)
 
 	return BuildResponse(r)
 }
@@ -1060,6 +1065,7 @@ func (c *Client) UnhideBoard(teamID, categoryID, boardID string) *Response {
 	if err != nil {
 		return BuildErrorResponse(r, err)
 	}
+	defer closeBody(r)
 
 	return BuildResponse(r)
 }

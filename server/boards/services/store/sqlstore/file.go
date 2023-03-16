@@ -25,6 +25,7 @@ func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mm_model.FileInfo) e
 			"extension",
 			"size",
 			"delete_at",
+			"path",
 			"archived",
 		).
 		Values(
@@ -34,6 +35,7 @@ func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mm_model.FileInfo) e
 			fileInfo.Extension,
 			fileInfo.Size,
 			fileInfo.DeleteAt,
+			fileInfo.Path,
 			false,
 		)
 
@@ -60,6 +62,7 @@ func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mm_model.FileInfo,
 			"extension",
 			"size",
 			"archived",
+			"path",
 		).
 		From(s.tablePrefix + "file_info").
 		Where(sq.Eq{"Id": id})
@@ -76,6 +79,7 @@ func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mm_model.FileInfo,
 		&fileInfo.Extension,
 		&fileInfo.Size,
 		&fileInfo.Archived,
+		&fileInfo.Path,
 	)
 
 	if err != nil {
