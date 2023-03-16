@@ -362,6 +362,11 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 	}
 
 	for _, imageURL := range imageURLs {
+		// MM-51060 - don't accept Mattermost permalinks as Open Graph Image URLs.
+		if isPermalink := looksLikeAPermalink(imageURL, a.GetSiteURL()); isPermalink {
+			continue
+		}
+
 		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
 			appErr, ok := err.(*model.AppError)
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
@@ -622,6 +627,9 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 			var res *http.Response
 			res, err = client.Do(request)
+			if err != nil {
+				mlog.Warn("error fetching OG image data", mlog.Err(err))
+			}
 
 			if res != nil {
 				body = res.Body
