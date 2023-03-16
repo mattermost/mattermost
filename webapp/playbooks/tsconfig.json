@@ -24,9 +24,6 @@
     "useUnknownInCatchVariables": false,
     "paths": {
       "src": ["src"],
-      "@mattermost/types/*": ["../platform/packages/types/src/*"],
-      "@mattermost/client": ["../platform/client/src"],
-      "@mattermost/components": ["../platform/components/src"],
       "mattermost-redux/*": ["../channels/src/packages/mattermost-redux/src/*"],
       "reselect": ["../channels/src/packages/reselect/src"]
     }
@@ -34,8 +31,9 @@
   "include": [
     "./**/*"
   ],
-  "exclude": [
-    "dist",
-    "!node_modules/@types"
+  "references": [
+    {"path": "../platform/client"},
+    {"path": "../platform/components"},
+    {"path": "../platform/types"}
   ]
 }
