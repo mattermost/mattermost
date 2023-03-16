@@ -56,7 +56,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	dt, nErr := a.Srv().Store().Draft().Save(draft)
+	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

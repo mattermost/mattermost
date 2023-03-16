@@ -88,7 +88,7 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted boo
 	return &dt, nil
 }
 
-func (s *SqlDraftStore) Save(draft *model.Draft) (*model.Draft, error) {
+func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	draft.PreSave()
 	maxDraftSize := s.GetMaxDraftSize()
 	if err := draft.IsValid(maxDraftSize); err != nil {
@@ -110,7 +110,7 @@ func (s *SqlDraftStore) Save(draft *model.Draft) (*model.Draft, error) {
 	}
 
 	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save Draft")
+		return nil, errors.Wrap(err, "failed to upsert Draft")
 	}
 
 	return draft, nil

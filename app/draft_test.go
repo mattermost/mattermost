@@ -6,7 +6,6 @@ package app
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -81,31 +80,41 @@ func TestUpsertDraft(t *testing.T) {
 	user := th.BasicUser
 	channel := th.BasicChannel
 
-	draft1 := &model.Draft{
+	draft := &model.Draft{
 		UserId:    user.Id,
 		ChannelId: channel.Id,
-		Message:   "draft1",
+		Message:   "draft",
 	}
 
 	t.Run("upsert draft", func(t *testing.T) {
-		draftResp, err := th.App.UpsertDraft(th.Context, draft1, "")
+		_, err := th.App.UpsertDraft(th.Context, draft, "")
 		assert.Nil(t, err)
 
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
-		assert.Equal(t, draft1.CreateAt, draftResp.CreateAt)
-		assert.Equal(t, draft1.UpdateAt, draftResp.CreateAt)
+		drafts, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+		assert.Len(t, drafts, 1)
+		draft1 := drafts[0]
 
-		// Ensure update at timestamp changes
-		time.Sleep(time.Millisecond)
+		assert.Equal(t, "draft", draft1.Message)
+		assert.Equal(t, channel.Id, draft1.ChannelId)
+		assert.Greater(t, draft1.CreateAt, int64(0))
 
-		draftResp, err = th.App.UpsertDraft(th.Context, draft1, "")
+		draft = &model.Draft{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "updated draft",
+		}
+		_, err = th.App.UpsertDraft(th.Context, draft, "")
 		assert.Nil(t, err)
 
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
-		assert.Equal(t, draft1.CreateAt, draftResp.CreateAt)
-		assert.NotEqual(t, draft1.UpdateAt, draftResp.CreateAt)
+		drafts, err = th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+		assert.Len(t, drafts, 1)
+		draft2 := drafts[0]
+
+		assert.Equal(t, "updated draft", draft2.Message)
+		assert.Equal(t, channel.Id, draft2.ChannelId)
+		assert.Equal(t, draft1.CreateAt, draft2.CreateAt)
 	})
 
 	t.Run("upsert draft feature flag", func(t *testing.T) {
@@ -120,7 +129,7 @@ func TestUpsertDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, err := th.App.UpsertDraft(th.Context, draft1, "")
+		_, err := th.App.UpsertDraft(th.Context, draft, "")
 		assert.NotNil(t, err)
 	})
 }

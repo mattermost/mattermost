@@ -3703,11 +3703,11 @@ func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([
 
 }
 
-func (s *RetryLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.Save(d)
+		result, err := s.DraftStore.Upsert(d)
 		if err == nil {
 			return result, nil
 		}

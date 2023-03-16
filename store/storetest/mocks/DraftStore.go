@@ -74,8 +74,8 @@ func (_m *DraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.D
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: d
-func (_m *DraftStore) Save(d *model.Draft) (*model.Draft, error) {
+// Upsert provides a mock function with given fields: d
+func (_m *DraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	ret := _m.Called(d)
 
 	var r0 *model.Draft
