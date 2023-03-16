@@ -4977,7 +4977,6 @@
   "start_trial.modal_btn.nottnow": "Not now",
   "start_trial.modal_btn.start": "Start free 30-day trial",
   "start_trial.modal_btn.start_free_trial": "Start free 30-day trial",
-  "start_trial.modal_title": "Start your free Enterprise trial now",
   "start_trial.modal.disclaimer": "By clicking “Start free 30-day trial”, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails.",
   "start_trial.modal.failed": "Failed",
   "start_trial.modal.gettingTrial": "Getting Trial...",
@@ -4993,8 +4992,6 @@
   "start_trial_form.disclaimer": "By selecting Start trial, I agree to the <agreement>Mattermost Software Evaluation Agreement</agreement>, <privacypolicy>Privacy Policy</privacypolicy>, and receiving product emails.",
   "start_trial_form_modal.failureModal.title": "Please try again",
   "start_trial_form_modal.failureModal.subtitle": "There was in issue processing your trial request. Please try again or contact support.",
-
-
   "start_trial.tutorialTip.desc": "Explore our most requested premium features. Determine user access with Guest Accounts, automate compliance reports, and send secure ID-only mobile push notifications.",
   "start_trial.tutorialTip.title": "Try our premium features for free",
   "status_dropdown.dnd_sub_menu_header": "Disable notifications until:",
