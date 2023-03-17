@@ -20,7 +20,7 @@ import {
     enablePermission,
     goToSystemScheme,
     saveConfigForScheme,
-} from '../../../enterprise/system_console/channel_moderation/helpers';
+} from '../../enterprise/system_console/channel_moderation/helpers';
 
 import {addNewCommand, runSlashCommand} from './helpers';
 

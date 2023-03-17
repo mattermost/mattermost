@@ -11,8 +11,8 @@
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
 import {getRandomLetter} from '../../../../utils';
-import {doTestPostextbox} from '../../../autocomplete/common_test';
-import {createSearchData, enableElasticSearch} from '../../../autocomplete/helpers';
+import {doTestPostextbox} from '../../autocomplete/common_test';
+import {createSearchData, enableElasticSearch} from '../../autocomplete/helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {
     const prefix = getRandomLetter(3);

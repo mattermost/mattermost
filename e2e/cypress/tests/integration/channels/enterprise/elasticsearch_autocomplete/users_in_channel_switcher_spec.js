@@ -11,8 +11,8 @@
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
 import {getRandomLetter} from '../../../../utils';
-import {doTestQuickChannelSwitcher} from '../../../autocomplete/common_test';
-import {createSearchData, enableElasticSearch} from '../../../autocomplete/helpers';
+import {doTestQuickChannelSwitcher} from '../../autocomplete/common_test';
+import {createSearchData, enableElasticSearch} from '../../autocomplete/helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {
     const prefix = getRandomLetter(3);

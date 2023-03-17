@@ -232,8 +232,9 @@ function generateRandomUser(prefix = 'user') {
 Cypress.Commands.add('apiCreateUser', ({
     prefix = 'user',
     bypassTutorial = true,
-    showOnboarding = false,
     hideActionsMenu = true,
+    hideOnboarding = true,
+    bypassWhatsNewModal = true,
     user = null,
 } = {}) => {
     const newUser = user || generateRandomUser(prefix);
@@ -250,7 +251,7 @@ Cypress.Commands.add('apiCreateUser', ({
 
         const createdUser = userRes.body;
 
-        // // hide the onboarding task list by default so it doesn't block the execution of subsequent tests
+        // hide the onboarding task list by default so it doesn't block the execution of subsequent tests
         cy.apiSaveSkipStepsPreference(createdUser.id, 'true');
         cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_open', 'false');
         cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_show', 'false');
@@ -262,14 +263,17 @@ Cypress.Commands.add('apiCreateUser', ({
             cy.apiSaveTutorialStep(createdUser.id, '999');
         }
 
-        if (showOnboarding) {
-            cy.apiSaveSkipStepsPreference(createdUser.id, 'false');
-            cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_open', 'false');
-            cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_show', 'true');
-        }
-
         if (hideActionsMenu) {
             cy.apiSaveActionsMenuPreference(createdUser.id, true);
+        }
+
+        if (hideOnboarding) {
+            cy.apiSaveOnboardingPreference(createdUser.id, 'hide', 'true');
+            cy.apiSaveOnboardingPreference(createdUser.id, 'skip', 'true');
+        }
+
+        if (bypassWhatsNewModal) {
+            cy.apiHideSidebarWhatsNewModalPreference(createdUser.id, 'false');
         }
 
         return cy.wrap({user: {...createdUser, password: newUser.password}});
