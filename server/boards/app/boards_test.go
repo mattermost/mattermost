@@ -501,7 +501,7 @@ func TestPatchBoard2(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// We are returning the user as a direct Board Member, so BroadcastMemberDelete won't be called
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).AnyTimes()
+		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).Times(1)
 
 		_, err := th.App.PatchBoard(patch, boardID, userID)
 		require.Error(t, err)
