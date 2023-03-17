@@ -1335,7 +1335,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         if (Utils.isMobile()) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }
-        if (user.last_picture_update) {
+        if (user.last_picture_update > 0) {
             minMessage = (
                 <FormattedMessage
                     id='user.settings.general.imageUpdated'
