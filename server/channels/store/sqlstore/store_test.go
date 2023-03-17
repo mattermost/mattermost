@@ -170,7 +170,11 @@ func tearDownStores() {
 // before the fix in MM-28397.
 // Keeping it here to help avoiding future regressions.
 func TestStoreLicenseRace(t *testing.T) {
-	settings := makeSqlSettings(model.DatabaseDriverPostgres)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+
 	store := New(*settings, nil)
 	defer func() {
 		store.Close()
@@ -255,8 +259,11 @@ func TestGetReplica(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description+" with license", func(t *testing.T) {
+			settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+			if err != nil {
+				t.Skip(err)
+			}
 
-			settings := makeSqlSettings(model.DatabaseDriverPostgres)
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
 			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
@@ -325,8 +332,11 @@ func TestGetReplica(t *testing.T) {
 		})
 
 		t.Run(testCase.Description+" without license", func(t *testing.T) {
+			settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+			if err != nil {
+				t.Skip(err)
+			}
 
-			settings := makeSqlSettings(model.DatabaseDriverPostgres)
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
 			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
@@ -402,7 +412,11 @@ func TestGetDbVersion(t *testing.T) {
 		driver := d
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
-			settings := makeSqlSettings(driver)
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+
 			store := New(*settings, nil)
 
 			version, err := store.GetDbVersion(false)
@@ -546,11 +560,14 @@ func TestUpAndDownMigrations(t *testing.T) {
 
 	for _, driver := range testDrivers {
 		t.Run("Should be reversible for "+driver, func(t *testing.T) {
-			settings := makeSqlSettings(driver)
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
 			store := New(*settings, nil)
 			defer store.Close()
 
-			err := store.migrate(migrationsDirectionDown)
+			err = store.migrate(migrationsDirectionDown)
 			assert.NoError(t, err, "downing migrations should not error")
 		})
 	}
@@ -624,7 +641,10 @@ func TestGetAllConns(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
-			settings := makeSqlSettings(model.DatabaseDriverPostgres)
+			settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+			if err != nil {
+				t.Skip(err)
+			}
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
 			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
@@ -713,7 +733,10 @@ func TestReplicaLagQuery(t *testing.T) {
 
 	for _, driver := range testDrivers {
 		t.Run(driver, func(t *testing.T) {
-			settings := makeSqlSettings(driver)
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
 			var query string
 			var tableName string
 			// Just any random query which returns a row in (string, int) format.
@@ -746,7 +769,7 @@ func TestReplicaLagQuery(t *testing.T) {
 
 			store.initConnection()
 			store.stores.post = newSqlPostStore(store, mockMetrics)
-			err := store.migrate(migrationsDirectionUp)
+			err = store.migrate(migrationsDirectionUp)
 			require.NoError(t, err)
 
 			defer store.Close()
@@ -760,15 +783,27 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 }
 
-func makeSqlSettings(driver string) *model.SqlSettings {
-	switch driver {
-	case model.DatabaseDriverPostgres:
-		return storetest.MakeSqlSettings(driver, false)
-	case model.DatabaseDriverMysql:
-		return storetest.MakeSqlSettings(driver, false)
+var errDriverMismatch = errors.New("database drivers mismatch")
+var errDriverUnsupported = errors.New("database driver not supported")
+
+func makeSqlSettings(driver string) (*model.SqlSettings, error) {
+	// When running under CI, only one database engine container is launched
+	// so here we must error out if the requested driver doesn't match.
+	if os.Getenv("IS_CI") == "true" {
+		envDriver := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+		if envDriver != "" && envDriver != driver {
+			return nil, errDriverMismatch
+		}
 	}
 
-	return nil
+	switch driver {
+	case model.DatabaseDriverPostgres:
+		return storetest.MakeSqlSettings(driver, false), nil
+	case model.DatabaseDriverMysql:
+		return storetest.MakeSqlSettings(driver, false), nil
+	}
+
+	return nil, errDriverUnsupported
 }
 
 func TestExecNoTimeout(t *testing.T) {
@@ -791,7 +826,10 @@ func TestExecNoTimeout(t *testing.T) {
 }
 
 func TestMySQLReadTimeout(t *testing.T) {
-	settings := makeSqlSettings(model.DatabaseDriverMysql)
+	settings, err := makeSqlSettings(model.DatabaseDriverMysql)
+	if err != nil {
+		t.Skip(err)
+	}
 	dataSource := *settings.DataSource
 	config, err := mysql.ParseDSN(dataSource)
 	require.NoError(t, err)
@@ -822,7 +860,10 @@ func TestGetDBSchemaVersion(t *testing.T) {
 		driver := d
 		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
-			settings := makeSqlSettings(driver)
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
 			store := New(*settings, nil)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
@@ -857,7 +898,10 @@ func TestGetAppliedMigrations(t *testing.T) {
 		driver := d
 		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
-			settings := makeSqlSettings(driver)
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
 			store := New(*settings, nil)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
