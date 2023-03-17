@@ -18,7 +18,6 @@ describe('api > runs', () => {
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;
-            console.log('testUser', testUser);
 
             // # Login as testUser
             cy.apiLogin(testUser);
