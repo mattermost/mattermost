@@ -599,6 +599,8 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	last := userConnections[len(userConnections)-1]
 	// set the slot that we are trying to remove to be the last connection.
 	userConnections[userConnIndex] = last
+	// remove the last connection pointer from slice.
+	userConnections[len(userConnections)-1] = nil
 	// remove the last connection from the slice.
 	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
 	// set the index of the connection that was moved to the new index.
