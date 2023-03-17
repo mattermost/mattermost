@@ -799,7 +799,10 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
 		Where(sq.And{
 			sq.Eq{"ThreadMemberships.UserId": userId},
-			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Or{
+				sq.Eq{"ThreadMemberships.DeleteAt": 0},
+				sq.Eq{"ThreadMemberships.DeleteAt": nil},
+			},
 		})
 
 	err := s.GetReplicaX().SelectBuilder(&memberships, query)
