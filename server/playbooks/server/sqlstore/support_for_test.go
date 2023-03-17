@@ -5,25 +5,35 @@ package sqlstore
 
 import (
 	"database/sql"
+	"os"
 	"testing"
 
 	"github.com/blang/semver"
+
 	mock_app "github.com/mattermost/mattermost-server/v6/server/playbooks/server/app/mocks"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/stretchr/testify/require"
 )
 
-var driverNames = []string{model.DatabaseDriverPostgres, model.DatabaseDriverMysql}
+func getDriverName() string {
+	driver := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driver == "" {
+		driver = model.DatabaseDriverPostgres
+	}
+	return driver
+}
 
-func setupTestDB(t testing.TB, driverName string) *sqlx.DB {
+func setupTestDB(t testing.TB) *sqlx.DB {
 	t.Helper()
 
+	driverName := getDriverName()
 	sqlSettings := storetest.MakeSqlSettings(driverName, false)
 
 	origDB, err := sql.Open(*sqlSettings.DriverName, *sqlSettings.DataSource)
