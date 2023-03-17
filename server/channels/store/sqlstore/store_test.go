@@ -398,7 +398,8 @@ func TestGetDbVersion(t *testing.T) {
 		model.DatabaseDriverMysql,
 	}
 
-	for _, driver := range testDrivers {
+	for _, d := range testDrivers {
+		driver := d
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
@@ -655,7 +656,9 @@ func TestIsDuplicate(t *testing.T) {
 		errors.New("Random error"):                        false,
 	}
 
-	for err, expected := range testErrors {
+	for e, b := range testErrors {
+		err := e
+		expected := b
 		t.Run(fmt.Sprintf("Should return %t for %s", expected, err.Error()), func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, expected, IsDuplicate(err))
@@ -815,7 +818,8 @@ func TestGetDBSchemaVersion(t *testing.T) {
 
 	assets := db.Assets()
 
-	for _, driver := range testDrivers {
+	for _, d := range testDrivers {
+		driver := d
 		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
@@ -849,7 +853,8 @@ func TestGetAppliedMigrations(t *testing.T) {
 
 	assets := db.Assets()
 
-	for _, driver := range testDrivers {
+	for _, d := range testDrivers {
+		driver := d
 		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)

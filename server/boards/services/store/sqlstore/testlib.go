@@ -17,12 +17,13 @@ import (
 )
 
 type storeType struct {
-	Name   string
-	Store  store.Store
-	Logger *mlog.Logger
+	Name       string
+	ConnString string
+	Store      store.Store
+	Logger     *mlog.Logger
 }
 
-func newStoreType(t *testing.T, name string, driver string, skipMigrations bool) *storeType {
+func NewStoreType(t *testing.T, name string, driver string, skipMigrations bool) *storeType {
 	settings := storetest.MakeSqlSettings(driver, false)
 	require.NotNil(t, settings.DataSource)
 	connectionString := *settings.DataSource
@@ -46,7 +47,7 @@ func newStoreType(t *testing.T, name string, driver string, skipMigrations bool)
 	store, err := New(storeParams)
 	require.NoError(t, err)
 
-	return &storeType{name, store, logger}
+	return &storeType{name, connectionString, store, logger}
 }
 
 func initStores(t *testing.T, skipMigrations bool) []*storeType {
@@ -55,9 +56,9 @@ func initStores(t *testing.T, skipMigrations bool) []*storeType {
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, newStoreType(t, "MySQL", model.MysqlDBType, skipMigrations))
+			storeTypes = append(storeTypes, NewStoreType(t, "MySQL", model.MysqlDBType, skipMigrations))
 		case "postgres":
-			storeTypes = append(storeTypes, newStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations))
+			storeTypes = append(storeTypes, NewStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations))
 		default:
 			t.Errorf(
 				"Invalid value %q for MM_SQLSETTINGS_DRIVERNAME when IS_CI=true",
@@ -66,8 +67,8 @@ func initStores(t *testing.T, skipMigrations bool) []*storeType {
 		}
 	} else {
 		storeTypes = append(storeTypes,
-			newStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations),
-			newStoreType(t, "MySQL", model.MysqlDBType, skipMigrations),
+			NewStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations),
+			NewStoreType(t, "MySQL", model.MysqlDBType, skipMigrations),
 		)
 	}
 

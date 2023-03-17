@@ -195,11 +195,7 @@ jobs:
   upload-s3:
     name: Upload to S3 bucket
     runs-on: ubuntu-22.04
-    needs: 
-      - build-mattermost-server
-      - test-mysql
-      - test-postgres-binary
-      - test-postgres-normal 
+    needs: build-mattermost-server
     env:
       REPO_NAME: ${{ github.event.repository.name }}
     steps:

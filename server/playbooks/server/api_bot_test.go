@@ -13,7 +13,8 @@ import (
 )
 
 func TestTrialLicences(t *testing.T) {
-	e := Setup(t)
+	e, teardown := Setup(t)
+	defer teardown()
 	e.CreateBasic()
 
 	t.Run("request trial license without permissions", func(t *testing.T) {
