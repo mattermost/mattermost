@@ -761,6 +761,8 @@ func TestReplicaLagQuery(t *testing.T) {
 }
 
 func makeSqlSettings(driver string) *model.SqlSettings {
+	fmt.Printf("!!!!!! makeSqlSettings with driver=%s\n", driver)
+
 	switch driver {
 	case model.DatabaseDriverPostgres:
 		return storetest.MakeSqlSettings(driver, false)

@@ -52,6 +52,8 @@ func log(message string) {
 // The database name is generated randomly and must be created before use.
 func MySQLSettings(withReplica bool) *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_MYSQL_DSN")
+
+	fmt.Printf("!!!!!! MySQLSettings with TEST_DATABASE_MYSQL_DSN=%s\n", dsn)
 	if dsn == "" {
 		dsn = defaultMysqlDSN
 		mlog.Info("No TEST_DATABASE_MYSQL_DSN override, using default", mlog.String("default_dsn", dsn))
@@ -84,6 +86,9 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 // The database name is generated randomly and must be created before use.
 func PostgreSQLSettings() *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
+
+	fmt.Printf("!!!!!! PostgreSQLSettings with TEST_DATABASE_POSTGRESQL_DSN=%s\n", dsn)
+
 	if dsn == "" {
 		dsn = defaultPostgresqlDSN
 		mlog.Info("No TEST_DATABASE_POSTGRESQL_DSN override, using default", mlog.String("default_dsn", dsn))
@@ -224,6 +229,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 
 	switch driver {
 	case model.DatabaseDriverMysql:
+		fmt.Printf("!!!!!! About to MakeSqlSettings on MySQL with driver=%s\n", driver)
 		settings = MySQLSettings(withReplica)
 		dbName = mySQLDSNDatabase(*settings.DataSource)
 		newDSRs := []string{}
@@ -232,6 +238,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 		}
 		settings.DataSourceReplicas = newDSRs
 	case model.DatabaseDriverPostgres:
+		fmt.Printf("!!!!!! About to MakeSqlSettings on Postgres with driver=%s\n", driver)
 		settings = PostgreSQLSettings()
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
 	default:
