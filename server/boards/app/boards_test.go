@@ -17,10 +17,10 @@ import (
 )
 
 func TestAddMemberToBoard(t *testing.T) {
-	t.Run("base case", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
+	t.Run("base case", func(t *testing.T) {
 		const boardID = "board_id_1"
 		const userID = "user_id_1"
 
@@ -64,9 +64,6 @@ func TestAddMemberToBoard(t *testing.T) {
 	})
 
 	t.Run("return existing non-synthetic membership if any", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_1"
 
@@ -92,9 +89,6 @@ func TestAddMemberToBoard(t *testing.T) {
 	})
 
 	t.Run("should convert synthetic membership into natural membership", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_1"
 
@@ -146,10 +140,10 @@ func TestAddMemberToBoard(t *testing.T) {
 }
 
 func TestPatchBoard(t *testing.T) {
-	t.Run("base case, title patch", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
+	t.Run("base case, title patch", func(t *testing.T) {
 		const boardID = "board_id_1"
 		const userID = "user_id_1"
 		const teamID = "team_id_1"
@@ -176,9 +170,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type open, no users", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -218,9 +209,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type private, no users", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -259,9 +247,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type open, single user", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -300,9 +285,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type private, single user", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -341,9 +323,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type open, user with member", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -385,9 +364,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type private, user with member", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -429,9 +405,6 @@ func TestPatchBoard(t *testing.T) {
 		require.Equal(t, boardID, patchedBoard.ID)
 	})
 	t.Run("patch type channel, user without post permissions", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -457,9 +430,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type channel, user with post permissions", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -498,9 +468,6 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type remove channel, user without post permissions", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -537,10 +504,10 @@ func TestPatchBoard(t *testing.T) {
 }
 
 func TestGetBoardCount(t *testing.T) {
-	t.Run("base case", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
+	t.Run("base case", func(t *testing.T) {
 		boardCount := int64(100)
 		th.Store.EXPECT().GetBoardCount().Return(boardCount, nil)
 
@@ -551,10 +518,10 @@ func TestGetBoardCount(t *testing.T) {
 }
 
 func TestBoardCategory(t *testing.T) {
-	t.Run("no boards default category exists", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
+	t.Run("no boards default category exists", func(t *testing.T) {
 		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "category_id_1", Name: "Category 1"},
@@ -624,10 +591,10 @@ func TestBoardCategory(t *testing.T) {
 }
 
 func TestDuplicateBoard(t *testing.T) {
-	t.Run("base case", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
+	t.Run("base case", func(t *testing.T) {
 		board := &model.Board{
 			ID:    "board_id_2",
 			Title: "Duplicated Board",
@@ -675,9 +642,6 @@ func TestDuplicateBoard(t *testing.T) {
 	})
 
 	t.Run("duplicating board as template should not set it's category", func(t *testing.T) {
-		th, tearDown := SetupTestHelper(t)
-		defer tearDown()
-
 		board := &model.Board{
 			ID:    "board_id_2",
 			Title: "Duplicated Board",
