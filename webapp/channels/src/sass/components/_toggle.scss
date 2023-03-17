@@ -1,0 +1,147 @@
+// Based on https://codepen.io/aanjulena/pen/ZLZjzV
+// Colors
+$brand-primary: #2a9fd8;
+$gray: #6b7381;
+$gray-light: lighten($gray, 15%);
+$gray-lighter: lighten($gray, 30%);
+
+// Button Colors
+$btn-default-color: $gray;
+$btn-default-bg: $gray-lighter;
+
+// Toggle Sizes
+$toggle-default-size: 1.5rem;
+$toggle-default-margin: 4rem;
+$toggle-default-font-size: 0.75rem;
+
+// Mixin for Switch Colors
+// Variables: $color, $bg, $active-bg
+@mixin toggle-color($color: $btn-default-color, $bg: $btn-default-bg, $active-bg: $brand-primary) {
+    background: $bg;
+    color: $color;
+
+    &.active {
+        background-color: $active-bg;
+    }
+}
+
+// Mixin for Default Switch Styles
+// Variables: $size, $margin, $color, $bg, $active-bg, $font-size
+@mixin toggle-mixin($size: $toggle-default-size, $margin: $toggle-default-margin, $font-size: $toggle-default-font-size) {
+    $handlePosition: calc($size/7);
+    $handleSize: calc($size - (2 * $handlePosition));
+
+    position: relative;
+    min-width: calc($size * 2);
+    height: $size;
+    // color: $color;
+    // background: $bg;
+    padding: 0;
+    border: none;
+    border-radius: $size;
+    float: right;
+
+    &:focus,
+    &.focus {
+        &,
+        &.active {
+            outline: none;
+        }
+    }
+
+    > .handle {
+        position: absolute;
+        top: $handlePosition;
+        left: $handlePosition;
+        width: $handleSize;
+        height: $handleSize;
+        background: #fff;
+        border-radius: 1rem;
+        transition: left 0.25s;
+    }
+
+    &.active {
+        transition: background-color 0.25s;
+
+        > .handle {
+            right: $handlePosition;
+            left: inherit;
+            transition: left 0.25s;
+        }
+    }
+}
+
+// Apply Mixin to different sizes & colors
+.btn-toggle {
+    @include toggle-color;
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &.btn-lg {
+        @include toggle-mixin($size: 2.8rem, $font-size: 1rem, $margin: 5rem);
+    }
+
+    &.btn-sm {
+        @include toggle-mixin($font-size: 0.55rem, $margin: 0.5rem);
+    }
+
+    &.btn-xs {
+        @include toggle-mixin($size:1rem,$margin:0);
+    }
+
+    .bg-text {
+        color: #fff;
+        font-size: 1.4rem;
+        font-weight: 600;
+
+        &.off {
+            padding: 0 1.6rem 0 3.4rem;
+        }
+
+        &.on {
+            padding: 0 3.4rem 0 1.6rem;
+        }
+    }
+}
+
+.btn-toggle-primary {
+    @include toggle-color(
+        $color: rgb(var(--button-color-rgb)),
+        $bg: rgba(var(--center-channel-color-rgb), 0.32),
+        $active-bg: rgb(var(--button-bg-rgb)),
+    );
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &.btn-lg {
+        @include toggle-mixin($size: 2.8rem, $font-size: 1rem, $margin: 5rem);
+    }
+
+    &.btn-sm {
+        @include toggle-mixin($font-size: 0.55rem, $margin: 0.5rem);
+    }
+
+    &.btn-xs {
+        @include toggle-mixin($size:1rem,$margin:0);
+    }
+
+    .bg-text {
+        color: #fff;
+        font-size: 1.4rem;
+        font-weight: 600;
+
+        &.off {
+            padding: 0 1.6rem 0 3.4rem;
+        }
+
+        &.on {
+            padding: 0 3.4rem 0 1.6rem;
+        }
+    }
+}

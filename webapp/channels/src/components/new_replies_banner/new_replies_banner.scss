@@ -1,0 +1,14 @@
+.new-replies-banner {
+    position: absolute;
+    bottom: 56px;
+    display: flex;
+    justify-content: center;
+
+    .toast {
+        width: 156px;
+
+        .toast__jump ~ span {
+            margin-left: 24px;
+        }
+    }
+}

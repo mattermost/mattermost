@@ -1,0 +1,245 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addGroupsToChannelModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add New Groups to {channelName} Channel"
+        id="add_groups_to_channel.title"
+        values={
+          Object {
+            "channelName": <strong>
+              foo
+            </strong>,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitLoadingText="Adding..."
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addGroupsToChannelKey"
+      loading={true}
+      maxValues={10}
+      numRemainingText={
+        <div
+          id="numGroupsRemaining"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. "
+            id="multiselect.numGroupsRemaining"
+            values={
+              Object {
+                "num": 10,
+              }
+            }
+          />
+        </div>
+      }
+      optionRenderer={[Function]}
+      options={Array []}
+      perPage={50}
+      placeholderText="Search and add groups"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/AddGroupsToChannelModal should match when renderOption is called 1`] = `
+<div
+  className="more-modal__row clickable "
+  onClick={[Function]}
+  onMouseMove={[Function]}
+>
+  <img
+    alt="group picture"
+    className="more-modal__image"
+    height="32"
+    src={null}
+    width="32"
+  />
+  <div
+    className="more-modal__details"
+  >
+    <div
+      className="more-modal__name"
+    >
+       - 
+      <span
+        className="more-modal__name_sub"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{num, number} {num, plural, one {member} other {members}}"
+          id="numMembers"
+          values={
+            Object {
+              "num": undefined,
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+  <div
+    className="more-modal__actions"
+  >
+    <div
+      className="more-modal__actions--round"
+    >
+      <AddIcon />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AddGroupsToChannelModal should match when renderOption is called 2`] = `
+<div
+  className="more-modal__row clickable more-modal__row--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+>
+  <img
+    alt="group picture"
+    className="more-modal__image"
+    height="32"
+    src={null}
+    width="32"
+  />
+  <div
+    className="more-modal__details"
+  >
+    <div
+      className="more-modal__name"
+    >
+       - 
+      <span
+        className="more-modal__name_sub"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{num, number} {num, plural, one {member} other {members}}"
+          id="numMembers"
+          values={
+            Object {
+              "num": undefined,
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+  <div
+    className="more-modal__actions"
+  >
+    <div
+      className="more-modal__actions--round"
+    >
+      <AddIcon />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AddGroupsToChannelModal should match when renderOption is called 3`] = `
+<div
+  className="more-modal__row clickable more-modal__row--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+>
+  <img
+    alt="group picture"
+    className="more-modal__image"
+    height="32"
+    src={null}
+    width="32"
+  />
+  <div
+    className="more-modal__details"
+  >
+    <div
+      className="more-modal__name"
+    >
+       - 
+      <span
+        className="more-modal__name_sub"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="{num, number} {num, plural, one {member} other {members}}"
+          id="numMembers"
+          values={
+            Object {
+              "num": undefined,
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+  <div
+    className="more-modal__actions"
+  >
+    <div
+      className="more-modal__actions--round"
+    >
+      <AddIcon />
+    </div>
+  </div>
+</div>
+`;

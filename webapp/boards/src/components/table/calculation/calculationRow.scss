@@ -1,0 +1,36 @@
+.CalculationRow {
+    padding-left: 32px;
+    position: sticky;
+    bottom: 0;
+    height: 44px;
+    border-top: solid 1px rgba(var(--body-color), 0.09);
+    // To override table's specific border
+    border-bottom: 0 !important;
+    background-color: rgb(var(--center-channel-bg-rgb));
+
+    .octo-table-cell {
+        background-color: rgb(var(--center-channel-bg-rgb));
+        align-items: center;
+        justify-content: flex-end;
+        border: 0;
+    }
+
+    .title {
+        padding-left: 40px;
+    }
+
+    .CalculationOptions {
+        width: 100%;
+    }
+}
+
+.Table {
+    .octo-table-cell.Calculation:focus-within {
+        border: unset;
+        background-color: rgb(var(--center-channel-bg-rgb));
+    }
+
+    .octo-table-cell.Calculation:hover {
+        background-color: rgb(var(--center-channel-bg-rgb));
+    }
+}

@@ -1,0 +1,141 @@
+.LearnMoreTrialModal {
+    height: 560px;
+
+    &.modal-dialog {
+        margin-top: calc(50vh - 350px) !important;
+    }
+
+    .modal-content {
+        height: 560px;
+        padding: 0 !important;
+        border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        background: var(--center-channel-bg);
+        border-radius: 8px;
+        color: var(--center-channel-color);
+    }
+
+    .modal-header {
+        .close {
+            &:hover,
+            &:active,
+            &:focus,
+            &:active:focus {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                opacity: 1;
+            }
+
+            top: 6px;
+            right: 4px;
+            width: 4rem;
+            height: 4rem;
+            margin-top: 20px;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            font-family:
+                'Open Sans',
+                sans-serif;
+            font-size: 32px;
+            font-weight: 400;
+        }
+
+        height: 38px;
+        padding: 0;
+        border: 0;
+        background: var(--center-channel-bg) !important;
+        border-radius: 8px;
+        color: var(--center-channel-color);
+    }
+
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        height: calc(100% - 38px);
+        flex-direction: column;
+        padding: 0;
+
+        .GenericModal__header {
+            padding-top: 0;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.1) !important;
+            margin-bottom: 20px;
+        }
+
+        .GenericModal__body {
+            height: 100%;
+            padding: 0 24px 24px 24px;
+
+            .container-footer {
+                bottom: 0;
+                height: 36px;
+            }
+        }
+
+        .buttons {
+            text-align: center;
+
+            .previous-btn {
+                &:hover,
+                &:active,
+                &:focus,
+                &:active:focus {
+                    border: none;
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    border-radius: 4px;
+                }
+
+                height: 30px;
+                align-items: center;
+                align-self: center;
+                padding: 8px 16px;
+                border: none;
+                background: rgba(var(--button-bg-rgb), 0.08);
+                border-radius: 4px;
+                color: var(--button-bg);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 14px;
+            }
+
+            .next-btn {
+                &:hover,
+                &:active,
+                &:focus,
+                &:active:focus {
+                    background:
+                        linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)),
+                        var(--button-bg);
+                }
+
+                height: 30px;
+                flex: none;
+                padding: 8px 16px;
+                border: none;
+                margin-left: 8px;
+                background: var(--button-bg);
+                border-radius: 4px;
+                color: var(--sys-button-color);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 14px;
+            }
+        }
+
+        .start-cloud-trial-btn,
+        .start-trial-btn {
+            margin-top: -16px;
+            border-radius: 4px;
+        }
+    }
+
+    .modal-centered {
+        text-align: center;
+    }
+
+    .modal-footer {
+        padding: 12px 24px 24px;
+        border: none;
+        border-radius: 4px;
+    }
+}

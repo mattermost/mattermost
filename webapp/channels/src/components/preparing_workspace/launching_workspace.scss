@@ -1,0 +1,90 @@
+.LaunchingWorkspaceFullscreenWrapper-body {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url('images/admin-onboarding-background.jpg');
+    background-position: 50%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    text-align: center;
+}
+
+.LaunchingWorkspaceFullscreenWrapper {
+    &-exit {
+        opacity: 1;
+    }
+
+    &-exit-active {
+        opacity: 0;
+        transition: opacity 500ms ease-in-out;
+    }
+
+    &-edit-done {
+        opacity: 0;
+    }
+
+    &__logo {
+        position: absolute;
+        z-index: 1;
+        top: 32px;
+        right: 32px;
+    }
+}
+
+.LaunchingWorkspace-body {
+    display: flex;
+    width: 420px;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    text-align: center;
+
+    &--non-fullscreen {
+        position: fixed;
+        left: calc(50vw - 210px);
+    }
+}
+
+.LaunchingWorkspace {
+    &__spinner {
+        width: 32px;
+        margin-bottom: 16px;
+    }
+}
+
+.LaunchingWorkspace--enter-from-before {
+    &-enter {
+        opacity: 0;
+    }
+
+    &-enter-active {
+        opacity: 1;
+        transition: opacity 300ms ease-in-out;
+    }
+
+    &-enter-done {
+        opacity: 1;
+    }
+}
+
+.LaunchingWorkspace--exit-to-before {
+    &-exit {
+        opacity: 1;
+    }
+
+    &-exit-active {
+        opacity: 0;
+        transition: opacity 300ms ease-in-out;
+    }
+
+    &-exit-done {
+        opacity: 0;
+    }
+}

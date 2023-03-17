@@ -1,0 +1,117 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SidebarList should match snapshot 1`] = `
+<Fragment>
+  <ActivityAndInsightsLink />
+  <GlobalThreadsLink />
+  <Memo(DraftsLink) />
+  <div
+    aria-label="channel sidebar region"
+    className="SidebarNavContainer a11y__region"
+    data-a11y-disable-nav={false}
+    data-a11y-sort-order="7"
+    id="sidebar-left"
+    onTransitionEnd={[Function]}
+    role="application"
+  >
+    <UnreadChannelIndicator
+      content={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="More unreads"
+          id="sidebar.unreads"
+        />
+      }
+      extraClass="nav-pills__unread-indicator-top"
+      name="Top"
+      onClick={[Function]}
+      show={false}
+    />
+    <UnreadChannelIndicator
+      content={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="More unreads"
+          id="sidebar.unreads"
+        />
+      }
+      extraClass="nav-pills__unread-indicator-bottom"
+      name="Bottom"
+      onClick={[Function]}
+      show={false}
+    />
+    <Scrollbars
+      autoHeight={false}
+      autoHeightMax={200}
+      autoHeightMin={0}
+      autoHide={true}
+      autoHideDuration={500}
+      autoHideTimeout={500}
+      hideTracksWhenNotNeeded={false}
+      onScroll={[Function]}
+      renderThumbHorizontal={[Function]}
+      renderThumbVertical={[Function]}
+      renderTrackHorizontal={[Function]}
+      renderTrackVertical={[Function]}
+      renderView={[Function]}
+      style={
+        Object {
+          "position": "absolute",
+        }
+      }
+      tagName="div"
+      thumbMinSize={30}
+      universal={false}
+    >
+      <DragDropContext
+        onBeforeCapture={[Function]}
+        onBeforeDragStart={[Function]}
+        onDragEnd={[Function]}
+        onDragStart={[Function]}
+      >
+        <Connect(Droppable)
+          direction="vertical"
+          droppableId="droppable-categories"
+          getContainerForClone={[Function]}
+          ignoreContainerClipping={false}
+          isCombineEnabled={false}
+          isDropDisabled={false}
+          mode="standard"
+          renderClone={null}
+          type="SIDEBAR_CATEGORY"
+        >
+          <Component />
+        </Connect(Droppable)>
+      </DragDropContext>
+    </Scrollbars>
+  </div>
+</Fragment>
+`;
+
+exports[`SidebarList should match snapshot 2`] = `
+<div
+  id="sidebar-droppable-categories"
+>
+  <Connect(SidebarCategory)
+    category={
+      Object {
+        "channel_ids": Array [
+          "channel_id",
+          "channel_id_2",
+        ],
+        "collapsed": false,
+        "display_name": "custom_category_1",
+        "id": "category1",
+        "muted": false,
+        "sorting": "alpha",
+        "team_id": "team1",
+        "type": "custom",
+        "user_id": "",
+      }
+    }
+    categoryIndex={0}
+    handleOpenMoreDirectChannelsModal={[MockFunction]}
+    isNewCategory={false}
+    key="category1"
+    setChannelRef={[Function]}
+  />
+</div>
+`;

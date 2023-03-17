@@ -1,0 +1,194 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot 1`] = `
+<div
+  className="suggestion-list__item"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <span
+    className="suggestion-list__icon suggestion-list__icon--large"
+  >
+    <i
+      className="icon icon--standard icon--no-spacing icon-globe"
+    />
+  </span>
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      name
+    </span>
+    ~DN
+  </div>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type DM_CHANNEL 1`] = `
+<div
+  className="suggestion-list__item suggestion--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <Memo(Avatar)
+    size="sm"
+    url="/api/v4/users/DN/image?_=0"
+  />
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      @name
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type GM_CHANNEL 1`] = `
+<div
+  className="suggestion-list__item suggestion--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <span
+    className="suggestion-list__icon suggestion-list__icon--large"
+  >
+    <div
+      className="status status--group"
+    >
+      G
+    </div>
+  </span>
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      @name
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type OPEN_CHANNEL 1`] = `
+<div
+  className="suggestion-list__item suggestion--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <span
+    className="suggestion-list__icon suggestion-list__icon--large"
+  >
+    <i
+      className="icon icon--standard icon--no-spacing icon-globe"
+    />
+  </span>
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      name
+    </span>
+    ~DN
+  </div>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type PRIVATE_CHANNEL 1`] = `
+<div
+  className="suggestion-list__item suggestion--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <span
+    className="suggestion-list__icon suggestion-list__icon--large"
+  >
+    <i
+      className="icon icon--standard icon--no-spacing icon-lock-outline"
+    />
+  </span>
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      name
+    </span>
+    ~DN
+  </div>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is false 1`] = `
+<div
+  className="suggestion-list__item"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <span
+    className="suggestion-list__icon suggestion-list__icon--large"
+  >
+    <i
+      className="icon icon--standard icon--no-spacing icon-globe"
+    />
+  </span>
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      name
+    </span>
+    ~DN
+  </div>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is true 1`] = `
+<div
+  className="suggestion-list__item suggestion--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <span
+    className="suggestion-list__icon suggestion-list__icon--large"
+  >
+    <i
+      className="icon icon--standard icon--no-spacing icon-globe"
+    />
+  </span>
+  <div
+    className="suggestion-list__ellipsis"
+  >
+    <span
+      className="suggestion-list__main"
+    >
+      name
+    </span>
+    ~DN
+  </div>
+</div>
+`;

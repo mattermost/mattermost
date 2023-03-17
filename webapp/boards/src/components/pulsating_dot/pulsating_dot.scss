@@ -1,0 +1,68 @@
+.pulsating_dot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    cursor: pointer;
+
+    &,
+    &::before,
+    &::after {
+        width: 12px;
+        height: 12px;
+        background-color: #3db887;
+        border-radius: 50%;
+    }
+
+    &::before,
+    &::after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        content: '';
+    }
+
+    &::after {
+        animation: pulse1 2s ease 0s infinite;
+    }
+
+    &::before {
+        animation: pulse2 2s ease 0s infinite;
+    }
+}
+
+@keyframes pulse1 {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    80% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+@keyframes pulse2 {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    30% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}

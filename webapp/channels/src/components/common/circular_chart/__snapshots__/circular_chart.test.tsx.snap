@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/components/common/CircularChart should match snapshot 1`] = `
+<div
+  className="CircularChart"
+>
+  <svg
+    className="circular-chart success"
+    height="100"
+    viewBox="0 0 36 36"
+    width="100"
+  >
+    <path
+      className="circle-bg"
+      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+    />
+    <path
+      className="circle"
+      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+      strokeDasharray="75, 100"
+    />
+    <text
+      className="percentageOrNumber"
+      x="18"
+      y="20.70"
+    >
+      75
+    </text>
+  </svg>
+</div>
+`;
