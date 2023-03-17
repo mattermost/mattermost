@@ -128,5 +128,5 @@ type ThreadMembership struct {
 
 	// DeleteAt is used to mark thread memberships we don't want to permanently delete, but we
 	// do want to exclude from returning to the user. It is used when a user leaves a channel.
-	DeleteAt int64 `json:"delete_at"`
+	DeleteAt int64 `json:"-"`
 }

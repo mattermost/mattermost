@@ -786,7 +786,14 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 	memberships := []*model.ThreadMembership{}
 
 	query := s.getQueryBuilder().
-		Select("ThreadMemberships.*").
+		Select(
+			"ThreadMemberships.PostId",
+			"ThreadMemberships.UserId",
+			"ThreadMemberships.Following",
+			"ThreadMemberships.LastUpdated",
+			"ThreadMemberships.LastViewed",
+			"ThreadMemberships.UnreadMentions",
+		).
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		From("ThreadMemberships").
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
@@ -809,7 +816,15 @@ func (s *SqlThreadStore) GetMembershipForUser(userId, postId string) (*model.Thr
 func (s *SqlThreadStore) getMembershipForUser(ex sqlxExecutor, userId, postId string) (*model.ThreadMembership, error) {
 	var membership model.ThreadMembership
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"PostId",
+			"UserId",
+			"Following",
+			"LastUpdated",
+			"LastViewed",
+			"UnreadMentions",
+			"COALESCE(DeleteAt, 0) AS DeleteAt",
+		).
 		From("ThreadMemberships").
 		Where(sq.And{
 			sq.Eq{"PostId": postId},
