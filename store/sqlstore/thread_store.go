@@ -131,6 +131,10 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
+		}).
+		Where(sq.Or{
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Eq{"ThreadMemberships.DeleteAt": nil},
 		})
 
 	if teamId != "" {
@@ -193,6 +197,10 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
+		}).
+		Where(sq.Or{
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Eq{"ThreadMemberships.DeleteAt": nil},
 		})
 
 	if teamId != "" {
@@ -228,6 +236,10 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 			"PostsPriority.Priority":      model.PostPriorityUrgent,
+		}).
+		Where(sq.Or{
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Eq{"ThreadMemberships.DeleteAt": nil},
 		})
 
 	if teamId != "" || !opts.Deleted {
@@ -283,7 +295,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Eq{"ThreadMemberships.Following": true})
+		Where(sq.Eq{"ThreadMemberships.Following": true}).
+		Where(sq.Or{
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Eq{"ThreadMemberships.DeleteAt": nil},
+		})
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -383,6 +399,10 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
+		sq.Or{
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Eq{"ThreadMemberships.DeleteAt": nil},
+		},
 		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
 	}
@@ -483,6 +503,10 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 
 	fetchConditions := sq.And{
 		sq.Eq{"PostId": threadID},
+		sq.Or{
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+			sq.Eq{"ThreadMemberships.DeleteAt": nil},
+		},
 	}
 
 	if fetchOnlyActive {
@@ -508,6 +532,9 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
 		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
+	}
+	if threadMembership.DeleteAt != 0 {
+		return nil, store.NewErrNotFound("ThreadMembership", "<deleted>")
 	}
 
 	unreadRepliesQuery := sq.
@@ -688,6 +715,53 @@ func (s *SqlThreadStore) UpdateMembership(membership *model.ThreadMembership) (*
 	return s.updateMembership(s.GetMasterX(), membership)
 }
 
+func (s *SqlThreadStore) RemoveMembershipsForChannel(userID, channelID string) error {
+	var query sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+
+	} else {
+		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
+	}
+
+	query = query.Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
+		Where(sq.Expr("Threads.PostId = ThreadMemberships.PostId")).
+		Where(sq.Eq{"Threads.ChannelId": channelID})
+
+	_, err := s.GetMasterX().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to remove thread memberships with userid=%s channelid=%s", userID, channelID)
+	}
+
+	return nil
+}
+
+func (s *SqlThreadStore) ReinstateMembershipsForChannel(userID, channelID string) error {
+	var query sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+
+	} else {
+		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
+	}
+
+	query = query.Set("DeleteAt", 0).
+		Where(sq.And{
+			sq.Eq{"ThreadMemberships.UserId": userID},
+			sq.Gt{"ThreadMemberships.DeleteAt": 0},
+		}).
+		Where(sq.Expr("Threads.PostId = ThreadMemberships.PostId")).
+		Where(sq.Eq{"Threads.ChannelId": channelID})
+
+	_, err := s.GetMasterX().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to reinstate thread memberships with userid=%s channelid=%s", userID, channelID)
+	}
+
+	return nil
+}
+
 func (s *SqlThreadStore) updateMembership(ex sqlxExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	query := s.getQueryBuilder().
 		Update("ThreadMemberships").
@@ -716,7 +790,10 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		From("ThreadMemberships").
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
-		Where(sq.Eq{"ThreadMemberships.UserId": userId})
+		Where(sq.And{
+			sq.Eq{"ThreadMemberships.UserId": userId},
+			sq.Eq{"ThreadMemberships.DeleteAt": 0},
+		})
 
 	err := s.GetReplicaX().SelectBuilder(&memberships, query)
 	if err != nil {

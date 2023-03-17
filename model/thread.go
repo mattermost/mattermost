@@ -125,4 +125,8 @@ type ThreadMembership struct {
 	// is the thread analogue to the ChannelMembership's MentionCount, and is used to highlight
 	// threads with the mention count.
 	UnreadMentions int64 `json:"unread_mentions"`
+
+	// DeleteAt is used to mark thread memberships we don't want to permanently delete, but we
+	// do want to exclude from returning to the user. It is used when a user leaves a channel.
+	DeleteAt int64 `json:"delete_at"`
 }

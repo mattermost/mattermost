@@ -497,6 +497,34 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	return r0, r1, r2
 }
 
+// ReinstateMembershipsForChannel provides a mock function with given fields: userID, channelID
+func (_m *ThreadStore) ReinstateMembershipsForChannel(userID string, channelID string) error {
+	ret := _m.Called(userID, channelID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, channelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemoveMembershipsForChannel provides a mock function with given fields: userID, channelID
+func (_m *ThreadStore) RemoveMembershipsForChannel(userID string, channelID string) error {
+	ret := _m.Called(userID, channelID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, channelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateMembership provides a mock function with given fields: membership
 func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	ret := _m.Called(membership)

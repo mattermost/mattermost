@@ -9496,6 +9496,38 @@ func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerThreadStore) ReinstateMembershipsForChannel(userID string, channelID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.ReinstateMembershipsForChannel(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.ReinstateMembershipsForChannel", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) RemoveMembershipsForChannel(userID string, channelID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.RemoveMembershipsForChannel(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.RemoveMembershipsForChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	start := time.Now()
 

@@ -1583,6 +1583,10 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	if nErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+	if nErr := a.Srv().Store().Thread().ReinstateMembershipsForChannel(user.Id, channel.Id); nErr != nil {
+		return nil, model.NewAppError("AddUserToChannel", "api.threads.add_user.to.reinstate_thread_memberships.failed.app_error", nil,
+			fmt.Sprintf("failed to add member: %v, user_id: %s, channel_id: %s", nErr, user.Id, channel.Id), http.StatusInternalServerError)
+	}
 
 	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
@@ -2517,6 +2521,9 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if err := a.Srv().Store().Thread().RemoveMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
+		return model.NewAppError("removeUserFromChannel", "app.thread.remove_membership.app_error.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if isGuest {
