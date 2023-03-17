@@ -1,5 +1,77 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/post_edit_history should display error screen if errors are present 1`] = `
+<div
+  className="sidebar-right__body"
+  id="rhsContainer"
+>
+  <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
+  >
+    <Connect(SearchResultsHeader)>
+      Edit History
+      <div
+        className="sidebar--right__title__channel"
+      >
+        channel_display_name
+      </div>
+    </Connect(SearchResultsHeader)>
+    <div
+      className="edit-post-history__error_container"
+    >
+      <div
+        className="edit-post-history__error_item"
+      >
+        <AlertOutlineIcon
+          size={67}
+        />
+        <p
+          className="edit-post-history__error_heading"
+        >
+          Unable to load edit history
+        </p>
+        <p
+          className="edit-post-history__error_subheading"
+        >
+          There was an error loading the history for this message. Check your network connection or try again later.
+        </p>
+      </div>
+    </div>
+  </Scrollbars>
+</div>
+`;
+
+exports[`components/post_edit_history should display loading screen while postEditHistory is empty and no errors are present 1`] = `
+<div
+  className="sidebar-right__body"
+  id="rhsContainer"
+>
+  <LoadingScreen
+    style={
+      Object {
+        "display": "grid",
+        "flex": "1",
+        "placeContent": "center",
+      }
+    }
+  />
+</div>
+`;
+
 exports[`components/post_edit_history should match snapshot 1`] = `
 <div
   className="sidebar-right__body"
@@ -32,6 +104,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
     </Connect(SearchResultsHeader)>
     <Connect(Component)
       isCurrent={true}
+      key="post_id"
       post={
         Object {
           "channel_id": "",

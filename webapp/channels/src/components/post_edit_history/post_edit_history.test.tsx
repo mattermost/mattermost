@@ -25,12 +25,25 @@ describe('components/post_edit_history', () => {
                 message: 'post message version 2',
             }),
         ],
+        errors: false,
         dispatch: jest.fn(),
     };
 
     test('should match snapshot', () => {
         const wrapper = shallow(<PostEditHistory {...baseProps}/>);
 
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should display error screen if errors are present', () => {
+        const propsWithError = {...baseProps, errors: true};
+        const wrapper = shallow(<PostEditHistory {...propsWithError}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should display loading screen while postEditHistory is empty and no errors are present', () => {
+        const propsWhileLoading = {...baseProps, postEditHistory: []};
+        const wrapper = shallow(<PostEditHistory {...propsWhileLoading}/>);
         expect(wrapper).toMatchSnapshot();
     });
 });

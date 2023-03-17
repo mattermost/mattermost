@@ -1575,6 +1575,20 @@ export function limitedViews(
     }
 }
 
+export interface ErrorsReducer {
+    postEditHistory?: true;
+}
+const emptyErrors = {};
+export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction) {
+    switch (action.type) {
+    case PostTypes.RECEIVE_POST_HISTORY_FAILURE: {
+        return {...state, postEditHistory: true};
+    }
+    default:
+        return state;
+    }
+}
+
 export default function reducer(state: Partial<PostsState> = {}, action: GenericAction) {
     const nextPosts = handlePosts(state.posts, action);
     const nextPostsInChannel = postsInChannel(state.postsInChannel, action, state.posts!, nextPosts);
@@ -1623,6 +1637,9 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
         // whether this particular view has messages that are hidden
         // because of the cloud workspace limit.
         limitedViews: limitedViews(state.limitedViews, action),
+
+        // Object mapping state keys to booleans indicating errors are present
+        errors: errors(state.errors, action),
     };
 
     if (state.posts === nextState.posts && state.postsInChannel === nextState.postsInChannel &&
@@ -1636,7 +1653,8 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
         state.openGraph === nextState.openGraph &&
         state.messagesHistory === nextState.messagesHistory &&
         state.expandedURLs === nextState.expandedURLs &&
-        state.limitedViews === nextState.limitedViews) {
+        state.limitedViews === nextState.limitedViews &&
+        state.errors === nextState.errors) {
         // None of the children have changed so don't even let the parent object change
         return state;
     }
