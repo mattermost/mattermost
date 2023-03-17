@@ -12,6 +12,7 @@ import LoadingScreen from 'components/loading_screen';
 import EditedPostItem from './edited_post_item';
 
 import {PropsFromRedux} from '.';
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div
@@ -38,6 +39,7 @@ const PostEditHistory = ({
     channelDisplayName,
     originalPost,
     postEditHistory,
+    errors,
 }: PropsFromRedux) => {
     const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
@@ -51,11 +53,21 @@ const PostEditHistory = ({
         defaultMessage: 'Edit History',
     });
 
-    if (!postEditHistory) {
-        return null;
-    }
+    const errorContainer: JSX.Element = (
+        <div className='edit-post-history__error_container'>
+            <div className='edit-post-history__error_item'>
+                <AlertOutlineIcon size={67}/>
+                <p className='edit-post-history__error_heading'>
+                    {formatMessage({id: 'post_info.edit.history.retrieveError', defaultMessage: 'Unable to load edit history'})}
+                </p>
+                <p className='edit-post-history__error_subheading'>
+                    {formatMessage({id: 'post_info.edit.history.retrieveErrorVerbose', defaultMessage: 'There was an error loading the history for this message. Check your network connection or try again later.'})}
+                </p>
+            </div>
+        </div>
+    );
 
-    if (postEditHistory.length === 0) {
+    if (postEditHistory.length === 0 && !errors) {
         return (
             <div
                 id='rhsContainer'
@@ -72,12 +84,20 @@ const PostEditHistory = ({
         );
     }
 
-    const postEditItems = postEditHistory.map((postEdited) => (
+    const currentItem = (
+        <EditedPostItem
+            post={originalPost}
+            key={originalPost.id}
+            isCurrent={true}
+        />
+    );
+
+    const postEditItems = [currentItem, ...postEditHistory.map((postEdited) => (
         <EditedPostItem
             key={postEdited.id}
             post={postEdited}
         />
-    ));
+    ))];
 
     return (
         <div
@@ -97,11 +117,7 @@ const PostEditHistory = ({
                     {title}
                     <div className='sidebar--right__title__channel'>{channelDisplayName}</div>
                 </SearchResultsHeader>
-                <EditedPostItem
-                    post={originalPost}
-                    isCurrent={true}
-                />
-                {postEditItems}
+                {errors ? errorContainer : postEditItems}
             </Scrollbars>
         </div>
     );

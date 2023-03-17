@@ -154,6 +154,7 @@ export type PostsState = {
         threads: Record<Post['root_id'], number>;
     };
     acknowledgements: RelationOneToOne<Post, Record<UserProfile['id'], number>>;
+    errors: Record<string, boolean>;
 };
 
 export declare type OpenGraphMetadataImage = {
