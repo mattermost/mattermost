@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 
@@ -23,17 +24,22 @@ type storeType struct {
 	Logger     *mlog.Logger
 }
 
-func NewStoreType(t *testing.T, name string, driver string, skipMigrations bool) *storeType {
+var mainStoreTypes []*storeType
+
+func NewStoreType(name string, driver string, skipMigrations bool) *storeType {
 	settings := storetest.MakeSqlSettings(driver, false)
-	require.NotNil(t, settings.DataSource)
 	connectionString := *settings.DataSource
 
 	logger := mlog.CreateConsoleTestLogger(false, mlog.LvlDebug)
 
 	sqlDB, err := sql.Open(driver, connectionString)
-	require.NoError(t, err)
+	if err != nil {
+		panic(fmt.Sprintf("cannot open database: %s", err))
+	}
 	err = sqlDB.Ping()
-	require.NoError(t, err)
+	if err != nil {
+		panic(fmt.Sprintf("cannot ping database: %s", err))
+	}
 
 	storeParams := Params{
 		DBType:           driver,
@@ -45,30 +51,27 @@ func NewStoreType(t *testing.T, name string, driver string, skipMigrations bool)
 		IsPlugin:         false, // ToDo: to be removed
 	}
 	store, err := New(storeParams)
-	require.NoError(t, err)
+	if err != nil {
+		panic(fmt.Sprintf("cannot create store: %s", err))
+	}
 
 	return &storeType{name, connectionString, store, logger}
 }
 
-func initStores(t *testing.T, skipMigrations bool) []*storeType {
+func initStores(skipMigrations bool) []*storeType {
 	var storeTypes []*storeType
 
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, NewStoreType(t, "MySQL", model.MysqlDBType, skipMigrations))
+			storeTypes = append(storeTypes, NewStoreType("MySQL", model.MysqlDBType, skipMigrations))
 		case "postgres":
-			storeTypes = append(storeTypes, NewStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations))
-		default:
-			t.Errorf(
-				"Invalid value %q for MM_SQLSETTINGS_DRIVERNAME when IS_CI=true",
-				os.Getenv("MM_SQLSETTINGS_DRIVERNAME"),
-			)
+			storeTypes = append(storeTypes, NewStoreType("PostgreSQL", model.PostgresDBType, skipMigrations))
 		}
 	} else {
 		storeTypes = append(storeTypes,
-			NewStoreType(t, "PostgreSQL", model.PostgresDBType, skipMigrations),
-			NewStoreType(t, "MySQL", model.MysqlDBType, skipMigrations),
+			NewStoreType("PostgreSQL", model.PostgresDBType, skipMigrations),
+			NewStoreType("MySQL", model.MysqlDBType, skipMigrations),
 		)
 	}
 
@@ -76,34 +79,31 @@ func initStores(t *testing.T, skipMigrations bool) []*storeType {
 }
 
 func RunStoreTests(t *testing.T, f func(*testing.T, store.Store)) {
-	storeTypes := initStores(t, false)
-
-	for _, st := range storeTypes {
+	for _, st := range mainStoreTypes {
 		st := st
+		require.NoError(t, st.Store.DropAllTables())
 		t.Run(st.Name, func(t *testing.T) {
 			f(t, st.Store)
 		})
-		require.NoError(t, st.Store.Shutdown())
-		require.NoError(t, st.Logger.Shutdown())
 	}
 }
 
 func RunStoreTestsWithSqlStore(t *testing.T, f func(*testing.T, *SQLStore)) {
-	storeTypes := initStores(t, false)
-
-	for _, st := range storeTypes {
+	for _, st := range mainStoreTypes {
 		st := st
 		sqlstore := st.Store.(*SQLStore)
+		require.NoError(t, sqlstore.DropAllTables())
 		t.Run(st.Name, func(t *testing.T) {
 			f(t, sqlstore)
 		})
-		require.NoError(t, st.Store.Shutdown())
-		require.NoError(t, st.Logger.Shutdown())
 	}
 }
 
+// RunStoreTestsWithFoundation executes a test for all store types. It
+// requires a new instance of each store type as migration tests
+// cannot reuse old stores with already run migrations
 func RunStoreTestsWithFoundation(t *testing.T, f func(*testing.T, *foundation.Foundation)) {
-	storeTypes := initStores(t, true)
+	storeTypes := initStores(true)
 
 	for _, st := range storeTypes {
 		st := st

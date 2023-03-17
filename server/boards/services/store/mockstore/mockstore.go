@@ -339,6 +339,20 @@ func (mr *MockStoreMockRecorder) DeleteSubscription(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscription", reflect.TypeOf((*MockStore)(nil).DeleteSubscription), arg0, arg1)
 }
 
+// DropAllTables mocks base method.
+func (m *MockStore) DropAllTables() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DropAllTables")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DropAllTables indicates an expected call of DropAllTables.
+func (mr *MockStoreMockRecorder) DropAllTables() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DropAllTables", reflect.TypeOf((*MockStore)(nil).DropAllTables))
+}
+
 // DuplicateBlock mocks base method.
 func (m *MockStore) DuplicateBlock(arg0, arg1, arg2 string, arg3 bool) ([]*model0.Block, error) {
 	m.ctrl.T.Helper()
