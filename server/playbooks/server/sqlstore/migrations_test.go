@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/morph"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type MigrationMapping struct {
@@ -194,65 +195,64 @@ var migrationsMapping = []MigrationMapping{
 }
 
 func TestDBSchema(t *testing.T) {
-	for _, driverName := range driverNames {
-		tableInfoList, indexInfoList, constraintInfo := dbInfoAfterEachLegacyMigration(t, driverName, migrationsMapping)
+	driverName := getDriverName()
+	tableInfoList, indexInfoList, constraintInfo := dbInfoAfterEachLegacyMigration(t, driverName, migrationsMapping)
 
-		// create database for morph migration
-		db := setupTestDB(t, driverName)
-		store := setupTables(t, db)
+	// create database for morph migration
+	db := setupTestDB(t)
+	store := setupTables(t, db)
 
-		engine, err := store.createMorphEngine()
-		require.NoError(t, err)
-		defer engine.Close()
+	engine, err := store.createMorphEngine()
+	require.NoError(t, err)
+	defer engine.Close()
 
-		for i, migration := range migrationsMapping {
-			t.Run(fmt.Sprintf("validate migration up: %s", migration.Name), func(t *testing.T) {
-				runMigrationUp(t, store, engine, migration.MorphMigrationLimit)
-				// compare table schemas
-				dbSchemaMorph, err := getDBSchemaInfo(store)
-				require.NoError(t, err)
-				// this way it's easier to find out why test fails
-				for j := range dbSchemaMorph {
-					require.Equal(t, tableInfoList[i+1][j], dbSchemaMorph[j], driverName)
-				}
+	for i, migration := range migrationsMapping {
+		t.Run(fmt.Sprintf("validate migration up: %s", migration.Name), func(t *testing.T) {
+			runMigrationUp(t, store, engine, migration.MorphMigrationLimit)
+			// compare table schemas
+			dbSchemaMorph, err := getDBSchemaInfo(store)
+			require.NoError(t, err)
+			// this way it's easier to find out why test fails
+			for j := range dbSchemaMorph {
+				require.Equal(t, tableInfoList[i+1][j], dbSchemaMorph[j], driverName)
+			}
 
-				// compare indexes
-				dbIndexesMorph, err := getDBIndexesInfo(store)
-				require.NoError(t, err)
-				require.Equal(t, indexInfoList[i+1], dbIndexesMorph, driverName)
+			// compare indexes
+			dbIndexesMorph, err := getDBIndexesInfo(store)
+			require.NoError(t, err)
+			require.Equal(t, indexInfoList[i+1], dbIndexesMorph, driverName)
 
-				// compare constraints
-				dbConstraintsMorph, err := getDBConstraintsInfo(store)
-				require.NoError(t, err)
-				require.Equal(t, constraintInfo[i+1], dbConstraintsMorph, driverName)
-			})
-		}
+			// compare constraints
+			dbConstraintsMorph, err := getDBConstraintsInfo(store)
+			require.NoError(t, err)
+			require.Equal(t, constraintInfo[i+1], dbConstraintsMorph, driverName)
+		})
+	}
 
-		for i := range migrationsMapping {
-			migrationIndex := len(migrationsMapping) - i - 1
-			migration := migrationsMapping[migrationIndex]
-			t.Run(fmt.Sprintf("validate migration down: %s", migration.Name), func(t *testing.T) {
-				runMigrationDown(t, store, engine, migration.MorphMigrationLimit)
-				// compare table schemas
-				dbSchemaMorph, err := getDBSchemaInfo(store)
-				require.NoError(t, err)
+	for i := range migrationsMapping {
+		migrationIndex := len(migrationsMapping) - i - 1
+		migration := migrationsMapping[migrationIndex]
+		t.Run(fmt.Sprintf("validate migration down: %s", migration.Name), func(t *testing.T) {
+			runMigrationDown(t, store, engine, migration.MorphMigrationLimit)
+			// compare table schemas
+			dbSchemaMorph, err := getDBSchemaInfo(store)
+			require.NoError(t, err)
 
-				// this way it's easier to find out why test fails
-				for j := range dbSchemaMorph {
-					require.Equal(t, tableInfoList[migrationIndex][j], dbSchemaMorph[j], driverName)
-				}
+			// this way it's easier to find out why test fails
+			for j := range dbSchemaMorph {
+				require.Equal(t, tableInfoList[migrationIndex][j], dbSchemaMorph[j], driverName)
+			}
 
-				// compare indexes
-				dbIndexesMorph, err := getDBIndexesInfo(store)
-				require.NoError(t, err)
-				require.Equal(t, indexInfoList[migrationIndex], dbIndexesMorph, driverName)
+			// compare indexes
+			dbIndexesMorph, err := getDBIndexesInfo(store)
+			require.NoError(t, err)
+			require.Equal(t, indexInfoList[migrationIndex], dbIndexesMorph, driverName)
 
-				// compare constraints
-				dbConstraintsMorph, err := getDBConstraintsInfo(store)
-				require.NoError(t, err)
-				require.Equal(t, constraintInfo[migrationIndex], dbConstraintsMorph, driverName)
-			})
-		}
+			// compare constraints
+			dbConstraintsMorph, err := getDBConstraintsInfo(store)
+			require.NoError(t, err)
+			require.Equal(t, constraintInfo[migrationIndex], dbConstraintsMorph, driverName)
+		})
 	}
 }
 
@@ -350,35 +350,33 @@ func TestMigration_000005(t *testing.T) {
 		require.False(t, activeStageTitleExist)
 	}
 
-	for _, driverName := range driverNames {
-		t.Run("run migration up", func(t *testing.T) {
-			db := setupTestDB(t, driverName)
-			store := setupTables(t, db)
-			engine, err := store.createMorphEngine()
-			require.NoError(t, err)
-			defer engine.Close()
+	t.Run("run migration up", func(t *testing.T) {
+		db := setupTestDB(t)
+		store := setupTables(t, db)
+		engine, err := store.createMorphEngine()
+		require.NoError(t, err)
+		defer engine.Close()
 
-			runMigrationUp(t, store, engine, 4)
-			numRuns := insertData(store)
-			runMigrationUp(t, store, engine, 1)
-			validateAfter(t, store, numRuns)
-		})
+		runMigrationUp(t, store, engine, 4)
+		numRuns := insertData(store)
+		runMigrationUp(t, store, engine, 1)
+		validateAfter(t, store, numRuns)
+	})
 
-		t.Run("run migration down", func(t *testing.T) {
-			db := setupTestDB(t, driverName)
-			store := setupTables(t, db)
-			engine, err := store.createMorphEngine()
-			require.NoError(t, err)
-			defer engine.Close()
+	t.Run("run migration down", func(t *testing.T) {
+		db := setupTestDB(t)
+		store := setupTables(t, db)
+		engine, err := store.createMorphEngine()
+		require.NoError(t, err)
+		defer engine.Close()
 
-			runMigrationUp(t, store, engine, 4)
-			numRuns := insertData(store)
-			runMigrationUp(t, store, engine, 1)
-			validateAfter(t, store, numRuns)
-			runMigrationDown(t, store, engine, 1)
-			validateBefore(t, store, numRuns)
-		})
-	}
+		runMigrationUp(t, store, engine, 4)
+		numRuns := insertData(store)
+		runMigrationUp(t, store, engine, 1)
+		validateAfter(t, store, numRuns)
+		runMigrationDown(t, store, engine, 1)
+		validateBefore(t, store, numRuns)
+	})
 }
 
 func TestMigration_000014(t *testing.T) {
@@ -419,20 +417,18 @@ func TestMigration_000014(t *testing.T) {
 		}
 	}
 
-	for _, driverName := range driverNames {
-		t.Run("run migration up", func(t *testing.T) {
-			db := setupTestDB(t, driverName)
-			store := setupTables(t, db)
-			engine, err := store.createMorphEngine()
-			require.NoError(t, err)
-			defer engine.Close()
+	t.Run("run migration up", func(t *testing.T) {
+		db := setupTestDB(t)
+		store := setupTables(t, db)
+		engine, err := store.createMorphEngine()
+		require.NoError(t, err)
+		defer engine.Close()
 
-			runMigrationUp(t, store, engine, 13)
-			insertData(t, store)
-			runMigrationUp(t, store, engine, 1)
-			validateAfter(t, store)
-		})
-	}
+		runMigrationUp(t, store, engine, 13)
+		insertData(t, store)
+		runMigrationUp(t, store, engine, 1)
+		validateAfter(t, store)
+	})
 }
 
 func TestMigration_000049(t *testing.T) {
@@ -441,155 +437,153 @@ func TestMigration_000049(t *testing.T) {
 
 	getPostCreatedAtByIndex := func(i int) int64 { return int64(100000000 + i*100) }
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		store := setupTables(t, db)
-		engine, err := store.createMorphEngine()
+	db := setupTestDB(t)
+	store := setupTables(t, db)
+	engine, err := store.createMorphEngine()
+	require.NoError(t, err)
+	defer engine.Close()
+
+	runMigrationUp(t, store, engine, 48)
+
+	// insert test data
+	runsIDs := []string{}
+	postsIDs := []string{}
+	for i := 0; i < numRuns; i++ {
+		run := NewRunMapBuilder().WithName(fmt.Sprintf("run %d", i)).ToRunAsMap()
+		err = InsertRun(store, run)
 		require.NoError(t, err)
-		defer engine.Close()
-
-		runMigrationUp(t, store, engine, 48)
-
-		// insert test data
-		runsIDs := []string{}
-		postsIDs := []string{}
-		for i := 0; i < numRuns; i++ {
-			run := NewRunMapBuilder().WithName(fmt.Sprintf("run %d", i)).ToRunAsMap()
-			err = InsertRun(store, run)
-			require.NoError(t, err)
-			runsIDs = append(runsIDs, run["ID"].(string))
-		}
-
-		for i := 0; i < numPosts; i++ {
-			postsIDs = append(postsIDs, model.NewId())
-			err = InsertPost(store, postsIDs[i], getPostCreatedAtByIndex(i))
-			require.NoError(t, err)
-		}
-
-		_ = InsertStatusPost(store, runsIDs[0], postsIDs[2])
-		_ = InsertStatusPost(store, runsIDs[0], postsIDs[3])
-		_ = InsertStatusPost(store, runsIDs[0], postsIDs[0])
-		_ = InsertStatusPost(store, runsIDs[0], postsIDs[1])
-
-		_ = InsertStatusPost(store, runsIDs[1], postsIDs[4])
-		_ = InsertStatusPost(store, runsIDs[1], postsIDs[5])
-
-		_ = InsertStatusPost(store, runsIDs[2], postsIDs[7])
-		_ = InsertStatusPost(store, runsIDs[2], postsIDs[6])
-
-		runMigrationUp(t, store, engine, 1)
-
-		// validate migration
-		type Run struct {
-			ID                 string
-			Name               string
-			CreateAt           int64
-			LastStatusUpdateAt int64
-		}
-
-		var runs []Run
-		err = store.selectBuilder(store.db, &runs, store.builder.
-			Select("ID", "Name", "CreateAt", "LastStatusUpdateAt").
-			From("IR_Incident").
-			OrderBy("Name ASC"))
-
-		require.NoError(t, err)
-		require.Len(t, runs, numRuns)
-
-		require.Equal(t, getPostCreatedAtByIndex(3), runs[0].LastStatusUpdateAt)
-		require.Equal(t, getPostCreatedAtByIndex(5), runs[1].LastStatusUpdateAt)
-		require.Equal(t, getPostCreatedAtByIndex(7), runs[2].LastStatusUpdateAt)
-		require.Equal(t, runs[3].CreateAt, runs[3].LastStatusUpdateAt)
-		require.Equal(t, runs[4].CreateAt, runs[4].LastStatusUpdateAt)
+		runsIDs = append(runsIDs, run["ID"].(string))
 	}
+
+	for i := 0; i < numPosts; i++ {
+		postsIDs = append(postsIDs, model.NewId())
+		err = InsertPost(store, postsIDs[i], getPostCreatedAtByIndex(i))
+		require.NoError(t, err)
+	}
+
+	_ = InsertStatusPost(store, runsIDs[0], postsIDs[2])
+	_ = InsertStatusPost(store, runsIDs[0], postsIDs[3])
+	_ = InsertStatusPost(store, runsIDs[0], postsIDs[0])
+	_ = InsertStatusPost(store, runsIDs[0], postsIDs[1])
+
+	_ = InsertStatusPost(store, runsIDs[1], postsIDs[4])
+	_ = InsertStatusPost(store, runsIDs[1], postsIDs[5])
+
+	_ = InsertStatusPost(store, runsIDs[2], postsIDs[7])
+	_ = InsertStatusPost(store, runsIDs[2], postsIDs[6])
+
+	runMigrationUp(t, store, engine, 1)
+
+	// validate migration
+	type Run struct {
+		ID                 string
+		Name               string
+		CreateAt           int64
+		LastStatusUpdateAt int64
+	}
+
+	var runs []Run
+	err = store.selectBuilder(store.db, &runs, store.builder.
+		Select("ID", "Name", "CreateAt", "LastStatusUpdateAt").
+		From("IR_Incident").
+		OrderBy("Name ASC"))
+
+	require.NoError(t, err)
+	require.Len(t, runs, numRuns)
+
+	require.Equal(t, getPostCreatedAtByIndex(3), runs[0].LastStatusUpdateAt)
+	require.Equal(t, getPostCreatedAtByIndex(5), runs[1].LastStatusUpdateAt)
+	require.Equal(t, getPostCreatedAtByIndex(7), runs[2].LastStatusUpdateAt)
+	require.Equal(t, runs[3].CreateAt, runs[3].LastStatusUpdateAt)
+	require.Equal(t, runs[4].CreateAt, runs[4].LastStatusUpdateAt)
 }
 
 func TestMigration_000058(t *testing.T) {
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		store := setupTables(t, db)
-		engine, err := store.createMorphEngine()
-		require.NoError(t, err)
-		defer engine.Close()
+	db := setupTestDB(t)
+	store := setupTables(t, db)
+	engine, err := store.createMorphEngine()
+	require.NoError(t, err)
+	defer engine.Close()
 
-		runMigrationUp(t, store, engine, 57)
+	runMigrationUp(t, store, engine, 57)
 
-		// insert test data
-		_ = InsertPlaybook(store, NewPBMapBuilder().WithTitle("pb0").WithCategorizeChannelEnabled(true).ToRunAsMap())
-		_ = InsertPlaybook(store, NewPBMapBuilder().WithTitle("pb1").WithCategorizeChannelEnabled(false).ToRunAsMap())
-		_ = InsertPlaybook(store, NewPBMapBuilder().WithTitle("pb2").ToRunAsMap())
+	// insert test data
+	_ = InsertPlaybook(store, NewPBMapBuilder().WithTitle("pb0").WithCategorizeChannelEnabled(true).ToRunAsMap())
+	_ = InsertPlaybook(store, NewPBMapBuilder().WithTitle("pb1").WithCategorizeChannelEnabled(false).ToRunAsMap())
+	_ = InsertPlaybook(store, NewPBMapBuilder().WithTitle("pb2").ToRunAsMap())
 
-		runMigrationUp(t, store, engine, 1)
+	runMigrationUp(t, store, engine, 1)
 
-		// validate migration
-		type Playbook struct {
-			ID                       string
-			Title                    string
-			CategorizeChannelEnabled bool
-			CategoryName             *string
-		}
-
-		var playbooks []Playbook
-		err = store.selectBuilder(store.db, &playbooks, store.builder.
-			Select("ID", "Title", "CategorizeChannelEnabled", "CategoryName").
-			From("IR_Playbook").
-			OrderBy("Title ASC"))
-
-		require.NoError(t, err)
-		require.Len(t, playbooks, 3)
-		require.True(t, playbooks[0].CategorizeChannelEnabled)
-		require.False(t, playbooks[1].CategorizeChannelEnabled)
-		require.False(t, playbooks[2].CategorizeChannelEnabled)
-		require.Equal(t, "Playbook Runs", *playbooks[0].CategoryName)
-		require.True(t, playbooks[1].CategoryName == nil || *playbooks[1].CategoryName == "")
-		require.True(t, playbooks[2].CategoryName == nil || *playbooks[2].CategoryName == "")
+	// validate migration
+	type Playbook struct {
+		ID                       string
+		Title                    string
+		CategorizeChannelEnabled bool
+		CategoryName             *string
 	}
+
+	var playbooks []Playbook
+	err = store.selectBuilder(store.db, &playbooks, store.builder.
+		Select("ID", "Title", "CategorizeChannelEnabled", "CategoryName").
+		From("IR_Playbook").
+		OrderBy("Title ASC"))
+
+	require.NoError(t, err)
+	require.Len(t, playbooks, 3)
+	require.True(t, playbooks[0].CategorizeChannelEnabled)
+	require.False(t, playbooks[1].CategorizeChannelEnabled)
+	require.False(t, playbooks[2].CategorizeChannelEnabled)
+	require.Equal(t, "Playbook Runs", *playbooks[0].CategoryName)
+	require.True(t, playbooks[1].CategoryName == nil || *playbooks[1].CategoryName == "")
+	require.True(t, playbooks[2].CategoryName == nil || *playbooks[2].CategoryName == "")
 }
 
 func TestMigration_000059(t *testing.T) {
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		store := setupTables(t, db)
-		engine, err := store.createMorphEngine()
-		require.NoError(t, err)
-		defer engine.Close()
+	db := setupTestDB(t)
+	store := setupTables(t, db)
+	engine, err := store.createMorphEngine()
+	require.NoError(t, err)
+	defer engine.Close()
 
-		runMigrationUp(t, store, engine, 58)
+	runMigrationUp(t, store, engine, 58)
 
-		// insert test data
-		_ = InsertRun(store, NewRunMapBuilder().WithName("run0").WithCategorizeChannelEnabled(true).ToRunAsMap())
-		_ = InsertRun(store, NewRunMapBuilder().WithName("run1").WithCategorizeChannelEnabled(false).ToRunAsMap())
-		_ = InsertRun(store, NewRunMapBuilder().WithName("run2").ToRunAsMap())
+	// insert test data
+	_ = InsertRun(store, NewRunMapBuilder().WithName("run0").WithCategorizeChannelEnabled(true).ToRunAsMap())
+	_ = InsertRun(store, NewRunMapBuilder().WithName("run1").WithCategorizeChannelEnabled(false).ToRunAsMap())
+	_ = InsertRun(store, NewRunMapBuilder().WithName("run2").ToRunAsMap())
 
-		runMigrationUp(t, store, engine, 1)
+	runMigrationUp(t, store, engine, 1)
 
-		// validate migration
-		type Run struct {
-			ID                       string
-			Name                     string
-			CategorizeChannelEnabled bool
-			CategoryName             *string
-		}
-
-		var runs []Run
-		err = store.selectBuilder(store.db, &runs, store.builder.
-			Select("ID", "Name", "CategorizeChannelEnabled", "CategoryName").
-			From("IR_Incident").
-			OrderBy("Name ASC"))
-
-		require.NoError(t, err)
-		require.Len(t, runs, 3)
-		require.True(t, runs[0].CategorizeChannelEnabled)
-		require.False(t, runs[1].CategorizeChannelEnabled)
-		require.False(t, runs[2].CategorizeChannelEnabled)
-		require.Equal(t, "Playbook Runs", *runs[0].CategoryName)
-		require.True(t, runs[1].CategoryName == nil || *runs[1].CategoryName == "")
-		require.True(t, runs[2].CategoryName == nil || *runs[2].CategoryName == "")
+	// validate migration
+	type Run struct {
+		ID                       string
+		Name                     string
+		CategorizeChannelEnabled bool
+		CategoryName             *string
 	}
+
+	var runs []Run
+	err = store.selectBuilder(store.db, &runs, store.builder.
+		Select("ID", "Name", "CategorizeChannelEnabled", "CategoryName").
+		From("IR_Incident").
+		OrderBy("Name ASC"))
+
+	require.NoError(t, err)
+	require.Len(t, runs, 3)
+	require.True(t, runs[0].CategorizeChannelEnabled)
+	require.False(t, runs[1].CategorizeChannelEnabled)
+	require.False(t, runs[2].CategorizeChannelEnabled)
+	require.Equal(t, "Playbook Runs", *runs[0].CategoryName)
+	require.True(t, runs[1].CategoryName == nil || *runs[1].CategoryName == "")
+	require.True(t, runs[2].CategoryName == nil || *runs[2].CategoryName == "")
 }
 
 func TestMigration_000063(t *testing.T) {
-	driverName := model.DatabaseDriverMysql
+	driverName := getDriverName()
+	if driverName != model.DatabaseDriverMysql {
+		t.Skip("TestMigration_000063 is for MySQL only")
+	}
+
 	encodingQuery := `
 		SELECT TABLE_COLLATION FROM information_schema.TABLES
 		WHERE table_name = 'IR_System'
@@ -597,7 +591,7 @@ func TestMigration_000063(t *testing.T) {
 	`
 
 	// run legacy migrations and get IR_System table encoding
-	db := setupTestDB(t, driverName)
+	db := setupTestDB(t)
 	store := setupTables(t, db)
 
 	for i := 0; i <= 28; i++ {
@@ -608,7 +602,7 @@ func TestMigration_000063(t *testing.T) {
 	require.NoError(t, err)
 
 	// run morph migrations on new db and get IR_System table encoding
-	db = setupTestDB(t, driverName)
+	db = setupTestDB(t)
 	store = setupTables(t, db)
 	engine, err := store.createMorphEngine()
 	require.NoError(t, err)
@@ -622,67 +616,65 @@ func TestMigration_000063(t *testing.T) {
 }
 
 func TestMigration_000070(t *testing.T) {
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		store := setupTables(t, db)
-		engine, err := store.createMorphEngine()
+	db := setupTestDB(t)
+	store := setupTables(t, db)
+	engine, err := store.createMorphEngine()
+	require.NoError(t, err)
+	defer engine.Close()
+
+	runMigrationUp(t, store, engine, 69)
+
+	// insert test data
+	rows := [][]string{{"1", "com.mattermost.plugin-incident-management"}, {"1", "playbooks"}, {"2", "com.mattermost.plugin-incident-management"}, {"3", "playbooks"}}
+	for i := range rows {
+		_, err = store.execBuilder(store.db, sq.
+			Insert("PluginKeyValueStore").
+			SetMap(
+				map[string]interface{}{
+					"PKey":     rows[i][0],
+					"PluginId": rows[i][1],
+				},
+			))
 		require.NoError(t, err)
-		defer engine.Close()
-
-		runMigrationUp(t, store, engine, 69)
-
-		// insert test data
-		rows := [][]string{{"1", "com.mattermost.plugin-incident-management"}, {"1", "playbooks"}, {"2", "com.mattermost.plugin-incident-management"}, {"3", "playbooks"}}
-		for i := range rows {
-			_, err = store.execBuilder(store.db, sq.
-				Insert("PluginKeyValueStore").
-				SetMap(
-					map[string]interface{}{
-						"PKey":     rows[i][0],
-						"PluginId": rows[i][1],
-					},
-				))
-			require.NoError(t, err)
-		}
-
-		runMigrationUp(t, store, engine, 1)
-
-		// validate migration
-		type Data struct {
-			PKey     string
-			PluginID string
-		}
-
-		var res []Data
-		err = store.selectBuilder(store.db, &res, store.builder.
-			Select("PKey", "PluginId as PluginID").
-			From("PluginKeyValueStore").
-			OrderBy("PKey ASC").
-			OrderBy("PluginId ASC"))
-
-		require.NoError(t, err)
-		require.Len(t, res, 4)
-		require.Equal(t, "com.mattermost.plugin-incident-management", res[0].PluginID)
-		require.Equal(t, "playbooks", res[1].PluginID)
-		require.Equal(t, "playbooks", res[2].PluginID)
-		require.Equal(t, "playbooks", res[3].PluginID)
-
-		// roll back migration
-		runMigrationDown(t, store, engine, 1)
-		res = nil
-		err = store.selectBuilder(store.db, &res, store.builder.
-			Select("PKey", "PluginId as PluginID").
-			From("PluginKeyValueStore").
-			OrderBy("PKey ASC").
-			OrderBy("PluginId ASC"))
-
-		require.NoError(t, err)
-		require.Len(t, res, 4)
-		require.Equal(t, "com.mattermost.plugin-incident-management", res[0].PluginID)
-		require.Equal(t, "playbooks", res[1].PluginID)
-		require.Equal(t, "com.mattermost.plugin-incident-management", res[2].PluginID)
-		require.Equal(t, "com.mattermost.plugin-incident-management", res[3].PluginID)
 	}
+
+	runMigrationUp(t, store, engine, 1)
+
+	// validate migration
+	type Data struct {
+		PKey     string
+		PluginID string
+	}
+
+	var res []Data
+	err = store.selectBuilder(store.db, &res, store.builder.
+		Select("PKey", "PluginId as PluginID").
+		From("PluginKeyValueStore").
+		OrderBy("PKey ASC").
+		OrderBy("PluginId ASC"))
+
+	require.NoError(t, err)
+	require.Len(t, res, 4)
+	require.Equal(t, "com.mattermost.plugin-incident-management", res[0].PluginID)
+	require.Equal(t, "playbooks", res[1].PluginID)
+	require.Equal(t, "playbooks", res[2].PluginID)
+	require.Equal(t, "playbooks", res[3].PluginID)
+
+	// roll back migration
+	runMigrationDown(t, store, engine, 1)
+	res = nil
+	err = store.selectBuilder(store.db, &res, store.builder.
+		Select("PKey", "PluginId as PluginID").
+		From("PluginKeyValueStore").
+		OrderBy("PKey ASC").
+		OrderBy("PluginId ASC"))
+
+	require.NoError(t, err)
+	require.Len(t, res, 4)
+	require.Equal(t, "com.mattermost.plugin-incident-management", res[0].PluginID)
+	require.Equal(t, "playbooks", res[1].PluginID)
+	require.Equal(t, "com.mattermost.plugin-incident-management", res[2].PluginID)
+	require.Equal(t, "com.mattermost.plugin-incident-management", res[3].PluginID)
 }
 
 func runMigrationUp(t *testing.T, store *SQLStore, engine *morph.Morph, limit int) {
@@ -706,7 +698,7 @@ func runLegacyMigration(t *testing.T, store *SQLStore, index int) {
 // and returns the list. The first and last elements in the list describe DB before and after running all migrations.
 func dbInfoAfterEachLegacyMigration(t *testing.T, driverName string, migrationsToRun []MigrationMapping) ([][]TableInfo, [][]IndexInfo, [][]ConstraintsInfo) {
 	// create database for legacy migration
-	db := setupTestDB(t, driverName)
+	db := setupTestDB(t)
 	store := setupTables(t, db)
 
 	schemaInfo := make([][]TableInfo, len(migrationsToRun)+1)
