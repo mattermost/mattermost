@@ -1324,6 +1324,7 @@ func TestGetImagesForPost(t *testing.T) {
 		imageURL := th.App.GetSiteURL() + "/pl/qwertyuiopasdfghjklzxcvbnm"
 
 		post := &model.Post{
+			Id: "qwertyuiopasdfghjklzxcvbnm",
 			Metadata: &model.PostMetadata{
 				Embeds: []*model.PostEmbed{
 					{

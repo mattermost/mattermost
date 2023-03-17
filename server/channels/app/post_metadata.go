@@ -363,9 +363,14 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 	}
 
 	for _, imageURL := range imageURLs {
-		// MM-51060 - don't accept Mattermost permalinks as Open Graph Image URLs.
-		if isPermalink := looksLikeAPermalink(imageURL, a.GetSiteURL()); isPermalink {
-			continue
+		// prevent infinite loop if a OG image URL is the same post's permalink
+		resolvedURL := resolveMetadataURL(imageURL, a.GetSiteURL())
+		isPermalink := looksLikeAPermalink(resolvedURL, a.GetSiteURL())
+		if isPermalink {
+			referencedPostID := resolvedURL[len(resolvedURL)-26:]
+			if referencedPostID == post.Id {
+				continue
+			}
 		}
 
 		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
