@@ -229,7 +229,7 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 				return err
 			}
 
-			if table != s.tablePrefix + "schema_migrations" {
+			if table != s.tablePrefix+"schema_migrations" {
 				if _, err := db.Exec(`TRUNCATE TABLE ` + table); err != nil {
 					return err
 				}
