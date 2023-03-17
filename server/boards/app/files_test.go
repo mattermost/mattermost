@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -198,8 +199,8 @@ func TestSaveFile(t *testing.T) {
 
 		writeFileFunc := func(reader io.Reader, path string) int64 {
 			paths := strings.Split(path, string(os.PathSeparator))
-			assert.Equal(t, "1", paths[0])
-			assert.Equal(t, testBoardID, paths[1])
+			assert.Equal(t, "boards", paths[0])
+			assert.Equal(t, time.Now().Format("20060102"), paths[1])
 			fileName = paths[2]
 			return int64(10)
 		}
@@ -222,8 +223,8 @@ func TestSaveFile(t *testing.T) {
 
 		writeFileFunc := func(reader io.Reader, path string) int64 {
 			paths := strings.Split(path, string(os.PathSeparator))
-			assert.Equal(t, "1", paths[0])
-			assert.Equal(t, "test-board-id", paths[1])
+			assert.Equal(t, "boards", paths[0])
+			assert.Equal(t, time.Now().Format("20060102"), paths[1])
 			assert.Equal(t, "jpg", strings.Split(paths[2], ".")[1])
 			return int64(10)
 		}
@@ -246,8 +247,8 @@ func TestSaveFile(t *testing.T) {
 
 		writeFileFunc := func(reader io.Reader, path string) int64 {
 			paths := strings.Split(path, string(os.PathSeparator))
-			assert.Equal(t, "1", paths[0])
-			assert.Equal(t, "test-board-id", paths[1])
+			assert.Equal(t, "boards", paths[0])
+			assert.Equal(t, time.Now().Format("20060102"), paths[1])
 			assert.Equal(t, "jpg", strings.Split(paths[2], ".")[1])
 			return int64(10)
 		}
@@ -305,5 +306,82 @@ func TestGetFileInfo(t *testing.T) {
 		fetchedFileInfo, err := th.App.GetFileInfo("Afilename")
 		assert.Error(t, err)
 		assert.Nil(t, fetchedFileInfo)
+	})
+}
+
+func TestGetFile(t *testing.T) {
+	th, _ := SetupTestHelper(t)
+
+	t.Run("when FileInfo exists", func(t *testing.T) {
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+			Id:   "fileInfoID",
+			Path: "/path/to/file/fileName.txt",
+		}, nil)
+
+		mockedFileBackend := &mocks.FileBackend{}
+		th.App.filesBackend = mockedFileBackend
+		mockedReadCloseSeek := &mocks.ReadCloseSeeker{}
+		readerFunc := func(path string) filestore.ReadCloseSeeker {
+			return mockedReadCloseSeek
+		}
+
+		readerErrorFunc := func(path string) error {
+			return nil
+		}
+		mockedFileBackend.On("Reader", "/path/to/file/fileName.txt").Return(readerFunc, readerErrorFunc)
+		mockedFileBackend.On("FileExists", "/path/to/file/fileName.txt").Return(true, nil)
+
+		fileInfo, seeker, err := th.App.GetFile("teamID", "boardID", "7fileInfoID.txt")
+		assert.NoError(t, err)
+		assert.NotNil(t, fileInfo)
+		assert.NotNil(t, seeker)
+	})
+
+	t.Run("when FileInfo doesn't exist", func(t *testing.T) {
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(nil, nil)
+
+		mockedFileBackend := &mocks.FileBackend{}
+		th.App.filesBackend = mockedFileBackend
+		mockedReadCloseSeek := &mocks.ReadCloseSeeker{}
+		readerFunc := func(path string) filestore.ReadCloseSeeker {
+			return mockedReadCloseSeek
+		}
+
+		readerErrorFunc := func(path string) error {
+			return nil
+		}
+
+		mockedFileBackend.On("Reader", "teamID/boardID/7fileInfoID.txt").Return(readerFunc, readerErrorFunc)
+		mockedFileBackend.On("FileExists", "teamID/boardID/7fileInfoID.txt").Return(true, nil)
+
+		fileInfo, seeker, err := th.App.GetFile("teamID", "boardID", "7fileInfoID.txt")
+		assert.NoError(t, err)
+		assert.Nil(t, fileInfo)
+		assert.NotNil(t, seeker)
+	})
+
+	t.Run("when FileInfo exists but FileInfo.Path is not set", func(t *testing.T) {
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+			Id:   "fileInfoID",
+			Path: "",
+		}, nil)
+
+		mockedFileBackend := &mocks.FileBackend{}
+		th.App.filesBackend = mockedFileBackend
+		mockedReadCloseSeek := &mocks.ReadCloseSeeker{}
+		readerFunc := func(path string) filestore.ReadCloseSeeker {
+			return mockedReadCloseSeek
+		}
+
+		readerErrorFunc := func(path string) error {
+			return nil
+		}
+		mockedFileBackend.On("Reader", "teamID/boardID/7fileInfoID.txt").Return(readerFunc, readerErrorFunc)
+		mockedFileBackend.On("FileExists", "teamID/boardID/7fileInfoID.txt").Return(true, nil)
+
+		fileInfo, seeker, err := th.App.GetFile("teamID", "boardID", "7fileInfoID.txt")
+		assert.NoError(t, err)
+		assert.NotNil(t, fileInfo)
+		assert.NotNil(t, seeker)
 	})
 }
