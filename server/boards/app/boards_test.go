@@ -466,6 +466,11 @@ func TestPatchBoard(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, boardID, patchedBoard.ID)
 	})
+}
+
+func TestPatchBoard2(t *testing.T) {
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
 	t.Run("patch type remove channel, user without post permissions", func(t *testing.T) {
 		const boardID = "board_id_1"
