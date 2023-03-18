@@ -52,16 +52,17 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if configSet != nil {
 		configSet(memoryConfig)
 	}
-	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
-	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
-	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	memoryStore.Set(memoryConfig)
 
 	// disable Boards through the feature flag
 	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
 	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
 	memoryConfig.FeatureFlags.BoardsProduct = false
+
+	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
+	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	memoryStore.Set(memoryConfig)
 
 	buffer := &bytes.Buffer{}
 
