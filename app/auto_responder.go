@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // check if there is any auto_response type post in channel by the user in a calender day
@@ -38,11 +39,13 @@ func (a *App) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel,
 
 	receiver, aErr := a.GetUser(receiverId)
 	if aErr != nil {
+		mlog.Err(aErr)
 		return false, aErr
 	}
 
 	autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId)
 	if err != nil {
+		mlog.Err(err)
 		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if autoResponded {
@@ -78,6 +81,7 @@ func (a *App) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *
 	}
 
 	if _, err := a.CreatePost(c, autoResponderPost, channel, false, false); err != nil {
+		mlog.Err(err)
 		return false, err
 	}
 
@@ -101,6 +105,7 @@ func (a *App) SetAutoResponderStatus(c request.CTX, user *model.User, oldNotifyP
 func (a *App) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
+		mlog.Err(err)
 		return err
 	}
 
@@ -113,6 +118,7 @@ func (a *App) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *
 
 		_, err := a.PatchUser(c, userID, patch, asAdmin)
 		if err != nil {
+			mlog.Err(err)
 			return err
 		}
 	}
