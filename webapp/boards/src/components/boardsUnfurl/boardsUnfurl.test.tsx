@@ -20,8 +20,8 @@ import BoardsUnfurl from './boardsUnfurl'
 
 jest.mock('src/octoClient')
 jest.mock('src/utils')
-const mockedOctoClient = mocked(octoClient, true)
-const mockedUtils = mocked(Utils, true)
+const mockedOctoClient = mocked(octoClient)
+const mockedUtils = mocked(Utils)
 mockedUtils.createGuid = jest.requireActual('src/utils').Utils.createGuid
 mockedUtils.blockTypeToIDType = jest.requireActual('src/utils').Utils.blockTypeToIDType
 mockedUtils.displayDateTime = jest.requireActual('src/utils').Utils.displayDateTime

@@ -290,6 +290,7 @@ class Utils {
 
     static htmlFromMarkdown(text: string): string {
         // HACKHACK: Somehow, marked doesn't encode angle brackets
+        // TODO validate uri encoding
         const renderer = new marked.Renderer()
         renderer.link = (href, title, contents) => {
             return '<a ' +

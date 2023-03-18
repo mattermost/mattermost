@@ -53,7 +53,7 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
             >
               <span
                 class="css-1f43avz-a11yText-A11yText"
-                id="react-select-11-live-region"
+                id="react-select-10-live-region"
               />
               <span
                 aria-atomic="false"
@@ -69,7 +69,7 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
                 >
                   <div
                     class=" css-14el2xx-placeholder"
-                    id="react-select-11-placeholder"
+                    id="react-select-10-placeholder"
                   >
                     Search for people and channels
                   </div>
@@ -79,14 +79,14 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
                   >
                     <input
                       aria-autocomplete="list"
-                      aria-describedby="react-select-11-placeholder"
+                      aria-describedby="react-select-10-placeholder"
                       aria-expanded="false"
                       aria-haspopup="true"
                       autocapitalize="none"
                       autocomplete="off"
                       autocorrect="off"
                       class=""
-                      id="react-select-11-input"
+                      id="react-select-10-input"
                       role="combobox"
                       spellcheck="false"
                       style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -119,7 +119,7 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -224,11 +224,11 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -369,7 +369,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -474,11 +474,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -619,7 +619,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -724,11 +724,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -869,7 +869,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -983,11 +983,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
             >
               <a
                 class="shareUrl"
-                href="http://localhost/team/team-id/shared/1/1?r=anotherToken"
+                href="http://localhost:8065/team/team-id/shared/1/1?r=anotherToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/team/team-id/shared/1/1?r=anotherToken
+                http://localhost:8065/team/team-id/shared/1/1?r=anotherToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -1024,6 +1024,710 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
 `;
 
 exports[`src/components/shareBoard/shareBoard return shareBoard and click Select 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="userSearchInput css-b62m3t-container"
+            >
+              <span
+                class="css-1f43avz-a11yText-A11yText"
+                id="react-select-8-live-region"
+              />
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="css-1f43avz-a11yText-A11yText"
+              />
+              <div
+                class=" css-1wmrr75-Control"
+              >
+                <div
+                  class=" css-30zlo3-ValueContainer"
+                >
+                  <div
+                    class=" css-14el2xx-placeholder"
+                    id="react-select-8-placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <div
+                    class=" css-ox1y69-Input"
+                    data-value=""
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-describedby="react-select-8-placeholder"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                      autocapitalize="none"
+                      autocomplete="off"
+                      autocorrect="off"
+                      class=""
+                      id="react-select-8-input"
+                      role="combobox"
+                      spellcheck="false"
+                      style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                      tabindex="0"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class=" css-1hb7zxy-IndicatorsContainer"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <i
+                class="CompassIcon icon-mattermost user-item__img"
+              />
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="user-item channel-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <span
+                class="user-item__img"
+              >
+                <i
+                  class="CompassIcon icon-lock-outline LockOutlineIcon"
+                />
+              </span>
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Dunder Mifflin Party Planing Committee
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  Editor
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost:8065/undefined/team/team-id/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select 2`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="userSearchInput css-b62m3t-container"
+            >
+              <span
+                class="css-1f43avz-a11yText-A11yText"
+                id="react-select-8-live-region"
+              />
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="css-1f43avz-a11yText-A11yText"
+              >
+                <span
+                  id="aria-selection"
+                />
+                <span
+                  id="aria-context"
+                >
+                  option username_1 focused, 1 of 8. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+                </span>
+              </span>
+              <div
+                class=" css-1wmrr75-Control"
+              >
+                <div
+                  class=" css-30zlo3-ValueContainer"
+                >
+                  <div
+                    class=" css-14el2xx-placeholder"
+                    id="react-select-8-placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <div
+                    class=" css-ox1y69-Input"
+                    data-value=""
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-controls="react-select-8-listbox"
+                      aria-describedby="react-select-8-placeholder"
+                      aria-expanded="true"
+                      aria-haspopup="true"
+                      aria-owns="react-select-8-listbox"
+                      autocapitalize="none"
+                      autocomplete="off"
+                      autocorrect="off"
+                      class=""
+                      id="react-select-8-input"
+                      role="combobox"
+                      spellcheck="false"
+                      style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                      tabindex="0"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class=" css-1hb7zxy-IndicatorsContainer"
+                />
+              </div>
+              <div
+                class=" css-1rsmi4x-menu"
+                id="react-select-8-listbox"
+              >
+                <div
+                  class=" css-g29tl0-MenuList"
+                >
+                  <div
+                    class=" css-syji7d-Group"
+                  >
+                    <div
+                      class=" css-18ng2q5-group"
+                      id="react-select-8-group-0-heading"
+                    >
+                      Members
+                    </div>
+                    <div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-erqggd-option"
+                        id="react-select-8-option-0-0"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <img
+                            class="user-item__img"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              username_1
+                            </strong>
+                            <strong
+                              class="ml-2 text-light"
+                            >
+                              @username_1
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-0-1"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <img
+                            class="user-item__img"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              username_2
+                            </strong>
+                            <strong
+                              class="ml-2 text-light"
+                            >
+                              @username_2
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-0-2"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <img
+                            class="user-item__img"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              username_3
+                            </strong>
+                            <strong
+                              class="ml-2 text-light"
+                            >
+                              @username_3
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-0-3"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <img
+                            class="user-item__img"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              username_4
+                            </strong>
+                            <strong
+                              class="ml-2 text-light"
+                            >
+                              @username_4
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class=" css-syji7d-Group"
+                  >
+                    <div
+                      class=" css-18ng2q5-group"
+                      id="react-select-8-group-1-heading"
+                    >
+                      Channels
+                    </div>
+                    <div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-1-0"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <i
+                            class="CompassIcon icon-lock-outline LockOutlineIcon"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              Channel 1
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-1-1"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <i
+                            class="CompassIcon icon-lock-outline LockOutlineIcon"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              Channel 2
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-1-2"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <i
+                            class="CompassIcon icon-globe GlobeIcon"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              Channel 3
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        aria-disabled="false"
+                        class=" css-14xsrqy-option"
+                        id="react-select-8-option-1-3"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="user-item"
+                        >
+                          <i
+                            class="CompassIcon icon-globe GlobeIcon"
+                          />
+                          <div
+                            class="ml-3"
+                          >
+                            <strong>
+                              Channel 4
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <i
+                class="CompassIcon icon-mattermost user-item__img"
+              />
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="user-item channel-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <span
+                class="user-item__img"
+              >
+                <i
+                  class="CompassIcon icon-lock-outline LockOutlineIcon"
+                />
+              </span>
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Dunder Mifflin Party Planing Committee
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  Editor
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost:8065/undefined/team/team-id/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select, non-plugin mode 1`] = `
 <div>
   <div
     class="Dialog dialog-back ShareBoardDialog size--medium"
@@ -1142,7 +1846,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -1233,11 +1937,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -1259,7 +1963,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
 </div>
 `;
 
-exports[`src/components/shareBoard/shareBoard return shareBoard and click Select 2`] = `
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select, non-plugin mode 2`] = `
 <div>
   <div
     class="Dialog dialog-back ShareBoardDialog size--medium"
@@ -1326,7 +2030,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <span
                   id="aria-context"
                 >
-                  option username_1 focused, 0 of 2. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+                  option username_1 focused, 1 of 8. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
                 </span>
               </span>
               <div
@@ -1410,6 +2114,15 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                             >
                               @username_1
                             </strong>
+                            <div
+                              class="AdminBadge"
+                            >
+                              <div
+                                class="AdminBadge__box"
+                              >
+                                Team Admin
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1436,6 +2149,15 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                             >
                               @username_2
                             </strong>
+                            <div
+                              class="AdminBadge"
+                            >
+                              <div
+                                class="AdminBadge__box"
+                              >
+                                Admin
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1610,7 +2332,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -1701,733 +2423,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
-              </a>
-            </div>
-            <button
-              title="Copy link"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-content-copy CompassIcon"
-              />
-              <span>
-                Copy link
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`src/components/shareBoard/shareBoard return shareBoard and click Select, non-plugin mode 1`] = `
-<div>
-  <div
-    class="Dialog dialog-back ShareBoardDialog size--medium"
-  >
-    <div
-      class="backdrop"
-    />
-    <div
-      class="wrapper"
-    >
-      <div
-        class="dialog"
-        role="dialog"
-      >
-        <div
-          class="toolbar"
-        >
-          <div>
-            <h1
-              class="dialog-title"
-            >
-              Share Board
-            </h1>
-          </div>
-          <div
-            class="toolbar--right"
-          >
-            <button
-              aria-label="Close dialog"
-              title="Close dialog"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-close CloseIcon"
-              />
-            </button>
-          </div>
-        </div>
-        <div
-          class="share-input__container"
-        >
-          <div
-            class="share-input"
-          >
-            <i
-              class="CompassIcon icon-magnify MagnifyIcon"
-            />
-            <div
-              class="userSearchInput css-b62m3t-container"
-            >
-              <span
-                class="css-1f43avz-a11yText-A11yText"
-                id="react-select-10-live-region"
-              />
-              <span
-                aria-atomic="false"
-                aria-live="polite"
-                aria-relevant="additions text"
-                class="css-1f43avz-a11yText-A11yText"
-              />
-              <div
-                class=" css-1wmrr75-Control"
-              >
-                <div
-                  class=" css-30zlo3-ValueContainer"
-                >
-                  <div
-                    class=" css-14el2xx-placeholder"
-                    id="react-select-10-placeholder"
-                  >
-                    Search for people and channels
-                  </div>
-                  <div
-                    class=" css-ox1y69-Input"
-                    data-value=""
-                  >
-                    <input
-                      aria-autocomplete="list"
-                      aria-describedby="react-select-10-placeholder"
-                      aria-expanded="false"
-                      aria-haspopup="true"
-                      autocapitalize="none"
-                      autocomplete="off"
-                      autocorrect="off"
-                      class=""
-                      id="react-select-10-input"
-                      role="combobox"
-                      spellcheck="false"
-                      style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                      tabindex="0"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-                <div
-                  class=" css-1hb7zxy-IndicatorsContainer"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="user-items"
-        >
-          <div
-            class="user-item"
-          >
-            <div
-              class="user-item__content"
-            >
-              <i
-                class="CompassIcon icon-mattermost user-item__img"
-              />
-              <div
-                class="ml-3"
-              >
-                <strong>
-                  Everyone at Test Team Team
-                </strong>
-              </div>
-            </div>
-            <div>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="user-item__button"
-                >
-                  None
-                  <i
-                    class="CompassIcon icon-chevron-down CompassIcon"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div
-            class="user-item channel-item"
-          >
-            <div
-              class="user-item__content"
-            >
-              <span
-                class="user-item__img"
-              >
-                <i
-                  class="CompassIcon icon-lock-outline LockOutlineIcon"
-                />
-              </span>
-              <div
-                class="ml-3"
-              >
-                <strong>
-                  Dunder Mifflin Party Planing Committee
-                </strong>
-              </div>
-            </div>
-            <div>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="user-item__button"
-                >
-                  Editor
-                  <i
-                    class="CompassIcon icon-chevron-down CompassIcon"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="tabs-content"
-        >
-          <div>
-            <div
-              class="d-flex justify-content-between"
-            >
-              <div
-                class="d-flex flex-column"
-              >
-                <div
-                  class="text-heading2"
-                >
-                  Share internally
-                </div>
-                <div
-                  class="text-light"
-                >
-                  Users who have permissions will be able to use this link.
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="d-flex justify-content-between tabs-inputs"
-          >
-            <div
-              class="d-flex input-container"
-            >
-              <a
-                class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
-                rel="noreferrer"
-                target="_blank"
-              >
-                http://localhost/undefined/team/team-id/1/1
-              </a>
-            </div>
-            <button
-              title="Copy link"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-content-copy CompassIcon"
-              />
-              <span>
-                Copy link
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`src/components/shareBoard/shareBoard return shareBoard and click Select, non-plugin mode 2`] = `
-<div>
-  <div
-    class="Dialog dialog-back ShareBoardDialog size--medium"
-  >
-    <div
-      class="backdrop"
-    />
-    <div
-      class="wrapper"
-    >
-      <div
-        class="dialog"
-        role="dialog"
-      >
-        <div
-          class="toolbar"
-        >
-          <div>
-            <h1
-              class="dialog-title"
-            >
-              Share Board
-            </h1>
-          </div>
-          <div
-            class="toolbar--right"
-          >
-            <button
-              aria-label="Close dialog"
-              title="Close dialog"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-close CloseIcon"
-              />
-            </button>
-          </div>
-        </div>
-        <div
-          class="share-input__container"
-        >
-          <div
-            class="share-input"
-          >
-            <i
-              class="CompassIcon icon-magnify MagnifyIcon"
-            />
-            <div
-              class="userSearchInput css-b62m3t-container"
-            >
-              <span
-                class="css-1f43avz-a11yText-A11yText"
-                id="react-select-10-live-region"
-              />
-              <span
-                aria-atomic="false"
-                aria-live="polite"
-                aria-relevant="additions text"
-                class="css-1f43avz-a11yText-A11yText"
-              >
-                <span
-                  id="aria-selection"
-                />
-                <span
-                  id="aria-context"
-                >
-                  option username_1 focused, 0 of 2. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
-                </span>
-              </span>
-              <div
-                class=" css-1wmrr75-Control"
-              >
-                <div
-                  class=" css-30zlo3-ValueContainer"
-                >
-                  <div
-                    class=" css-14el2xx-placeholder"
-                    id="react-select-10-placeholder"
-                  >
-                    Search for people and channels
-                  </div>
-                  <div
-                    class=" css-ox1y69-Input"
-                    data-value=""
-                  >
-                    <input
-                      aria-autocomplete="list"
-                      aria-controls="react-select-10-listbox"
-                      aria-describedby="react-select-10-placeholder"
-                      aria-expanded="true"
-                      aria-haspopup="true"
-                      aria-owns="react-select-10-listbox"
-                      autocapitalize="none"
-                      autocomplete="off"
-                      autocorrect="off"
-                      class=""
-                      id="react-select-10-input"
-                      role="combobox"
-                      spellcheck="false"
-                      style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                      tabindex="0"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-                <div
-                  class=" css-1hb7zxy-IndicatorsContainer"
-                />
-              </div>
-              <div
-                class=" css-1rsmi4x-menu"
-                id="react-select-10-listbox"
-              >
-                <div
-                  class=" css-g29tl0-MenuList"
-                >
-                  <div
-                    class=" css-syji7d-Group"
-                  >
-                    <div
-                      class=" css-18ng2q5-group"
-                      id="react-select-10-group-0-heading"
-                    >
-                      Members
-                    </div>
-                    <div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-erqggd-option"
-                        id="react-select-10-option-0-0"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <img
-                            class="user-item__img"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              username_1
-                            </strong>
-                            <strong
-                              class="ml-2 text-light"
-                            >
-                              @username_1
-                            </strong>
-                            <div
-                              class="AdminBadge"
-                            >
-                              <div
-                                class="AdminBadge__box"
-                              >
-                                Team Admin
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-0-1"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <img
-                            class="user-item__img"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              username_2
-                            </strong>
-                            <strong
-                              class="ml-2 text-light"
-                            >
-                              @username_2
-                            </strong>
-                            <div
-                              class="AdminBadge"
-                            >
-                              <div
-                                class="AdminBadge__box"
-                              >
-                                Admin
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-0-2"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <img
-                            class="user-item__img"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              username_3
-                            </strong>
-                            <strong
-                              class="ml-2 text-light"
-                            >
-                              @username_3
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-0-3"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <img
-                            class="user-item__img"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              username_4
-                            </strong>
-                            <strong
-                              class="ml-2 text-light"
-                            >
-                              @username_4
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    class=" css-syji7d-Group"
-                  >
-                    <div
-                      class=" css-18ng2q5-group"
-                      id="react-select-10-group-1-heading"
-                    >
-                      Channels
-                    </div>
-                    <div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-1-0"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <i
-                            class="CompassIcon icon-lock-outline LockOutlineIcon"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              Channel 1
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-1-1"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <i
-                            class="CompassIcon icon-lock-outline LockOutlineIcon"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              Channel 2
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-1-2"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <i
-                            class="CompassIcon icon-globe GlobeIcon"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              Channel 3
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        aria-disabled="false"
-                        class=" css-14xsrqy-option"
-                        id="react-select-10-option-1-3"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="user-item"
-                        >
-                          <i
-                            class="CompassIcon icon-globe GlobeIcon"
-                          />
-                          <div
-                            class="ml-3"
-                          >
-                            <strong>
-                              Channel 4
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="user-items"
-        >
-          <div
-            class="user-item"
-          >
-            <div
-              class="user-item__content"
-            >
-              <i
-                class="CompassIcon icon-mattermost user-item__img"
-              />
-              <div
-                class="ml-3"
-              >
-                <strong>
-                  Everyone at Test Team Team
-                </strong>
-              </div>
-            </div>
-            <div>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="user-item__button"
-                >
-                  None
-                  <i
-                    class="CompassIcon icon-chevron-down CompassIcon"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div
-            class="user-item channel-item"
-          >
-            <div
-              class="user-item__content"
-            >
-              <span
-                class="user-item__img"
-              >
-                <i
-                  class="CompassIcon icon-lock-outline LockOutlineIcon"
-                />
-              </span>
-              <div
-                class="ml-3"
-              >
-                <strong>
-                  Dunder Mifflin Party Planing Committee
-                </strong>
-              </div>
-            </div>
-            <div>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="user-item__button"
-                >
-                  Editor
-                  <i
-                    class="CompassIcon icon-chevron-down CompassIcon"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="tabs-content"
-        >
-          <div>
-            <div
-              class="d-flex justify-content-between"
-            >
-              <div
-                class="d-flex flex-column"
-              >
-                <div
-                  class="text-heading2"
-                >
-                  Share internally
-                </div>
-                <div
-                  class="text-light"
-                >
-                  Users who have permissions will be able to use this link.
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="d-flex justify-content-between tabs-inputs"
-          >
-            <div
-              class="d-flex input-container"
-            >
-              <a
-                class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
-                rel="noreferrer"
-                target="_blank"
-              >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -2471,7 +2471,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share template
             </h1>
           </div>
           <div
@@ -2502,7 +2502,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             >
               <span
                 class="css-1f43avz-a11yText-A11yText"
-                id="react-select-13-live-region"
+                id="react-select-12-live-region"
               />
               <span
                 aria-atomic="false"
@@ -2518,7 +2518,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 >
                   <div
                     class=" css-14el2xx-placeholder"
-                    id="react-select-13-placeholder"
+                    id="react-select-12-placeholder"
                   >
                     Search for people
                   </div>
@@ -2528,14 +2528,14 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                   >
                     <input
                       aria-autocomplete="list"
-                      aria-describedby="react-select-13-placeholder"
+                      aria-describedby="react-select-12-placeholder"
                       aria-expanded="false"
                       aria-haspopup="true"
                       autocapitalize="none"
                       autocomplete="off"
                       autocorrect="off"
                       class=""
-                      id="react-select-13-input"
+                      id="react-select-12-input"
                       role="combobox"
                       spellcheck="false"
                       style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -2568,7 +2568,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -2656,7 +2656,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share template
             </h1>
           </div>
           <div
@@ -2687,7 +2687,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             >
               <span
                 class="css-1f43avz-a11yText-A11yText"
-                id="react-select-13-live-region"
+                id="react-select-12-live-region"
               />
               <span
                 aria-atomic="false"
@@ -2701,7 +2701,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 <span
                   id="aria-context"
                 >
-                  option username_1 focused, 0 of 1. 4 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+                  option username_1 focused, 1 of 4. 4 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
                 </span>
               </span>
               <div
@@ -2712,7 +2712,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 >
                   <div
                     class=" css-14el2xx-placeholder"
-                    id="react-select-13-placeholder"
+                    id="react-select-12-placeholder"
                   >
                     Search for people
                   </div>
@@ -2722,16 +2722,16 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                   >
                     <input
                       aria-autocomplete="list"
-                      aria-controls="react-select-13-listbox"
-                      aria-describedby="react-select-13-placeholder"
+                      aria-controls="react-select-12-listbox"
+                      aria-describedby="react-select-12-placeholder"
                       aria-expanded="true"
                       aria-haspopup="true"
-                      aria-owns="react-select-13-listbox"
+                      aria-owns="react-select-12-listbox"
                       autocapitalize="none"
                       autocomplete="off"
                       autocorrect="off"
                       class=""
-                      id="react-select-13-input"
+                      id="react-select-12-input"
                       role="combobox"
                       spellcheck="false"
                       style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -2747,7 +2747,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
               </div>
               <div
                 class=" css-1rsmi4x-menu"
-                id="react-select-13-listbox"
+                id="react-select-12-listbox"
               >
                 <div
                   class=" css-g29tl0-MenuList"
@@ -2757,7 +2757,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                   >
                     <div
                       class=" css-18ng2q5-group"
-                      id="react-select-13-group-0-heading"
+                      id="react-select-12-group-0-heading"
                     >
                       Members
                     </div>
@@ -2765,7 +2765,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                       <div
                         aria-disabled="false"
                         class=" css-erqggd-option"
-                        id="react-select-13-option-0-0"
+                        id="react-select-12-option-0-0"
                         tabindex="-1"
                       >
                         <div
@@ -2791,7 +2791,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                       <div
                         aria-disabled="false"
                         class=" css-14xsrqy-option"
-                        id="react-select-13-option-0-1"
+                        id="react-select-12-option-0-1"
                         tabindex="-1"
                       >
                         <div
@@ -2817,7 +2817,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                       <div
                         aria-disabled="false"
                         class=" css-14xsrqy-option"
-                        id="react-select-13-option-0-2"
+                        id="react-select-12-option-0-2"
                         tabindex="-1"
                       >
                         <div
@@ -2843,7 +2843,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                       <div
                         aria-disabled="false"
                         class=" css-14xsrqy-option"
-                        id="react-select-13-option-0-3"
+                        id="react-select-12-option-0-3"
                         tabindex="-1"
                       >
                         <div
@@ -2889,7 +2889,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3074,7 +3074,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard, and click switc
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3188,11 +3188,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard, and click switc
             >
               <a
                 class="shareUrl"
-                href="http://localhost/team/team-id/shared/1/1?r=oneToken"
+                href="http://localhost:8065/team/team-id/shared/1/1?r=oneToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/team/team-id/shared/1/1?r=oneToken
+                http://localhost:8065/team/team-id/shared/1/1?r=oneToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -3620,7 +3620,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3725,11 +3725,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -3870,7 +3870,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3975,11 +3975,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -4054,7 +4054,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <span
                 class="css-1f43avz-a11yText-A11yText"
-                id="react-select-8-live-region"
+                id="react-select-7-live-region"
               />
               <span
                 aria-atomic="false"
@@ -4070,7 +4070,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 >
                   <div
                     class=" css-14el2xx-placeholder"
-                    id="react-select-8-placeholder"
+                    id="react-select-7-placeholder"
                   >
                     Search for people and channels
                   </div>
@@ -4080,14 +4080,14 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                   >
                     <input
                       aria-autocomplete="list"
-                      aria-describedby="react-select-8-placeholder"
+                      aria-describedby="react-select-7-placeholder"
                       aria-expanded="false"
                       aria-haspopup="true"
                       autocapitalize="none"
                       autocomplete="off"
                       autocorrect="off"
                       class=""
-                      id="react-select-8-input"
+                      id="react-select-7-input"
                       role="combobox"
                       spellcheck="false"
                       style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -4120,7 +4120,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -4225,11 +4225,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -4273,7 +4273,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share template
             </h1>
           </div>
           <div
@@ -4304,7 +4304,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
             >
               <span
                 class="css-1f43avz-a11yText-A11yText"
-                id="react-select-12-live-region"
+                id="react-select-11-live-region"
               />
               <span
                 aria-atomic="false"
@@ -4320,7 +4320,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
                 >
                   <div
                     class=" css-14el2xx-placeholder"
-                    id="react-select-12-placeholder"
+                    id="react-select-11-placeholder"
                   >
                     Search for people
                   </div>
@@ -4330,14 +4330,14 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
                   >
                     <input
                       aria-autocomplete="list"
-                      aria-describedby="react-select-12-placeholder"
+                      aria-describedby="react-select-11-placeholder"
                       aria-expanded="false"
                       aria-haspopup="true"
                       autocapitalize="none"
                       autocomplete="off"
                       autocorrect="off"
                       class=""
-                      id="react-select-12-input"
+                      id="react-select-11-input"
                       role="combobox"
                       spellcheck="false"
                       style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -4370,7 +4370,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>

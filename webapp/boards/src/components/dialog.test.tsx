@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import '@testing-library/jest-dom'
 import {render, screen} from '@testing-library/react'
 
 import React from 'react'
@@ -28,7 +27,7 @@ describe('components/dialog', () => {
         ))
         expect(container).toMatchSnapshot()
     })
-    test('should return dialog and click onClose button', () => {
+    test('should return dialog and click onClose button', async () => {
         const onCloseMethod = jest.fn()
         render(wrapDNDIntl(
             <Dialog
@@ -38,10 +37,10 @@ describe('components/dialog', () => {
             </Dialog>,
         ))
         const buttonClose = screen.getByRole('button', {name: 'Close dialog'})
-        userEvent.click(buttonClose)
+        await userEvent.click(buttonClose)
         expect(onCloseMethod).toBeCalledTimes(1)
     })
-    test('should return dialog and click to close on wrapper', () => {
+    test('should return dialog and click to close on wrapper', async () => {
         const onCloseMethod = jest.fn()
         const {container} = render(wrapDNDIntl(
             <Dialog
@@ -60,11 +59,11 @@ describe('components/dialog', () => {
             </Dialog>,
         ))
         const buttonClose = container.querySelector('.wrapper')!
-        userEvent.click(buttonClose)
+        await userEvent.click(buttonClose)
         expect(onCloseMethod).toBeCalledTimes(1)
     })
 
-    test('should return dialog and click on test button', () => {
+    test('should return dialog and click on test button', async () => {
         const onTest = jest.fn()
         render(wrapDNDIntl(
             <Dialog
@@ -84,12 +83,12 @@ describe('components/dialog', () => {
             </Dialog>,
         ))
         const buttonMenu = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         const buttonTest = screen.getByRole('button', {name: 'Test'})
-        userEvent.click(buttonTest)
+        await userEvent.click(buttonTest)
         expect(onTest).toBeCalledTimes(1)
     })
-    test('should return dialog and click on cancel button', () => {
+    test('should return dialog and click on cancel button', async () => {
         const {container} = render(wrapDNDIntl(
             <Dialog
                 onClose={jest.fn()}
@@ -108,9 +107,9 @@ describe('components/dialog', () => {
             </Dialog>,
         ))
         const buttonMenu = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         const buttonTest = screen.getByRole('button', {name: 'Cancel'})
-        userEvent.click(buttonTest)
+        await userEvent.click(buttonTest)
         expect(container).toMatchSnapshot()
     })
 })

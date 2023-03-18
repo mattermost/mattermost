@@ -24,6 +24,8 @@
         "noEmit": true,
         "typeRoots": [ "./src/types", "./node_modules/@types"],
         "paths": {
+            "src": ["src"],
+            // "react-day-picker*": [".node_modules/react-day-picker*"],
             "@mattermost/types/*": ["../platform/packages/types/src/*"],
             "@mattermost/client": ["../platform/client/src"],
             "@mattermost/components": ["../platform/components/src"],
