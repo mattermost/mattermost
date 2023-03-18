@@ -134,6 +134,7 @@ cprofile.out
 *.test
 webapp/coverage
 /report.xml
+junit.xml
 
 .agignore
 .ctags
