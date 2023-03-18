@@ -39,7 +39,10 @@ func New(params Params) (*SQLStore, error) {
 		return nil, err
 	}
 
-	params.Logger.Info("connectDatabase", mlog.String("dbType", params.DBType))
+	params.Logger.Info("connectDatabase",
+		mlog.String("dbType", params.DBType),
+		mlog.String("dsn", params.ConnectionString),
+	)
 	store := &SQLStore{
 		// TODO: add replica DB support too.
 		db:               params.DB,
