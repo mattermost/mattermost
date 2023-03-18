@@ -1,0 +1,53 @@
+# Utility variables
+# NB: these assume you source them from the directory this file is in
+MME2E_DOCKER_COMPOSE_BASEFILE=$(readlink -e ../../server/build/gitlab-dc.postgres.yml)
+MME2E_DOCKER_COMPOSE_OVERRIDEFILE=$(readlink -e ./gitlab-dc.override.yml)
+MME2E_DOCKER_COMPOSE="docker-compose -f ${MME2E_DOCKER_COMPOSE_BASEFILE:?} -f ${MME2E_DOCKER_COMPOSE_OVERRIDEFILE:?}"
+
+# Function definitions
+mme2e_log () { echo "[$(date -Is)]" "$@"; }
+mme2e_get_current_shopt_arg () {
+  # This function lets you get the current value of shell options, e.g. pipefail or allexport, in the form
+  # of arguments to pass to the 'set' shell function, in order to restore its value later
+  SHOPT_ARG=${1:?}
+  case $(set -o | sed -n -E "s/^${SHOPT_ARG}[[:space:]]+(o..?)$/\1/p") in
+    on) echo -n "-o ${SHOPT_ARG}";;
+    off) echo -n "+o ${SHOPT_ARG}";;
+    *) exit 1;;
+  esac
+}
+mme2e_load_env_files () {
+  # This loads all .env* files. Variables are automatically exported
+  MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
+  set -o allexport
+  for envfile in .env*; do
+    mme2e_log "Loading env file: $envfile"
+    . $envfile
+  done
+  set ${MME2E_PREVIOUS_ALLEXPORT}
+}
+mme2e_wait_service_healthy () {
+  SERVICE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  MME2E_PREVIOUS_PIPEFAIL=$(mme2e_get_current_shopt_arg allexport)
+  set -o pipefail
+  until ${MME2E_DOCKER_COMPOSE} ps ${SERVICE_NAME} | grep -q '\(healthy\)'; do
+    RETRIES_LEFT=$((RETRIES_LEFT - 1))
+    [ "$RETRIES_LEFT" -le "0" ] && break
+    mme2e_log "Waiting for ${SERVICE_NAME} container to be healhty, sleeping $RETRIES_INTERVAL seconds ($RETRIES_LEFT retries left)"
+    sleep $RETRIES_INTERVAL
+  done
+  set ${MME2E_PREVIOUS_PIPEFAIL}
+  if [ "$RETRIES_LEFT" = "0" ]; then
+    exit 1
+  fi
+}
+
+# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
+# NB: this won't work in the script
+alias docker-compose="${MME2E_DOCKER_COMPOSE}"
+
+# Call prerequisite utility functions
+mme2e_load_env_files
+
