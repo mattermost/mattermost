@@ -1001,7 +1001,6 @@ func (ss *SqlStore) DropAllTables() {
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
 				AND NOT relname = 'db_migrations'
-				AND NOT relname = 'focalboard_schema_migrations'
 			   );
 			END
 			$func$;`)
@@ -1009,7 +1008,7 @@ func (ss *SqlStore) DropAllTables() {
 		tables := []string{}
 		ss.masterX.Select(&tables, `show tables`)
 		for _, t := range tables {
-			if t != "db_migrations" && t != "focalboard_schema_migrations" {
+			if t != "db_migrations" {
 				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
 			}
 		}
