@@ -48,6 +48,8 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 
 	TestLogger *mlog.Logger
+
+	boardsProductEnvValue string
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -81,6 +83,11 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
+
+	// disable Boards through the feature flag
+	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
+	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
+	newConfig.FeatureFlags.BoardsProduct = false
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
@@ -134,12 +141,13 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	})
 
 	th := &TestHelper{
-		App:               a,
-		Context:           request.EmptyContext(testLogger),
-		Server:            s,
-		Web:               web,
-		IncludeCacheLayer: includeCacheLayer,
-		TestLogger:        testLogger,
+		App:                   a,
+		Context:               request.EmptyContext(testLogger),
+		Server:                s,
+		Web:                   web,
+		IncludeCacheLayer:     includeCacheLayer,
+		TestLogger:            testLogger,
+		boardsProductEnvValue: boardsProductEnvValue,
 	}
 	th.Context.SetLogger(testLogger)
 
@@ -178,6 +186,11 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) TearDown() {
+	// reset board product setting to original
+	if th.boardsProductEnvValue != "" {
+		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
+	}
+
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()
