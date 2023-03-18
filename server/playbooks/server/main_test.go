@@ -12,6 +12,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/api4"
 	sapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
@@ -22,9 +26,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/require"
-	"gopkg.in/guregu/null.v4"
 
 	_ "github.com/mattermost/mattermost-server/v6/server/playbooks/product"
 )

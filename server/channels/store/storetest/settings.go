@@ -254,6 +254,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	}
 
 	log("Created temporary " + driver + " database " + dbName)
+	log("Effective DSN: driver=" + *settings.DriverName + ", datasource=" + *settings.DataSource)
 
 	return settings
 }
