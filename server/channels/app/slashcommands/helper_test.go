@@ -36,7 +36,8 @@ type TestHelper struct {
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
 
-	tempWorkspace string
+	tempWorkspace         string
+	boardsProductEnvValue string
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
@@ -56,6 +57,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	memoryStore.Set(memoryConfig)
+
+	// disable Boards through the feature flag
+	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
+	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
+	memoryConfig.FeatureFlags.BoardsProduct = false
 
 	buffer := &bytes.Buffer{}
 
@@ -82,12 +88,13 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:               app.New(app.ServerConnector(s.Channels())),
-		Context:           request.EmptyContext(testLogger),
-		Server:            s,
-		LogBuffer:         buffer,
-		TestLogger:        testLogger,
-		IncludeCacheLayer: includeCacheLayer,
+		App:                   app.New(app.ServerConnector(s.Channels())),
+		Context:               request.EmptyContext(testLogger),
+		Server:                s,
+		LogBuffer:             buffer,
+		TestLogger:            testLogger,
+		IncludeCacheLayer:     includeCacheLayer,
+		boardsProductEnvValue: boardsProductEnvValue,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -374,6 +381,11 @@ func (th *TestHelper) shutdownApp() {
 }
 
 func (th *TestHelper) tearDown() {
+	// reset board product setting to original
+	if th.boardsProductEnvValue != "" {
+		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
+	}
+
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()

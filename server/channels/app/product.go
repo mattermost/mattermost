@@ -70,10 +70,13 @@ func (s *Server) initializeProducts(
 }
 
 func (s *Server) shouldStart(product string) bool {
-	if !s.Config().FeatureFlags.BoardsProduct && product == "boards" {
-		return false
+	if product == "boards" {
+		if !s.Config().FeatureFlags.BoardsProduct {
+			s.Log().Info("Skipping Boards init; disabled via feature flag")
+			return false
+		}
+		s.Log().Info("Allowing Boards init; enabled via feature flag")
 	}
-
 	return true
 }
 
