@@ -84,7 +84,7 @@ func (a *App) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *
 	return true, nil
 }
 
-func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+func (a *App) SetAutoResponderStatus(c request.CTX, user *model.User, oldNotifyProps model.StringMap) {
 	active := user.NotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 	oldActive := oldNotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 
