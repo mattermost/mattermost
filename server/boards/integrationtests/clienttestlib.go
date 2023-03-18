@@ -103,6 +103,8 @@ func GetTestConfig(t *testing.T) *config.Configuration {
 	}
 
 	storeType := sqlstore.NewStoreType(driver, driver, true)
+	storeType.Store.Shutdown()
+	storeType.Logger.Shutdown()
 
 	logging := `
 	{
