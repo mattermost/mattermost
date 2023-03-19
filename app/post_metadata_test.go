@@ -1664,6 +1664,16 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
+		"test with URL encoded": {
+			Input:             "link as https://example%E3%80%82com/link1",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"test with unicode": {
+			Input:             "link as https://example。com/link1",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
 	} {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.RestrictLinkPreviews = "example.com, test.com"
