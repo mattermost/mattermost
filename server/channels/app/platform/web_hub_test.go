@@ -570,7 +570,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 	select {
 	case <-ch:
 	case <-timer.C:
-		t.Fatal("timeout waiting for collection of wc")
+		require.Fail(t, "timeout waiting for collection of wc")
 	}
 
 	assert.Len(t, connIndex.byConnection, 0)
