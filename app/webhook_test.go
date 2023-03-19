@@ -787,13 +787,13 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	}
 
 	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"text": "sample response text from test server 1"}`))
+		w.Write([]byte(`{"text": "sample response text from test server"}`))
 
 	}))
 	defer ts1.Close()
 
 	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"text": "sample response text from test server 2"}`))
+		w.Write([]byte(`{"text": "sample response text from test server"}`))
 
 	}))
 	defer ts2.Close()
@@ -843,7 +843,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")
 			}
-
 		})
 	}
 }
