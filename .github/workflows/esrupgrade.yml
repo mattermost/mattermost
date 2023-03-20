@@ -16,7 +16,14 @@ jobs:
     uses: ./.github/workflows/esrupgrade-common.yml
     with:
       db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
-      final-migration: 101
       final-version: 7.8
       migration-script-path: esr.5.37-7.8.mysql.up.sql
       cleanup-script-path: esr.5.37-7.8.mysql.cleanup.sql
+  esr-upgrade-5_37-6_3:
+    name: Run ESR upgrade script from 5.37 to 6.3
+    uses: ./.github/workflows/esrupgrade-common.yml
+    with:
+      db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
+      final-version: 6.3
+      migration-script-path: esr.5.37-6.3.mysql.up.sql
+      cleanup-script-path: esr.5.37-6.3.mysql.cleanup.sql
