@@ -5,9 +5,6 @@ on:
       db-dump-url:
         required: true
         type: string
-      final-migration:
-        required: true
-        type: number
       final-version:
         required: true
         type: string
@@ -65,8 +62,7 @@ jobs:
             $BUILD_IMAGE &
           # In parallel, wait for the migrations to finish.
           # To verify this, we check whether the db_migrations table contains the latest migration in this version
-          CHECK_LATEST_MIGRATION_CMD="SELECT COUNT(1) FROM db_migrations WHERE Version = ${{ inputs.final-migration }};"
-          until [ `docker exec ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS -e "$CHECK_LATEST_MIGRATION_CMD"` -eq 1 ]; do\
+          until [ `docker logs mmserver | grep "Server is listening on"` -eq 1 ]; do\
             echo "Waiting for migrations to finish..."; \
             sleep 1; \
             done;
