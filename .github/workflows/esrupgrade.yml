@@ -9,7 +9,6 @@ on:
       - master
       - cloud
       - release-*
-      - esr.upgrade.ci.playground
 jobs:
   esr-upgrade-5_37-7_8:
     name: Run ESR upgrade script from 5.37 to 7.8
