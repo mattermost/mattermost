@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 export interface GlobalSettings {
-    playbook_creators_user_ids: string[]
     link_run_to_existing_channel_enabled: boolean
 }
 
 const defaults: GlobalSettings = {
-    playbook_creators_user_ids: [],
     link_run_to_existing_channel_enabled: false,
 };
 

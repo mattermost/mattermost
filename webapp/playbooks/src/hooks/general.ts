@@ -14,7 +14,7 @@ import {DateTime} from 'luxon';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {GlobalState} from '@mattermost/types/store';
-import {getCurrentUserId, getProfilesInCurrentTeam, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getProfilesInCurrentTeam, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getChannel as getChannelFromState} from 'mattermost-redux/selectors/entities/channels';
 import {getProfilesByIds, getProfilesInTeam} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -32,12 +32,7 @@ import {debounce, isEqual} from 'lodash';
 import {FetchPlaybookRunsParams, PlaybookRun} from 'src/types/playbook_run';
 import {EmptyPlaybookStats} from 'src/types/stats';
 import {PROFILE_CHUNK_SIZE} from 'src/constants';
-import {
-    getRun,
-    globalSettings,
-    isCurrentUserAdmin,
-    noopSelector,
-} from 'src/selectors';
+import {getRun, noopSelector} from 'src/selectors';
 import {
     clientFetchPlaybook,
     fetchPlaybookRun,
@@ -219,24 +214,6 @@ export function useProfilesInTeam() {
     }, [currentTeamId, profilesInTeam]);
 
     return profilesInTeam;
-}
-
-export function useCanRestrictPlaybookCreation() {
-    const settings = useSelector(globalSettings);
-    const isAdmin = useSelector(isCurrentUserAdmin);
-    const currentUserID = useSelector(getCurrentUserId);
-
-    // This is really a loading state so just assume no.
-    if (!settings) {
-        return false;
-    }
-
-    // No restrictions if user is a system administrator.
-    if (isAdmin) {
-        return true;
-    }
-
-    return settings.playbook_creators_user_ids.includes(currentUserID);
 }
 
 /**
