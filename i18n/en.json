@@ -7452,6 +7452,26 @@
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": ""
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": ""
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": ""
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": ""
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": ""
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up Elasticsearch Client Failed"
   },
@@ -7670,14 +7690,6 @@
   {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Your license does not support ID Loaded Push Notifications."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": ""
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
