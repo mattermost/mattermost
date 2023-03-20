@@ -1,6 +1,6 @@
 SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    EXISTS(
+        SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS
         WHERE table_name = 'FileInfo'
         AND table_schema = DATABASE()
         AND index_name = 'idx_fileinfo_channel_id_create_at'
