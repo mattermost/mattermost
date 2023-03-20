@@ -21,5 +21,4 @@ func MakeInstallPluginScheduler(jobServer *jobs.JobServer, license *model.Licens
 		return enabled
 	}
 	return jobs.NewPeriodicScheduler(jobServer, jobType, installPluginSchedFreq, isEnabled)
-
 }
