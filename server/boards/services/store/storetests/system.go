@@ -11,25 +11,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
 )
 
-// these system settings are created when running the data migrations,
-// so they will be present after the tests setup.
-var dataMigrationSystemSettings = map[string]string{
-	"UniqueIDsMigrationComplete":            "true",
-	"CategoryUuidIdMigrationComplete":       "true",
-	"DeDuplicateCategoryBoardTableComplete": "true",
-}
-
-func addBaseSettings(m map[string]string) map[string]string {
-	r := map[string]string{}
-	for k, v := range dataMigrationSystemSettings {
-		r[k] = v
-	}
-	for k, v := range m {
-		r[k] = v
-	}
-	return r
-}
-
 func StoreTestSystemStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {
 	t.Run("SetGetSystemSettings", func(t *testing.T) {
 		runStoreTests(t, testSetGetSystemSettings)
@@ -40,7 +21,11 @@ func testSetGetSystemSettings(t *testing.T, store store.Store) {
 	t.Run("Get empty settings", func(t *testing.T) {
 		settings, err := store.GetSystemSettings()
 		require.NoError(t, err)
-		require.Equal(t, dataMigrationSystemSettings, settings)
+		// although data migrations would usually write some settings
+		// to the table on store initialization, we're cleaning all
+		// tables before store tests, so the initial result should
+		// come back empty
+		require.Empty(t, settings)
 	})
 
 	t.Run("Set, update and get multiple settings", func(t *testing.T) {
@@ -50,13 +35,13 @@ func testSetGetSystemSettings(t *testing.T, store store.Store) {
 		require.NoError(t, err)
 		settings, err := store.GetSystemSettings()
 		require.NoError(t, err)
-		require.Equal(t, addBaseSettings(map[string]string{"test-1": "test-value-1", "test-2": "test-value-2"}), settings)
+		require.Equal(t, map[string]string{"test-1": "test-value-1", "test-2": "test-value-2"}, settings)
 
 		err = store.SetSystemSetting("test-2", "test-value-updated-2")
 		require.NoError(t, err)
 		settings, err = store.GetSystemSettings()
 		require.NoError(t, err)
-		require.Equal(t, addBaseSettings(map[string]string{"test-1": "test-value-1", "test-2": "test-value-updated-2"}), settings)
+		require.Equal(t, map[string]string{"test-1": "test-value-1", "test-2": "test-value-updated-2"}, settings)
 	})
 
 	t.Run("Get a single setting", func(t *testing.T) {

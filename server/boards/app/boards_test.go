@@ -466,6 +466,11 @@ func TestPatchBoard(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, boardID, patchedBoard.ID)
 	})
+}
+
+func TestPatchBoard2(t *testing.T) {
+	th, tearDown := SetupTestHelper(t)
+	defer tearDown()
 
 	t.Run("patch type remove channel, user without post permissions", func(t *testing.T) {
 		const boardID = "board_id_1"
@@ -496,7 +501,7 @@ func TestPatchBoard(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// We are returning the user as a direct Board Member, so BroadcastMemberDelete won't be called
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).Times(1)
+		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).AnyTimes()
 
 		_, err := th.App.PatchBoard(patch, boardID, userID)
 		require.Error(t, err)

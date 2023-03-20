@@ -198,3 +198,44 @@ func (s *SQLStore) DBVersion() string {
 
 	return version
 }
+
+func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
+	if s.DBType() == model.PostgresDBType {
+		_, err := db.Exec(`DO
+			$func$
+			BEGIN
+			   EXECUTE
+			   (SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
+			    FROM   pg_class
+			    WHERE  relkind = 'r'  -- only tables
+			    AND    relnamespace = 'public'::regnamespace
+				AND NOT relname = 'schema_migrations'
+			   );
+			END
+			$func$;`)
+		if err != nil {
+			return err
+		}
+	} else {
+		rows, err := db.Query(`show tables`)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var table string
+			if err := rows.Scan(&table); err != nil {
+				return err
+			}
+
+			if table != s.tablePrefix+"schema_migrations" {
+				if _, err := db.Exec(`TRUNCATE TABLE ` + table); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}

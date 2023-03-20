@@ -185,6 +185,7 @@ type Store interface {
 	// For unit testing only
 	DeleteBoardRecord(boardID, modifiedBy string) error
 	DeleteBlockRecord(blockID, modifiedBy string) error
+	DropAllTables() error
 }
 
 type NotSupportedError struct {

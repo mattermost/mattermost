@@ -229,6 +229,11 @@ func (s *SQLStore) DeleteSubscription(blockID string, subscriberID string) error
 
 }
 
+func (s *SQLStore) DropAllTables() error {
+	return s.dropAllTables(s.db)
+
+}
+
 func (s *SQLStore) DuplicateBlock(boardID string, blockID string, userID string, asTemplate bool) ([]*model.Block, error) {
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
