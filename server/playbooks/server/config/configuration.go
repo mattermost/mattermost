@@ -18,9 +18,6 @@ type Configuration struct {
 	// PlaybookCreatorsUserIds is a list of users that can edit playbooks
 	PlaybookCreatorsUserIds []string
 
-	// EnableExperimentalFeatures determines if experimental features are enabled.
-	EnableExperimentalFeatures bool
-
 	// ** The following are NOT stored on the server
 	// AdminUserIDs contains a list of user IDs that are allowed
 	// to administer plugin functions, even if not Mattermost sysadmins.

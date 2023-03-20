@@ -9,10 +9,6 @@ import (
 )
 
 type GlobalSettings struct {
-	// EnableExperimentalFeatures is a read-only field set to true when experimental features
-	// are enabled. Changing this field requires access to the system console plugin
-	// configuration.
-	EnableExperimentalFeatures bool `json:"enable_experimental_features"`
 }
 
 // SettingsService handles communication with the settings related methods.

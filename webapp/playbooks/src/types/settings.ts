@@ -3,13 +3,11 @@
 
 export interface GlobalSettings {
     playbook_creators_user_ids: string[]
-    enable_experimental_features: boolean
     link_run_to_existing_channel_enabled: boolean
 }
 
 const defaults: GlobalSettings = {
     playbook_creators_user_ids: [],
-    enable_experimental_features: false,
     link_run_to_existing_channel_enabled: false,
 };
 

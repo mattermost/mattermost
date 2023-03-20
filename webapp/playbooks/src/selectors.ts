@@ -275,8 +275,6 @@ export const selectTeamsIHavePermissionToMakePlaybooksOn = (state: GlobalState) 
     ));
 };
 
-export const selectExperimentalFeatures = (state: GlobalState) => Boolean(globalSettings(state)?.enable_experimental_features);
-
 // Select tasks assigned to the current user, or unassigned but belonging to a run owned by the
 // current user.
 export const selectMyTasks = createSelector(
