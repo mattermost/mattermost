@@ -10009,5 +10009,9 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Kontakta försäljning"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Kunde inte rensa oauth-information."
   }
 ]
