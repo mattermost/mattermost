@@ -147,3 +147,17 @@ Cypress.Commands.add('apiUpdateTeamMemberSchemeRole', (teamId, userId, schemeRol
         return cy.wrap({data: response.body});
     });
 });
+
+Cypress.Commands.add('apiSetTeamScheme', (teamId, schemeId) => {
+    return cy.request({
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        url: `/api/v4/teams/${teamId}/scheme`,
+        method: 'PUT',
+        body: {
+            scheme_id: schemeId,
+        },
+    }).then((response) => {
+        expect(response.status).to.equal(200);
+        return cy.wrap({data: response.body});
+    });
+});

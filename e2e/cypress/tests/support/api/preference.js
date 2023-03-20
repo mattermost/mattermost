@@ -356,3 +356,89 @@ Cypress.Commands.add('apiBoardsWelcomePageViewed', (userId) => {
 
     return cy.apiSaveUserPreference(preferences, userId);
 });
+
+/**
+ * Saves Join/Leave messages preference of a user directly via API
+ * This API assume that the user is logged in and has cookie to access
+ * @param {Boolean} enable - Either true (default) or false
+ */
+Cypress.Commands.add('apiSaveJoinLeaveMessagesPreference', (userId, enable = true) => {
+    const preference = {
+        user_id: userId,
+        category: 'advanced_settings',
+        name: 'join_leave',
+        value: enable.toString(),
+    };
+
+    return cy.apiSaveUserPreference([preference], userId);
+});
+
+/**
+ * Disables tutorials for user by marking them finished
+ */
+Cypress.Commands.add('apiDisableTutorials', (userId) => {
+    const preferences = [
+        {
+            user_id: userId,
+            category: 'playbook_edit',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'tutorial_pb_run_details',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'crt_thread_pane_step',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'playbook_preview',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'tutorial_step',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'crt_tutorial_triggered',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'crt_thread_pane_step',
+            name: userId,
+            value: '999',
+        },
+        {
+            user_id: userId,
+            category: 'actions_menu',
+            name: 'actions_menu_tutorial_state',
+            value: '{"actions_menu_modal_viewed":true}',
+        },
+        {
+            user_id: userId,
+            category: 'insights',
+            name: 'insights_tutorial_state',
+            value: '{"insights_modal_viewed":true}',
+        },
+        {
+            user_id: userId,
+            category: 'drafts',
+            name: 'drafts_tour_tip_showed',
+            value: '{"drafts_tour_tip_showed":true}',
+        },
+    ];
+
+    return cy.apiSaveUserPreference(preferences, userId);
+});

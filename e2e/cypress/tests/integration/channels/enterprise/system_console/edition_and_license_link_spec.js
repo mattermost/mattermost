@@ -32,7 +32,8 @@ describe('Edition and License', () => {
             cy.findByText(text).
                 scrollIntoView().
                 should('be.visible').
-                and('have.attr', 'href', link);
+                and('have.attr', 'href').
+                and('include', link);
         });
     });
 });

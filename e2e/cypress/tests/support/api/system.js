@@ -195,6 +195,21 @@ Cypress.Commands.add('apiGetConfig', (old = false) => {
     });
 });
 
+Cypress.Commands.add('apiEnsureFeatureFlag', (key, value) => {
+    cy.apiGetConfig().then(({config}) => {
+        cy.log(JSON.stringify(config.PluginSettings.Plugins.playbooks));
+        const currentValue = config.PluginSettings.Plugins.playbooks[key];
+        if (currentValue !== value) {
+            cy.apiUpdateConfig({
+                PluginSettings: {Plugins: {playbooks: {[key]: value}}},
+            }).then(() => {
+                return cy.wrap({prevValue: currentValue, value});
+            });
+        }
+        return cy.wrap({prevValue: currentValue, value});
+    });
+});
+
 Cypress.Commands.add('apiGetAnalytics', () => {
     cy.apiAdminLogin();
 

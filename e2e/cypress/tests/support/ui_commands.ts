@@ -360,6 +360,11 @@ function clickPostCommentIcon(postId: string, location = 'CENTER') {
 }
 Cypress.Commands.add('clickPostCommentIcon', clickPostCommentIcon);
 
+function clickPostActionsMenu(postId: string, location = 'CENTER') {
+    clickPostHeaderItem(postId, location, 'actions_button');
+}
+Cypress.Commands.add('clickPostActionsMenu', clickPostActionsMenu);
+
 // ***********************************************************
 // Teams
 // ***********************************************************
@@ -743,6 +748,13 @@ declare global {
              * @param {String} [location] - as 'CENTER', 'SEARCH'
              */
             clickPostCommentIcon(postId: string, location?: string): ChainableT<void>;
+
+            /**
+             * Click actions menu by post ID or to most recent post (if post ID is not provided)
+             * @param {String} postId - Post ID
+             * @param {String} location - as 'CENTER', 'SEARCH'
+             */
+            clickPostActionsMenu(postId: string, location?: string): ChainableT<void>;
 
             createNewTeam(teamName: string, teamURL: string): ChainableT<void>;
 
