@@ -212,9 +212,20 @@ func TestIsLegacyTrialRequest(t *testing.T) {
 		assert.True(t, legacyTr.IsLegacy())
 	})
 
-	t.Run("legacy trial request with only some fields from new request should be considered legacy", func(t *testing.T) {
+	t.Run("legacy trial request with any non-legacy field set is not a legacy request", func(t *testing.T) {
 		legacyTr.CompanyCountry = "US"
 		assert.False(t, legacyTr.IsLegacy())
+		legacyTr.CompanyCountry = ""
+		legacyTr.CompanyName = "test company"
+		assert.False(t, legacyTr.IsLegacy())
+		legacyTr.CompanyName = ""
+		legacyTr.CompanySize = "50-100"
+		assert.False(t, legacyTr.IsLegacy())
+		legacyTr.CompanySize = ""
+		legacyTr.ContactName = "test user"
+		assert.False(t, legacyTr.IsLegacy())
+		legacyTr.ContactName = ""
+		assert.True(t, legacyTr.IsLegacy())
 	})
 
 }
