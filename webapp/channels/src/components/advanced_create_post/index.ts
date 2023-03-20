@@ -6,13 +6,13 @@ import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {GlobalState} from 'types/store/index.js';
 
-import {Post} from '@mattermost/types/posts.js';
+import {Post} from '@mattermost/types/posts';
 
-import {FileInfo} from '@mattermost/types/files.js';
+import {FileInfo} from '@mattermost/types/files';
 
 import {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
 
-import {CommandArgs} from '@mattermost/types/integrations.js';
+import {CommandArgs} from '@mattermost/types/integrations';
 
 import {ModalData} from 'types/actions.js';
 
