@@ -25,10 +25,6 @@ UPDATE ThreadMemberships SET LastUpdated = 1;
    avoid any spurious difference in the migrations, we update it to a fixed value. */
 UPDATE Systems SET Value = 1 WHERE Name = 'LastSecurityTime';
 
-/* The server migration may contain a row in the Systems table marking the onboarding as complete.
-   There are no migrations related to this, so we can simply drop it here. */
-/* DELETE FROM Systems WHERE Name = 'FirstAdminSetupComplete'; */
-
 /* The server migration contains an in-app migration that adds new roles for Playbooks:
    doPlaybooksRolesCreationMigration, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/migrations.go#L345-L469
    The roles are the ones defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/model/role.go#L874-L929
@@ -40,45 +36,11 @@ DELETE FROM Roles WHERE Name = 'run_member';
 DELETE FROM Roles WHERE Name = 'run_admin';
 DELETE FROM Systems WHERE Name = 'PlaybookRolesCreationMigrationComplete';
 
-/* The server migration contains two in-app migrations that add playbooks permissions to certain roles:
-    getAddPlaybooksPermissions and getPlaybooksPermissionsAddManageRoles, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/permissions_migrations.go#L1021-L1072
-    The specific roles ('%playbook%') are removed in the procedure below, but the migrations also add new rows to the Systems table marking the migrations as complete.
-    These in-app migrations do not happen in the script, so we remove those rows here. */
-/* DELETE FROM Systems WHERE Name = 'playbooks_manage_roles'; */
+/* The server migration contains an in-app migration that add playbooks permissions to certain roles:
+    getAddPlaybooksPermissions, defined in https://github.com/mattermost/mattermost-server/blob/f9b996934cabf9a8fad5901835e7e9b418917402/app/permissions_migrations.go#L918-L951
+    The specific roles ('%playbook%') are removed in the procedure below, but the migrations also add a new row to the Systems table marking the migration as complete.
+    This in-app migration does not happen in the script, so we remove that rows here. */
 DELETE FROM Systems WHERE Name = 'playbooks_permissions';
-
-/* The server migration contains an in-app migration that adds boards permissions to certain roles:
-   getProductsBoardsPermissions, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/permissions_migrations.go#L1074-L1093
-   The specific roles (sysconsole_read_product_boards and sysconsole_write_product_boards) are removed in the procedure below,
-   but the migrations also adds a new row to the Systems table marking the migrations as complete.
-   This in-app migration does not happen in the script, so we remove that row here. */
-/* DELETE FROM Systems WHERE Name = 'products_boards'; */
-
-/* The server migration contain an in-app migration that adds Ids to the Teams whose InviteId is an empty string:
-   doRemainingSchemaMigrations, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/migrations.go#L515-L540
-   The migration is not replicated in the script, since it happens in-app, but the server adds a new row to the
-   Systems table marking the table as complete, which the script doesn't do, so we remove that row here. */
-/*DELETE FROM Systems WHERE Name = 'RemainingSchemaMigrations'; */
-
-/* The server migration contains three in-app migration that adds a new role and new permissions
-   related to custom groups. The migrations are:
-     - doCustomGroupAdminRoleCreationMigration https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/migrations.go#L345-L469
-     - getAddCustomUserGroupsPermissions https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/permissions_migrations.go#L974-L995
-     - getAddCustomUserGroupsPermissionRestore https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/permissions_migrations.go#L997-L1019
-   The specific roles and permissions are removed in the procedure below, but the migrations also
-   adds a new row to the Roles table for the new role and new rows to the Systems table marking the
-   migrations as complete.
-   This in-app migration does not happen in the script, so we remove that row here. */
-/* DELETE FROM Roles WHERE Name = 'system_custom_group_admin';
-DELETE FROM Systems WHERE Name = 'CustomGroupAdminRoleCreationMigrationComplete';
-DELETE FROM Systems WHERE Name = 'custom_groups_permissions';
-DELETE FROM Systems WHERE Name = 'custom_groups_permission_restore'; */
-
-/* The server migration contains an in-app migration that updates the config, setting ServiceSettings.PostPriority
-   to true, doPostPriorityConfigDefaultTrueMigration, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/migrations.go#L542-L560
-   The migration is not replicated in the script, since it happens in-app, but the server adds a new row to the
-   Systems table marking the table as complete, which the script doesn't do, so we remove that row here. */
-/* DELETE FROM Systems WHERE Name = 'PostPriorityConfigDefaultTrueMigrationComplete'; */
 
 /* The rest of this script defines and executes a procedure to update the Roles table. It performs several changes:
      1. Set the UpdateAt column of all rows to a fixed value, so that the server migration changes to this column
@@ -157,14 +119,11 @@ BEGIN
   CLOSE cur1;
 
   /* 2. Filter out the new permissions added by the in-app migrations */
-  DELETE FROM temp_roles WHERE permission LIKE 'sysconsole_read_products_boards';
-  DELETE FROM temp_roles WHERE permission LIKE 'sysconsole_write_products_boards';
   DELETE FROM temp_roles WHERE permission LIKE '%playbook%';
   DELETE FROM temp_roles WHERE permission LIKE 'run_create';
   DELETE FROM temp_roles WHERE permission LIKE 'run_manage_members';
   DELETE FROM temp_roles WHERE permission LIKE 'run_manage_properties';
   DELETE FROM temp_roles WHERE permission LIKE 'run_view';
-  DELETE FROM temp_roles WHERE permission LIKE '%custom_group%';
 
   /* Temporarily set to the maximum permitted value, since the call to group_concat
      below needs a value bigger than the default */
