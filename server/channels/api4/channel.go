@@ -25,6 +25,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods("PUT")
+	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/threads", api.APISessionRequired(getThreadsForChannel)).Methods("GET")
 
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods("GET")
@@ -1873,6 +1874,55 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	ReturnStatusOK(w)
+}
+
+func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	// TODO: check if the user has permissions to view the channel
+
+	opts := model.GetChannelThreadsOpts{
+		PageSize:    30,
+		Extended:    false,
+		Deleted:     false,
+		Since:       0,
+		Before:      "",
+		After:       "",
+		Unread:      false,
+		TotalsOnly:  false,
+		ThreadsOnly: false,
+	}
+
+	queryValues := r.URL.Query()
+
+	if deletedParam := queryValues.Get("deleted"); deletedParam != "" {
+		if deleted, err := strconv.ParseBool(deletedParam); err == nil {
+			opts.Deleted = deleted
+		}
+	}
+	if totalsOnlyParam := queryValues.Get("totals_only"); totalsOnlyParam != "" {
+		if totalsOnly, err := strconv.ParseBool(totalsOnlyParam); err == nil {
+			opts.TotalsOnly = totalsOnly
+		}
+	}
+	if threadsOnlyParam := queryValues.Get("threads_only"); threadsOnlyParam != "" {
+		if threadsOnly, err := strconv.ParseBool(threadsOnlyParam); err == nil {
+			opts.ThreadsOnly = threadsOnly
+		}
+	}
+
+	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, opts)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(threads); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {

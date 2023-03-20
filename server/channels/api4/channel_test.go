@@ -3861,6 +3861,203 @@ func TestUpdateChannelScheme(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetThreadsForChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		for i := 0; i < 10; i++ {
+			th.CreatePost()
+		}
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 0)
+	})
+
+	t.Run("no params, 1 thread", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rootPost := th.CreatePost()
+		th.CreateThreadPost(rootPost)
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
+		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+	})
+
+	t.Run("deleted, 1 thread", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rootPost := th.CreatePost()
+		th.CreateThreadPost(rootPost)
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+			Deleted: false,
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
+		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
+
+		_, err = th.Client.DeletePost(rootPost.Id)
+		require.NoError(t, err)
+
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+			Deleted: false,
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 0)
+
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+			Deleted: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Greater(t, res.Threads[0].Post.DeleteAt, int64(0))
+	})
+
+	t.Run("isUrgent, 1 thread", func(t *testing.T) {
+		testCases := []struct {
+			featureEnabled bool
+			expected       bool
+		}{
+			{featureEnabled: true, expected: true},
+			{featureEnabled: false, expected: false},
+		}
+
+		for _, tc := range testCases {
+			func() {
+				defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.PostPriority = tc.featureEnabled
+					cfg.FeatureFlags.PostPriority = true
+				})
+
+				rootPost, resp, err := th.Client.CreatePost(&model.Post{
+					ChannelId: th.BasicChannel.Id,
+					Message:   "testMsg",
+					Metadata: &model.PostMetadata{
+						Priority: &model.PostPriority{
+							Priority: model.NewString(model.PostPriorityUrgent),
+						},
+					},
+				})
+				require.NoError(t, err)
+				CheckCreatedStatus(t, resp)
+				th.CreateThreadPost(rootPost)
+
+				res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
+				require.NoError(t, err)
+				require.Len(t, res.Threads, 1)
+				require.Equal(t, tc.expected, res.Threads[0].IsUrgent)
+			}()
+		}
+	})
+
+	t.Run("paged, 30 threads", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		var rootPosts []*model.Post
+		for i := 0; i < 30; i++ {
+			rootPost := th.CreatePost()
+			rootPosts = append(rootPosts, rootPost)
+			th.CreateThreadPost(rootPost)
+		}
+
+		res, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted:  false,
+			PageSize: 20,
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 20)
+		require.Len(t, rootPosts, 30)
+		require.Equal(t, int64(30), res.Total)
+		require.Equal(t, rootPosts[29].Id, res.Threads[0].PostId)
+		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
+	})
+
+	t.Run("paged, 10 threads before/after", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		var rootPosts []*model.Post
+		for i := 0; i < 30; i++ {
+			rp := th.CreatePost()
+			rootPosts = append(rootPosts, rp)
+			th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+		}
+
+		rootIdLast := rootPosts[15].Id
+		rootIdBefore := rootPosts[14].Id
+		rootIdAfter := rootPosts[16].Id
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+			PageSize: 10,
+			Before:   rootIdLast,
+		})
+
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 10)
+		require.Equal(t, rootIdBefore, res.Threads[0].PostId)
+
+		res2, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			PageSize: 10,
+			After:    rootIdLast,
+		})
+		require.NoError(t, err)
+		require.Len(t, res2.Threads, 10)
+
+		require.Equal(t, rootIdAfter, res2.Threads[0].PostId)
+
+		res3, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			PageSize: 10,
+			After:    rootIdLast + "__bad",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res3.Threads)
+		require.Len(t, res3.Threads, 0)
+	})
+
+	t.Run("should return only total count using totals_only param", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+		var rootPosts []*model.Post
+		for i := 0; i < 10; i++ {
+			rp := th.CreatePost()
+			rootPosts = append(rootPosts, rp)
+
+			// For every other post, mention the user
+			if i%2 == 0 {
+				th.CreateThreadPost(rp)
+			} else {
+				th.CreateThreadMessagePostWithClient(th.SystemAdminClient, th.BasicChannel, rp, "reply to @"+th.BasicUser.Username)
+			}
+		}
+
+		opts := model.GetChannelThreadsOpts{TotalsOnly: true}
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, opts)
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 0)
+		require.Equal(t, int64(10), res.Total)
+		//require.Equal(t, int64(5), res.TotalUnreadThreads)
+		//require.Equal(t, int64(5), res.TotalUnreadMentions)
+	})
+}
+
 func TestGetChannelMembersTimezones(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

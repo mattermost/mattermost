@@ -274,6 +274,10 @@ func (c *Client4) channelMemberRoute(channelId, userId string) string {
 	return fmt.Sprintf(c.channelMembersRoute(channelId)+"/%v", userId)
 }
 
+func (c *Client4) channelThreadsRoute(channelID string) string {
+	return c.channelRoute(channelID) + "/threads"
+}
+
 func (c *Client4) postsRoute() string {
 	return "/posts"
 }
@@ -8385,6 +8389,55 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 		return n, BuildResponse(r), NewAppError("DownloadExport", "model.client.copy.app_error", nil, "", r.StatusCode).Wrap(err)
 	}
 	return n, BuildResponse(r), nil
+}
+
+func (c *Client4) GetThreadsForChannel(channelID string, opts GetChannelThreadsOpts) (*Threads, *Response, error) {
+	v := url.Values{}
+	//if opts.Since != 0 {
+	//	v.Set("since", fmt.Sprintf("%d", opts.Since))
+	//}
+	//if opts.Before != "" {
+	//	v.Set("before", opts.Before)
+	//}
+	//if opts.After != "" {
+	//	v.Set("after", opts.After)
+	//}
+	//if opts.PageSize != 0 {
+	//	v.Set("per_page", fmt.Sprintf("%d", opts.PageSize))
+	//}
+	//if opts.Extended {
+	//	v.Set("extended", "true")
+	//}
+	if opts.Deleted {
+		v.Set("deleted", "true")
+	}
+	//if opts.Unread {
+	//	v.Set("unread", "true")
+	//}
+	//if opts.ThreadsOnly {
+	//	v.Set("threadsOnly", "true")
+	//}
+	if opts.TotalsOnly {
+		v.Set("totals_only", "true")
+	}
+
+	u := c.channelThreadsRoute(channelID)
+	if len(v) > 0 {
+		u += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(u, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var res Threads
+	if err = json.NewDecoder(r.Body).Decode(&res); err != nil {
+		return nil, nil, NewAppError("GetThreadsForChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &res, BuildResponse(r), nil
 }
 
 func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response, error) {

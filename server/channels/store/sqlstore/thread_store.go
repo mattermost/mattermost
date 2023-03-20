@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/store"
 	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 // JoinedThread allows querying the Threads + Posts table in a single query, before looking up
@@ -572,6 +573,142 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 	}
 
 	return thread.toThreadResponse(usersMap), nil
+}
+
+func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
+	pageSize := uint64(30)
+	if opts.PageSize != 0 {
+		pageSize = opts.PageSize
+	}
+
+	unreadRepliesQuery := sq.
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.Expr("Posts.RootId = ThreadMemberships.PostId")).
+		Where(sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"))
+
+	if !opts.Deleted {
+		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
+	}
+
+	query := s.threadsAndPostsSelectQuery.
+		Column(postSliceCoalesceQuery()).
+		Columns(
+			"ThreadMemberships.LastViewed as LastViewedAt",
+			"ThreadMemberships.UnreadMentions as UnreadMentions",
+		).
+		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
+		Join("Posts ON Posts.Id = Threads.PostId").
+		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+
+	query = query.
+		Where(sq.Eq{"ThreadMemberships.Following": true})
+
+	if opts.IncludeIsUrgent {
+		urgencyCase := sq.
+			Case().
+			When(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}, "true").
+			Else("false")
+
+		query = query.
+			Column(sq.Alias(urgencyCase, "IsUrgent")).
+			LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId")
+	}
+
+	if !opts.Deleted {
+		query = query.Where(sq.Or{
+			sq.Eq{"Threads.ThreadDeleteAt": nil},
+			sq.Eq{"Threads.ThreadDeleteAt": 0},
+		})
+	}
+
+	if opts.Since > 0 {
+		query = query.
+			Where(sq.Or{
+				sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since},
+				sq.GtOrEq{"Threads.LastReplyAt": opts.Since},
+			})
+	}
+
+	if opts.Unread {
+		query = query.Where(sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt"))
+	}
+
+	order := "DESC"
+	if opts.Before != "" {
+		query = query.Where(sq.Expr(`Threads.LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before))
+	}
+	if opts.After != "" {
+		order = "ASC"
+		query = query.Where(sq.Expr(`Threads.LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After))
+	}
+
+	query = query.
+		OrderBy("Threads.LastReplyAt " + order).
+		Limit(pageSize)
+
+	q, args, _ := query.ToSql()
+	mlog.Debug("GetThreadsForTeam", mlog.String("query", q), mlog.Any("args", args))
+
+	var threads []*JoinedThread
+	if err := s.GetReplicaX().SelectBuilder(&threads, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get threads for channel id=%s", channelID)
+	}
+
+	// Build the de-duplicated set of user ids representing participants across all threads.
+	var participantUserIds []string
+	for _, thread := range threads {
+		for _, participantUserId := range thread.Participants {
+			participantUserIds = append(participantUserIds, participantUserId)
+		}
+	}
+	participantUserIds = model.RemoveDuplicateStrings(participantUserIds)
+
+	// Resolve the user objects for all participants, with extended metadata if requested.
+	allParticipants := make(map[string]*model.User, len(participantUserIds))
+	if opts.Extended {
+		users, err := s.User().GetProfileByIds(context.Background(), participantUserIds, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get %d thread profiles for channel id=%s", len(participantUserIds), channelID)
+		}
+		for _, user := range users {
+			allParticipants[user.Id] = user
+		}
+	} else {
+		for _, participantUserId := range participantUserIds {
+			allParticipants[participantUserId] = &model.User{Id: participantUserId}
+		}
+	}
+
+	result := make([]*model.ThreadResponse, 0, len(threads))
+	for _, thread := range threads {
+		result = append(result, thread.toThreadResponse(allParticipants))
+	}
+
+	return result, nil
+}
+
+func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
+	if opts.Unread {
+		return 0, errors.New("GetTotalThreadsForChannel does not support the Unread flag; use GetTotalUnreadThreadsForChannel instead")
+	}
+
+	query := s.getQueryBuilder().
+		Select("COUNT(Threads.PostId)").
+		From("Threads").
+		Where(sq.Eq{"Threads.ChannelId": channelID})
+
+	if !opts.Deleted {
+		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
+	}
+
+	var totalThreads int64
+	err := s.GetReplicaX().GetBuilder(&totalThreads, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count unread threads for channel id=%s", channelID)
+	}
+
+	return totalThreads, nil
 }
 
 // MarkAllAsReadByChannels marks thread membership for the given users in the given channels

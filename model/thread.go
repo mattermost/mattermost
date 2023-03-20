@@ -53,6 +53,38 @@ type Threads struct {
 	Threads                   []*ThreadResponse `json:"threads"`
 }
 
+type GetChannelThreadsOpts struct {
+	// PageSize specifies the size of the returned chunk of results. Default = 30
+	PageSize uint64
+
+	// Extended will enrich the response with participant details. Default = false
+	Extended bool
+
+	// Deleted will specify that even deleted threads should be returned (For mobile sync). Default = false
+	Deleted bool
+
+	// Since filters the threads based on their LastUpdateAt timestamp.
+	Since uint64
+
+	// Before specifies thread id as a cursor for pagination and will return `PageSize` threads before the cursor
+	Before string
+
+	// After specifies thread id as a cursor for pagination and will return `PageSize` threads after the cursor
+	After string
+
+	// Unread will make sure that only threads with unread replies are returned
+	Unread bool
+
+	// TotalsOnly will not fetch any threads and just fetch the total counts
+	TotalsOnly bool
+
+	// ThreadsOnly will fetch threads but not calculate totals and will return 0
+	ThreadsOnly bool
+
+	// IncludeIsUrgent will return IsUrgent field as well to assert is the thread is urgent or not
+	IncludeIsUrgent bool
+}
+
 type GetUserThreadsOpts struct {
 	// PageSize specifies the size of the returned chunk of results. Default = 30
 	PageSize uint64
