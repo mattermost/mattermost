@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rollup -c",
     "run": "rollup -c --watch",
-    "clean": "rm -rf node_modules dist"
+    "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.6",
