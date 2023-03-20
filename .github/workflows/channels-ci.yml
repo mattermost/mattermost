@@ -188,7 +188,6 @@ jobs:
           make node_modules
           # make channels/e2e/playwright/node_modules
       - name: ci/build
-        working-directory: webapp/channels
         run: |
           npm run build
   # run-performance-bechmarks:
