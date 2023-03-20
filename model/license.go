@@ -91,12 +91,21 @@ type TrialLicenseRequest struct {
 	CompanySize           string `json:"company_size"`
 }
 
+// If any of the below fields are set, this is not a legacy request, and all fields should be validated
+func (tlr *TrialLicenseRequest) IsLegacy() bool {
+	return tlr.CompanyCountry == "" && tlr.CompanyName == "" && tlr.CompanySize == "" && tlr.ContactName == ""
+}
+
 func (tlr *TrialLicenseRequest) IsValid() bool {
 	if !tlr.TermsAccepted {
 		return false
 	}
 
-	if tlr.Users == 0 {
+	if tlr.Email == "" {
+		return false
+	}
+
+	if tlr.Users <= 0 {
 		return false
 	}
 

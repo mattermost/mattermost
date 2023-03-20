@@ -31,7 +31,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 // TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
 
-const TrialBenefitsModal = makeAsyncComponent('TrialBenefisModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
+const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
 enum TrialLoadStatus {
     NotStarted = 'NOT_STARTED',
@@ -64,6 +64,25 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const {formatMessage} = useIntl();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
+
+    const handleValidateBusinessEmail = async (email: string) => {
+        if (!email) {
+            setBusinessEmailError(undefined);
+            return;
+        }
+        const isBusinessEmail = await validateBusinessEmail(email)();
+
+        if (isBusinessEmail) {
+            setBusinessEmailError(undefined);
+            return;
+        }
+
+        setBusinessEmailError({
+            type: 'error',
+            value: formatMessage({id: 'start_trial_form.invalid_business_email', defaultMessage: 'Please enter a valid business email address.'},
+            ),
+        } as CustomMessageInputType);
+    };
 
     useEffect(() => {
         trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_opened');
@@ -153,24 +172,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         };
     };
 
-    const handleValidateBusinessEmail = async (email: string) => {
-        if (!email) {
-            setBusinessEmailError(undefined);
-            return;
-        }
-        const isBusinessEmail = await validateBusinessEmail(email)();
 
-        if (isBusinessEmail) {
-            setBusinessEmailError(undefined);
-            return;
-        }
-
-        setBusinessEmailError({
-            type: 'error',
-            value: formatMessage({id: 'start_trial_form.invalid_business_email', defaultMessage: 'Please enter a valid business email address.'},
-            ),
-        } as CustomMessageInputType);
-    };
 
     const isSubmitDisabled = () => {
         return (

@@ -219,8 +219,16 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	json.Unmarshal(b, &trialRequest)
 
-	if err := c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted); err != nil {
-		c.Err = err
+	var appErr *model.AppError
+	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
+	if !trialRequest.IsLegacy() {
+		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext.Session().UserId, trialRequest)
+	} else {
+		appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
+	}
+
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

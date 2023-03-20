@@ -12,11 +12,7 @@ import {act} from 'react-dom/test-utils';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');
@@ -142,7 +138,6 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
 
         expect(mockOnClick).toHaveBeenCalled();
     });
-
 
     // TODO: Fix test with https://mattermost.atlassian.net/browse/MM-51470
     // test('does not show success for embargoed countries', async () => {
