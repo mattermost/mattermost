@@ -10012,7 +10012,7 @@
     "translation": "Kontakt ze sprzedażą"
   },
   {
-    "id": "debugbar.info.session-count.error",
-    "translation": "Nie można policzyć sesji."
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Nie można usunąć danych oauth."
   }
 ]

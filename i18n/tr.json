@@ -5841,19 +5841,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 106+"
+    "translation": "Sürüm 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 95+"
+    "translation": "Sürüm 110+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 91+"
+    "translation": "Sürüm 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Sürüm 14.1+"
+    "translation": "Sürüm 16.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -5861,7 +5861,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 8.1+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -9244,7 +9244,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Merhaba, @{{.Username}} tarafından gönderilmiş {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} iletisinin hatırlatıcısı"
+    "translation": "Merhaba, @{{.Username}} tarafından gönderilmiş {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} iletisinin anımsatıcısı"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -9957,5 +9957,61 @@
   {
     "id": "worktemplate.devops.incident_resolution.description.board",
     "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
+  },
+  {
+    "id": "app.worktemplates.execute_work_template.name_too_long",
+    "translation": "Ad alanına en fazla 64 karakter yazılabilir."
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
+    "translation": "ürün anahtarı bulunamadı"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
+    "translation": "arayüz beklenen türde değil"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_patching_board",
+    "translation": "pano düzenlenirken sorun çıktı"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_no_board",
+    "translation": "hata herhangi bir pano oluşturulmadı"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
+    "translation": "pano kalıpları alınırken sorun çıktı"
+  },
+  {
+    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
+    "translation": "pano kopyalanırken sorun çıktı"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Oauth verileri kaldırılamadı."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Satış ekibi ile görüşün"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Günlük süzgeci geçersiz"
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "CWS sunucusu çalışma alanını silemedi."
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "Kalıplar komutu aygıtınız için desteklenmiyor."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "kalıplar"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "Kalıptan oluştur penceresini aç"
   }
 ]
