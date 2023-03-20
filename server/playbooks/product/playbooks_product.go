@@ -176,7 +176,6 @@ func newPlaybooksProduct(services map[product.ServiceKey]interface{}) (product.P
 	playbooks.config = config.NewConfigService(playbooks.serviceAdapter)
 	err = playbooks.config.UpdateConfiguration(func(c *config.Configuration) {
 		c.BotUserID = botID
-		c.AdminLogLevel = "debug"
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed save bot to config")
