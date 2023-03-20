@@ -11,10 +11,11 @@ import (
 
 // Bot stores the information for the plugin configuration, and implements the Poster interfaces.
 type Bot struct {
-	configService  config.Service
-	serviceAdapter playbooks.ServicesAPI
-	botUserID      string
-	telemetry      Telemetry
+	configService         config.Service
+	serviceAdapter        playbooks.ServicesAPI
+	botUserID             string
+	botUserCreationFailed error
+	telemetry             Telemetry
 }
 
 // Poster interface - a small subset of the plugin posting API.
@@ -64,6 +65,9 @@ type Poster interface {
 
 	// IsFromPoster returns whether the provided post was sent by this poster
 	IsFromPoster(post *model.Post) bool
+
+	// GetBotUserID returns the user id for the bot used by this poster, creating one if needed.
+	GetBotUserID() string
 }
 
 type Telemetry interface {
@@ -72,11 +76,12 @@ type Telemetry interface {
 }
 
 // New creates a new bot poster.
-func New(serviceAdapter playbooks.ServicesAPI, botUserID string, configService config.Service, telemetry Telemetry) *Bot {
+func New(serviceAdapter playbooks.ServicesAPI, configService config.Service, telemetry Telemetry) *Bot {
 	return &Bot{
-		serviceAdapter: serviceAdapter,
-		botUserID:      botUserID,
-		configService:  configService,
-		telemetry:      telemetry,
+		serviceAdapter:        serviceAdapter,
+		botUserID:             "",
+		botUserCreationFailed: nil,
+		configService:         configService,
+		telemetry:             telemetry,
 	}
 }

@@ -117,8 +117,6 @@ func (c *ServiceImpl) OnConfigurationChange() error {
 		return errors.Wrapf(err, "failed to load plugin configuration")
 	}
 
-	configuration.BotUserID = c.configuration.BotUserID
-
 	c.setConfiguration(configuration)
 
 	for _, f := range c.configChangeListeners {
