@@ -365,12 +365,8 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 	for _, imageURL := range imageURLs {
 		// prevent infinite loop if a OG image URL is the same post's permalink
 		resolvedURL := resolveMetadataURL(imageURL, a.GetSiteURL())
-		isPermalink := looksLikeAPermalink(resolvedURL, a.GetSiteURL())
-		if isPermalink {
-			referencedPostID := resolvedURL[len(resolvedURL)-26:]
-			if referencedPostID == post.Id {
-				continue
-			}
+		if looksLikeAPermalink(resolvedURL, a.GetSiteURL()) {
+			continue
 		}
 
 		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
