@@ -361,7 +361,7 @@ func (s *PlaybookRunServiceImpl) CreatePlaybookRun(playbookRun *PlaybookRun, pb 
 		}
 	}
 
-	err = s.AddParticipants(playbookRun.ID, invitedUserIDs, s.configService.GetConfiguration().BotUserID, false)
+	err = s.AddParticipants(playbookRun.ID, invitedUserIDs, s.poster.GetBotUserID(), false)
 	if err != nil {
 		logrus.WithError(err).WithFields(map[string]any{
 			"playbookRunId":  playbookRun.ID,
@@ -2405,21 +2405,21 @@ func (s *PlaybookRunServiceImpl) createPlaybookRunChannel(playbookRun *PlaybookR
 
 // addPlaybookRunInitialMemberships creates the memberships in run and channels for the most core users: playbooksbot, reporter and owner
 func (s *PlaybookRunServiceImpl) addPlaybookRunInitialMemberships(playbookRun *PlaybookRun, channel *model.Channel) error {
-	if _, err := s.api.CreateMember(channel.TeamId, s.configService.GetConfiguration().BotUserID); err != nil {
+	if _, err := s.api.CreateMember(channel.TeamId, s.poster.GetBotUserID()); err != nil {
 		return errors.Wrapf(err, "failed to add bot to the team")
 	}
 
 	// channel related
-	if _, err := s.api.AddMemberToChannel(channel.Id, s.configService.GetConfiguration().BotUserID); err != nil {
+	if _, err := s.api.AddMemberToChannel(channel.Id, s.poster.GetBotUserID()); err != nil {
 		return errors.Wrapf(err, "failed to add bot to the channel")
 	}
 
-	if _, err := s.api.AddUserToChannel(channel.Id, playbookRun.ReporterUserID, s.configService.GetConfiguration().BotUserID); err != nil {
+	if _, err := s.api.AddUserToChannel(channel.Id, playbookRun.ReporterUserID, s.poster.GetBotUserID()); err != nil {
 		return errors.Wrapf(err, "failed to add reporter to the channel")
 	}
 
 	if playbookRun.OwnerUserID != playbookRun.ReporterUserID {
-		if _, err := s.api.AddUserToChannel(channel.Id, playbookRun.OwnerUserID, s.configService.GetConfiguration().BotUserID); err != nil {
+		if _, err := s.api.AddUserToChannel(channel.Id, playbookRun.OwnerUserID, s.poster.GetBotUserID()); err != nil {
 			return errors.Wrapf(err, "failed to add owner to channel")
 		}
 	}

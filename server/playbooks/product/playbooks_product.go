@@ -163,25 +163,7 @@ func newPlaybooksProduct(services map[product.ServiceKey]interface{}) (product.P
 	playbooks.server = services[ServerKey].(*mmapp.Server)
 
 	playbooks.serviceAdapter = newServiceAPIAdapter(playbooks)
-	botID, err := playbooks.serviceAdapter.EnsureBot(&model.Bot{
-		Username:    "playbooks",
-		DisplayName: "Playbooks",
-		Description: "Playbooks bot.",
-		OwnerId:     "playbooks",
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to ensure bot")
-	}
-
 	playbooks.config = config.NewConfigService(playbooks.serviceAdapter)
-	err = playbooks.config.UpdateConfiguration(func(c *config.Configuration) {
-		c.BotUserID = botID
-		c.AdminLogLevel = "debug"
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed save bot to config")
-	}
-
 	playbooks.handler = api.NewHandler(playbooks.config)
 
 	if rudderDataplaneURL == "" || rudderWriteKey == "" {
@@ -216,7 +198,7 @@ func newPlaybooksProduct(services map[product.ServiceKey]interface{}) (product.P
 	playbooks.config.RegisterConfigChangeListener(toggleTelemetry)
 
 	apiClient := sqlstore.NewClient(playbooks.serviceAdapter)
-	playbooks.bot = bot.New(playbooks.serviceAdapter, playbooks.config.GetConfiguration().BotUserID, playbooks.config, playbooks.telemetryClient)
+	playbooks.bot = bot.New(playbooks.serviceAdapter, playbooks.config, playbooks.telemetryClient)
 	scheduler := cluster.GetJobOnceScheduler(playbooks.serviceAdapter)
 
 	sqlStore, err := sqlstore.New(apiClient, scheduler)
