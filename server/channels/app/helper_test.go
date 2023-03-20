@@ -177,14 +177,9 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
 	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-
-	pluginMock := mocks.PluginStore{}
-	pluginMock.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.PluginKeyValue{}, nil)
-
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	emptyMockStore.On("Plugin").Return(&pluginMock).Maybe()
 	th.App.Srv().SetStore(&emptyMockStore)
 
 	return th

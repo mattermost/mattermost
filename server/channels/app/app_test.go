@@ -41,6 +41,9 @@ func TestUnitUpdateConfig(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
+	pluginMock := mocks.PluginStore{}
+	pluginMock.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.PluginKeyValue{}, nil)
+
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
@@ -57,6 +60,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+	mockStore.On("Plugin").Return(&pluginMock).Maybe()
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
