@@ -172,8 +172,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         };
     };
 
-
-
     const isSubmitDisabled = () => {
         return (
             !name ||

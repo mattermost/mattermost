@@ -1,13 +1,15 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
-import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
+import {act, RenderResult, screen} from '@testing-library/react';
 import React from 'react';
-import { Provider } from 'react-redux';
+import {Provider} from 'react-redux';
 import mockStore from 'tests/test_store';
-import { ModalIdentifiers } from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 import StartTrialFormModal from '.';
-import { BrowserRouter } from 'react-router-dom';
-import { renderWithIntl } from 'tests/react_testing_utils';
-import { trackEvent } from 'actions/telemetry_actions';
+import {BrowserRouter} from 'react-router-dom';
+import {renderWithIntl} from 'tests/react_testing_utils';
+import {trackEvent} from 'actions/telemetry_actions';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');
@@ -18,7 +20,6 @@ jest.mock('actions/telemetry_actions.jsx', () => {
 });
 
 describe('components/start_trial_form_modal/start_trial_form_modal', () => {
-
     const state = {
         entities: {
             users: {
@@ -37,8 +38,8 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
                     Cloud: 'false',
                 },
                 config: {
-                    TelemetryId: 'test123'
-                }
+                    TelemetryId: 'test123',
+                },
             },
         },
         views: {
@@ -57,14 +58,12 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
         },
     };
 
-
     const handleOnClose = jest.fn();
 
     const props = {
         onClose: handleOnClose,
-        page: "some_modal",
+        page: 'some_modal',
     };
-
 
     test('should match snapshot', async () => {
         const store = await mockStore(state);
@@ -73,23 +72,22 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
             wrapper = await renderWithIntl(
                 <Provider store={store}>
                     <BrowserRouter>
-                        <StartTrialFormModal {...props} />
+                        <StartTrialFormModal {...props}/>
                     </BrowserRouter>
-                </Provider>,);
+                </Provider>);
         });
         expect(wrapper!).toMatchSnapshot();
     });
 
     test('should pre-fill email, fire trackEvent', async () => {
         const store = await mockStore(state);
-        let wrapper: RenderResult | HTMLElement | null;
         await act(async () => {
-            wrapper = await renderWithIntl(
-                <Provider store={store}>\
+            await renderWithIntl(
+                <Provider store={store}>
                     <BrowserRouter>
-                        <StartTrialFormModal {...props} />
+                        <StartTrialFormModal {...props}/>
                     </BrowserRouter>
-                </Provider>,);
+                </Provider>);
         });
         expect(screen.getByDisplayValue('test@mattermost.com')).toBeInTheDocument();
         expect(trackEvent).toHaveBeenCalled();
@@ -97,15 +95,14 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
 
     test('Start trial button should be disabled on load', async () => {
         const store = await mockStore(state);
-        let wrapper: RenderResult | HTMLElement | null;
         await act(async () => {
-            wrapper = await renderWithIntl(
-                <Provider store={store}>\
+            await renderWithIntl(
+                <Provider store={store}>
                     <BrowserRouter>
-                        <StartTrialFormModal {...props} />
+                        <StartTrialFormModal {...props}/>
                     </BrowserRouter>
-                </Provider>,);
+                </Provider>);
         });
-        expect(screen.getByRole('button', { name: 'Start trial' })).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Start trial'})).toBeDisabled();
     });
 });
