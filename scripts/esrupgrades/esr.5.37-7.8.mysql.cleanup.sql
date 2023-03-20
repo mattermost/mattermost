@@ -1,3 +1,8 @@
+/* Remove migration-related tables that are only updated through the server to track which
+   migrations have been applied */
+DROP TABLE IF EXISTS db_lock;
+DROP TABLE IF EXISTS db_migrations;
+
 /* Migration 000054_create_crt_channelmembership_count.up sets
    ChannelMembers.LastUpdateAt to the results of SELECT ROUND(UNIX_TIMESTAMP(NOW(3))*1000)
    which will be different each time the migration is run. Thus, the column will always be

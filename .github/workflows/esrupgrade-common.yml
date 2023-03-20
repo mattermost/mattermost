@@ -80,8 +80,6 @@ jobs:
           # Use --skip-opt to have each INSERT into one line.
           # Use --set-gtid-purged=OFF to suppress GTID-related statements.
           docker exec -i ghactions_mysql_1 mysqldump \
-            --ignore-table=mattermost_test.db_lock \
-            --ignore-table=mattermost_test.db_migrations \
             --skip-opt --set-gtid-purged=OFF \
             $MYSQL_CONN_ARGS > $DUMP_SERVER_NAME
       - name: Cleanup dump and compress
