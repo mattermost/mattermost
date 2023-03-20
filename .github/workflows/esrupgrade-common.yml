@@ -5,22 +5,21 @@ on:
       db-dump-url:
         required: true
         type: string
+      initial-version:
+        required: true
+        type: string
       final-version:
-        required: true
-        type: string
-      migration-script-path:
-        required: true
-        type: string
-      cleanup-script-path:
         required: true
         type: string
 env:
   COMPOSE_PROJECT_NAME: ghactions
   BUILD_IMAGE: mattermost/mattermost-enterprise-edition:${{ inputs.final-version }}
   MYSQL_CONN_ARGS: -h localhost -P 3306 --protocol=tcp -ummuser -pmostest mattermost_test
-  DUMP_SERVER_NAME: dump.${{ inputs.final-version }}.server.sql
-  DUMP_SCRIPT_NAME: dump.${{ inputs.final-version }}.script.sql
-  DIFF_NAME: diff.${{ inputs.final-version }}.sql
+  DUMP_SERVER_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.server.sql
+  DUMP_SCRIPT_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.script.sql
+  MIGRATION_SCRIPT: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.up.sql
+  CLEANUP_SCRIPT:   esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.cleanup.sql
+  DIFF_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.diff
 jobs:
   esr-upgrade-server:
     runs-on: ubuntu-latest-8-cores
@@ -72,7 +71,7 @@ jobs:
       - name: Cleanup DB
         run : |
           cd scripts/esrupgrades
-          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < ${{ inputs.cleanup-script-path }}
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database
         run: |
           # Ignore tables containing meta-information about the migrations (db_{lock,migrations}),
@@ -115,11 +114,11 @@ jobs:
       - name: Run migration through script
         run : |
           cd scripts/esrupgrades
-          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < ${{ inputs.migration-script-path }}
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $MIGRATION_SCRIPT
       - name: Cleanup DB
         run : |
           cd scripts/esrupgrades
-          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < ${{ inputs.cleanup-script-path }}
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database
         run: |
           docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > $DUMP_SCRIPT_NAME
