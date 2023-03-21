@@ -224,85 +224,138 @@ EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
 /* ==> mysql/000059_upgrade_users_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'Props'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE Users MODIFY COLUMN Props JSON;',
-    'SELECT 1'
-));
+/* ==> mysql/000074_upgrade_users_v6.3.up.sql <== */
+/* ==> mysql/000077_upgrade_users_v6.5.up.sql <== */
+/* ==> mysql/000088_remaining_migrations.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateUsers ()
+BEGIN
+	-- 'ALTER TABLE Users MODIFY COLUMN Props JSON;',
+	DECLARE ChangeProps BOOLEAN;
+	DECLARE ChangePropsQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE Users MODIFY COLUMN NotifyProps JSON;',
+	DECLARE ChangeNotifyProps BOOLEAN;
+	DECLARE ChangeNotifyPropsQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'NotifyProps'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE Users MODIFY COLUMN NotifyProps JSON;',
-    'SELECT 1'
-));
+	-- 'ALTER TABLE Users ALTER Timezone DROP DEFAULT;',
+	DECLARE DropTimezoneDefault BOOLEAN;
+	DECLARE DropTimezoneDefaultQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE Users MODIFY COLUMN Timezone JSON;',
+	DECLARE ChangeTimezone BOOLEAN;
+	DECLARE ChangeTimezoneQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'Timezone'
-        AND column_default IS NOT NULL
-    ) > 0,
-    'ALTER TABLE Users ALTER Timezone DROP DEFAULT;',
-    'SELECT 1'
-));
+	-- 'ALTER TABLE Users MODIFY COLUMN Roles text;',
+	DECLARE ChangeRoles BOOLEAN;
+	DECLARE ChangeRolesQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId;',
+	DECLARE DropTermsOfService BOOLEAN;
+	DECLARE DropTermsOfServiceQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'Timezone'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE Users MODIFY COLUMN Timezone JSON;',
-    'SELECT 1'
-));
+	-- 'ALTER TABLE Users DROP COLUMN AcceptedServiceTermsId;',
+	DECLARE DropServiceTerms BOOLEAN;
+	DECLARE DropServiceTermsQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE Users DROP COLUMN ThemeProps',
+	DECLARE DropThemeProps BOOLEAN;
+	DECLARE DropThemePropsQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'Roles'
-        AND column_type != 'text'
-    ) > 0,
-    'ALTER TABLE Users MODIFY COLUMN Roles text;',
-    'SELECT 1'
-));
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'Props'
+		AND LOWER(column_type) != 'json'
+		INTO ChangeProps;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'NotifyProps'
+		AND LOWER(column_type) != 'json'
+		INTO ChangeNotifyProps;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND column_default IS NOT NULL
+		INTO DropTimezoneDefault;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'Timezone'
+		AND LOWER(column_type) != 'json'
+		INTO ChangeTimezone;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'Roles'
+		AND LOWER(column_type) != 'text'
+		INTO ChangeRoles;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'AcceptedTermsOfServiceId'
+		INTO DropTermsOfService;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'AcceptedServiceTermsId'
+		INTO DropServiceTerms;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Users'
+		AND table_schema = DATABASE()
+		AND column_name = 'ThemeProps'
+		INTO DropThemeProps;
+
+	IF ChangeProps THEN
+		SET ChangePropsQuery = 'MODIFY COLUMN Props JSON';
+	END IF;
+
+	IF ChangeNotifyProps THEN
+		SET ChangeNotifyPropsQuery = 'MODIFY COLUMN NotifyProps JSON';
+	END IF;
+
+	IF DropTimezoneDefault THEN
+		SET DropTimezoneDefaultQuery = 'ALTER Timezone DROP DEFAULT';
+	END IF;
+
+	IF ChangeTimezone THEN
+		SET ChangeTimezoneQuery = 'MODIFY COLUMN Timezone JSON';
+	END IF;
+
+	IF ChangeRoles THEN
+		SET ChangeRolesQuery = 'MODIFY COLUMN Roles text';
+	END IF;
+
+	IF DropTermsOfService THEN
+		SET DropTermsOfServiceQuery = 'DROP COLUMN AcceptedTermsOfServiceId';
+	END IF;
+
+	IF DropServiceTerms THEN
+		SET DropServiceTermsQuery = 'DROP COLUMN AcceptedServiceTermsId';
+	END IF;
+
+	IF DropThemeProps THEN
+		INSERT INTO Preferences(UserId, Category, Name, Value) SELECT Id, '', '', ThemeProps FROM Users WHERE Users.ThemeProps != 'null';
+		SET DropThemePropsQuery = 'DROP COLUMN ThemeProps';
+	END IF;
+
+	IF ChangeProps OR ChangeNotifyProps OR DropTimezoneDefault OR ChangeTimezone OR ChangeRoles OR DropTermsOfService OR DropServiceTerms OR DropThemeProps THEN
+		SET @query = CONCAT('ALTER TABLE Users ', CONCAT_WS(', ', ChangePropsQuery, ChangeNotifyPropsQuery, DropTimezoneDefaultQuery, ChangeTimezoneQuery, ChangeRolesQuery, DropTermsOfServiceQuery, DropServiceTermsQuery, DropThemePropsQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateUsers ();
+DROP PROCEDURE IF EXISTS MigrateUsers;
 
 /* ==> mysql/000060_upgrade_jobs_v6.0.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -696,45 +749,6 @@ PREPARE alterTypeIfExists FROM @preparedStatement;
 EXECUTE alterTypeIfExists;
 DEALLOCATE PREPARE alterTypeIfExists;
 
-/* ==> mysql/000074_upgrade_users_v6.3.up.sql <== */
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'AcceptedTermsOfServiceId'
-    ) > 0,
-    'ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId;',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
-
-/* ==> mysql/000075_alter_upload_sessions_index.up.sql <== */
-DELIMITER //
-CREATE PROCEDURE AlterIndex()
-BEGIN
-    DECLARE columnName varchar(26) default '';
-
-    SELECT IFNULL(GROUP_CONCAT(column_name ORDER BY seq_in_index), '') INTO columnName
-    FROM information_schema.statistics
-    WHERE table_schema = DATABASE()
-    AND table_name = 'UploadSessions'
-    AND index_name = 'idx_uploadsessions_user_id'
-    GROUP BY index_name;
-
-    IF columnName = 'Type' THEN
-        DROP INDEX idx_uploadsessions_user_id ON UploadSessions;
-        CREATE INDEX idx_uploadsessions_user_id ON UploadSessions(UserId);
-    END IF;
-END//
-DELIMITER ;
-CALL AlterIndex();
-DROP PROCEDURE IF EXISTS AlterIndex;
-
 /* ==> mysql/000076_upgrade_lastrootpostat.up.sql <== */
 DELIMITER //
 CREATE PROCEDURE Migrate_LastRootPostAt_Default ()
@@ -787,19 +801,6 @@ END//
 DELIMITER ;
 CALL Migrate_LastRootPostAt_Fix ();
 DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Fix;
-
-/* ==> mysql/000077_upgrade_users_v6.5.up.sql <== */
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'AcceptedServiceTermsId'
-    ) > 0,
-    'ALTER TABLE Users DROP COLUMN AcceptedServiceTermsId;',
-    'SELECT 1'
-));
 
 PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
@@ -985,39 +986,6 @@ DEALLOCATE PREPARE createIndexIfNotExists;
 DROP TABLE IF EXISTS JobStatuses;
 
 DROP TABLE IF EXISTS PasswordRecovery;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'ThemeProps'
-    ) > 0,
-    'INSERT INTO Preferences(UserId, Category, Name, Value) SELECT Id, \'\', \'\', ThemeProps FROM Users WHERE Users.ThemeProps != \'null\'',
-    'SELECT 1'
-));
-
-PREPARE migrateTheme FROM @preparedStatement;
-EXECUTE migrateTheme;
-DEALLOCATE PREPARE migrateTheme;
-
--- We have to do this twice because the prepared statement doesn't support multiple SQL queries
--- in a single string.
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'ThemeProps'
-    ) > 0,
-    'ALTER TABLE Users DROP COLUMN ThemeProps',
-    'SELECT 1'
-));
-
-PREPARE migrateTheme FROM @preparedStatement;
-EXECUTE migrateTheme;
-DEALLOCATE PREPARE migrateTheme;
 
 /* ==> mysql/000089_add-channelid-to-reaction.up.sql <== */
 SET @preparedStatement = (SELECT IF(
