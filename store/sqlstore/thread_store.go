@@ -745,9 +745,7 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		From("ThreadMemberships").
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
-		Where(sq.And{
-			sq.Eq{"ThreadMemberships.UserId": userId},
-		})
+		Where(sq.Eq{"ThreadMemberships.UserId": userId})
 
 	err := s.GetReplicaX().SelectBuilder(&memberships, query)
 	if err != nil {
