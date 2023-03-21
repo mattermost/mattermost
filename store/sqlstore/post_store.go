@@ -3038,7 +3038,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	if err != nil {
 		return err
 	}
-
 	threadByRoot := map[string]*model.Thread{}
 	for _, thread := range threadsByRoots {
 		threadByRoot[thread.PostId] = thread

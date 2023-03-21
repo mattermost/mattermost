@@ -29,6 +29,7 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
 	t.Run("GetTopThreads", func(t *testing.T) { testGetTopThreads(t, ss) })
 	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, ss) })
+	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, ss store.Store) {
@@ -1912,5 +1913,118 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 		assertThreadReplyCount(t, userBID, team1.Id, 0, "expected 0 unread messages in team1 for userB")
 		assertThreadReplyCount(t, userAID, team2.Id, 1, "expected 1 unread message in team2 for userA")
 		assertThreadReplyCount(t, userBID, team2.Id, 1, "expected 1 unread message in team2 for userB")
+	})
+}
+
+func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
+	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+		return mem
+	}
+
+	postingUserID := model.NewId()
+	userAID := model.NewId()
+	userBID := model.NewId()
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel1" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	channel2, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName2",
+		Name:        "channel2" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	rootPost1, err := ss.Post().Save(&model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost1.Id,
+	})
+	require.NoError(t, err)
+
+	rootPost2, err := ss.Post().Save(&model.Post{
+		ChannelId: channel2.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: channel2.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost2.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("should return memberships for user", func(t *testing.T) {
+		memA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost1.Id)
+		memA2 := createThreadMembership(userAID, rootPost2.Id)
+
+		membershipsA, err := ss.Thread().GetMembershipsForUser(userAID, team.Id)
+		require.NoError(t, err)
+
+		require.Len(t, membershipsA, 2)
+		require.ElementsMatch(t, []*model.ThreadMembership{memA1, memA2}, membershipsA)
+	})
+
+	t.Run("should delete memberships for user for channel", func(t *testing.T) {
+		createThreadMembership(userAID, rootPost1.Id)
+		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost1.Id)
+		memA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost2.Id)
+
+		ss.Thread().DeleteMembershipsForChannel(userAID, channel1.Id)
+		membershipsA, err := ss.Thread().GetMembershipsForUser(userAID, team.Id)
+		require.NoError(t, err)
+
+		require.Len(t, membershipsA, 1)
+		require.ElementsMatch(t, []*model.ThreadMembership{memA2}, membershipsA)
+	})
+
+	t.Run("deleting memberships for channel for userA should affect userB", func(t *testing.T) {
+		createThreadMembership(userAID, rootPost1.Id)
+		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost1.Id)
+		createThreadMembership(userAID, rootPost2.Id)
+		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost2.Id)
+		memB1 := createThreadMembership(userBID, rootPost1.Id)
+		defer ss.Thread().DeleteMembershipForUser(userBID, rootPost1.Id)
+
+		membershipsB, err := ss.Thread().GetMembershipsForUser(userBID, team.Id)
+		require.NoError(t, err)
+
+		require.Len(t, membershipsB, 1)
+		require.ElementsMatch(t, []*model.ThreadMembership{memB1}, membershipsB)
 	})
 }

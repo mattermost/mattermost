@@ -9144,6 +9144,22 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 	return err
 }
 
+func (s *TimerLayerThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.DeleteMembershipsForChannel(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipsForChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
 	start := time.Now()
 
@@ -9494,38 +9510,6 @@ func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies", success, elapsed)
 	}
 	return result, resultVar1, err
-}
-
-func (s *TimerLayerThreadStore) ReinstateMembershipsForChannel(userID string, channelID string) error {
-	start := time.Now()
-
-	err := s.ThreadStore.ReinstateMembershipsForChannel(userID, channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.ReinstateMembershipsForChannel", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerThreadStore) RemoveMembershipsForChannel(userID string, channelID string) error {
-	start := time.Now()
-
-	err := s.ThreadStore.RemoveMembershipsForChannel(userID, channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.RemoveMembershipsForChannel", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
