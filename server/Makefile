@@ -463,8 +463,8 @@ endif
 
 test-server-race: test-server-pre
 	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
 	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -477,8 +477,8 @@ endif
 
 test-server: test-server-pre
 	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
 	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -497,14 +497,14 @@ test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=true $(GO) MM_FEATUREFLAGS_BoardsProduct=false test $(GOFLAGS) -short $(EE_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false test $(GO) $(GOFLAGS) -short $(EE_PACKAGES)
 else
 	@echo Running only TE tests
 	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
 endif
 
 internal-test-web-client: ## Runs web client tests.
