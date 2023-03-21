@@ -132,7 +132,7 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 	filteredList := make([]*model.BundleInfo, 0, len(rawList))
 	for _, bundleInfo := range rawList {
 		if PluginIDIsBlocked(bundleInfo.Manifest.Id) {
-			env.logger.Debug("Plugin ignored by blocklist", mlog.String("pluginid", bundleInfo.Manifest.Id))
+			env.logger.Debug("Plugin ignored by blocklist", mlog.String("plugin_id", bundleInfo.Manifest.Id))
 		} else {
 			filteredList = append(filteredList, bundleInfo)
 		}
