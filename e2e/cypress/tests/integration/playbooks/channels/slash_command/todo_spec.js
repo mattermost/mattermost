@@ -204,7 +204,7 @@ describe('channels > slash command > todo', () => {
             cy.visit(`/${team2.name}/channels/town-square`);
 
             // # Run a slash command to show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             cy.getLastPost().within((post) => {
                 // * Should show titles
@@ -233,7 +233,7 @@ describe('channels > slash command > todo', () => {
             cy.visit(`/${team2.name}/channels/town-square`);
 
             // # Run a slash command to show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             cy.getLastPost().within((post) => {
                 // * Should show titles
@@ -265,7 +265,7 @@ describe('channels > slash command > todo', () => {
             cy.apiSetChecklistItemState(run3.id, 1, 0, 'closed');
 
             // # Show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             // * Should show 2 tasks
             cy.getLastPost().within((post) => {
@@ -308,7 +308,7 @@ describe('channels > slash command > todo', () => {
             cy.visit(`/${team2.name}/messages/@playbooks`);
 
             // # Run a slash command to show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             // # Should show two runs overdue -- ignoring the rest
             cy.getLastPost().within(() => {

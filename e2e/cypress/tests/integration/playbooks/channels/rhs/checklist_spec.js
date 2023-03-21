@@ -276,7 +276,7 @@ describe('channels > rhs > checklist', () => {
         it('add new task slash command', () => {
             const newTasktext = 'Task from slash command' + Date.now();
 
-            cy.executeSlashCommand(`/playbook checkadd 0 ${newTasktext}`);
+            cy.uiPostMessageQuickly(`/playbook checkadd 0 ${newTasktext}`);
 
             // Check that it was created
             cy.findByText(newTasktext).should('exist');

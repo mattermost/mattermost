@@ -66,10 +66,6 @@ describe('runs > run details page > status update', () => {
             // # Visit the playbook run
             cy.visit(`/playbooks/runs/${playbookRun.id}`);
 
-            // # Intercept these graphQL requests for wait()'s
-            // # that help ensure rendering has finished.
-            cy.gqlInterceptQuery('PlaybookLHS');
-            cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
             cy.assertRunDetailsPageRenderComplete(testUser.username);
         });
     });
@@ -149,7 +145,6 @@ describe('runs > run details page > status update', () => {
                 cy.apiFinishRun(testRun.id).then(() => {
                     // # reload url
                     cy.visit(`/playbooks/runs/${testRun.id}`);
-                    cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
                     cy.assertRunDetailsPageRenderComplete(testUser.username);
 
                     // # Click on kebab menu
@@ -210,7 +205,6 @@ describe('runs > run details page > status update', () => {
         beforeEach(() => {
             cy.apiLogin(testViewerUser).then(() => {
                 cy.visit(`/playbooks/runs/${testRun.id}`);
-                cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
                 cy.assertRunDetailsPageRenderComplete(testUser.username);
             });
         });
@@ -240,7 +234,6 @@ describe('runs > run details page > status update', () => {
             // # Login as participant
             cy.apiLogin(testUser).then(() => {
                 cy.visit(`/playbooks/runs/${testRun.id}`);
-                cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
                 cy.assertRunDetailsPageRenderComplete(testUser.username);
             });
 
@@ -263,7 +256,6 @@ describe('runs > run details page > status update', () => {
 
             cy.apiLogin(testViewerUser).then(() => {
                 cy.visit(`/playbooks/runs/${testRun.id}`);
-                cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
                 cy.assertRunDetailsPageRenderComplete(testUser.username);
 
                 // * Check new due date

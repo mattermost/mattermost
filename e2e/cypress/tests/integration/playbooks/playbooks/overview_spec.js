@@ -8,6 +8,7 @@
 
 // Stage: @prod
 // Group: @playbooks
+
 import {stubClipboard} from '../../../utils';
 
 describe('playbooks > overview', () => {
@@ -440,10 +441,6 @@ describe('playbooks > overview', () => {
                 // # Select channel
                 cy.findByText('Select a channel').click().type('Town{enter}');
             });
-
-            // # Wait updated playbook to be fetched
-            cy.gqlInterceptQuery('Playbook');
-            cy.wait('@gqlPlaybook');
 
             // # Click Run Playbook
             cy.findByTestId('run-playbook').click({force: true});

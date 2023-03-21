@@ -1240,7 +1240,7 @@ describe('playbooks > edit', () => {
                     cy.visit(`/${testTeam.name}/channels/${testPrivateChannel.name}`);
 
                     // # Leave the private channel
-                    cy.executeSlashCommand('/leave');
+                    cy.uiPostMessageQuickly('/leave');
                     cy.get('#confirmModalButton').click();
 
                     // # Visit the selected playbook

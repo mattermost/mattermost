@@ -481,11 +481,3 @@ const doGraphqlQuery = (query, operationName, variables) => {
         method: 'POST',
     });
 };
-
-Cypress.Commands.add('gqlInterceptQuery', (operationName) => {
-    cy.intercept('/plugins/playbooks/api/v0/query', (req) => {
-        if (req.body?.operationName === operationName) {
-            req.alias = `gql${operationName}`;
-        }
-    });
-});
