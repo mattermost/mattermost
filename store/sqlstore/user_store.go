@@ -1312,7 +1312,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 	}
 
 	if !options.IncludeRemoteUsers {
-		query = query.Where("u.RemoteId = '' || u.RemoteId IS NULL")
+		query = query.Where(sq.Or{sq.Eq{"u.RemoteId": ""}, sq.Eq{"u.RemoteId": nil}})
 	}
 
 	if options.IncludeBotAccounts {
@@ -1361,12 +1361,16 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
 	}
 
+	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id")
+	}
+
 	if !options.IncludeRemoteUsers {
-		query = query.Where("Users.RemoteId = '' || Users.RemoteId IS NULL")
+		query = query.Where(sq.Or{sq.Eq{"Users.RemoteId": ""}, sq.Eq{"Users.RemoteId": nil}})
 	}
 
 	if !options.IncludeDeleted {
-		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+		query = query.Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
@@ -1390,12 +1394,16 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
 	}
 
+	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id")
+	}
+
 	if !options.IncludeRemoteUsers {
-		query = query.Where("Users.RemoteId = '' || Users.RemoteId IS NULL")
+		query = query.Where(sq.Or{sq.Eq{"Users.RemoteId": ""}, sq.Eq{"Users.RemoteId": nil}})
 	}
 
 	if !options.IncludeDeleted {
-		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+		query = query.Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
