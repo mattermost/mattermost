@@ -1226,6 +1226,7 @@ CREATE TABLE IF NOT EXISTS PostAcknowledgements (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /* ==> mysql/000099_create_drafts.up.sql <== */
+/* ==> mysql/000100_add_draft_priority_column.up.sql <== */
 CREATE TABLE IF NOT EXISTS Drafts (
     CreateAt bigint(20) DEFAULT NULL,
     UpdateAt bigint(20) DEFAULT NULL,
@@ -1236,24 +1237,9 @@ CREATE TABLE IF NOT EXISTS Drafts (
     Message text,
     Props text,
     FileIds text,
+	Priority text,
     PRIMARY KEY (UserId, ChannelId, RootId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-/* ==> mysql/000100_add_draft_priority_column.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Drafts'
-        AND table_schema = DATABASE()
-        AND column_name = 'Priority'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE Drafts ADD COLUMN Priority text;'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000101_create_true_up_review_history.up.sql <== */
 CREATE TABLE IF NOT EXISTS TrueUpReviewHistory (
