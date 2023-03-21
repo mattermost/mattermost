@@ -19,18 +19,9 @@ Cypress.Commands.add('startPlaybookRun', (playbookName, playbookRunName) => {
     cy.get('#interactiveDialogModal').should('not.exist');
 });
 
-// Runs the given slash command
-Cypress.Commands.add('executeSlashCommand', (command) => {
-    cy.findByTestId('post_textbox').clear().type(command);
-
-    // Using esc to make sure we exit out of slash command autocomplete
-    cy.findByTestId('post_textbox').type('{esc}{esc}{esc}{esc}', {delay: TIMEOUTS.TWO_HUNDRED_MILLIS});
-    cy.findByTestId('post_textbox').type('{enter}');
-});
-
 // Opens playbook run dialog using the `/playbook run` slash command
 Cypress.Commands.add('openPlaybookRunDialogFromSlashCommand', () => {
-    cy.executeSlashCommand(playbookRunStartCommand);
+    cy.uiPostMessageQuickly(playbookRunStartCommand);
 });
 
 // Starts playbook run with the `/playbook run` slash command
@@ -176,7 +167,7 @@ Cypress.Commands.add('selectReminderTime', (timeText) => {
  */
 Cypress.Commands.add('updateStatus', (message, reminderQuery) => {
     // # Run the slash command to update status.
-    cy.executeSlashCommand('/playbook update');
+    cy.uiPostMessageQuickly('/playbook update');
 
     // # Get the interactive dialog modal.
     cy.getStatusUpdateDialog().within(() => {

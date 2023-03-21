@@ -8,7 +8,9 @@
 
 // Stage: @prod
 // Group: @playbooks
+
 import {stubClipboard} from '../../../utils';
+import {HALF_MIN} from '../../../fixtures/timeouts';
 
 describe('playbooks > overview', () => {
     let testTeam;
@@ -443,7 +445,7 @@ describe('playbooks > overview', () => {
 
             // # Wait updated playbook to be fetched
             cy.gqlInterceptQuery('Playbook');
-            cy.wait('@gqlPlaybook');
+            cy.wait('@gqlPlaybook', {timeouts: HALF_MIN});
 
             // # Click Run Playbook
             cy.findByTestId('run-playbook').click({force: true});

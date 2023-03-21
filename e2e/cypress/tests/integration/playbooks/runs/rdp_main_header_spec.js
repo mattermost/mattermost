@@ -12,6 +12,7 @@
 /* eslint-disable no-only-tests/no-only-tests */
 
 import {stubClipboard} from '../../../utils';
+import {HALF_MIN} from '../../../fixtures/timeouts';
 
 describe('runs > run details page > header', () => {
     let testTeam;
@@ -658,7 +659,7 @@ describe('runs > run details page > header', () => {
 
                             // # Visit the playbook run
                             cy.visit(`/playbooks/runs/${run.id}`);
-                            cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
+                            cy.wait('@gqlPlaybookLHS', {timeout: HALF_MIN});
                             cy.assertRunDetailsPageRenderComplete(testUser.username);
 
                             // * Assert that component is rendered
@@ -790,7 +791,7 @@ describe('runs > run details page > header', () => {
 
                             // # Visit the playbook run
                             cy.visit(`/playbooks/runs/${run.id}`);
-                            cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
+                            cy.wait('@gqlPlaybookLHS', {timeout: HALF_MIN});
                             cy.assertRunDetailsPageRenderComplete(testUser.username);
 
                             // * Assert that component is rendered
@@ -883,7 +884,7 @@ const waitToLoadLHS = (username) => {
     // # Intercept these graphQL requests for wait()'s
     // # that help ensure rendering has finished.
     cy.gqlInterceptQuery('PlaybookLHS');
-    cy.wait('@gqlPlaybookLHS').wait('@gqlPlaybookLHS');
+    cy.wait('@gqlPlaybookLHS', {timeout: HALF_MIN});
     cy.assertRunDetailsPageRenderComplete(username);
 };
 
