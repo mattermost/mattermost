@@ -1834,6 +1834,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.check_user_mfa.bad_code.app_error",
 			"api.user.login.blank_pwd.app_error",
 			"api.user.login.bot_login_forbidden.app_error",
+			"api.user.login.remote_users.login.error",
 			"api.user.login.client_side_cert.certificate.app_error",
 			"api.user.login.inactive.app_error",
 			"api.user.login.not_verified.app_error",
