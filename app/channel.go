@@ -2519,7 +2519,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
-		return model.NewAppError("removeUserFromChannel", "app.thread.remove_membership.app_error.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("removeUserFromChannel", model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if isGuest {
