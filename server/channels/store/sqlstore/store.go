@@ -49,8 +49,8 @@ const (
 	MySQLForeignKeyViolationErrorCode = 1452
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
-	DBPingAttempts                    = 18
-	DBPingTimeoutSecs                 = 10
+	DBPingAttempts                    = 3
+	DBPingTimeoutSecs                 = 5
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
