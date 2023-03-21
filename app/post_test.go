@@ -309,7 +309,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 	post.Message = model.NewId()
 	_, err = th.App.UpdatePost(th.Context, post, true)
-	require.NotNil(t, err, "should fail on update old post")
+	require.Nil(t, err, "should allow you to edit an old post because the time check is applied above in the call hierarchy")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1

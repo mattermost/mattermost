@@ -321,6 +321,21 @@ func (l *License) HasEnterpriseMarketplacePlugins() bool {
 		l.SkuShortName == LicenseShortSkuEnterprise
 }
 
+func (l *License) HasRemoteClusterService() bool {
+	if l == nil {
+		return false
+	}
+
+	// If SharedChannels is enabled then RemoteClusterService must be enabled.
+	if l.HasSharedChannels() {
+		return true
+	}
+
+	return (l.Features != nil && l.Features.RemoteClusterService != nil && *l.Features.RemoteClusterService) ||
+		l.SkuShortName == LicenseShortSkuProfessional ||
+		l.SkuShortName == LicenseShortSkuEnterprise
+}
+
 func (l *License) HasSharedChannels() bool {
 	if l == nil {
 		return false

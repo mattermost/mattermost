@@ -10001,5 +10001,9 @@
   {
     "id": "api.server.cws.delete_workspace.app_error",
     "translation": "CWS Server failed to delete workspace."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Contact Sales"
   }
 ]
