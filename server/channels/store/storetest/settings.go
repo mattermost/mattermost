@@ -60,7 +60,7 @@ func getDefaultPostgresqlDSN() string {
 	if os.Getenv("IS_CI") == "true" {
 		return strings.ReplaceAll(defaultPostgresqlDSN, "localhost", "postgres")
 	}
-	return defaultMysqlDSN
+	return defaultPostgresqlDSN
 }
 
 // MySQLSettings returns the database settings to connect to the MySQL unittesting database.
