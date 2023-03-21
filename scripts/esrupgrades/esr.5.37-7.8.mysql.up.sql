@@ -517,25 +517,51 @@ CALL MigrateUsers ();
 DROP PROCEDURE IF EXISTS MigrateUsers;
 
 /* ==> mysql/000060_upgrade_jobs_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Jobs'
-        AND table_schema = DATABASE()
-        AND column_name = 'Data'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE Jobs MODIFY COLUMN Data JSON;',
-    'SELECT 1'
-));
+/* ==> mysql/000069_upgrade_jobs_v6.1.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateJobs ()
+BEGIN
+	-- 'ALTER TABLE Jobs MODIFY COLUMN Data JSON;',
+	DECLARE ModifyData BOOLEAN;
+	DECLARE ModifyDataQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'CREATE INDEX idx_jobs_status_type ON Jobs(Status, Type);'
+	DECLARE CreateIndex BOOLEAN;
+	DECLARE CreateIndexQuery TEXT DEFAULT NULL;
 
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Jobs'
+		AND table_schema = DATABASE()
+		AND column_name = 'Data'
+		AND LOWER(column_type) != 'JSON'
+		INTO ModifyData;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Jobs'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_jobs_status_type'
+		INTO CreateIndex;
+
+	IF ModifyData THEN
+		SET ModifyDataQuery = 'MODIFY COLUMN Data JSON';
+	END IF;
+
+	IF CreateIndex THEN
+		SET CreateIndexQuery = 'ADD INDEX idx_jobs_status_type (Status, Type)';
+	END IF;
+
+	IF ModifyData OR CreateIndex THEN
+		SET @query = CONCAT('ALTER TABLE Jobs ', CONCAT_WS(', ', ModifyDataQuery, CreateIndexQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateJobs ();
+DROP PROCEDURE IF EXISTS MigrateJobs;
 
 /* ==> mysql/000061_upgrade_link_metadata_v6.0.up.sql <== */
-
 SET @preparedStatement = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
@@ -823,22 +849,6 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
-
-/* ==> mysql/000069_upgrade_jobs_v6.1.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Jobs'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_jobs_status_type'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_jobs_status_type ON Jobs(Status, Type);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
 
 /* ==> mysql/000071_upgrade_sessions_v6.1.up.sql <== */
 SET @preparedStatement = (SELECT IF(
