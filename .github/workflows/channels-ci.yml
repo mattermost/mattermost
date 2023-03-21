@@ -146,6 +146,8 @@ jobs:
           make node_modules
           # make channels/e2e/playwright/node_modules
       - name: ci/test
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
         run: |
           # npm run test-ci --workspace=boards
           npm run test-ci --workspace=channels
