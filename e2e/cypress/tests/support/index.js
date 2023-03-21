@@ -151,6 +151,11 @@ before(() => {
     });
 });
 
+beforeEach(() => {
+    // Temporary fix for error related to this.get('prev') being undefined with @testing-library/cypress@9.0.0
+    cy.then(() => null);
+});
+
 function printLicenseStatus() {
     cy.apiGetClientLicense().then(({license}) => {
         cy.log(`Server License:

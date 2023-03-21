@@ -10,7 +10,7 @@ on:
         type: string
 jobs:
   run-tests:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     env:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5

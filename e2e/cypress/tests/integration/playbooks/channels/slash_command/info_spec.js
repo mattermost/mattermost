@@ -80,7 +80,7 @@ describe('channels > slash command > info', () => {
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
             // # Run a slash command to show the playbook run's info.
-            cy.executeSlashCommand('/playbook info');
+            cy.uiPostMessageQuickly('/playbook info');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('This command only works when run from a playbook run channel.');
@@ -97,7 +97,7 @@ describe('channels > slash command > info', () => {
             cy.get('#rhsContainer').should('not.exist');
 
             // # Run a slash command to show the playbook run's info.
-            cy.executeSlashCommand('/playbook info');
+            cy.uiPostMessageQuickly('/playbook info');
 
             // * Verify that the RHS is now open.
             cy.get('#rhsContainer').should('be.visible');
@@ -111,7 +111,7 @@ describe('channels > slash command > info', () => {
             cy.get('#rhsContainer').should('be.visible');
 
             // # Run a slash command to show the playbook run's info.
-            cy.executeSlashCommand('/playbook info');
+            cy.uiPostMessageQuickly('/playbook info');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Your playbook run details are already open in the right hand side of the channel.');

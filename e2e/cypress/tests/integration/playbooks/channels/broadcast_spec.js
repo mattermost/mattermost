@@ -362,9 +362,17 @@ const deleteLatestPostRoot = (testTeam, channelName) => {
 
                     // # Click delete button.
                     const id = `#delete_post_${rootId}`;
-                    cy.get(id).click();
+                    cy.wrap(id).as('deleteId');
                 });
             });
+
+        // * Post extra options is visible
+        cy.findByLabelText('Post extra options').should('exist');
+
+        // # Click delete button.
+        cy.get('@deleteId').then((deleteId) => {
+            cy.get(deleteId).should('be.visible').click();
+        });
 
         // * Check that confirmation dialog is open.
         cy.get('#deletePostModal').should('be.visible');
