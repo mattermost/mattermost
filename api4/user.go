@@ -1934,6 +1934,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if user.IsRemote() {
+		c.Err = model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+		return
+	}
+
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
 	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
