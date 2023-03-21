@@ -32,7 +32,7 @@ jobs:
           docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - name: Run Tests
         run: |
-          if [[ ${{ github.event_name }} == 'push' ]]; then
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
           fi
           mkdir -p client/plugins
