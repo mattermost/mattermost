@@ -9,8 +9,6 @@
 // Stage: @prod
 // Group: @playbooks
 
-import {HALF_MIN} from '../../../fixtures/timeouts';
-
 describe('Task Inbox >', () => {
     let testTeam;
     let testUser;
@@ -77,8 +75,6 @@ describe('Task Inbox >', () => {
         cy.apiLogin(testUser);
 
         cy.visit(`/playbooks/runs/${testRun.id}`);
-        cy.gqlInterceptQuery('PlaybookLHS');
-        cy.wait('@gqlPlaybookLHS', {timeout: HALF_MIN});
         cy.assertRunDetailsPageRenderComplete(testUser.username);
     });
 

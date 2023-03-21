@@ -10,7 +10,6 @@
 // Group: @playbooks
 
 import {stubClipboard} from '../../../utils';
-import {HALF_MIN} from '../../../fixtures/timeouts';
 
 describe('playbooks > overview', () => {
     let testTeam;
@@ -442,10 +441,6 @@ describe('playbooks > overview', () => {
                 // # Select channel
                 cy.findByText('Select a channel').click().type('Town{enter}');
             });
-
-            // # Wait updated playbook to be fetched
-            cy.gqlInterceptQuery('Playbook');
-            cy.wait('@gqlPlaybook', {timeouts: HALF_MIN});
 
             // # Click Run Playbook
             cy.findByTestId('run-playbook').click({force: true});
