@@ -122,8 +122,11 @@ func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
 			"TABLE_NAME": s.tablePrefix + "schema_migrations",
 		})
 
-	if s.dbType == model.MysqlDBType {
+	switch s.dbType {
+	case model.MysqlDBType:
 		query = query.Where(sq.Eq{"TABLE_SCHEMA": s.schemaName})
+	case model.PostgresDBType:
+		query = query.Where(sq.Eq{"TABLE_SCHEMA": "current_schema()"})
 	}
 
 	rows, err := query.Query()
