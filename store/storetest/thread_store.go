@@ -1917,7 +1917,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 }
 
 func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
-	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
+	createThreadMembership := func(userID, postID string) (*model.ThreadMembership, func()) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
@@ -1928,7 +1928,11 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 		}
 		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
-		return mem
+
+		return mem, func() {
+			err := ss.Thread().DeleteMembershipForUser(userID, postID)
+			require.NoError(t, err)
+		}
 	}
 
 	postingUserID := model.NewId()
@@ -1988,9 +1992,10 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("should return memberships for user", func(t *testing.T) {
-		memA1 := createThreadMembership(userAID, rootPost1.Id)
-		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost1.Id)
-		memA2 := createThreadMembership(userAID, rootPost2.Id)
+		memA1, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer cleanupA1()
+		memA2, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer cleanupA2()
 
 		membershipsA, err := ss.Thread().GetMembershipsForUser(userAID, team.Id)
 		require.NoError(t, err)
@@ -2000,10 +2005,10 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("should delete memberships for user for channel", func(t *testing.T) {
-		createThreadMembership(userAID, rootPost1.Id)
-		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost1.Id)
-		memA2 := createThreadMembership(userAID, rootPost2.Id)
-		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost2.Id)
+		_, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer cleanupA1()
+		memA2, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer cleanupA2()
 
 		ss.Thread().DeleteMembershipsForChannel(userAID, channel1.Id)
 		membershipsA, err := ss.Thread().GetMembershipsForUser(userAID, team.Id)
@@ -2014,12 +2019,12 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("deleting memberships for channel for userA should affect userB", func(t *testing.T) {
-		createThreadMembership(userAID, rootPost1.Id)
-		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost1.Id)
-		createThreadMembership(userAID, rootPost2.Id)
-		defer ss.Thread().DeleteMembershipForUser(userAID, rootPost2.Id)
-		memB1 := createThreadMembership(userBID, rootPost1.Id)
-		defer ss.Thread().DeleteMembershipForUser(userBID, rootPost1.Id)
+		_, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer cleanupA1()
+		_, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer cleanupA2()
+		memB1, cleanupB2 := createThreadMembership(userBID, rootPost1.Id)
+		defer cleanupB2()
 
 		membershipsB, err := ss.Thread().GetMembershipsForUser(userBID, team.Id)
 		require.NoError(t, err)
