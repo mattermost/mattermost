@@ -267,7 +267,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 
 	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
 	defer a.LogAuditRec(auditRec, nil)
-	auditRec.AddMeta("session", session)
+	auditRec.AddEventPriorState(session)
 
 	newExpiry := now + sessionLength
 	if err := a.ch.srv.platform.ExtendSessionExpiry(session, newExpiry); err != nil {
@@ -280,7 +280,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
 
 	auditRec.Success()
-	auditRec.AddMeta("extended_session", session)
+	auditRec.AddEventResultState(session)
 	return true
 }
 
