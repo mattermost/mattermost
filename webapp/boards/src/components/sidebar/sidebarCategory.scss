@@ -2,6 +2,9 @@
     margin-top: 12px;
     width: calc(100% - 4px);
 
+    .Dialog {
+        color:rgba(var(--center-channel-color-rgb))
+    }
     &:first-child {
         margin-top: 0;
     }
