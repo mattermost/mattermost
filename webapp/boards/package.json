@@ -22,7 +22,7 @@
 		"test": "jest --forceExit --detectOpenHandles --verbose",
 		"test:watch": "jest --watch",
 		"test:updatesnapshot": "jest --updateSnapshot",
-		"test-ci": "jest --forceExit --detectOpenHandles --maxWorkers=2",
+		"test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
 		"clean": "rm -rf node_modules .eslintcache"
 	},
 	"dependencies": {
