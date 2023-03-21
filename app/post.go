@@ -1308,9 +1308,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	pluginPost := post.ForPlugin()
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.Log().Error("Running DELETE HOOKS.")
 		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			a.Log().Error("Running DELETE HOOKS", mlog.Any("hooks", hooks))
 			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
 			return true
 		}, plugin.MessageHasBeenDeletedID)
