@@ -167,6 +167,18 @@ func TestInstallPluginLocally(t *testing.T) {
 		assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
 	})
 
+	t.Run("doesn't install if ID on block list", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		cleanExistingBundles(t, th)
+
+		manifest, appErr := installPlugin(t, th, "playbooks", "0.0.1", installPluginLocallyAlways)
+		require.Nil(t, appErr)
+		require.Nil(t, manifest)
+
+		assertBundleInfoManifests(t, th, []*model.Manifest{})
+	})
+
 	t.Run("different plugin already installed", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
