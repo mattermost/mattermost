@@ -29,7 +29,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
-	"github.com/mattermost/mattermost-server/v6/app/platform/debugbar"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -142,14 +141,6 @@ type Server struct {
 	services map[product.ServiceKey]any
 
 	hooksManager *product.HooksManager
-}
-
-func (s *Server) DebugBar() *debugbar.DebugBar {
-	if s.platform != nil {
-		return s.platform.DebugBar
-	}
-
-	return nil
 }
 
 func (s *Server) Store() store.Store {
@@ -369,13 +360,16 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
+	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to initialize telemetry service")
+	}
+
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
 		LicenseFn:          s.License,
-		DebugBar:           s.DebugBar,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
@@ -589,7 +583,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	// Remote Cluster service
 
 	// License check (assume enabled if shared channels enabled)
-	if !*license.Features.RemoteClusterService && !license.HasSharedChannels() {
+	if !license.HasRemoteClusterService() && !license.HasSharedChannels() {
 		mlog.Debug("License does not have Remote Cluster services enabled")
 		return nil
 	}

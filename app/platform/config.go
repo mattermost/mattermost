@@ -286,7 +286,6 @@ func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(ps.IsFirstUserAccount())
-	respCfg["DebugBar"] = strconv.FormatBool(ps.DebugBar.IsEnabled())
 
 	return respCfg
 }
@@ -301,7 +300,6 @@ func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(ps.IsFirstUserAccount())
-	respCfg["DebugBar"] = strconv.FormatBool(ps.DebugBar.IsEnabled())
 	respCfg["MaxPostSize"] = strconv.Itoa(ps.MaxPostSize())
 	respCfg["UpgradedFromTE"] = strconv.FormatBool(ps.isUpgradedFromTE())
 	respCfg["InstallationDate"] = ""

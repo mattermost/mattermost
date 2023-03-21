@@ -13,6 +13,12 @@ type CompleteOnboardingRequest struct {
 	InstallPlugins []string `json:"install_plugins"` // InstallPlugins is a list of plugins to be installed
 }
 
+func (r *CompleteOnboardingRequest) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"install_plugins": r.InstallPlugins,
+	}
+}
+
 // CompleteOnboardingRequest decodes a json-encoded request from the given io.Reader.
 func CompleteOnboardingRequestFromReader(reader io.Reader) (*CompleteOnboardingRequest, error) {
 	var r *CompleteOnboardingRequest

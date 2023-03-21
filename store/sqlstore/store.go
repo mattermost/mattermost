@@ -130,7 +130,6 @@ type SqlStore struct {
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
-	debugbarPublish   func(string, float64, ...any)
 	lockedToMaster    bool
 	context           context.Context
 	license           *model.License
@@ -141,13 +140,12 @@ type SqlStore struct {
 	pgDefaultTextSearchConfig string
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface, debugbarPublish func(string, float64, ...any)) *SqlStore {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
 	store := &SqlStore{
-		rrCounter:       0,
-		srCounter:       0,
-		settings:        &settings,
-		metrics:         metrics,
-		debugbarPublish: debugbarPublish,
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
@@ -301,9 +299,7 @@ func (ss *SqlStore) initConnection() {
 	handle := SetupConnection("master", dataSource, ss.settings)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
-		*ss.settings.Trace,
-		ss.debugbarPublish,
-	)
+		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
@@ -317,9 +313,7 @@ func (ss *SqlStore) initConnection() {
 			handle := SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
-				*ss.settings.Trace,
-				ss.debugbarPublish,
-			)
+				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.ReplicaXs[i].MapperFunc(noOpMapper)
 			}
@@ -335,9 +329,7 @@ func (ss *SqlStore) initConnection() {
 			handle := SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
-				*ss.settings.Trace,
-				ss.debugbarPublish,
-			)
+				*ss.settings.Trace)
 			if ss.DriverName() == model.DatabaseDriverMysql {
 				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
 			}
@@ -442,9 +434,7 @@ func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
-		*ss.settings.Trace,
-		ss.debugbarPublish,
-	)
+		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
@@ -1293,18 +1283,4 @@ func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	}
 
 	return migrations, nil
-}
-
-func (ss *SqlStore) Explain(query string, args []any) (string, error) {
-	var explain []string
-
-	if strings.HasPrefix(query, "ANALYZE") {
-		return "", errors.New("not allowed to explain queries with analyze at the beginning")
-	}
-
-	if err := ss.GetMasterX().Select(&explain, "EXPLAIN "+query, args...); err != nil {
-		return "", errors.Wrap(err, "unable to run the explain query")
-	}
-
-	return strings.Join(explain, "\n"), nil
 }

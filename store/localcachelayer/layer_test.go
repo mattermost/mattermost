@@ -98,7 +98,7 @@ func initStores() {
 		go func() {
 			var err error
 			defer wg.Done()
-			st.SqlStore = sqlstore.New(*st.SqlSettings, nil, nil)
+			st.SqlStore = sqlstore.New(*st.SqlSettings, nil)
 			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
 			if err != nil {
 				panic(err)

@@ -88,7 +88,6 @@ type Store interface {
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
 	TrueUpReview() TrueUpReviewStore
-	Explain(query string, args []interface{}) (string, error)
 }
 
 type RetentionPolicyStore interface {
@@ -566,6 +565,7 @@ type OAuthStore interface {
 	SaveAuthData(authData *model.AuthData) (*model.AuthData, error)
 	GetAuthData(code string) (*model.AuthData, error)
 	RemoveAuthData(code string) error
+	RemoveAuthDataByClientId(clientId string, userId string) error
 	PermanentDeleteAuthDataByUser(userID string) error
 	SaveAccessData(accessData *model.AccessData) (*model.AccessData, error)
 	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error)

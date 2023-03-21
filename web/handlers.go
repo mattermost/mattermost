@@ -302,7 +302,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.AppContext.SetSession(session)
 		}
-	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+	} else if token != "" && c.App.Channels().License() != nil && c.App.Channels().License().HasRemoteClusterService() && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
 		if remoteId := c.GetRemoteID(r); remoteId == "" {
 			c.Logger.Warn("Missing remote cluster id") //
@@ -401,20 +401,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
-
-	if c.App.Srv().DebugBar().IsEnabled() {
-		elapsed := float64(time.Since(now)) / float64(time.Second)
-		var endpoint string
-		if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-			// It's a graphQL query, so use the operation name.
-			endpoint = c.GraphQLOperationName
-		} else {
-			endpoint = h.HandlerName
-		}
-
-		c.App.Srv().DebugBar().SendApiCall(endpoint, r.Method, statusCode, elapsed)
-	}
-
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 

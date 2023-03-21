@@ -142,8 +142,6 @@ func TestMetrics(t *testing.T) {
 		mockMetricsImpl.On("Register").Return()
 		mockMetricsImpl.On("ObserveStoreMethodDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		mockMetricsImpl.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
-		mockMetricsImpl.On("IncrementWebsocketEvent", "debugbar")
-		mockMetricsImpl.On("IncrementWebSocketBroadcastBufferSize", mock.AnythingOfType("string"), float64(1))
 
 		th := Setup(t, StartMetrics(), func(ps *PlatformService) error {
 			ps.metricsIFace = mockMetricsImpl

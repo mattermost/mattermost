@@ -48,8 +48,6 @@ type Field = logr.Field
 type Level = logr.Level
 type Option = logr.Option
 type Target = logr.Target
-type Filter = logr.Filter
-type Formatter = logr.Formatter
 type TargetInfo = logr.TargetInfo
 type LogRec = logr.LogRec
 type LogCloner = logr.LogCloner
@@ -178,11 +176,6 @@ func NewLogger(options ...Option) (*Logger, error) {
 		log:        &log,
 		lockConfig: &lockConfig,
 	}, nil
-}
-
-// AddTarget adds a new logr.Target to the Logger object.
-func (l *Logger) AddTarget(target Target, name string, filter Filter, formatter Formatter, maxQueueSize int) error {
-	return l.log.Logr().AddTarget(target, name, filter, formatter, maxQueueSize)
 }
 
 // Configure provides a new configuration for this logger.

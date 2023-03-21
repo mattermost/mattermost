@@ -103,7 +103,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 
 	h.SearchEngine = searchengine.NewBroker(config)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLStore = sqlstore.New(*h.Settings, nil, nil)
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
@@ -115,7 +115,7 @@ func (h *MainHelper) ToggleReplicasOff() {
 	}
 	h.Settings.DataSourceReplicas = []string{}
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil, nil)
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.SQLStore.UpdateLicense(lic)
 }
 
@@ -125,7 +125,7 @@ func (h *MainHelper) ToggleReplicasOn() {
 	}
 	h.Settings.DataSourceReplicas = h.replicas
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil, nil)
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.SQLStore.UpdateLicense(lic)
 }
 

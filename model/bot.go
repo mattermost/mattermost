@@ -54,6 +54,14 @@ type BotPatch struct {
 	Description *string `json:"description"`
 }
 
+func (b *BotPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"username":     b.Username,
+		"display_name": b.DisplayName,
+		"description":  b.Description,
+	}
+}
+
 // BotGetOptions acts as a filter on bulk bot fetching queries.
 type BotGetOptions struct {
 	OwnerId        string
