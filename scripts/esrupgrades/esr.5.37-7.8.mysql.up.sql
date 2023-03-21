@@ -128,50 +128,139 @@ CALL MigrateCRTThreadCountsAndUnreads ();
 DROP PROCEDURE IF EXISTS MigrateCRTThreadCountsAndUnreads;
 
 /* ==> mysql/000056_upgrade_channels_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Channels'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_channels_team_id_display_name'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_channels_team_id_display_name ON Channels(TeamId, DisplayName);'
-));
+/* ==> mysql/000070_upgrade_cte_v6.1.up.sql <== */
+/* ==> mysql/000090_create_enums.up.sql <== */
+/* ==> mysql/000076_upgrade_lastrootpostat.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateChannels ()
+BEGIN
+	-- 'DROP INDEX idx_channels_team_id ON Channels;'
+	DECLARE DropIndex BOOLEAN;
+	DECLARE DropIndexQuery TEXT DEFAULT NULL;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	-- 'CREATE INDEX idx_channels_team_id_display_name ON Channels(TeamId, DisplayName);'
+	DECLARE CreateIndexTeamDisplay BOOLEAN;
+	DECLARE CreateIndexTeamDisplayQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Channels'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_channels_team_id_type'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_channels_team_id_type ON Channels(TeamId, Type);'
-));
+	-- 'CREATE INDEX idx_channels_team_id_type ON Channels(TeamId, Type);'
+	DECLARE CreateIndexTeamType BOOLEAN;
+	DECLARE CreateIndexTeamTypeQuery TEXT DEFAULT NULL;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	-- 'ALTER TABLE Channels ADD COLUMN LastRootPostAt bigint DEFAULT 0;''
+	-- UPDATE Channels INNER JOIN ...
+	DECLARE AddLastRootPostAt BOOLEAN;
+	DECLARE AddLastRootPostAtQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Channels'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_channels_team_id'
-    ) > 0,
-    'DROP INDEX idx_channels_team_id ON Channels;',
-    'SELECT 1'
-));
+	-- 'ALTER TABLE Channels MODIFY COLUMN Type ENUM("D", "O", "G", "P");',
+	DECLARE ModifyColumn BOOLEAN;
+	DECLARE ModifyColumnQuery TEXT DEFAULT NULL;
 
-PREPARE removeIndexIfExists FROM @preparedStatement;
-EXECUTE removeIndexIfExists;
-DEALLOCATE PREPARE removeIndexIfExists;
+	-- 'ALTER TABLE Channels ALTER COLUMN LastRootPostAt SET DEFAULT 0;',
+	DECLARE SetDefault BOOLEAN;
+	DECLARE SetDefaultQuery TEXT DEFAULT NULL;
+
+	-- 'UPDATE Channels SET LastRootPostAt = ...',
+	DECLARE UpdateLastRootPostAt BOOLEAN;
+	DECLARE UpdateLastRootPostAtQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Channels'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_channels_team_id'
+		INTO DropIndex;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Channels'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_channels_team_id_display_name'
+		INTO CreateIndexTeamDisplay;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Channels'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_channels_team_id_type'
+		INTO CreateIndexTeamType;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = 'Channels'
+		AND table_schema = DATABASE()
+		AND COLUMN_NAME = 'LastRootPostAt'
+		INTO AddLastRootPostAt;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Channels'
+		AND table_schema = DATABASE()
+		AND column_name = 'Type'
+		AND REPLACE(LOWER(column_type), '"', "'") != "enum('d','o','g','p')"
+		INTO ModifyColumn;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = 'Channels'
+		AND TABLE_SCHEMA = DATABASE()
+		AND COLUMN_NAME = 'LastRootPostAt'
+		AND (COLUMN_DEFAULT IS NULL OR COLUMN_DEFAULT != 0)
+		INTO SetDefault;
+
+	IF DropIndex THEN
+		SET DropIndexQuery = 'DROP INDEX idx_channels_team_id';
+	END IF;
+
+	IF CreateIndexTeamDisplay THEN
+		SET CreateIndexTeamDisplayQuery = 'ADD INDEX idx_channels_team_id_display_name (TeamId, DisplayName)';
+	END IF;
+
+	IF CreateIndexTeamType THEN
+		SET CreateIndexTeamTypeQuery = 'ADD INDEX idx_channels_team_id_type (TeamId, Type)';
+	END IF;
+
+	IF AddLastRootPostAt THEN
+		SET AddLastRootPostAtQuery = 'ADD COLUMN LastRootPostAt bigint DEFAULT 0';
+	END IF;
+
+	IF ModifyColumn THEN
+		SET ModifyColumnQuery = 'MODIFY COLUMN Type ENUM("D", "O", "G", "P")';
+	END IF;
+
+	IF SetDefault THEN
+		SET SetDefaultQuery = 'ALTER COLUMN LastRootPostAt SET DEFAULT 0';
+	END IF;
+
+	IF DropIndex OR CreateIndexTeamDisplay OR CreateIndexTeamType OR AddLastRootPostAt OR ModifyColumn OR SetDefault THEN
+		SET @query = CONCAT('ALTER TABLE Channels ', CONCAT_WS(', ', DropIndexQuery, CreateIndexTeamDisplayQuery, CreateIndexTeamTypeQuery, AddLastRootPostAtQuery, ModifyColumnQuery, SetDefaultQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
+	IF AddLastRootPostAt THEN
+		UPDATE Channels INNER JOIN (
+			SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) AS lastrootpost
+			FROM Channels LEFT JOIN Posts FORCE INDEX (idx_posts_channel_id_update_at) ON Channels.Id = Posts.ChannelId
+			WHERE Posts.RootId = '' GROUP BY Channels.Id
+		) AS q ON q.channelid = Channels.Id
+		SET LastRootPostAt = lastrootpost;
+	END IF;
+
+	-- Cover the case where LastRootPostAt was already present and there are rows with it set to NULL
+	IF (SELECT COUNT(*) FROM Channels WHERE LastRootPostAt IS NULL) THEN
+		-- fixes migrate cte and sets the LastRootPostAt for channels that don't have it set
+		UPDATE Channels INNER JOIN (
+				SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) AS lastrootpost
+					FROM Channels LEFT JOIN Posts FORCE INDEX (idx_posts_channel_id_update_at) ON Channels.Id = Posts.ChannelId
+					WHERE Posts.RootId = ''
+					GROUP BY Channels.Id
+			) AS q ON q.channelid = Channels.Id
+			SET LastRootPostAt = lastrootpost
+			WHERE LastRootPostAt IS NULL;
+		-- sets LastRootPostAt to 0, for channels with no posts
+		UPDATE Channels SET LastRootPostAt=0 WHERE LastRootPostAt IS NULL;
+	END IF;
+
+END//
+DELIMITER ;
+
+CALL MigrateChannels ();
+DROP PROCEDURE IF EXISTS MigrateChannels;
 
 /* ==> mysql/000057_upgrade_command_webhooks_v6.0.up.sql <== */
 
@@ -742,41 +831,6 @@ PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
-/* ==> mysql/000070_upgrade_cte_v6.1.up.sql <== */
-DELIMITER //
-CREATE PROCEDURE Migrate_LastRootPostAt ()
-BEGIN
-DECLARE
-	LastRootPostAt_EXIST INT;
-	SELECT
-		COUNT(*)
-	FROM
-		INFORMATION_SCHEMA.COLUMNS
-	WHERE
-		TABLE_NAME = 'Channels'
-		AND table_schema = DATABASE()
-		AND COLUMN_NAME = 'LastRootPostAt' INTO LastRootPostAt_EXIST;
-	IF(LastRootPostAt_EXIST = 0) THEN
-        ALTER TABLE Channels ADD COLUMN LastRootPostAt bigint DEFAULT 0;
-		UPDATE
-			Channels
-			INNER JOIN (
-				SELECT
-					Channels.Id channelid,
-					COALESCE(MAX(Posts.CreateAt), 0) AS lastrootpost
-				FROM
-					Channels
-					LEFT JOIN Posts FORCE INDEX (idx_posts_channel_id_update_at) ON Channels.Id = Posts.ChannelId
-				WHERE
-					Posts.RootId = ''
-				GROUP BY
-					Channels.Id) AS q ON q.channelid = Channels.Id SET LastRootPostAt = lastrootpost;
-	END IF;
-END//
-DELIMITER ;
-CALL Migrate_LastRootPostAt ();
-DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt;
-
 /* ==> mysql/000071_upgrade_sessions_v6.1.up.sql <== */
 SET @preparedStatement = (SELECT IF(
     (
@@ -871,63 +925,6 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterTypeIfExists FROM @preparedStatement;
 EXECUTE alterTypeIfExists;
 DEALLOCATE PREPARE alterTypeIfExists;
-
-/* ==> mysql/000076_upgrade_lastrootpostat.up.sql <== */
-DELIMITER //
-CREATE PROCEDURE Migrate_LastRootPostAt_Default ()
-BEGIN
-	IF (
-			SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-			WHERE TABLE_NAME = 'Channels'
-			AND TABLE_SCHEMA = DATABASE()
-			AND COLUMN_NAME = 'LastRootPostAt'
-			AND (COLUMN_DEFAULT IS NULL OR COLUMN_DEFAULT != 0)
-		) = 1 THEN
-		ALTER TABLE Channels ALTER COLUMN LastRootPostAt SET DEFAULT 0;
-	END IF;
-END//
-DELIMITER ;
-CALL Migrate_LastRootPostAt_Default ();
-DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Default;
-
-DELIMITER //
-CREATE PROCEDURE Migrate_LastRootPostAt_Fix ()
-BEGIN
-	IF (
-		SELECT COUNT(*)
-		FROM Channels
-		WHERE LastRootPostAt IS NULL
-	) > 0 THEN
-	-- fixes migrate cte and sets the LastRootPostAt for channels that don't have it set
-		UPDATE
-			Channels
-			INNER JOIN (
-				SELECT
-					Channels.Id channelid,
-					COALESCE(MAX(Posts.CreateAt), 0) AS lastrootpost
-				FROM
-					Channels
-					LEFT JOIN Posts FORCE INDEX (idx_posts_channel_id_update_at) ON Channels.Id = Posts.ChannelId
-				WHERE
-					Posts.RootId = ''
-				GROUP BY
-					Channels.Id) AS q ON q.channelid = Channels.Id
-				SET
-					LastRootPostAt = lastrootpost
-				WHERE
-					LastRootPostAt IS NULL;
-
-		-- sets LastRootPostAt to 0, for channels with no posts
-		UPDATE Channels SET LastRootPostAt=0 WHERE LastRootPostAt IS NULL;
-	END IF;
-END//
-DELIMITER ;
-CALL Migrate_LastRootPostAt_Fix ();
-DROP PROCEDURE IF EXISTS Migrate_LastRootPostAt_Fix;
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000078_create_oauth_mattermost_app_id.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -1109,22 +1106,6 @@ EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
 /* ==> mysql/000090_create_enums.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Channels'
-        AND table_schema = DATABASE()
-        AND column_name = 'Type'
-        AND column_type != 'ENUM("D", "O", "G", "P")'
-    ) > 0,
-    'ALTER TABLE Channels MODIFY COLUMN Type ENUM("D", "O", "G", "P");',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
-
 SET @preparedStatement = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
