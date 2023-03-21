@@ -13,11 +13,12 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
 	mock_sqlstore "github.com/mattermost/mattermost-server/v6/server/playbooks/server/sqlstore/mocks"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/require"
 )
 
 func membersFromIds(ids []string) []app.PlaybookMember {
@@ -178,81 +179,80 @@ func TestGetPlaybook(t *testing.T) {
 
 	playbooks := []app.Playbook{pb01, pb02, pb03, pb04, pb05, pb06, pb07, pb08}
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run(driverName+" - id empty", func(t *testing.T) {
-			actual, err := playbookStore.Get("")
-			require.Error(t, err)
-			require.EqualError(t, err, "ID cannot be empty")
-			require.Equal(t, app.Playbook{}, actual)
-		})
+	t.Run(driverName+" - id empty", func(t *testing.T) {
+		actual, err := playbookStore.Get("")
+		require.Error(t, err)
+		require.EqualError(t, err, "ID cannot be empty")
+		require.Equal(t, app.Playbook{}, actual)
+	})
 
-		t.Run(driverName+" - create and retrieve playbook", func(t *testing.T) {
-			id, err := playbookStore.Create(pb02)
-			require.NoError(t, err)
-			expected := pb02.Clone()
-			expected.ID = id
+	t.Run(driverName+" - create and retrieve playbook", func(t *testing.T) {
+		id, err := playbookStore.Create(pb02)
+		require.NoError(t, err)
+		expected := pb02.Clone()
+		expected.ID = id
 
-			actual, err := playbookStore.Get(id)
-			require.NoError(t, err)
+		actual, err := playbookStore.Get(id)
+		require.NoError(t, err)
 
-			//check if playbookID was set correctly
-			for _, m := range actual.Metrics {
-				require.Equal(t, m.PlaybookID, id)
-			}
-			cleanMetricsIDs(actual.Metrics)
-			require.Equal(t, expected, actual)
-		})
+		//check if playbookID was set correctly
+		for _, m := range actual.Metrics {
+			require.Equal(t, m.PlaybookID, id)
+		}
+		cleanMetricsIDs(actual.Metrics)
+		require.Equal(t, expected, actual)
+	})
 
-		t.Run(driverName+" - create and retrieve all playbooks", func(t *testing.T) {
-			var inserted []app.Playbook
-			for _, p := range playbooks {
-				id, err := playbookStore.Create(p)
-				require.NoError(t, err)
-
-				tmp := p.Clone()
-				tmp.ID = id
-				inserted = append(inserted, tmp)
-			}
-
-			for _, p := range inserted {
-				got, err := playbookStore.Get(p.ID)
-				cleanMetricsIDs(got.Metrics)
-				require.NoError(t, err)
-				require.Equal(t, p, got)
-			}
-			require.Equal(t, len(playbooks), len(inserted))
-		})
-
-		t.Run(driverName+" - create but retrieve non-existing playbook", func(t *testing.T) {
-			_, err := playbookStore.Create(pb02)
+	t.Run(driverName+" - create and retrieve all playbooks", func(t *testing.T) {
+		var inserted []app.Playbook
+		for _, p := range playbooks {
+			id, err := playbookStore.Create(p)
 			require.NoError(t, err)
 
-			actual, err := playbookStore.Get("nonexisting")
-			cleanMetricsIDs(actual.Metrics)
-			require.Error(t, err)
-			require.EqualError(t, err, "playbook does not exist for id 'nonexisting': not found")
-			require.Equal(t, app.Playbook{}, actual)
-		})
+			tmp := p.Clone()
+			tmp.ID = id
+			inserted = append(inserted, tmp)
+		}
 
-		t.Run(driverName+" - set and retrieve playbook with no members and no checklists", func(t *testing.T) {
-			pb10 := NewPBBuilder().
-				WithTitle("playbook 10").
-				WithTeamID(team1id).
-				WithCreateAt(800).
-				ToPlaybook()
-			id, err := playbookStore.Create(pb10)
+		for _, p := range inserted {
+			got, err := playbookStore.Get(p.ID)
+			cleanMetricsIDs(got.Metrics)
 			require.NoError(t, err)
-			expected := pb10.Clone()
-			expected.ID = id
+			require.Equal(t, p, got)
+		}
+		require.Equal(t, len(playbooks), len(inserted))
+	})
 
-			actual, err := playbookStore.Get(id)
-			require.NoError(t, err)
-			require.Equal(t, expected, actual)
-		})
-	}
+	t.Run(driverName+" - create but retrieve non-existing playbook", func(t *testing.T) {
+		_, err := playbookStore.Create(pb02)
+		require.NoError(t, err)
+
+		actual, err := playbookStore.Get("nonexisting")
+		cleanMetricsIDs(actual.Metrics)
+		require.Error(t, err)
+		require.EqualError(t, err, "playbook does not exist for id 'nonexisting': not found")
+		require.Equal(t, app.Playbook{}, actual)
+	})
+
+	t.Run(driverName+" - set and retrieve playbook with no members and no checklists", func(t *testing.T) {
+		pb10 := NewPBBuilder().
+			WithTitle("playbook 10").
+			WithTeamID(team1id).
+			WithCreateAt(800).
+			ToPlaybook()
+		id, err := playbookStore.Create(pb10)
+		require.NoError(t, err)
+		expected := pb10.Clone()
+		expected.ID = id
+
+		actual, err := playbookStore.Get(id)
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
+	})
 }
 
 func TestGetPlaybooksForTeam(t *testing.T) {
@@ -877,59 +877,58 @@ func TestGetPlaybooksForTeam(t *testing.T) {
 		},
 	}
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run(driverName+" - zero playbooks", func(t *testing.T) {
-			result, err := playbookStore.GetPlaybooks()
+	t.Run(driverName+" - zero playbooks", func(t *testing.T) {
+		result, err := playbookStore.GetPlaybooks()
+		require.NoError(t, err)
+		require.ElementsMatch(t, []app.Playbook{}, result)
+	})
+
+	store := setupSQLStore(t, db)
+	setupTeamMembersTable(t, db)
+	addUsers(t, store, users)
+	addUsersToTeam(t, store, users, team1id)
+	addUsersToTeam(t, store, users, team2id)
+	makeAdmin(t, store, lucy)
+
+	createPlaybooks(playbookStore)
+
+	for _, testCase := range tests {
+		t.Run(driverName+" - "+testCase.name, func(t *testing.T) {
+			actual, err := playbookStore.GetPlaybooksForTeam(testCase.requesterInfo, testCase.teamID, testCase.options)
+
+			if testCase.expectedErr != nil {
+				require.Nil(t, actual)
+				require.Error(t, err)
+				require.Equal(t, testCase.expectedErr.Error(), err.Error())
+
+				return
+			}
+
 			require.NoError(t, err)
-			require.ElementsMatch(t, []app.Playbook{}, result)
+
+			for i, p := range actual.Items {
+				require.True(t, model.IsValidId(p.ID))
+				actual.Items[i].ID = ""
+				cleanMetricsIDs(actual.Items[i].Metrics)
+				require.Equal(t, p.Metrics, testCase.expected.Items[i].Metrics)
+			}
+
+			// remove the checklists and members from the expected playbooks--we don't return them in getPlaybooks
+			for i := range testCase.expected.Items {
+				testCase.expected.Items[i].Checklists = nil
+				testCase.expected.Items[i].Members = nil
+			}
+
+			require.ElementsMatch(t, justTitles(testCase.expected.Items), justTitles(actual.Items))
+			require.Equal(t, testCase.expected.HasMore, actual.HasMore)
+			require.Equal(t, testCase.expected.PageCount, actual.PageCount)
+			require.Equal(t, testCase.expected.TotalCount, actual.TotalCount)
+			require.Len(t, actual.Items, len(testCase.expected.Items))
 		})
-
-		store := setupSQLStore(t, db)
-		setupTeamMembersTable(t, db)
-		addUsers(t, store, users)
-		addUsersToTeam(t, store, users, team1id)
-		addUsersToTeam(t, store, users, team2id)
-		makeAdmin(t, store, lucy)
-
-		createPlaybooks(playbookStore)
-
-		for _, testCase := range tests {
-			t.Run(driverName+" - "+testCase.name, func(t *testing.T) {
-				actual, err := playbookStore.GetPlaybooksForTeam(testCase.requesterInfo, testCase.teamID, testCase.options)
-
-				if testCase.expectedErr != nil {
-					require.Nil(t, actual)
-					require.Error(t, err)
-					require.Equal(t, testCase.expectedErr.Error(), err.Error())
-
-					return
-				}
-
-				require.NoError(t, err)
-
-				for i, p := range actual.Items {
-					require.True(t, model.IsValidId(p.ID))
-					actual.Items[i].ID = ""
-					cleanMetricsIDs(actual.Items[i].Metrics)
-					require.Equal(t, p.Metrics, testCase.expected.Items[i].Metrics)
-				}
-
-				// remove the checklists and members from the expected playbooks--we don't return them in getPlaybooks
-				for i := range testCase.expected.Items {
-					testCase.expected.Items[i].Checklists = nil
-					testCase.expected.Items[i].Members = nil
-				}
-
-				require.ElementsMatch(t, justTitles(testCase.expected.Items), justTitles(actual.Items))
-				require.Equal(t, testCase.expected.HasMore, actual.HasMore)
-				require.Equal(t, testCase.expected.PageCount, actual.PageCount)
-				require.Equal(t, testCase.expected.TotalCount, actual.TotalCount)
-				require.Len(t, actual.Items, len(testCase.expected.Items))
-			})
-		}
 	}
 }
 
@@ -978,245 +977,243 @@ func TestUpdatePlaybook(t *testing.T) {
 		Name: "Jen",
 	}
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	playbookStore := setupPlaybookStore(t, db)
 
-		tests := []struct {
-			name        string
-			playbook    app.Playbook
-			update      func(app.Playbook) app.Playbook
-			expectedErr error
-			clean       func(app.Playbook, app.Playbook) (app.Playbook, app.Playbook)
-		}{
-			{
-				name:     "id should not be empty",
-				playbook: NewPBBuilder().ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					return app.Playbook{}
-				},
-				expectedErr: errors.New("id should not be empty"),
+	tests := []struct {
+		name        string
+		playbook    app.Playbook
+		update      func(app.Playbook) app.Playbook
+		expectedErr error
+		clean       func(app.Playbook, app.Playbook) (app.Playbook, app.Playbook)
+	}{
+		{
+			name:     "id should not be empty",
+			playbook: NewPBBuilder().ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				return app.Playbook{}
 			},
-			{
-				name:     "Playbook run /can/ contain checklists with no items",
-				playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Checklists[0].Items = nil
-					old.NumSteps = 0
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: errors.New("id should not be empty"),
+		},
+		{
+			name:     "Playbook run /can/ contain checklists with no items",
+			playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Checklists[0].Items = nil
+				old.NumSteps = 0
+				return old
 			},
-			{
-				name:     "playbook now public",
-				playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.CreatePublicPlaybookRun = true
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name:     "playbook now public",
+			playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.CreatePublicPlaybookRun = true
+				return old
 			},
-			{
-				name:     "playbook new title",
-				playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Title = "new title"
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name:     "playbook new title",
+			playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Title = "new title"
+				return old
 			},
-			{
-				name: "playbook new description",
-				playbook: NewPBBuilder().WithDescription("original description").
-					WithChecklists([]int{1}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Description = "new description"
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name: "playbook new description",
+			playbook: NewPBBuilder().WithDescription("original description").
+				WithChecklists([]int{1}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Description = "new description"
+				return old
 			},
-			{
-				name:     "delete playbook",
-				playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.DeleteAt = model.GetMillis()
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name:     "delete playbook",
+			playbook: NewPBBuilder().WithChecklists([]int{1}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.DeleteAt = model.GetMillis()
+				return old
 			},
-			{
-				name:     "Playbook run with 2 checklists, update the checklists a bit",
-				playbook: NewPBBuilder().WithChecklists([]int{1, 2}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Checklists[0].Items[0].State = app.ChecklistItemStateClosed
-					old.Checklists[1].Items[1].Title = "new title"
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name:     "Playbook run with 2 checklists, update the checklists a bit",
+			playbook: NewPBBuilder().WithChecklists([]int{1, 2}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Checklists[0].Items[0].State = app.ChecklistItemStateClosed
+				old.Checklists[1].Items[1].Title = "new title"
+				return old
 			},
-			{
-				name:     "Playbook run with 3 checklists, update to 0",
-				playbook: NewPBBuilder().WithChecklists([]int{1, 2, 5}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Checklists = []app.Checklist{}
-					old.NumSteps = 0
-					old.NumStages = 0
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name:     "Playbook run with 3 checklists, update to 0",
+			playbook: NewPBBuilder().WithChecklists([]int{1, 2, 5}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Checklists = []app.Checklist{}
+				old.NumSteps = 0
+				old.NumStages = 0
+				return old
 			},
-			{
-				name: "Playbook run with 2 members, go to 1",
-				playbook: NewPBBuilder().WithChecklists([]int{1, 2}).
-					WithMembers([]userInfo{jon, andrew}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Members = membersFromIds([]string{andrew.ID})
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name: "Playbook run with 2 members, go to 1",
+			playbook: NewPBBuilder().WithChecklists([]int{1, 2}).
+				WithMembers([]userInfo{jon, andrew}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Members = membersFromIds([]string{andrew.ID})
+				return old
 			},
-			{
-				name: "Playbook run with 3 members, go to 4 with different members",
-				playbook: NewPBBuilder().WithChecklists([]int{1, 2}).
-					WithMembers([]userInfo{jon, andrew, bob}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					oldMembers := []string{matt.ID, bill.ID, alice.ID, jen.ID}
-					sort.Strings(oldMembers)
-					old.Members = membersFromIds(oldMembers)
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name: "Playbook run with 3 members, go to 4 with different members",
+			playbook: NewPBBuilder().WithChecklists([]int{1, 2}).
+				WithMembers([]userInfo{jon, andrew, bob}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				oldMembers := []string{matt.ID, bill.ID, alice.ID, jen.ID}
+				sort.Strings(oldMembers)
+				old.Members = membersFromIds(oldMembers)
+				return old
 			},
-			{
-				name: "Playbook run with 3 members, go to 4 with one different member",
-				playbook: NewPBBuilder().WithChecklists([]int{1, 2}).
-					WithMembers([]userInfo{jon, andrew, bob}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					oldMembers := []string{jon.ID, andrew.ID, bob.ID, alice.ID}
-					sort.Strings(oldMembers)
-					old.Members = membersFromIds(oldMembers)
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name: "Playbook run with 3 members, go to 4 with one different member",
+			playbook: NewPBBuilder().WithChecklists([]int{1, 2}).
+				WithMembers([]userInfo{jon, andrew, bob}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				oldMembers := []string{jon.ID, andrew.ID, bob.ID, alice.ID}
+				sort.Strings(oldMembers)
+				old.Members = membersFromIds(oldMembers)
+				return old
 			},
-			{
-				name:     "Playbook run with 0 members, go to 2",
-				playbook: NewPBBuilder().WithChecklists([]int{1, 2}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					oldMembers := []string{alice.ID, jen.ID}
-					sort.Strings(oldMembers)
-					old.Members = membersFromIds(oldMembers)
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name:     "Playbook run with 0 members, go to 2",
+			playbook: NewPBBuilder().WithChecklists([]int{1, 2}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				oldMembers := []string{alice.ID, jen.ID}
+				sort.Strings(oldMembers)
+				old.Members = membersFromIds(oldMembers)
+				return old
 			},
-			{
-				name: "Playbook run with 5 members, go to 0",
-				playbook: NewPBBuilder().
-					WithChecklists([]int{1, 2}).
-					WithMembers([]userInfo{
-						jon,
-						andrew,
-						{model.NewId(), "j1"},
-						{model.NewId(), "j2"},
-						{model.NewId(), "j3"},
-					}).
-					ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old.Members = nil
-					return old
-				},
-				expectedErr: nil,
+			expectedErr: nil,
+		},
+		{
+			name: "Playbook run with 5 members, go to 0",
+			playbook: NewPBBuilder().
+				WithChecklists([]int{1, 2}).
+				WithMembers([]userInfo{
+					jon,
+					andrew,
+					{model.NewId(), "j1"},
+					{model.NewId(), "j2"},
+					{model.NewId(), "j3"},
+				}).
+				ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old.Members = nil
+				return old
 			},
-			{
-				name:     "playbook with 0 metrics, go to 3",
-				playbook: NewPBBuilder().ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old, err := playbookStore.Get(old.ID)
-					require.NoError(t, err)
-					old.Title = "new title"
-					old.Metrics = metricsFromNames([]string{"name3", "name1", "name2"})
-					return old
-				},
-				expectedErr: nil,
-				clean: func(old, updated app.Playbook) (app.Playbook, app.Playbook) {
-					cleanMetricsIDs(updated.Metrics)
-					return old, updated
-				},
-			},
-			{
-				name:     "playbook with 4 metrics, go to 0",
-				playbook: NewPBBuilder().WithMetrics([]string{"name3", "name1", "name2", "name4"}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old, err := playbookStore.Get(old.ID)
-					require.NoError(t, err)
-					old.Title = "new title"
-					old.Metrics = nil
-					return old
-				},
-				expectedErr: nil,
-			},
-			{
-				name:     "playbook with 4 metrics, go to 3 and reorder",
-				playbook: NewPBBuilder().WithMetrics([]string{"name3", "name1", "name2", "name4"}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old, err := playbookStore.Get(old.ID)
-					require.NoError(t, err)
-
-					old.Title = "new title"
-					old.Metrics = old.Metrics[1:]
-					old.Metrics[0], old.Metrics[1] = old.Metrics[1], old.Metrics[0]
-					return old
-				},
-				expectedErr: nil,
-			},
-			{
-				name:     "playbook with 4 metrics, go to 3. reorder and replacement",
-				playbook: NewPBBuilder().WithMetrics([]string{"name3", "name1", "name2", "name4"}).ToPlaybook(),
-				update: func(old app.Playbook) app.Playbook {
-					old, err := playbookStore.Get(old.ID)
-					require.NoError(t, err)
-
-					old.Title = "new title"
-					old.Metrics = old.Metrics[2:]
-					old.Metrics[0], old.Metrics[1] = old.Metrics[1], old.Metrics[0]
-					old.Metrics = append(old.Metrics, metricsFromNames([]string{"name10"})...)
-					return old
-				},
-				expectedErr: nil,
-				clean: func(old, updated app.Playbook) (app.Playbook, app.Playbook) {
-					cleanMetricsIDs(old.Metrics)
-					cleanMetricsIDs(updated.Metrics)
-					return old, updated
-				},
-			},
-		}
-
-		for _, testCase := range tests {
-			t.Run(testCase.name, func(t *testing.T) {
-				returned, err := playbookStore.Create(testCase.playbook)
-				testCase.playbook.ID = returned
+			expectedErr: nil,
+		},
+		{
+			name:     "playbook with 0 metrics, go to 3",
+			playbook: NewPBBuilder().ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old, err := playbookStore.Get(old.ID)
 				require.NoError(t, err)
-				expected := testCase.update(testCase.playbook)
-
-				err = playbookStore.Update(expected)
-
-				if testCase.expectedErr != nil {
-					require.Error(t, err)
-					require.EqualError(t, err, testCase.expectedErr.Error())
-					return
-				}
-
+				old.Title = "new title"
+				old.Metrics = metricsFromNames([]string{"name3", "name1", "name2"})
+				return old
+			},
+			expectedErr: nil,
+			clean: func(old, updated app.Playbook) (app.Playbook, app.Playbook) {
+				cleanMetricsIDs(updated.Metrics)
+				return old, updated
+			},
+		},
+		{
+			name:     "playbook with 4 metrics, go to 0",
+			playbook: NewPBBuilder().WithMetrics([]string{"name3", "name1", "name2", "name4"}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old, err := playbookStore.Get(old.ID)
+				require.NoError(t, err)
+				old.Title = "new title"
+				old.Metrics = nil
+				return old
+			},
+			expectedErr: nil,
+		},
+		{
+			name:     "playbook with 4 metrics, go to 3 and reorder",
+			playbook: NewPBBuilder().WithMetrics([]string{"name3", "name1", "name2", "name4"}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old, err := playbookStore.Get(old.ID)
 				require.NoError(t, err)
 
-				actual, err := playbookStore.Get(expected.ID)
+				old.Title = "new title"
+				old.Metrics = old.Metrics[1:]
+				old.Metrics[0], old.Metrics[1] = old.Metrics[1], old.Metrics[0]
+				return old
+			},
+			expectedErr: nil,
+		},
+		{
+			name:     "playbook with 4 metrics, go to 3. reorder and replacement",
+			playbook: NewPBBuilder().WithMetrics([]string{"name3", "name1", "name2", "name4"}).ToPlaybook(),
+			update: func(old app.Playbook) app.Playbook {
+				old, err := playbookStore.Get(old.ID)
 				require.NoError(t, err)
-				if testCase.clean != nil {
-					expected, actual = testCase.clean(expected, actual)
-				}
-				require.Equal(t, expected, actual)
-			})
-		}
+
+				old.Title = "new title"
+				old.Metrics = old.Metrics[2:]
+				old.Metrics[0], old.Metrics[1] = old.Metrics[1], old.Metrics[0]
+				old.Metrics = append(old.Metrics, metricsFromNames([]string{"name10"})...)
+				return old
+			},
+			expectedErr: nil,
+			clean: func(old, updated app.Playbook) (app.Playbook, app.Playbook) {
+				cleanMetricsIDs(old.Metrics)
+				cleanMetricsIDs(updated.Metrics)
+				return old, updated
+			},
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			returned, err := playbookStore.Create(testCase.playbook)
+			testCase.playbook.ID = returned
+			require.NoError(t, err)
+			expected := testCase.update(testCase.playbook)
+
+			err = playbookStore.Update(expected)
+
+			if testCase.expectedErr != nil {
+				require.Error(t, err)
+				require.EqualError(t, err, testCase.expectedErr.Error())
+				return
+			}
+
+			require.NoError(t, err)
+
+			actual, err := playbookStore.Get(expected.ID)
+			require.NoError(t, err)
+			if testCase.clean != nil {
+				expected, actual = testCase.clean(expected, actual)
+			}
+			require.Equal(t, expected, actual)
+		})
 	}
 }
 
@@ -1243,36 +1240,35 @@ func TestDeletePlaybook(t *testing.T) {
 		WithMetrics([]string{"name1", "name2"}).
 		ToPlaybook()
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run(driverName+" - id empty", func(t *testing.T) {
-			err := playbookStore.Archive("")
-			require.Error(t, err)
-			require.EqualError(t, err, "ID cannot be empty")
-		})
+	t.Run(driverName+" - id empty", func(t *testing.T) {
+		err := playbookStore.Archive("")
+		require.Error(t, err)
+		require.EqualError(t, err, "ID cannot be empty")
+	})
 
-		t.Run(driverName+" - create and delete playbook", func(t *testing.T) {
-			now := model.GetMillis()
+	t.Run(driverName+" - create and delete playbook", func(t *testing.T) {
+		now := model.GetMillis()
 
-			id, err := playbookStore.Create(pb02)
-			require.NoError(t, err)
-			expected := pb02.Clone()
-			expected.ID = id
+		id, err := playbookStore.Create(pb02)
+		require.NoError(t, err)
+		expected := pb02.Clone()
+		expected.ID = id
 
-			err = playbookStore.Archive(id)
-			require.NoError(t, err)
+		err = playbookStore.Archive(id)
+		require.NoError(t, err)
 
-			actual, err := playbookStore.Get(id)
-			require.NoError(t, err)
-			require.GreaterOrEqual(t, actual.DeleteAt, now)
+		actual, err := playbookStore.Get(id)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, actual.DeleteAt, now)
 
-			expected.DeleteAt = actual.DeleteAt
-			cleanMetricsIDs(actual.Metrics)
-			require.Equal(t, expected, actual)
-		})
-	}
+		expected.DeleteAt = actual.DeleteAt
+		cleanMetricsIDs(actual.Metrics)
+		require.Equal(t, expected, actual)
+	})
 }
 
 func TestGetPlaybooksForKeywords(t *testing.T) {
@@ -1341,31 +1337,30 @@ func TestGetPlaybooksForKeywords(t *testing.T) {
 	}
 
 	expected := []app.Playbook{pb01, pb02, pb03, pb09}
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run("zero playbooks", func(t *testing.T) {
-			result, err := playbookStore.GetPlaybooks()
-			require.NoError(t, err)
-			require.ElementsMatch(t, []app.Playbook{}, result)
-		})
+	t.Run("zero playbooks", func(t *testing.T) {
+		result, err := playbookStore.GetPlaybooks()
+		require.NoError(t, err)
+		require.ElementsMatch(t, []app.Playbook{}, result)
+	})
 
-		createPlaybooks(playbookStore)
+	createPlaybooks(playbookStore)
 
-		t.Run(driverName+" - get playbooks with keywords", func(t *testing.T) {
-			actual, err := playbookStore.GetPlaybooksWithKeywords(app.PlaybookFilterOptions{Page: 0, PerPage: 100})
-			sort.Slice(actual, func(i, j int) bool { return actual[i].Title < actual[j].Title })
+	t.Run(driverName+" - get playbooks with keywords", func(t *testing.T) {
+		actual, err := playbookStore.GetPlaybooksWithKeywords(app.PlaybookFilterOptions{Page: 0, PerPage: 100})
+		sort.Slice(actual, func(i, j int) bool { return actual[i].Title < actual[j].Title })
 
-			require.NoError(t, err)
-			require.Len(t, actual, len(expected))
-			for i := range actual {
-				require.Equal(t, expected[i].TeamID, actual[i].TeamID)
-				require.Equal(t, expected[i].Title, actual[i].Title)
-				require.Equal(t, expected[i].SignalAnyKeywords, actual[i].SignalAnyKeywords)
-			}
-		})
-	}
+		require.NoError(t, err)
+		require.Len(t, actual, len(expected))
+		for i := range actual {
+			require.Equal(t, expected[i].TeamID, actual[i].TeamID)
+			require.Equal(t, expected[i].Title, actual[i].Title)
+			require.Equal(t, expected[i].SignalAnyKeywords, actual[i].SignalAnyKeywords)
+		}
+	})
 }
 
 func TestGetTimeLastUpdated(t *testing.T) {
@@ -1418,29 +1413,28 @@ func TestGetTimeLastUpdated(t *testing.T) {
 	}
 
 	expected := int64(600)
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run("zero playbooks", func(t *testing.T) {
-			result, err := playbookStore.GetPlaybooks()
-			require.NoError(t, err)
-			require.ElementsMatch(t, []app.Playbook{}, result)
+	t.Run("zero playbooks", func(t *testing.T) {
+		result, err := playbookStore.GetPlaybooks()
+		require.NoError(t, err)
+		require.ElementsMatch(t, []app.Playbook{}, result)
 
-			lastUpdated, err := playbookStore.GetTimeLastUpdated(true)
-			require.NoError(t, err)
-			require.Equal(t, int64(0), lastUpdated)
-		})
+		lastUpdated, err := playbookStore.GetTimeLastUpdated(true)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), lastUpdated)
+	})
 
-		createPlaybooks(playbookStore)
+	createPlaybooks(playbookStore)
 
-		t.Run(driverName+" - get time last updated", func(t *testing.T) {
-			actual, err := playbookStore.GetTimeLastUpdated(true)
+	t.Run(driverName+" - get time last updated", func(t *testing.T) {
+		actual, err := playbookStore.GetTimeLastUpdated(true)
 
-			require.NoError(t, err)
-			require.Equal(t, expected, actual)
-		})
-	}
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
+	})
 }
 
 func TestGetPlaybookIDsForUser(t *testing.T) {
@@ -1537,120 +1531,119 @@ func TestGetPlaybookIDsForUser(t *testing.T) {
 
 	pb := []app.Playbook{pb01, pb02, pb03, pb04, pb05, pb06, pb07, pb08, pb09}
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run("zero playbooks", func(t *testing.T) {
-			result, err := playbookStore.GetPlaybooks()
+	t.Run("zero playbooks", func(t *testing.T) {
+		result, err := playbookStore.GetPlaybooks()
+		require.NoError(t, err)
+		require.ElementsMatch(t, []app.Playbook{}, result)
+	})
+
+	store := setupSQLStore(t, db)
+	setupTeamMembersTable(t, db)
+	addUsers(t, store, users)
+
+	t.Helper()
+
+	for i := range pb {
+		id, err := playbookStore.Create(pb[i])
+		pb[i].ID = id
+		require.NoError(t, err)
+	}
+
+	tests := []struct {
+		name        string
+		teamID      string
+		userID      string
+		expected    []string
+		expectedErr error
+	}{
+		{
+			name:        "team1 from Andrew",
+			teamID:      team1id,
+			userID:      andrew.ID,
+			expected:    []string{pb[0].ID, pb[1].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "team1 from jon",
+			teamID:      team1id,
+			userID:      jon.ID,
+			expected:    []string{pb[0].ID, pb[2].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "team1 from lucia",
+			teamID:      team1id,
+			userID:      lucia.ID,
+			expected:    []string{pb[2].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "team2 from Matt",
+			teamID:      team2id,
+			userID:      matt.ID,
+			expected:    []string{pb[5].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "team3 from Andrew (not on team)",
+			teamID:      team3id,
+			userID:      andrew.ID,
+			expected:    []string{pb[6].ID, pb[8].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "team3 from Lucia",
+			teamID:      team3id,
+			userID:      lucia.ID,
+			expected:    []string{pb[7].ID, pb[8].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "team3 from Desmond - testing many members",
+			teamID:      team3id,
+			userID:      desmond.ID,
+			expected:    []string{pb[7].ID, pb[8].ID},
+			expectedErr: nil,
+		},
+		{
+			name:        "none found",
+			teamID:      "not-existing",
+			userID:      matt.ID,
+			expected:    []string{},
+			expectedErr: nil,
+		},
+		{
+			name:        "team3 from Matt",
+			teamID:      team3id,
+			userID:      matt.ID,
+			expected:    []string{pb[8].ID},
+			expectedErr: nil,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(driverName+" - "+testCase.name, func(t *testing.T) {
+			actual, err := playbookStore.GetPlaybookIDsForUser(testCase.userID, testCase.teamID)
+
+			if testCase.expectedErr != nil {
+				require.Nil(t, actual)
+				require.Error(t, err)
+				require.Equal(t, testCase.expectedErr.Error(), err.Error())
+
+				return
+			}
+
 			require.NoError(t, err)
-			require.ElementsMatch(t, []app.Playbook{}, result)
+			require.ElementsMatch(t, testCase.expected, actual)
 		})
+	}
 
-		store := setupSQLStore(t, db)
-		setupTeamMembersTable(t, db)
-		addUsers(t, store, users)
-
-		t.Helper()
-
-		for i := range pb {
-			id, err := playbookStore.Create(pb[i])
-			pb[i].ID = id
-			require.NoError(t, err)
-		}
-
-		tests := []struct {
-			name        string
-			teamID      string
-			userID      string
-			expected    []string
-			expectedErr error
-		}{
-			{
-				name:        "team1 from Andrew",
-				teamID:      team1id,
-				userID:      andrew.ID,
-				expected:    []string{pb[0].ID, pb[1].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "team1 from jon",
-				teamID:      team1id,
-				userID:      jon.ID,
-				expected:    []string{pb[0].ID, pb[2].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "team1 from lucia",
-				teamID:      team1id,
-				userID:      lucia.ID,
-				expected:    []string{pb[2].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "team2 from Matt",
-				teamID:      team2id,
-				userID:      matt.ID,
-				expected:    []string{pb[5].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "team3 from Andrew (not on team)",
-				teamID:      team3id,
-				userID:      andrew.ID,
-				expected:    []string{pb[6].ID, pb[8].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "team3 from Lucia",
-				teamID:      team3id,
-				userID:      lucia.ID,
-				expected:    []string{pb[7].ID, pb[8].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "team3 from Desmond - testing many members",
-				teamID:      team3id,
-				userID:      desmond.ID,
-				expected:    []string{pb[7].ID, pb[8].ID},
-				expectedErr: nil,
-			},
-			{
-				name:        "none found",
-				teamID:      "not-existing",
-				userID:      matt.ID,
-				expected:    []string{},
-				expectedErr: nil,
-			},
-			{
-				name:        "team3 from Matt",
-				teamID:      team3id,
-				userID:      matt.ID,
-				expected:    []string{pb[8].ID},
-				expectedErr: nil,
-			},
-		}
-
-		for _, testCase := range tests {
-			t.Run(driverName+" - "+testCase.name, func(t *testing.T) {
-				actual, err := playbookStore.GetPlaybookIDsForUser(testCase.userID, testCase.teamID)
-
-				if testCase.expectedErr != nil {
-					require.Nil(t, actual)
-					require.Error(t, err)
-					require.Equal(t, testCase.expectedErr.Error(), err.Error())
-
-					return
-				}
-
-				require.NoError(t, err)
-				require.ElementsMatch(t, testCase.expected, actual)
-			})
-		}
-
-		for i := range pb {
-			pb[i].ID = ""
-		}
+	for i := range pb {
+		pb[i].ID = ""
 	}
 }
 
@@ -1675,39 +1668,38 @@ func TestGetPlaybooksActiveTotal(t *testing.T) {
 		return playbooksIDs
 	}
 
-	for _, driverName := range driverNames {
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
 
-		t.Run("zero playbooks", func(t *testing.T) {
-			actual, err := playbookStore.GetPlaybooksActiveTotal()
-			require.NoError(t, err)
-			require.Equal(t, int64(0), actual)
-		})
+	t.Run("zero playbooks", func(t *testing.T) {
+		actual, err := playbookStore.GetPlaybooksActiveTotal()
+		require.NoError(t, err)
+		require.Equal(t, int64(0), actual)
+	})
 
-		playbooksNum := 20
-		playbooksIDs := createPlaybooks(playbookStore, playbooksNum)
+	playbooksNum := 20
+	playbooksIDs := createPlaybooks(playbookStore, playbooksNum)
 
-		t.Run(driverName+" - only active playbooks", func(t *testing.T) {
-			actual, err := playbookStore.GetPlaybooksActiveTotal()
+	t.Run(driverName+" - only active playbooks", func(t *testing.T) {
+		actual, err := playbookStore.GetPlaybooksActiveTotal()
 
-			require.NoError(t, err)
-			require.Equal(t, int64(playbooksNum), actual)
-		})
+		require.NoError(t, err)
+		require.Equal(t, int64(playbooksNum), actual)
+	})
 
-		// archive 1/3 of playbooks
-		for i := 0; i < playbooksNum/3; i++ {
-			err := playbookStore.Archive(playbooksIDs[i])
-			require.NoError(t, err)
-		}
-
-		t.Run(driverName+" - both active and archived playbooks", func(t *testing.T) {
-			actual, err := playbookStore.GetPlaybooksActiveTotal()
-
-			require.NoError(t, err)
-			require.Equal(t, int64(playbooksNum-playbooksNum/3), actual)
-		})
+	// archive 1/3 of playbooks
+	for i := 0; i < playbooksNum/3; i++ {
+		err := playbookStore.Archive(playbooksIDs[i])
+		require.NoError(t, err)
 	}
+
+	t.Run(driverName+" - both active and archived playbooks", func(t *testing.T) {
+		actual, err := playbookStore.GetPlaybooksActiveTotal()
+
+		require.NoError(t, err)
+		require.Equal(t, int64(playbooksNum-playbooksNum/3), actual)
+	})
 }
 
 // PlaybookBuilder is a utility to build playbooks with a default base.
@@ -1887,164 +1879,163 @@ func setupPlaybookStore(t *testing.T, db *sqlx.DB) app.PlaybookStore {
 }
 
 func TestGetTopPlaybooks(t *testing.T) {
-	for _, driverName := range driverNames {
-		team1id := model.NewId()
-		team2id := model.NewId()
+	team1id := model.NewId()
+	team2id := model.NewId()
 
-		jon := userInfo{
-			ID:   model.NewId(),
-			Name: "jon",
-		}
-
-		matt := userInfo{
-			ID:   model.NewId(),
-			Name: "Matt",
-		}
-
-		desmond := userInfo{
-			ID:   model.NewId(),
-			Name: "Desmond",
-		}
-
-		pb01 := NewPBBuilder().
-			WithTitle("playbook 1").
-			WithDescription("this is a description, not very long, but it can be up to 4096 bytes").
-			WithTeamID(team1id).
-			WithCreateAt(500).
-			WithChecklists([]int{1, 2}).
-			WithMembers([]userInfo{jon, matt, desmond}).
-			ToPlaybook()
-
-		pb02 := NewPBBuilder().
-			WithTitle("playbook 2").
-			WithTeamID(team1id).
-			WithCreateAt(600).
-			WithChecklists([]int{1, 4, 6, 7, 1}). // 19
-			WithMembers([]userInfo{matt}).
-			WithMetrics([]string{"name11", "name12"}).
-			ToPlaybook()
-
-		pb03 := NewPBBuilder().
-			WithTitle("playbook 3").
-			WithTeamID(team2id).
-			WithChecklists([]int{1, 2, 3}).
-			WithCreateAt(700).
-			WithMembers([]userInfo{jon, matt}).
-			WithMetrics([]string{"name14", "name12", "name13", "name11"}).
-			ToPlaybook()
-
-		pb04 := NewPBBuilder().
-			WithTitle("playbook 4").
-			WithDescription("this is a description, not very long, but it can be up to 2048 bytes").
-			WithTeamID(team1id).
-			WithCreateAt(800).
-			WithChecklists([]int{20}).
-			WithMembers([]userInfo{matt}).
-			WithCreatePublicPlaybook(true).
-			WithMetrics([]string{"name17"}).
-			ToPlaybook()
-
-		playbooks := []app.Playbook{pb01, pb02, pb03, pb04}
-
-		db := setupTestDB(t, driverName)
-		playbookStore := setupPlaybookStore(t, db)
-		playbookRunStore := setupPlaybookRunStore(t, db)
-
-		// create playbooks
-		createPlaybooks := func(store app.PlaybookStore) {
-			t.Helper()
-
-			for index, p := range playbooks {
-				p.ID = ""
-				playbookCreatedID, err := store.Create(p)
-				playbooks[index].ID = playbookCreatedID
-				require.NoError(t, err)
-			}
-		}
-		createPlaybooks(playbookStore)
-		playbookRuns := []*app.PlaybookRun{
-			NewBuilder(t).WithName("pb01-0").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb01-1").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb01-2").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb01-3").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb02-0").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb02-1").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb02-2").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb02-3").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb02-4").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb02-5").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb03-0").WithPlaybookID(playbooks[2].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb03-1").WithPlaybookID(playbooks[2].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb03-2").WithPlaybookID(playbooks[2].ID).WithCreateAt(200).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb04-0").WithPlaybookID(playbooks[3].ID).WithCreateAt(400).ToPlaybookRun(),
-			NewBuilder(t).WithName("pb04-1").WithPlaybookID(playbooks[3].ID).WithCreateAt(400).ToPlaybookRun(),
-		}
-		// create playbook runs
-		for _, playbookRun := range playbookRuns {
-			_, err := playbookRunStore.CreatePlaybookRun(playbookRun)
-			require.NoError(t, err)
-		}
-
-		t.Run(driverName+" - get top team playbooks", func(t *testing.T) {
-			// for jon
-			topPlaybooks, err := playbookStore.GetTopPlaybooksForTeam(team1id, jon.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
-			require.NoError(t, err)
-			// should get top playbooks as pb01.ID, and pb04.ID
-			// implicitly means there's no playbooks from other team
-			require.Len(t, topPlaybooks.Items, 2)
-
-			require.Equal(t, topPlaybooks.Items[0].NumRuns, 4)
-			require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[0].ID)
-			require.Equal(t, topPlaybooks.Items[1].NumRuns, 2)
-			require.Equal(t, topPlaybooks.Items[1].PlaybookID, playbooks[3].ID)
-
-			// for matt
-			topPlaybooks, err = playbookStore.GetTopPlaybooksForTeam(team1id, matt.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
-			require.NoError(t, err)
-			// should get top playbooks as pb01.ID, pb02.ID and pb04.ID
-			// implicitly means there's no playbooks from other team
-			require.Len(t, topPlaybooks.Items, 3)
-			require.Equal(t, topPlaybooks.Items[0].NumRuns, 6)
-			require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[1].ID)
-			require.Equal(t, topPlaybooks.Items[1].NumRuns, 4)
-			require.Equal(t, topPlaybooks.Items[1].PlaybookID, playbooks[0].ID)
-			require.Equal(t, topPlaybooks.Items[2].NumRuns, 2)
-			require.Equal(t, topPlaybooks.Items[2].PlaybookID, playbooks[3].ID)
-		})
-
-		t.Run(driverName+" - get top user playbooks", func(t *testing.T) {
-			// for jon
-			topPlaybooks, err := playbookStore.GetTopPlaybooksForUser(team1id, jon.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
-			require.NoError(t, err)
-			// should get top playbooks as pb01.ID, and pb04.ID
-			// implicitly means there's no playbooks from other team
-			require.Len(t, topPlaybooks.Items, 1)
-			// fmt.Println(topPlaybooks.Items)
-			require.Equal(t, topPlaybooks.Items[0].NumRuns, 4)
-			require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[0].ID)
-
-			// for team 2
-			topPlaybooks, err = playbookStore.GetTopPlaybooksForUser(team2id, jon.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
-			require.NoError(t, err)
-			// should get top playbooks as pb01.ID, and pb04.ID
-			// implicitly means there's no playbooks from other team
-			require.Len(t, topPlaybooks.Items, 1)
-			// fmt.Println(topPlaybooks.Items)
-			require.Equal(t, topPlaybooks.Items[0].NumRuns, 3)
-			require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[2].ID)
-
-			// for matt
-			topPlaybooks, err = playbookStore.GetTopPlaybooksForUser(team1id, matt.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
-			require.NoError(t, err)
-			// should get top playbooks as pb01.ID, and pb04.ID
-			// implicitly means there's no playbooks from other team
-			require.Len(t, topPlaybooks.Items, 3)
-			require.Equal(t, topPlaybooks.Items[0].NumRuns, 6)
-			require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[1].ID)
-			require.Equal(t, topPlaybooks.Items[1].NumRuns, 4)
-			require.Equal(t, topPlaybooks.Items[1].PlaybookID, playbooks[0].ID)
-			require.Equal(t, topPlaybooks.Items[2].NumRuns, 2)
-			require.Equal(t, topPlaybooks.Items[2].PlaybookID, playbooks[3].ID)
-		})
+	jon := userInfo{
+		ID:   model.NewId(),
+		Name: "jon",
 	}
+
+	matt := userInfo{
+		ID:   model.NewId(),
+		Name: "Matt",
+	}
+
+	desmond := userInfo{
+		ID:   model.NewId(),
+		Name: "Desmond",
+	}
+
+	pb01 := NewPBBuilder().
+		WithTitle("playbook 1").
+		WithDescription("this is a description, not very long, but it can be up to 4096 bytes").
+		WithTeamID(team1id).
+		WithCreateAt(500).
+		WithChecklists([]int{1, 2}).
+		WithMembers([]userInfo{jon, matt, desmond}).
+		ToPlaybook()
+
+	pb02 := NewPBBuilder().
+		WithTitle("playbook 2").
+		WithTeamID(team1id).
+		WithCreateAt(600).
+		WithChecklists([]int{1, 4, 6, 7, 1}). // 19
+		WithMembers([]userInfo{matt}).
+		WithMetrics([]string{"name11", "name12"}).
+		ToPlaybook()
+
+	pb03 := NewPBBuilder().
+		WithTitle("playbook 3").
+		WithTeamID(team2id).
+		WithChecklists([]int{1, 2, 3}).
+		WithCreateAt(700).
+		WithMembers([]userInfo{jon, matt}).
+		WithMetrics([]string{"name14", "name12", "name13", "name11"}).
+		ToPlaybook()
+
+	pb04 := NewPBBuilder().
+		WithTitle("playbook 4").
+		WithDescription("this is a description, not very long, but it can be up to 2048 bytes").
+		WithTeamID(team1id).
+		WithCreateAt(800).
+		WithChecklists([]int{20}).
+		WithMembers([]userInfo{matt}).
+		WithCreatePublicPlaybook(true).
+		WithMetrics([]string{"name17"}).
+		ToPlaybook()
+
+	playbooks := []app.Playbook{pb01, pb02, pb03, pb04}
+
+	db := setupTestDB(t)
+	driverName := db.DriverName()
+	playbookStore := setupPlaybookStore(t, db)
+	playbookRunStore := setupPlaybookRunStore(t, db)
+
+	// create playbooks
+	createPlaybooks := func(store app.PlaybookStore) {
+		t.Helper()
+
+		for index, p := range playbooks {
+			p.ID = ""
+			playbookCreatedID, err := store.Create(p)
+			playbooks[index].ID = playbookCreatedID
+			require.NoError(t, err)
+		}
+	}
+	createPlaybooks(playbookStore)
+	playbookRuns := []*app.PlaybookRun{
+		NewBuilder(t).WithName("pb01-0").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb01-1").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb01-2").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb01-3").WithPlaybookID(playbooks[0].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb02-0").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb02-1").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb02-2").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb02-3").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb02-4").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb02-5").WithPlaybookID(playbooks[1].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb03-0").WithPlaybookID(playbooks[2].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb03-1").WithPlaybookID(playbooks[2].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb03-2").WithPlaybookID(playbooks[2].ID).WithCreateAt(200).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb04-0").WithPlaybookID(playbooks[3].ID).WithCreateAt(400).ToPlaybookRun(),
+		NewBuilder(t).WithName("pb04-1").WithPlaybookID(playbooks[3].ID).WithCreateAt(400).ToPlaybookRun(),
+	}
+	// create playbook runs
+	for _, playbookRun := range playbookRuns {
+		_, err := playbookRunStore.CreatePlaybookRun(playbookRun)
+		require.NoError(t, err)
+	}
+
+	t.Run(driverName+" - get top team playbooks", func(t *testing.T) {
+		// for jon
+		topPlaybooks, err := playbookStore.GetTopPlaybooksForTeam(team1id, jon.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
+		require.NoError(t, err)
+		// should get top playbooks as pb01.ID, and pb04.ID
+		// implicitly means there's no playbooks from other team
+		require.Len(t, topPlaybooks.Items, 2)
+
+		require.Equal(t, topPlaybooks.Items[0].NumRuns, 4)
+		require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[0].ID)
+		require.Equal(t, topPlaybooks.Items[1].NumRuns, 2)
+		require.Equal(t, topPlaybooks.Items[1].PlaybookID, playbooks[3].ID)
+
+		// for matt
+		topPlaybooks, err = playbookStore.GetTopPlaybooksForTeam(team1id, matt.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
+		require.NoError(t, err)
+		// should get top playbooks as pb01.ID, pb02.ID and pb04.ID
+		// implicitly means there's no playbooks from other team
+		require.Len(t, topPlaybooks.Items, 3)
+		require.Equal(t, topPlaybooks.Items[0].NumRuns, 6)
+		require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[1].ID)
+		require.Equal(t, topPlaybooks.Items[1].NumRuns, 4)
+		require.Equal(t, topPlaybooks.Items[1].PlaybookID, playbooks[0].ID)
+		require.Equal(t, topPlaybooks.Items[2].NumRuns, 2)
+		require.Equal(t, topPlaybooks.Items[2].PlaybookID, playbooks[3].ID)
+	})
+
+	t.Run(driverName+" - get top user playbooks", func(t *testing.T) {
+		// for jon
+		topPlaybooks, err := playbookStore.GetTopPlaybooksForUser(team1id, jon.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
+		require.NoError(t, err)
+		// should get top playbooks as pb01.ID, and pb04.ID
+		// implicitly means there's no playbooks from other team
+		require.Len(t, topPlaybooks.Items, 1)
+		// fmt.Println(topPlaybooks.Items)
+		require.Equal(t, topPlaybooks.Items[0].NumRuns, 4)
+		require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[0].ID)
+
+		// for team 2
+		topPlaybooks, err = playbookStore.GetTopPlaybooksForUser(team2id, jon.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
+		require.NoError(t, err)
+		// should get top playbooks as pb01.ID, and pb04.ID
+		// implicitly means there's no playbooks from other team
+		require.Len(t, topPlaybooks.Items, 1)
+		// fmt.Println(topPlaybooks.Items)
+		require.Equal(t, topPlaybooks.Items[0].NumRuns, 3)
+		require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[2].ID)
+
+		// for matt
+		topPlaybooks, err = playbookStore.GetTopPlaybooksForUser(team1id, matt.ID, &model.InsightsOpts{StartUnixMilli: 0, Page: 0, PerPage: 100})
+		require.NoError(t, err)
+		// should get top playbooks as pb01.ID, and pb04.ID
+		// implicitly means there's no playbooks from other team
+		require.Len(t, topPlaybooks.Items, 3)
+		require.Equal(t, topPlaybooks.Items[0].NumRuns, 6)
+		require.Equal(t, topPlaybooks.Items[0].PlaybookID, playbooks[1].ID)
+		require.Equal(t, topPlaybooks.Items[1].NumRuns, 4)
+		require.Equal(t, topPlaybooks.Items[1].PlaybookID, playbooks[0].ID)
+		require.Equal(t, topPlaybooks.Items[2].NumRuns, 2)
+		require.Equal(t, topPlaybooks.Items[2].PlaybookID, playbooks[3].ID)
+	})
 }

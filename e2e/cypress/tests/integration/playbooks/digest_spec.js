@@ -84,7 +84,7 @@ describe('digest messages', () => {
             cy.get('#post-create').should('exist');
 
             // # Run a slash command to show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             cy.getLastPost().within(() => {
                 // # assert two blocks: inprogress+overdue
@@ -117,7 +117,7 @@ describe('digest messages', () => {
             cy.get('#post-create').should('exist');
 
             // # Run a slash command to show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             cy.getLastPost().within(() => {
                 // # assert two blocks: inprogress+overdue
@@ -150,7 +150,7 @@ describe('digest messages', () => {
             cy.get('#post-create').should('exist');
 
             // # Run a slash command to show the to-do list.
-            cy.executeSlashCommand('/playbook todo');
+            cy.uiPostMessageQuickly('/playbook todo');
 
             cy.getLastPost().within(() => {
                 // # assert two blocks: inprogress+overdue

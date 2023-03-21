@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/server/channels/product"
@@ -77,6 +78,14 @@ func (s *Server) shouldStart(product string) bool {
 		}
 		s.Log().Info("Allowing Boards init; enabled via feature flag")
 	}
+	if product == "playbooks" {
+		if os.Getenv("MM_DISABLE_PLAYBOOKS") == "true" {
+			s.Log().Info("Skipping Playbooks init; disabled via env var")
+			return false
+		}
+		s.Log().Info("Allowing Playbooks init; enabled via env var")
+	}
+
 	return true
 }
 

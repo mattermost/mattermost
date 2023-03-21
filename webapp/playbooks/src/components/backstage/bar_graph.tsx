@@ -119,6 +119,7 @@ const BarGraph = (props: BarGraphProps) => {
                     datasets: [{
                         backgroundColor: color,
                         borderColor: color,
+
                         // pointBackgroundColor: color,
                         // pointBorderColor: '#fff',
                         // pointHoverBackgroundColor: '#fff',

@@ -97,7 +97,7 @@ describe('channels > slash command > test', () => {
 
         it('fails to run subcommand bulk-data', () => {
             // # Execute the bulk-data command.
-            cy.executeSlashCommand('/playbook test bulk-data');
+            cy.uiPostMessageQuickly('/playbook test bulk-data');
 
             // * Verify the ephemeral message warns that the user is not admin.
             cy.verifyEphemeralMessage('Running the test command is restricted to system administrators.');
@@ -105,7 +105,7 @@ describe('channels > slash command > test', () => {
 
         it('fails to run subcommand create-playbook-run', () => {
             // # Execute the create-playbook-run command.
-            cy.executeSlashCommand('/playbook test create-playbook-run');
+            cy.uiPostMessageQuickly('/playbook test create-playbook-run');
 
             // * Verify the ephemeral message warns that the user is not admin.
             cy.verifyEphemeralMessage('Running the test command is restricted to system administrators.');
@@ -113,7 +113,7 @@ describe('channels > slash command > test', () => {
 
         it('fails to run subcommand self', () => {
             // # Execute the self command.
-            cy.executeSlashCommand('/playbook test self');
+            cy.uiPostMessageQuickly('/playbook test self');
 
             // * Verify the ephemeral message warns that the user is not admin.
             cy.verifyEphemeralMessage('Running the test command is restricted to system administrators.');
@@ -144,7 +144,7 @@ describe('channels > slash command > test', () => {
 
             it('fails to run subcommand bulk-data', () => {
                 // # Execute the bulk-data command.
-                cy.executeSlashCommand('/playbook test bulk-data');
+                cy.uiPostMessageQuickly('/playbook test bulk-data');
 
                 // * Verify the ephemeral message warns that the user is not admin.
                 cy.verifyEphemeralMessage('Setting EnableTesting must be set to true to run the test command.');
@@ -152,7 +152,7 @@ describe('channels > slash command > test', () => {
 
             it('fails to run subcommand create-playbook-run', () => {
                 // # Execute the create-playbook-run command.
-                cy.executeSlashCommand('/playbook test create-playbook-run');
+                cy.uiPostMessageQuickly('/playbook test create-playbook-run');
 
                 // * Verify the ephemeral message warns that the user is not admin.
                 cy.verifyEphemeralMessage('Setting EnableTesting must be set to true to run the test command.');
@@ -160,7 +160,7 @@ describe('channels > slash command > test', () => {
 
             it('fails to run subcommand self', () => {
                 // # Execute the self command.
-                cy.executeSlashCommand('/playbook test self');
+                cy.uiPostMessageQuickly('/playbook test self');
 
                 // * Verify the ephemeral message warns that the user is not admin.
                 cy.verifyEphemeralMessage('Setting EnableTesting must be set to true to run the test command.');
@@ -194,7 +194,7 @@ describe('channels > slash command > test', () => {
             describe('with subcommand self', () => {
                 it('asks for confirmation', () => {
                     // # Execute the self command.
-                    cy.executeSlashCommand('/playbook test self');
+                    cy.uiPostMessageQuickly('/playbook test self');
 
                     // * Verify the ephemeral message asks for the confirmation keywords.
                     cy.verifyEphemeralMessage('Are you sure you want to self-test (which will nuke the database and delete all data -- instances, configuration)? All data will be lost. To self-test, type /playbook test self CONFIRM TEST SELF');
@@ -204,7 +204,7 @@ describe('channels > slash command > test', () => {
             describe('with subcommand create', () => {
                 it('fails to run with no arguments', () => {
                     // # Execute the create-playbook-run command with no arguments.
-                    cy.executeSlashCommand('/playbook test create-playbook-run');
+                    cy.uiPostMessageQuickly('/playbook test create-playbook-run');
 
                     // * Verify the ephemeral message warns about the parameters.
                     cy.verifyEphemeralMessage('The command expects three parameters: <playbook_id> <timestamp> <name>');
@@ -212,7 +212,7 @@ describe('channels > slash command > test', () => {
 
                 it('fails to run with one argument', () => {
                     // # Execute the create-playbook-run command with one argument.
-                    cy.executeSlashCommand(`/playbook test create-playbook-run ${testPlaybook.id}`);
+                    cy.uiPostMessageQuickly(`/playbook test create-playbook-run ${testPlaybook.id}`);
 
                     // * Verify the ephemeral message warns about the parameters.
                     cy.verifyEphemeralMessage('The command expects three parameters: <playbook_id> <timestamp> <name>');
@@ -220,7 +220,7 @@ describe('channels > slash command > test', () => {
 
                 it('fails to run with two arguments', () => {
                     // # Execute the create-playbook-run command with two arguments.
-                    cy.executeSlashCommand(`/playbook test create-playbook-run ${testPlaybook.id} 2020-01-01`);
+                    cy.uiPostMessageQuickly(`/playbook test create-playbook-run ${testPlaybook.id} 2020-01-01`);
 
                     // * Verify the ephemeral message warns about the parameters.
                     cy.verifyEphemeralMessage('The command expects three parameters: <playbook_id> <timestamp> <name>');
@@ -228,7 +228,7 @@ describe('channels > slash command > test', () => {
 
                 it('fails to run with a malformed playbook ID', () => {
                     // # Execute the create-playbook-run command with all arguments, but a malformed plabook ID.
-                    cy.executeSlashCommand('/playbook test create-playbook-run unknownID 2020-01-01 The playbook run name');
+                    cy.uiPostMessageQuickly('/playbook test create-playbook-run unknownID 2020-01-01 The playbook run name');
 
                     // * Verify the ephemeral message warns about the ID.
                     cy.verifyEphemeralMessage('The first parameter, <playbook_id>, must be a valid ID.');
@@ -236,7 +236,7 @@ describe('channels > slash command > test', () => {
 
                 it('fails to run with a valid, but unknown playbook ID', () => {
                     // # Execute the create-playbook-run command with all arguments, but an unknown plabook ID.
-                    cy.executeSlashCommand('/playbook test create-playbook-run abcdefghijklmnopqrstuvwxyz 2020-01-01 The playbook run name');
+                    cy.uiPostMessageQuickly('/playbook test create-playbook-run abcdefghijklmnopqrstuvwxyz 2020-01-01 The playbook run name');
 
                     // * Verify the ephemeral message warns about the parameter.
                     cy.verifyEphemeralMessage('The playbook with ID \'abcdefghijklmnopqrstuvwxyz\' does not exist.');
@@ -244,7 +244,7 @@ describe('channels > slash command > test', () => {
 
                 it('fails to run with a malformed date', () => {
                     // # Execute the create-playbook-run command with all arguments, but a malformed creation timestamp.
-                    cy.executeSlashCommand(`/playbook test create-playbook-run ${testPlaybook.id} 2020-1-1 The playbook run name`);
+                    cy.uiPostMessageQuickly(`/playbook test create-playbook-run ${testPlaybook.id} 2020-1-1 The playbook run name`);
 
                     // * Verify the ephemeral message warns about the parameter.
                     cy.verifyEphemeralMessage('Timestamp \'2020-1-1\' could not be parsed as a date. If you want the playbook run to start on January 2, 2006, the timestamp should be \'2006-01-02\'.');

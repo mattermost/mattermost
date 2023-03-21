@@ -22,7 +22,10 @@ func TestSqlX(t *testing.T) {
 		}
 
 		for _, driver := range testDrivers {
-			settings := makeSqlSettings(driver)
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				continue
+			}
 			*settings.QueryTimeout = 1
 			store := &SqlStore{
 				rrCounter: 0,

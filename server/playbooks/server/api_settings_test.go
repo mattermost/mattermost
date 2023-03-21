@@ -26,9 +26,7 @@ func TestSettings(t *testing.T) {
 		})
 
 		t.Run("get some settings", func(t *testing.T) {
-			defaultSettings := &client.GlobalSettings{
-				EnableExperimentalFeatures: false,
-			}
+			defaultSettings := &client.GlobalSettings{}
 
 			settings, err := e.PlaybooksClient.Settings.Get(context.Background())
 			require.NoError(t, err)

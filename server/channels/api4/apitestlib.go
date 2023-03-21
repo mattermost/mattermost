@@ -71,9 +71,10 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
-	LogBuffer             *mlog.Buffer
-	TestLogger            *mlog.Logger
-	boardsProductEnvValue string
+	LogBuffer                *mlog.Buffer
+	TestLogger               *mlog.Logger
+	boardsProductEnvValue    string
+	playbooksDisableEnvValue string
 }
 
 var mainHelper *testlib.MainHelper
@@ -108,6 +109,11 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
 	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
 	memoryConfig.FeatureFlags.BoardsProduct = false
+
+	// disable Playbooks (temporarily) as it causes many more mocked methods to get
+	// called, and cannot receieve a mocked database.
+	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
+	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
 
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
@@ -147,14 +153,15 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:                   app.New(app.ServerConnector(s.Channels())),
-		Server:                s,
-		ConfigStore:           configStore,
-		IncludeCacheLayer:     includeCache,
-		Context:               request.EmptyContext(testLogger),
-		TestLogger:            testLogger,
-		LogBuffer:             buffer,
-		boardsProductEnvValue: boardsProductEnvValue,
+		App:                      app.New(app.ServerConnector(s.Channels())),
+		Server:                   s,
+		ConfigStore:              configStore,
+		IncludeCacheLayer:        includeCache,
+		Context:                  request.EmptyContext(testLogger),
+		TestLogger:               testLogger,
+		LogBuffer:                buffer,
+		boardsProductEnvValue:    boardsProductEnvValue,
+		playbooksDisableEnvValue: playbooksDisableEnvValue,
 	}
 	th.Context.SetLogger(testLogger)
 
@@ -379,9 +386,15 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	// reset board product setting to original
+	// reset board and playbooks product setting to original
 	if th.boardsProductEnvValue != "" {
 		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
+	}
+
+	if th.playbooksDisableEnvValue != "" {
+		os.Setenv("MM_DISABLE_PLAYBOOKS", th.playbooksDisableEnvValue)
+	} else {
+		os.Unsetenv("MM_DISABLE_PLAYBOOKS")
 	}
 
 	if th.IncludeCacheLayer {

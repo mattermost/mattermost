@@ -294,3 +294,33 @@ func (b *Bot) makePayloadMap(payload interface{}) map[string]interface{} {
 	}
 	return map[string]interface{}{"payload": string(payloadJSON)}
 }
+
+// GetBotUserID returns the user id for the bot used by this poster, creating one if needed.
+func (b *Bot) GetBotUserID() string {
+	if b.botUserID != "" {
+		return b.botUserID
+	}
+
+	// If we previously failed to create a bot, don't try again until we restart, but do
+	// log as a warning for context. (The first time is logged as an error below.)
+	if b.botUserCreationFailed != nil {
+		logrus.WithError(b.botUserCreationFailed).Warn("failed to ensure bot")
+		return ""
+	}
+
+	botID, err := b.serviceAdapter.EnsureBot(&model.Bot{
+		Username:    "playbooks",
+		DisplayName: "Playbooks",
+		Description: "Playbooks bot.",
+		OwnerId:     "playbooks",
+	})
+	if err != nil {
+		b.botUserCreationFailed = err
+		logrus.WithError(b.botUserCreationFailed).Error("failed to ensure bot")
+		return ""
+	}
+
+	b.botUserID = botID
+
+	return b.botUserID
+}

@@ -7,13 +7,12 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
 )
 
 /* Temporarily comment out until MM-11108
@@ -38,29 +37,14 @@ func init() {
 }
 
 func TestUnitUpdateConfig(t *testing.T) {
-	th := SetupWithStoreMock(t)
+	th := Setup(t)
 	defer th.TearDown()
-
-	mockStore := th.App.Srv().Store().(*mocks.Store)
-	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockSystemStore := mocks.SystemStore{}
-	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockLicenseStore := mocks.LicenseStore{}
-	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("System").Return(&mockSystemStore)
-	mockStore.On("License").Return(&mockLicenseStore)
-	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
+	var called int32
 	th.App.AddConfigListener(func(old, current *model.Config) {
+		atomic.AddInt32(&called, 1)
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
@@ -68,6 +52,9 @@ func TestUnitUpdateConfig(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "http://foo.com"
 	})
+
+	// callback should be called once
+	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
