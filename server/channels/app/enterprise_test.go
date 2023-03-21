@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,18 @@ import (
 )
 
 func TestSAMLSettings(t *testing.T) {
+	// disable Playbooks (temporarily) as it causes many more mocked methods to get
+	// called, and cannot receieve a mocked database.
+	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
+	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
+	t.Cleanup(func() {
+		if playbooksDisableEnvValue != "" {
+			os.Setenv("MM_DISABLE_PLAYBOOKS", playbooksDisableEnvValue)
+		} else {
+			os.Unsetenv("MM_DISABLE_PLAYBOOKS")
+		}
+	})
+
 	tt := []struct {
 		name              string
 		setNewInterface   bool
