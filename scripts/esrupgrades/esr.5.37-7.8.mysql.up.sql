@@ -61,37 +61,6 @@ DELIMITER ;
 CALL MigrateUploadSessions ();
 DROP PROCEDURE IF EXISTS MigrateUploadSessions;
 
-/* ==> mysql/000054_create_crt_channelmembership_count.up.sql <== */
-/* fixCRTChannelMembershipCounts fixes the channel counts, i.e. the total message count,
-total root message count, mention count, and mention count in root messages for users
-who have viewed the channel after the last post in the channel */
-
-DELIMITER //
-CREATE PROCEDURE MigrateCRTChannelMembershipCounts ()
-BEGIN
-	IF(
-		SELECT
-			EXISTS (
-			SELECT
-				* FROM Systems
-			WHERE
-				Name = 'CRTChannelMembershipCountsMigrationComplete') = 0) THEN
-		UPDATE
-			ChannelMembers
-			INNER JOIN Channels ON Channels.Id = ChannelMembers.ChannelId SET
-				MentionCount = 0, MentionCountRoot = 0, MsgCount = Channels.TotalMsgCount, MsgCountRoot = Channels.TotalMsgCountRoot, LastUpdateAt = (
-				SELECT
-					(SELECT ROUND(UNIX_TIMESTAMP(NOW(3))*1000)))
-	WHERE
-		ChannelMembers.LastViewedAt >= Channels.LastPostAt;
-		INSERT INTO Systems
-			VALUES('CRTChannelMembershipCountsMigrationComplete', 'true');
-	END IF;
-END//
-DELIMITER ;
-CALL MigrateCRTChannelMembershipCounts ();
-DROP PROCEDURE IF EXISTS MigrateCRTChannelMembershipCounts;
-
 /* ==> mysql/000055_create_crt_thread_count_and_unreads.up.sql <== */
 /* fixCRTThreadCountsAndUnreads Marks threads as read for users where the last
 reply time of the thread is earlier than the time the user viewed the channel.
@@ -294,67 +263,124 @@ PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
+/* ==> mysql/000054_create_crt_channelmembership_count.up.sql <== */
 /* ==> mysql/000058_upgrade_channelmembers_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'NotifyProps'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE ChannelMembers MODIFY COLUMN NotifyProps JSON;',
-    'SELECT 1'
-));
+/* ==> mysql/000067_upgrade_channelmembers_v6.1.up.sql <== */
+/* ==> mysql/000097_create_posts_priority.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateChannelMembers ()
+BEGIN
+	-- 'ALTER TABLE ChannelMembers MODIFY COLUMN NotifyProps JSON;',
+	DECLARE ModifyNotifyProps BOOLEAN;
+	DECLARE ModifyNotifyPropsQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'DROP INDEX idx_channelmembers_user_id ON ChannelMembers;',
+	DECLARE DropIndex BOOLEAN;
+	DECLARE DropIndexQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_channelmembers_user_id'
-    ) > 0,
-    'DROP INDEX idx_channelmembers_user_id ON ChannelMembers;',
-    'SELECT 1'
-));
+	-- 'CREATE INDEX idx_channelmembers_user_id_channel_id_last_viewed_at ON ChannelMembers(UserId, ChannelId, LastViewedAt);'
+	DECLARE CreateIndexLastViewedAt BOOLEAN;
+	DECLARE CreateIndexLastViewedAtQuery TEXT DEFAULT NULL;
 
-PREPARE removeIndexIfExists FROM @preparedStatement;
-EXECUTE removeIndexIfExists;
-DEALLOCATE PREPARE removeIndexIfExists;
+	-- 'CREATE INDEX idx_channelmembers_channel_id_scheme_guest_user_id ON ChannelMembers(ChannelId, SchemeGuest, UserId);'
+	DECLARE CreateIndexSchemeGuest BOOLEAN;
+	DECLARE CreateIndexSchemeGuestQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_channelmembers_user_id_channel_id_last_viewed_at'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_channelmembers_user_id_channel_id_last_viewed_at ON ChannelMembers(UserId, ChannelId, LastViewedAt);'
-));
+	-- 'ALTER TABLE ChannelMembers MODIFY COLUMN Roles text;',
+	DECLARE ModifyRoles BOOLEAN;
+	DECLARE ModifyRolesQuery TEXT DEFAULT NOT NULL;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	-- 'ALTER TABLE ChannelMembers ADD COLUMN UrgentMentionCount bigint(20);',
+	DECLARE AddUrgentMentionCount BOOLEAN;
+	DECLARE AddUrgentMentionCountQuery TEXT DEFAULT NOT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_channelmembers_channel_id_scheme_guest_user_id'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_channelmembers_channel_id_scheme_guest_user_id ON ChannelMembers(ChannelId, SchemeGuest, UserId);'
-));
+	DECLARE MigrateMemberships BOOLEAN;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'ChannelMembers'
+		AND table_schema = DATABASE()
+		AND column_name = 'NotifyProps'
+		AND LOWER(column_type) != 'json'
+		INTO ModifyNotifyProps;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'ChannelMembers'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_channelmembers_user_id'
+		INTO DropIndex;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'ChannelMembers'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_channelmembers_user_id_channel_id_last_viewed_at'
+		INTO CreateIndexLastViewedAt;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'ChannelMembers'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_channelmembers_channel_id_scheme_guest_user_id'
+		INTO CreateIndexSchemeGuest;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'ChannelMembers'
+		AND table_schema = DATABASE()
+		AND column_name = 'Roles'
+		AND LOWER(column_type) != 'text'
+		INTO ModifyRoles;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'ChannelMembers'
+		AND table_schema = DATABASE()
+		AND column_name = 'UrgentMentionCount'
+		INTO AddUrgentMentionCount;
+
+	SELECT COUNT(*) = 0 FROM Systems
+		WHERE Name = 'CRTChannelMembershipCountsMigrationComplete'
+		INTO MigrateMemberships;
+
+	IF ModifyNotifyProps THEN
+		SET ModifyNotifyPropsQuery = 'MODIFY COLUMN NotifyProps JSON';
+	END IF;
+
+	IF DropIndex THEN
+		SET DropIndexQuery = 'DROP INDEX idx_channelmembers_user_id';
+	END IF;
+
+	IF CreateIndexLastViewedAt THEN
+		SET CreateIndexLastViewedAtQuery = 'ADD INDEX idx_channelmembers_user_id_channel_id_last_viewed_at (UserId, ChannelId, LastViewedAt)';
+	END IF;
+
+	IF CreateIndexSchemeGuest THEN
+		SET CreateIndexSchemeGuestQuery = 'ADD INDEX idx_channelmembers_channel_id_scheme_guest_user_id (ChannelId, SchemeGuest, UserId)';
+	END IF;
+
+	IF ModifyRoles THEN
+		SET ModifyRolesQuery = 'MODIFY COLUMN Roles text';
+	END IF;
+
+	IF AddUrgentMentionCount THEN
+		SET AddUrgentMentionCountQuery = 'ADD COLUMN UrgentMentionCount bigint(20)';
+	END IF;
+
+	IF ModifyNotifyProps OR DropIndex OR CreateIndexLastViewedAt OR CreateIndexSchemeGuest OR ModifyRoles THEN
+		SET @query = CONCAT('ALTER TABLE ChannelMembers ', CONCAT_WS(', ', ModifyNotifyPropsQuery, DropIndexQuery, CreateIndexLastViewedAtQuery, CreateIndexSchemeGuestQuery, ModifyRolesQuery, AddUrgentMentionCountQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
+	IF MigrateMemberships THEN
+		UPDATE ChannelMembers INNER JOIN Channels ON Channels.Id = ChannelMembers.ChannelId
+			SET MentionCount = 0, MentionCountRoot = 0, MsgCount = Channels.TotalMsgCount, MsgCountRoot = Channels.TotalMsgCountRoot, LastUpdateAt = (SELECT (SELECT ROUND(UNIX_TIMESTAMP(NOW(3))*1000)))
+			WHERE ChannelMembers.LastViewedAt >= Channels.LastPostAt;
+		INSERT INTO Systems VALUES('CRTChannelMembershipCountsMigrationComplete', 'true');
+	END IF;
+
+END//
+DELIMITER ;
+
+CALL MigrateChannelMembers ();
+DROP PROCEDURE IF EXISTS MigrateChannelMembers;
 
 /* ==> mysql/000059_upgrade_users_v6.0.up.sql <== */
 /* ==> mysql/000074_upgrade_users_v6.3.up.sql <== */
@@ -781,23 +807,6 @@ PREPARE removeIndexIfExists FROM @preparedStatement;
 EXECUTE removeIndexIfExists;
 DEALLOCATE PREPARE removeIndexIfExists;
 
-/* ==> mysql/000067_upgrade_channelmembers_v6.1.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'Roles'
-        AND column_type != 'text'
-    ) > 0,
-    'ALTER TABLE ChannelMembers MODIFY COLUMN Roles text;',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
-
 /* ==> mysql/000068_upgrade_teammembers_v6.1.up.sql <== */
 SET @preparedStatement = (SELECT IF(
     (
@@ -1216,21 +1225,6 @@ CREATE TABLE IF NOT EXISTS PostsPriority (
     PersistentNotifications tinyint(1),
     PRIMARY KEY (PostId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'UrgentMentionCount'
-    ),
-    'ALTER TABLE ChannelMembers ADD COLUMN UrgentMentionCount bigint(20);',
-    'SELECT 1;'
-));
-
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
 
 /* ==> mysql/000098_create_post_acknowledgements.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostAcknowledgements (
