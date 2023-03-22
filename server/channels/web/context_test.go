@@ -6,6 +6,7 @@ package web
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,6 +36,10 @@ func TestRequireHookId(t *testing.T) {
 }
 
 func TestCloudKeyRequired(t *testing.T) {
+	// TODO: this needs to be refactored so the env variable doesn't
+	// need to be set here
+	os.Setenv("MM_SQLSETTINGS_DATASOURCE", *mainHelper.Settings.DataSource)
+
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -48,6 +53,8 @@ func TestCloudKeyRequired(t *testing.T) {
 	c.CloudKeyRequired()
 
 	assert.Equal(t, c.Err.Id, "api.context.session_expired.app_error")
+
+	os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 }
 
 func TestMfaRequired(t *testing.T) {

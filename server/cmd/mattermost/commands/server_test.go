@@ -57,6 +57,10 @@ func (th *ServerTestHelper) TearDownServerTest() {
 }
 
 func TestRunServerSuccess(t *testing.T) {
+	// TODO: this needs to be refactored so the env variable doesn't
+	// need to be set here
+	os.Setenv("MM_SQLSETTINGS_DATASOURCE", *mainHelper.Settings.DataSource)
+
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
@@ -69,6 +73,8 @@ func TestRunServerSuccess(t *testing.T) {
 
 	err := runServer(configStore, th.interruptChan)
 	require.NoError(t, err)
+
+	os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 }
 
 func TestRunServerSystemdNotification(t *testing.T) {
