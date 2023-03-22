@@ -976,65 +976,75 @@ CALL MigrateTeamMembers ();
 DROP PROCEDURE IF EXISTS MigrateTeamMembers;
 
 /* ==> mysql/000072_upgrade_schemes_v6.3.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Schemes'
-        AND table_schema = DATABASE()
-        AND column_name = 'DefaultPlaybookAdminRole'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE Schemes ADD COLUMN DefaultPlaybookAdminRole VARCHAR(64) DEFAULT "";'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateSchemes ()
+BEGIN
+	-- 'ALTER TABLE Schemes ADD COLUMN DefaultPlaybookAdminRole VARCHAR(64) DEFAULT "";'
+	DECLARE AddDefaultPlaybookAdminRole BOOLEAN;
+	DECLARE AddDefaultPlaybookAdminRoleQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+	-- 'ALTER TABLE Schemes ADD COLUMN DefaultPlaybookMemberRole VARCHAR(64) DEFAULT "";'
+	DECLARE AddDefaultPlaybookMemberRole BOOLEAN;
+	DECLARE AddDefaultPlaybookMemberRoleQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Schemes'
-        AND table_schema = DATABASE()
-        AND column_name = 'DefaultPlaybookMemberRole'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE Schemes ADD COLUMN DefaultPlaybookMemberRole VARCHAR(64) DEFAULT "";'
-));
+	-- 'ALTER TABLE Schemes ADD COLUMN DefaultRunAdminRole VARCHAR(64) DEFAULT "";'
+	DECLARE AddDefaultRunAdminRole BOOLEAN;
+	DECLARE AddDefaultRunAdminRoleQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+	-- 'ALTER TABLE Schemes ADD COLUMN DefaultRunMemberRole VARCHAR(64) DEFAULT "";'
+	DECLARE AddDefaultRunMemberRole BOOLEAN;
+	DECLARE AddDefaultRunMemberRoleQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Schemes'
-        AND table_schema = DATABASE()
-        AND column_name = 'DefaultRunAdminRole'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE Schemes ADD COLUMN DefaultRunAdminRole VARCHAR(64) DEFAULT "";'
-));
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Schemes'
+		AND table_schema = DATABASE()
+		AND column_name = 'DefaultPlaybookAdminRole'
+		INTO AddDefaultPlaybookAdminRole;
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Schemes'
+		AND table_schema = DATABASE()
+		AND column_name = 'DefaultPlaybookMemberRole'
+		INTO AddDefaultPlaybookMemberRole;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Schemes'
-        AND table_schema = DATABASE()
-        AND column_name = 'DefaultRunMemberRole'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE Schemes ADD COLUMN DefaultRunMemberRole VARCHAR(64) DEFAULT "";'
-));
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Schemes'
+		AND table_schema = DATABASE()
+		AND column_name = 'DefaultRunAdminRole'
+		INTO AddDefaultRunAdminRole;
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Schemes'
+		AND table_schema = DATABASE()
+		AND column_name = 'DefaultRunMemberRole'
+		INTO AddDefaultRunMemberRole;
+
+	IF AddDefaultPlaybookAdminRole THEN
+		SET AddDefaultPlaybookAdminRoleQuery = 'ADD COLUMN DefaultPlaybookAdminRole VARCHAR(64) DEFAULT ""';
+	END IF;
+
+	IF AddDefaultPlaybookMemberRole THEN
+		SET AddDefaultPlaybookMemberRoleQuery = 'ADD COLUMN DefaultPlaybookMemberRole VARCHAR(64) DEFAULT ""';
+	END IF;
+
+	IF AddDefaultRunAdminRole THEN
+		SET AddDefaultRunAdminRoleQuery = 'ADD COLUMN DefaultRunAdminRole VARCHAR(64) DEFAULT ""';
+	END IF;
+
+	IF AddDefaultRunMemberRole THEN
+		SET AddDefaultRunMemberRoleQuery = 'ADD COLUMN DefaultRunMemberRole VARCHAR(64) DEFAULT ""';
+	END IF;
+
+	IF AddDefaultPlaybookAdminRole OR AddDefaultPlaybookMemberRole OR AddDefaultRunAdminRole OR AddDefaultRunMemberRole THEN
+		SET @query = CONCAT('ALTER TABLE Schemes ', CONCAT_WS(', ', AddDefaultPlaybookAdminRoleQuery, AddDefaultPlaybookMemberRoleQuery, AddDefaultRunAdminRoleQuery, AddDefaultRunMemberRoleQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateSchemes ();
+DROP PROCEDURE IF EXISTS MigrateSchemes;
 
 /* ==> mysql/000073_upgrade_plugin_key_value_store_v6.3.up.sql <== */
 SET @preparedStatement = (SELECT IF(
