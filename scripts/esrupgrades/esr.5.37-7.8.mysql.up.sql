@@ -787,20 +787,25 @@ CALL MigrateStatus ();
 DROP PROCEDURE IF EXISTS MigrateStatus;
 
 /* ==> mysql/000065_upgrade_groupchannels_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'GroupChannels'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_groupchannels_schemeadmin'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_groupchannels_schemeadmin ON GroupChannels(SchemeAdmin);'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateGroupChannels ()
+BEGIN
+	-- 'CREATE INDEX idx_groupchannels_schemeadmin ON GroupChannels(SchemeAdmin);'
+	DECLARE CreateIndex BOOLEAN;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'GroupChannels'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_groupchannels_schemeadmin'
+		INTO CreateIndex;
+
+	IF CreateIndex THEN
+		CREATE INDEX idx_groupchannels_schemeadmin ON GroupChannels(SchemeAdmin);
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateGroupChannels ();
+DROP PROCEDURE IF EXISTS MigrateGroupChannels;
 
 /* ==> mysql/000066_upgrade_posts_v6.0.up.sql <== */
 /* ==> mysql/000080_posts_createat_id.up.sql <== */
