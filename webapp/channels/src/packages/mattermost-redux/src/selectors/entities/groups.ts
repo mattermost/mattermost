@@ -311,7 +311,6 @@ export const searchMyAllowReferencedGroups: (state: GlobalState, term: string, i
     (state: GlobalState, term: string) => term,
     (state: GlobalState, term: string, includeArchived: boolean) => searchGetMyAllowReferencedGroups(state, includeArchived),
     (term, groups) => {
-        console.log(groups);
         return filterGroupsMatchingTerm(groups, term);
     },
 );
