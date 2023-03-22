@@ -145,6 +145,10 @@ TESTS=.
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
+CHANNELS_PACKAGES=$(shell $(GO) list ./channels/...)
+BOARDS_PACKAGES=$(shell $(GO) list ./boards/...)
+PLAYBOOKS_PACKAGES=$(shell $(GO) list ./playbooks/...)
+REST_OF_THE_PACKAGES=$(shell $(GO) list ./config/... ./platform/... ./cmd/...)
 
 TEMPLATES_DIR=templates
 
@@ -470,8 +474,21 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+test-channels: test-server-pre
+	@echo Running only Channels tests
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(CHANNELS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+
+test-boards: test-server-pre
+	@echo Running only Boards tests
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+
+test-playbooks: test-server-pre
+	@echo Running only Playbooks tests
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+
+test-server: test-server-pre test-channels test-boards test-playbooks
+	@echo Running remaining tests
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(REST_OF_THE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
