@@ -34,7 +34,10 @@ func NewSettingsHandler(router *mux.Router, api playbooks.ServicesAPI, configSer
 }
 
 func (h *SettingsHandler) getSettings(w http.ResponseWriter, r *http.Request) {
-	settings := client.GlobalSettings{}
+	cfg := h.config.GetConfiguration()
+	settings := client.GlobalSettings{
+		EnableExperimentalFeatures: cfg.EnableExperimentalFeatures,
+	}
 
 	ReturnJSON(w, &settings, http.StatusOK)
 }
