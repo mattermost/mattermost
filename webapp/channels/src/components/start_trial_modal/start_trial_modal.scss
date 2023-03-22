@@ -1,0 +1,154 @@
+.StartTrialModal {
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 512px;
+        height: 496px;
+        border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: auto;
+        border-radius: 8px;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        .close {
+            &:hover,
+            &:active,
+            &:focus,
+            &:active:focus {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                opacity: 1;
+            }
+
+            top: 6px;
+            right: 4px;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            font-family:
+                'Open Sans',
+                sans-serif;
+            font-size: 32px;
+            font-weight: 400;
+        }
+
+        height: 48px;
+        min-height: 48px;
+        padding: 0;
+        border: 0;
+        background: var(--center-channel-bg) !important;
+        border-radius: 8px;
+        color: var(--center-channel-color);
+    }
+
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        flex-direction: column;
+        padding: 0;
+
+        .upgrade-image {
+            display: block;
+            margin: auto;
+        }
+
+        .title {
+            width: 80%;
+            margin: 0 auto;
+            margin-top: 16px;
+            font-family: Metropolis, sans-serif;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 28px;
+            text-align: center;
+        }
+
+        .description {
+            width: 80%;
+            margin: 0 auto;
+            margin-top: 8px;
+            font-family: 'Open Sans';
+            font-size: 14px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 16px;
+            text-align: center;
+        }
+
+        .disclaimer {
+            width: 80%;
+            height: 32px;
+            margin: 10px auto;
+            margin-bottom: 32px;
+            font-family: 'Open Sans';
+            font-size: 12px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 16px;
+            text-align: center;
+        }
+
+        .buttons {
+            margin-top: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+
+            .dismiss-btn {
+                &:hover,
+                &:active,
+                &:focus,
+                &:active:focus {
+                    border: none;
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    border-radius: 4px;
+                }
+
+                height: 40px;
+                align-items: center;
+                align-self: center;
+                border: none;
+                background: var(--center-channel-bg);
+                color: var(--button-bg);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 14px;
+            }
+
+            .confirm-btn {
+                &:hover,
+                &:active,
+                &:focus,
+                &:active:focus {
+                    background:
+                        linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)),
+                        var(--button-bg);
+                }
+
+                height: 40px;
+                flex: none;
+                padding: 12px 20px;
+                border: none;
+                margin-left: 8px;
+                background: var(--button-bg);
+                border-radius: 4px;
+                color: var(--sys-button-color);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 14px;
+            }
+        }
+    }
+
+    .modal-centered {
+        text-align: center;
+    }
+}

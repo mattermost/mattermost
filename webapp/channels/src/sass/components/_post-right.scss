@@ -1,0 +1,273 @@
+@charset "utf-8";
+
+.post-right__container,
+.ThreadViewer {
+    display: flex;
+    flex-direction: column;
+
+    .post-right-root-message {
+        padding: 1em 1em 0;
+    }
+
+    .post-right-comments-container {
+        position: relative;
+        margin-right: 5px;
+
+        .post {
+            &:hover {
+                & + .Separator {
+                    .separator__hr {
+                        overflow: visible;
+
+                        &::before {
+                            position: absolute;
+                            top: -16px;
+                            left: 0;
+                            width: 100%;
+                            height: 16px;
+                            background: rgba(v(center-channel-color-rgb), 0.04);
+                            content: '';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .help__format-text {
+        display: none;
+    }
+
+    .post {
+        &.post--root {
+            padding-top: 2rem;
+
+            .post__body {
+                background: transparent !important;
+            }
+
+            &.post--compact {
+                padding-left: 1em;
+            }
+        }
+
+        .post-pre-header__icons-container {
+            width: 60px; // If the width of post__img changes, this needs to be adjusted accordingly
+            padding-right: 12px; // If the padding of post__img changes, this needs to be adjusted accordingly
+            margin-left: 0; // if left margin of post__content changes, this needs to be adjusted accordingly
+        }
+
+        .post__header {
+            .post-menu {
+                text-align: right;
+            }
+        }
+
+        &.post--comment {
+            .post__body {
+                border-left: none;
+            }
+        }
+
+        .post__content {
+            padding: 0 10px 0 0;
+        }
+
+        .post__body {
+            width: 100%;
+            padding-left: 0;
+        }
+
+        &.post--compact {
+            .post__body {
+                padding-left: 0;
+            }
+
+            &.same--root {
+                &.post--comment {
+                    padding-left: 1em;
+
+                    .post__header {
+                        height: auto;
+                        margin-left: 0;
+                        float: none;
+
+                        .post__time {
+                            opacity: 0.6;
+                        }
+                    }
+                }
+            }
+
+            &.same--user {
+                .post__header {
+                    .col__name {
+                        display: inline-block;
+                    }
+                }
+            }
+
+            .post__img {
+                width: 16px;
+            }
+
+            .card-icon__container {
+                margin: 0 0 0 6px;
+            }
+        }
+
+        .post__img {
+            width: 60px; // if this changes, the width of post-pre-header__icons-container needs to be adjusted accordingly
+            padding: 2px 12px 0 0; // if the right padding changes, the padding of post-pre-header__icons-container needs to be adjusted accordingly
+        }
+
+        .post-body {
+            img {
+                max-height: 200px;
+            }
+        }
+
+        .post-preview .post__img {
+            width: 24px;
+        }
+    }
+
+    hr {
+        border: none;
+    }
+
+    .post-create__container {
+        width: 100%;
+
+        .btn {
+            margin-bottom: 10px;
+
+            &.disabled {
+                border-color: transparent !important;
+                background: grey !important;
+            }
+        }
+
+        .custom-textarea {
+            min-height: 100px;
+            max-height: calc(50vh - 80px);
+        }
+
+        .msg-typing {
+            display: block;
+            min-width: 1px;
+            max-width: 230px;
+            height: 20px;
+            margin-top: 4px;
+            margin-bottom: 0;
+            float: left;
+            font-size: 13px;
+            line-height: 20px;
+            opacity: 0.7;
+        }
+
+        .post-right-comments-upload-in-progress {
+            padding: 6px 0;
+            margin-right: 10px;
+            opacity: 0.7;
+        }
+
+        .emoji-picker {
+            position: absolute;
+            top: -361px;
+            right: 0;
+        }
+
+        form {
+            padding: 0;
+        }
+
+        .post-create {
+            padding: 0.5em 15px 0;
+        }
+
+        .post-create-footer {
+            .post-error {
+                position: relative;
+                top: 0;
+                display: inline-block;
+                margin-bottom: 0;
+                font-size: 0.85em;
+                font-weight: normal;
+                opacity: 0.55;
+            }
+        }
+    }
+}
+
+.post-right__container {
+    flex: 1;
+
+    .ThreadViewer {
+        flex: 1;
+    }
+}
+
+.post-right-header {
+    height: 39px;
+    padding: 10px 10px 0 15px;
+    border-bottom: $border-gray;
+    color: #999;
+    font-size: 1em;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+
+.post-right-root-container {
+    padding: 5px 10px;
+    border-bottom: $border-gray;
+
+    ul {
+        padding-left: 0;
+        margin-bottom: 2px;
+    }
+}
+
+.post-right-channel__name {
+    margin: 8px 0 12px;
+    font-weight: 600;
+}
+
+.card-info-channel__name {
+    margin: 0 0 15px 14px;
+    font-weight: 600;
+}
+
+.post-right-root-container li {
+    display: inline;
+    padding-right: 3px;
+    list-style-type: none;
+}
+
+.post-right-root-time {
+    color: #a8adb7;
+}
+
+.post-right-create-comment-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 18px;
+}
+
+.post-right__scroll {
+    position: relative;
+    flex: 1 1 auto;
+    padding-top: 28px;
+    -webkit-overflow-scrolling: touch;
+
+    .file-preview__container {
+        margin-top: 5px;
+    }
+}
+
+.post-right-comment-time {
+    color: #a8adb7;
+}

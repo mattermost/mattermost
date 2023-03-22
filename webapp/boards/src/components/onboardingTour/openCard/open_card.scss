@@ -1,0 +1,10 @@
+.OpenCardTourStep {
+    &.tutorial-tour-tip__pulsating-dot-ctr {
+        left: 80%;
+        top: calc(100% - 6px);
+    }
+
+    .tutorial-tour-tip__overlay {
+        cursor: pointer;
+    }
+}

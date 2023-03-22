@@ -1,0 +1,35 @@
+@charset 'UTF-8';
+
+body {
+    &.error {
+        .container-fluid {
+            display: table;
+            height: 90%;
+        }
+
+        .error__container {
+            display: table-cell;
+            max-width: 800px;
+            padding: 5em 0;
+            margin: 0 auto;
+            color: #555;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .error__icon {
+            color: #ccc;
+            font-size: 4em;
+        }
+
+        h2 {
+            margin: 0.8em 0 0.5em;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 1.2em;
+        }
+    }
+}

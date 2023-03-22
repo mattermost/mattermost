@@ -1,0 +1,565 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match fifth Snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_moderation"
+  subtitleDefault="Manage the actions available to channel members and guests."
+  subtitleId="admin.channel_settings.channel_moderation.subtitle"
+  titleDefault="Channel Moderation"
+  titleId="admin.channel_settings.channel_moderation.title"
+>
+  <div
+    className="channel-moderation"
+  >
+    <div
+      className="channel-moderation--body"
+    >
+      <table
+        className="channel-moderation--table"
+        id="channel_moderation_table"
+      >
+        <thead>
+          <tr>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Permissions"
+                id="admin.channel_settings.channel_moderation.permissions"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Guests"
+                id="admin.channel_settings.channel_moderation.guests"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Members"
+                id="admin.channel_settings.channel_moderation.members"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ChannelModerationTableRow
+            errorMessages={Array []}
+            guestAccountsEnabled={true}
+            guests={true}
+            guestsDisabled={false}
+            key="create_post"
+            members={true}
+            membersDisabled={false}
+            name="create_post"
+            onClick={[Function]}
+            readOnly={false}
+          />
+          <ChannelModerationTableRow
+            errorMessages={
+              Array [
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBoth"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="Channel mentions for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link})."
+                    id="admin.channel_settings.channel_moderation.channelMentions.disabledBoth"
+                    values={
+                      Object {
+                        "scheme_link": "team_override_scheme/id?rowIdFromQuery=use_channel_mentions",
+                        "scheme_name": "dp Team Scheme",
+                      }
+                    }
+                  />
+                </div>,
+              ]
+            }
+            guestAccountsEnabled={true}
+            guests={false}
+            guestsDisabled={true}
+            key="use_channel_mentions"
+            members={false}
+            membersDisabled={true}
+            name="use_channel_mentions"
+            onClick={[Function]}
+            readOnly={false}
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match first Snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_moderation"
+  subtitleDefault="Manage the actions available to channel members and guests."
+  subtitleId="admin.channel_settings.channel_moderation.subtitle"
+  titleDefault="Channel Moderation"
+  titleId="admin.channel_settings.channel_moderation.title"
+>
+  <div
+    className="channel-moderation"
+  >
+    <div
+      className="channel-moderation--body"
+    >
+      <table
+        className="channel-moderation--table"
+        id="channel_moderation_table"
+      >
+        <thead>
+          <tr>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Permissions"
+                id="admin.channel_settings.channel_moderation.permissions"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Guests"
+                id="admin.channel_settings.channel_moderation.guests"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Members"
+                id="admin.channel_settings.channel_moderation.members"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ChannelModerationTableRow
+            errorMessages={Array []}
+            guestAccountsEnabled={true}
+            guests={true}
+            guestsDisabled={false}
+            key="create_post"
+            members={true}
+            membersDisabled={false}
+            name="create_post"
+            onClick={[Function]}
+            readOnly={false}
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match fourth Snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_moderation"
+  subtitleDefault="Manage the actions available to channel members and guests."
+  subtitleId="admin.channel_settings.channel_moderation.subtitle"
+  titleDefault="Channel Moderation"
+  titleId="admin.channel_settings.channel_moderation.title"
+>
+  <div
+    className="channel-moderation"
+  >
+    <div
+      className="channel-moderation--body"
+    >
+      <table
+        className="channel-moderation--table"
+        id="channel_moderation_table"
+      >
+        <thead>
+          <tr>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Permissions"
+                id="admin.channel_settings.channel_moderation.permissions"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Guests"
+                id="admin.channel_settings.channel_moderation.guests"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Members"
+                id="admin.channel_settings.channel_moderation.members"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ChannelModerationTableRow
+            errorMessages={Array []}
+            guestAccountsEnabled={true}
+            guests={false}
+            guestsDisabled={false}
+            key="create_post"
+            members={false}
+            membersDisabled={false}
+            name="create_post"
+            onClick={[Function]}
+            readOnly={false}
+          />
+          <ChannelModerationTableRow
+            errorMessages={
+              Array [
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts"
+                >
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Guests and members can not use channel mentions without the ability to create posts."
+                    id="admin.channel_settings.channel_moderation.channelMentions.disabledBothDueToCreatePosts"
+                  />
+                </div>,
+              ]
+            }
+            guestAccountsEnabled={true}
+            guests={false}
+            guestsDisabled={true}
+            key="use_channel_mentions"
+            members={false}
+            membersDisabled={true}
+            name="use_channel_mentions"
+            onClick={[Function]}
+            readOnly={false}
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match second Snapshot 1`] = `
+<tr>
+  <td>
+    <label
+      data-testid="admin-channel_settings-channel_moderation-createPosts"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Create Posts"
+        id="admin.channel_settings.channel_moderation.createPosts"
+      />
+    </label>
+    <div
+      data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="The ability for members and guests to create posts in the channel."
+        id="admin.channel_settings.channel_moderation.createPostsDesc"
+      />
+    </div>
+    <Component />
+  </td>
+  <td>
+    <button
+      className="checkbox checked"
+      data-testid="create_post-guests"
+      onClick={[Function]}
+      type="button"
+    >
+      <CheckboxCheckedIcon />
+    </button>
+  </td>
+  <td>
+    <button
+      className="checkbox checked"
+      data-testid="create_post-members"
+      onClick={[Function]}
+      type="button"
+    >
+      <CheckboxCheckedIcon />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match seventh Snapshot 1`] = `
+<tr>
+  <td>
+    <label
+      data-testid="admin-channel_settings-channel_moderation-createPosts"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Create Posts"
+        id="admin.channel_settings.channel_moderation.createPosts"
+      />
+    </label>
+    <div
+      data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="The ability for members to create posts in the channel."
+        id="admin.channel_settings.channel_moderation.createPostsDescMembers"
+      />
+    </div>
+    <Component />
+  </td>
+  <td>
+    <button
+      className="checkbox checked"
+      data-testid="create_post-members"
+      onClick={[Function]}
+      type="button"
+    >
+      <CheckboxCheckedIcon />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match sixth Snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_moderation"
+  subtitleDefault="Manage the actions available to channel members and guests."
+  subtitleId="admin.channel_settings.channel_moderation.subtitle"
+  titleDefault="Channel Moderation"
+  titleId="admin.channel_settings.channel_moderation.title"
+>
+  <div
+    className="channel-moderation"
+  >
+    <div
+      className="channel-moderation--body"
+    >
+      <table
+        className="channel-moderation--table"
+        id="channel_moderation_table"
+      >
+        <thead>
+          <tr>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Permissions"
+                id="admin.channel_settings.channel_moderation.permissions"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Guests"
+                id="admin.channel_settings.channel_moderation.guests"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Members"
+                id="admin.channel_settings.channel_moderation.members"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ChannelModerationTableRow
+            errorMessages={Array []}
+            guestAccountsEnabled={true}
+            guests={false}
+            guestsDisabled={false}
+            key="create_post"
+            members={true}
+            membersDisabled={false}
+            name="create_post"
+            onClick={[Function]}
+            readOnly={false}
+          />
+          <ChannelModerationTableRow
+            errorMessages={
+              Array [
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuestsDueToCreatePosts"
+                >
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Guests can not use channel mentions without the ability to create posts."
+                    id="admin.channel_settings.channel_moderation.channelMentions.disabledGuestsDueToCreatePosts"
+                  />
+                </div>,
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMember"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="Channel mentions for members are disabled in [{scheme_name}](../permissions/{scheme_link})."
+                    id="admin.channel_settings.channel_moderation.channelMentions.disabledMember"
+                    values={
+                      Object {
+                        "scheme_link": "team_override_scheme/id?rowIdFromQuery=use_channel_mentions",
+                        "scheme_name": "dp Team Scheme",
+                      }
+                    }
+                  />
+                </div>,
+              ]
+            }
+            guestAccountsEnabled={true}
+            guests={false}
+            guestsDisabled={true}
+            key="use_channel_mentions"
+            members={false}
+            membersDisabled={true}
+            name="use_channel_mentions"
+            onClick={[Function]}
+            readOnly={false}
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match sixth Snapshot 2`] = `
+<AdminPanel
+  className=""
+  id="channel_moderation"
+  subtitleDefault="Manage the actions available to channel members."
+  subtitleId="admin.channel_settings.channel_moderation.subtitleMembers"
+  titleDefault="Channel Moderation"
+  titleId="admin.channel_settings.channel_moderation.title"
+>
+  <div
+    className="channel-moderation"
+  >
+    <div
+      className="channel-moderation--body"
+    >
+      <table
+        className="channel-moderation--table"
+        id="channel_moderation_table"
+      >
+        <thead>
+          <tr>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Permissions"
+                id="admin.channel_settings.channel_moderation.permissions"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Members"
+                id="admin.channel_settings.channel_moderation.members"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ChannelModerationTableRow
+            errorMessages={Array []}
+            guestAccountsEnabled={false}
+            guests={true}
+            guestsDisabled={false}
+            key="create_post"
+            members={true}
+            membersDisabled={false}
+            name="create_post"
+            onClick={[Function]}
+            readOnly={false}
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match third Snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_moderation"
+  subtitleDefault="Manage the actions available to channel members and guests."
+  subtitleId="admin.channel_settings.channel_moderation.subtitle"
+  titleDefault="Channel Moderation"
+  titleId="admin.channel_settings.channel_moderation.title"
+>
+  <div
+    className="channel-moderation"
+  >
+    <div
+      className="channel-moderation--body"
+    >
+      <table
+        className="channel-moderation--table"
+        id="channel_moderation_table"
+      >
+        <thead>
+          <tr>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Permissions"
+                id="admin.channel_settings.channel_moderation.permissions"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Guests"
+                id="admin.channel_settings.channel_moderation.guests"
+              />
+            </th>
+            <th>
+              <MemoizedFormattedMessage
+                defaultMessage="Members"
+                id="admin.channel_settings.channel_moderation.members"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ChannelModerationTableRow
+            errorMessages={Array []}
+            guestAccountsEnabled={true}
+            guests={true}
+            guestsDisabled={false}
+            key="create_post"
+            members={false}
+            membersDisabled={false}
+            name="create_post"
+            onClick={[Function]}
+            readOnly={false}
+          />
+          <ChannelModerationTableRow
+            errorMessages={
+              Array [
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMemberDueToCreatePosts"
+                >
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Members can not use channel mentions without the ability to create posts."
+                    id="admin.channel_settings.channel_moderation.channelMentions.disabledMemberDueToCreatePosts"
+                  />
+                </div>,
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuest"
+                >
+                  <FormattedMarkdownMessage
+                    defaultMessage="Channel mentions for guests are disabled in [{scheme_name}](../permissions/{scheme_link})."
+                    id="admin.channel_settings.channel_moderation.channelMentions.disabledGuest"
+                    values={
+                      Object {
+                        "scheme_link": "team_override_scheme/id?rowIdFromQuery=guest_use_channel_mentions",
+                        "scheme_name": "dp Team Scheme",
+                      }
+                    }
+                  />
+                </div>,
+              ]
+            }
+            guestAccountsEnabled={true}
+            guests={false}
+            guestsDisabled={true}
+            key="use_channel_mentions"
+            members={false}
+            membersDisabled={true}
+            name="use_channel_mentions"
+            onClick={[Function]}
+            readOnly={false}
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminPanel>
+`;

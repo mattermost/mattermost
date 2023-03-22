@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/DeleteBoardDialog Cancel should not submit 1`] = `
+<div
+  id="focalboard-root-portal"
+>
+  exists
+</div>
+`;
+
+exports[`components/sidebar/DeleteBoardDialog Delete should submit 1`] = `
+<div
+  id="focalboard-root-portal"
+>
+  deleted
+</div>
+`;

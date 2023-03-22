@@ -1,0 +1,49 @@
+// Keep in descending order to aid in visual grepping
+//
+// Usage:
+// z-index: map-get($z-index, <key>)
+// or
+// z-index: z-index(<key>)
+// or
+// @include z-index(<key>)
+
+$z-index: (
+    // key: value
+    modal-permissions-label: 1000,
+    board-template-selector: 1000,
+    notification-box:        1000,
+    calculation-dropdown:     999,
+    flash-messages:           999,
+    tour-tip-backdrop:        999,
+    tour-tip-overlay:         999,
+    confirmation-dialog-box:  300,
+    dialog-back:              200,
+    sidebar-hidden:           105,
+    center-panel:             100,
+    hover-tooltip-body:       100,
+    table-row-action-cell:    100,
+    hover-tooltip-arrow:       99,
+    calendar-options-menu:     30,
+    gallery-options-menu:      30,
+    sub-menu-option-sub-menu:  16,
+    menu:                      15,
+    card-value-selector-menu:  10,
+    modal:                     10,
+    top-bar:                   10,
+    workspace-main-frame:       9,
+    share-board-element:        5,
+    block-hover:                1,
+    kanban-board-header:        1,
+    table-header:               1,
+    value-selector-delete:      1,
+    dialog-backdrop:           -1,
+    unset:                   unset
+);
+
+@function z-index($key) {
+    @return map-get($z-index, $key);
+}
+
+@mixin z-index($key) {
+    z-index: z-index($key); /* stylelint-disable-line property-disallowed-list */
+}

@@ -1,0 +1,191 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/team/TeamDetails should match snapshot 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <div
+    className="admin-console__header with-back"
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/teams"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Team Configuration"
+        id="admin.team_settings.team_detail.group_configuration"
+      />
+    </div>
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <TeamProfile
+        isArchived={false}
+        onToggleArchive={[Function]}
+        saveNeeded={false}
+        team={
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "team",
+            "email": "",
+            "group_constrained": false,
+            "id": "123",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      />
+      <ConfirmModal
+        confirmButtonClass="btn btn-primary"
+        confirmButtonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Archive"
+            id="admin.team_settings.team_detail.archive_confirm.button"
+          />
+        }
+        message={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving will archive the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this team?"
+            id="admin.team_settings.team_detail.archive_confirm.message"
+          />
+        }
+        modalClass=""
+        onCancel={[Function]}
+        onConfirm={[Function]}
+        show={false}
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save and Archive Team"
+            id="admin.team_settings.team_detail.archive_confirm.title"
+          />
+        }
+      />
+      <RemoveConfirmModal
+        amount={0}
+        inChannel={false}
+        onCancel={[Function]}
+        onConfirm={[Function]}
+        show={false}
+      />
+      <TeamModes
+        allAllowedChecked={false}
+        allowedDomains=""
+        allowedDomainsChecked={false}
+        onToggle={[Function]}
+        syncChecked={false}
+      />
+      <Connect(TeamMembers)
+        onAddCallback={[Function]}
+        onRemoveCallback={[Function]}
+        teamId="123"
+        updateRole={[Function]}
+        usersToAdd={Object {}}
+        usersToRemove={Object {}}
+      />
+    </div>
+  </div>
+  <SaveChangesPanel
+    cancelLink="/admin_console/user_management/teams"
+    onClick={[Function]}
+    saveNeeded={false}
+    saving={false}
+  />
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamDetails should match snapshot with isLocalArchived true 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <div
+    className="admin-console__header with-back"
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/teams"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Team Configuration"
+        id="admin.team_settings.team_detail.group_configuration"
+      />
+    </div>
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <TeamProfile
+        isArchived={true}
+        onToggleArchive={[Function]}
+        saveNeeded={false}
+        team={
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 16465313,
+            "description": "",
+            "display_name": "team",
+            "email": "",
+            "group_constrained": false,
+            "id": "123",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      />
+      <ConfirmModal
+        confirmButtonClass="btn btn-primary"
+        confirmButtonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Archive"
+            id="admin.team_settings.team_detail.archive_confirm.button"
+          />
+        }
+        message={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving will archive the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this team?"
+            id="admin.team_settings.team_detail.archive_confirm.message"
+          />
+        }
+        modalClass=""
+        onCancel={[Function]}
+        onConfirm={[Function]}
+        show={false}
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save and Archive Team"
+            id="admin.team_settings.team_detail.archive_confirm.title"
+          />
+        }
+      />
+    </div>
+  </div>
+  <SaveChangesPanel
+    cancelLink="/admin_console/user_management/teams"
+    onClick={[Function]}
+    saveNeeded={false}
+    saving={false}
+  />
+</div>
+`;

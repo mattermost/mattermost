@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0'>
+    <meta name='robots' content='noindex, nofollow'>
+    <meta name='referrer' content='no-referrer'>
+
+    <title>Mattermost</title>
+
+    <meta name='mobile-web-app-capable' content='yes'>
+    <meta name='application-name' content='Mattermost'>
+    <meta name='format-detection' content='telephone=no'>
+
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-24x24.png" sizes="24x24">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-64x64.png" sizes="64x64">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-96x96.png" sizes="96x96">
+
+    <!-- CSS Should always go first -->
+    <link rel='stylesheet' class='code_theme'>
+    <style>
+        .error-screen {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            padding-top: 50px;
+            max-width: 750px;
+            font-size: 14px;
+            color: #333333;
+            margin: auto;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .error-screen h2 {
+            font-size: 30px;
+            font-weight: normal;
+            line-height: 1.2;
+        }
+
+        .error-screen ul {
+            padding-left: 15px;
+            line-height: 1.7;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .error-screen hr {
+            color: #ddd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border: 0;
+            border-top: 1px solid #eee;
+        }
+
+        .error-screen-visible {
+            display: block;
+        }
+    </style>
+</head>
+<body class='font--open_sans enable-animations'>
+    <div id='root'>
+        <div class='error-screen'>
+            <h2>Cannot connect to Mattermost</h2>
+            <hr/>
+            <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p>
+            <br/>
+        </div>
+        <div
+            class='loading-screen'
+            style='position: relative'
+        >
+            <div class='loading__content'>
+                <div class='round round-1'></div>
+                <div class='round round-2'></div>
+                <div class='round round-3'></div>
+            </div>
+        </div>
+    </div>
+    <div id='root-portal'></div>
+    <noscript>
+        To use Mattermost, please enable JavaScript.
+    </noscript>
+</body>
+</html>
