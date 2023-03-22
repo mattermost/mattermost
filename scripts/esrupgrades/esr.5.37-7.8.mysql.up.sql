@@ -1099,20 +1099,25 @@ CALL MigrateOAuthApps ();
 DROP PROCEDURE IF EXISTS MigrateOAuthApps;
 
 /* ==> mysql/000079_usergroups_displayname_index.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'UserGroups'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_usergroups_displayname'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateUserGroups ()
+BEGIN
+	-- 'CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);'
+	DECLARE CreateIndex BOOLEAN;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'UserGroups'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_usergroups_displayname'
+		INTO CreateIndex;
+
+	IF CreateIndex THEN
+		CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateUserGroups ();
+DROP PROCEDURE IF EXISTS MigrateUserGroups;
 
 /* ==> mysql/000081_threads_deleteat.up.sql <== */
 -- Replaced by 000083_threads_threaddeleteat.up.sql
