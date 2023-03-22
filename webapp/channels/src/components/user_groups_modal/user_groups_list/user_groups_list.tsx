@@ -30,6 +30,7 @@ export type Props = {
     backButtonAction: () => void;
     actions: {
         archiveGroup: (groupId: string) => Promise<ActionResult>;
+        restoreGroup: (groupId: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
 }
@@ -57,6 +58,10 @@ const UserGroupsList = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivEl
     const archiveGroup = useCallback(async (groupId: string) => {
         await actions.archiveGroup(groupId);
     }, [actions.archiveGroup]);
+
+    const restoreGroup = useCallback(async (groupId: string) => {
+        await actions.restoreGroup(groupId);
+    }, [actions.restoreGroup]);
 
     const goToViewGroupModal = useCallback((group: Group) => {
         actions.openModal({
@@ -104,6 +109,10 @@ const UserGroupsList = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivEl
                         }}
                     >
                         <span className='group-display-name'>
+                            {
+                                group.delete_at > 0 &&
+                                <i className='icon icon-archive-outline'/>
+                            }
                             {group.display_name}
                         </span>
                         <span className='group-name'>
@@ -153,6 +162,14 @@ const UserGroupsList = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivEl
                                             text={Utils.localizeMessage('user_groups_modal.archiveGroup', 'Archive Group')}
                                             disabled={false}
                                             isDangerous={true}
+                                        />
+                                        <Menu.ItemAction
+                                            show={groupPermissionsMap[group.id].can_restore}
+                                            onClick={() => {
+                                                restoreGroup(group.id);
+                                            }}
+                                            text={Utils.localizeMessage('user_groups_modal.restoreGroup', 'Restore Group')}
+                                            disabled={false}
                                         />
                                     </Menu.Group>
                                 </Menu>

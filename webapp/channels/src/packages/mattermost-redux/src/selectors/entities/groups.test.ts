@@ -214,7 +214,7 @@ describe('Selectors.Groups', () => {
             group4,
             group5,
         ];
-        expect(Selectors.getAllAssociatedGroupsForReference(testState)).toEqual(expected);
+        expect(Selectors.getAllAssociatedGroupsForReference(testState, false)).toEqual(expected);
     });
 
     it('getMyGroupMentionKeys', () => {
@@ -226,7 +226,7 @@ describe('Selectors.Groups', () => {
                 key: `@${group4.name}`,
             },
         ];
-        expect(Selectors.getMyGroupMentionKeys(testState)).toEqual(expected);
+        expect(Selectors.getMyGroupMentionKeys(testState, false)).toEqual(expected);
     });
 
     it('getMyGroupMentionKeysForChannel', () => {

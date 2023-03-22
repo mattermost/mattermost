@@ -74,6 +74,8 @@ import {
     GroupCreateWithUserIds,
     GroupSearachParams,
     CustomGroupPatch,
+    GetGroupsParams,
+    GetGroupsForUserParams,
 } from '@mattermost/types/groups';
 import {PostActionResponse} from '@mattermost/types/integration_actions';
 import {
@@ -3585,19 +3587,9 @@ export default class Client4 {
         );
     };
 
-    getGroups = (filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
-        const qs: any = {
-            filter_allow_reference: filterAllowReference,
-            page,
-            per_page: perPage,
-            include_member_count: includeMemberCount,
-        };
-
-        if (hasFilterMember) {
-            qs.filter_has_member = hasFilterMember;
-        }
+    getGroups = (opts: GetGroupsForUserParams | GetGroupsParams) => {
         return this.doFetch<Group[]>(
-            `${this.getGroupsRoute()}${buildQueryString(qs)}`,
+            `${this.getGroupsRoute()}${buildQueryString(opts)}`,
             {method: 'get'},
         );
     };
@@ -3755,6 +3747,13 @@ export default class Client4 {
         return this.doFetch<Group>(
             `${this.getGroupRoute(groupId)}`,
             {method: 'delete'},
+        );
+    }
+
+    restoreGroup = (groupId: string) => {
+        return this.doFetch<Group>(
+            `${this.getGroupRoute(groupId)}/restore`,
+            {method: 'post'},
         );
     }
 
