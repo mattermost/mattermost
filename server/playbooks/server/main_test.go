@@ -102,6 +102,12 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
 
+	// Ignore any globally defined datasource if a test dsn defined
+	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+		t.Log("Unsetting MM_SQLSETTINGS_DATASOURCE since test dsn detected")
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+	}
+
 	// Environment Settings
 	driverName := getEnvWithDefault("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 	sqlSettings := storetest.MakeSqlSettings(driverName, false)
