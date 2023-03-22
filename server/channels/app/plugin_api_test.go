@@ -1159,10 +1159,6 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 5. Successfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
-	// TODO: this needs to be refactored so the env variable doesn't
-	// need to be set here
-	os.Setenv("MM_SQLSETTINGS_DATASOURCE", *mainHelper.Settings.DataSource)
-
 	defaultSchema := getDefaultPluginSettingsSchema()
 	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot read find app folder")
@@ -1183,8 +1179,6 @@ func TestBasicAPIPlugins(t *testing.T) {
 			})
 		}
 	}
-
-	os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {

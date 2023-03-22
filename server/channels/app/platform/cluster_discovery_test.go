@@ -4,7 +4,6 @@
 package platform
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -12,10 +11,6 @@ import (
 )
 
 func TestClusterDiscoveryService(t *testing.T) {
-	// TODO: this needs to be refactored so the env variable doesn't
-	// need to be set here
-	os.Setenv("MM_SQLSETTINGS_DATASOURCE", *mainHelper.Settings.DataSource)
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -29,6 +24,4 @@ func TestClusterDiscoveryService(t *testing.T) {
 
 	ds.Stop()
 	time.Sleep(2 * time.Second)
-
-	os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 }
