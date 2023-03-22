@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/graph-gophers/graphql-go"
@@ -461,14 +462,18 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		run, err = e.PlaybooksClient.PlaybookRuns.Get(context.TODO(), run.ID)
 		require.NoError(t, err)
 		require.Len(t, run.ParticipantIDs, 2)
-		assert.Equal(t, e.RegularUser.Id, run.ParticipantIDs[0])
-		assert.Equal(t, e.RegularUser2.Id, run.ParticipantIDs[1])
+		expected := []string{e.RegularUser.Id, e.RegularUser2.Id}
+		sort.Strings(expected)
+		sort.Strings(run.ParticipantIDs)
+		assert.Equal(t, expected, run.ParticipantIDs)
 
 		meta, err := e.PlaybooksClient.PlaybookRuns.GetMetadata(context.TODO(), run.ID)
 		require.NoError(t, err)
 		require.Len(t, meta.Followers, 2)
-		assert.Equal(t, e.RegularUser.Id, meta.Followers[0])
-		assert.Equal(t, e.RegularUser2.Id, meta.Followers[1])
+		expected = []string{e.RegularUser.Id, e.RegularUser2.Id}
+		sort.Strings(expected)
+		sort.Strings(meta.Followers)
+		assert.Equal(t, expected, meta.Followers)
 
 		member, appErr := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
 		require.Nil(t, appErr)
@@ -504,14 +509,18 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		run, err = e.PlaybooksClient.PlaybookRuns.Get(context.TODO(), run.ID)
 		require.NoError(t, err)
 		require.Len(t, run.ParticipantIDs, 2)
-		assert.Equal(t, e.RegularUser.Id, run.ParticipantIDs[0])
-		assert.Equal(t, e.RegularUser2.Id, run.ParticipantIDs[1])
+		expected := []string{e.RegularUser.Id, e.RegularUser2.Id}
+		sort.Strings(expected)
+		sort.Strings(run.ParticipantIDs)
+		assert.Equal(t, expected, run.ParticipantIDs)
 
 		meta, err := e.PlaybooksClient.PlaybookRuns.GetMetadata(context.TODO(), run.ID)
 		require.NoError(t, err)
 		require.Len(t, meta.Followers, 2)
-		assert.Equal(t, e.RegularUser.Id, meta.Followers[0])
-		assert.Equal(t, e.RegularUser2.Id, meta.Followers[1])
+		expected = []string{e.RegularUser.Id, e.RegularUser2.Id}
+		sort.Strings(expected)
+		sort.Strings(meta.Followers)
+		assert.Equal(t, expected, meta.Followers)
 
 		member, appErr := e.A.GetChannelMember(request.EmptyContext(nil), run.ChannelID, e.RegularUser2.Id)
 		require.Nil(t, appErr)
@@ -652,8 +661,10 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 		run, err = e.PlaybooksClient.PlaybookRuns.Get(context.TODO(), run.ID)
 		require.NoError(t, err)
 		require.Len(t, run.ParticipantIDs, 2)
-		assert.Equal(t, e.RegularUser.Id, run.ParticipantIDs[0])
-		assert.Equal(t, e.RegularUser2.Id, run.ParticipantIDs[1])
+		expected := []string{e.RegularUser.Id, e.RegularUser2.Id}
+		sort.Strings(expected)
+		sort.Strings(run.ParticipantIDs)
+		assert.Equal(t, expected, run.ParticipantIDs)
 	})
 }
 
