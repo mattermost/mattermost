@@ -548,21 +548,26 @@ CALL MigrateJobs ();
 DROP PROCEDURE IF EXISTS MigrateJobs;
 
 /* ==> mysql/000061_upgrade_link_metadata_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'LinkMetadata'
-        AND table_schema = DATABASE()
-        AND column_name = 'Data'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE LinkMetadata MODIFY COLUMN Data JSON;',
-    'SELECT 1'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateLinkMetadata ()
+BEGIN
+	-- ALTER TABLE LinkMetadata MODIFY COLUMN Data JSON;
+	DECLARE ModifyData BOOLEAN;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'LinkMetadata'
+		AND table_schema = DATABASE()
+		AND column_name = 'Data'
+		AND LOWER(column_type) != 'JSON'
+		INTO ModifyData;
+
+	IF ModifyData THEN
+		ALTER TABLE LinkMetadata MODIFY COLUMN Data JSON;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateLinkMetadata ();
+DROP PROCEDURE IF EXISTS MigrateLinkMetadata;
 
 /* ==> mysql/000062_upgrade_sessions_v6.0.up.sql <== */
 /* ==> mysql/000071_upgrade_sessions_v6.1.up.sql <== */
