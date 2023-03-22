@@ -1132,20 +1132,49 @@ EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000086_add_cloud_limits_archived.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-	NOT EXISTS(
-		SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+/* ==> mysql/000090_create_enums.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateTeams ()
+BEGIN
+	-- 'ALTER TABLE Teams ADD COLUMN CloudLimitsArchived BOOLEAN NOT NULL DEFAULT FALSE;',
+	DECLARE AddCloudLimitsArchived BOOLEAN;
+	DECLARE AddCloudLimitsArchivedQuery TEXT DEFAULT NULL;
+
+	-- 'ALTER TABLE Teams MODIFY COLUMN Type ENUM("I", "O");',
+	DECLARE ModifyType BOOLEAN;
+	DECLARE ModifyTypeQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
 		WHERE table_name = 'Teams'
 		AND table_schema = DATABASE()
 		AND column_name = 'CloudLimitsArchived'
-	),
-	'ALTER TABLE Teams ADD COLUMN CloudLimitsArchived BOOLEAN NOT NULL DEFAULT FALSE;',
-	'SELECT 1'
-));
+		INTO AddCloudLimitsArchived;
 
-PREPARE alterIfNotExists FROM @preparedStatement;
-EXECUTE alterIfNotExists;
-DEALLOCATE PREPARE alterIfNotExists;
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Teams'
+		AND table_schema = DATABASE()
+		AND column_name = 'Type'
+		AND REPLACE(LOWER(column_type), '"', "'") != "enum('i','o')"
+		INTO ModifyType;
+
+	IF AddCloudLimitsArchived THEN
+		SET AddCloudLimitsArchivedQuery = 'ADD COLUMN CloudLimitsArchived BOOLEAN NOT NULL DEFAULT FALSE';
+	END IF;
+
+	IF ModifyType THEN
+		SET ModifyTypeQuery = 'MODIFY COLUMN Type ENUM("I", "O")';
+	END IF;
+
+	IF AddCloudLimitsArchived OR ModifyType THEN
+		SET @query = CONCAT('ALTER TABLE Teams ', CONCAT_WS(', ', AddCloudLimitsArchivedQuery, ModifyTypeQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateTeams ();
+DROP PROCEDURE IF EXISTS MigrateTeams;
 
 /* ==> mysql/000087_sidebar_categories_index.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -1202,23 +1231,6 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
-
-/* ==> mysql/000090_create_enums.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Teams'
-        AND table_schema = DATABASE()
-        AND column_name = 'Type'
-        AND column_type != 'ENUM("I", "O")'
-    ) > 0,
-    'ALTER TABLE Teams MODIFY COLUMN Type ENUM("I", "O");',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000091_create_post_reminder.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostReminders (
