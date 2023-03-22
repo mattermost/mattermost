@@ -1130,22 +1130,27 @@ CREATE TABLE IF NOT EXISTS RecentSearches (
     CreateAt bigint NOT NULL,
     PRIMARY KEY (UserId, SearchPointer)
 );
+
 /* ==> mysql/000085_fileinfo_add_archived_column.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateFileInfo ()
+BEGIN
+	-- 'ALTER TABLE FileInfo ADD COLUMN Archived boolean NOT NULL DEFAULT false;'
+	DECLARE AddArchived BOOLEAN;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'FileInfo'
-        AND table_schema = DATABASE()
-        AND column_name = 'Archived'
-    ) > 0,
-    'SELECT 1',
-    'ALTER TABLE FileInfo ADD COLUMN Archived boolean NOT NULL DEFAULT false;'
-));
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'FileInfo'
+		AND table_schema = DATABASE()
+		AND column_name = 'Archived'
+		INTO AddArchived;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	IF AddArchived THEN
+		ALTER TABLE FileInfo ADD COLUMN Archived boolean NOT NULL DEFAULT false;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateFileInfo ();
+DROP PROCEDURE IF EXISTS MigrateFileInfo;
 
 /* ==> mysql/000086_add_cloud_limits_archived.up.sql <== */
 /* ==> mysql/000090_create_enums.up.sql <== */
