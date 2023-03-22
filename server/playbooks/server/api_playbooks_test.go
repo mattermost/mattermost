@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -1437,6 +1438,9 @@ func TestPlaybookGetAutoFollows(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, c.expectedTotalCount, len(res))
+
+				sort.Strings(res)
+				sort.Strings(c.expectedFollowers)
 				require.Equal(t, c.expectedFollowers, res)
 			}
 		})
