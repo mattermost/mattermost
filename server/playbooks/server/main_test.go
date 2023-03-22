@@ -120,11 +120,6 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 	config.LogSettings.EnableFile = model.NewBool(false)
 	config.LogSettings.ConsoleLevel = model.NewString("INFO")
 
-	// disable Boards through the feature flag
-	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
-	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
-	config.FeatureFlags.BoardsProduct = false
-
 	// override config with e2etest.config.json if it exists
 	textConfig, err := os.ReadFile("./e2etest.config.json")
 	if err == nil {
@@ -164,7 +159,6 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 	ap := sapp.New(sapp.ServerConnector(server.Channels()))
 
 	teardown := func() {
-		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", boardsProductEnvValue)
 	}
 
 	return &TestEnvironment{
