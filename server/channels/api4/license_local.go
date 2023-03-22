@@ -44,7 +44,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
-	auditRec.AddEventParameter("filename", fileData.Filename)
+	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {

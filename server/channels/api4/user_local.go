@@ -320,7 +320,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	auditRec.AddEventPriorState(user)
 	auditRec.AddEventObjectType("user")
 

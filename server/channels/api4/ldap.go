@@ -156,7 +156,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("linkLdapGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
+	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
 
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -169,8 +169,6 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("ldap_group", ldapGroup)
-
 	if ldapGroup == nil {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
 		return
@@ -182,7 +180,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if group != nil {
-		auditRec.AddMeta("group", group)
+		audit.AddEventParameterAuditable(auditRec, "group", group)
 	}
 
 	var status int
@@ -253,7 +251,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("unlinkLdapGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
+	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
@@ -295,7 +293,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
-	auditRec.AddEventParameter("props", props)
+	audit.AddEventParameter(auditRec, "to_attribute", toAttribute)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -351,7 +349,7 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("addLdapPublicCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("filename", fileData.Filename)
+	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddLdapPublicCertificate(fileData); err != nil {
 		c.Err = err
@@ -375,7 +373,7 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord("addLdapPrivateCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("filename", fileData.Filename)
+	audit.AddEventParameter(auditRec, "filename", fileData.Filename)
 
 	if err := c.App.AddLdapPrivateCertificate(fileData); err != nil {
 		c.Err = err

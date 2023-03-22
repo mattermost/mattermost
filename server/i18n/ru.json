@@ -10010,5 +10010,9 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Контакты отдела продаж"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Невозможно удалить данные oauth."
   }
 ]
