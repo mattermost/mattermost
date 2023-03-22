@@ -15,6 +15,8 @@ package config
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type Configuration struct {
+	// BotUserID used to post messages.
+	BotUserID string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -26,5 +28,6 @@ func (c *Configuration) Clone() *Configuration {
 
 func (c *Configuration) serialize() map[string]interface{} {
 	ret := make(map[string]interface{})
+	ret["BotUserID"] = c.BotUserID
 	return ret
 }
