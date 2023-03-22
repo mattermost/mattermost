@@ -106,11 +106,6 @@ func PostgreSQLSettings() *model.SqlSettings {
 		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
 	}
 
-	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
-		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
-		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
-	}
-
 	dsnURL, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
