@@ -1054,70 +1054,62 @@ EXECUTE alterTypeIfExists;
 DEALLOCATE PREPARE alterTypeIfExists;
 
 /* ==> mysql/000078_create_oauth_mattermost_app_id.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'OAuthApps'
-        AND table_schema = DATABASE()
-        AND column_name = 'MattermostAppID'
-    ) > 0,
-	'SELECT 1',
-    'ALTER TABLE OAuthApps ADD COLUMN MattermostAppID varchar(32);'
-));
+/* ==> mysql/000082_upgrade_oauth_mattermost_app_id.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateOAuthApps ()
+BEGIN
+	-- 'ALTER TABLE OAuthApps ADD COLUMN MattermostAppID varchar(32);'
+	DECLARE AddMattermostAppID BOOLEAN;
+	DECLARE AddMattermostAppIDQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'OAuthApps'
+		AND table_schema = DATABASE()
+		AND column_name = 'MattermostAppID'
+		INTO AddMattermostAppID;
+
+	IF AddMattermostAppID THEN
+		SET AddMattermostAppIDQuery = 'ADD COLUMN MattermostAppID varchar(32) NOT NULL DEFAULT ""';
+	END IF;
+
+	IF AddMattermostAppID THEN
+		SET @query = CONCAT('ALTER TABLE OAuthApps ', CONCAT_WS(', ', AddMattermostAppIDQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
+	IF AddMattermostAppID THEN
+		UPDATE OAuthApps SET MattermostAppID = "" WHERE MattermostAppID IS NULL;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateOAuthApps ();
+DROP PROCEDURE IF EXISTS MigrateOAuthApps;
 
 /* ==> mysql/000079_usergroups_displayname_index.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'UserGroups'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_usergroups_displayname'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateUserGroups ()
+BEGIN
+	-- 'CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);'
+	DECLARE CreateIndex BOOLEAN;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'UserGroups'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_usergroups_displayname'
+		INTO CreateIndex;
+
+	IF CreateIndex THEN
+		CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateUserGroups ();
+DROP PROCEDURE IF EXISTS MigrateUserGroups;
 
 /* ==> mysql/000081_threads_deleteat.up.sql <== */
 -- Replaced by 000083_threads_threaddeleteat.up.sql
-
-/* ==> mysql/000082_upgrade_oauth_mattermost_app_id.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'OAuthApps'
-        AND table_schema = DATABASE()
-        AND column_name = 'MattermostAppID'
-    ) > 0,
-    'UPDATE OAuthApps SET MattermostAppID = "" WHERE MattermostAppID IS NULL;',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'OAuthApps'
-        AND table_schema = DATABASE()
-        AND column_name = 'MattermostAppID'
-    ) > 0,
-    'ALTER TABLE OAuthApps MODIFY MattermostAppID varchar(32) NOT NULL DEFAULT "";',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000084_recent_searches.up.sql <== */
 CREATE TABLE IF NOT EXISTS RecentSearches (
