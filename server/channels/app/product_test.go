@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -40,10 +39,6 @@ func (p *productB) Start() error { return nil }
 func (p *productB) Stop() error  { return nil }
 
 func TestInitializeProducts(t *testing.T) {
-	// TODO: this needs to be refactored so the env variable doesn't
-	// need to be set here
-	os.Setenv("MM_SQLSETTINGS_DATASOURCE", *mainHelper.Settings.DataSource)
-
 	cs := config.NewTestMemoryStore()
 	cfg := cs.Get()
 	cfg.FeatureFlags.BoardsProduct = false
@@ -51,7 +46,6 @@ func TestInitializeProducts(t *testing.T) {
 
 	ps, err := platform.New(platform.ServiceConfig{ConfigStore: cs})
 	require.NoError(t, err)
-	defer ps.Shutdown()
 
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
@@ -179,6 +173,4 @@ func TestInitializeProducts(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, server.products, 1)
 	})
-
-	os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 }
