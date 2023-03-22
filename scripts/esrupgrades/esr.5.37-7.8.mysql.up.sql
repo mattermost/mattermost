@@ -1,21 +1,65 @@
 /* ==> mysql/000041_create_upload_sessions.up.sql <== */
 /* Release 5.37 was meant to contain the index idx_uploadsessions_type, but a bug prevented that.
    This part of the migration #41 adds such index */
+/* ==> mysql/000075_alter_upload_sessions_index.up.sql <== */
+/* ==> mysql/000090_create_enums.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateUploadSessions ()
+BEGIN
+	-- 'CREATE INDEX idx_uploadsessions_type ON UploadSessions(Type);'
+	DECLARE CreateIndex BOOLEAN;
+	DECLARE CreateIndexQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'UploadSessions'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_uploadsessions_type'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_uploadsessions_type ON UploadSessions(Type);'
-));
+	-- 'DROP INDEX idx_uploadsessions_user_id ON UploadSessions; CREATE INDEX idx_uploadsessions_user_id ON UploadSessions(UserId);'
+	DECLARE AlterIndex BOOLEAN;
+	DECLARE AlterIndexQuery TEXT DEFAULT NULL;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	-- 'ALTER TABLE UploadSessions MODIFY COLUMN Type ENUM("attachment", "import");'
+	DECLARE AlterColumn BOOLEAN;
+	DECLARE AlterColumnQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'UploadSessions'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_uploadsessions_type'
+		INTO CreateIndex;
+
+	SELECT IFNULL(GROUP_CONCAT(column_name ORDER BY seq_in_index), '') = 'Type' FROM information_schema.statistics
+		WHERE table_name = 'UploadSessions'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_uploadsessions_user_id'
+		GROUP BY index_name
+		INTO AlterIndex;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'UploadSessions'
+		AND table_schema = DATABASE()
+		AND column_name = 'Type'
+		AND REPLACE(LOWER(column_type), '"', "'") != "enum('attachment','import')"
+		INTO AlterColumn;
+
+	IF CreateIndex THEN
+		SET CreateIndexQuery = 'ADD INDEX idx_uploadsessions_type (Type)';
+	END IF;
+
+	IF AlterIndex THEN
+		SET AlterIndexQuery = 'DROP INDEX idx_uploadsessions_user_id, ADD INDEX idx_uploadsessions_user_id (UserId)';
+	END IF;
+
+	IF AlterColumn THEN
+		SET AlterColumnQuery = 'MODIFY COLUMN Type ENUM("attachment", "import")';
+	END IF;
+
+	IF CreateIndex OR AlterIndex OR AlterColumn THEN
+		SET @query = CONCAT('ALTER TABLE UploadSessions ', CONCAT_WS(', ', CreateIndexQuery, AlterIndexQuery, AlterColumnQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateUploadSessions ();
+DROP PROCEDURE IF EXISTS MigrateUploadSessions;
 
 /* ==> mysql/000054_create_crt_channelmembership_count.up.sql <== */
 /* fixCRTChannelMembershipCounts fixes the channel counts, i.e. the total message count,
@@ -1055,21 +1099,6 @@ PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'UploadSessions'
-        AND table_schema = DATABASE()
-        AND column_name = 'Type'
-        AND column_type != 'ENUM("attachment", "import")'
-    ) > 0,
-    'ALTER TABLE UploadSessions MODIFY COLUMN Type ENUM("attachment", "import");',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 /* ==> mysql/000091_create_post_reminder.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostReminders (
     PostId varchar(26) NOT NULL,
