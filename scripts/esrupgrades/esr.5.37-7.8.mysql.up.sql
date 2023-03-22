@@ -58,7 +58,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateUploadSessions procedure starting.') AS DEBUG;
 CALL MigrateUploadSessions ();
+SELECT CONCAT('-- ', NOW(), ' MigrateUploadSessions procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateUploadSessions;
 
 /* ==> mysql/000055_create_crt_thread_count_and_unreads.up.sql <== */
@@ -89,7 +91,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateThreadMemberships procedure starting.') AS DEBUG;
 CALL MigrateThreadMemberships ();
+SELECT CONCAT('-- ', NOW(), ' MigrateThreadMemberships procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateThreadMemberships;
 
 /* ==> mysql/000056_upgrade_channels_v6.0.up.sql <== */
@@ -224,7 +228,9 @@ BEGIN
 END//
 DELIMITER ;
 
+SELECT CONCAT('-- ', NOW(), ' MigrateChannels procedure starting.') AS DEBUG;
 CALL MigrateChannels ();
+SELECT CONCAT('-- ', NOW(), ' MigrateChannels procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateChannels;
 
 /* ==> mysql/000057_upgrade_command_webhooks_v6.0.up.sql <== */
@@ -246,7 +252,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateCommandWebhooks procedure starting.') AS DEBUG;
 CALL MigrateCommandWebhooks ();
+SELECT CONCAT('-- ', NOW(), ' MigrateCommandWebhooks procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateCommandWebhooks;
 
 /* ==> mysql/000054_create_crt_channelmembership_count.up.sql <== */
@@ -365,7 +373,9 @@ BEGIN
 END//
 DELIMITER ;
 
+SELECT CONCAT('-- ', NOW(), ' MigrateChannelMembers procedure starting.') AS DEBUG;
 CALL MigrateChannelMembers ();
+SELECT CONCAT('-- ', NOW(), ' MigrateChannelMembers procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateChannelMembers;
 
 /* ==> mysql/000059_upgrade_users_v6.0.up.sql <== */
@@ -499,7 +509,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateUsers procedure starting.') AS DEBUG;
 CALL MigrateUsers ();
+SELECT CONCAT('-- ', NOW(), ' MigrateUsers procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateUsers;
 
 /* ==> mysql/000060_upgrade_jobs_v6.0.up.sql <== */
@@ -544,7 +556,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateJobs procedure starting.') AS DEBUG;
 CALL MigrateJobs ();
+SELECT CONCAT('-- ', NOW(), ' MigrateJobs procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateJobs;
 
 /* ==> mysql/000061_upgrade_link_metadata_v6.0.up.sql <== */
@@ -566,7 +580,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateLinkMetadata procedure starting.') AS DEBUG;
 CALL MigrateLinkMetadata ();
+SELECT CONCAT('-- ', NOW(), ' MigrateLinkMetadata procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateLinkMetadata;
 
 /* ==> mysql/000062_upgrade_sessions_v6.0.up.sql <== */
@@ -614,7 +630,9 @@ BEGIN
 
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateSessions procedure starting.') AS DEBUG;
 CALL MigrateSessions ();
+SELECT CONCAT('-- ', NOW(), ' MigrateSessions procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateSessions;
 
 /* ==> mysql/000063_upgrade_threads_v6.0.up.sql <== */
@@ -740,7 +758,9 @@ BEGIN
 		AND Threads.ThreadTeamId IS NULL;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateThreads procedure starting.') AS DEBUG;
 CALL MigrateThreads ();
+SELECT CONCAT('-- ', NOW(), ' MigrateThreads procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateThreads;
 
 /* ==> mysql/000064_upgrade_status_v6.0.up.sql <== */
@@ -783,7 +803,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateStatus procedure starting.') AS DEBUG;
 CALL MigrateStatus ();
+SELECT CONCAT('-- ', NOW(), ' MigrateStatus procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateStatus;
 
 /* ==> mysql/000065_upgrade_groupchannels_v6.0.up.sql <== */
@@ -804,7 +826,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateGroupChannels procedure starting.') AS DEBUG;
 CALL MigrateGroupChannels ();
+SELECT CONCAT('-- ', NOW(), ' MigrateGroupChannels procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateGroupChannels;
 
 /* ==> mysql/000066_upgrade_posts_v6.0.up.sql <== */
@@ -909,7 +933,9 @@ BEGIN
 
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigratePosts procedure starting.') AS DEBUG;
 CALL MigratePosts ();
+SELECT CONCAT('-- ', NOW(), ' MigratePosts procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigratePosts;
 
 /* ==> mysql/000068_upgrade_teammembers_v6.1.up.sql <== */
@@ -968,7 +994,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateTeamMembers procedure starting.') AS DEBUG;
 CALL MigrateTeamMembers ();
+SELECT CONCAT('-- ', NOW(), ' MigrateTeamMembers procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateTeamMembers;
 
 /* ==> mysql/000072_upgrade_schemes_v6.3.up.sql <== */
@@ -1039,7 +1067,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateSchemes procedure starting.') AS DEBUG;
 CALL MigrateSchemes ();
+SELECT CONCAT('-- ', NOW(), ' MigrateSchemes procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateSchemes;
 
 /* ==> mysql/000073_upgrade_plugin_key_value_store_v6.3.up.sql <== */
@@ -1061,7 +1091,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigratePluginKeyValueStore procedure starting.') AS DEBUG;
 CALL MigratePluginKeyValueStore ();
+SELECT CONCAT('-- ', NOW(), ' MigratePluginKeyValueStore procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigratePluginKeyValueStore;
 
 /* ==> mysql/000078_create_oauth_mattermost_app_id.up.sql <== */
@@ -1095,7 +1127,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateOAuthApps procedure starting.') AS DEBUG;
 CALL MigrateOAuthApps ();
+SELECT CONCAT('-- ', NOW(), ' MigrateOAuthApps procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateOAuthApps;
 
 /* ==> mysql/000079_usergroups_displayname_index.up.sql <== */
@@ -1116,7 +1150,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateUserGroups procedure starting.') AS DEBUG;
 CALL MigrateUserGroups ();
+SELECT CONCAT('-- ', NOW(), ' MigrateUserGroups procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateUserGroups;
 
 /* ==> mysql/000081_threads_deleteat.up.sql <== */
@@ -1149,7 +1185,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateFileInfo procedure starting.') AS DEBUG;
 CALL MigrateFileInfo ();
+SELECT CONCAT('-- ', NOW(), ' MigrateFileInfo procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateFileInfo;
 
 /* ==> mysql/000086_add_cloud_limits_archived.up.sql <== */
@@ -1194,7 +1232,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateTeams procedure starting.') AS DEBUG;
 CALL MigrateTeams ();
+SELECT CONCAT('-- ', NOW(), ' MigrateTeams procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateTeams;
 
 /* ==> mysql/000087_sidebar_categories_index.up.sql <== */
@@ -1215,7 +1255,9 @@ BEGIN
 	END IF;
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateSidebarCategories procedure starting.') AS DEBUG;
 CALL MigrateSidebarCategories ();
+SELECT CONCAT('-- ', NOW(), ' MigrateSidebarCategories procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateSidebarCategories;
 
 /* ==> mysql/000088_remaining_migrations.up.sql <== */
@@ -1265,7 +1307,9 @@ BEGIN
 	UPDATE Reactions SET ChannelId = COALESCE((select ChannelId from Posts where Posts.Id = Reactions.PostId), '') WHERE ChannelId="";
 END//
 DELIMITER ;
+SELECT CONCAT('-- ', NOW(), ' MigrateReactions procedure starting.') AS DEBUG;
 CALL MigrateReactions ();
+SELECT CONCAT('-- ', NOW(), ' MigrateReactions procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateReactions;
 
 /* ==> mysql/000091_create_post_reminder.up.sql <== */
