@@ -133,6 +133,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
+	if dbStore != nil {
+		options = append(options, StoreOverride(dbStore))
+	}
 	configStore := config.NewTestMemoryStore()
 
 	memoryConfig := configStore.Get()
