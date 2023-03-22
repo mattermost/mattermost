@@ -8,6 +8,8 @@ import {Tooltip} from 'react-bootstrap';
 
 import classNames from 'classnames';
 
+import { random as cryptoJSRandomWordArray} from 'crypto-js/lib-typedarrays';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import GenericModal from 'components/generic_modal';
 import Input from 'components/widgets/inputs/input/input';
@@ -233,6 +235,9 @@ const NewChannelModal = () => {
     };
 
     const handleOnDisplayNameBlur = () => {
+        if (displayName && !url) {
+            setURL(cryptoJSRandomWordArray(16).toString());
+        }
         if (!displayNameModified) {
             setDisplayNameModified(true);
         }
@@ -270,7 +275,7 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const canCreate = displayName && !displayNameError && url && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
+    const canCreate = displayName && !displayNameError && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
 
     const newBoardInfoIcon = (
         <OverlayTrigger
