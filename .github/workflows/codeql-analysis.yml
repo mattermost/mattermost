@@ -36,6 +36,7 @@ jobs:
     
     - name: Build
       run: |
+        cd server
         make setup-go-work
         make build-linux-amd64
 
