@@ -1198,39 +1198,50 @@ DROP TABLE IF EXISTS JobStatuses;
 DROP TABLE IF EXISTS PasswordRecovery;
 
 /* ==> mysql/000089_add-channelid-to-reaction.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Reactions'
-        AND table_schema = DATABASE()
-        AND column_name = 'ChannelId'
-    ),
-    'ALTER TABLE Reactions ADD COLUMN ChannelId varchar(26) NOT NULL DEFAULT "";',
-    'SELECT 1;'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateReactions ()
+BEGIN
+	-- 'ALTER TABLE Reactions ADD COLUMN ChannelId varchar(26) NOT NULL DEFAULT "";',
+	DECLARE AddChannelId BOOLEAN;
+	DECLARE AddChannelIdQuery TEXT DEFAULT NULL;
 
-PREPARE addColumnIfNotExists FROM @preparedStatement;
-EXECUTE addColumnIfNotExists;
-DEALLOCATE PREPARE addColumnIfNotExists;
+	-- 'CREATE INDEX idx_reactions_channel_id ON Reactions(ChannelId);'
+	DECLARE CreateIndex BOOLEAN;
+	DECLARE CreateIndexQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Reactions'
+		AND table_schema = DATABASE()
+		AND column_name = 'ChannelId'
+		INTO AddChannelId;
 
 
-UPDATE Reactions SET ChannelId = COALESCE((select ChannelId from Posts where Posts.Id = Reactions.PostId), '') WHERE ChannelId="";
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Reactions'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_reactions_channel_id'
+		INTO CreateIndex;
 
+	IF AddChannelId THEN
+		SET AddChannelIdQuery = 'ADD COLUMN ChannelId varchar(26) NOT NULL DEFAULT ""';
+	END IF;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Reactions'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_reactions_channel_id'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_reactions_channel_id ON Reactions(ChannelId);'
-));
+	IF CreateIndex THEN
+		SET CreateIndexQuery = 'ADD INDEX idx_reactions_channel_id (ChannelId)';
+	END IF;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	IF AddChannelId OR CreateIndex THEN
+		SET @query = CONCAT('ALTER TABLE Reactions ', CONCAT_WS(', ', AddChannelIdQuery, CreateIndexQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
+	UPDATE Reactions SET ChannelId = COALESCE((select ChannelId from Posts where Posts.Id = Reactions.PostId), '') WHERE ChannelId="";
+END//
+DELIMITER ;
+CALL MigrateReactions ();
+DROP PROCEDURE IF EXISTS MigrateReactions;
 
 /* ==> mysql/000091_create_post_reminder.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostReminders (
