@@ -1043,21 +1043,26 @@ CALL MigrateSchemes ();
 DROP PROCEDURE IF EXISTS MigrateSchemes;
 
 /* ==> mysql/000073_upgrade_plugin_key_value_store_v6.3.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT Count(*) FROM Information_Schema.Columns
-        WHERE table_name = 'PluginKeyValueStore'
-        AND table_schema = DATABASE()
-        AND column_name = 'PKey'
-        AND column_type != 'varchar(150)'
-    ) > 0,
-    'ALTER TABLE PluginKeyValueStore MODIFY COLUMN PKey varchar(150);',
-    'SELECT 1'
-));
+DELIMITER //
+CREATE PROCEDURE MigratePluginKeyValueStore ()
+BEGIN
+	-- 'ALTER TABLE PluginKeyValueStore MODIFY COLUMN PKey varchar(150);',
+	DECLARE ModifyPKey BOOLEAN;
 
-PREPARE alterTypeIfExists FROM @preparedStatement;
-EXECUTE alterTypeIfExists;
-DEALLOCATE PREPARE alterTypeIfExists;
+	SELECT COUNT(*) FROM Information_Schema.Columns
+		WHERE table_name = 'PluginKeyValueStore'
+		AND table_schema = DATABASE()
+		AND column_name = 'PKey'
+		AND LOWER(column_type) != 'varchar(150)'
+		INTO ModifyPKey;
+
+	IF ModifyPKey THEN
+		ALTER TABLE PluginKeyValueStore MODIFY COLUMN PKey varchar(150);
+	END IF;
+END//
+DELIMITER ;
+CALL MigratePluginKeyValueStore ();
+DROP PROCEDURE IF EXISTS MigratePluginKeyValueStore;
 
 /* ==> mysql/000078_create_oauth_mattermost_app_id.up.sql <== */
 /* ==> mysql/000082_upgrade_oauth_mattermost_app_id.up.sql <== */
