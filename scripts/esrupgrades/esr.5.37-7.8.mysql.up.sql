@@ -579,22 +579,53 @@ EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000062_upgrade_sessions_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Sessions'
-        AND table_schema = DATABASE()
-        AND column_name = 'Props'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE Sessions MODIFY COLUMN Props JSON;',
-    'SELECT 1'
-));
+/* ==> mysql/000071_upgrade_sessions_v6.1.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateSessions ()
+BEGIN
+	-- 'ALTER TABLE Sessions MODIFY COLUMN Props JSON;',
+	DECLARE ModifyProps BOOLEAN;
+	DECLARE ModifyPropsQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE Sessions MODIFY COLUMN Roles text;',
+	DECLARE ModifyRoles BOOLEAN;
+	DECLARE ModifyRolesQuery TEXT DEFAULT NULL;
 
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Sessions'
+		AND table_schema = DATABASE()
+		AND column_name = 'Props'
+		AND LOWER(column_type) != 'json'
+		INTO ModifyProps;
+
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Sessions'
+		AND table_schema = DATABASE()
+		AND column_name = 'Roles'
+		AND LOWER(column_type) != 'text'
+		INTO ModifyRoles;
+
+	IF ModifyProps THEN
+		SET ModifyPropsQuery = 'MODIFY COLUMN Props JSON';
+	END IF;
+
+	IF ModifyRoles THEN
+		SET ModifyRolesQuery = 'MODIFY COLUMN Roles text';
+	END IF;
+
+	IF ModifyProps OR ModifyRoles THEN
+		SET @query = CONCAT('ALTER TABLE Sessions ', CONCAT_WS(', ', ModifyPropsQuery, ModifyRolesQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
+END//
+DELIMITER ;
+
+CALL MigrateSessions ();
+DROP PROCEDURE IF EXISTS MigrateSessions;
 
 /* ==> mysql/000063_upgrade_threads_v6.0.up.sql <== */
 /* ==> mysql/000083_threads_threaddeleteat.up.sql <== */
@@ -843,23 +874,6 @@ SET @preparedStatement = (SELECT IF(
         AND column_type != 'text'
     ) > 0,
     'ALTER TABLE TeamMembers MODIFY COLUMN Roles text;',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
-
-/* ==> mysql/000071_upgrade_sessions_v6.1.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Sessions'
-        AND table_schema = DATABASE()
-        AND column_name = 'Roles'
-        AND column_type != 'text'
-    ) > 0,
-    'ALTER TABLE Sessions MODIFY COLUMN Roles text;',
     'SELECT 1'
 ));
 
