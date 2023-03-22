@@ -917,21 +917,63 @@ CALL MigratePosts ();
 DROP PROCEDURE IF EXISTS MigratePosts;
 
 /* ==> mysql/000068_upgrade_teammembers_v6.1.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'TeamMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'Roles'
-        AND column_type != 'text'
-    ) > 0,
-    'ALTER TABLE TeamMembers MODIFY COLUMN Roles text;',
-    'SELECT 1'
-));
+/* ==> mysql/000092_add_createat_to_teammembers.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateTeamMembers ()
+BEGIN
+	-- 'ALTER TABLE TeamMembers MODIFY COLUMN Roles text;',
+	DECLARE ModifyRoles BOOLEAN;
+	DECLARE ModifyRolesQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE TeamMembers ADD COLUMN CreateAt bigint DEFAULT 0;',
+	DECLARE AddCreateAt BOOLEAN;
+	DECLARE AddCreateAtQuery TEXT DEFAULT NULL;
+
+	-- 'CREATE INDEX idx_teammembers_createat ON TeamMembers(CreateAt);'
+	DECLARE CreateIndex BOOLEAN;
+	DECLARE CreateIndexQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'TeamMembers'
+		AND table_schema = DATABASE()
+		AND column_name = 'Roles'
+		AND LOWER(column_type) != 'text'
+		INTO ModifyRoles;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'TeamMembers'
+		AND table_schema = DATABASE()
+		AND column_name = 'CreateAt'
+		INTO AddCreateAt;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'TeamMembers'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_teammembers_createat'
+		INTO CreateIndex;
+
+	IF ModifyRoles THEN
+		SET ModifyRolesQuery = 'MODIFY COLUMN Roles text';
+	END IF;
+
+	IF AddCreateAt THEN
+		SET AddCreateAtQuery = 'ADD COLUMN CreateAt bigint DEFAULT 0';
+	END IF;
+
+	IF CreateIndex THEN
+		SET CreateIndexQuery = 'ADD INDEX idx_teammembers_createat (CreateAt)';
+	END IF;
+
+	IF ModifyRoles OR AddCreateAt OR CreateIndex THEN
+		SET @query = CONCAT('ALTER TABLE TeamMembers ', CONCAT_WS(', ', ModifyRolesQuery, AddCreateAtQuery, CreateIndexQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateTeamMembers ();
+DROP PROCEDURE IF EXISTS MigrateTeamMembers;
 
 /* ==> mysql/000072_upgrade_schemes_v6.3.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -1208,36 +1250,6 @@ SET @preparedStatement = (SELECT IF(
     ) > 0,
     'SELECT 1',
     'CREATE INDEX idx_postreminders_targettime ON PostReminders(TargetTime);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-/* ==> mysql/000092_add_createat_to_teammembers.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'TeamMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'CreateAt'
-    ),
-    'ALTER TABLE TeamMembers ADD COLUMN CreateAt bigint DEFAULT 0;',
-    'SELECT 1;'
-));
-
-PREPARE addColumnIfNotExists FROM @preparedStatement;
-EXECUTE addColumnIfNotExists;
-DEALLOCATE PREPARE addColumnIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'TeamMembers'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_teammembers_create_at'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_teammembers_createat ON TeamMembers(CreateAt);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
