@@ -623,7 +623,6 @@ BEGIN
 
 END//
 DELIMITER ;
-
 CALL MigrateSessions ();
 DROP PROCEDURE IF EXISTS MigrateSessions;
 
@@ -754,35 +753,47 @@ CALL MigrateThreads ();
 DROP PROCEDURE IF EXISTS MigrateThreads;
 
 /* ==> mysql/000064_upgrade_status_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Status'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_status_status_dndendtime'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_status_status_dndendtime ON Status(Status, DNDEndTime);'
-));
+DELIMITER //
+CREATE PROCEDURE MigrateStatus ()
+BEGIN
+	-- 'CREATE INDEX idx_status_status_dndendtime ON Status(Status, DNDEndTime);'
+	DECLARE CreateIndex BOOLEAN;
+	DECLARE CreateIndexQuery TEXT DEFAULT NULL;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	-- 'DROP INDEX idx_status_status ON Status;',
+	DECLARE DropIndex BOOLEAN;
+	DECLARE DropIndexQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Status'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_status_status'
-    ) > 0,
-    'DROP INDEX idx_status_status ON Status;',
-    'SELECT 1'
-));
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Status'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_status_status_dndendtime'
+		INTO CreateIndex;
 
-PREPARE removeIndexIfExists FROM @preparedStatement;
-EXECUTE removeIndexIfExists;
-DEALLOCATE PREPARE removeIndexIfExists;
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Status'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_status_status'
+		INTO DropIndex;
+
+	IF CreateIndex THEN
+		SET CreateIndexQuery = 'ADD INDEX idx_status_status_dndendtime (Status, DNDEndTime)';
+	END IF;
+
+	IF DropIndex THEN
+		SET DropIndexQuery = 'DROP INDEX idx_status_status';
+	END IF;
+
+	IF CreateIndex OR DropIndex THEN
+		SET @query = CONCAT('ALTER TABLE Status ', CONCAT_WS(', ', CreateIndexQuery, DropIndexQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END//
+DELIMITER ;
+CALL MigrateStatus ();
+DROP PROCEDURE IF EXISTS MigrateStatus;
 
 /* ==> mysql/000065_upgrade_groupchannels_v6.0.up.sql <== */
 SET @preparedStatement = (SELECT IF(
