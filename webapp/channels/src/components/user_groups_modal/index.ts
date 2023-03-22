@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
 import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
-import {Group, GroupSearachParams} from '@mattermost/types/groups';
+import {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearachParams} from '@mattermost/types/groups';
 import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
 import {setModalSearchTerm} from 'actions/views/search';
@@ -20,18 +20,11 @@ import UserGroupsModal from './user_groups_modal';
 
 type Actions = {
     getGroups: (
-        filterAllowReference?: boolean,
-        page?: number,
-        perPage?: number,
-        includeMemberCount?: boolean
+        groupsParams: GetGroupsParams,
     ) => Promise<{data: Group[]}>;
     setModalSearchTerm: (term: string) => void;
     getGroupsByUserIdPaginated: (
-        userId: string,
-        filterAllowReference?: boolean,
-        page?: number,
-        perPage?: number,
-        includeMemberCount?: boolean
+        opts: GetGroupsForUserParams,
     ) => Promise<{data: Group[]}>;
     searchGroups: (
         params: GroupSearachParams,
@@ -44,11 +37,11 @@ function mapStateToProps(state: GlobalState) {
     let groups: Group[] = [];
     let myGroups: Group[] = [];
     if (searchTerm) {
-        groups = searchAllowReferencedGroups(state, searchTerm);
-        myGroups = searchMyAllowReferencedGroups(state, searchTerm);
+        groups = searchAllowReferencedGroups(state, searchTerm, true);
+        myGroups = searchMyAllowReferencedGroups(state, searchTerm, true);
     } else {
-        groups = getAllAssociatedGroupsForReference(state);
-        myGroups = getMyAllowReferencedGroups(state);
+        groups = getAllAssociatedGroupsForReference(state, true);
+        myGroups = getMyAllowReferencedGroups(state, true);
     }
 
     return {
@@ -71,4 +64,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserGroupsModal);
+export default connect(mapStateToProps, mapDispatchToProps, null, {forwardRef: true})(UserGroupsModal);

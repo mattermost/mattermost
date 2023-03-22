@@ -284,6 +284,11 @@
                         max-width: 200px;
                         text-overflow: ellipsis;
                         white-space: nowrap;
+
+                        i {
+                            color: rgba(var(--center-channel-color-rgb), 0.56);
+                            font-size: 16px;
+                        }
                     }
 
                     .group-name {

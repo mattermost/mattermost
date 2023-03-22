@@ -61,7 +61,7 @@ export const getGroupListPermissions: (state: GlobalState) => Record<string, Gro
     getMySystemPermissions,
     (state) => state.entities.groups.groups,
     (myGroupRoles, roles, systemPermissions, allGroups) => {
-        const groups = Object.entries(allGroups).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0)).map((entry) => entry[1]);
+        const groups = Object.entries(allGroups).filter((entry) => (entry[1].allow_reference)).map((entry) => entry[1]);
 
         const permissions = new Set<string>();
         groups.forEach((group) => {
@@ -84,8 +84,9 @@ export const getGroupListPermissions: (state: GlobalState) => Record<string, Gro
         const groupPermissionsMap: Record<string, GroupPermissions> = {};
         groups.forEach((g) => {
             groupPermissionsMap[g.id] = {
-                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap',
-                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && g.source.toLowerCase() !== 'ldap',
+                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
+                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
+                can_restore: permissions.has(Permissions.RESTORE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at !== 0,
             };
         });
         return groupPermissionsMap;
