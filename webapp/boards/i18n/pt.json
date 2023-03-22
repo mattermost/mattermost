@@ -1,0 +1,12 @@
+{
+  "AppBar.Tooltip": "Alternar quadros vinculados",
+  "Attachment.Attachment-title": "Anexo",
+  "AttachmentBlock.DeleteAction": "Apagar",
+  "AttachmentBlock.addElement": "Adicionar {tipo}",
+  "AttachmentBlock.delete": "Anexo apagado.",
+  "AttachmentBlock.failed": "Este arquivo não pôde ser carregado pois ultrapassou o tamanho limite.",
+  "AttachmentBlock.upload": "Carregando anexo.",
+  "AttachmentBlock.uploadSuccess": "Anexo carregado.",
+  "AttachmentElement.delete-confirmation-dialog-button-text": "Apagar",
+  "AttachmentElement.download": "Baixar"
+}

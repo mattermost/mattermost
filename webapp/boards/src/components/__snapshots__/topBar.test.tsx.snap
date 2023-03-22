@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`src/components/topBar should match snapshot for focalboardPlugin 1`] = `
+<div>
+  <div
+    class="TopBar"
+  >
+    <a
+      class="link"
+      href="https://www.focalboard.com/fwlink/feedback-boards.html?v=1.0.0"
+      rel="noreferrer"
+      target="_blank"
+    >
+      Give feedback
+    </a>
+    <div
+      class="versionFrame"
+    >
+      <div
+        class="version"
+        title="v1.0.0"
+      >
+        v1.0.0
+      </div>
+    </div>
+  </div>
+</div>
+`;

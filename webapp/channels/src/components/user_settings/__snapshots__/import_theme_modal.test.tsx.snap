@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/ImportThemeModal should match snapshot 1`] = `
+<span>
+  <Modal
+    animation={true}
+    aria-labelledby="importThemeModalLabel"
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    dialogClassName="a11y__modal"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onExited={[MockFunction]}
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    role="dialog"
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="importThemeModalLabel"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Import Slack Theme"
+          id="user.settings.import_theme.importHeader"
+        />
+      </ModalTitle>
+    </ModalHeader>
+    <form
+      className="form-horizontal"
+      role="form"
+    >
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
+      >
+        <p>
+          <MemoizedFormattedMessage
+            defaultMessage="To import a theme, go to a Slack team and look for \\"Preferences -> Themes\\". Open the custom theme option, copy the theme color values and paste them here:"
+            id="user.settings.import_theme.importBody"
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div
+            className="col-sm-12"
+          >
+            <input
+              className="form-control"
+              id="themeVector"
+              onChange={[Function]}
+              type="text"
+              value=""
+            />
+            <div
+              className="input__help"
+            />
+          </div>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        componentClass="div"
+      >
+        <button
+          className="btn btn-link"
+          id="cancelButton"
+          onClick={[Function]}
+          type="button"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="user.settings.import_theme.cancel"
+          />
+        </button>
+        <button
+          className="btn btn-primary"
+          id="submitButton"
+          onClick={[Function]}
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Submit"
+            id="user.settings.import_theme.submit"
+          />
+        </button>
+      </ModalFooter>
+    </form>
+  </Modal>
+</span>
+`;

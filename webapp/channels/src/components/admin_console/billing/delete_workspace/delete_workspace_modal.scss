@@ -1,0 +1,65 @@
+.DeleteWorkspaceModal {
+    width: 600px;
+
+    .modal-body {
+        .GenericModal__body {
+            padding: 24px 24px 0 24px;
+            text-align: center;
+
+            * {
+                margin-bottom: 10px;
+            }
+        }
+    }
+
+    &__Title {
+        color: var(--sys-denim-center-channel-text);
+        font-family: Metropolis;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 28px;
+    }
+
+    &__Usage {
+        text-align: left;
+
+        &-Highlighted {
+            color: black;
+            font-weight: 700;
+        }
+    }
+
+    &__Warning {
+        text-align: left;
+    }
+
+    &__Buttons {
+        display: flex;
+        justify-content: space-between;
+
+        button {
+            border-radius: 4px;
+        }
+
+        &-Delete {
+            padding: 0;
+            border: none;
+            background: none;
+            color: var(--dnd-indicator);
+            font-weight: 600;
+        }
+
+        &-Downgrade {
+            border-color: var(--denim-button-bg);
+            margin-left: auto;
+            background: none;
+            color: var(--denim-button-bg);
+            font-weight: 600;
+        }
+
+        &-Cancel {
+            margin-left: 10px;
+            font-weight: 600;
+        }
+    }
+}

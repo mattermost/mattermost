@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/activity_log_modal/MoreInfo should match snapshot extra info toggled off 1`] = `
+<a
+  className="theme"
+  href="#"
+  onClick={[MockFunction]}
+>
+  <MemoizedFormattedMessage
+    defaultMessage="More info"
+    id="activity_log.moreInfo"
+  />
+</a>
+`;
+
+exports[`components/activity_log_modal/MoreInfo should match snapshot, extra info toggled on 1`] = `
+<div>
+  <div>
+    <MemoizedFormattedMessage
+      defaultMessage="First time active: {date}, {time}"
+      id="activity_log.firstTime"
+      values={
+        Object {
+          "date": <FormattedDate
+            day="2-digit"
+            month="long"
+            value={2018-08-22T05:54:51.042Z}
+            year="numeric"
+          />,
+          "time": <FormattedTime
+            hour="2-digit"
+            minute="2-digit"
+            value={2018-08-22T05:54:51.042Z}
+          />,
+        }
+      }
+    />
+  </div>
+  <div>
+    <MemoizedFormattedMessage
+      defaultMessage="OS: {os}"
+      id="activity_log.os"
+      values={
+        Object {
+          "os": "Linux",
+        }
+      }
+    />
+  </div>
+  <div>
+    <MemoizedFormattedMessage
+      defaultMessage="Browser: {browser}"
+      id="activity_log.browser"
+      values={
+        Object {
+          "browser": "Desktop App",
+        }
+      }
+    />
+  </div>
+  <div>
+    <MemoizedFormattedMessage
+      defaultMessage="Session ID: {id}"
+      id="activity_log.sessionId"
+      values={
+        Object {
+          "id": "sessionId",
+        }
+      }
+    />
+  </div>
+</div>
+`;

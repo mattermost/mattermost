@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/imgutils"
 )
 
 const (

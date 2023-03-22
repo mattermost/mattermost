@@ -1,0 +1,227 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`messageHtmlToComponent At mention 1`] = `
+<p>
+  <span
+    className="mention--highlight"
+  >
+    <span
+      data-mention="joram"
+    >
+      <Memo(Connect(AtMention))
+        disableGroupHighlight={false}
+        disableHighlight={false}
+        hasMention={true}
+        isRHS={false}
+        mentionName="joram"
+      >
+        @joram
+      </Memo(Connect(AtMention))>
+    </span>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent At mention 2`] = `
+<p>
+  <span
+    data-mention="joram"
+  >
+    <Memo(Connect(AtMention))
+      disableGroupHighlight={false}
+      disableHighlight={true}
+      hasMention={true}
+      isRHS={false}
+      mentionName="joram"
+    >
+      @joram
+    </Memo(Connect(AtMention))>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent At mention with group highlight disabled 1`] = `
+<p>
+  <span
+    data-mention="developers"
+  >
+    <Memo(Connect(AtMention))
+      disableGroupHighlight={false}
+      disableHighlight={false}
+      hasMention={true}
+      isRHS={false}
+      mentionName="developers"
+    >
+      @developers
+    </Memo(Connect(AtMention))>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent At mention with group highlight disabled 2`] = `
+<p>
+  <span
+    data-mention="developers"
+  >
+    <Memo(Connect(AtMention))
+      disableGroupHighlight={true}
+      disableHighlight={false}
+      hasMention={true}
+      isRHS={false}
+      mentionName="developers"
+    >
+      @developers
+    </Memo(Connect(AtMention))>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent Inline markdown image 1`] = `
+<div
+  className="markdown-inline-img__container"
+>
+  <Memo(Connect(MarkdownImage))
+    alt="Mattermost"
+    className="markdown-inline-img"
+    imageIsLink={false}
+    postId="post_id"
+    postType="system_header_change"
+    src="/images/icon.png"
+  />
+   and a 
+  <a
+    className="theme markdown__link"
+    href="http://link"
+    rel="noreferrer"
+    target="_blank"
+  >
+    link
+  </a>
+</div>
+`;
+
+exports[`messageHtmlToComponent Inline markdown image where image is link 1`] = `
+<div
+  className="markdown-inline-img__container"
+>
+  <a
+    className="theme markdown__link"
+    href="http://images/icon.png"
+    rel="noreferrer"
+    target="_blank"
+  >
+    <Memo(Connect(MarkdownImage))
+      alt="Mattermost"
+      className="markdown-inline-img"
+      imageIsLink={true}
+      postId="post_id"
+      postType="system_header_change"
+      src="images/icon.png"
+    />
+  </a>
+</div>
+`;
+
+exports[`messageHtmlToComponent html 1`] = `
+<CodeBlock
+  code="<div>This is a html div</div>"
+  language="html"
+  searchedContent=""
+/>
+`;
+
+exports[`messageHtmlToComponent latex 1`] = `
+Array [
+  <p>
+    This is some latex!
+  </p>,
+  "
+",
+  <Memo(Connect(LatexBlock))
+    content="x^2 + y^2 = z^2"
+  />,
+  <Memo(Connect(LatexBlock))
+    content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
+  />,
+  <p>
+    That was some latex!
+  </p>,
+]
+`;
+
+exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
+<p>
+  lorem ipsum 
+  <a
+    className="theme markdown__link"
+    href="http://www.dolor.com"
+    rel="noreferrer"
+    target="_blank"
+  >
+    <LinkTooltip
+      attributes={
+        Object {
+          "class": "theme markdown__link",
+          "href": "http://www.dolor.com",
+          "rel": "noreferrer",
+          "target": "_blank",
+        }
+      }
+      href="http://www.dolor.com"
+    >
+      www.dolor.com
+    </LinkTooltip>
+  </a>
+   sit amet
+</p>
+`;
+
+exports[`messageHtmlToComponent link without enabled tooltip plugins 1`] = `
+<p>
+  lorem ipsum 
+  <a
+    className="theme markdown__link"
+    href="http://www.dolor.com"
+    rel="noreferrer"
+    target="_blank"
+  >
+    www.dolor.com
+  </a>
+   sit amet
+</p>
+`;
+
+exports[`messageHtmlToComponent plain text 1`] = `
+<p>
+  Hello, world!
+</p>
+`;
+
+exports[`messageHtmlToComponent typescript 1`] = `
+<CodeBlock
+  code="const myFunction = () => {
+    console.log('This is a meaningful function');
+};"
+  language="typescript"
+  searchedContent=""
+/>
+`;
+
+exports[`messageHtmlToComponent typescript 2`] = `
+<p>
+  Text before typescript codeblock
+            
+  <span
+    className="codespan__pre-wrap"
+  >
+    <code>
+      typescript
+            const myFunction = () =&gt; {
+                console.log('This is a test function');
+            };
+    </code>
+  </span>
+  
+            text after typescript block
+</p>
+`;

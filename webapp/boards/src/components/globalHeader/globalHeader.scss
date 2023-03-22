@@ -1,0 +1,43 @@
+.GlobalHeaderComponent {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin-right: -8px;
+
+    .spacer {
+        flex-grow: 1;
+    }
+
+    .GlobalHeaderComponent__button {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+        margin-left: 8px;
+
+        i {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            display: flex;
+
+            &::before {
+                margin: 0;
+            }
+        }
+
+        &:hover {
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+            color: rgba(var(--sidebar-text-rgb), 0.72);
+        }
+
+        &:active {
+            background-color: rgba(var(--sidebar-text-rgb), 0.16);
+            color: rgba(var(--sidebar-text-rgb), 1);
+        }
+    }
+
+}

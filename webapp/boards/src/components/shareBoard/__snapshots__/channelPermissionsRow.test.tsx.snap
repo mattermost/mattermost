@@ -1,0 +1,443 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`src/components/shareBoard/channelPermissionsRow should match snapshot 1`] = `
+<div>
+  <div
+    class="user-item channel-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <span
+        class="user-item__img"
+      >
+        <i
+          class="CompassIcon icon-globe GlobeIcon"
+        />
+      </span>
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Test Channel
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          Editor
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/channelPermissionsRow should match snapshot in plugin mode 1`] = `
+<div>
+  <div
+    class="user-item channel-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <span
+        class="user-item__img"
+      >
+        <i
+          class="CompassIcon icon-globe GlobeIcon"
+        />
+      </span>
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Test Channel
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          Editor
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Unlink"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Unlink
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/channelPermissionsRow should match snapshot in template 1`] = `
+<div>
+  <div
+    class="user-item channel-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <span
+        class="user-item__img"
+      >
+        <i
+          class="CompassIcon icon-globe GlobeIcon"
+        />
+      </span>
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Test Channel
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          Editor
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Unlink"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Unlink
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/channelPermissionsRow should match snapshot when board has no channel id 1`] = `<div />`;
+
+exports[`src/components/shareBoard/channelPermissionsRow should match snapshot with menu open 1`] = `
+<div>
+  <div
+    class="user-item channel-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <span
+        class="user-item__img"
+      >
+        <i
+          class="CompassIcon icon-globe GlobeIcon"
+        />
+      </span>
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Test Channel
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          Editor
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  aria-label="Unlink"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Unlink
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/channelPermissionsRow should match snapshot with unknown channel 1`] = `
+<div>
+  <div
+    class="user-item channel-item"
+  >
+    <div
+      class="user-item__content"
+    >
+      <span
+        class="user-item__img"
+      >
+        <i
+          class="CompassIcon icon-lock-outline LockOutlineIcon"
+        />
+      </span>
+      <div
+        class="ml-3"
+      >
+        <strong>
+          Unknown channel
+        </strong>
+      </div>
+    </div>
+    <div>
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper"
+        role="button"
+      >
+        <button
+          class="user-item__button"
+        >
+          Editor
+          <i
+            class="CompassIcon icon-chevron-down CompassIcon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

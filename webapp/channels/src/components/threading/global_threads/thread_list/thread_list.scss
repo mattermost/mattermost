@@ -1,0 +1,79 @@
+.ThreadList {
+    display: grid;
+    overflow: hidden;
+    grid-template-areas:
+        'header'
+        'list';
+    grid-template-rows: 56px 1fr;
+
+    .Header {
+        padding-right: 12px;
+        padding-left: 14px;
+        border-bottom: var(--border);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        grid-area: header;
+
+        .tab-button-wrapper {
+            position: relative;
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            padding: 13px 0;
+
+            + .tab-button-wrapper {
+                margin-left: 4px;
+            }
+        }
+
+        .left {
+            display: flex;
+            height: 100%;
+            align-items: center;
+        }
+
+        .right-anchor {
+            .Button {
+                padding: 4px 0;
+
+                &:disabled {
+                    cursor: not-allowed;
+                }
+            }
+        }
+    }
+
+    .threads {
+        margin-right: 5px;
+        grid-area: list;
+
+        .no-results__wrapper {
+            position: relative;
+            top: -28px;
+            max-width: 100%;
+
+            .thread-no-results-title {
+                margin-bottom: 0;
+                font-size: 16px;
+                line-height: 24px;
+            }
+
+            .thread-no-results-subtitle {
+                max-width: 100%;
+                font-size: 12px;
+
+                .thread-no-results-subtitle-shortcut {
+                    margin: 0;
+                }
+            }
+        }
+    }
+
+    .ThreadItem {
+        border-bottom: var(--border);
+    }
+
+    .virtualized-thread-list {
+        scrollbar-color: var(--center-channel-color-32) #fff0;
+        scrollbar-width: thin;
+    }
+}

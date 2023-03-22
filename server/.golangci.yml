@@ -1,0 +1,50 @@
+run:
+  timeout: 5m
+  skip-dirs:
+    - channels/store/storetest/mocks
+
+linters-settings:
+  gofmt:
+    simplify: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment
+
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - exportloopref
+    - staticcheck
+    - unconvert
+    - unused
+    - misspell
+    - goimports
+    # TODO: enable this later
+    # - errcheck
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "SetupEnterprise"
+
+    - linters:
+      - golint
+      text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
+
+    - linters:
+      - misspell
+      path: "platform/shared/markdown/html_entities.go"
+
+    - linters:
+      - staticcheck
+      text: SA1019
