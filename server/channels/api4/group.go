@@ -989,8 +989,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Include archived groups
 	includeArchived := r.URL.Query().Get("include_archived") == "true"
 
-	// Only allow
-
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
