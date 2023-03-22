@@ -37,6 +37,7 @@ import {
     globalSettings,
     isCurrentUserAdmin,
     noopSelector,
+    selectExperimentalFeatures,
 } from 'src/selectors';
 import {
     clientFetchPlaybook,
@@ -237,6 +238,10 @@ export function useCanRestrictPlaybookCreation() {
     }
 
     return settings.playbook_creators_user_ids.includes(currentUserID);
+}
+
+export function useExperimentalFeaturesEnabled() {
+    return useSelector(selectExperimentalFeatures);
 }
 
 /**
