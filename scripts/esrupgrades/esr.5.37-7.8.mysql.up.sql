@@ -1220,7 +1220,6 @@ DROP PROCEDURE IF EXISTS MigrateSidebarCategories;
 
 /* ==> mysql/000088_remaining_migrations.up.sql <== */
 DROP TABLE IF EXISTS JobStatuses;
-
 DROP TABLE IF EXISTS PasswordRecovery;
 
 /* ==> mysql/000089_add-channelid-to-reaction.up.sql <== */
