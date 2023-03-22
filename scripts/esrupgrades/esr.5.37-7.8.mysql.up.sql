@@ -812,68 +812,109 @@ EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
 /* ==> mysql/000066_upgrade_posts_v6.0.up.sql <== */
+/* ==> mysql/000080_posts_createat_id.up.sql <== */
+/* ==> mysql/000095_remove_posts_parentid.up.sql <== */
 DELIMITER //
-CREATE PROCEDURE MigrateRootId_Posts ()
+CREATE PROCEDURE MigratePosts ()
 BEGIN
-DECLARE ParentId_EXIST INT;
-DECLARE Alter_FileIds INT;
-DECLARE Alter_Props INT;
-SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_NAME = 'Posts'
-  AND table_schema = DATABASE()
-  AND COLUMN_NAME = 'ParentId' INTO ParentId_EXIST;
-SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-  WHERE table_name = 'Posts'
-  AND table_schema = DATABASE()
-  AND column_name = 'FileIds'
-  AND column_type != 'text' INTO Alter_FileIds;
-SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-  WHERE table_name = 'Posts'
-  AND table_schema = DATABASE()
-  AND column_name = 'Props'
-  AND column_type != 'JSON' INTO Alter_Props;
-IF (Alter_Props OR Alter_FileIds) THEN
-	IF(ParentId_EXIST > 0) THEN
+	-- DROP COLUMN ParentId
+	DECLARE DropParentId BOOLEAN;
+	DECLARE DropParentIdQuery TEXT DEFAULT NULL;
+
+	-- MODIFY COLUMN FileIds
+	DECLARE ModifyFileIds BOOLEAN;
+	DECLARE ModifyFileIdsQuery TEXT DEFAULT NULL;
+
+	-- MODIFY COLUMN Props
+	DECLARE ModifyProps BOOLEAN;
+	DECLARE ModifyPropsQuery TEXT DEFAULT NULL;
+
+	-- 'CREATE INDEX idx_posts_root_id_delete_at ON Posts(RootId, DeleteAt);'
+	DECLARE CreateIndexRootId BOOLEAN;
+	DECLARE CreateIndexRootIdQuery TEXT DEFAULT NULL;
+
+	-- 'DROP INDEX idx_posts_root_id ON Posts;',
+	DECLARE DropIndex BOOLEAN;
+	DECLARE DropIndexQuery TEXT DEFAULT NULL;
+
+	-- 'CREATE INDEX idx_posts_create_at_id on Posts(CreateAt, Id) LOCK=NONE;'
+	DECLARE CreateIndexCreateAt BOOLEAN;
+	DECLARE CreateIndexCreateAtQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = 'Posts'
+		AND table_schema = DATABASE()
+		AND COLUMN_NAME = 'ParentId'
+		INTO DropParentId;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Posts'
+		AND table_schema = DATABASE()
+		AND column_name = 'FileIds'
+		AND LOWER(column_type) != 'text'
+		INTO ModifyFileIds;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Posts'
+		AND table_schema = DATABASE()
+		AND column_name = 'Props'
+		AND LOWER(column_type) != 'json'
+		INTO ModifyProps;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Posts'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_posts_root_id_delete_at'
+		INTO CreateIndexRootId;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Posts'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_posts_root_id'
+		INTO DropIndex;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Posts'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_posts_create_at_id'
+		INTO CreateIndexCreateAt;
+
+	IF DropParentId THEN
+		SET DropParentIdQuery = 'DROP COLUMN ParentId';
 		UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
-		ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId;
-	ELSE
-		ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON;
 	END IF;
-END IF;
+
+	IF ModifyFileIds THEN
+		SET ModifyFileIdsQuery = 'MODIFY COLUMN FileIds text';
+	END IF;
+
+	IF ModifyProps THEN
+		SET ModifyPropsQuery = 'MODIFY COLUMN Props JSON';
+	END IF;
+
+	IF CreateIndexRootId THEN
+		SET CreateIndexRootIdQuery = 'ADD INDEX idx_posts_root_id_delete_at (RootId, DeleteAt)';
+	END IF;
+
+	IF DropIndex THEN
+		SET DropIndexQuery = 'DROP INDEX idx_posts_root_id';
+	END IF;
+
+	IF CreateIndexCreateAt THEN
+		SET CreateIndexCreateAtQuery = 'ADD INDEX idx_posts_create_at_id (CreateAt, Id)';
+	END IF;
+
+	IF DropParentId OR ModifyFileIds OR ModifyProps OR CreateIndexRootId OR DropIndex OR CreateIndexCreateAt THEN
+		SET @query = CONCAT('ALTER TABLE Posts ', CONCAT_WS(', ', DropParentIdQuery, ModifyFileIdsQuery, ModifyPropsQuery, CreateIndexRootIdQuery, DropIndexQuery, CreateIndexCreateAtQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
 END//
 DELIMITER ;
-CALL MigrateRootId_Posts ();
-DROP PROCEDURE IF EXISTS MigrateRootId_Posts;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Posts'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_posts_root_id_delete_at'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_posts_root_id_delete_at ON Posts(RootId, DeleteAt);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Posts'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_posts_root_id'
-    ) > 0,
-    'DROP INDEX idx_posts_root_id ON Posts;',
-    'SELECT 1'
-));
-
-PREPARE removeIndexIfExists FROM @preparedStatement;
-EXECUTE removeIndexIfExists;
-DEALLOCATE PREPARE removeIndexIfExists;
+CALL MigratePosts ();
+DROP PROCEDURE IF EXISTS MigratePosts;
 
 /* ==> mysql/000068_upgrade_teammembers_v6.1.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -996,22 +1037,6 @@ SET @preparedStatement = (SELECT IF(
     ) > 0,
     'SELECT 1',
     'CREATE INDEX idx_usergroups_displayname ON UserGroups(DisplayName);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-/* ==> mysql/000080_posts_createat_id.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Posts'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_posts_create_at_id'
-    ) > 0,
-    'SELECT 1;',
-    'CREATE INDEX idx_posts_create_at_id on Posts(CreateAt, Id) LOCK=NONE;'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
@@ -1231,25 +1256,6 @@ CREATE TABLE IF NOT EXISTS NotifyAdmin (
 
 /* ==> mysql/000094_threads_teamid.up.sql <== */
 -- Replaced by 000096_threads_threadteamid.up.sql
-
-/* ==> mysql/000095_remove_posts_parentid.up.sql <== */
--- While upgrading from 5.x to 6.x with manual queries, there is a chance that this
--- migration is skipped. In that case, we need to make sure that the column is dropped.
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Posts'
-        AND table_schema = DATABASE()
-        AND column_name = 'ParentId'
-    ) > 0,
-    'ALTER TABLE Posts DROP COLUMN ParentId;',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 
 /* ==> mysql/000097_create_posts_priority.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostsPriority (
