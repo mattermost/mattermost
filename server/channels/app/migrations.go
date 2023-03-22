@@ -21,6 +21,7 @@ const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplet
 const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
 const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
 const postPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
+const ElasticsearchFixChannelIndexMigrationKey = "ElasticsearchFixChannelIndexMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -556,6 +557,18 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 
 	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		mlog.Fatal("Failed to mark post priority config migration as completed.", mlog.Err(err))
+	}
+}
+
+func (s *Server) doElasticsearchFixChannelIndex() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(ElasticsearchFixChannelIndexMigrationKey); err == nil {
+		return
+	}
+
+	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+		mlog.Error("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+		return
 	}
 }
 
