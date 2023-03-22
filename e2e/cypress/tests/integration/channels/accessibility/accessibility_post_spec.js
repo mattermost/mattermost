@@ -198,7 +198,7 @@ describe('Verify Accessibility Support in Post', () => {
 
                 // * Verify focus is on the save post button
                 cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save');
-                cy.focused().tab();
+                cy.focused().tab().tab();
 
                 // * Verify focus is on the comment button
                 cy.get(`#CENTER_commentIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'reply');
@@ -247,7 +247,7 @@ describe('Verify Accessibility Support in Post', () => {
                 if (emojiPickerEnabled) {
                     // * Verify focus is on the actions button
                     cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'More');
-                    cy.focused().tab({shift: true});
+                    cy.focused().tab({shift: true}).tab({shift: true});
                 }
 
                 // * Verify focus is on the save icon
