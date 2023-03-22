@@ -39,15 +39,7 @@ func (p *productB) Start() error { return nil }
 func (p *productB) Stop() error  { return nil }
 
 func TestInitializeProducts(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	ps, err := platform.New(
-		platform.ServiceConfig{
-			ConfigStore: config.NewTestMemoryStore(),
-		},
-		platform.StoreOverride(th.GetSqlStore()),
-	)
+	ps, err := platform.New(platform.ServiceConfig{ConfigStore: config.NewTestMemoryStore()})
 	require.NoError(t, err)
 
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
