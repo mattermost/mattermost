@@ -232,36 +232,26 @@ CALL MigrateChannels ();
 DROP PROCEDURE IF EXISTS MigrateChannels;
 
 /* ==> mysql/000057_upgrade_command_webhooks_v6.0.up.sql <== */
-
 DELIMITER //
-CREATE PROCEDURE MigrateRootId_CommandWebhooks () BEGIN DECLARE ParentId_EXIST INT;
-SELECT COUNT(*)
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_NAME = 'CommandWebhooks'
-  AND table_schema = DATABASE()
-  AND COLUMN_NAME = 'ParentId' INTO ParentId_EXIST;
-IF(ParentId_EXIST > 0) THEN
-    UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
-END IF;
+CREATE PROCEDURE MigrateCommandWebhooks ()
+BEGIN
+	DECLARE DropParentId BOOLEAN;
+
+	SELECT COUNT(*)
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = 'CommandWebhooks'
+		AND table_schema = DATABASE()
+		AND COLUMN_NAME = 'ParentId'
+		INTO DropParentId;
+
+	IF DropParentId THEN
+		UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
+		ALTER TABLE CommandWebhooks DROP COLUMN ParentId;
+	END IF;
 END//
 DELIMITER ;
-CALL MigrateRootId_CommandWebhooks ();
-DROP PROCEDURE IF EXISTS MigrateRootId_CommandWebhooks;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'CommandWebhooks'
-        AND table_schema = DATABASE()
-        AND column_name = 'ParentId'
-    ) > 0,
-    'ALTER TABLE CommandWebhooks DROP COLUMN ParentId;',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+CALL MigrateCommandWebhooks ();
+DROP PROCEDURE IF EXISTS MigrateCommandWebhooks;
 
 /* ==> mysql/000054_create_crt_channelmembership_count.up.sql <== */
 /* ==> mysql/000058_upgrade_channelmembers_v6.0.up.sql <== */
