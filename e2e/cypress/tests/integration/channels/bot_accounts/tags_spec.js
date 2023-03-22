@@ -48,7 +48,9 @@ describe('Bot tags', () => {
                 await client.pinPost(postId);
 
                 cy.visit(`/${team.name}/channels/${channel.name}`);
-                cy.clickPostDotMenu(postId);
+                
+                // # Hover over the last post by opening dot menu on it
+                cy.get(`#post_${postId}`).trigger('mouseover');
                 cy.get(`#CENTER_flagIcon_${postId}`).click();
             });
         });
