@@ -456,51 +456,130 @@ DEALLOCATE PREPARE alterIfExists;
 
 
 /* ==> mysql/000063_upgrade_threads_v6.0.up.sql <== */
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND column_name = 'Participants'
-        AND column_type != 'JSON'
-    ) > 0,
-    'ALTER TABLE Threads MODIFY COLUMN Participants JSON;',
-    'SELECT 1'
-));
+/* ==> mysql/000083_threads_threaddeleteat.up.sql <== */
+/* ==> mysql/000096_threads_threadteamid.up.sql <== */
+DELIMITER //
+CREATE PROCEDURE MigrateThreads ()
+BEGIN
+	-- 'ALTER TABLE Threads MODIFY COLUMN Participants JSON;'
+	DECLARE ChangeParticipants BOOLEAN;
+	DECLARE ChangeParticipantsQuery TEXT DEFAULT NULL;
 
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+	-- 'ALTER TABLE Threads DROP COLUMN DeleteAt;'
+	DECLARE DropDeleteAt BOOLEAN;
+	DECLARE DropDeleteAtQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_threads_channel_id_last_reply_at'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_threads_channel_id_last_reply_at ON Threads(ChannelId, LastReplyAt);'
-));
+	-- 'ALTER TABLE Threads ADD COLUMN ThreadDeleteAt bigint(20);'
+	DECLARE CreateThreadDeleteAt BOOLEAN;
+	DECLARE CreateThreadDeleteAtQuery TEXT DEFAULT NULL;
 
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
+	-- 'ALTER TABLE Threads DROP COLUMN TeamId;'
+	DECLARE DropTeamId BOOLEAN;
+	DECLARE DropTeamIdQuery TEXT DEFAULT NULL;
 
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_threads_channel_id'
-    ) > 0,
-    'DROP INDEX idx_threads_channel_id ON Threads;',
-    'SELECT 1'
-));
+	-- 'ALTER TABLE Threads ADD COLUMN ThreadTeamId varchar(26) DEFAULT NULL;'
+	DECLARE CreateThreadTeamId BOOLEAN;
+	DECLARE CreateThreadTeamIdQuery TEXT DEFAULT NULL;
 
-PREPARE removeIndexIfExists FROM @preparedStatement;
-EXECUTE removeIndexIfExists;
-DEALLOCATE PREPARE removeIndexIfExists;
+	-- CREATE INDEX idx_threads_channel_id_last_reply_at ON Threads(ChannelId, LastReplyAt);
+	DECLARE CreateIndex BOOLEAN;
+	DECLARE CreateIndexQuery TEXT DEFAULT NULL;
+
+	-- DROP INDEX idx_threads_channel_id ON Threads;
+	DECLARE DropIndex BOOLEAN;
+	DECLARE DropIndexQuery TEXT DEFAULT NULL;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND column_name = 'Participants'
+		AND LOWER(column_type) != 'json'
+		INTO ChangeParticipants;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND column_name = 'DeleteAt'
+		INTO DropDeleteAt;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND column_name = 'ThreadDeleteAt'
+		INTO CreateThreadDeleteAt;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND column_name = 'TeamId'
+		INTO DropTeamId;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND column_name = 'ThreadTeamId'
+		INTO CreateThreadTeamId;
+
+	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_threads_channel_id_last_reply_at'
+		INTO CreateIndex;
+
+	SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+		WHERE table_name = 'Threads'
+		AND table_schema = DATABASE()
+		AND index_name = 'idx_threads_channel_id'
+		INTO DropIndex;
+
+	IF ChangeParticipants THEN
+		SET ChangeParticipantsQuery = 'MODIFY COLUMN Participants JSON';
+	END IF;
+
+	IF DropDeleteAt THEN
+		SET DropDeleteAtQuery = 'DROP COLUMN DeleteAt';
+	END IF;
+
+	IF CreateThreadDeleteAt THEN
+		SET CreateThreadDeleteAtQuery = 'ADD COLUMN ThreadDeleteAt bigint(20)';
+	END IF;
+
+	IF DropTeamId THEN
+		SET DropTeamIdQuery = 'DROP COLUMN TeamId';
+	END IF;
+
+	IF CreateThreadTeamId THEN
+		SET CreateThreadTeamIdQuery = 'ADD COLUMN ThreadTeamId varchar(26) DEFAULT NULL';
+	END IF;
+
+	IF CreateIndex THEN
+		SET CreateIndexQuery = 'ADD INDEX idx_threads_channel_id_last_reply_at (ChannelId, LastReplyAt)';
+	END IF;
+
+	IF DropIndex THEN
+		SET DropIndexQuery = 'DROP INDEX idx_threads_channel_id';
+	END IF;
+
+	IF ChangeParticipants OR DropDeleteAt OR CreateThreadDeleteAt OR DropTeamId OR CreateThreadTeamId OR CreateIndex OR DropIndex THEN
+		SET @query = CONCAT('ALTER TABLE Threads ', CONCAT_WS(', ', ChangeParticipantsQuery, DropDeleteAtQuery, CreateThreadDeleteAtQuery, DropTeamIdQuery, CreateThreadTeamIdQuery, CreateIndexQuery, DropIndexQuery));
+		PREPARE stmt FROM @query;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+
+	UPDATE Threads, Posts
+		SET Threads.ThreadDeleteAt = Posts.DeleteAt
+		WHERE Posts.Id = Threads.PostId
+		AND Threads.ThreadDeleteAt IS NULL;
+
+	UPDATE Threads, Channels
+		SET Threads.ThreadTeamId = Channels.TeamId
+		WHERE Channels.Id = Threads.ChannelId
+		AND Threads.ThreadTeamId IS NULL;
+END//
+DELIMITER ;
+CALL MigrateThreads ();
+DROP PROCEDURE IF EXISTS MigrateThreads;
 
 /* ==> mysql/000064_upgrade_status_v6.0.up.sql <== */
 SET @preparedStatement = (SELECT IF(
@@ -932,43 +1011,6 @@ PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
-/* ==> mysql/000083_threads_threaddeleteat.up.sql <== */
--- Drop any existing DeleteAt column from 000081_threads_deleteat.up.sql
-SET @preparedStatement = (SELECT IF(
-    EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND column_name = 'DeleteAt'
-    ) > 0,
-    'ALTER TABLE Threads DROP COLUMN DeleteAt;',
-    'SELECT 1;'
-));
-
-PREPARE removeColumnIfExists FROM @preparedStatement;
-EXECUTE removeColumnIfExists;
-DEALLOCATE PREPARE removeColumnIfExists;
-
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND column_name = 'ThreadDeleteAt'
-    ),
-    'ALTER TABLE Threads ADD COLUMN ThreadDeleteAt bigint(20);',
-    'SELECT 1;'
-));
-
-PREPARE addColumnIfNotExists FROM @preparedStatement;
-EXECUTE addColumnIfNotExists;
-DEALLOCATE PREPARE addColumnIfNotExists;
-
-UPDATE Threads, Posts
-SET Threads.ThreadDeleteAt = Posts.DeleteAt
-WHERE Posts.Id = Threads.PostId
-AND Threads.ThreadDeleteAt IS NULL;
-
 /* ==> mysql/000084_recent_searches.up.sql <== */
 CREATE TABLE IF NOT EXISTS RecentSearches (
     UserId CHAR(26),
@@ -1183,43 +1225,6 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
-
-/* ==> mysql/000096_threads_threadteamid.up.sql <== */
--- Drop any existing TeamId column from 000094_threads_teamid.up.sql
-SET @preparedStatement = (SELECT IF(
-    EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND column_name = 'TeamId'
-    ) > 0,
-    'ALTER TABLE Threads DROP COLUMN TeamId;',
-    'SELECT 1;'
-));
-
-PREPARE removeColumnIfExists FROM @preparedStatement;
-EXECUTE removeColumnIfExists;
-DEALLOCATE PREPARE removeColumnIfExists;
-
-SET @preparedStatement = (SELECT IF(
-    NOT EXISTS(
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Threads'
-        AND table_schema = DATABASE()
-        AND column_name = 'ThreadTeamId'
-    ),
-    'ALTER TABLE Threads ADD COLUMN ThreadTeamId varchar(26) DEFAULT NULL;',
-    'SELECT 1;'
-));
-
-PREPARE addColumnIfNotExists FROM @preparedStatement;
-EXECUTE addColumnIfNotExists;
-DEALLOCATE PREPARE addColumnIfNotExists;
-
-UPDATE Threads, Channels
-SET Threads.ThreadTeamId = Channels.TeamId
-WHERE Channels.Id = Threads.ChannelId
-AND Threads.ThreadTeamId IS NULL;
 
 /* ==> mysql/000097_create_posts_priority.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostsPriority (
