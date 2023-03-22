@@ -1124,11 +1124,11 @@ DROP PROCEDURE IF EXISTS MigrateUserGroups;
 
 /* ==> mysql/000084_recent_searches.up.sql <== */
 CREATE TABLE IF NOT EXISTS RecentSearches (
-    UserId CHAR(26),
-    SearchPointer int,
-    Query json,
-    CreateAt bigint NOT NULL,
-    PRIMARY KEY (UserId, SearchPointer)
+	UserId CHAR(26),
+	SearchPointer int,
+	Query json,
+	CreateAt bigint NOT NULL,
+	PRIMARY KEY (UserId, SearchPointer)
 );
 
 /* ==> mysql/000085_fileinfo_add_archived_column.up.sql <== */
@@ -1270,21 +1270,21 @@ DROP PROCEDURE IF EXISTS MigrateReactions;
 
 /* ==> mysql/000091_create_post_reminder.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostReminders (
-    PostId varchar(26) NOT NULL,
-    UserId varchar(26) NOT NULL,
-    TargetTime bigint,
+	PostId varchar(26) NOT NULL,
+	UserId varchar(26) NOT NULL,
+	TargetTime bigint,
 	INDEX idx_postreminders_targettime (TargetTime),
-    PRIMARY KEY (PostId, UserId)
+	PRIMARY KEY (PostId, UserId)
 );
 
 /* ==> mysql/000093_notify_admin.up.sql <== */
 CREATE TABLE IF NOT EXISTS NotifyAdmin (
-    UserId varchar(26) NOT NULL,
-    CreateAt bigint(20) DEFAULT NULL,
-    RequiredPlan varchar(26) NOT NULL,
-    RequiredFeature varchar(100) NOT NULL,
-    Trial BOOLEAN NOT NULL,
-    PRIMARY KEY (UserId, RequiredFeature, RequiredPlan)
+	UserId varchar(26) NOT NULL,
+	CreateAt bigint(20) DEFAULT NULL,
+	RequiredPlan varchar(26) NOT NULL,
+	RequiredFeature varchar(100) NOT NULL,
+	Trial BOOLEAN NOT NULL,
+	PRIMARY KEY (UserId, RequiredFeature, RequiredPlan)
 );
 
 /* ==> mysql/000094_threads_teamid.up.sql <== */
@@ -1292,41 +1292,41 @@ CREATE TABLE IF NOT EXISTS NotifyAdmin (
 
 /* ==> mysql/000097_create_posts_priority.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostsPriority (
-    PostId varchar(26) NOT NULL,
-    ChannelId varchar(26) NOT NULL,
-    Priority varchar(32) NOT NULL,
-    RequestedAck tinyint(1),
-    PersistentNotifications tinyint(1),
-    PRIMARY KEY (PostId)
+	PostId varchar(26) NOT NULL,
+	ChannelId varchar(26) NOT NULL,
+	Priority varchar(32) NOT NULL,
+	RequestedAck tinyint(1),
+	PersistentNotifications tinyint(1),
+	PRIMARY KEY (PostId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /* ==> mysql/000098_create_post_acknowledgements.up.sql <== */
 CREATE TABLE IF NOT EXISTS PostAcknowledgements (
-    PostId varchar(26) NOT NULL,
-    UserId varchar(26) NOT NULL,
-    AcknowledgedAt bigint(20) DEFAULT NULL,
-    PRIMARY KEY (PostId, UserId)
+	PostId varchar(26) NOT NULL,
+	UserId varchar(26) NOT NULL,
+	AcknowledgedAt bigint(20) DEFAULT NULL,
+	PRIMARY KEY (PostId, UserId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /* ==> mysql/000099_create_drafts.up.sql <== */
 /* ==> mysql/000100_add_draft_priority_column.up.sql <== */
 CREATE TABLE IF NOT EXISTS Drafts (
-    CreateAt bigint(20) DEFAULT NULL,
-    UpdateAt bigint(20) DEFAULT NULL,
-    DeleteAt bigint(20) DEFAULT NULL,
-    UserId varchar(26) NOT NULL,
-    ChannelId varchar(26) NOT NULL,
-    RootId varchar(26) DEFAULT '',
-    Message text,
-    Props text,
-    FileIds text,
+	CreateAt bigint(20) DEFAULT NULL,
+	UpdateAt bigint(20) DEFAULT NULL,
+	DeleteAt bigint(20) DEFAULT NULL,
+	UserId varchar(26) NOT NULL,
+	ChannelId varchar(26) NOT NULL,
+	RootId varchar(26) DEFAULT '',
+	Message text,
+	Props text,
+	FileIds text,
 	Priority text,
-    PRIMARY KEY (UserId, ChannelId, RootId)
+	PRIMARY KEY (UserId, ChannelId, RootId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /* ==> mysql/000101_create_true_up_review_history.up.sql <== */
 CREATE TABLE IF NOT EXISTS TrueUpReviewHistory (
 	DueDate bigint(20),
 	Completed boolean,
-    PRIMARY KEY (DueDate)
+	PRIMARY KEY (DueDate)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
