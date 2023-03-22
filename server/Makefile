@@ -145,7 +145,7 @@ TESTS=.
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'v6/server/playbooks|v6/server/boards')
-BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -vE 'v6/server/boards')
+BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/boards')
 PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/playbooks')
 
 TEMPLATES_DIR=templates
