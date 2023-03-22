@@ -133,9 +133,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
-	if dbStore != nil {
-		options = append(options, StoreOverride(dbStore))
-	}
 	configStore := config.NewTestMemoryStore()
 
 	memoryConfig := configStore.Get()
@@ -148,6 +145,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = ":0"
 	*memoryConfig.MetricsSettings.ListenAddress = ":0"
+	// we should apply the settings coming from the mainHelper as they are being manipulated
+	// by the CI test environment.
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	configStore.Set(memoryConfig)
 
 	ps, err := New(ServiceConfig{
