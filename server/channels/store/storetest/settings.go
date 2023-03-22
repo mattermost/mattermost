@@ -74,10 +74,10 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 		mlog.Info("Using TEST_DATABASE_MYSQL_DSN override", mlog.String("dsn", dsn))
 	}
 
-	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
-		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
-		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
-	}
+	// make sure MM_SQLSETTINGS_DATASOURCE and TEST_DATABASE_MYSQL_DSN matches
+	os.Setenv("MM_SQLSETTINGS_DATASOURCE", dsn)
+	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
+	os.Setenv("TEST_DATABASE_MYSQL_DSN", dsn)
 
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
@@ -106,10 +106,10 @@ func PostgreSQLSettings() *model.SqlSettings {
 		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
 	}
 
-	if os.Getenv("MM_SQLSETTINGS_DATASOURCE") != "" {
-		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
-		mlog.Info("Clearing MM_SQLSETTINGS_DATASOURCE to use test dsn exclusively")
-	}
+	// make sure MM_SQLSETTINGS_DATASOURCE and TEST_DATABASE_POSTGRESQL_DSN matches
+	os.Setenv("MM_SQLSETTINGS_DATASOURCE", dsn)
+	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
+	os.Setenv("TEST_DATABASE_POSTGRESQL_DSN", dsn)
 
 	dsnURL, err := url.Parse(dsn)
 	if err != nil {
