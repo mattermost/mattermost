@@ -74,3 +74,7 @@ export interface TrueUpReviewProfileReducer extends TrueUpReviewProfile {
 export interface TrueUpReviewStatusReducer extends TrueUpReviewStatus {
     getRequestState: RequestState;
 }
+
+export interface SelfHostedExpansionRequest {
+    seats: number;
+}
