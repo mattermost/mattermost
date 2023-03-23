@@ -71,10 +71,9 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
-	LogBuffer                *mlog.Buffer
-	TestLogger               *mlog.Logger
-	boardsProductEnvValue    string
-	playbooksDisableEnvValue string
+	LogBuffer             *mlog.Buffer
+	TestLogger            *mlog.Logger
+	boardsProductEnvValue string
 }
 
 var mainHelper *testlib.MainHelper
@@ -317,11 +316,6 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database. Boards is already disabled here.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
-
 	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
@@ -332,8 +326,6 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().SetStore(&emptyMockStore)
-
-	th.playbooksDisableEnvValue = playbooksDisableEnvValue
 	return th
 }
 
@@ -387,15 +379,9 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	// reset board and playbooks product setting to original
+	// reset board product setting to original
 	if th.boardsProductEnvValue != "" {
 		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
-	}
-
-	if th.playbooksDisableEnvValue != "" {
-		os.Setenv("MM_DISABLE_PLAYBOOKS", th.playbooksDisableEnvValue)
-	} else {
-		os.Unsetenv("MM_DISABLE_PLAYBOOKS")
 	}
 
 	if th.IncludeCacheLayer {
