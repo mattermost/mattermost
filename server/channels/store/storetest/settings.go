@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
@@ -49,26 +48,12 @@ func log(message string) {
 	}
 }
 
-func getDefaultMysqlDSN() string {
-	if os.Getenv("IS_CI") == "true" {
-		return strings.ReplaceAll(defaultMysqlDSN, "localhost", "mysql")
-	}
-	return defaultMysqlDSN
-}
-
-func getDefaultPostgresqlDSN() string {
-	if os.Getenv("IS_CI") == "true" {
-		return strings.ReplaceAll(defaultPostgresqlDSN, "localhost", "postgres")
-	}
-	return defaultPostgresqlDSN
-}
-
 // MySQLSettings returns the database settings to connect to the MySQL unittesting database.
 // The database name is generated randomly and must be created before use.
 func MySQLSettings(withReplica bool) *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_MYSQL_DSN")
 	if dsn == "" {
-		dsn = getDefaultMysqlDSN()
+		dsn = defaultMysqlDSN
 		mlog.Info("No TEST_DATABASE_MYSQL_DSN override, using default", mlog.String("default_dsn", dsn))
 	} else {
 		mlog.Info("Using TEST_DATABASE_MYSQL_DSN override", mlog.String("dsn", dsn))
@@ -95,7 +80,7 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 func PostgreSQLSettings() *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
 	if dsn == "" {
-		dsn = getDefaultPostgresqlDSN()
+		dsn = defaultPostgresqlDSN
 		mlog.Info("No TEST_DATABASE_POSTGRESQL_DSN override, using default", mlog.String("default_dsn", dsn))
 	} else {
 		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
