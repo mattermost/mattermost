@@ -37,6 +37,7 @@ type CloudInterface interface {
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
 	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm, requesterEmail string) (*model.SelfHostedSignupCustomerResponse, error)
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
+	ConfirmSelfHostedExpansion(req model.SelfHostedExpansionConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
 	ConfirmSelfHostedSignupLicenseApplication() error
 	GetSelfHostedInvoices() ([]*model.Invoice, error)
 	GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error)

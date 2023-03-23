@@ -32,6 +32,11 @@ type SelfHostedConfirmPaymentMethodRequest struct {
 	Subscription        CreateSubscriptionRequest `json:"subscription"`
 }
 
+type SelfHostedExpansionConfirmPaymentMethodRequest struct {
+	StripeSetupIntentID string                     `json:"stripe_setup_intent_id"`
+	ExpandRequest       SelfHostedExpansionRequest `json:"expand_request"`
+}
+
 // SelfHostedSignupPaymentResponse contains feels needed for self hosted signup to confirm payment and receive license.
 type SelfHostedSignupCustomerResponse struct {
 	CustomerId        string `json:"customer_id"`
@@ -57,4 +62,9 @@ type SelfHostedBillingAccessRequest struct {
 
 type SelfHostedBillingAccessResponse struct {
 	Token string `json:"token"`
+}
+
+type SelfHostedExpansionRequest struct {
+	Seats     int    `json:"seats"`
+	LicenseId string `json:"license_id"`
 }
