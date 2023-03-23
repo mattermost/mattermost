@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels.js';
+import {Channel} from '@mattermost/types/channels';
 import {ActionResult} from 'mattermost-redux/types/actions.js';
 
 import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
