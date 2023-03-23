@@ -67,21 +67,20 @@ describe('Create and delete board / card', () => {
 
         // Change Description
         cy.findByText('Add a description...').should('be.visible').wait(timeouts.HALF_SEC).as('editableDescription');
-        cy.get('@editableDescription').should('be.visible').click({force: true})
+        cy.get('@editableDescription').should('be.visible').click({force: true});
         cy.get('.description').
-        click().
-        get('.description .MarkdownEditorInput').
-        type('for testing purposes only')
-        cy.findByText('for testing purposes only').should('be.visible')
-        
+            click().
+            get('.description .MarkdownEditorInput').
+            type('for testing purposes only');
+        cy.findByText('for testing purposes only').should('be.visible');
+
         //Hide Description
         cy.findByText('hide description').should('exist').click({force: true});
         cy.get('.description').should('not.exist');
-        
 
         //Show Description
         cy.findByText('show description').should('exist').click({force: true});
-        cy.findByText('for testing purposes only').should('be.visible')
+        cy.findByText('for testing purposes only').should('be.visible');
     });
 
     it('MM-T5397 Can create and delete a board and a card', () => {
