@@ -79,16 +79,15 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
+	memoryStore.Set(newConfig)
+	var options []app.Option
+	options = append(options, app.ConfigStore(memoryStore))
+	options = append(options, app.StoreOverride(mainHelper.Store))
 
 	// disable Boards through the feature flag
 	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
 	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
 	newConfig.FeatureFlags.BoardsProduct = false
-
-	memoryStore.Set(newConfig)
-	var options []app.Option
-	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(mainHelper.Store))
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
