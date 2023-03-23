@@ -5,10 +5,11 @@ import {Locator} from '@playwright/test';
 
 export default class BoardsSidebar {
     readonly container: Locator;
-    readonly plusButton: Locator;
-    readonly createNewBoardMenuItem: Locator;
-    readonly createNewCategoryMenuItem: Locator;
-    readonly titles: Locator;
+
+    readonly plusButton;
+    readonly createNewBoardMenuItem;
+    readonly createNewCategoryMenuItem;
+    readonly titles;
 
     constructor(container: Locator) {
         this.container = container;

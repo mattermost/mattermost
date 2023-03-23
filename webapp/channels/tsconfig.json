@@ -22,10 +22,8 @@
     "jsx": "react",
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
+    "composite": true,
     "paths": {
-        "@mattermost/client": ["../../platform/client/src"],
-        "@mattermost/components": ["../../platform/components/src"],
-        "@mattermost/types/*": ["../../platform/types/src/*"],
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
         "reselect": ["packages/reselect/src"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
@@ -35,17 +33,12 @@
     }
   },
   "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "dist",
-    "e2e/cypress",
-    "e2e/playwright",
-    "!node_modules/@types",
-    "coverage"
+    "./src/**/*",
+    "./src/**/*.json"
   ],
   "references": [
     {"path": "../platform/client"},
+    {"path": "../platform/components"},
     {"path": "../platform/types"}
   ]
 }
