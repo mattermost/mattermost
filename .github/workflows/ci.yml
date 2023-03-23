@@ -7,6 +7,7 @@ on:
       - cloud
       - release-*
       - mono-repo*
+      - gh-action*
 jobs:
   check-mocks:
     name: Check mocks
@@ -30,6 +31,12 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19.5'
+      - name: Check Go version
+        run: go version
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
