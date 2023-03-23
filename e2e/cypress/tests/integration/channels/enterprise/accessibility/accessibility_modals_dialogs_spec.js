@@ -8,9 +8,9 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @enterprise @accessibility
+// Group: @enterprise @accessibility
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
     let testTeam;
@@ -51,13 +51,13 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
             // * Verify the accessibility support in search input
             cy.findByRole('textbox', {name: 'Search for people'}).
-                should('have.attr', 'aria-autocomplete', 'list');
+            should('have.attr', 'aria-autocomplete', 'list');
 
             // # Search for a text and then check up and down arrow
             cy.findByRole('textbox', {name: 'Search for people'}).
-                typeWithForce('s').
-                wait(TIMEOUTS.HALF_SEC).
-                typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
+            typeWithForce('s').
+            wait(TIMEOUTS.HALF_SEC).
+            typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
             cy.get('#multiSelectList').children().eq(2).should('have.class', 'more-modal__row--selected').within(() => {
                 cy.get('.more-modal__name').invoke('text').then((user) => {
                     selectedRowText = user.split(' - ')[0].replace('@', '');
@@ -69,17 +69,17 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
             // * Verify if the reader is able to read out the selected row
             cy.get('.filtered-user-list .sr-only').
-                should('have.attr', 'aria-live', 'polite').
-                and('have.attr', 'aria-atomic', 'true').
-                invoke('text').then((text) => {
-                    expect(text).equal(selectedRowText);
-                });
+            should('have.attr', 'aria-live', 'polite').
+            and('have.attr', 'aria-atomic', 'true').
+            invoke('text').then((text) => {
+                expect(text).equal(selectedRowText);
+            });
 
             // # Search for an invalid text
             const additionalSearchTerm = 'somethingwhichdoesnotexist';
             cy.findByRole('textbox', {name: 'Search for people'}).clear().
-                typeWithForce(additionalSearchTerm).
-                wait(TIMEOUTS.HALF_SEC);
+            typeWithForce(additionalSearchTerm).
+            wait(TIMEOUTS.HALF_SEC);
 
             // * Check if reader can read no results
             cy.get('.multi-select__wrapper').should('have.attr', 'aria-live', 'polite').and('have.text', `No results found matching ${additionalSearchTerm}`);
@@ -104,26 +104,30 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 cy.uiBrowseOrCreateChannel('Browse Channels').click();
 
                 // * Verify the accessibility support in More Channels Dialog
-                cy.findByRole('dialog', {name: 'Browse Channels'}).within(() => {
-                    cy.findByRole('heading', {name: 'Browse Channels'});
+                cy.findByRole('dialog', {name: 'More Channels'}).within(() => {
+                    cy.findByRole('heading', {name: 'More Channels'});
 
                     // * Verify the accessibility support in search input
                     cy.findByPlaceholderText('Search channels');
 
-                    cy.get('#moreChannelsList').should('be.visible').then((el) => {
+                    cy.waitUntil(() => cy.get('#moreChannelsList').then((el) => {
                         return el[0].children.length === 2;
-                    });
+                    }));
 
-                    // # Hide already joined channels
-                    cy.findByText('Hide Joined').click();
-
-                    // # Focus on the Create Channel button and TAB three time
-                    cy.get('#createNewChannelButton').focus().tab().tab().tab();
+                    // # Focus on the Create Channel button and TAB twice
+                    cy.get('#createNewChannel').focus().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
-                    cy.get('#moreChannelsList').within(() => {
+                    cy.get('#moreChannelsList').children().eq(0).within(() => {
                         const selectedChannel = getChannelAriaLabel(channel);
-                        cy.findByLabelText(selectedChannel).should('be.visible').should('be.focused');
+                        cy.findByLabelText(selectedChannel).should('be.focused');
+
+                        // * Press Tab and verify if focus changes to Join button
+                        cy.focused().tab();
+                        cy.findByText('Join').parent().should('be.focused');
+
+                        // * Verify previous button should no longer be focused
+                        cy.findByLabelText(selectedChannel).should('not.be.focused');
                     });
 
                     // * Press Tab again and verify if focus changes to next row

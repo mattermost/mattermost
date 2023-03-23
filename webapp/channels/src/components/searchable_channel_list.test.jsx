@@ -4,25 +4,20 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import SearchableChannelList from './searchable_channel_list.jsx';
+import SearchableChannelList from 'components/searchable_channel_list.jsx';
 
 describe('components/SearchableChannelList', () => {
     const baseProps = {
         channels: [],
         isSearch: false,
         channelsPerPage: 10,
-        nextPage: jest.fn(),
-        search: jest.fn(),
-        handleJoin: jest.fn(),
+        nextPage: () => {}, // eslint-disable-line no-empty-function
+        search: () => {}, // eslint-disable-line no-empty-function
+        handleJoin: () => {}, // eslint-disable-line no-empty-function
         loading: true,
-        rememberHideJoinedChannelsChecked: false,
-        toggleArchivedChannels: jest.fn(),
+        toggleArchivedChannels: () => {}, // eslint-disable-line no-empty-function
         shouldShowArchivedChannels: false,
         canShowArchivedChannels: false,
-        myChannelMemberships: {},
-        allChannelStats: {},
-        closeModal: jest.fn(),
-        hideJoinedChannelsPreference: jest.fn(),
     };
 
     test('should match init snapshot', () => {
