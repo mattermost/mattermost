@@ -193,11 +193,6 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database. Boards is already disabled here.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
-
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	th := setupTestHelper(mockStore, true, false, nil, tb)
 	statusMock := mocks.StatusStore{}
@@ -209,8 +204,6 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().SetStore(&emptyMockStore)
-
-	th.playbooksDisableEnvValue = playbooksDisableEnvValue
 	return th
 }
 
