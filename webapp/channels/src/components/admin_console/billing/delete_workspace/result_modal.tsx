@@ -11,6 +11,7 @@ import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 import {GlobalState} from 'types/store';
+import {Modal} from 'react-bootstrap';
 
 import './result_modal.scss';
 
@@ -18,6 +19,7 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {InquiryType} from 'selectors/cloud';
 
 type Props = {
+    type?: string;
     onHide?: () => void;
     icon: JSX.Element;
     title: JSX.Element;
@@ -47,6 +49,37 @@ export default function ResultModal(props: Props) {
     };
 
     const modalType = `delete-workspace-result_modal__${props.resultType}`;
+    if (props.type === 'small') {
+        return (
+            <Modal
+                className='ResultModal__small'
+                show={isResultModalOpen}
+                onHide={onHide}
+            >
+                <Modal.Header closeButton={true}/>
+                <div className={modalType}>
+                    <IconMessage
+                        formattedTitle={props.title}
+                        formattedSubtitle={props.subtitle}
+                        error={false}
+                        icon={props.icon}
+                        formattedButtonText={props.primaryButtonText}
+                        buttonHandler={props.primaryButtonHandler}
+                        className={'success'}
+                        formattedTertiaryButonText={
+                            props.contactSupportButtonVisible ?
+                                <FormattedMessage
+                                    id={'admin.billing.deleteWorkspace.resultModal.ContactSupport'}
+                                    defaultMessage={'Contact Support'}
+                                /> :
+                                undefined
+                        }
+                        tertiaryButtonHandler={props.contactSupportButtonVisible ? openContactUs : undefined}
+                    />
+                </div>
+            </Modal>
+        );
+    }
 
     return (
         <FullScreenModal

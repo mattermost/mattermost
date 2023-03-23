@@ -3,3 +3,55 @@
         transform: translateY(50%);
     }
 }
+
+.ResultModal__small {
+    .modal-header {
+        .close {
+            &:hover,
+            &:active,
+            &:focus,
+            &:active:focus {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                opacity: 1;
+            }
+
+            top: 26px;
+            right: 26px;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            font-family:
+                'Open Sans',
+                sans-serif;
+            font-size: 32px;
+            font-weight: 400;
+        }
+    }
+
+    // top: 25%;
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        height: 600px;
+        border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: auto;
+        border-radius: 8px;
+        transform: translate(-50%, -50%) !important;
+
+        .modal-header {
+            border: none;
+            background: var(--center-channel-bg) !important;
+        }
+
+        .modal-content {
+            height: 100%;
+
+            .IconMessage-h3 {
+                margin-top: 0;
+            }
+        }
+    }
+}
