@@ -24,6 +24,7 @@ export type Props = {
     permissionToJoinGroup: boolean;
     permissionToLeaveGroup: boolean;
     permissionToArchiveGroup: boolean;
+    permissionToRestoreGroup: boolean;
     isGroupMember: boolean;
     currentUserId: string;
     incrementMemberCount: () => void;
@@ -33,6 +34,7 @@ export type Props = {
         removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
         addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
         archiveGroup: (groupId: string) => Promise<ActionResult>;
+        restoreGroup: (groupId: string) => Promise<ActionResult>;
     };
 }
 
@@ -51,16 +53,19 @@ const ViewUserGroupModalHeader = (props: Props) => {
         props.onExited();
     };
 
-    const showSubMenu = (source: string) => {
+    const restoreGroup = async () => {
+        const {actions, groupId} = props;
+
+        await actions.restoreGroup(groupId);
+    };
+
+    const showSubMenu = () => {
         const {permissionToEditGroup, permissionToJoinGroup, permissionToLeaveGroup, permissionToArchiveGroup} = props;
 
-        return source.toLowerCase() !== 'ldap' &&
-            (
-                permissionToEditGroup ||
+        return permissionToEditGroup ||
                 permissionToJoinGroup ||
                 permissionToLeaveGroup ||
                 permissionToArchiveGroup
-            );
     };
 
     const modalTitle = () => {
@@ -73,6 +78,10 @@ const ViewUserGroupModalHeader = (props: Props) => {
                     id='userGroupsModalLabel'
                 >
                     {group.display_name}
+                    {
+                        group.delete_at > 0 &&
+                        <i className='icon icon-archive-outline'/>
+                    }
                 </Modal.Title>
             );
         }
@@ -80,9 +89,9 @@ const ViewUserGroupModalHeader = (props: Props) => {
     };
 
     const addPeopleButton = () => {
-        const {group, permissionToJoinGroup} = props;
+        const {permissionToJoinGroup} = props;
 
-        if (group?.source.toLowerCase() !== 'ldap' && permissionToJoinGroup) {
+        if (permissionToJoinGroup) {
             return (
                 <button
                     className='user-groups-create btn btn-md btn-primary'
@@ -90,7 +99,26 @@ const ViewUserGroupModalHeader = (props: Props) => {
                 >
                     <FormattedMessage
                         id='user_groups_modal.addPeople'
-                        defaultMessage='AddPeople'
+                        defaultMessage='Add people'
+                    />
+                </button>
+            );
+        }
+        return (<></>);
+    };
+
+    const restoreGroupButton = () => {
+        const {permissionToRestoreGroup} = props;
+
+        if (permissionToRestoreGroup) {
+            return (
+                <button
+                    className='user-groups-create btn btn-md btn-primary'
+                    onClick={restoreGroup}
+                >
+                    <FormattedMessage
+                        id='user_groups_modal.restoreGroup'
+                        defaultMessage='Restore group'
                     />
                 </button>
             );
@@ -101,7 +129,7 @@ const ViewUserGroupModalHeader = (props: Props) => {
     const subMenuButton = () => {
         const {group} = props;
 
-        if (group && showSubMenu(group?.source)) {
+        if (group && showSubMenu()) {
             return (
                 <ViewUserGroupHeaderSubMenu
                     group={group}
@@ -139,6 +167,7 @@ const ViewUserGroupModalHeader = (props: Props) => {
             </button>
             {modalTitle()}
             {addPeopleButton()}
+            {restoreGroupButton()}
             {subMenuButton()}
         </Modal.Header>
     );

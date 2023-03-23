@@ -177,12 +177,35 @@ export function haveITeamPermission(state: GlobalState, teamId: string, permissi
     );
 }
 
-export function haveIGroupPermission(state: GlobalState, groupID: string, permission: string): boolean {
-    return (
-        getMySystemPermissions(state).has(permission) ||
-        (getMyPermissionsByGroup(state)[groupID] ? getMyPermissionsByGroup(state)[groupID].has(permission) : false)
-    );
-}
+export const haveIGroupPermission: (state: GlobalState, groupID: string, permission: string) => boolean = createSelector (
+    'haveIGroupPermission',
+    getMySystemPermissions,
+    getMyPermissionsByGroup,
+    (state: GlobalState, groupID: string) => state.entities.groups.groups[groupID],
+    (state: GlobalState, groupID: string, permission: string) => permission,
+    (systemPermissions, permissionGroups, group, permission) => {
+        if (permission === Permissions.RESTORE_CUSTOM_GROUP) {
+            if (group.source !== 'ldap' && group.delete_at !== 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        if (group.source === 'ldap' || group.delete_at !== 0) {
+            return false;
+        }
+
+        if (systemPermissions.has(permission)) {
+            return true;
+        }
+
+        if (permissionGroups[group.id] && permissionGroups[group.id].has(permission)) {
+            return true;
+        }
+        return false;
+    }
+)
 
 export function haveIChannelPermission(state: GlobalState, teamId: string, channelId: string, permission: string): boolean {
     return (

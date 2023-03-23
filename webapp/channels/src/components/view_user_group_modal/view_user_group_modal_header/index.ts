@@ -10,7 +10,7 @@ import {GlobalState} from 'types/store';
 import {ModalData} from 'types/actions';
 import {openModal} from 'actions/views/modals';
 import {getGroup as getGroupById, isMyGroup} from 'mattermost-redux/selectors/entities/groups';
-import {addUsersToGroup, archiveGroup, removeUsersFromGroup} from 'mattermost-redux/actions/groups';
+import {addUsersToGroup, archiveGroup, removeUsersFromGroup, restoreGroup} from 'mattermost-redux/actions/groups';
 import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {Permissions} from 'mattermost-redux/constants';
@@ -22,6 +22,7 @@ type Actions = {
     removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
     addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
     archiveGroup: (groupId: string) => Promise<ActionResult>;
+    restoreGroup: (groupId: string) => Promise<ActionResult>;
 };
 
 type OwnProps = {
@@ -36,12 +37,14 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const permissionToJoinGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.MANAGE_CUSTOM_GROUP_MEMBERS);
     const permissionToLeaveGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.MANAGE_CUSTOM_GROUP_MEMBERS);
     const permissionToArchiveGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.DELETE_CUSTOM_GROUP);
+    const permissionToRestoreGroup = haveIGroupPermission(state, ownProps.groupId, Permissions.RESTORE_CUSTOM_GROUP);
 
     return {
         permissionToEditGroup,
         permissionToJoinGroup,
         permissionToLeaveGroup,
         permissionToArchiveGroup,
+        permissionToRestoreGroup,
         isGroupMember,
         group,
         currentUserId: getCurrentUserId(state),
@@ -55,6 +58,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             removeUsersFromGroup,
             addUsersToGroup,
             archiveGroup,
+            restoreGroup,
         }, dispatch),
     };
 }
