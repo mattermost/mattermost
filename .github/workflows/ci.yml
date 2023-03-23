@@ -20,6 +20,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -34,11 +38,9 @@ jobs:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-      - name: Check Go version
-        run: go version
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -52,6 +54,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -65,6 +71,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Reset config
         run: make config-reset
       - name: Run plugin-checker
@@ -90,6 +100,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -108,6 +122,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Generate work templates
         run: make generate-worktemplates
       - name: Check generated work templates
@@ -149,6 +167,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -184,6 +206,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Build
         run: |
           make config-reset
