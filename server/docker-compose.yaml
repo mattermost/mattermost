@@ -1,0 +1,238 @@
+version: '2.4'
+services:
+  mysql:
+    container_name: mattermost-mysql
+    ports:
+      - "3306:3306"
+    extends:
+        file: build/docker-compose.common.yml
+        service: mysql
+  mysql-read-replica:
+    container_name: mattermost-mysql-read-replica
+    ports:
+      - "3307:3306"
+    extends:
+        file: build/docker-compose.common.yml
+        service: mysql-read-replica
+  postgres:
+    container_name: mattermost-postgres
+    ports:
+      - "5432:5432"
+    extends:
+        file: build/docker-compose.common.yml
+        service: postgres
+  minio:
+    container_name: mattermost-minio
+    ports:
+      - "9000:9000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: minio
+  inbucket:
+    container_name: mattermost-inbucket
+    ports:
+      - "9001:9001"
+      - "10025:10025"
+      - "10110:10110"
+    extends:
+        file: build/docker-compose.common.yml
+        service: inbucket
+  openldap:
+    container_name: mattermost-openldap
+    ports:
+      - "389:389"
+      - "636:636"
+    extends:
+        file: build/docker-compose.common.yml
+        service: openldap
+  elasticsearch:
+    container_name: mattermost-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    extends:
+        file: build/docker-compose.common.yml
+        service: elasticsearch
+  dejavu:
+    container_name: mattermost-dejavu
+    ports:
+      - "1358:1358"
+    extends:
+        file: build/docker-compose.common.yml
+        service: dejavu
+  keycloak:
+    container_name: mattermost-saml
+    ports:
+      - "8484:8080"
+    extends:
+        file: build/docker-compose.common.yml
+        service: keycloak
+  prometheus:
+    container_name: mattermost-prometheus
+    ports:
+      - "9090:9090"
+    extends:
+        file: build/docker-compose.common.yml
+        service: prometheus
+  grafana:
+    container_name: mattermost-grafana
+    ports:
+      - "3000:3000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: grafana
+
+  start_dependencies:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - mm-test
+    depends_on:
+      - mysql
+      - postgres
+      - minio
+      - inbucket
+      - openldap
+      - elasticsearch
+      - prometheus
+      - grafana
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+
+  leader:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
+      - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_FEATUREFLAGS_BoardsProduct=true"
+    networks:
+      - mm-test
+    depends_on:
+      - start_dependencies
+    volumes:
+      - './server:/home/mattermost-server'
+      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../../enterprise:/home/enterprise'
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
+    command: ['make', 'run-server']
+    expose:
+      - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
+
+  follower:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
+      - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_FEATUREFLAGS_BoardsProduct=true"
+    networks:
+      - mm-test
+    depends_on:
+      - leader
+    volumes:
+      - './server:/home/mattermost-server'
+      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../../enterprise:/home/enterprise'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
+    command: ['make', 'run-server']
+    restart: on-failure
+    expose:
+      - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
+
+  follower2:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
+      - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
+      - "MM_FEATUREFLAGS_BoardsProduct=true"
+    networks:
+      - mm-test
+    depends_on:
+      - leader
+    volumes:
+      - './server:/home/mattermost-server'
+      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../../enterprise:/home/enterprise'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
+    command: ['make', 'run-server']
+    restart: on-failure
+    expose:
+      - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
+
+  haproxy:
+    image: nginx
+    networks:
+      - mm-test
+    volumes:
+      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    restart: on-failure
+    depends_on:
+      leader:
+        condition: service_healthy
+      follower:
+        condition: service_healthy
+      follower2:
+        condition: service_healthy
+    ports:
+      - "8065:8065"
+
+networks:
+  mm-test:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.254.0/24
+          ip_range: 192.168.254.0/24

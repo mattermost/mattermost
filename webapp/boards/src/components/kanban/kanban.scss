@@ -1,0 +1,112 @@
+@import 'src/styles/z-index';
+
+.Kanban {
+    overflow: auto;
+    flex: 1;
+
+    .octo-board-header {
+        @include z-index(kanban-board-header);
+        display: flex;
+        flex-direction: row;
+        width: max-content;
+        min-height: 30px;
+        padding: 16px 0;
+        color: #909090;
+        position: sticky;
+        top: 0;
+        background: rgb(var(--center-channel-bg-rgb));
+    }
+
+    .octo-board-header-cell {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        width: 260px;
+        margin-right: 15px;
+        vertical-align: middle;
+
+        &.narrow {
+            width: 220px;
+        }
+
+        > div {
+            &:last-child {
+                margin: 0;
+            }
+        }
+
+        .IconButton {
+            background-color: unset;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.1);
+            }
+        }
+
+        .Label {
+            max-width: 165px;
+            margin: 0 8px 0 0;
+
+            &.empty {
+                color: rgba(var(--center-channel-color-rgb), 1);
+                font-weight: 600;
+            }
+
+            .Editable {
+                color: rgba(var(--center-channel-color-rgb), 1);
+                background: transparent;
+            }
+        }
+
+        > .Button {
+            cursor: auto;
+
+            &.IconButton {
+                cursor: pointer;
+            }
+        }
+    }
+
+    .octo-board-body {
+        display: flex;
+        flex-direction: row;
+        flex: 0 1 auto;
+        margin-top: 2px;
+    }
+
+    .octo-board-column {
+        flex: 0 0 auto;
+
+        display: flex;
+        flex-direction: column;
+
+        width: 260px;
+        margin-right: 15px;
+
+        &.narrow {
+            width: 220px;
+        }
+    }
+
+    .octo-board-hidden-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        > div {
+            margin-right: 5px;
+        }
+
+        .Label {
+            margin: 5px;
+        }
+    }
+
+    .hidden-card {
+        display: block;
+    }
+
+    .kanban-hidden-cards {
+        margin-left: 4px;
+    }
+}

@@ -437,6 +437,12 @@ type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }
 
+func (r *RolePatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"permissions": r.Permissions,
+	}
+}
+
 type RolePermissions struct {
 	RoleID      string
 	Permissions []string

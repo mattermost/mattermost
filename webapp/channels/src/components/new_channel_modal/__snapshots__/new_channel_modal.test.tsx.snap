@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/new_channel_modal should match snapshot 1`] = `
+<GenericModal
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={false}
+  cancelButtonText="Cancel"
+  className="new-channel-modal"
+  compassDesign={true}
+  confirmButtonText="Create channel"
+  enforceFocus={true}
+  errorText=""
+  handleCancel={[Function]}
+  handleConfirm={[Function]}
+  handleEnterKeyPress={[Function]}
+  id="new-channel-modal"
+  isConfirmDisabled={true}
+  keyboardEscape={true}
+  modalHeaderText="Create a new channel"
+  onExited={[Function]}
+  show={true}
+>
+  <div
+    className="new-channel-modal-body"
+  >
+    <ForwardRef
+      autoComplete="off"
+      autoFocus={true}
+      containerClassName="new-channel-modal-name-container"
+      customMessage={null}
+      inputClassName="new-channel-modal-name-input"
+      label="Channel name"
+      limit={64}
+      name="new-channel-modal-name"
+      onBlur={[Function]}
+      onChange={[Function]}
+      placeholder="Enter a name for your new channel"
+      required={true}
+      type="text"
+      value=""
+    />
+    <UrlInput
+      base="http://localhost:8065"
+      className="new-channel-modal__url"
+      error=""
+      limit={64}
+      onChange={[Function]}
+      path="current-team/channels"
+      pathInfo=""
+      shortenLength={52}
+    />
+    <PublicPrivateSelector
+      className="new-channel-modal-type-selector"
+      onChange={[Function]}
+      privateButtonProps={
+        Object {
+          "description": "Only invited members",
+          "disabled": false,
+          "title": "Private Channel",
+        }
+      }
+      publicButtonProps={
+        Object {
+          "description": "Anyone can join",
+          "disabled": false,
+          "title": "Public Channel",
+        }
+      }
+      selected="O"
+    />
+    <div
+      className="new-channel-modal-purpose-container"
+    >
+      <textarea
+        autoComplete="off"
+        className="new-channel-modal-purpose-textarea"
+        id="new-channel-modal-purpose"
+        maxLength={250}
+        onChange={[Function]}
+        onKeyDown={[Function]}
+        placeholder="Enter a purpose for this channel (optional)"
+        rows={4}
+        value=""
+      />
+      <div
+        className="new-channel-modal-purpose-info"
+      >
+        <span>
+          This will be displayed when browsing for channels.
+        </span>
+      </div>
+    </div>
+  </div>
+</GenericModal>
+`;

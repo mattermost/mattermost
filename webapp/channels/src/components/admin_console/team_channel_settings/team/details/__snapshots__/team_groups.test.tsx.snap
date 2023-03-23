@@ -1,0 +1,119 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/team/TeamGroups should match snapshot 1`] = `
+<AdminPanel
+  button={
+    <Memo(Connect(ToggleModalButton))
+      className="btn btn-primary"
+      dialogProps={
+        Object {
+          "excludeGroups": Array [
+            Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "DN",
+              "has_syncables": false,
+              "id": "123",
+              "member_count": 3,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
+            },
+          ],
+          "includeGroups": Array [],
+          "onAddCallback": [MockFunction],
+          "skipCommit": true,
+          "team": Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "team",
+            "email": "",
+            "group_constrained": false,
+            "id": "123",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="addGroupsToTeamToggle"
+      modalId="add_groups_to_team"
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add Group"
+        id="admin.team_settings.team_details.add_group"
+      />
+    </Memo(Connect(ToggleModalButton))>
+  }
+  className=""
+  id="team_groups"
+  subtitleDefault="Add and remove team members based on their group membership."
+  subtitleId="admin.team_settings.team_detail.syncedGroupsDescription"
+  titleDefault="Synced Groups"
+  titleId="admin.team_settings.team_detail.syncedGroupsTitle"
+>
+  <Connect(GroupList)
+    groups={
+      Array [
+        Object {
+          "allow_reference": true,
+          "create_at": 1,
+          "delete_at": 0,
+          "description": "",
+          "display_name": "DN",
+          "has_syncables": false,
+          "id": "123",
+          "member_count": 3,
+          "name": "group_name",
+          "remote_id": "",
+          "scheme_admin": false,
+          "source": "",
+          "update_at": 1,
+        },
+      ]
+    }
+    isModeSync={true}
+    onGroupRemoved={[MockFunction]}
+    setNewGroupRole={[MockFunction]}
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "team",
+        "email": "",
+        "group_constrained": false,
+        "id": "123",
+        "invite_id": "",
+        "name": "DN",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    totalGroups={1}
+    type="team"
+  />
+</AdminPanel>
+`;

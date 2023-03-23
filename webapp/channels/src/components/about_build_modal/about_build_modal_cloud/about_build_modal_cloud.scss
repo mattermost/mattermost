@@ -1,0 +1,85 @@
+.about-modal.cloud {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: auto;
+    transform: translate(-50%, -50%) !important;
+
+    .about-modal__hash {
+        padding-bottom: 20px;
+    }
+
+    .modal-content {
+        overflow: hidden;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 8px;
+        box-shadow: 0 20px 32px rgba(0, 0, 0, 0.12);
+
+        .modal-header {
+            width: 600px;
+            height: 66px;
+        }
+
+        .modal-body {
+            overflow: hidden;
+            width: 600px;
+            padding: 0 50px;
+
+            .about-modal__logo {
+                padding-right: 32px;
+                padding-left: 0;
+
+                svg {
+                    width: 104px;
+                    height: 104px;
+                }
+            }
+
+            .about-modal__title {
+                margin: 0;
+                font-size: 24px;
+                font-weight: 600;
+                line-height: 32px;
+            }
+
+            .about-modal__content {
+                padding-top: 46px;
+            }
+
+            .subtitle {
+                top: 32px;
+                left: 0;
+                width: 294px;
+                height: 24px;
+                margin-bottom: 16px;
+                color: var(--center-channel-color);
+                font-size: 16px;
+                line-height: 24px;
+            }
+
+            .description,
+            .form-group {
+                top: 0;
+                left: 0;
+                width: 342px;
+                height: 20px;
+                align-self: center;
+                margin: 0 0;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 14px;
+                line-height: 20px;
+            }
+
+            .about-footer {
+                margin-top: 16px;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+                line-height: 16px;
+
+                .copy-right {
+                    margin-top: 12px;
+                }
+            }
+        }
+    }
+}

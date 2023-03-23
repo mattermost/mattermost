@@ -1,0 +1,118 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`properties/dateRange cancel set via text input 1`] = `
+<div>
+  <div
+    class="DateRange  octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15 → June 20
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`properties/dateRange handle clear 1`] = `
+<div>
+  <div
+    class="DateRange  octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`properties/dateRange returns component with new date after prop change 1`] = `
+<div>
+  <div
+    class="DateRange  octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`properties/dateRange returns default correctly 1`] = `
+<div>
+  <div
+    class="DateRange empty octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`properties/dateRange returns local correctly - es local 1`] = `
+<div>
+  <div
+    class="DateRange  octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        15 de junio
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`properties/dateRange set via text input 1`] = `
+<div>
+  <div
+    class="DateRange  octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15 → June 20
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`properties/dateRange set via text input, es locale 1`] = `
+<div>
+  <div
+    class="DateRange  octo-propertyvalue"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        15 de junio → 20 de junio
+      </span>
+    </button>
+  </div>
+</div>
+`;

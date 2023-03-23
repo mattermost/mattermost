@@ -1,0 +1,40 @@
+.SeatsCalculator {
+    padding: 14px 0;
+    font-size: 14px;
+
+    &__seats-item {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding-bottom: 12px;
+        font-weight: 400;
+
+        fieldset {
+            max-width: 110px;
+        }
+
+        &--input {
+            padding-bottom: 20px;
+        }
+    }
+
+    &__seats-label {
+        position: relative;
+    }
+
+    &__seats-tooltip {
+        position: absolute;
+        top: 11px;
+        // to the right of the input
+        left: 118px;
+    }
+
+    &__total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 8px;
+        font-weight: 600;
+    }
+}

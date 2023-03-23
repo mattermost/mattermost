@@ -1,0 +1,91 @@
+.InvitationModal {
+    .modal-dialog {
+        @media screen and (min-width: 640px) {
+            position: absolute;
+            width: 600px;
+        }
+
+        top: 50%;
+        left: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin: auto;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-header,
+    .modal-footer {
+        padding: 24px;
+    }
+
+    .modal-body {
+        overflow: visible;
+        max-height: none;
+        padding: 0 24px;
+    }
+
+    .InvitationModal__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: none;
+        font-size: 22px;
+        font-weight: 600;
+
+        h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        &::before,
+        &::after {
+            display: none;
+        }
+
+        // beat regular modal-header in specificity
+        &.modal-header {
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+        }
+
+        .icon-close {
+            padding: 0;
+            border: none;
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: none;
+            color: rgb(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+            font: inherit;
+            outline: inherit;
+
+            &:hover,
+            &:active,
+            &:focus {
+                color: rgb(var(--center-channel-color-rgb), 0.56);
+            }
+        }
+    }
+
+    &__footer {
+        border-top: none;
+
+        .btn {
+            border-radius: 4px;
+        }
+    }
+
+    .btn.btn-primary:disabled {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+    }
+}

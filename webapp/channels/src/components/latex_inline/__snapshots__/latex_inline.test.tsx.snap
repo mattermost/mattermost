@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/LatexBlock error in katex 1`] = `
+<span
+  className="post-body--code inline-tex"
+  dangerouslySetInnerHTML={
+    Object {
+      "__html": "<span class=\\"katex-error\\" title=\\"ParseError: KaTeX parse error: Expected &#x27;}&#x27;, got &#x27;EOF&#x27; at end of input: e^{i\\\\pi + 1 = 0\\" style=\\"color:#cc0000\\">e^{i\\\\pi + 1 = 0</span>",
+    }
+  }
+/>
+`;
+
+exports[`components/LatexBlock latex is disabled 1`] = `
+<span
+  className="post-body--code inline-tex"
+>
+  $e^{i\\pi} + 1 = 0$
+</span>
+`;
+
+exports[`components/LatexBlock should match snapshot 1`] = `
+<span
+  className="post-body--code inline-tex"
+  dangerouslySetInnerHTML={
+    Object {
+      "__html": "<span class=\\"katex\\"><span class=\\"katex-mathml\\"><math xmlns=\\"http://www.w3.org/1998/Math/MathML\\"><semantics><mrow><msup><mi>e</mi><mrow><mi>i</mi><mi>π</mi></mrow></msup><mo>+</mo><mn>1</mn><mo>=</mo><mn>0</mn></mrow><annotation encoding=\\"application/x-tex\\">e^{i\\\\pi} + 1 = 0</annotation></semantics></math></span><span class=\\"katex-html\\" aria-hidden=\\"true\\"><span class=\\"base\\"><span class=\\"strut\\" style=\\"height:0.908em;vertical-align:-0.0833em;\\"></span><span class=\\"mord\\"><span class=\\"mord mathnormal\\">e</span><span class=\\"msupsub\\"><span class=\\"vlist-t\\"><span class=\\"vlist-r\\"><span class=\\"vlist\\" style=\\"height:0.8247em;\\"><span style=\\"top:-3.063em;margin-right:0.05em;\\"><span class=\\"pstrut\\" style=\\"height:2.7em;\\"></span><span class=\\"sizing reset-size6 size3 mtight\\"><span class=\\"mord mtight\\"><span class=\\"mord mathnormal mtight\\" style=\\"margin-right:0.03588em;\\">iπ</span></span></span></span></span></span></span></span></span><span class=\\"mspace\\" style=\\"margin-right:0.2222em;\\"></span><span class=\\"mbin\\">+</span><span class=\\"mspace\\" style=\\"margin-right:0.2222em;\\"></span></span><span class=\\"base\\"><span class=\\"strut\\" style=\\"height:0.6444em;\\"></span><span class=\\"mord\\">1</span><span class=\\"mspace\\" style=\\"margin-right:0.2778em;\\"></span><span class=\\"mrel\\">=</span><span class=\\"mspace\\" style=\\"margin-right:0.2778em;\\"></span></span><span class=\\"base\\"><span class=\\"strut\\" style=\\"height:0.6444em;\\"></span><span class=\\"mord\\">0</span></span></span></span>",
+    }
+  }
+/>
+`;

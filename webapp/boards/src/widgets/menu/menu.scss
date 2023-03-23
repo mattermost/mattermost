@@ -1,0 +1,234 @@
+@import 'src/styles/z-index';
+
+.Menu.noselect {
+    @include z-index(menu);
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    background-color: rgb(var(--center-channel-bg-rgb));
+    color: rgb(var(--center-channel-color-rgb));
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--default-rad);
+    box-shadow: var(--elevation-4);
+    max-width: 320px;
+    cursor: default;
+
+    &.fixed {
+        position: fixed;
+    }
+
+    .menu-contents {
+        display: flex;
+        flex-direction: column;
+        padding: 8px 0;
+        min-width: 240px;
+        max-width: 320px;
+    }
+
+    .view-list {
+        overflow: hidden;
+    }
+
+    .menu-options {
+        display: flex;
+        flex-direction: column;
+
+        flex-grow: 1;
+        position: relative;
+
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        color: rgb(var(--center-channel-color-rgb));
+
+        .CompassIcon {
+            font-size: 18px;
+            opacity: 0.56;
+            width: 18px;
+
+            &::before {
+                margin: 0;
+            }
+        }
+
+        .menu-option__content {
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .menu-option {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            font-size: 14px;
+            line-height: 24px;
+            font-weight: 400;
+            height: 32px;
+            padding: 4px 20px;
+            white-space: nowrap;
+            cursor: pointer;
+
+            &.menu-option--disabled {
+                cursor: not-allowed;
+                pointer-events: none;
+                opacity: 0.32;
+            }
+
+            &.menu-option--with-subtext {
+                height: auto;
+                align-items: initial;
+            }
+
+            &:hover {
+                background: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            &-active {
+                background: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            .empty-icon {
+                width: 18px;
+            }
+
+            .noicon {
+                &:empty {
+                    display: none;
+                }
+            }
+
+            > *:first-child {
+                margin-left: 0;
+            }
+
+            > .menu-content {
+                display: block;
+            }
+
+            .menu-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                flex-grow: 1;
+                white-space: nowrap;
+                text-align: left;
+            }
+
+            > .menu-subtext {
+                font-size: 10px;
+                text-align: left;
+            }
+
+            > .SubmenuTriangleIcon {
+                fill: currentColor;
+            }
+
+            .Icon {
+                opacity: 0.56;
+                width: 18px;
+                height: 18px;
+                flex: 0 0 18px;
+            }
+
+            .IconButton .Icon {
+                margin-right: 0;
+            }
+        }
+
+        * > .menu-option.bold-menu-text {
+            font-weight: bold;
+        }
+    }
+
+    .menu-option__icon {
+        display: flex;
+        align-items: center;
+        margin-right: 12px;
+    }
+
+    .menu-option__check {
+        color: rgba(var(--button-bg-rgb), 1);
+
+        svg {
+            stroke: currentColor;
+        }
+    }
+
+    .menu-spacer {
+        height: 20px;
+        width: 20px;
+        flex: 0 0 auto;
+    }
+
+    @media not screen and (max-width: 430px) {
+        &.top {
+            bottom: 100%;
+        }
+
+        &.left {
+            right: 0;
+        }
+    }
+}
+
+.Menu.noselect,
+.SubMenuOption .SubMenu {
+    @media screen and (max-width: 430px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-width: 0;
+        background-color: rgba(var(--center-channel-color-rgb), 0.5);
+        border-radius: 0;
+        padding: 10px;
+
+        display: block;
+        overflow-y: auto;
+
+        .menu-contents {
+            justify-content: flex-end;
+            min-height: 100%;
+        }
+
+        .menu-options {
+            align-items: center;
+            border-radius: 10px;
+            overflow: hidden;
+
+            flex: 0 0 auto;
+
+            .menu-option {
+                min-height: 44px;
+                width: 100%;
+                padding: 0 20px;
+                background-color: rgb(var(--center-channel-bg-rgb));
+
+                > * {
+                    flex: 0 0 auto;
+                }
+
+                > .noicon {
+                    width: 16px;
+                    height: 16px;
+                    margin-right: 12px;
+                }
+
+                > .menu-name {
+                    font-size: 16px;
+                    justify-content: center;
+                }
+            }
+        }
+    }
+
+    @media not screen and (max-width: 430px) {
+        .hideOnWidescreen {
+            /* Hide controls (e.g. close button) on larger screens */
+            display: none !important;
+        }
+    }
+}

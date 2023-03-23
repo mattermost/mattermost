@@ -1,0 +1,738 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/SchemaAdminSettings should match snapshot with custom component 1`] = `
+<component
+  config={
+    Object {
+      "EscapedSettings": Object {
+        "com.example.setting": Object {
+          "a": true,
+        },
+      },
+      "FirstSettings": Object {
+        "settinga": "fsdsdg",
+        "settingb": false,
+        "settingc": "option3",
+        "settingl": true,
+      },
+      "SecondSettings": Object {
+        "settingd": "option1",
+        "settinge": "Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23",
+        "settingf": "3xz3r6n7dtbbmgref3yw4zg7sr",
+        "settingg": 7,
+        "settingh": 100,
+      },
+    }
+  }
+  environmentConfig={
+    Object {
+      "FirstSettings": Object {
+        "settingl": true,
+      },
+    }
+  }
+  schema={
+    Object {
+      "component": [Function],
+    }
+  }
+  updateConfig={[MockFunction]}
+/>
+`;
+
+exports[`components/admin_console/SchemaAdminSettings should match snapshot with settings and plugin 1`] = `
+<div
+  className="wrapper--fixed "
+>
+  <FormattedAdminHeader
+    defaultMessage="Configuration"
+    id="config"
+    values={Object {}}
+  />
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <form
+        className="form-horizontal"
+        onSubmit={[Function]}
+        role="form"
+      >
+        <SettingsGroup
+          container={false}
+          show={true}
+        >
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-a"
+                textDefault="This is some help text for the text field."
+              />
+            }
+            id="FirstSettings.settinga"
+            key="Config_text_FirstSettings.settinga"
+            label="Setting One"
+            onChange={[Function]}
+            placeholder="e.g. some setting"
+            setByEnv={false}
+            type="input"
+            value="fsdsdg"
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-b"
+                textDefault="This is some help text for the bool field."
+              />
+            }
+            id="FirstSettings.settingb"
+            key="Config_bool_FirstSettings.settingb"
+            label="Setting Two"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={false}
+          />
+          <DropdownSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-c"
+                textDefault="This is some help text for the dropdown field."
+              />
+            }
+            id="FirstSettings.settingc"
+            isDisabled={false}
+            key="Config_dropdown_FirstSettings.settingc"
+            label="Setting Three"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option3"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <RadioSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-d"
+                textDefault="This is some help text for the radio field."
+              />
+            }
+            id="SecondSettings.settingd"
+            key="Config_radio_SecondSettings.settingd"
+            label="Setting Four"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option1"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <GeneratedSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-e"
+                textDefault="This is some help text for the generated field."
+              />
+            }
+            id="SecondSettings.settinge"
+            key="Config_generated_SecondSettings.settinge"
+            label="Setting Five"
+            onChange={[Function]}
+            placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
+            regenerateHelpText="This is help text for the regenerate button."
+            regenerateText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Regenerate"
+                id="admin.regenerate"
+              />
+            }
+            setByEnv={false}
+            value="Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23"
+          />
+          <Connect(UserAutocompleteSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-f"
+                textDefault="This is some help text for the user autocomplete field."
+              />
+            }
+            id="SecondSettings.settingf"
+            key="Config_userautocomplete_SecondSettings.settingf"
+            label="Setting Six"
+            onChange={[Function]}
+            placeholder="Type a username here"
+            value="3xz3r6n7dtbbmgref3yw4zg7sr"
+          />
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-g"
+                textDefault="This is some help text for the number field."
+              />
+            }
+            id="SecondSettings.settingg"
+            key="Config_text_SecondSettings.settingg"
+            label="Setting Seven"
+            onChange={[Function]}
+            placeholder="e.g. some setting"
+            setByEnv={false}
+            type="number"
+            value={7}
+          />
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-h"
+                textDefault="This is some help text for the number field."
+              />
+            }
+            id="SecondSettings.settingh"
+            key="Config_text_SecondSettings.settingh"
+            label="Setting Eight"
+            onChange={[Function]}
+            placeholder="e.g. some setting"
+            setByEnv={false}
+            type="number"
+            value={10}
+          />
+          <div
+            className="banner undefined"
+            key="Config_bool_undefined"
+          >
+            <div
+              className="banner__content"
+            >
+              <span>
+                <MemoizedFormattedMessage
+                  defaultMessage="Setting Eight"
+                  id="label-h"
+                />
+              </span>
+            </div>
+          </div>
+          <DropdownSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-i"
+                textDefault="This is some help text for the language field."
+              />
+            }
+            id="SecondSettings.settingi"
+            isDisabled={false}
+            key="Config_language_SecondSettings.settingi"
+            label="Setting Nine"
+            onChange={[Function]}
+            setByEnv={false}
+            value="de"
+            values={
+              Array [
+                Object {
+                  "order": 0,
+                  "text": "Deutsch",
+                  "value": "de",
+                },
+                Object {
+                  "order": 1,
+                  "text": "English (US)",
+                  "value": "en",
+                },
+                Object {
+                  "order": 2,
+                  "text": "English (Australia)",
+                  "value": "en-AU",
+                },
+                Object {
+                  "order": 3,
+                  "text": "Español",
+                  "value": "es",
+                },
+                Object {
+                  "order": 4,
+                  "text": "Français (Beta)",
+                  "value": "fr",
+                },
+                Object {
+                  "order": 5,
+                  "text": "Italiano (Alpha)",
+                  "value": "it",
+                },
+                Object {
+                  "order": 6,
+                  "text": "Magyar",
+                  "value": "hu",
+                },
+                Object {
+                  "order": 7,
+                  "text": "Nederlands",
+                  "value": "nl",
+                },
+                Object {
+                  "order": 8,
+                  "text": "Polski",
+                  "value": "pl",
+                },
+                Object {
+                  "order": 9,
+                  "text": "Português (Brasil) (Alpha)",
+                  "value": "pt-BR",
+                },
+                Object {
+                  "order": 10,
+                  "text": "Română (Alpha)",
+                  "value": "ro",
+                },
+                Object {
+                  "order": 11,
+                  "text": "Svenska",
+                  "value": "sv",
+                },
+                Object {
+                  "order": 12,
+                  "text": "Türkçe",
+                  "value": "tr",
+                },
+                Object {
+                  "order": 13,
+                  "text": "Български (Alpha)",
+                  "value": "bg",
+                },
+                Object {
+                  "order": 14,
+                  "text": "Pусский",
+                  "value": "ru",
+                },
+                Object {
+                  "order": 15,
+                  "text": "Yкраїнська (Alpha)",
+                  "value": "uk",
+                },
+                Object {
+                  "order": 16,
+                  "text": "فارسی (Alpha)",
+                  "value": "fa",
+                },
+                Object {
+                  "order": 17,
+                  "text": "한국어 (Alpha)",
+                  "value": "ko",
+                },
+                Object {
+                  "order": 18,
+                  "text": "中文 (简体) (Alpha)",
+                  "value": "zh-CN",
+                },
+                Object {
+                  "order": 19,
+                  "text": "中文 (繁體)",
+                  "value": "zh-TW",
+                },
+                Object {
+                  "order": 20,
+                  "text": "日本語",
+                  "value": "ja",
+                },
+              ]
+            }
+          />
+          <MultiSelectSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-j"
+                textDefault="This is some help text for the multiple-language field."
+              />
+            }
+            id="SecondSettings.settingj"
+            key="Config_language_SecondSettings.settingj"
+            label="Setting Nine"
+            noResultText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="No result"
+                id="no-result-j"
+              />
+            }
+            onChange={[Function]}
+            selected={Array []}
+            setByEnv={false}
+            values={
+              Array [
+                Object {
+                  "order": 0,
+                  "text": "Deutsch",
+                  "value": "de",
+                },
+                Object {
+                  "order": 1,
+                  "text": "English (US)",
+                  "value": "en",
+                },
+                Object {
+                  "order": 2,
+                  "text": "English (Australia)",
+                  "value": "en-AU",
+                },
+                Object {
+                  "order": 3,
+                  "text": "Español",
+                  "value": "es",
+                },
+                Object {
+                  "order": 4,
+                  "text": "Français (Beta)",
+                  "value": "fr",
+                },
+                Object {
+                  "order": 5,
+                  "text": "Italiano (Alpha)",
+                  "value": "it",
+                },
+                Object {
+                  "order": 6,
+                  "text": "Magyar",
+                  "value": "hu",
+                },
+                Object {
+                  "order": 7,
+                  "text": "Nederlands",
+                  "value": "nl",
+                },
+                Object {
+                  "order": 8,
+                  "text": "Polski",
+                  "value": "pl",
+                },
+                Object {
+                  "order": 9,
+                  "text": "Português (Brasil) (Alpha)",
+                  "value": "pt-BR",
+                },
+                Object {
+                  "order": 10,
+                  "text": "Română (Alpha)",
+                  "value": "ro",
+                },
+                Object {
+                  "order": 11,
+                  "text": "Svenska",
+                  "value": "sv",
+                },
+                Object {
+                  "order": 12,
+                  "text": "Türkçe",
+                  "value": "tr",
+                },
+                Object {
+                  "order": 13,
+                  "text": "Български (Alpha)",
+                  "value": "bg",
+                },
+                Object {
+                  "order": 14,
+                  "text": "Pусский",
+                  "value": "ru",
+                },
+                Object {
+                  "order": 15,
+                  "text": "Yкраїнська (Alpha)",
+                  "value": "uk",
+                },
+                Object {
+                  "order": 16,
+                  "text": "فارسی (Alpha)",
+                  "value": "fa",
+                },
+                Object {
+                  "order": 17,
+                  "text": "한국어 (Alpha)",
+                  "value": "ko",
+                },
+                Object {
+                  "order": 18,
+                  "text": "中文 (简体) (Alpha)",
+                  "value": "zh-CN",
+                },
+                Object {
+                  "order": 19,
+                  "text": "中文 (繁體)",
+                  "value": "zh-TW",
+                },
+                Object {
+                  "order": 20,
+                  "text": "日本語",
+                  "value": "ja",
+                },
+              ]
+            }
+          />
+          <RequestButton
+            buttonText={
+              <span>
+                Setting Eleven
+              </span>
+            }
+            disabled={false}
+            errorMessage={
+              Object {
+                "defaultMessage": "Reload unsuccessful: {error}",
+                "id": "admin.reload.reloadFail",
+              }
+            }
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-k"
+                textDefault="This is some help text for the button field."
+              />
+            }
+            id="SecondSettings.settingk"
+            includeDetailedError={true}
+            key="Config_text_SecondSettings.settingk"
+            requestAction={[Function]}
+            saveNeeded={false}
+            showSuccessMessage={false}
+            successMessage={
+              Object {
+                "defaultMessage": "Test Successful",
+                "id": "admin.requestButton.requestSuccess",
+              }
+            }
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-l"
+                textDefault="This is some help text for the second bool field."
+              />
+            }
+            id="FirstSettings.settingl"
+            key="Config_bool_FirstSettings.settingl"
+            label="Setting Twelve"
+            onChange={[Function]}
+            setByEnv={true}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={true}
+          />
+          <ColorSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="help-text-m"
+                textDefault="This is some help text for the color field."
+              />
+            }
+            id="FirstSettings.settingm"
+            key="Config_text_FirstSettings.settingm"
+            label="Setting Thirteen"
+            onChange={[Function]}
+            value=""
+          />
+          <component
+            cancelSubmit={[Function]}
+            config={
+              Object {
+                "EscapedSettings": Object {
+                  "com.example.setting": Object {
+                    "a": true,
+                  },
+                },
+                "FirstSettings": Object {
+                  "settinga": "fsdsdg",
+                  "settingb": false,
+                  "settingc": "option3",
+                  "settingl": true,
+                },
+                "SecondSettings": Object {
+                  "settingd": "option1",
+                  "settinge": "Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23",
+                  "settingf": "3xz3r6n7dtbbmgref3yw4zg7sr",
+                  "settingg": 7,
+                  "settingh": 100,
+                },
+              }
+            }
+            disabled={false}
+            helpText={null}
+            id="custom"
+            key="Config_custom_custom"
+            onChange={[Function]}
+            registerSaveAction={[Function]}
+            setByEnv={false}
+            setSaveNeeded={[Function]}
+            showConfirm={false}
+            unRegisterSaveAction={[Function]}
+          />
+          <Connect(JobTable)
+            createJobButtonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Setting Twelve"
+                id="label-l"
+              />
+            }
+            createJobHelpText={
+              <FormattedMarkdownMessage
+                defaultMessage="This is some help text for the jobs table field."
+                id="help-text-l"
+              />
+            }
+            disabled={false}
+            getExtraInfoText={[Function]}
+            jobType="test"
+            key="Config_jobstable_undefined"
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="escaped-help-text-a"
+                textDefault="This is some help text for the first escaped field."
+              />
+            }
+            id="EscapedSettings.com+example+setting.a"
+            key="Config_bool_EscapedSettings.com+example+setting.a"
+            label="Escaped Setting A"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={true}
+          />
+        </SettingsGroup>
+      </form>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage="Saving Config..."
+    />
+    <div
+      className="error-message"
+      data-testid="errorMessage"
+      onMouseOut={[Function]}
+      onMouseOver={[Function]}
+    >
+      <FormError
+        error=""
+        errors={Array []}
+        iconClassName="fa-exclamation-triangle"
+        textClassName="has-warning"
+      />
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+    <Overlay
+      animation={[Function]}
+      delayShow={400}
+      placement="top"
+      rootClose={false}
+      show={false}
+      target={null}
+    >
+      <Tooltip
+        id="error-tooltip"
+      />
+    </Overlay>
+  </div>
+</div>
+`;

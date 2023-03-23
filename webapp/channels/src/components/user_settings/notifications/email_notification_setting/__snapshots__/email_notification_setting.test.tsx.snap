@@ -1,0 +1,970 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot 1`] = `
+<EmailNotificationSetting
+  actions={
+    Object {
+      "savePreferences": [MockFunction],
+    }
+  }
+  activeSection="email"
+  currentUserId="current_user_id"
+  emailInterval={0}
+  enableEmail={false}
+  enableEmailBatching={false}
+  isCollapsedThreadsEnabled={false}
+  onCancel={[MockFunction]}
+  onChange={[MockFunction]}
+  onSubmit={[MockFunction]}
+  saving={false}
+  sendEmailNotifications={true}
+  serverError=""
+  setParentState={[MockFunction]}
+  threads="all"
+  updateSection={[MockFunction]}
+>
+  <SettingItemMax
+    containerStyle=""
+    infoPosition="bottom"
+    inputs={
+      Array [
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send email notifications"
+              id="user.settings.notifications.email.send"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-email-interval={30}
+                data-enable-email="true"
+                id="emailNotificationImmediately"
+                name="emailNotifications"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Immediately"
+                id="user.settings.notifications.email.immediately"
+              />
+            </label>
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-email-interval={0}
+                data-enable-email="false"
+                id="emailNotificationNever"
+                name="emailNotifications"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.email.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-3"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+              id="user.settings.notifications.emailInfo"
+            />
+             
+          </div>
+        </fieldset>,
+        null,
+      ]
+    }
+    saving={false}
+    section=""
+    serverError=""
+    submit={[Function]}
+    title="Email Notifications"
+    updateSection={[Function]}
+  >
+    <section
+      className="section-max form-horizontal "
+    >
+      <h4
+        className="col-sm-12 section-title"
+        id="settingTitle"
+      >
+        Email Notifications
+      </h4>
+      <div
+        className="col-sm-9 col-sm-offset-3"
+      >
+        <div
+          className="setting-list"
+          tabIndex={-1}
+        >
+          <div
+            className="setting-list-item"
+          >
+            <fieldset
+              key="userNotificationEmailOptions"
+            >
+              <legend
+                className="form-legend"
+              >
+                <FormattedMessage
+                  defaultMessage="Send email notifications"
+                  id="user.settings.notifications.email.send"
+                >
+                  <span>
+                    Send email notifications
+                  </span>
+                </FormattedMessage>
+              </legend>
+              <div
+                className="radio"
+              >
+                <label>
+                  <input
+                    checked={false}
+                    data-email-interval={30}
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    onChange={[Function]}
+                    type="radio"
+                  />
+                  <FormattedMessage
+                    defaultMessage="Immediately"
+                    id="user.settings.notifications.email.immediately"
+                  >
+                    <span>
+                      Immediately
+                    </span>
+                  </FormattedMessage>
+                </label>
+              </div>
+              <div
+                className="radio"
+              >
+                <label>
+                  <input
+                    checked={true}
+                    data-email-interval={0}
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    onChange={[Function]}
+                    type="radio"
+                  />
+                  <FormattedMessage
+                    defaultMessage="Never"
+                    id="user.settings.notifications.email.never"
+                  >
+                    <span>
+                      Never
+                    </span>
+                  </FormattedMessage>
+                </label>
+              </div>
+              <div
+                className="mt-3"
+              >
+                <FormattedMessage
+                  defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+                  id="user.settings.notifications.emailInfo"
+                >
+                  <span>
+                    Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+                  </span>
+                </FormattedMessage>
+                 
+              </div>
+            </fieldset>
+          </div>
+          <div
+            className="setting-list-item"
+          >
+            <hr />
+            <SaveButton
+              btnClass="btn-primary"
+              defaultMessage={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Save"
+                  id="save_button.save"
+                />
+              }
+              disabled={false}
+              extraClasses=""
+              onClick={[Function]}
+              saving={false}
+              savingMessage={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Saving"
+                  id="save_button.saving"
+                />
+              }
+            >
+              <button
+                className="save-button btn btn-primary"
+                data-testid="saveSetting"
+                disabled={false}
+                id="saveSetting"
+                onClick={[Function]}
+                type="submit"
+              >
+                <LoadingWrapper
+                  loading={false}
+                  text={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Saving"
+                      id="save_button.saving"
+                    />
+                  }
+                >
+                  <span>
+                    <FormattedMessage
+                      defaultMessage="Save"
+                      id="save_button.save"
+                    >
+                      <span>
+                        Save
+                      </span>
+                    </FormattedMessage>
+                  </span>
+                </LoadingWrapper>
+              </button>
+            </SaveButton>
+            <button
+              className="btn btn-sm btn-cancel cursor--pointer style--none"
+              id="cancelSetting"
+              onClick={[Function]}
+            >
+              <FormattedMessage
+                defaultMessage="Cancel"
+                id="setting_item_max.cancel"
+              >
+                <span>
+                  Cancel
+                </span>
+              </FormattedMessage>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </SettingItemMax>
+</EmailNotificationSetting>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email and SendEmailNotifications !== true 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Email notifications are not enabled"
+      id="user.settings.notifications.email.disabled"
+    />
+  }
+  section="email"
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email and SendEmailNotifications = true 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Never"
+      id="user.settings.notifications.email.never"
+    />
+  }
+  section="email"
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Immediately"
+      id="user.settings.notifications.email.immediately"
+    />
+  }
+  section="email"
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, enabled email batching 1`] = `
+<EmailNotificationSetting
+  actions={
+    Object {
+      "savePreferences": [MockFunction],
+    }
+  }
+  activeSection="email"
+  currentUserId="current_user_id"
+  emailInterval={0}
+  enableEmail={false}
+  enableEmailBatching={true}
+  isCollapsedThreadsEnabled={false}
+  onCancel={[MockFunction]}
+  onChange={[MockFunction]}
+  onSubmit={[MockFunction]}
+  saving={false}
+  sendEmailNotifications={true}
+  serverError=""
+  setParentState={[MockFunction]}
+  threads="all"
+  updateSection={[MockFunction]}
+>
+  <SettingItemMax
+    containerStyle=""
+    infoPosition="bottom"
+    inputs={
+      Array [
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send email notifications"
+              id="user.settings.notifications.email.send"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-email-interval={30}
+                data-enable-email="true"
+                id="emailNotificationImmediately"
+                name="emailNotifications"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Immediately"
+                id="user.settings.notifications.email.immediately"
+              />
+            </label>
+          </div>
+          <fieldset>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  data-email-interval={900}
+                  data-enable-email="true"
+                  id="emailNotificationMinutes"
+                  name="emailNotifications"
+                  onChange={[Function]}
+                  type="radio"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Every {count} minutes"
+                  id="user.settings.notifications.email.everyXMinutes"
+                  values={
+                    Object {
+                      "count": 15,
+                    }
+                  }
+                />
+              </label>
+            </div>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  data-email-interval={3600}
+                  data-enable-email="true"
+                  id="emailNotificationHour"
+                  name="emailNotifications"
+                  onChange={[Function]}
+                  type="radio"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Every hour"
+                  id="user.settings.notifications.email.everyHour"
+                />
+              </label>
+            </div>
+          </fieldset>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-email-interval={0}
+                data-enable-email="false"
+                id="emailNotificationNever"
+                name="emailNotifications"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.email.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-3"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+              id="user.settings.notifications.emailInfo"
+            />
+             
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notifications received over the time period selected are combined and sent in a single email."
+              id="user.settings.notifications.emailBatchingInfo"
+            />
+          </div>
+        </fieldset>,
+        null,
+      ]
+    }
+    saving={false}
+    section=""
+    serverError=""
+    submit={[Function]}
+    title="Email Notifications"
+    updateSection={[Function]}
+  >
+    <section
+      className="section-max form-horizontal "
+    >
+      <h4
+        className="col-sm-12 section-title"
+        id="settingTitle"
+      >
+        Email Notifications
+      </h4>
+      <div
+        className="col-sm-9 col-sm-offset-3"
+      >
+        <div
+          className="setting-list"
+          tabIndex={-1}
+        >
+          <div
+            className="setting-list-item"
+          >
+            <fieldset
+              key="userNotificationEmailOptions"
+            >
+              <legend
+                className="form-legend"
+              >
+                <FormattedMessage
+                  defaultMessage="Send email notifications"
+                  id="user.settings.notifications.email.send"
+                >
+                  <span>
+                    Send email notifications
+                  </span>
+                </FormattedMessage>
+              </legend>
+              <div
+                className="radio"
+              >
+                <label>
+                  <input
+                    checked={false}
+                    data-email-interval={30}
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    onChange={[Function]}
+                    type="radio"
+                  />
+                  <FormattedMessage
+                    defaultMessage="Immediately"
+                    id="user.settings.notifications.email.immediately"
+                  >
+                    <span>
+                      Immediately
+                    </span>
+                  </FormattedMessage>
+                </label>
+              </div>
+              <fieldset>
+                <div
+                  className="radio"
+                >
+                  <label>
+                    <input
+                      checked={false}
+                      data-email-interval={900}
+                      data-enable-email="true"
+                      id="emailNotificationMinutes"
+                      name="emailNotifications"
+                      onChange={[Function]}
+                      type="radio"
+                    />
+                    <FormattedMessage
+                      defaultMessage="Every {count} minutes"
+                      id="user.settings.notifications.email.everyXMinutes"
+                      values={
+                        Object {
+                          "count": 15,
+                        }
+                      }
+                    >
+                      <span>
+                        Every 15 minutes
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                </div>
+                <div
+                  className="radio"
+                >
+                  <label>
+                    <input
+                      checked={false}
+                      data-email-interval={3600}
+                      data-enable-email="true"
+                      id="emailNotificationHour"
+                      name="emailNotifications"
+                      onChange={[Function]}
+                      type="radio"
+                    />
+                    <FormattedMessage
+                      defaultMessage="Every hour"
+                      id="user.settings.notifications.email.everyHour"
+                    >
+                      <span>
+                        Every hour
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                </div>
+              </fieldset>
+              <div
+                className="radio"
+              >
+                <label>
+                  <input
+                    checked={true}
+                    data-email-interval={0}
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    onChange={[Function]}
+                    type="radio"
+                  />
+                  <FormattedMessage
+                    defaultMessage="Never"
+                    id="user.settings.notifications.email.never"
+                  >
+                    <span>
+                      Never
+                    </span>
+                  </FormattedMessage>
+                </label>
+              </div>
+              <div
+                className="mt-3"
+              >
+                <FormattedMessage
+                  defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+                  id="user.settings.notifications.emailInfo"
+                >
+                  <span>
+                    Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+                  </span>
+                </FormattedMessage>
+                 
+                <FormattedMessage
+                  defaultMessage="Notifications received over the time period selected are combined and sent in a single email."
+                  id="user.settings.notifications.emailBatchingInfo"
+                >
+                  <span>
+                    Notifications received over the time period selected are combined and sent in a single email.
+                  </span>
+                </FormattedMessage>
+              </div>
+            </fieldset>
+          </div>
+          <div
+            className="setting-list-item"
+          >
+            <hr />
+            <SaveButton
+              btnClass="btn-primary"
+              defaultMessage={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Save"
+                  id="save_button.save"
+                />
+              }
+              disabled={false}
+              extraClasses=""
+              onClick={[Function]}
+              saving={false}
+              savingMessage={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Saving"
+                  id="save_button.saving"
+                />
+              }
+            >
+              <button
+                className="save-button btn btn-primary"
+                data-testid="saveSetting"
+                disabled={false}
+                id="saveSetting"
+                onClick={[Function]}
+                type="submit"
+              >
+                <LoadingWrapper
+                  loading={false}
+                  text={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Saving"
+                      id="save_button.saving"
+                    />
+                  }
+                >
+                  <span>
+                    <FormattedMessage
+                      defaultMessage="Save"
+                      id="save_button.save"
+                    >
+                      <span>
+                        Save
+                      </span>
+                    </FormattedMessage>
+                  </span>
+                </LoadingWrapper>
+              </button>
+            </SaveButton>
+            <button
+              className="btn btn-sm btn-cancel cursor--pointer style--none"
+              id="cancelSetting"
+              onClick={[Function]}
+            >
+              <FormattedMessage
+                defaultMessage="Cancel"
+                id="setting_item_max.cancel"
+              >
+                <span>
+                  Cancel
+                </span>
+              </FormattedMessage>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </SettingItemMax>
+</EmailNotificationSetting>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, not send email notifications 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div
+        className="pt-2"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Email notifications have not been enabled by your System Administrator."
+          id="user.settings.notifications.email.disabled_long"
+        />
+      </div>,
+    ]
+  }
+  saving={false}
+  section="email"
+  serverError=""
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, on serverError 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <fieldset>
+        <legend
+          className="form-legend"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Send email notifications"
+            id="user.settings.notifications.email.send"
+          />
+        </legend>
+        <div
+          className="radio"
+        >
+          <label>
+            <input
+              checked={false}
+              data-email-interval={30}
+              data-enable-email="true"
+              id="emailNotificationImmediately"
+              name="emailNotifications"
+              onChange={[Function]}
+              type="radio"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Immediately"
+              id="user.settings.notifications.email.immediately"
+            />
+          </label>
+        </div>
+        <div
+          className="radio"
+        >
+          <label>
+            <input
+              checked={true}
+              data-email-interval={0}
+              data-enable-email="false"
+              id="emailNotificationNever"
+              name="emailNotifications"
+              onChange={[Function]}
+              type="radio"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Never"
+              id="user.settings.notifications.email.never"
+            />
+          </label>
+        </div>
+        <div
+          className="mt-3"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+            id="user.settings.notifications.emailInfo"
+          />
+           
+        </div>
+      </fieldset>,
+      null,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError="serverError"
+  submit={[Function]}
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, when CRT on and email set to immediately 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <fieldset>
+        <legend
+          className="form-legend"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Send email notifications"
+            id="user.settings.notifications.email.send"
+          />
+        </legend>
+        <div
+          className="radio"
+        >
+          <label>
+            <input
+              checked={true}
+              data-email-interval={30}
+              data-enable-email="true"
+              id="emailNotificationImmediately"
+              name="emailNotifications"
+              onChange={[Function]}
+              type="radio"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Immediately"
+              id="user.settings.notifications.email.immediately"
+            />
+          </label>
+        </div>
+        <div
+          className="radio"
+        >
+          <label>
+            <input
+              checked={false}
+              data-email-interval={0}
+              data-enable-email="false"
+              id="emailNotificationNever"
+              name="emailNotifications"
+              onChange={[Function]}
+              type="radio"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Never"
+              id="user.settings.notifications.email.never"
+            />
+          </label>
+        </div>
+        <div
+          className="mt-3"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+            id="user.settings.notifications.emailInfo"
+          />
+           
+        </div>
+      </fieldset>,
+      <React.Fragment>
+        <hr />
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Thread reply notifications"
+              id="user.settings.notifications.threads.desktop"
+            />
+          </legend>
+          <div
+            className="checkbox"
+          >
+            <label>
+              <input
+                checked={true}
+                id="desktopThreadsNotificationAllActivity"
+                name="desktopThreadsNotificationLevel"
+                onChange={[Function]}
+                type="checkbox"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notify me about threads I'm following"
+                id="user.settings.notifications.threads.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="When enabled, any reply to a thread you're following will send an email notification."
+              id="user.settings.notifications.email_threads"
+            />
+          </div>
+        </fieldset>
+      </React.Fragment>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[Function]}
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, when CRT on and email set to never 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <fieldset>
+        <legend
+          className="form-legend"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Send email notifications"
+            id="user.settings.notifications.email.send"
+          />
+        </legend>
+        <div
+          className="radio"
+        >
+          <label>
+            <input
+              checked={false}
+              data-email-interval={30}
+              data-enable-email="true"
+              id="emailNotificationImmediately"
+              name="emailNotifications"
+              onChange={[Function]}
+              type="radio"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Immediately"
+              id="user.settings.notifications.email.immediately"
+            />
+          </label>
+        </div>
+        <div
+          className="radio"
+        >
+          <label>
+            <input
+              checked={true}
+              data-email-interval={0}
+              data-enable-email="false"
+              id="emailNotificationNever"
+              name="emailNotifications"
+              onChange={[Function]}
+              type="radio"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Never"
+              id="user.settings.notifications.email.never"
+            />
+          </label>
+        </div>
+        <div
+          className="mt-3"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
+            id="user.settings.notifications.emailInfo"
+          />
+           
+        </div>
+      </fieldset>,
+      null,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[Function]}
+  title="Email Notifications"
+  updateSection={[Function]}
+/>
+`;

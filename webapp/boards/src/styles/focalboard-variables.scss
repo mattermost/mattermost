@@ -1,0 +1,27 @@
+:root {
+    --link-visited-color-rgb: #551a8b;
+
+    // Label Colors
+    --prop-default: #fff;
+    --prop-gray: #ededed;
+    --prop-brown: #f7ddc3;
+    --prop-orange: #ffd3c1;
+    --prop-yellow: #f7f0b6;
+    --prop-green: #c7eac3;
+    --prop-blue: #b1d1f6;
+    --prop-purple: #e6d0ff;
+    --prop-pink: #ffd6e9;
+    --prop-red: #ffa9a9;
+
+    // Elevations
+    --elevation-1: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+    --elevation-2: 0 4px 6px 0 rgba(0, 0, 0, 0.12);
+    --elevation-3: 0 6px 14px 0 rgba(0, 0, 0, 0.12);
+    --elevation-4: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+    --elevation-5: 0 12px 32px 0 rgba(0, 0, 0, 0.12);
+    --elevation-6: 0 20px 32px 0 rgba(0, 0, 0, 0.12);
+
+    // Radius
+    --default-rad: 4px;
+    --modal-rad: 8px;
+}
