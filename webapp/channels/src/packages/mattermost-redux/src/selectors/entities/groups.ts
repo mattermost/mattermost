@@ -329,3 +329,24 @@ export const isMyGroup: (state: GlobalState, groupId: string) => boolean = creat
         return isMyGroup;
     },
 );
+
+export const getArchivedGroups: (state: GlobalState) => Group[] = createSelector(
+    'getArchivedGroups',
+    (state: GlobalState) => getAllGroups(state),
+    (state: GlobalState) => getCurrentUserLocale(state),
+    (allGroups, locale) => {
+        const groups = Object.entries(allGroups).filter((entry) => {
+            return entry[1].allow_reference && entry[1].delete_at > 0;
+        }).map((entry) => entry[1]);
+        return sortGroups(groups, locale);
+    }
+);
+
+export const searchArchivedGroups: (state: GlobalState, term: string) => Group[] = createSelector(
+    'searchArchivedGroups',
+    (state: GlobalState, term: string) => term,
+    (state: GlobalState, term: string) => getArchivedGroups(state),
+    (term, groups) => {
+        return filterGroupsMatchingTerm(groups, term);
+    }
+);

@@ -39,7 +39,7 @@ export type Props = {
     };
 }
 
-const UserGroupsList = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>) => {
+const UserGroupsList = (props: Props) => {
     const {
         groups,
         searchTerm,
@@ -241,6 +241,6 @@ const UserGroupsList = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivEl
             <ADLDAPUpsellBanner/>
         </div>
     );
-});
+};
 
 export default React.memo(UserGroupsList);

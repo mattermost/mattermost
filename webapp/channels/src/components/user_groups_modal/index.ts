@@ -10,7 +10,7 @@ import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {GlobalState} from 'types/store';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {makeGetAllAssociatedGroupsForReference, makeGetMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetAllAssociatedGroupsForReference, makeGetMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups, searchArchivedGroups, getArchivedGroups} from 'mattermost-redux/selectors/entities/groups';
 import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
 import {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearachParams} from '@mattermost/types/groups';
 import {ModalIdentifiers} from 'utils/constants';
@@ -41,12 +41,15 @@ function makeMapStateToProps() {
     
         let groups: Group[] = [];
         let myGroups: Group[] = [];
+        let archivedGroups: Group[] = [];
         if (searchTerm) {
             groups = searchAllowReferencedGroups(state, searchTerm, true);
             myGroups = searchMyAllowReferencedGroups(state, searchTerm, true);
+            archivedGroups = searchArchivedGroups(state, searchTerm);
         } else {
             groups = getAllAssociatedGroupsForReference(state, true);
             myGroups = getMyAllowReferencedGroups(state, true);
+            archivedGroups = getArchivedGroups(state);
         }
     
         return {
@@ -54,6 +57,7 @@ function makeMapStateToProps() {
             groups,
             searchTerm,
             myGroups,
+            archivedGroups,
             currentUserId: getCurrentUserId(state),
         };
     }

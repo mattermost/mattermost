@@ -156,6 +156,7 @@ export type GetGroupsParams = {
     per_page?: number;
     include_member_count?: boolean;
     include_archived?: boolean;
+    filter_archived?: boolean;
 }
 
 export type GetGroupsForUserParams = GetGroupsParams & {
