@@ -4,8 +4,7 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
 <ProductBrandingContainer
   tabIndex={0}
 >
-  <Icon
-    glyph="product-boards"
+  <ProductBoardsIcon
     size={20}
   />
   <Heading
@@ -22,8 +21,7 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
 <ProductBrandingContainer
   tabIndex={0}
 >
-  <Icon
-    glyph="product-channels"
+  <ProductChannelsIcon
     size={20}
   />
   <Heading
@@ -40,8 +38,7 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
 <ProductBrandingContainer
   tabIndex={0}
 >
-  <Icon
-    glyph="product-playbooks"
+  <ProductPlaybooksIcon
     size={20}
   />
   <Heading

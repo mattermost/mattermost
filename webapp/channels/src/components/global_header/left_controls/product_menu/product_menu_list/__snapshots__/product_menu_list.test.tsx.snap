@@ -84,8 +84,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     >
       <MenuItemLink
         icon={
-          <Icon
-            glyph="application-cog"
+          <ApplicationCogIcon
             size={16}
           />
         }
@@ -101,8 +100,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     </Connect(SystemPermissionGate)>
     <MenuItemLink
       icon={
-        <Icon
-          glyph="webhook-incoming"
+        <WebhookIncomingIcon
           size={16}
         />
       }
@@ -127,8 +125,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       }
       disabled={false}
       icon={
-        <Icon
-          glyph="account-multiple-outline"
+        <AccountMultipleOutlineIcon
           size={16}
         />
       }
@@ -156,8 +153,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
           }
         }
         icon={
-          <Icon
-            glyph="apps"
+          <AppsIcon
             size={16}
           />
         }
@@ -169,8 +165,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
-        <Icon
-          glyph="download-outline"
+        <DownloadOutlineIcon
           size={16}
         />
       }
@@ -189,8 +184,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
       }
       icon={
-        <Icon
-          glyph="information-outline"
+        <InformationOutlineIcon
           size={16}
         />
       }
@@ -287,8 +281,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     >
       <MenuItemLink
         icon={
-          <Icon
-            glyph="application-cog"
+          <ApplicationCogIcon
             size={16}
           />
         }
@@ -304,8 +297,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     </Connect(SystemPermissionGate)>
     <MenuItemLink
       icon={
-        <Icon
-          glyph="webhook-incoming"
+        <WebhookIncomingIcon
           size={16}
         />
       }
@@ -330,8 +322,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       }
       disabled={false}
       icon={
-        <Icon
-          glyph="account-multiple-outline"
+        <AccountMultipleOutlineIcon
           size={16}
         />
       }
@@ -359,8 +350,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
           }
         }
         icon={
-          <Icon
-            glyph="apps"
+          <AppsIcon
             size={16}
           />
         }
@@ -372,8 +362,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
-        <Icon
-          glyph="download-outline"
+        <DownloadOutlineIcon
           size={16}
         />
       }
@@ -392,8 +381,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
       }
       icon={
-        <Icon
-          glyph="information-outline"
+        <InformationOutlineIcon
           size={16}
         />
       }
@@ -423,8 +411,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   disabled={false}
   icon={
-    <Icon
-      glyph="account-multiple-outline"
+    <AccountMultipleOutlineIcon
       size={16}
     />
   }
@@ -453,8 +440,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   disabled={true}
   icon={
-    <Icon
-      glyph="account-multiple-outline"
+    <AccountMultipleOutlineIcon
       size={16}
     />
   }
@@ -496,8 +482,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   disabled={false}
   icon={
-    <Icon
-      glyph="account-multiple-outline"
+    <AccountMultipleOutlineIcon
       size={16}
     />
   }
@@ -610,8 +595,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     >
       <MenuItemLink
         icon={
-          <Icon
-            glyph="application-cog"
+          <ApplicationCogIcon
             size={16}
           />
         }
@@ -627,8 +611,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     </Connect(SystemPermissionGate)>
     <MenuItemLink
       icon={
-        <Icon
-          glyph="webhook-incoming"
+        <WebhookIncomingIcon
           size={16}
         />
       }
@@ -653,8 +636,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       }
       disabled={false}
       icon={
-        <Icon
-          glyph="account-multiple-outline"
+        <AccountMultipleOutlineIcon
           size={16}
         />
       }
@@ -682,8 +664,7 @@ exports[`components/global/product_switcher_menu should show integrations should
           }
         }
         icon={
-          <Icon
-            glyph="apps"
+          <AppsIcon
             size={16}
           />
         }
@@ -695,8 +676,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
-        <Icon
-          glyph="download-outline"
+        <DownloadOutlineIcon
           size={16}
         />
       }
@@ -715,8 +695,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
       }
       icon={
-        <Icon
-          glyph="information-outline"
+        <InformationOutlineIcon
           size={16}
         />
       }

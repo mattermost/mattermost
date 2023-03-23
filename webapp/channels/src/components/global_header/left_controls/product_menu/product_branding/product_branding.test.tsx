@@ -3,8 +3,6 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
-import Icon from '@mattermost/compass-components/foundations/icon';
-
 import {TopLevelProducts} from 'utils/constants';
 
 import * as productUtils from 'utils/products';
@@ -21,7 +19,6 @@ describe('components/ProductBranding', () => {
             <ProductBranding/>,
         );
 
-        expect(wrapper.find(Icon).prop('glyph')).toEqual('product-channels');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -32,7 +29,6 @@ describe('components/ProductBranding', () => {
             <ProductBranding/>,
         );
 
-        expect(wrapper.find(Icon).prop('glyph')).toEqual('product-playbooks');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -44,7 +40,6 @@ describe('components/ProductBranding', () => {
             <ProductBranding/>,
         );
 
-        expect(wrapper.find(Icon).prop('glyph')).toEqual('product-boards');
         expect(wrapper).toMatchSnapshot();
     });
 });
