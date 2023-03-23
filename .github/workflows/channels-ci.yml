@@ -111,7 +111,7 @@ jobs:
       - name: ci/lint
         run: |
           npm run check-types
-  tests:
+  test:
     runs-on: ubuntu-22.04
     needs: [check-types, check-i18n, check-lint]
     permissions:
@@ -143,13 +143,14 @@ jobs:
         run: |
           make node_modules
           # make channels/e2e/playwright/node_modules
-      - name: ci/detect-cpu-core
-        id: cpu-cores
-        uses: SimenB/github-actions-cpu-cores@c508d404ab007faae80a014072fd8c0e17792118 # v1.1.0
       - name: ci/test
-        working-directory: webapp/channels
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+          # npm run test-ci --workspace=boards
+          npm run test-ci --workspace=channels
+          npm run test-ci --workspace=platform/client
+          npm run test-ci --workspace=playbooks
       - name: ci/publish-test-results
         uses: EnricoMi/publish-unit-test-result-action@a3caf02865c0604ad3dc1ecfcc5cdec9c41b7936  # v2.3.0
         if: always()
