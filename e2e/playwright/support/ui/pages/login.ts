@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import {expect, Page} from '@playwright/test';
 
 import {AdminConfig} from '@mattermost/types/config';
 import {UserProfile} from '@mattermost/types/users';
@@ -10,18 +10,19 @@ export default class LoginPage {
     readonly adminConfig: AdminConfig;
 
     readonly page: Page;
-    readonly title: Locator;
-    readonly subtitle: Locator;
-    readonly bodyCard: Locator;
-    readonly loginInput: Locator;
-    readonly loginPlaceholder: Locator;
-    readonly passwordInput: Locator;
-    readonly signInButton: Locator;
-    readonly createAccountLink: Locator;
-    readonly forgotPasswordLink: Locator;
-    readonly userErrorLabel: Locator;
-    readonly fieldWithError: Locator;
-    readonly formContainer: Locator;
+
+    readonly title;
+    readonly subtitle;
+    readonly bodyCard;
+    readonly loginInput;
+    readonly loginPlaceholder;
+    readonly passwordInput;
+    readonly signInButton;
+    readonly createAccountLink;
+    readonly forgotPasswordLink;
+    readonly userErrorLabel;
+    readonly fieldWithError;
+    readonly formContainer;
 
     constructor(page: Page, adminConfig: AdminConfig) {
         this.page = page;

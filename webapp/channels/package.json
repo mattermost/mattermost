@@ -225,7 +225,7 @@
     "dev-server": "webpack serve --mode development",
     "test": "cross-env TZ=Etc/UTC jest --maxWorkers=50%",
     "test-ci": "cross-env TZ=Etc/UTC jest --ci --maxWorkers=100%",
-    "clean": "rm -rf dist node_modules .eslintcache .stylelintcache",
+    "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
     "test:debug": "cross-env TZ=Etc/UTC jest --forceExit --detectOpenHandles",

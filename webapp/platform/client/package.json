@@ -10,7 +10,8 @@
   "files": [
     "lib"
   ],
-  "main": "./lib/index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "github:mattermost/mattermost-webapp",
@@ -39,6 +40,6 @@
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
-    "clean": "rm -rf tsconfig.tsbuildinfo ./lib"
+    "clean": "rm -rf lib node_modules tsconfig.tsbuildinfo"
   }
 }
