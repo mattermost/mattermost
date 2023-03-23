@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import {expect, Page} from '@playwright/test';
 
 export default class LandingLoginPage {
     readonly page: Page;
+
     readonly isMobile?: boolean;
-    readonly viewInAppButton: Locator;
-    readonly viewInDesktopAppButton: Locator;
-    readonly viewInBrowserButton: Locator;
+
+    readonly viewInAppButton;
+    readonly viewInDesktopAppButton;
+    readonly viewInBrowserButton;
 
     constructor(page: Page, isMobile?: boolean) {
         this.page = page;

@@ -5,9 +5,10 @@ import {expect, Locator} from '@playwright/test';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
-    readonly input: Locator;
-    readonly attachmentButton: Locator;
-    readonly emojiButton: Locator;
+
+    readonly input;
+    readonly attachmentButton;
+    readonly emojiButton;
 
     constructor(container: Locator) {
         this.container = container;

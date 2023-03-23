@@ -208,6 +208,117 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
 </div>
 `;
 
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot after starting trial and removing license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <FormattedAdminHeader
+    defaultMessage="Edition and License"
+    id="admin.license.title"
+    values={Object {}}
+  />
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <TrialBanner
+          enterpriseReady={true}
+          gettingTrial={false}
+          gettingTrialError={null}
+          handleRestart={[Function]}
+          handleUpgrade={[Function]}
+          isDisabled={false}
+          openEEModal={[Function]}
+          requestLicense={[Function]}
+          restartError={null}
+          restarting={false}
+          upgradeError={null}
+          upgradingPercentage={0}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterLeftPanel)
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              openEELicenseModal={[Function]}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterRightPanel) />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with E10 license 1`] = `
 <div
   className="wrapper--fixed"
@@ -1076,7 +1187,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
-        <Component
+        <TrialBanner
           enterpriseReady={true}
           gettingTrial={false}
           gettingTrialError={null}
@@ -1085,6 +1196,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           handleUpgrade={[Function]}
           isDisabled={false}
           openEEModal={[Function]}
+          requestLicense={[Function]}
           restartError={null}
           restarting={false}
           upgradeError={null}
@@ -1187,7 +1299,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
-        <Component
+        <TrialBanner
           enterpriseReady={true}
           gettingTrial={false}
           gettingTrialError={null}
@@ -1196,6 +1308,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           handleUpgrade={[Function]}
           isDisabled={false}
           openEEModal={[Function]}
+          requestLicense={[Function]}
           restartError={null}
           restarting={false}
           upgradeError={null}
@@ -1402,7 +1515,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
-        <Component
+        <TrialBanner
           enterpriseReady={false}
           gettingTrial={false}
           gettingTrialError={null}
@@ -1411,6 +1524,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           handleUpgrade={[Function]}
           isDisabled={false}
           openEEModal={[Function]}
+          requestLicense={[Function]}
           restartError={null}
           restarting={false}
           upgradeError={null}

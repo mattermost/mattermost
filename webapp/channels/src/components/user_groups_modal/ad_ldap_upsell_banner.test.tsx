@@ -72,7 +72,7 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         );
 
         expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Start trial');
+        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Try free for 30 days');
     });
 
     test('should display for admin users on professional with option to start trial if no cloud trial before', async () => {

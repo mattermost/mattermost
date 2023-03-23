@@ -202,6 +202,23 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         }
     }
 
+    requestLicense = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+        if (e) {
+            e.preventDefault();
+        }
+        if (this.state.gettingTrial) {
+            return;
+        }
+        this.setState({gettingTrial: true, gettingTrialError: null});
+        const requestedUsers = Math.max(this.props.totalUsers, 30) || 30;
+        const {error, data} = await this.props.actions.requestTrialLicense(requestedUsers, true, true, 'license');
+        if (error) {
+            this.setState({gettingTrialError: error});
+        }
+        this.setState({gettingTrial: false, gettingTrialResponseCode: data?.status});
+        await this.props.actions.getLicenseConfig();
+    }
+
     checkRestarted = () => {
         this.props.actions.ping().then(() => {
             window.location.reload();
@@ -346,6 +363,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                                     isDisabled={isDisabled}
                                     gettingTrialResponseCode={this.state.gettingTrialResponseCode}
                                     gettingTrialError={this.state.gettingTrialError}
+                                    requestLicense={this.requestLicense}
                                     gettingTrial={this.state.gettingTrial}
                                     enterpriseReady={this.props.enterpriseReady}
                                     upgradingPercentage={this.state.upgradingPercentage}

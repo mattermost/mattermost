@@ -5,12 +5,17 @@ import {expect, Locator} from '@playwright/test';
 
 export default class ChannelsPost {
     readonly container: Locator;
-    readonly profileIcon: Locator;
+
+    readonly body;
+    readonly profileIcon;
+    readonly replyButton;
 
     constructor(container: Locator) {
         this.container = container;
 
+        this.body = container.locator('.post__body');
         this.profileIcon = container.locator('.profile-icon');
+        this.replyButton = container.getByRole('button', {name: 'reply'});
     }
 
     async toBeVisible() {
@@ -25,6 +30,12 @@ export default class ChannelsPost {
 
     async getProfileImage(username: string) {
         return await this.profileIcon.getByAltText(`${username} profile image`);
+    }
+
+    async openRHS() {
+        await this.container.hover();
+        await this.replyButton.waitFor();
+        await this.replyButton.click();
     }
 }
 

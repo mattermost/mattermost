@@ -1,23 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import {expect, Page} from '@playwright/test';
 
 import {duration, wait} from '@e2e-support/util';
 
 export default class SignupPage {
     readonly page: Page;
-    readonly title: Locator;
-    readonly subtitle: Locator;
-    readonly bodyCard: Locator;
-    readonly emailInput: Locator;
-    readonly usernameInput: Locator;
-    readonly passwordInput: Locator;
-    readonly createAccountButton: Locator;
-    readonly loginLink: Locator;
-    readonly emailError: Locator;
-    readonly usernameError: Locator;
-    readonly passwordError: Locator;
+
+    readonly title;
+    readonly subtitle;
+    readonly bodyCard;
+    readonly emailInput;
+    readonly usernameInput;
+    readonly passwordInput;
+    readonly createAccountButton;
+    readonly loginLink;
+    readonly emailError;
+    readonly usernameError;
+    readonly passwordError;
 
     constructor(page: Page) {
         this.page = page;

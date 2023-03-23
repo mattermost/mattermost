@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import {expect, Page} from '@playwright/test';
 
-import {GlobalHeader} from '@e2e-support/ui/components';
+import {components} from '@e2e-support/ui/components';
 
 export default class BoardsCreatePage {
     readonly boards = 'Boards';
     readonly page: Page;
-    readonly globalHeader: GlobalHeader;
-    readonly createBoardHeading: Locator;
-    readonly createEmptyBoardButton: Locator;
-    readonly useTemplateButton: Locator;
+
+    readonly globalHeader;
+
+    readonly createBoardHeading;
+    readonly createEmptyBoardButton;
+    readonly useTemplateButton;
 
     constructor(page: Page) {
         this.page = page;
-        this.globalHeader = new GlobalHeader(this.page.locator('#global-header'));
+        this.globalHeader = new components.GlobalHeader(this.page.locator('#global-header'));
         this.createBoardHeading = page.getByRole('heading', {name: 'Create a board'});
         this.createEmptyBoardButton = page.getByRole('button', {name: ' Create an empty board'});
         this.useTemplateButton = page.getByRole('button', {name: 'Use this template'});
