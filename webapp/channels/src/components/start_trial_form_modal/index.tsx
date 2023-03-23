@@ -192,7 +192,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
 
     return (
         <Modal
-            className={classNames('StartTrialFormModal', {error: TrialLoadStatus.Failed})}
+            className={classNames('StartTrialFormModal', {error: TrialLoadStatus.Failed === status})}
             dialogClassName='a11y__modal'
             show={show}
             id='StartTrialFormModal'
