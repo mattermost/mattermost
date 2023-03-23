@@ -47,7 +47,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         permissionToRestoreGroup,
         isGroupMember,
         group,
-        currentUserId: getCurrentUserId(state),
     };
 }
 

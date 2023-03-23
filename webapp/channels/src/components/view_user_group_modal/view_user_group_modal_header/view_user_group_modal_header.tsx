@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -26,7 +26,6 @@ export type Props = {
     permissionToArchiveGroup: boolean;
     permissionToRestoreGroup: boolean;
     isGroupMember: boolean;
-    currentUserId: string;
     incrementMemberCount: () => void;
     decrementMemberCount: () => void;
     actions: {
@@ -38,39 +37,46 @@ export type Props = {
     };
 }
 
-const ViewUserGroupModalHeader = (props: Props) => {
-    const goToAddPeopleModal = () => {
-        const {actions, groupId} = props;
-
+const ViewUserGroupModalHeader = ({
+    groupId,
+    group,
+    onExited,
+    backButtonCallback,
+    backButtonAction,
+    permissionToEditGroup,
+    permissionToJoinGroup,
+    permissionToLeaveGroup,
+    permissionToArchiveGroup,
+    permissionToRestoreGroup,
+    isGroupMember,
+    incrementMemberCount,
+    decrementMemberCount,
+    actions,
+}: Props) => {
+    const goToAddPeopleModal = useCallback(() => {
         actions.openModal({
             modalId: ModalIdentifiers.ADD_USERS_TO_GROUP,
             dialogType: AddUsersToGroupModal,
             dialogProps: {
                 groupId,
-                backButtonCallback: props.backButtonAction,
+                backButtonCallback: backButtonAction,
             },
         });
-        props.onExited();
-    };
+        onExited();
+    }, [actions.openModal, groupId, onExited, backButtonAction]);
 
-    const restoreGroup = async () => {
-        const {actions, groupId} = props;
-
+    const restoreGroup = useCallback(async () => {
         await actions.restoreGroup(groupId);
-    };
+    }, [actions.restoreGroup, groupId]);
 
-    const showSubMenu = () => {
-        const {permissionToEditGroup, permissionToJoinGroup, permissionToLeaveGroup, permissionToArchiveGroup} = props;
-
+    const showSubMenu = useCallback(() => {
         return permissionToEditGroup ||
                 permissionToJoinGroup ||
                 permissionToLeaveGroup ||
                 permissionToArchiveGroup
-    };
+    }, [permissionToEditGroup, permissionToJoinGroup, permissionToLeaveGroup, permissionToArchiveGroup]);
 
-    const modalTitle = () => {
-        const {group} = props;
-
+    const modalTitle = useCallback(() => {
         if (group) {
             return (
                 <Modal.Title
@@ -86,11 +92,9 @@ const ViewUserGroupModalHeader = (props: Props) => {
             );
         }
         return (<></>);
-    };
+    }, [group]);
 
-    const addPeopleButton = () => {
-        const {permissionToJoinGroup} = props;
-
+    const addPeopleButton = useCallback(() => {
         if (permissionToJoinGroup) {
             return (
                 <button
@@ -105,11 +109,9 @@ const ViewUserGroupModalHeader = (props: Props) => {
             );
         }
         return (<></>);
-    };
+    }, [permissionToJoinGroup, goToAddPeopleModal]);
 
-    const restoreGroupButton = () => {
-        const {permissionToRestoreGroup} = props;
-
+    const restoreGroupButton = useCallback(() => {
         if (permissionToRestoreGroup) {
             return (
                 <button
@@ -124,30 +126,33 @@ const ViewUserGroupModalHeader = (props: Props) => {
             );
         }
         return (<></>);
-    };
+    }, [permissionToRestoreGroup, restoreGroup]);
 
     const subMenuButton = () => {
-        const {group} = props;
-
         if (group && showSubMenu()) {
             return (
                 <ViewUserGroupHeaderSubMenu
                     group={group}
-                    isGroupMember={props.isGroupMember}
-                    decrementMemberCount={props.decrementMemberCount}
-                    incrementMemberCount={props.incrementMemberCount}
-                    backButtonCallback={props.backButtonCallback}
-                    backButtonAction={props.backButtonAction}
-                    onExited={props.onExited}
-                    permissionToEditGroup={props.permissionToEditGroup}
-                    permissionToJoinGroup={props.permissionToJoinGroup}
-                    permissionToLeaveGroup={props.permissionToLeaveGroup}
-                    permissionToArchiveGroup={props.permissionToArchiveGroup}
+                    isGroupMember={isGroupMember}
+                    decrementMemberCount={decrementMemberCount}
+                    incrementMemberCount={incrementMemberCount}
+                    backButtonCallback={backButtonCallback}
+                    backButtonAction={backButtonAction}
+                    onExited={onExited}
+                    permissionToEditGroup={permissionToEditGroup}
+                    permissionToJoinGroup={permissionToJoinGroup}
+                    permissionToLeaveGroup={permissionToLeaveGroup}
+                    permissionToArchiveGroup={permissionToArchiveGroup}
                 />
             );
         }
         return null;
     };
+
+    const goBack = useCallback(() => {
+        backButtonCallback();
+        onExited();
+    }, [backButtonCallback, onExited]);
 
     return (
         <Modal.Header closeButton={true}>
@@ -155,10 +160,7 @@ const ViewUserGroupModalHeader = (props: Props) => {
                 type='button'
                 className='modal-header-back-button btn-icon'
                 aria-label='Close'
-                onClick={() => {
-                    props.backButtonCallback();
-                    props.onExited();
-                }}
+                onClick={goBack}
             >
                 <LocalizedIcon
                     className='icon icon-arrow-left'
