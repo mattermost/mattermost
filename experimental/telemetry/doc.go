@@ -26,40 +26,51 @@
 // 1. Add the new fields to the plugin
 //
 //	type Plugin struct {
-//	    plugin.MattermostPlugin
-//	    ...
-//	    telemetryClient telemetry.Client
-//	    tracker         telemetry.Tracker
+//		plugin.MattermostPlugin
+//		...
+//		telemetryClient telemetry.Client
+//		tracker         telemetry.Tracker
 //	}
 //
-// 2. Start the telemetry client on plugin activate
+// 2. Start the telemetry client and tracker on plugin activate
 //
 //	func (p *Plugin) OnActivate() error {
-//	    p.telemetryClient, err = telemetry.NewRudderClient()
-//	    if err != nil {
-//	        p.API.LogWarn("telemetry client not started", "error", err.Error())
-//	    }
+//		p.telemetryClient, err = telemetry.NewRudderClient()
+//		if err != nil {
+//			p.API.LogWarn("telemetry client not started", "error", err.Error())
+//		}
+//		...
+//		p.tracker = telemetry.NewTracker(
+//			p.telemetryClient,
+//			p.API.GetDiagnosticId(),
+//			p.API.GetServerVersion(),
+//			Manifest.Id,
+//			Manifest.Version,
+//			"plugin_short_namame",
+//			telemetry.NewTrackerConfig(p.API.GetConfig()),
+//			logger.New(p.API)
+//		)
 //	}
 //
-// 3. Init and update the tracker on configuration change
+// 3. Trigger tracker changes when configuration changes
 //
 //	func (p *Plugin) OnConfigurationChange() error {
-//	   ...
-//	   p.tracker = telemetry.NewTracker(
-//	      p.telemetryClient, p.API.GetDiagnosticId(), p.API.GetServerVersion(), manifest.Id, manifest.Version, "pluginName", enableDiagnostics, logger,
-//	   )
-//	   return nil
+//		...
+//		if p.tracker != nil {
+//			p.tracker.ReloadConfig(telemetry.NewTrackerConfig(p.API.GetConfig()))
+//		}
+//		return nil
 //	}
 //
 // 4. Close the client on plugin deactivate
 //
 //	func (p *Plugin) OnDeactivate() error {
-//	   if p.telemetryClient != nil {
-//	      err := p.telemetryClient.Close()
-//	      if err != nil {
-//	         p.API.LogWarn("OnDeactivate: failed to close telemetryClient", "error", err.Error())
-//	      }
-//	   }
-//	   return nil
+//		if p.telemetryClient != nil {
+//			err := p.telemetryClient.Close()
+//			if err != nil {
+//				p.API.LogWarn("OnDeactivate: failed to close telemetryClient", "error", err.Error())
+//			}
+//		}
+//		return nil
 //	}
 package telemetry

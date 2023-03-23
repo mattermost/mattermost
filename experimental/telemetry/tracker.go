@@ -2,9 +2,39 @@ package telemetry
 
 import (
 	"os"
+	"sync"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
 )
+
+type TrackerConfig struct {
+	EnabledTracking bool
+	EnabledLogging  bool
+}
+
+// NewTrackerConfig returns a new trackerConfig from the current values of the model.Config.
+func NewTrackerConfig(config *model.Config) TrackerConfig {
+	var enabledTracking, enabledLogging bool
+	if config == nil {
+		return TrackerConfig{}
+	}
+
+	if enableDiagnostics := config.LogSettings.EnableDiagnostics; enableDiagnostics != nil {
+		enabledTracking = *enableDiagnostics
+	}
+
+	if enableDeveloper := config.ServiceSettings.EnableDeveloper; enableDeveloper != nil {
+		enabledLogging = *enableDeveloper
+	}
+
+	return TrackerConfig{
+		EnabledTracking: enabledTracking,
+		EnabledLogging:  enabledLogging,
+	}
+}
 
 // Tracker defines a telemetry tracker
 type Tracker interface {
@@ -12,6 +42,8 @@ type Tracker interface {
 	TrackEvent(event string, properties map[string]interface{}) error
 	// TrackUserEvent registers an event through the configured telemetry client associated to a user
 	TrackUserEvent(event string, userID string, properties map[string]interface{}) error
+	// Reload Config re-evaluates tracker config to determine if tracking behavior should change
+	ReloadConfig(config TrackerConfig)
 }
 
 // Client defines a telemetry client
@@ -37,7 +69,9 @@ type tracker struct {
 	pluginID           string
 	pluginVersion      string
 	telemetryShortName string
-	enabled            bool
+	configLock         sync.RWMutex
+	config             TrackerConfig
+	logger             logger.Logger
 }
 
 // NewTracker creates a default Tracker
@@ -48,8 +82,8 @@ type tracker struct {
 // - pluginVersion: The plugin version.
 // - telemetryShortName: Short name for the plugin to use in telemetry. Used to avoid dot separated names like `com.company.pluginName`.
 // If a empty string is provided, it will use the pluginID.
-// - enableDiagnostics: Whether the system has enabled sending telemetry data. If false, the tracker will not track any event.
-// - l Logger: A logger to log any error related with the telemetry tracking.
+// - config: Whether the system has enabled sending telemetry data. If false, the tracker will not track any event.
+// - l Logger: A logger to debug event tracking and some important changes (it won't log if nil is passed as logger).
 func NewTracker(
 	c Client,
 	diagnosticID,
@@ -57,7 +91,8 @@ func NewTracker(
 	pluginID,
 	pluginVersion,
 	telemetryShortName string,
-	enableDiagnostics bool,
+	config TrackerConfig,
+	l logger.Logger,
 ) Tracker {
 	if telemetryShortName == "" {
 		telemetryShortName = pluginID
@@ -69,20 +104,48 @@ func NewTracker(
 		serverVersion:      serverVersion,
 		pluginID:           pluginID,
 		pluginVersion:      pluginVersion,
-		enabled:            enableDiagnostics,
+		logger:             l,
+		config:             config,
 	}
 }
 
+func (t *tracker) ReloadConfig(config TrackerConfig) {
+	t.configLock.Lock()
+	defer t.configLock.Unlock()
+
+	if config.EnabledTracking != t.config.EnabledTracking {
+		if config.EnabledTracking {
+			t.debugf("Enabling plugin telemetry")
+		} else {
+			t.debugf("Disabling plugin telemetry")
+		}
+	}
+
+	t.config.EnabledTracking = config.EnabledTracking
+	t.config.EnabledLogging = config.EnabledLogging
+}
+
+// Note that config lock is handled by the caller.
+func (t *tracker) debugf(message string, args ...interface{}) {
+	if t.logger == nil || !t.config.EnabledLogging {
+		return
+	}
+	t.logger.Debugf(message, args...)
+}
+
 func (t *tracker) TrackEvent(event string, properties map[string]interface{}) error {
-	if !t.enabled || t.client == nil {
+	t.configLock.RLock()
+	defer t.configLock.RUnlock()
+
+	event = t.telemetryShortName + "_" + event
+	if !t.config.EnabledTracking || t.client == nil {
+		t.debugf("Plugin telemetry event `%s` tracked, but not sent due to configuration", event)
 		return nil
 	}
 
 	if properties == nil {
 		properties = map[string]interface{}{}
 	}
-
-	event = t.telemetryShortName + "_" + event
 	properties["PluginID"] = t.pluginID
 	properties["PluginVersion"] = t.pluginVersion
 	properties["ServerVersion"] = t.serverVersion
@@ -101,6 +164,7 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) er
 	if err != nil {
 		return errors.Wrap(err, "cannot enqueue the track")
 	}
+	t.debugf("Tracked plugin telemetry event `%s`", event)
 
 	return nil
 }
