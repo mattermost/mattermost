@@ -38,6 +38,6 @@
     "build": "tsc --build --verbose",
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
-    "clean": "rm -rf tsconfig.tsbuildinfo ./lib"
+    "clean": "rm -rf lib node_modules tsconfig.tsbuildinfo"
   }
 }
