@@ -214,7 +214,7 @@ export const makeGetAllAssociatedGroupsForReference = () => {
         (allGroups, locale, includeArchived) => {
             const groups = Object.entries(allGroups).filter((entry) => {
                 if (includeArchived) {
-                    return entry[1].allow_reference
+                    return entry[1].allow_reference;
                 }
                 return entry[1].allow_reference && entry[1].delete_at === 0;
             }).map((entry) => entry[1]);
@@ -260,7 +260,7 @@ export const makeGetMyAllowReferencedGroups = () => {
             return sortGroups(groups, locale);
         },
     );
-}
+};
 
 export const getMyGroupsAssociatedToChannelForReference: (state: GlobalState, teamId: string, channelId: string) => Group[] = createSelector(
     'getMyGroupsAssociatedToChannelForReference',
@@ -339,14 +339,14 @@ export const getArchivedGroups: (state: GlobalState) => Group[] = createSelector
             return entry[1].allow_reference && entry[1].delete_at > 0;
         }).map((entry) => entry[1]);
         return sortGroups(groups, locale);
-    }
+    },
 );
 
 export const searchArchivedGroups: (state: GlobalState, term: string) => Group[] = createSelector(
     'searchArchivedGroups',
+    getArchivedGroups,
     (state: GlobalState, term: string) => term,
-    (state: GlobalState, term: string) => getArchivedGroups(state),
-    (term, groups) => {
+    (groups, term) => {
         return filterGroupsMatchingTerm(groups, term);
-    }
+    },
 );

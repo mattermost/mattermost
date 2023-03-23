@@ -307,7 +307,7 @@ export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams): Action
         },
         onSuccess: [GroupTypes.RECEIVED_MY_GROUPS, GroupTypes.RECEIVED_GROUPS],
         params: [
-            opts
+            opts,
         ],
     });
 }

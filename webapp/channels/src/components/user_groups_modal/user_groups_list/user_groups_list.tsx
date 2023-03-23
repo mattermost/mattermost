@@ -4,7 +4,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import {FormattedMessage} from 'react-intl';
-import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList, ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 

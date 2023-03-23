@@ -1,4 +1,7 @@
-import React, {useCallback, useMemo} from 'react';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -41,6 +44,7 @@ const UserGroupsFilter = (props: Props) => {
         } else if (selectedFilter === 'archived') {
             return intl.formatMessage({id: 'user_groups_modal.showArchivedGroups', defaultMessage: 'Show: Archived Groups'});
         }
+        return '';
     }, [selectedFilter]);
 
     return (
@@ -82,7 +86,7 @@ const UserGroupsFilter = (props: Props) => {
                 </Menu>
             </MenuWrapper>
         </div>
-    )
-}
+    );
+};
 
 export default React.memo(UserGroupsFilter);

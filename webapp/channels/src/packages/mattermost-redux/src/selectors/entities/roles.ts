@@ -177,7 +177,7 @@ export function haveITeamPermission(state: GlobalState, teamId: string, permissi
     );
 }
 
-export const haveIGroupPermission: (state: GlobalState, groupID: string, permission: string) => boolean = createSelector (
+export const haveIGroupPermission: (state: GlobalState, groupID: string, permission: string) => boolean = createSelector(
     'haveIGroupPermission',
     getMySystemPermissions,
     getMyPermissionsByGroup,
@@ -187,9 +187,8 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
         if (permission === Permissions.RESTORE_CUSTOM_GROUP) {
             if (group.source !== 'ldap' && group.delete_at !== 0) {
                 return true;
-            } else {
-                return false;
             }
+            return false;
         }
 
         if (group.source === 'ldap' || group.delete_at !== 0) {
@@ -204,8 +203,8 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
             return true;
         }
         return false;
-    }
-)
+    },
+);
 
 export function haveIChannelPermission(state: GlobalState, teamId: string, channelId: string, permission: string): boolean {
     return (

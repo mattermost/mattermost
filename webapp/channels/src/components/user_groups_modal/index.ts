@@ -3,7 +3,6 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-import {createSelector} from 'reselect';
 
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
@@ -38,7 +37,7 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state: GlobalState) {
         const searchTerm = state.views.search.modalSearch;
-    
+
         let groups: Group[] = [];
         let myGroups: Group[] = [];
         let archivedGroups: Group[] = [];
@@ -51,7 +50,7 @@ function makeMapStateToProps() {
             myGroups = getMyAllowReferencedGroups(state, true);
             archivedGroups = getArchivedGroups(state);
         }
-    
+
         return {
             showModal: isModalOpen(state, ModalIdentifiers.USER_GROUPS),
             groups,
@@ -60,7 +59,7 @@ function makeMapStateToProps() {
             archivedGroups,
             currentUserId: getCurrentUserId(state),
         };
-    }
+    };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {

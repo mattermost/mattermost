@@ -12,7 +12,6 @@ import {openModal} from 'actions/views/modals';
 import {getGroup as getGroupById, isMyGroup} from 'mattermost-redux/selectors/entities/groups';
 import {addUsersToGroup, archiveGroup, removeUsersFromGroup, restoreGroup} from 'mattermost-redux/actions/groups';
 import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {Permissions} from 'mattermost-redux/constants';
 
 import ViewUserGroupModalHeader from './view_user_group_modal_header';

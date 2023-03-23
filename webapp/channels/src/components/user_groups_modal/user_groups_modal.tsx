@@ -70,14 +70,14 @@ const UserGroupsModal = (props: Props) => {
 
     const doHide = () => {
         setShow(false);
-    }
+    };
 
     const getGroups = useCallback(async (page: number) => {
         const {actions} = props;
         setLoading(true);
         const groupsParams: GetGroupsParams = {
             filter_allow_reference: false,
-            page: page,
+            page,
             per_page: GROUPS_PER_PAGE,
             include_member_count: true,
             include_archived: true,
@@ -88,7 +88,7 @@ const UserGroupsModal = (props: Props) => {
         } else {
             setGroupsFull(false);
         }
-        setLoading(false);        
+        setLoading(false);
         setSelectedFilter('all');
     }, [props.actions.getGroups]);
 
@@ -97,7 +97,7 @@ const UserGroupsModal = (props: Props) => {
         setLoading(true);
         const groupsParams: GetGroupsParams = {
             filter_allow_reference: false,
-            page: page,
+            page,
             per_page: GROUPS_PER_PAGE,
             include_member_count: true,
             filter_archived: true,
@@ -108,7 +108,7 @@ const UserGroupsModal = (props: Props) => {
         } else {
             setGroupsFull(false);
         }
-        setLoading(false);        
+        setLoading(false);
         setSelectedFilter('archived');
     }, [props.actions.getGroups]);
 
@@ -134,7 +134,7 @@ const UserGroupsModal = (props: Props) => {
                 const params: GroupSearachParams = {
                     q: searchTerm,
                     filter_allow_reference: true,
-                    page: page,
+                    page,
                     per_page: GROUPS_PER_PAGE,
                     include_archived: true,
                     include_member_count: true,
@@ -161,7 +161,7 @@ const UserGroupsModal = (props: Props) => {
         setLoading(true);
         const groupsParams: GetGroupsForUserParams = {
             filter_allow_reference: false,
-            page: page,
+            page,
             per_page: GROUPS_PER_PAGE,
             include_member_count: true,
             filter_has_member: currentUserId,
@@ -256,6 +256,6 @@ const UserGroupsModal = (props: Props) => {
             </Modal.Body>
         </Modal>
     );
-}
+};
 
 export default React.memo(UserGroupsModal);
