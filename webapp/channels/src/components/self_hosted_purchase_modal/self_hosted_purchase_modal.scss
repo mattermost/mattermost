@@ -40,17 +40,12 @@
                 margin-right: 16px;
 
                 .DropdownInput {
-                    z-index: 99999;
                     margin-top: 0;
                 }
             }
 
             .DropdownInput {
                 position: relative;
-                z-index: 999999;
-                &--has-younger-sibling {
-                    z-index: 9999;
-                }
                 height: 36px;
                 margin-bottom: 24px;
 

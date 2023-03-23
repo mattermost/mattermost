@@ -7,9 +7,9 @@
 
     button.no-style {
         padding-left: 0;
+        border: none;
         background: transparent;
         outline: unset;
-        border: none;
         text-align: left;
 
         &:focus {
@@ -36,4 +36,3 @@
         font-weight: bold;
     }
 }
-

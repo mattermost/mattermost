@@ -5,7 +5,7 @@ import React from 'react';
 
 import {useIntl} from 'react-intl';
 
-import './choose_different_shipping.scss'
+import './choose_different_shipping.scss';
 
 interface Props {
     shippingIsSame: boolean;

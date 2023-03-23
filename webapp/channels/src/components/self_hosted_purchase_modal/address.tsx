@@ -3,13 +3,13 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
-
-import StateSelector from 'components/payment_form/state_selector';
+import classNames from 'classnames';
 
 import {COUNTRIES} from 'utils/countries';
 
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
+import StateSelector from 'components/payment_form/state_selector';
 
 interface Props {
     type: 'shipping' | 'billing';
@@ -44,27 +44,28 @@ export default function Address(props: Props) {
     }
     return (
         <>
-            <DropdownInput
-                testId={countrySelectorId}
-                onChange={props.changeCountry}
-                value={
-                    props.country ? {value: props.country, label: props.country} : undefined
-                }
-                options={COUNTRIES.map((country) => ({
-                    value: country.name,
-                    label: country.name,
-                }))}
-                legend={intl.formatMessage({
-                    id: 'payment_form.country',
-                    defaultMessage: 'Country',
-                })}
-                placeholder={intl.formatMessage({
-                    id: 'payment_form.country',
-                    defaultMessage: 'Country',
-                })}
-                wrapperClassName={props.type === 'shipping' ? 'DropdownInput Input_container DropdownInput--has-younger-sibling' : ''}
-                name={'billing_dropdown'}
-            />
+            <div className={classNames({'third-dropdown-sibling-wrapper': props.type === 'shipping'})}>
+                <DropdownInput
+                    testId={countrySelectorId}
+                    onChange={props.changeCountry}
+                    value={
+                        props.country ? {value: props.country, label: props.country} : undefined
+                    }
+                    options={COUNTRIES.map((country) => ({
+                        value: country.name,
+                        label: country.name,
+                    }))}
+                    legend={intl.formatMessage({
+                        id: 'payment_form.country',
+                        defaultMessage: 'Country',
+                    })}
+                    placeholder={intl.formatMessage({
+                        id: 'payment_form.country',
+                        defaultMessage: 'Country',
+                    })}
+                    name={'billing_dropdown'}
+                />
+            </div>
             <div className='form-row'>
                 <Input
                     name='address'
@@ -104,7 +105,7 @@ export default function Address(props: Props) {
                 />
             </div>
             <div className='form-row'>
-                <div className='form-row-third-1'>
+                <div className={classNames('form-row-third-1', {'second-dropdown-sibling-wrapper': props.type === 'billing', 'fourth-dropdown-sibling-wrapper': props.type === 'shipping'})}>
                     <StateSelector
                         testId={stateSelectorId}
                         country={props.country}
