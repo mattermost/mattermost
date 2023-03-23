@@ -17,7 +17,7 @@ Object {
         class="fade modal-backdrop in"
       />
       <div
-        class="fade StartTrialFormModal in modal"
+        class="fade StartTrialFormModal error in modal"
         id="StartTrialFormModal"
         role="dialog"
         style="display: block; padding-right: 0px;"
