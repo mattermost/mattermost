@@ -16,7 +16,7 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getIsMobileView} from 'selectors/views/browser';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {unfavoriteChannel, favoriteChannel} from 'mattermost-redux/actions/channels';
+import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {muteChannel, unmuteChannel} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
@@ -92,6 +92,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             showChannelFiles,
             showPinnedPosts,
             showChannelMembers,
+            getChannelStats,
         }, dispatch),
     };
 }
