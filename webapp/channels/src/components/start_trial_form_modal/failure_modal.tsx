@@ -19,9 +19,7 @@ export default function StartTrialFormModalResult(props: Props) {
     const dispatch = useDispatch();
 
     const handleButtonClick = () => {
-        if (props.onTryAgain) {
-            props.onTryAgain();
-        }
+        props.onTryAgain?.();
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT));
     };
 

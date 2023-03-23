@@ -32,24 +32,24 @@ type Props = {
     ignoreExit: boolean;
 };
 
-export default function ResultModal(props: Props) {
+export default function ResultModal({type, icon, title, subtitle, primaryButtonText, primaryButtonHandler, identifier, contactSupportButtonVisible, resultType, ignoreExit}: Props) {
     const dispatch = useDispatch();
 
     const openContactUs = useOpenSalesLink(undefined, InquiryType.Technical);
 
     const isResultModalOpen = useSelector((state: GlobalState) =>
-        isModalOpen(state, props.identifier),
+        isModalOpen(state, identifier),
     );
 
     const onHide = () => {
-        dispatch(closeModal(props.identifier));
-        if (typeof props.onHide === 'function') {
-            props.onHide();
+        dispatch(closeModal(identifier));
+        if (typeof onHide === 'function') {
+            onHide();
         }
     };
 
-    const modalType = `delete-workspace-result_modal__${props.resultType}`;
-    if (props.type === 'small') {
+    const modalType = `delete-workspace-result_modal__${resultType}`;
+    if (type === 'small') {
         return (
             <Modal
                 className='ResultModal__small'
@@ -59,22 +59,22 @@ export default function ResultModal(props: Props) {
                 <Modal.Header closeButton={true}/>
                 <div className={modalType}>
                     <IconMessage
-                        formattedTitle={props.title}
-                        formattedSubtitle={props.subtitle}
+                        formattedTitle={title}
+                        formattedSubtitle={subtitle}
                         error={false}
-                        icon={props.icon}
-                        formattedButtonText={props.primaryButtonText}
-                        buttonHandler={props.primaryButtonHandler}
+                        icon={icon}
+                        formattedButtonText={primaryButtonText}
+                        buttonHandler={primaryButtonHandler}
                         className={'success'}
                         formattedTertiaryButonText={
-                            props.contactSupportButtonVisible ?
+                            contactSupportButtonVisible ?
                                 <FormattedMessage
                                     id={'admin.billing.deleteWorkspace.resultModal.ContactSupport'}
                                     defaultMessage={'Contact Support'}
                                 /> :
                                 undefined
                         }
-                        tertiaryButtonHandler={props.contactSupportButtonVisible ? openContactUs : undefined}
+                        tertiaryButtonHandler={contactSupportButtonVisible ? openContactUs : undefined}
                     />
                 </div>
             </Modal>
@@ -85,26 +85,26 @@ export default function ResultModal(props: Props) {
         <FullScreenModal
             show={isResultModalOpen}
             onClose={onHide}
-            ignoreExit={props.ignoreExit}
+            ignoreExit={ignoreExit}
         >
             <div className={modalType}>
                 <IconMessage
-                    formattedTitle={props.title}
-                    formattedSubtitle={props.subtitle}
+                    formattedTitle={title}
+                    formattedSubtitle={subtitle}
                     error={false}
-                    icon={props.icon}
-                    formattedButtonText={props.primaryButtonText}
-                    buttonHandler={props.primaryButtonHandler}
+                    icon={icon}
+                    formattedButtonText={primaryButtonText}
+                    buttonHandler={primaryButtonHandler}
                     className={'success'}
                     formattedTertiaryButonText={
-                        props.contactSupportButtonVisible ?
+                        contactSupportButtonVisible ?
                             <FormattedMessage
                                 id={'admin.billing.deleteWorkspace.resultModal.ContactSupport'}
                                 defaultMessage={'Contact Support'}
                             /> :
                             undefined
                     }
-                    tertiaryButtonHandler={props.contactSupportButtonVisible ? openContactUs : undefined}
+                    tertiaryButtonHandler={contactSupportButtonVisible ? openContactUs : undefined}
                 />
             </div>
         </FullScreenModal>

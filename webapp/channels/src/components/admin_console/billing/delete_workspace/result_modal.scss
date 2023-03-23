@@ -30,13 +30,12 @@
         }
     }
 
-    // top: 25%;
     .modal-dialog {
         position: absolute;
         top: 50%;
         left: 50%;
         height: 600px;
-        border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin: auto;
         border-radius: 8px;
         transform: translate(-50%, -50%) !important;
