@@ -47,6 +47,43 @@ describe('Create and delete board / card', () => {
             should('have.value', 'Testing');
     });
 
+    it('MM-T4275 Set up Board description', () => {
+        cy.visit('/boards');
+
+        // Create empty board
+        cy.findByText('Create an empty board').should('exist').click({force: true});
+        cy.get('.BoardComponent').should('exist');
+
+        // Change Title
+        cy.findByPlaceholderText('Untitled board').should('be.visible').wait(timeouts.HALF_SEC).as('editableTitle');
+        cy.get('@editableTitle').should('be.visible').
+            clear().
+            type('Testing').
+            type('{enter}').
+            should('have.value', 'Testing');
+
+        cy.findByText('Add icon').should('exist').click({force: true});
+        cy.findByText('show description').should('exist').click({force: true});
+
+        // Change Description
+        cy.findByText('Add a description...').should('be.visible').wait(timeouts.HALF_SEC).as('editableDescription');
+        cy.get('@editableDescription').should('be.visible').click({force: true})
+        cy.get('.description').
+        click().
+        get('.description .MarkdownEditorInput').
+        type('for testing purposes only')
+        cy.findByText('for testing purposes only').should('be.visible')
+        
+        //Hide Description
+        cy.findByText('hide description').should('exist').click({force: true});
+        cy.get('.description').should('not.exist');
+        
+
+        //Show Description
+        cy.findByText('show description').should('exist').click({force: true});
+        cy.findByText('for testing purposes only').should('be.visible')
+    });
+
     it('MM-T5397 Can create and delete a board and a card', () => {
         // Visit a page and create new empty board
         cy.visit('/boards');
