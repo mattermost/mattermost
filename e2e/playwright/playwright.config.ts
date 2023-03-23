@@ -24,9 +24,16 @@ export default defineConfig({
     },
     use: {
         baseURL: testConfig.baseURL,
+        ignoreHTTPSErrors: true,
         headless: testConfig.headless,
         locale: 'en-US',
         launchOptions: {
+            args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+            firefoxUserPrefs: {
+                'media.navigator.streams.fake': true,
+                'permissions.default.microphone': 1,
+                'permissions.default.camera': 1,
+            },
             slowMo: testConfig.slowMo,
         },
         screenshot: 'only-on-failure',
