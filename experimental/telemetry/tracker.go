@@ -1,6 +1,8 @@
 package telemetry
 
 import (
+	"os"
+
 	"github.com/pkg/errors"
 )
 
@@ -22,9 +24,10 @@ type Client interface {
 
 // Track defines an event ready for the client to process
 type Track struct {
-	UserID     string
-	Event      string
-	Properties map[string]interface{}
+	UserID         string
+	Event          string
+	Properties     map[string]interface{}
+	InstallationID string
 }
 
 type tracker struct {
@@ -84,10 +87,15 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) er
 	properties["PluginVersion"] = t.pluginVersion
 	properties["ServerVersion"] = t.serverVersion
 
+	// if we are part of a cloud installation, add it's ID to the tracked event's context.
+	installationID := os.Getenv("MM_CLOUD_INSTALLATION_ID")
+
 	err := t.client.Enqueue(Track{
-		UserID:     t.diagnosticID, // We consider the server the "user" on the telemetry system. Any reference to the actual user is passed by properties.
-		Event:      event,
-		Properties: properties,
+		// We consider the server the "user" on the telemetry system. Any reference to the actual user is passed by properties.
+		UserID:         t.diagnosticID,
+		Event:          event,
+		Properties:     properties,
+		InstallationID: installationID,
 	})
 
 	if err != nil {

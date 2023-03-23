@@ -1,6 +1,8 @@
 package telemetry
 
-import rudder "github.com/rudderlabs/analytics-go"
+import (
+	rudder "github.com/rudderlabs/analytics-go"
+)
 
 // rudderDataPlaneURL is set to the common Data Plane URL for all Mattermost Projects.
 // It can be set during build time. More info in the package documentation.
@@ -29,9 +31,15 @@ type rudderWrapper struct {
 }
 
 func (r *rudderWrapper) Enqueue(t Track) error {
+	var context *rudder.Context
+	if t.InstallationID != "" {
+		context = &rudder.Context{Traits: map[string]any{"installationId": t.InstallationID}}
+	}
+
 	return r.client.Enqueue(rudder.Track{
 		UserId:     t.UserID,
 		Event:      t.Event,
+		Context:    context,
 		Properties: t.Properties,
 	})
 }
