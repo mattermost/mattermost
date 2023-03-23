@@ -4157,7 +4157,7 @@
   "modal.manual_status.title_ooo": "Your Status is Set to \"Out of Office\"",
   "more_channels.create": "Create New Channel",
   "more_channels.createClick": "Click 'Create New Channel' to make a new one",
-  "more_channels.join": "",
+  "more_channels.join": "Join",
   "more_channels.joining": "Joining...",
   "more_channels.next": "Next",
   "more_channels.noMore": "No results for \"{text}\"",
