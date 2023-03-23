@@ -580,7 +580,7 @@ export const requestTrialLicense = async (users: number, action: string) => {
     trackRequestTrialLicense(action);
 
     try {
-        const response = await Client4.requestTrialLicense({users, terms_accepted: true, receive_emails_accepted: true});
+        const response = await Client4.requestTrialLicense({ users, terms_accepted: true, receive_emails_accepted: true, contact_name: "", contact_email: "", company_name: "", company_size: "", company_country: "" });
         return {data: response};
     } catch (e) {
         return {error: e.message};

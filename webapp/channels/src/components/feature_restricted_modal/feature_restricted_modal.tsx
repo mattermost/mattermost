@@ -132,7 +132,7 @@ const FeatureRestrictedModal = ({
         trialBtn = (
             <CloudStartTrialButton
                 extraClass='button-trial'
-                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Try free for 30 days'})}
+                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
                 telemetryId={'start_cloud_trial_after_team_creation_restricted'}
                 onClick={dismissAction}
             />
@@ -140,7 +140,7 @@ const FeatureRestrictedModal = ({
     } else {
         trialBtn = (
             <StartTrialBtn
-                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Try free for 30 days'})}
+                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
                 telemetryId='start_self_hosted_trial_after_team_creation_restricted'
                 btnClass='btn btn-primary'
                 renderAsButton={true}
