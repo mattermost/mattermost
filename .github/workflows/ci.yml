@@ -8,6 +8,8 @@ on:
       - release-*
       - mono-repo*
       - gh-action*
+env:
+  go-version: "1.19.5"
 jobs:
   check-mocks:
     name: Check mocks
@@ -34,7 +36,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.19.5'
+          go-version: ${{ env.go-version }}
       - name: Check Go version
         run: go version
       - name: Run go mod tidy
