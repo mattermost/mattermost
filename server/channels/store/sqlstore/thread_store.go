@@ -834,10 +834,18 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 
 	if opts.UpdateParticipants {
 		if s.DriverName() == model.DatabaseDriverPostgres {
+			userIdParam, err2 := jsonArray([]string{userId}).Value()
+			if err2 != nil {
+				return nil, err2
+			}
+			if s.IsBinaryParamEnabled() {
+				userIdParam = AppendBinaryFlag(userIdParam.([]byte))
+			}
+
 			if _, err2 := trx.ExecRaw(`UPDATE Threads
                         SET participants = participants || $1::jsonb
                         WHERE postid=$2
-                        AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
+                        AND NOT participants ? $3`, userIdParam, postId, userId); err2 != nil {
 				return nil, err2
 			}
 		} else {

@@ -92,7 +92,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
-	auditRec.AddEventParameter("remote_cluster_frame", frame)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -106,7 +106,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	auditRec.AddMeta("remoteCluster", rc)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -139,7 +139,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
-	auditRec.AddEventParameter("remote_cluster_frame", frame)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster_frame", &frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -153,7 +153,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	auditRec.AddMeta("remoteCluster", rc)
+	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
 
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
@@ -193,7 +193,7 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("uploadRemoteData", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("upload_id", c.Params.UploadId)
+	audit.AddEventParameter(auditRec, "upload_id", c.Params.UploadId)
 
 	c.AppContext.SetContext(app.WithMaster(c.AppContext.Context()))
 	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)
@@ -264,7 +264,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("remoteUploadProfileImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	if imageArray[0] != nil {
-		auditRec.AddEventParameter("filename", imageArray[0].Filename)
+		audit.AddEventParameter(auditRec, "filename", imageArray[0].Filename)
 	}
 
 	user, err := c.App.GetUser(c.Params.UserId)
@@ -272,7 +272,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("user_id")
 		return
 	}
-	auditRec.AddMeta("user", user)
+	audit.AddEventParameterAuditable(auditRec, "user", user)
 
 	imageData := imageArray[0]
 	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {

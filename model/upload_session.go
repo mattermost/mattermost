@@ -47,6 +47,19 @@ type UploadSession struct {
 	ReqFileId string `json:"req_file_id"`
 }
 
+func (us *UploadSession) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         us.Id,
+		"type":       us.Type,
+		"user_id":    us.UserId,
+		"channel_id": us.ChannelId,
+		"filename":   us.Filename,
+		"file_size":  us.FileSize,
+		"remote_id":  us.RemoteId,
+		"ReqFileId":  us.ReqFileId,
+	}
+}
+
 // PreSave is a utility function used to fill required information.
 func (us *UploadSession) PreSave() {
 	if us.Id == "" {

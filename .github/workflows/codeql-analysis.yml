@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go', 'javascript' ]
+        language: [ 'go' ]
 
     steps:
     - name: Checkout repository
@@ -36,6 +36,7 @@ jobs:
     
     - name: Build
       run: |
+        cd server
         make setup-go-work
         make build-linux-amd64
 

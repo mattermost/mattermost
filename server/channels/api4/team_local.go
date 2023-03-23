@@ -44,7 +44,7 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("localDeleteTeam", audit.Fail)
-	auditRec.AddEventParameter("team_id", c.Params.TeamId)
+	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
@@ -107,9 +107,9 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("localInviteUsersToTeam", audit.Fail)
-	auditRec.AddEventParameter("member_invite", memberInvite)
+	audit.AddEventParameterAuditable(auditRec, "member_invite", memberInvite)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("team_id", c.Params.TeamId)
+	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
@@ -254,7 +254,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("team", team)
+	audit.AddEventParameterAuditable(auditRec, "team", &team)
 
 	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {
@@ -266,7 +266,6 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(rteam)
 	auditRec.AddEventObjectType("type")
 	auditRec.Success()
-	auditRec.AddMeta("team", team) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
