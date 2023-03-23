@@ -58,10 +58,17 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
+	// disable Playbooks (temporarily) as it causes many more mocked methods to get
+	// called, and cannot receieve a mocked database. Boards is already disabled here.
+	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
+	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
+
 	th := setupTestHelper(tb, false)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().SetStore(&emptyMockStore)
+
+	th.playbooksDisableEnvValue = playbooksDisableEnvValue
 	return th
 }
 
@@ -85,11 +92,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
 	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
 	newConfig.FeatureFlags.BoardsProduct = false
-
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
 
 	memoryStore.Set(newConfig)
 	var options []app.Option
@@ -148,14 +150,13 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	})
 
 	th := &TestHelper{
-		App:                      a,
-		Context:                  request.EmptyContext(testLogger),
-		Server:                   s,
-		Web:                      web,
-		IncludeCacheLayer:        includeCacheLayer,
-		TestLogger:               testLogger,
-		boardsProductEnvValue:    boardsProductEnvValue,
-		playbooksDisableEnvValue: playbooksDisableEnvValue,
+		App:                   a,
+		Context:               request.EmptyContext(testLogger),
+		Server:                s,
+		Web:                   web,
+		IncludeCacheLayer:     includeCacheLayer,
+		TestLogger:            testLogger,
+		boardsProductEnvValue: boardsProductEnvValue,
 	}
 	th.Context.SetLogger(testLogger)
 
