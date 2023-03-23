@@ -3,8 +3,14 @@
 
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
-
-import Icon from '@mattermost/compass-components/foundations/icon';
+import {
+    AccountMultipleOutlineIcon,
+    ApplicationCogIcon,
+    AppsIcon,
+    DownloadOutlineIcon,
+    InformationOutlineIcon,
+    WebhookIncomingIcon,
+} from '@mattermost/compass-icons/components';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -128,12 +134,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                                 )}
                             </>
                         )}
-                        icon={
-                            <Icon
-                                size={16}
-                                glyph={'application-cog'}
-                            />
-                        }
+                        icon={<ApplicationCogIcon size={16}/>}
                     />
                 </SystemPermissionGate>
                 <Menu.ItemLink
@@ -141,12 +142,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     show={isMessaging && showIntegrations}
                     to={'/' + teamName + '/integrations'}
                     text={formatMessage({id: 'navbar_dropdown.integrations', defaultMessage: 'Integrations'})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'webhook-incoming'}
-                        />
-                    }
+                    icon={<WebhookIncomingIcon size={16}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='userGroups'
@@ -157,12 +153,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         backButtonAction: openGroupsModal,
                     }}
                     text={formatMessage({id: 'navbar_dropdown.userGroups', defaultMessage: 'User Groups'})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'account-multiple-outline'}
-                        />
-                    }
+                    icon={<AccountMultipleOutlineIcon size={16}/>}
                     disabled={isStarterFree}
                     sibling={(isStarterFree || isFreeTrial) && (
                         <RestrictedIndicator
@@ -214,12 +205,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         show={isMessaging && !isMobile && enablePluginMarketplace}
                         dialogType={MarketplaceModal}
                         text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'Marketplace'})}
-                        icon={
-                            <Icon
-                                size={16}
-                                glyph={'apps'}
-                            />
-                        }
+                        icon={<AppsIcon size={16}/>}
                     />
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
@@ -227,24 +213,14 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     show={appDownloadLink && !UserAgent.isMobileApp()}
                     url={makeUrlSafe(appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'download-outline'}
-                        />
-                    }
+                    icon={<DownloadOutlineIcon size={16}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='about'
                     modalId={ModalIdentifiers.ABOUT}
                     dialogType={AboutBuildModal}
                     text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'information-outline'}
-                        />
-                    }
+                    icon={<InformationOutlineIcon size={16}/>}
                 />
             </div>
         </Menu.Group>
