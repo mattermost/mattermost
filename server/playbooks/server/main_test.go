@@ -126,10 +126,6 @@ func Setup(t *testing.T) *TestEnvironment {
 	config.LogSettings.EnableFile = model.NewBool(false)
 	config.LogSettings.ConsoleLevel = model.NewString("INFO")
 
-	// disable Boards through the feature flag
-	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
-	config.FeatureFlags.BoardsProduct = false
-
 	// override config with e2etest.config.json if it exists
 	textConfig, err := os.ReadFile("./e2etest.config.json")
 	if err == nil {
