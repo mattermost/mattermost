@@ -338,44 +338,21 @@ async function initializeModuleFederation() {
         return sharedObject;
     }
 
-    async function getRemoteContainers() {
-        const products = [
-            {name: 'boards', baseUrl: boardsDevServerUrl},
-            {name: 'playbooks', baseUrl: playbooksDevServerUrl},
+    function getRemoteContainers() {
+        if (DEV) {
+            return [
+                {name: 'boards', baseUrl: `boards@${boardsDevServerUrl}/remote_entry.js`},
+                {name: 'playbooks', baseUrl: `playbooks@${playbooksDevServerUrl}/remote_entry.js`},
+            ];
+        }
+
+        return [
+            {name: 'boards', baseUrl: `[window.basename]/static/products/boards/remote_entry.js?bt=${buildTimestamp}`},
+            {name: 'playbooks', baseUrl: `[window.basename]/static/products/playbooks/remote_entry.js?bt=${buildTimestamp}`},
         ];
-
-        const remotes = {};
-
-        if (process.env.MM_DONT_INCLUDE_PRODUCTS) {
-            console.warn('Skipping initialization of products');
-        } else if (DEV) {
-            // For development, we use Webpack dev servers for each product
-            for (const product of products) {
-                remotes[product.name] = `${product.name}@${product.baseUrl}/remote_entry.js`;
-            }
-        } else {
-            // For production, hardcode the URLs of product containers to be based on the web app URL
-            for (const product of products) {
-                remotes[product.name] = `${product.name}@[window.basename]/static/products/${product.name}/remote_entry.js?bt=${buildTimestamp}`;
-            }
-        }
-
-        const aliases = {};
-
-        for (const product of products) {
-            if (remotes[product.name]) {
-                continue;
-            }
-
-            // Add false aliases to prevent Webpack from trying to resolve the missing modules
-            aliases[product.name] = false;
-            aliases[`${product.name}/manifest`] = false;
-        }
-
-        return {remotes, aliases};
     }
 
-    const {remotes, aliases} = await getRemoteContainers();
+    const remotes = getRemoteContainers();
 
     const moduleFederationPluginOptions = {
         name: 'mattermost_webapp',
@@ -422,11 +399,6 @@ async function initializeModuleFederation() {
 
     // Add this plugin to perform the substitution of window.basename when loading remote containers
     config.plugins.push(new ExternalTemplateRemotesPlugin());
-
-    config.resolve.alias = {
-        ...config.resolve.alias,
-        ...aliases,
-    };
 
     config.plugins.push(new webpack.DefinePlugin({
         REMOTE_CONTAINERS: JSON.stringify(remotes),
