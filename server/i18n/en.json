@@ -2063,7 +2063,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
-    "translation": ""
+    "translation": "Invalid business email for trial"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
