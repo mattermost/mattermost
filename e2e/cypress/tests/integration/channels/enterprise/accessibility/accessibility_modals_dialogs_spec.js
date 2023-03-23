@@ -51,13 +51,13 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
             // * Verify the accessibility support in search input
             cy.findByRole('textbox', {name: 'Search for people'}).
-            should('have.attr', 'aria-autocomplete', 'list');
+                should('have.attr', 'aria-autocomplete', 'list');
 
             // # Search for a text and then check up and down arrow
             cy.findByRole('textbox', {name: 'Search for people'}).
-            typeWithForce('s').
-            wait(TIMEOUTS.HALF_SEC).
-            typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
+                typeWithForce('s').
+                wait(TIMEOUTS.HALF_SEC).
+                typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
             cy.get('#multiSelectList').children().eq(2).should('have.class', 'more-modal__row--selected').within(() => {
                 cy.get('.more-modal__name').invoke('text').then((user) => {
                     selectedRowText = user.split(' - ')[0].replace('@', '');
@@ -69,17 +69,17 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
             // * Verify if the reader is able to read out the selected row
             cy.get('.filtered-user-list .sr-only').
-            should('have.attr', 'aria-live', 'polite').
-            and('have.attr', 'aria-atomic', 'true').
-            invoke('text').then((text) => {
-                expect(text).equal(selectedRowText);
-            });
+                should('have.attr', 'aria-live', 'polite').
+                and('have.attr', 'aria-atomic', 'true').
+                invoke('text').then((text) => {
+                    expect(text).equal(selectedRowText);
+                });
 
             // # Search for an invalid text
             const additionalSearchTerm = 'somethingwhichdoesnotexist';
             cy.findByRole('textbox', {name: 'Search for people'}).clear().
-            typeWithForce(additionalSearchTerm).
-            wait(TIMEOUTS.HALF_SEC);
+                typeWithForce(additionalSearchTerm).
+                wait(TIMEOUTS.HALF_SEC);
 
             // * Check if reader can read no results
             cy.get('.multi-select__wrapper').should('have.attr', 'aria-live', 'polite').and('have.text', `No results found matching ${additionalSearchTerm}`);
