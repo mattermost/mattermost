@@ -1,0 +1,168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/RenameChannelModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="renameChannelModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="renameChannelModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Rename Channel"
+        id="rename_channel.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <form
+    role="form"
+  >
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Display Name"
+            id="rename_channel.displayName"
+          />
+        </label>
+        <LocalizedInput
+          aria-label="display name"
+          className="form-control"
+          id="display_name"
+          maxLength={64}
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "Enter display name",
+              "id": "rename_channel.displayNameHolder",
+            }
+          }
+          type="text"
+          value="Fake Channel"
+        />
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label"
+        >
+          URL
+        </label>
+        <div
+          className="input-group input-group--limit"
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <Tooltip
+                id="urlTooltip"
+              >
+                fake-channel/channels
+              </Tooltip>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <span
+              className="input-group-addon"
+            >
+              fake-channel/channels/
+            </span>
+          </OverlayTrigger>
+          <input
+            aria-label="rename channel"
+            className="form-control"
+            id="channel_name"
+            maxLength={64}
+            onChange={[Function]}
+            readOnly={false}
+            type="text"
+            value="fake-channel"
+          />
+        </div>
+        <p
+          className="input__help"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="You can use lowercase letters, numbers, dashes, and underscores."
+            id="change_url.helpText"
+          />
+        </p>
+      </div>
+    </ModalBody>
+    <ModalFooter
+      bsClass="modal-footer"
+      componentClass="div"
+    >
+      <button
+        className="btn btn-link"
+        onClick={[Function]}
+        type="button"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Cancel"
+          id="rename_channel.cancel"
+        />
+      </button>
+      <button
+        className="btn btn-primary"
+        id="save-button"
+        onClick={[Function]}
+        type="submit"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Save"
+          id="rename_channel.save"
+        />
+      </button>
+    </ModalFooter>
+  </form>
+</Modal>
+`;

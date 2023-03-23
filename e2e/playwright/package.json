@@ -1,0 +1,32 @@
+{
+    "scripts": {
+        "test": "PW_SNAPSHOT_ENABLE=true playwright test",
+        "percy": "PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=iphone --project=ipad",
+        "tsc": "tsc -b",
+        "lint": "eslint . --ext .js,.ts",
+        "prettier": "prettier --write .",
+        "check": "npm run tsc && npm run lint && npm run prettier",
+        "codegen": "playwright codegen $PW_BASE_URL",
+        "test-slomo": "PW_SNAPSHOT_ENABLE=true PW_HEADLESS=false PW_SLOWMO=1000 playwright test",
+        "show-report": "npx playwright show-report"
+    },
+    "dependencies": {
+        "@percy/cli": "1.18.0",
+        "@percy/playwright": "1.0.4",
+        "@playwright/test": "1.30.0",
+        "chalk": "4.1.2",
+        "deepmerge": "4.3.0",
+        "dotenv": "16.0.3",
+        "form-data": "4.0.0",
+        "isomorphic-unfetch": "4.0.2",
+        "uuid": "9.0.0"
+    },
+    "devDependencies": {
+        "@types/uuid": "9.0.0",
+        "@typescript-eslint/eslint-plugin": "5.51.0",
+        "@typescript-eslint/parser": "5.51.0",
+        "eslint": "8.34.0",
+        "prettier": "2.8.4",
+        "typescript": "4.9.5"
+    }
+}

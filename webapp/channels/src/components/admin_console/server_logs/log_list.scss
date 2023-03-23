@@ -1,0 +1,36 @@
+.LogTable {
+    overflow: auto;
+
+    .DataGrid {
+        .DataGrid_row {
+            min-height: 40px;
+            padding-left: 16px;
+            cursor: pointer;
+        }
+
+        .DataGrid_cell > .timestamp {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            cursor: pointer;
+        }
+    }
+
+    .btn-inverted {
+        border: 2px solid var(--denim-button-bg);
+        background: transparent;
+        border-radius: 4px;
+        color: var(--denim-button-bg);
+        font-weight: bold;
+        line-height: 12px;
+    }
+
+    .btn-dangerous {
+        border: 2px solid var(--dnd-indicator);
+        background: transparent;
+        border-radius: 4px;
+        color: var(--dnd-indicator);
+        font-weight: bold;
+        line-height: 16px;
+    }
+}

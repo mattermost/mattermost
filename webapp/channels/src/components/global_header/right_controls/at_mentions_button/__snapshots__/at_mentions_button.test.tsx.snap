@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/global/AtMentionsButton should match snapshot 1`] = `
+<OverlayTrigger
+  defaultOverlayShown={false}
+  delayShow={400}
+  overlay={
+    <Tooltip
+      id="recentMentions"
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Recent mentions"
+        id="channel_header.recentMentions"
+      />
+      <Memo(KeyboardShortcutSequence)
+        hideDescription={true}
+        isInsideTooltip={true}
+        shortcut={
+          Object {
+            "default": Object {
+              "defaultMessage": "Recent mentions:	Ctrl|Shift|M",
+              "id": "shortcuts.nav.recent_mentions",
+            },
+            "mac": Object {
+              "defaultMessage": "Recent mentions:	⌘|Shift|M",
+              "id": "shortcuts.nav.recent_mentions.mac",
+            },
+          }
+        }
+      />
+    </Tooltip>
+  }
+  placement="bottom"
+  trigger={
+    Array [
+      "hover",
+      "focus",
+    ]
+  }
+>
+  <ForwardRef
+    aria-controls="searchContainer"
+    aria-expanded={false}
+    aria-label="Recent mentions"
+    compact={true}
+    icon="at"
+    inverted={true}
+    onClick={[Function]}
+    size="sm"
+    toggled={false}
+  />
+</OverlayTrigger>
+`;

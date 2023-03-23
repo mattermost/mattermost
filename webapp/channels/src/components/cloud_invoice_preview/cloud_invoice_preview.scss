@@ -1,0 +1,82 @@
+.CloudInvoicePreview {
+    top: 15px;
+    width: 860px;
+    height: 1030px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow-y: hidden !important;
+
+    .modal-header {
+        display: block;
+        padding-bottom: 0;
+        border: none;
+        background-color: #fff !important;
+        color: #3f4350;
+
+        .close {
+            margin-top: auto;
+            margin-bottom: auto;
+            color: rgba(#3f4350, 0.56) !important;
+        }
+
+        .modal-title {
+            color: inherit;
+            font-family: 'Metropolis';
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            color: rgba(#3d3c40, 0.72);
+            font-family: 'Metropolis';
+            font-size: 14px;
+            font-style: normal;
+        }
+    }
+
+    .modal-open {
+        overflow-y: hidden !important;
+    }
+
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        margin: 0 !important;
+    }
+
+    .modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        margin: 0 !important;
+    }
+
+    .modal-body {
+        padding: 0;
+
+        .view-image__loading {
+            background-color: #fff;
+            color: #fff;
+
+            .fa {
+                color: #3f4350;
+            }
+        }
+    }
+
+    .post-code {
+        display: flex;
+
+        canvas {
+            display: block;
+            max-height: 100%;
+            padding-right: 0;
+            padding-left: 0;
+            margin-right: auto;
+            margin-left: auto;
+        }
+    }
+}

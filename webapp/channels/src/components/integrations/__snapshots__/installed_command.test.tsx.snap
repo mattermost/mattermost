@@ -1,0 +1,371 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledCommand should call onDelete function 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <div>
+        <strong
+          className="item-details__name"
+        >
+          display_name
+        </strong>
+        <span
+          className="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+      </div>
+      <div
+        className="item-actions"
+      >
+        <button
+          className="style--none color--link"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Regenerate Token"
+            id="installed_integrations.regenToken"
+          />
+        </button>
+         - 
+        <Link
+          to="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Edit"
+            id="installed_integrations.edit"
+          />
+        </Link>
+         - 
+        <Connect(DeleteIntegrationLink)
+          modalMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?"
+              id="installed_commands.delete.confirm"
+            />
+          }
+          onDelete={[Function]}
+        />
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        description
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "testToken",
+            }
+          }
+        />
+        <CopyText
+          defaultMessage="Copy"
+          idMessage="integrations.copy"
+          value="testToken"
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1499722850203,
+              "creator": "username",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledCommand should call onRegenToken function 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <div>
+        <strong
+          className="item-details__name"
+        >
+          display_name
+        </strong>
+        <span
+          className="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+      </div>
+      <div
+        className="item-actions"
+      >
+        <button
+          className="style--none color--link"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Regenerate Token"
+            id="installed_integrations.regenToken"
+          />
+        </button>
+         - 
+        <Link
+          to="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Edit"
+            id="installed_integrations.edit"
+          />
+        </Link>
+         - 
+        <Connect(DeleteIntegrationLink)
+          modalMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?"
+              id="installed_commands.delete.confirm"
+            />
+          }
+          onDelete={[Function]}
+        />
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        description
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "testToken",
+            }
+          }
+        />
+        <CopyText
+          defaultMessage="Copy"
+          idMessage="integrations.copy"
+          value="testToken"
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1499722850203,
+              "creator": "username",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledCommand should filter out command 1`] = `""`;
+
+exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <div>
+        <strong
+          className="item-details__name"
+        >
+          display_name
+        </strong>
+        <span
+          className="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        description
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "testToken",
+            }
+          }
+        />
+        <CopyText
+          defaultMessage="Copy"
+          idMessage="integrations.copy"
+          value="testToken"
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1499722850203,
+              "creator": "username",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledCommand should match snapshot, not autocomplete, no display_name/description/auto_complete_hint 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <div>
+        <strong
+          className="item-details__name"
+        >
+          command_display_name
+        </strong>
+        <span
+          className="item-details__trigger"
+        >
+          - /trigger
+        </span>
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        command_description
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "testToken",
+            }
+          }
+        />
+        <CopyText
+          defaultMessage="Copy"
+          idMessage="integrations.copy"
+          value="testToken"
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1499722850203,
+              "creator": "username",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;

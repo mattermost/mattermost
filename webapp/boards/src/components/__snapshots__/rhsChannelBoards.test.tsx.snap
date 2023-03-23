@@ -1,0 +1,272 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/rhsChannelBoards renders the RHS for channel boards 1`] = `
+<div>
+  <div
+    class="focalboard-body"
+  >
+    <div
+      class="RHSChannelBoards"
+    >
+      <div
+        class="rhs-boards-header"
+      >
+        <span
+          class="linked-boards"
+        >
+          Linked boards
+        </span>
+        <button
+          class="Button emphasis--primary"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+          <span>
+            Add
+          </span>
+        </button>
+      </div>
+      <div
+        class="rhs-boards-list"
+      >
+        <div
+          class="RHSChannelBoardItem"
+        >
+          <div
+            class="board-info"
+          >
+            
+            <span
+              class="title"
+            >
+              Untitled board
+            </span>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                class="IconButton"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-dots-horizontal OptionsIcon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="description"
+          />
+          <div
+            class="date"
+          >
+            Last update at: July 08, 2022, 8:10 PM
+          </div>
+        </div>
+        <div
+          class="RHSChannelBoardItem"
+        >
+          <div
+            class="board-info"
+          >
+            
+            <span
+              class="title"
+            >
+              Untitled board
+            </span>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                class="IconButton"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-dots-horizontal OptionsIcon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="description"
+          />
+          <div
+            class="date"
+          >
+            Last update at: July 08, 2022, 8:10 PM
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/rhsChannelBoards renders the RHS for channel boards, no add 1`] = `
+<div>
+  <div
+    class="focalboard-body"
+  >
+    <div
+      class="RHSChannelBoards"
+    >
+      <div
+        class="rhs-boards-header"
+      >
+        <span
+          class="linked-boards"
+        >
+          Linked boards
+        </span>
+      </div>
+      <div
+        class="rhs-boards-list"
+      >
+        <div
+          class="RHSChannelBoardItem"
+        >
+          <div
+            class="board-info"
+          >
+            
+            <span
+              class="title"
+            >
+              Untitled board
+            </span>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                class="IconButton"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-dots-horizontal OptionsIcon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="description"
+          />
+          <div
+            class="date"
+          >
+            Last update at: July 08, 2022, 8:10 PM
+          </div>
+        </div>
+        <div
+          class="RHSChannelBoardItem"
+        >
+          <div
+            class="board-info"
+          >
+            
+            <span
+              class="title"
+            >
+              Untitled board
+            </span>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                class="IconButton"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-dots-horizontal OptionsIcon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="description"
+          />
+          <div
+            class="date"
+          >
+            Last update at: July 08, 2022, 8:10 PM
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/rhsChannelBoards renders with empty list of boards 1`] = `
+<div>
+  <div
+    class="focalboard-body"
+  >
+    <div
+      class="RHSChannelBoards empty"
+    >
+      <h2>
+        No boards are linked to Channel Name yet
+      </h2>
+      <div
+        class="empty-paragraph"
+      >
+        Boards is a project management tool that helps define, organize, track and manage work across teams, using a familiar kanban board view.
+      </div>
+      <div
+        class="boards-screenshots"
+      >
+        <img
+          src="test-file-stub"
+        />
+      </div>
+      <button
+        class="Button emphasis--primary size--medium"
+        type="button"
+      >
+        <span>
+          Link boards to Channel Name
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/rhsChannelBoards renders with empty list of boards, cannot add 1`] = `
+<div>
+  <div
+    class="focalboard-body"
+  >
+    <div
+      class="RHSChannelBoards empty"
+    >
+      <h2>
+        No boards are linked to Channel Name yet
+      </h2>
+      <div
+        class="empty-paragraph"
+      >
+        Boards is a project management tool that helps define, organize, track and manage work across teams, using a familiar kanban board view.
+      </div>
+      <div
+        class="boards-screenshots"
+      >
+        <img
+          src="test-file-stub"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

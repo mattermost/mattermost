@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/DateSeparator should render Timestamp inside of a BasicSeparator and pass date/value to it 1`] = `
+<BasicSeparator>
+  <Connect(injectIntl(Timestamp))
+    ranges={
+      Array [
+        Object {
+          "display": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Today"
+            id="date_separator.today"
+          />,
+          "equals": Array [
+            "day",
+            0,
+          ],
+        },
+        Object {
+          "display": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Yesterday"
+            id="date_separator.yesterday"
+          />,
+          "equals": Array [
+            "day",
+            -1,
+          ],
+        },
+      ]
+    }
+    useSemanticOutput={false}
+    useTime={false}
+    value={2018-01-12T08:15:13.000Z}
+  />
+</BasicSeparator>
+`;

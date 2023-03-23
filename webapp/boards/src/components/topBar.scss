@@ -1,0 +1,54 @@
+@import 'src/styles/z-index';
+
+.TopBar {
+    @include z-index(top-bar);
+    position: absolute;
+    top: 8px;
+    right: 32px;
+
+    display: flex;
+    flex-direction: row;
+
+    a {
+        display: flex;
+        align-items: center;
+        padding: 2px;
+    }
+
+    a.link {
+        font-size: 12px;
+        line-height: 14px;
+        padding: 2px 10px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        &:hover {
+            color: rgba(var(--center-channel-color-rgb), 1);
+        }
+    }
+
+    .HelpIcon {
+        font-size: 20px;
+        color: currentColor;
+    }
+
+    .versionFrame {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .version {
+        font-size: 11px;
+        line-height: 14px;
+        font-weight: 500;
+        color: currentColor;
+    }
+
+    .versionBadge {
+        font-size: 10px;
+        line-height: 14px;
+        font-weight: 500;
+        margin-left: 3px;
+        color: currentColor;
+    }
+}

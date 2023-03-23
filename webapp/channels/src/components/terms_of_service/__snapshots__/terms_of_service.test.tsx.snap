@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = `<LoadingScreen />`;
+
+exports[`components/terms_of_service/TermsOfService should match snapshot on loading 1`] = `<LoadingScreen />`;
+
+exports[`components/terms_of_service/TermsOfService should match snapshot, on accept terms 1`] = `<LoadingScreen />`;
+
+exports[`components/terms_of_service/TermsOfService should match snapshot, on reject terms 1`] = `<LoadingScreen />`;

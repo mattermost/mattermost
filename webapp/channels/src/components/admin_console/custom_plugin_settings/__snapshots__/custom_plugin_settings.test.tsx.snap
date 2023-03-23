@@ -1,0 +1,555 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/CustomPluginSettings should match snapshot with no settings and plugin 1`] = `
+<div
+  className="wrapper--fixed "
+>
+  <AdminHeader>
+    testplugin
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <form
+        className="form-horizontal"
+        onSubmit={[Function]}
+        role="form"
+      >
+        <SettingsGroup
+          container={false}
+          show={true}
+        >
+          <div
+            className="banner"
+          >
+            <SchemaText
+              isMarkdown={true}
+              isTranslated={false}
+              text="# Header
+*This* is the **header**"
+            />
+          </div>
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the text field."
+              />
+            }
+            id="settinga"
+            key="testplugin_text_settinga"
+            label="Setting One"
+            onChange={[Function]}
+            placeholder="e.g. some setting"
+            setByEnv={false}
+            type="input"
+            value="setting_default"
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the bool field."
+              />
+            }
+            id="settingb"
+            key="testplugin_bool_settingb"
+            label="Setting Two"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={true}
+          />
+          <DropdownSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the dropdown field."
+              />
+            }
+            id="settingc"
+            isDisabled={false}
+            key="testplugin_dropdown_settingc"
+            label="Setting Three"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option1"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <RadioSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the radio field."
+              />
+            }
+            id="settingd"
+            key="testplugin_radio_settingd"
+            label="Setting Four"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option2"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <GeneratedSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the generated field."
+              />
+            }
+            id="settinge"
+            key="testplugin_generated_settinge"
+            label="Setting Five"
+            onChange={[Function]}
+            placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
+            regenerateHelpText="This is help text for the regenerate button."
+            regenerateText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Regenerate"
+                id="admin.regenerate"
+              />
+            }
+            setByEnv={false}
+            value="option3"
+          />
+          <Connect(UserAutocompleteSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the user autocomplete field."
+              />
+            }
+            id="settingf"
+            key="testplugin_userautocomplete_settingf"
+            label="Setting Six"
+            onChange={[Function]}
+            placeholder="Type a username here"
+            value="option4"
+          />
+          <div
+            className="banner"
+          >
+            <SchemaText
+              isMarkdown={true}
+              isTranslated={false}
+              text="# Footer
+*This* is the **footer**"
+            />
+          </div>
+        </SettingsGroup>
+      </form>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage="Saving Config..."
+    />
+    <div
+      className="error-message"
+      data-testid="errorMessage"
+      onMouseOut={[Function]}
+      onMouseOver={[Function]}
+    >
+      <FormError
+        error=""
+        errors={Array []}
+        iconClassName="fa-exclamation-triangle"
+        textClassName="has-warning"
+      />
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+    <Overlay
+      animation={[Function]}
+      delayShow={400}
+      placement="top"
+      rootClose={false}
+      show={false}
+      target={null}
+    >
+      <Tooltip
+        id="error-tooltip"
+      />
+    </Overlay>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and no plugin 1`] = `
+<div
+  className="wrapper--fixed "
+>
+  <AdminHeader>
+    testplugin
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <form
+        className="form-horizontal"
+        onSubmit={[Function]}
+        role="form"
+      />
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage="Saving Config..."
+    />
+    <div
+      className="error-message"
+      data-testid="errorMessage"
+      onMouseOut={[Function]}
+      onMouseOver={[Function]}
+    >
+      <FormError
+        error=""
+        errors={Array []}
+        iconClassName="fa-exclamation-triangle"
+        textClassName="has-warning"
+      />
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+    <Overlay
+      animation={[Function]}
+      delayShow={400}
+      placement="top"
+      rootClose={false}
+      show={false}
+      target={null}
+    >
+      <Tooltip
+        id="error-tooltip"
+      />
+    </Overlay>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and plugin 1`] = `
+<div
+  className="wrapper--fixed "
+>
+  <AdminHeader>
+    testplugin
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <form
+        className="form-horizontal"
+        onSubmit={[Function]}
+        role="form"
+      >
+        <SettingsGroup
+          container={false}
+          show={true}
+        >
+          <div
+            className="banner"
+          >
+            <SchemaText
+              isMarkdown={true}
+              isTranslated={false}
+              text="# Header
+*This* is the **header**"
+            />
+          </div>
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the text field."
+              />
+            }
+            id="PluginSettings.Plugins.testplugin.settinga"
+            key="testplugin_text_PluginSettings.Plugins.testplugin.settinga"
+            label="Setting One"
+            onChange={[Function]}
+            placeholder="e.g. some setting"
+            setByEnv={false}
+            type="input"
+            value="fsdsdg"
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the bool field."
+              />
+            }
+            id="PluginSettings.Plugins.testplugin.settingb"
+            key="testplugin_bool_PluginSettings.Plugins.testplugin.settingb"
+            label="Setting Two"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={false}
+          />
+          <DropdownSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the dropdown field."
+              />
+            }
+            id="PluginSettings.Plugins.testplugin.settingc"
+            isDisabled={false}
+            key="testplugin_dropdown_PluginSettings.Plugins.testplugin.settingc"
+            label="Setting Three"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option3"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <RadioSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the radio field."
+              />
+            }
+            id="PluginSettings.Plugins.testplugin.settingd"
+            key="testplugin_radio_PluginSettings.Plugins.testplugin.settingd"
+            label="Setting Four"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option1"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <GeneratedSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the generated field."
+              />
+            }
+            id="PluginSettings.Plugins.testplugin.settinge"
+            key="testplugin_generated_PluginSettings.Plugins.testplugin.settinge"
+            label="Setting Five"
+            onChange={[Function]}
+            placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
+            regenerateHelpText="This is help text for the regenerate button."
+            regenerateText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Regenerate"
+                id="admin.regenerate"
+              />
+            }
+            setByEnv={false}
+            value="Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23"
+          />
+          <Connect(UserAutocompleteSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                isTranslated={true}
+                text="This is some help text for the user autocomplete field."
+              />
+            }
+            id="PluginSettings.Plugins.testplugin.settingf"
+            key="testplugin_userautocomplete_PluginSettings.Plugins.testplugin.settingf"
+            label="Setting Six"
+            onChange={[Function]}
+            placeholder="Type a username here"
+            value="3xz3r6n7dtbbmgref3yw4zg7sr"
+          />
+          <div
+            className="banner"
+          >
+            <SchemaText
+              isMarkdown={true}
+              isTranslated={false}
+              text="# Footer
+*This* is the **footer**"
+            />
+          </div>
+        </SettingsGroup>
+      </form>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage="Saving Config..."
+    />
+    <div
+      className="error-message"
+      data-testid="errorMessage"
+      onMouseOut={[Function]}
+      onMouseOver={[Function]}
+    >
+      <FormError
+        error=""
+        errors={Array []}
+        iconClassName="fa-exclamation-triangle"
+        textClassName="has-warning"
+      />
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+    <Overlay
+      animation={[Function]}
+      delayShow={400}
+      placement="top"
+      rootClose={false}
+      show={false}
+      target={null}
+    >
+      <Tooltip
+        id="error-tooltip"
+      />
+    </Overlay>
+  </div>
+</div>
+`;

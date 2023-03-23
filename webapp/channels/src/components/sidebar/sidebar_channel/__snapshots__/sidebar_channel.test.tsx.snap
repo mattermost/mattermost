@@ -1,0 +1,193 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/sidebar_channel should match snapshot 1`] = `
+<li
+  className="SidebarChannel expanded"
+  onAnimationEnd={[Function]}
+  onAnimationStart={[Function]}
+  role="listitem"
+>
+  <Connect(SidebarBaseChannel)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "channel_display_name",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "team_id": "",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    currentTeamName="team_name"
+  />
+</li>
+`;
+
+exports[`components/sidebar/sidebar_channel should match snapshot when DM channel 1`] = `
+<li
+  className="SidebarChannel expanded"
+  onAnimationEnd={[Function]}
+  onAnimationStart={[Function]}
+  role="listitem"
+>
+  <Connect(injectIntl(SidebarDirectChannel))
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "channel_display_name",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "team_id": "",
+        "type": "D",
+        "update_at": 0,
+      }
+    }
+    currentTeamName="team_name"
+  />
+</li>
+`;
+
+exports[`components/sidebar/sidebar_channel should match snapshot when GM channel 1`] = `
+<li
+  className="SidebarChannel expanded"
+  onAnimationEnd={[Function]}
+  onAnimationStart={[Function]}
+  role="listitem"
+>
+  <Connect(SidebarGroupChannel)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "channel_display_name",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "team_id": "",
+        "type": "G",
+        "update_at": 0,
+      }
+    }
+    currentTeamName="team_name"
+  />
+</li>
+`;
+
+exports[`components/sidebar/sidebar_channel should match snapshot when active 1`] = `
+<li
+  className="SidebarChannel expanded active"
+  onAnimationEnd={[Function]}
+  onAnimationStart={[Function]}
+  role="listitem"
+>
+  <Connect(SidebarBaseChannel)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "channel_display_name",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "team_id": "",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    currentTeamName="team_name"
+  />
+</li>
+`;
+
+exports[`components/sidebar/sidebar_channel should match snapshot when collapsed 1`] = `
+<li
+  className="SidebarChannel collapsed"
+  onAnimationEnd={[Function]}
+  onAnimationStart={[Function]}
+  role="listitem"
+>
+  <Connect(SidebarBaseChannel)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "channel_display_name",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "team_id": "",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    currentTeamName="team_name"
+  />
+</li>
+`;
+
+exports[`components/sidebar/sidebar_channel should match snapshot when unread 1`] = `
+<li
+  className="SidebarChannel expanded unread"
+  onAnimationEnd={[Function]}
+  onAnimationStart={[Function]}
+  role="listitem"
+>
+  <Connect(SidebarBaseChannel)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "",
+        "delete_at": 0,
+        "display_name": "channel_display_name",
+        "group_constrained": false,
+        "header": "",
+        "id": "channel_id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "",
+        "purpose": "",
+        "scheme_id": "",
+        "team_id": "",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    currentTeamName="team_name"
+  />
+</li>
+`;

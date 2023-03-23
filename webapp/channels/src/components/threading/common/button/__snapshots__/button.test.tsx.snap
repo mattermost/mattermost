@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/common/button should support appended content 1`] = `
+<button
+  className="Button Button___transparent"
+>
+  <span
+    className="Button_label"
+  />
+  <span
+    className="Button_appended"
+  >
+    <ReplyIcon
+      className="Icon"
+    />
+  </span>
+</button>
+`;
+
+exports[`components/threading/common/button should support children 1`] = `
+<button
+  className="Button Button___transparent"
+>
+  <span
+    className="Button_label"
+  >
+    text-goes-here
+  </span>
+</button>
+`;
+
+exports[`components/threading/common/button should support className 1`] = `
+<button
+  className="Button Button___transparent test-class other-test-class"
+>
+  <span
+    className="Button_label"
+  />
+</button>
+`;
+
+exports[`components/threading/common/button should support onClick 1`] = `
+<button
+  className="Button Button___transparent"
+  onClick={[MockFunction]}
+>
+  <span
+    className="Button_label"
+  />
+</button>
+`;
+
+exports[`components/threading/common/button should support prepended content 1`] = `
+<button
+  className="Button Button___transparent"
+>
+  <span
+    className="Button_prepended"
+  >
+    <ReplyIcon
+      className="Icon"
+    />
+  </span>
+  <span
+    className="Button_label"
+  />
+</button>
+`;

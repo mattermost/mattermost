@@ -1,0 +1,125 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_edit_history should match snapshot 1`] = `
+<div
+  className="sidebar-right__body"
+  id="rhsContainer"
+>
+  <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
+  >
+    <Connect(SearchResultsHeader)>
+      Edit History
+      <div
+        className="sidebar--right__title__channel"
+      >
+        channel_display_name
+      </div>
+    </Connect(SearchResultsHeader)>
+    <Connect(Component)
+      isCurrent={true}
+      post={
+        Object {
+          "channel_id": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "edit_at": 0,
+          "hashtags": "",
+          "id": "post_id",
+          "is_pinned": false,
+          "message": "post message",
+          "metadata": Object {
+            "embeds": Array [],
+            "emojis": Array [],
+            "files": Array [],
+            "images": Object {},
+            "reactions": Array [],
+          },
+          "original_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "reply_count": 0,
+          "root_id": "",
+          "type": "system_add_remove",
+          "update_at": 0,
+          "user_id": "user_id",
+        }
+      }
+    />
+    <Connect(Component)
+      key="post_id_1"
+      post={
+        Object {
+          "channel_id": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "edit_at": 0,
+          "hashtags": "",
+          "id": "post_id_1",
+          "is_pinned": false,
+          "message": "post message version 1",
+          "metadata": Object {
+            "embeds": Array [],
+            "emojis": Array [],
+            "files": Array [],
+            "images": Object {},
+            "reactions": Array [],
+          },
+          "original_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "reply_count": 0,
+          "root_id": "",
+          "type": "system_add_remove",
+          "update_at": 0,
+          "user_id": "user_id",
+        }
+      }
+    />
+    <Connect(Component)
+      key="post_id_2"
+      post={
+        Object {
+          "channel_id": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "edit_at": 0,
+          "hashtags": "",
+          "id": "post_id_2",
+          "is_pinned": false,
+          "message": "post message version 2",
+          "metadata": Object {
+            "embeds": Array [],
+            "emojis": Array [],
+            "files": Array [],
+            "images": Object {},
+            "reactions": Array [],
+          },
+          "original_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "reply_count": 0,
+          "root_id": "",
+          "type": "system_add_remove",
+          "update_at": 0,
+          "user_id": "user_id",
+        }
+      }
+    />
+  </Scrollbars>
+</div>
+`;
