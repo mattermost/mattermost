@@ -110,11 +110,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
 	memoryConfig.FeatureFlags.BoardsProduct = false
 
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
-
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -153,15 +148,14 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:                      app.New(app.ServerConnector(s.Channels())),
-		Server:                   s,
-		ConfigStore:              configStore,
-		IncludeCacheLayer:        includeCache,
-		Context:                  request.EmptyContext(testLogger),
-		TestLogger:               testLogger,
-		LogBuffer:                buffer,
-		boardsProductEnvValue:    boardsProductEnvValue,
-		playbooksDisableEnvValue: playbooksDisableEnvValue,
+		App:                   app.New(app.ServerConnector(s.Channels())),
+		Server:                s,
+		ConfigStore:           configStore,
+		IncludeCacheLayer:     includeCache,
+		Context:               request.EmptyContext(testLogger),
+		TestLogger:            testLogger,
+		LogBuffer:             buffer,
+		boardsProductEnvValue: boardsProductEnvValue,
 	}
 	th.Context.SetLogger(testLogger)
 
@@ -323,6 +317,11 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	// disable Playbooks (temporarily) as it causes many more mocked methods to get
+	// called, and cannot receieve a mocked database. Boards is already disabled here.
+	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
+	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
+
 	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
@@ -333,6 +332,8 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().SetStore(&emptyMockStore)
+
+	th.playbooksDisableEnvValue = playbooksDisableEnvValue
 	return th
 }
 
