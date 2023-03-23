@@ -7,7 +7,7 @@ stages:
 
 include:
   - project: mattermost/ci/mattermost-server
-    ref: master-mono-repo
+    ref: master
     file: private.yml
 
 variables:
