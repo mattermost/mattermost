@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_notifications_modal/CollapseView should match snapshot, DESKTOP on collapsed view 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Describe
+      globalNotifyLevel="default"
+      isCollapsed={true}
+      memberNotifyLevel="all"
+      section="desktop"
+    />
+  }
+  section="desktop"
+  title={
+    <SectionTitle
+      section="desktop"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;
+
+exports[`components/channel_notifications_modal/CollapseView should match snapshot, MARK_UNREAD on collapsed view 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Describe
+      globalNotifyLevel="default"
+      isCollapsed={true}
+      memberNotifyLevel="all"
+      section="markUnread"
+    />
+  }
+  section="markUnread"
+  title={
+    <SectionTitle
+      section="markUnread"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;
+
+exports[`components/channel_notifications_modal/CollapseView should match snapshot, PUSH on collapsed view 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Describe
+      globalNotifyLevel="default"
+      isCollapsed={true}
+      memberNotifyLevel="all"
+      section="push"
+    />
+  }
+  section="push"
+  title={
+    <SectionTitle
+      section="push"
+    />
+  }
+  updateSection={[MockFunction]}
+/>
+`;

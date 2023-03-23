@@ -1,0 +1,359 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/GetLinkModal should have called onHide 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="getLinkModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="getLinkModalLabel"
+  >
+    <h4
+      className="modal-title"
+    >
+      title
+    </h4>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <textarea
+      className="form-control no-resize min-height"
+      dir="auto"
+      id="linkModalTextArea"
+      onClick={[Function]}
+      readOnly={true}
+      value="https://mattermost.com"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      id="linkModalCloseButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="get_link.close"
+      />
+    </button>
+    <button
+      className="btn btn-primary pull-left"
+      data-copy-btn="true"
+      id="linkModalCopyLink"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Copy Link"
+        id="get_link.copy"
+      />
+    </button>
+    <p
+      className="alert alert-success alert--confirm"
+    >
+      <SuccessIcon />
+      <MemoizedFormattedMessage
+        defaultMessage=" Link copied"
+        id="get_link.clipboard"
+      />
+    </p>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/GetLinkModal should have called onHide 2`] = `
+<Modal
+  animation={true}
+  aria-labelledby="getLinkModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="getLinkModalLabel"
+  >
+    <h4
+      className="modal-title"
+    >
+      title
+    </h4>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <textarea
+      className="form-control no-resize min-height"
+      dir="auto"
+      id="linkModalTextArea"
+      onClick={[Function]}
+      readOnly={true}
+      value="https://mattermost.com"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      id="linkModalCloseButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="get_link.close"
+      />
+    </button>
+    <button
+      className="btn btn-primary pull-left"
+      data-copy-btn="true"
+      id="linkModalCopyLink"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Copy Link"
+        id="get_link.copy"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/GetLinkModal should match snapshot when all props is set 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="getLinkModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="getLinkModalLabel"
+  >
+    <h4
+      className="modal-title"
+    >
+      title
+    </h4>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      help text
+      <br />
+      <br />
+    </p>
+    <textarea
+      className="form-control no-resize min-height"
+      dir="auto"
+      id="linkModalTextArea"
+      onClick={[Function]}
+      readOnly={true}
+      value="https://mattermost.com"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      id="linkModalCloseButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="get_link.close"
+      />
+    </button>
+    <button
+      className="btn btn-primary pull-left"
+      data-copy-btn="true"
+      id="linkModalCopyLink"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Copy Link"
+        id="get_link.copy"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/GetLinkModal should match snapshot when helpText is not set 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="getLinkModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="getLinkModalLabel"
+  >
+    <h4
+      className="modal-title"
+    >
+      title
+    </h4>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <textarea
+      className="form-control no-resize min-height"
+      dir="auto"
+      id="linkModalTextArea"
+      onClick={[Function]}
+      readOnly={true}
+      value="https://mattermost.com"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link"
+      id="linkModalCloseButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="get_link.close"
+      />
+    </button>
+    <button
+      className="btn btn-primary pull-left"
+      data-copy-btn="true"
+      id="linkModalCopyLink"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Copy Link"
+        id="get_link.copy"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

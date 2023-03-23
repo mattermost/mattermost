@@ -1,0 +1,518 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/data_retention_settings/custom_policy_form should match snapshot with creating new policy 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header with-back"
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/compliance/data_retention_settings"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Retention Policy"
+        id="admin.data_retention.customTitle"
+      />
+    </div>
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Give your policy a name and configure retention settings."
+                id="admin.data_retention.custom_policy.form.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Name and retention"
+                id="admin.data_retention.custom_policy.form.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            className="CustomPolicy__fields"
+          >
+            <ForwardRef
+              aria-label="Policy name"
+              customMessage={
+                Object {
+                  "type": "error",
+                  "value": "",
+                }
+              }
+              name="policyName"
+              onChange={[Function]}
+              placeholder="Policy name"
+              type="text"
+              value=""
+            />
+            <DropdownInputHybrid
+              defaultValue={
+                Object {
+                  "label": <div>
+                    <i
+                      className="icon icon-infinity option-icon"
+                    />
+                    <span
+                      className="option_forever"
+                    >
+                      Keep forever
+                    </span>
+                  </div>,
+                  "value": "FOREVER",
+                }
+              }
+              dropdownClassNamePrefix="message_retention"
+              exceptionToInput={
+                Array [
+                  "FOREVER",
+                ]
+              }
+              inputId="message_retention_input"
+              inputType="number"
+              inputValue=""
+              legend="Channel & direct message retention"
+              name="message_retention"
+              onDropdownChange={[Function]}
+              onInputChange={[Function]}
+              options={
+                Array [
+                  Object {
+                    "label": <span
+                      className="option_days"
+                    >
+                      Days
+                    </span>,
+                    "value": "DAYS",
+                  },
+                  Object {
+                    "label": <span
+                      className="option_years"
+                    >
+                      Years
+                    </span>,
+                    "value": "YEARS",
+                  },
+                  Object {
+                    "label": <div>
+                      <i
+                        className="icon icon-infinity option-icon"
+                      />
+                      <span
+                        className="option_forever"
+                      >
+                        Keep forever
+                      </span>
+                    </div>,
+                    "value": "FOREVER",
+                  },
+                ]
+              }
+              placeholder="Channel & direct message retention"
+              value={
+                Object {
+                  "label": <div>
+                    <i
+                      className="icon icon-infinity option-icon"
+                    />
+                    <span
+                      className="option_forever"
+                    >
+                      Keep forever
+                    </span>
+                  </div>,
+                  "value": "FOREVER",
+                }
+              }
+              width={95}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add teams"
+                id="admin.data_retention.custom_policy.team_selector.addTeams"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add teams that will follow this retention policy."
+                id="admin.data_retention.custom_policy.team_selector.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Assigned teams"
+                id="admin.data_retention.custom_policy.team_selector.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(TeamList)
+            onAddCallback={[Function]}
+            onRemoveCallback={[Function]}
+            teamsToAdd={Object {}}
+            teamsToRemove={Object {}}
+          />
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels"
+                id="admin.data_retention.custom_policy.channel_selector.addChannels"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels that will follow this retention policy."
+                id="admin.data_retention.custom_policy.channel_selector.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Assigned channels"
+                id="admin.data_retention.custom_policy.channel_selector.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(ChannelList)
+            channelsToAdd={Object {}}
+            channelsToRemove={Object {}}
+            onAddCallback={[Function]}
+            onRemoveCallback={[Function]}
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="admin.data_retention.custom_policy.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving"
+          id="save_button.saving"
+        />
+      }
+    />
+    <Connect(BlockableLink)
+      className="cancel-button"
+      to="/admin_console/compliance/data_retention_settings"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="admin.data_retention.custom_policy.cancel"
+      />
+    </Connect(BlockableLink)>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/custom_policy_form should match snapshot with editing existing policy 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header with-back"
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/compliance/data_retention_settings"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Retention Policy"
+        id="admin.data_retention.customTitle"
+      />
+    </div>
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Give your policy a name and configure retention settings."
+                id="admin.data_retention.custom_policy.form.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Name and retention"
+                id="admin.data_retention.custom_policy.form.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            className="CustomPolicy__fields"
+          >
+            <ForwardRef
+              aria-label="Policy name"
+              customMessage={
+                Object {
+                  "type": "error",
+                  "value": "",
+                }
+              }
+              name="policyName"
+              onChange={[Function]}
+              placeholder="Policy name"
+              type="text"
+              value=""
+            />
+            <DropdownInputHybrid
+              defaultValue={
+                Object {
+                  "label": <div>
+                    <i
+                      className="icon icon-infinity option-icon"
+                    />
+                    <span
+                      className="option_forever"
+                    >
+                      Keep forever
+                    </span>
+                  </div>,
+                  "value": "FOREVER",
+                }
+              }
+              dropdownClassNamePrefix="message_retention"
+              exceptionToInput={
+                Array [
+                  "FOREVER",
+                ]
+              }
+              inputId="message_retention_input"
+              inputType="number"
+              inputValue="22"
+              legend="Channel & direct message retention"
+              name="message_retention"
+              onDropdownChange={[Function]}
+              onInputChange={[Function]}
+              options={
+                Array [
+                  Object {
+                    "label": <span
+                      className="option_days"
+                    >
+                      Days
+                    </span>,
+                    "value": "DAYS",
+                  },
+                  Object {
+                    "label": <span
+                      className="option_years"
+                    >
+                      Years
+                    </span>,
+                    "value": "YEARS",
+                  },
+                  Object {
+                    "label": <div>
+                      <i
+                        className="icon icon-infinity option-icon"
+                      />
+                      <span
+                        className="option_forever"
+                      >
+                        Keep forever
+                      </span>
+                    </div>,
+                    "value": "FOREVER",
+                  },
+                ]
+              }
+              placeholder="Channel & direct message retention"
+              value={
+                Object {
+                  "label": <span
+                    className="option_days"
+                  >
+                    Days
+                  </span>,
+                  "value": "DAYS",
+                }
+              }
+              width={95}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add teams"
+                id="admin.data_retention.custom_policy.team_selector.addTeams"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add teams that will follow this retention policy."
+                id="admin.data_retention.custom_policy.team_selector.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Assigned teams"
+                id="admin.data_retention.custom_policy.team_selector.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(TeamList)
+            onAddCallback={[Function]}
+            onRemoveCallback={[Function]}
+            policyId="fsdgdsgdsgh"
+            teamsToAdd={Object {}}
+            teamsToRemove={Object {}}
+          />
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels"
+                id="admin.data_retention.custom_policy.channel_selector.addChannels"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels that will follow this retention policy."
+                id="admin.data_retention.custom_policy.channel_selector.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Assigned channels"
+                id="admin.data_retention.custom_policy.channel_selector.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(ChannelList)
+            channelsToAdd={Object {}}
+            channelsToRemove={Object {}}
+            onAddCallback={[Function]}
+            onRemoveCallback={[Function]}
+            policyId="fsdgdsgdsgh"
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="admin.data_retention.custom_policy.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving"
+          id="save_button.saving"
+        />
+      }
+    />
+    <Connect(BlockableLink)
+      className="cancel-button"
+      to="/admin_console/compliance/data_retention_settings"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="admin.data_retention.custom_policy.cancel"
+      />
+    </Connect(BlockableLink)>
+  </div>
+</div>
+`;

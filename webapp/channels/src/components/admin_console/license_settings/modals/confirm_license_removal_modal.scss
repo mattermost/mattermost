@@ -1,0 +1,65 @@
+.ConfirmLicenseRemovalModal {
+    .modal-header {
+        border-bottom: none !important;
+        background: none !important;
+
+        button.close {
+            span {
+                color: rgba(63, 67, 80, 0.56) !important;
+            }
+        }
+    }
+
+    .modal-body {
+        padding-top: 0 !important;
+    }
+
+    .content-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        .alert-svg {
+            margin-top: -20px;
+        }
+
+        .title {
+            margin: 10px 0;
+            color: var(--sys-denim-center-channel-text);
+            font-family: Metropolis;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 28px;
+        }
+
+        .subtitle {
+            width: 90%;
+            color: var(--sys-denim-center-channel-text);
+            font-size: 14px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 20px;
+            text-align: center;
+        }
+    }
+
+    .content-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+
+        button {
+            height: 40px;
+            margin-top: 15px !important;
+            margin-left: 10px;
+            border-radius: 4px;
+        }
+    }
+
+    .modal-footer {
+        border-top: none !important;
+        background: none !important;
+    }
+}

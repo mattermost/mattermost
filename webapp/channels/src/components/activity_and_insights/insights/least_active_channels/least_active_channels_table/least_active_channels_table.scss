@@ -1,0 +1,9 @@
+.LeastActiveChannelsTable {
+    .DataGrid_header {
+        .DataGrid_cell {
+            &:nth-of-type(3) {
+                text-align: right;
+            }
+        }
+    }
+}

@@ -1,0 +1,76 @@
+@import 'src/styles/z-index';
+
+.KanbanCalculationOptions_CustomOption {
+    color: rgba(var(--center-channel-color-rgb), 1);
+    min-height: 36px;
+    max-width: 220px;
+    width: 240px;
+    padding: 2px 20px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.1);
+    }
+
+    span {
+        overflow: hidden;
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .drops {
+        max-width: 220px;
+        width: 240px;
+        padding: 2px 20px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+
+        &.active,
+        &.active:hover {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: rgb(var(--button-text-rgb));
+        }
+    }
+
+    .customs:hover,
+    .drops:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .dropdown-submenu {
+        @include z-index(calculation-dropdown);
+        position: fixed;
+        overflow: auto;
+        background: rgb(var(--center-channel-bg-rgb));
+        border: 0;
+        box-shadow: 0 0 0 1px hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
+        padding: 8px 0;
+        border-radius: 4px;
+    }
+
+    .CompassIcon.icon-chevron-right {
+        float: right;
+        font-size: 18px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &.active {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+        > span {
+            color: rgb(var(--button-text-rgb));
+        }
+    }
+}
+
+.CalculationOptions__menu {
+    .CalculationOptions__menu-list {
+        max-height: 400px;
+        padding: 8px 0;
+    }
+}

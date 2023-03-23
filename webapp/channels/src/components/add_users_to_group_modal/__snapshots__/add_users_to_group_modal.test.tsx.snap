@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/add_users_to_group_modal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="createUserGroupsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal user-groups-modal-create"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToGroupsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <button
+      aria-label="Close"
+      className="modal-header-back-button btn-icon"
+      onClick={[Function]}
+      type="button"
+    >
+      <LocalizedIcon
+        ariaLabel={
+          Object {
+            "defaultMessage": "Back",
+            "id": "user_groups_modal.goBackLabel",
+          }
+        }
+        className="icon icon-arrow-left"
+      />
+    </button>
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="addUsersToGroupsModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {group}"
+        id="user_groups_modal.addPeopleTitle"
+        values={
+          Object {
+            "group": "Group Name",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+  >
+    <div
+      className="user-groups-modal__content"
+    >
+      <form
+        role="form"
+      >
+        <div
+          className="group-add-user"
+        >
+          <Connect(AddUserToGroupMultiSelect)
+            addUserCallback={[Function]}
+            backButtonClass="multiselect-back"
+            backButtonClick={[Function]}
+            buttonSubmitLoadingText="Adding..."
+            buttonSubmitText="Add People"
+            deleteUserCallback={[Function]}
+            focusOnLoad={false}
+            groupId="groupid123"
+            multilSelectKey="addUsersToGroupKey"
+            onSubmitCallback={[Function]}
+            saving={false}
+            savingEnabled={false}
+            searchOptions={
+              Object {
+                "not_in_group_id": "groupid123",
+              }
+            }
+          />
+        </div>
+      </form>
+    </div>
+  </ModalBody>
+</Modal>
+`;

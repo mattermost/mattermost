@@ -1,0 +1,221 @@
+@charset "utf-8";
+
+.nav > li > a:focus,
+.nav > li > a:hover {
+    background: transparent;
+}
+
+.nav-tabs {
+    margin-bottom: 10px;
+    background: var(--center-channel-bg);
+
+    > li {
+        margin-right: 5px;
+
+        &.active {
+            > a {
+                background: var(--center-channel-bg);
+            }
+        }
+
+        > a {
+            padding: 7px 15px;
+            border-bottom-color: transparent !important;
+
+            .small {
+                margin-left: 4px;
+                opacity: 0.8;
+            }
+        }
+    }
+}
+
+#navbar_wrapper {
+    input {
+        margin: 0 5px 0 2px;
+    }
+
+    .navbar-header {
+        display: flex;
+    }
+
+    .flex-parent--center {
+        display: flex;
+        justify-content: center;
+    }
+
+    .browser--ie & {
+        .navbar-default {
+            .navbar-brand {
+                overflow: visible;
+                padding: 1px;
+
+                .heading {
+                    max-width: 100px;
+                }
+            }
+        }
+    }
+
+    .navbar-default {
+        position: absolute;
+        min-height: 50px;
+        border: none;
+        background: var(--sidebar-teambar-bg);
+
+        .navbar-nav {
+            > li {
+                > a {
+                    height: 50px;
+                    padding: 0 1.3em;
+
+                    i {
+                        line-height: 50px;
+                    }
+                }
+            }
+        }
+
+        .navbar-plugin-button {
+            position: relative;
+            top: 1px;
+        }
+
+        .navbar-toggle {
+            z-index: 5;
+            width: 50px;
+            height: 50px;
+            padding: 0 10px;
+            border-width: 0;
+            border-color: transparent;
+            margin: 0;
+            border-radius: 0;
+            fill: var(--sidebar-header-text-color);
+            float: left;
+            line-height: 48px;
+
+            &.navbar-right__icon {
+                display: flex;
+                width: 32px;
+                height: 32px;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                margin: 9px 10px 0 0;
+                background: rgba(var(--sidebar-header-text-color-rgb), 0.2);
+                border-radius: 50px;
+                line-height: 0;
+
+                &:hover,
+                &:focus {
+                    background: rgba(var(--sidebar-header-text-color-rgb), 0.3);
+                }
+            }
+
+            &.menu-toggle {
+                margin-right: 16px;
+            }
+
+            .icon-bar {
+                width: 21px;
+                background: var(--sidebar-header-text-color);
+            }
+
+            .icon__search {
+                svg {
+                    position: relative;
+                    left: -1px;
+                    width: 17px;
+                }
+            }
+
+            &.icon__mute {
+                width: 30px;
+                padding: 0;
+                font-size: 15px;
+                opacity: 0.6;
+            }
+
+            .icon--white {
+                color: $white;
+            }
+        }
+
+        .navbar-brand {
+            display: flex;
+            overflow: hidden;
+            height: 50px;
+            flex: 1 1 auto;
+            padding: 0;
+            font-size: 16px;
+            line-height: 50px;
+
+            .app__body & {
+                color: var(--sidebar-header-text-color);
+            }
+
+            .dropdown,
+            .MenuWrapper {
+                max-width: calc(100% - 40px);
+            }
+
+            .heading {
+                overflow: hidden;
+                width: auto;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .header-dropdown__icon {
+                margin-left: 6px;
+            }
+
+            .dropdown-toggle,
+            .MenuWrapper > a {
+                display: flex;
+                overflow: hidden;
+                align-items: center;
+                color: inherit;
+                text-decoration: none;
+            }
+
+            .description {
+                display: inline-block;
+                margin-right: 1em;
+                color: inherit;
+            }
+        }
+    }
+
+    .sidebar-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        span {
+            margin-left: 2px;
+            white-space: nowrap;
+        }
+    }
+
+    .channel-create-btn {
+        margin-right: 15px;
+    }
+
+    .more-channel-table {
+        width: 100%;
+        border: 1px solid #dbdbdc;
+
+        td {
+            padding: 7px;
+        }
+
+        button {
+            width: 110px;
+        }
+    }
+
+    .badge-notify {
+        background: $red;
+    }
+}

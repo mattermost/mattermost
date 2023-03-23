@@ -1,0 +1,153 @@
+@charset 'UTF-8';
+
+.productNotices {
+    width: 692px;
+
+    .app__body .modal & .modal-content {
+        padding: 40px;
+    }
+
+    .GenericModal__header {
+        padding: 0;
+        margin-bottom: 16px;
+    }
+
+    .GenericModal__body {
+        padding: 0;
+    }
+
+    .productNotices__helpText {
+        margin-top: 8px;
+
+        p {
+            margin-bottom: 16px;
+        }
+    }
+
+    .productNotices__img {
+        display: block;
+        max-height: 347px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        margin: 32px auto 0;
+        border-radius: 4px;
+    }
+
+    .productNotices__imageDiv {
+        margin: 0 auto;
+    }
+
+    .modal-footer {
+        margin-top: 32px;
+    }
+
+    .productNotices__info {
+        position: fixed;
+        z-index: 1;
+        bottom: 45px;
+    }
+
+    .circle {
+        width: 6px;
+        height: 6px;
+        margin: 0 3px;
+        vertical-align: middle;
+    }
+
+    svg {
+        margin-right: 5px;
+        margin-left: 23px;
+        vertical-align: middle;
+    }
+
+    .app__body .modal &.modal-dialog {
+        height: unset;
+        margin-top: calc(50vh - 307px);
+    }
+
+    .app__body .modal & .modal-footer {
+        position: relative;
+        padding: 0;
+    }
+
+    .GenericModal__button {
+        display: inline-flex;
+        align-items: center;
+        padding: 13px 20px;
+        border: none;
+        font-size: 14px;
+        line-height: 14px;
+
+        &.confirm {
+            background: var(--button-bg);
+            color: var(--button-color);
+
+            &:hover:not(.disabled) {
+                background:
+                    linear-gradient(
+                        0deg,
+                        rgba(var(--center-channel-color-rgb), 0.16),
+                        rgba(var(--center-channel-color-rgb), 0.16)
+                    ),
+                    var(--button-bg);
+            }
+
+            &:active {
+                background:
+                    linear-gradient(
+                        0deg,
+                        rgba(var(--center-channel-color-rgb), 0.32),
+                        rgba(var(--center-channel-color-rgb), 0.32)
+                    ),
+                    var(--button-bg);
+            }
+
+            &:focus {
+                box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            }
+        }
+
+        &.cancel,
+        &.actionButton {
+            display: inline-flex;
+            align-items: center;
+            background: var(--center-channel-bg);
+            border-radius: 4px;
+            color: var(--button-bg);
+            text-decoration: none;
+
+            &:hover {
+                background: rgba(var(--button-bg-rgb), 0.04);
+            }
+
+            &:active {
+                background: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            &:focus {
+                box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            }
+        }
+
+        &.actionButton {
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+        }
+
+        &.cancel {
+            margin-right: 12px;
+        }
+
+        .fa {
+            font-size: 14px;
+
+            // only target `.fa` that is the first child (left aligned icon)
+            &:first-child {
+                margin-right: 7px;
+            }
+        }
+
+        // only target `.fa` that follows a `span` (right aligned icon)
+        span ~ .fa {
+            margin-left: 7px;
+        }
+    }
+}

@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/blocks/checkbox should match Display snapshot 1`] = `
+<div>
+  <div
+    class="CheckboxView"
+  >
+    <input
+      checked=""
+      data-testid="checkbox-check"
+      type="checkbox"
+    />
+    <div>
+      <p>
+        test-value
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/checkbox should match Display snapshot not checked 1`] = `
+<div>
+  <div
+    class="CheckboxView"
+  >
+    <input
+      data-testid="checkbox-check"
+      type="checkbox"
+    />
+    <div>
+      <p>
+        test-value
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/checkbox should match Input snapshot 1`] = `
+<div>
+  <div
+    class="Checkbox"
+  >
+    <input
+      checked=""
+      class="inputCheck"
+      data-testid="checkbox-check"
+      type="checkbox"
+    />
+    <input
+      class="inputText"
+      data-testid="checkbox-input"
+      value="test-value"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/checkbox should match Input snapshot not checked 1`] = `
+<div>
+  <div
+    class="Checkbox"
+  >
+    <input
+      class="inputCheck"
+      data-testid="checkbox-check"
+      type="checkbox"
+    />
+    <input
+      class="inputText"
+      data-testid="checkbox-input"
+      value="test-value"
+    />
+  </div>
+</div>
+`;

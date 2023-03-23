@@ -8,7 +8,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
+	"github.com/mattermost/mattermost-server/v6/server/channels/utils/jsonutils"
 )
 
 const (

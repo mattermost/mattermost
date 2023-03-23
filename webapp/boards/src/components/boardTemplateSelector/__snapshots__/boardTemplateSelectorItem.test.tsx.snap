@@ -1,0 +1,217 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match snapshot 1`] = `
+<div>
+  <div
+    class="BoardTemplateSelectorItem"
+  >
+    <span
+      class="template-icon"
+    >
+      🚴🏻‍♂️
+    </span>
+    <span
+      class="template-name"
+    >
+      Template 1
+    </span>
+    <div
+      class="actions"
+    >
+      <button
+        aria-label="Delete"
+        title="Delete"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+        />
+      </button>
+      <button
+        aria-label="Edit"
+        title="Edit"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-pencil-outline EditIcon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match snapshot when active 1`] = `
+<div>
+  <div
+    class="BoardTemplateSelectorItem active"
+  >
+    <span
+      class="template-icon"
+    >
+      🚴🏻‍♂️
+    </span>
+    <span
+      class="template-name"
+    >
+      Template 1
+    </span>
+    <div
+      class="actions"
+    >
+      <button
+        aria-label="Delete"
+        title="Delete"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+        />
+      </button>
+      <button
+        aria-label="Edit"
+        title="Edit"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-pencil-outline EditIcon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match snapshot with global template 1`] = `
+<div>
+  <div
+    class="BoardTemplateSelectorItem"
+  >
+    <span
+      class="template-icon"
+    >
+      🚴🏻‍♂️
+    </span>
+    <span
+      class="template-name"
+    >
+      Template global
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem should trigger the onDelete (and not any other) when click the delete icon and confirm 1`] = `
+<div
+  id="focalboard-root-portal"
+>
+  <div
+    class="BoardTemplateSelectorItem"
+  >
+    <span
+      class="template-icon"
+    >
+      🚴🏻‍♂️
+    </span>
+    <span
+      class="template-name"
+    >
+      Template 1
+    </span>
+    <div
+      class="actions"
+    >
+      <button
+        aria-label="Delete"
+        title="Delete"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+        />
+      </button>
+      <button
+        aria-label="Edit"
+        title="Edit"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-pencil-outline EditIcon"
+        />
+      </button>
+    </div>
+  </div>
+  <div>
+    <div
+      class="Dialog dialog-back DeleteBoardDialog size--medium"
+    >
+      <div
+        class="backdrop"
+      />
+      <div
+        class="wrapper"
+      >
+        <div
+          class="dialog"
+          role="dialog"
+        >
+          <div
+            class="toolbar"
+          >
+            <div>
+              <h1
+                class="dialog-title"
+              />
+            </div>
+            <div
+              class="toolbar--right"
+            >
+              <button
+                aria-label="Close dialog"
+                title="Close dialog"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-close CloseIcon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="container"
+          >
+            <h2
+              class="header text-heading5"
+            >
+              Confirm delete board template
+            </h2>
+            <p
+              class="body"
+            >
+              Are you sure you want to delete the board template “Template 1”?
+            </p>
+            <div
+              class="footer"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Cancel
+                </span>
+              </button>
+              <button
+                type="button"
+              >
+                <span>
+                  Delete
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
