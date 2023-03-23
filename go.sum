@@ -1118,8 +1118,8 @@ github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
+github.com/kr/pretty v0.2.1 h1:Fmg33tUaq4/8ym9TJN1x7sLJnHVwhP33CNkpYV/7rwI=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
-github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/pty v1.1.3/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/pty v1.1.5/go.mod h1:9r2w37qlBe7rQ6e1fg1S/9xpWHSnaqNdHD3WcMdbPDA=
@@ -1185,8 +1185,6 @@ github.com/mattermost/logr/v2 v2.0.16/go.mod h1:1dm/YhTpozsqANXxo5Pi5zYLBsal2xY0
 github.com/mattermost/mattermost-plugin-playbooks/client v0.7.0 h1:5TPlzBmrrl6/q6rupBzGvLgeJf/qsn1NoqQmuPDJvdw=
 github.com/mattermost/mattermost-plugin-playbooks/client v0.7.0/go.mod h1:pIR9gutNcE4K726viIya01XT7+T9ziLF0jd5ho6kJlM=
 github.com/mattermost/mattermost-server/v6 v6.0.0-20210825182941-ddfa6e2436d6/go.mod h1:+S8CsNEPv1FOl1usaPBQ6Gu9+Sm1Cc9YdU/Qh1YMGVI=
-github.com/mattermost/mattermost-server/v6 v6.0.0-20221214122404-8d90c7042f93 h1:mGN2D6KhjKosQdZ+BHzmWxsA/tRK9FiR+nUd38nSZQY=
-github.com/mattermost/mattermost-server/v6 v6.0.0-20221214122404-8d90c7042f93/go.mod h1:U3gSM0I15WSMHPpDEU30mmc4JrbSDk+8F1+MFLOHWD0=
 github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e h1:VfNz+fvJ3DxOlALM22Eea8ONp5jHrybKBCcCtDPVlss=
 github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e/go.mod h1:xo0ljDknTpPxEdhhrUdwhLCexIsYyDKS6b41HqG8wGU=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
@@ -1536,7 +1534,6 @@ github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6L
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.2.2/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
-github.com/rogpeppe/go-internal v1.8.0 h1:FCbCCtXNOY3UtUuHUYaghJg4y7Fd14rXifAYUAtL9R8=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
 github.com/rs/cors v1.8.3 h1:O+qNyWn7Z+F9M0ILBHgMVPuB1xTOucVd5gtaYyXBpRo=
 github.com/rs/cors v1.8.3/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
