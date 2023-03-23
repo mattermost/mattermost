@@ -13,7 +13,11 @@
   "exports": {
     "./*": "./lib/*.js"
   },
-  "types": "./lib/*.d.ts",
+  "typesVersions": {
+    ">=3.1": {
+      "*": ["./lib/*.d.ts"]
+    }
+  },
   "repository": {
     "type": "git",
     "url": "github:mattermost/mattermost-webapp",
