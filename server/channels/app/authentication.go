@@ -71,7 +71,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 
 		a.InvalidateCacheForUser(user.Id)
 
-		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 
 	if err := a.CheckUserMfa(user, mfaToken); err != nil {
