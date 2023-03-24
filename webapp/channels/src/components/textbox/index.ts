@@ -5,7 +5,7 @@ import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/posts';
 
@@ -35,6 +35,7 @@ const makeMapStateToProps = () => {
     return (state: GlobalState, ownProps: Props) => {
         const teamId = getCurrentTeamId(state);
         const license = getLicense(state);
+        const config = getConfig(state);
         const useGroupMentions = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && haveIChannelPermission(state,
             teamId,
             ownProps.channelId,
@@ -47,6 +48,7 @@ const makeMapStateToProps = () => {
             currentTeamId: teamId,
             autocompleteGroups,
             priorityProfiles: getProfilesForThread(state, ownProps.rootId ?? ''),
+            channelAutocompleteEnabled: config.EnableChannelAutocomplete === 'true',
         };
     };
 };

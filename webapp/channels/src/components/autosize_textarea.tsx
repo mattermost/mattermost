@@ -108,6 +108,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'channelId');
         Reflect.deleteProperty(props, 'forwardedRef');
+        Reflect.deleteProperty(props, 'onWidthChange');
 
         const {
             value,

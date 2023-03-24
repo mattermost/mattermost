@@ -60,6 +60,14 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
+        EmoticonProvider {
+          "disableDispatches": false,
+          "forceDispatch": false,
+          "latestComplete": true,
+          "latestPrefix": "",
+          "requestStarted": false,
+          "triggerCharacter": ":",
+        },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
           "disableDispatches": false,
@@ -71,14 +79,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "latestPrefix": "",
           "requestStarted": false,
           "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
         },
       ]
     }
@@ -172,6 +172,14 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
+        EmoticonProvider {
+          "disableDispatches": false,
+          "forceDispatch": false,
+          "latestComplete": true,
+          "latestPrefix": "",
+          "requestStarted": false,
+          "triggerCharacter": ":",
+        },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
           "disableDispatches": false,
@@ -183,14 +191,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "latestPrefix": "",
           "requestStarted": false,
           "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
         },
       ]
     }
@@ -265,6 +265,14 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
+        EmoticonProvider {
+          "disableDispatches": false,
+          "forceDispatch": false,
+          "latestComplete": true,
+          "latestPrefix": "",
+          "requestStarted": false,
+          "triggerCharacter": ":",
+        },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
           "disableDispatches": false,
@@ -276,14 +284,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "latestPrefix": "",
           "requestStarted": false,
           "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
         },
       ]
     }
@@ -358,6 +358,14 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
+        EmoticonProvider {
+          "disableDispatches": false,
+          "forceDispatch": false,
+          "latestComplete": true,
+          "latestPrefix": "",
+          "requestStarted": false,
+          "triggerCharacter": ":",
+        },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
           "disableDispatches": false,
@@ -369,14 +377,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "latestPrefix": "",
           "requestStarted": false,
           "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
         },
       ]
     }

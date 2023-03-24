@@ -902,6 +902,8 @@
   "admin.experimental.emailSettingsLoginButtonTextColor.title": "Email Login Button Text Color:",
   "admin.experimental.enableAppBar.desc": "When true, all integrations move from the channel header to the App Bar. Channel header plugin icons that haven't explicitly registered an App Bar icon will be moved to the App Bar which may result in rendering issues. [See the documentation to learn more](https://docs.mattermost.com/welcome/what-changed-in-v70.html).",
   "admin.experimental.enableAppBar.title": "Enable App Bar:",
+  "admin.experimental.enableChannelAutocomplete.desc": "When enabled, users can type the ~ character to autocomplete channel names when composing messages. When disabled, autocomplete suggestions for channel names will not be displayed.",
+  "admin.experimental.enableChannelAutocomplete.title": "Enable channel autocomplete:",
   "admin.experimental.enableChannelViewedMessages.desc": "This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.",
   "admin.experimental.enableChannelViewedMessages.title": "Enable Channel Viewed WebSocket Messages:",
   "admin.experimental.enableOnboardingFlow.desc": "When true, new users are shown steps to complete as part of an onboarding process",

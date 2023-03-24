@@ -197,6 +197,7 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    EnableChannelAutocomplete: string;
 };
 
 export type License = {
@@ -725,6 +726,7 @@ export type ExperimentalSettings = {
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
     PatchPluginsReactDOM: boolean;
+    EnableChannelAutocomplete: boolean;
 };
 
 export type AnalyticsSettings = {

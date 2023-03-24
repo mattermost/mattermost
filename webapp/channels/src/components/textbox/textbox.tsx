@@ -70,6 +70,7 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
+    channelAutocompleteEnabled: boolean;
 };
 
 const VISIBLE = {visibility: 'visible'};
@@ -112,9 +113,14 @@ export default class Textbox extends React.PureComponent<Props> {
                 searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
                 priorityProfiles: this.props.priorityProfiles,
             }),
-            new ChannelMentionProvider(props.actions.autocompleteChannels),
             new EmoticonProvider(),
         );
+
+        if (this.props.channelAutocompleteEnabled) {
+            this.suggestionProviders.push(
+                new ChannelMentionProvider(props.actions.autocompleteChannels),
+            );
+        }
 
         if (props.supportsCommands) {
             this.suggestionProviders.push(new CommandProvider({
