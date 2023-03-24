@@ -47,6 +47,9 @@ var (
 	LvlSharedChannelServiceMessagesInbound  = Level{ID: 203, Name: "SharedChannelServiceMsgInbound"}
 	LvlSharedChannelServiceMessagesOutbound = Level{ID: 204, Name: "SharedChannelServiceMsgOutbound"}
 
+	// DebugBar
+	LvlDebugBar = Level{ID: 300, Name: "DebugBar"}
+
 	// Focalboard
 	LvlFBTelemetry = Level{ID: 9000, Name: "telemetry"}
 	LvlFBMetrics   = Level{ID: 9001, Name: "metrics"}

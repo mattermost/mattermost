@@ -132,7 +132,7 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlStore = New(*st.SqlSettings, nil)
+			st.SqlStore = New(*st.SqlSettings, nil, nil)
 			st.Store = st.SqlStore
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
@@ -175,7 +175,7 @@ func TestStoreLicenseRace(t *testing.T) {
 		t.Skip(err)
 	}
 
-	store := New(*settings, nil)
+	store := New(*settings, nil, nil)
 	defer func() {
 		store.Close()
 		storetest.CleanupSqlSettings(settings)
@@ -275,7 +275,7 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -348,7 +348,7 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -417,7 +417,7 @@ func TestGetDbVersion(t *testing.T) {
 				t.Skip(err)
 			}
 
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 
 			version, err := store.GetDbVersion(false)
 			require.NoError(t, err)
@@ -564,7 +564,7 @@ func TestUpAndDownMigrations(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer store.Close()
 
 			err = store.migrate(migrationsDirectionDown)
@@ -656,7 +656,7 @@ func TestGetAllConns(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 			defer func() {
 				store.Close()
 				storetest.CleanupSqlSettings(settings)
@@ -864,7 +864,7 @@ func TestGetDBSchemaVersion(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
 			require.NoError(t, err)
@@ -902,7 +902,7 @@ func TestGetAppliedMigrations(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store := New(*settings, nil)
+			store := New(*settings, nil, nil)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
 			require.NoError(t, err)
