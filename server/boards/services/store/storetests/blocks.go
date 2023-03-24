@@ -90,7 +90,6 @@ func testInsertBlock(t *testing.T, store store.Store) {
 		require.Len(t, blocks, initialCount+1)
 
 		insertedBlock, err := store.GetBlock("id-test")
-		require.NoError(t, err)
 		require.Equal(t, block.BoardID, insertedBlock.BoardID)
 		require.Equal(t, fields, insertedBlock.Fields)
 		require.NoError(t, err)
