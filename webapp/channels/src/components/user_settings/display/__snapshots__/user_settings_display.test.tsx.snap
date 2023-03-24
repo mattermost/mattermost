@@ -101,6 +101,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -501,6 +523,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
           />
         }
         updateSection={[Function]}
@@ -1000,6 +1044,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -1327,6 +1393,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
           />
         }
         updateSection={[Function]}
@@ -2131,6 +2219,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -2471,6 +2581,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -2777,6 +2909,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
           />
         }
         updateSection={[Function]}
@@ -3190,6 +3344,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
           />
         }
         updateSection={[Function]}
@@ -3634,6 +3810,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={true}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={true}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -3974,6 +4172,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -4301,6 +4521,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
           />
         }
         updateSection={[Function]}
@@ -4667,6 +4909,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -5007,6 +5271,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
@@ -5334,6 +5620,28 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={true}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
           />
         }
         updateSection={[Function]}

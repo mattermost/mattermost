@@ -30,15 +30,18 @@ describe('components/user_settings/display/manage_first_day_of_week/manage_first
             actions: {...requiredProps.actions, updateMe},
             firstDayOfWeek: 2,
         };
-        const wrapper = shallow(<ManageFirstDayOfWeek {...props}/>);
+        const wrapper = shallow(<ManageFirstDayOfWeek {...props} />);
 
         await (wrapper.instance() as ManageFirstDayOfWeek).submitUser();
 
         const expected = {
             ...props.user,
-            first_day_of_week: props.firstDayOfWeek,
+            props: {
+                ...props.user.props,
+                first_day_of_week: props.firstDayOfWeek.toString(),
+            },
         };
-
+        console.log('expected\n', expected);
         expect(props.actions.updateMe).toHaveBeenCalled();
         expect(props.actions.updateMe).toHaveBeenCalledWith(expected);
 
