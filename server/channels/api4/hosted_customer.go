@@ -65,9 +65,18 @@ func checkSelfHostedPurchaseEnabled(c *Context) bool {
 	return enabled != nil && *enabled
 }
 
+func checkSelfHostedExpansionEnabled(c *Context) bool {
+	config := c.App.Config()
+	if config == nil {
+		return false
+	}
+	enabled := config.ServiceSettings.SelfHostedExpansion
+	return enabled != nil && *enabled
+}
+
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	const where = "Api4.selfHostedBootstrap"
-	if !checkSelfHostedPurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) && !checkSelfHostedExpansionEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -151,16 +160,11 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	expand := r.URL.Query().Get("expand") == "true"
+
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-
-	var confirm model.SelfHostedConfirmPaymentMethodRequest
-	err = json.Unmarshal(bodyBytes, &confirm)
-	if err != nil {
-		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -169,7 +173,27 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = userErr
 		return
 	}
-	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
+
+	var confirmResponse *model.SelfHostedSignupConfirmResponse
+	if expand {
+		var confirm model.SelfHostedExpansionConfirmPaymentMethodRequest
+		err = json.Unmarshal(bodyBytes, &confirm)
+		if err != nil {
+			c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return
+		}
+
+		confirmResponse, err = c.App.Cloud().ConfirmSelfHostedExpansion(confirm, user.Email)
+	} else {
+		var confirm model.SelfHostedConfirmPaymentMethodRequest
+		err = json.Unmarshal(bodyBytes, &confirm)
+		if err != nil {
+			c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return
+		}
+
+		confirmResponse, err = c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
+	}
 	if err != nil {
 		if confirmResponse != nil {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
