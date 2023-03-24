@@ -48,7 +48,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
       <span
         className="group-name"
       >
-        @ group
+        @group
       </span>
     </div>
     <div

@@ -53,7 +53,6 @@ const UserGroupsModal = (props: Props) => {
     const [show, setShow] = useState(true);
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [groupsFull, setGroupsFull] = useState(false);
-
     const [groups, setGroups] = useState(props.groups);
 
     useEffect(() => {
