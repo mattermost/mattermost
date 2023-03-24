@@ -69,9 +69,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [didOnce, setDidOnce] = useState(false);
 
     const handleValidateBusinessEmail = async (email: string) => {
-        if (didOnce) {
-            return;
-        }
         setDidOnce(true);
         if (!email) {
             setBusinessEmailError(undefined);
@@ -93,7 +90,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
 
     useEffect(() => {
         trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_opened');
-        if (email) {
+        if (email && !didOnce) {
             handleValidateBusinessEmail(email);
         }
     }, [email, didOnce]);
