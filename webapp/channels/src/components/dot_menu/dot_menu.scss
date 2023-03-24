@@ -1,0 +1,20 @@
+.dot-menu {
+    &__item-new-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__post-reminder-menu-header {
+        padding: 6px 20px;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-weight: bold;
+        pointer-events: none;
+    }
+
+    &__item-trailing-icon {
+        display: flex;
+        margin-right: -4px;
+    }
+}

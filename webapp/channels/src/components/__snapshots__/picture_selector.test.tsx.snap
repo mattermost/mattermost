@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/picture_selector should match snapshot, default picture provided 1`] = `
+<div
+  className="PictureSelector"
+>
+  <input
+    accept=".jpeg,.jpg,.png,.bmp"
+    aria-hidden={true}
+    className="PictureSelector__input hidden"
+    data-testid="PictureSelector__input-picture_selector_test"
+    name="picture_selector_test"
+    onChange={[Function]}
+    tabIndex={-1}
+    type="file"
+  />
+  <div
+    className="PictureSelector__imageContainer"
+  >
+    <div
+      aria-label="Picture selector image"
+      className="PictureSelector__image"
+      style={
+        Object {
+          "backgroundImage": "url(undefined)",
+        }
+      }
+    />
+    <button
+      aria-label="Select picture"
+      className="PictureSelector__selectButton"
+      data-testid="PictureSelector__selectButton"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-pencil-outline"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/picture_selector should match snapshot, existing picture provided 1`] = `
+<div
+  className="PictureSelector"
+>
+  <input
+    accept=".jpeg,.jpg,.png,.bmp"
+    aria-hidden={true}
+    className="PictureSelector__input hidden"
+    data-testid="PictureSelector__input-picture_selector_test"
+    name="picture_selector_test"
+    onChange={[Function]}
+    tabIndex={-1}
+    type="file"
+  />
+  <div
+    className="PictureSelector__imageContainer"
+  >
+    <div
+      aria-label="Picture selector image"
+      className="PictureSelector__image"
+      style={
+        Object {
+          "backgroundImage": "url(undefined)",
+        }
+      }
+    />
+    <button
+      aria-label="Select picture"
+      className="PictureSelector__selectButton"
+      data-testid="PictureSelector__selectButton"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-pencil-outline"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/picture_selector should match snapshot, no picture selected 1`] = `
+<div
+  className="PictureSelector"
+>
+  <input
+    accept=".jpeg,.jpg,.png,.bmp"
+    aria-hidden={true}
+    className="PictureSelector__input hidden"
+    data-testid="PictureSelector__input-picture_selector_test"
+    name="picture_selector_test"
+    onChange={[Function]}
+    tabIndex={-1}
+    type="file"
+  />
+  <div
+    className="PictureSelector__imageContainer"
+  >
+    <div
+      aria-label="Picture selector image"
+      className="PictureSelector__image"
+      style={
+        Object {
+          "backgroundImage": "url(undefined)",
+        }
+      }
+    />
+    <button
+      aria-label="Select picture"
+      className="PictureSelector__selectButton"
+      data-testid="PictureSelector__selectButton"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-pencil-outline"
+      />
+    </button>
+  </div>
+</div>
+`;

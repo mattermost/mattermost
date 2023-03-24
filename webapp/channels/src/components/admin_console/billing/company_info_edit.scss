@@ -1,0 +1,132 @@
+.CompanyInfoEdit__card {
+    padding: 28px 32px;
+    border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    margin-top: 20px;
+    background-color: var(--sys-center-channel-bg);
+    border-radius: 4px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+    isolation: isolate;
+
+    .checkbox {
+        margin-top: 0;
+        margin-bottom: 24px;
+
+        input {
+            width: 16px;
+            height: 16px;
+            margin-top: 2px;
+        }
+
+        span {
+            padding-left: 4px;
+        }
+    }
+
+    .form-row {
+        display: flex;
+        width: 100%;
+        margin-bottom: 24px;
+    }
+
+    .form-row-third-1 {
+        .DropdownInput {
+            z-index: 99999;
+            margin-top: 0;
+        }
+
+        width: 66%;
+        margin-right: 16px;
+    }
+
+    .form-row-third-2 {
+        width: 34%;
+    }
+
+    .section-title {
+        margin-bottom: 24px;
+        color: var(--sys-center-channel-text);
+        font-size: 16px;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .section-title:not(:first-child) {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .DropdownInput {
+        position: relative;
+        z-index: 999999;
+        height: 36px;
+        margin-bottom: 24px;
+
+        .DropDown__control {
+            min-height: 0;
+        }
+    }
+
+    .full-width {
+        width: 100%;
+    }
+
+    input {
+        font-size: 14px;
+    }
+
+    .Input_fieldset {
+        height: 40px;
+        padding: 2px 1px;
+        background: var(--sys-center-channel-bg);
+
+        .Input_wrapper {
+            margin: 0;
+        }
+
+        &.Input_fieldset___legend {
+            >legend {
+                margin-left: 11px;
+            }
+        }
+
+        &.Input_fieldset:focus-within {
+            padding-top: 2px;
+            box-shadow: inset 0 0 0 2px var(--sys-button-bg);
+            color: var(--button-bg);
+        }
+
+        &.Input_fieldset___error {
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: inset 0 0 0 1px var(--sys-error-text);
+            color: var(--error-text);
+        }
+
+        &.Input_fieldset___error:focus-within {
+            box-shadow: inset 0 0 0 2px var(--sys-error-text);
+            color: var(--error-text);
+        }
+
+        .Input {
+            height: 32px;
+
+            &::placeholder {
+                color: var(--sys-center-channel-color);
+                opacity: 0.64;
+            }
+        }
+    }
+}
+
+.CompanyInfoEdit__form {
+    max-width: 480px;
+}
+
+.CompanyInfoEdit__companyInfo-addressTitle {
+    margin-top: 16px;
+    font-weight: 600;
+}
+
+.CompanyInfoEdit__companyInfo-address > div {
+    margin-top: 4px;
+}

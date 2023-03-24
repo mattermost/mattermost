@@ -1,0 +1,150 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/marketplace/marketplace_list should render with multiple plugins 1`] = `
+<div
+  className="more-modal__list"
+>
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(MarketplaceItemPlugin)
+    description="This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost"
+    homepageUrl="https://github.com/mattermost/mattermost-plugin-nps"
+    id="com.mattermost.nps"
+    installedVersion=""
+    key="com.mattermost.nps"
+    name="User Satisfaction Surveys"
+    version="1.0.3"
+  />
+  <Connect(NavigationRow)
+    maximumPerPage={15}
+    onNextPageButtonClick={[Function]}
+    onPreviousPageButtonClick={[Function]}
+    page={0}
+    total={17}
+  />
+</div>
+`;

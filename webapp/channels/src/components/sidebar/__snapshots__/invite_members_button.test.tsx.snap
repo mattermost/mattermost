@@ -1,0 +1,106 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <InviteMembersButton
+    isAdmin={false}
+    onClick={[MockFunction]}
+    touchedInviteMembersButton={false}
+  >
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "add_user_to_team",
+          "invite_guest",
+        ]
+      }
+      teamId="team_id2sss"
+    >
+      <TeamPermissionGate
+        dispatch={[Function]}
+        hasPermission={true}
+        invert={false}
+        permissions={
+          Array [
+            "add_user_to_team",
+            "invite_guest",
+          ]
+        }
+        teamId="team_id2sss"
+      >
+        <Connect(ToggleModalButton)
+          ariaLabel="Invite Users"
+          className="intro-links color--link cursor--pointer"
+          dialogType={
+            Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            }
+          }
+          id="introTextInvite"
+          modalId="invitation"
+          onClick={[Function]}
+        >
+          <ToggleModalButton
+            actions={
+              Object {
+                "openModal": [Function],
+              }
+            }
+            ariaLabel="Invite Users"
+            className="intro-links color--link cursor--pointer"
+            dialogType={
+              Object {
+                "$$typeof": Symbol(react.memo),
+                "WrappedComponent": [Function],
+                "compare": null,
+                "type": [Function],
+              }
+            }
+            id="introTextInvite"
+            modalId="invitation"
+            onClick={[Function]}
+          >
+            <button
+              aria-label="Invite Users dialog"
+              className="style--none intro-links color--link cursor--pointer"
+              id="introTextInvite"
+              onClick={[Function]}
+            >
+              <li
+                aria-label="Invite Members"
+                className="SidebarChannelNavigator_inviteMembersLhsButton SidebarChannelNavigator_inviteMembersLhsButton--untouched"
+              >
+                <i
+                  className="icon-plus-box"
+                />
+                <FormattedMessage
+                  defaultMessage="Invite Members"
+                  id="sidebar_left.inviteMembers"
+                >
+                  <span>
+                    Invite Members
+                  </span>
+                </FormattedMessage>
+              </li>
+            </button>
+          </ToggleModalButton>
+        </Connect(ToggleModalButton)>
+      </TeamPermissionGate>
+    </Connect(TeamPermissionGate)>
+  </InviteMembersButton>
+</Provider>
+`;

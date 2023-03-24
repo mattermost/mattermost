@@ -1,0 +1,60 @@
+@charset 'UTF-8';
+
+@keyframes move {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0.1;
+    }
+}
+
+.loading-screen {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 60px;
+    text-align: center;
+
+    &.loading-screen--in-middle {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loading__content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        p {
+            display: inline-block;
+            margin: 0 0.2em;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .round {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            margin: 0 2px;
+            animation: move 0.75s infinite linear;
+            background-color: #444;
+            border-radius: 10px;
+            opacity: 0.1;
+        }
+
+        @for $i from 1 through 3 {
+            .round-#{$i} {
+                animation-delay: 0.2s*$i;
+            }
+        }
+    }
+
+    .hideAnimation {
+        display: none;
+    }
+}

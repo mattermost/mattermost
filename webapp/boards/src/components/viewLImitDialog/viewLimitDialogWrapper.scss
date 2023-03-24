@@ -1,0 +1,9 @@
+.ViewLimitSuccessNotify {
+    .NotificationBox__icon {
+        font-size: 24px;
+
+        svg {
+            stroke: var(--online-indicator);
+        }
+    }
+}

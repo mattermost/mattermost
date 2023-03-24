@@ -1,0 +1,392 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/HeaderFooterTemplate should match snapshot with about link 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  />
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        >
+          <ExternalLink
+            className="footer-link"
+            href="http://testaboutlink"
+            id="about_link"
+            key="about_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.about"
+            />
+          </ExternalLink>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with all links 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  />
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        >
+          <ExternalLink
+            className="footer-link"
+            href="http://testaboutlink"
+            id="about_link"
+            key="about_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.about"
+            />
+          </ExternalLink>
+          <ExternalLink
+            className="footer-link"
+            href="http://testprivacypolicylink"
+            id="privacy_link"
+            key="privacy_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.privacy"
+            />
+          </ExternalLink>
+          <ExternalLink
+            className="footer-link"
+            href="http://testtermsofservicelink"
+            id="terms_link"
+            key="terms_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.terms"
+            />
+          </ExternalLink>
+          <ExternalLink
+            className="footer-link"
+            href="http://testhelplink"
+            id="help_link"
+            key="help_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.help"
+            />
+          </ExternalLink>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with children 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  >
+    <p>
+      test
+    </p>
+  </div>
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with help link 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  />
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        >
+          <ExternalLink
+            className="footer-link"
+            href="http://testhelplink"
+            id="help_link"
+            key="help_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.help"
+            />
+          </ExternalLink>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with privacy policy link 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  />
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        >
+          <ExternalLink
+            className="footer-link"
+            href="http://testprivacypolicylink"
+            id="privacy_link"
+            key="privacy_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.privacy"
+            />
+          </ExternalLink>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with term of service link 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  />
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        >
+          <ExternalLink
+            className="footer-link"
+            href="http://testtermsofservicelink"
+            id="terms_link"
+            key="terms_link"
+            location="header_footer_template"
+          >
+            <MemoizedFormattedMessage
+              id="web.footer.terms"
+            />
+          </ExternalLink>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot without children 1`] = `
+<div
+  className="inner-wrap"
+>
+  <div
+    className="row content"
+  />
+  <div
+    className="row footer"
+  >
+    <div
+      className="footer-pane col-xs-12"
+      id="footer_section"
+    >
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-site-name"
+          id="company_name"
+        >
+          Mattermost
+        </span>
+      </div>
+      <div
+        className="col-xs-12"
+      >
+        <span
+          className="pull-right footer-link copyright"
+          id="copyright"
+        >
+          © 2015-2017 Mattermost, Inc.
+        </span>
+        <span
+          className="pull-right"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/blocks/quote should match Display snapshot 1`] = `
+<div>
+  <div
+    class="Quote"
+    data-testid="quote"
+  >
+    <blockquote>
+      
+
+      <p>
+        test-value
+      </p>
+      
+
+    </blockquote>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocks/quote should match Input snapshot 1`] = `
+<div>
+  <blockquote
+    class="Quote"
+  >
+    <input
+      data-testid="quote"
+      value="test-value"
+    />
+  </blockquote>
+</div>
+`;

@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/team/TeamSettings should match snapshot 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <div
+    className="admin-console__header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="{siteName} Teams"
+      id="admin.team_settings.groupsPageTitle"
+      values={
+        Object {
+          "siteName": "site",
+        }
+      }
+    />
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <AdminPanel
+        className=""
+        id="teams"
+        subtitleDefault="Manage team settings."
+        subtitleId="admin.team_settings.description"
+        titleDefault="Teams"
+        titleId="admin.team_settings.title"
+      >
+        <Connect(TeamList) />
+      </AdminPanel>
+    </div>
+  </div>
+</div>
+`;

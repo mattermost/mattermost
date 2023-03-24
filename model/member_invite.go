@@ -14,6 +14,13 @@ type MemberInvite struct {
 	Message    string   `json:"message"`
 }
 
+func (i *MemberInvite) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"emails":      i.Emails,
+		"channel_ids": i.ChannelIds,
+	}
+}
+
 // IsValid validates that the invitation info is loaded correctly and with the correct structure
 func (i *MemberInvite) IsValid() *AppError {
 	if len(i.Emails) == 0 {

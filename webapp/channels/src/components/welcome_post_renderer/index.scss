@@ -1,0 +1,19 @@
+@import 'utils/mixins';
+
+.WelcomePostRenderer {
+    color: var(--center-channel-color);
+
+    &__ActionsContainer {
+        display: flex;
+        margin-top: 1em;
+
+        & > div {
+            margin-right: 1em;
+        }
+
+        button {
+            @include tertiary-button;
+            @include button-small;
+        }
+    }
+}

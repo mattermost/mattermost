@@ -1,0 +1,447 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/kanban/calculations/KanbanCalculationOptions base case 1`] = `
+<div>
+  <div
+    class="CalculationOptions css-b62m3t-container"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-2-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class="CalculationOptions__control css-1s59geg-Control"
+    >
+      <div
+        class="CalculationOptions__value-container CalculationOptions__value-container--has-value css-1mxrbau-ValueContainer"
+      >
+        <div
+          class="CalculationOptions__single-value css-1qlwihv-singleValue"
+        >
+          Count
+        </div>
+        <input
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-readonly="true"
+          class="css-mohuvp-dummyInput-DummyInput"
+          id="react-select-2-input"
+          inputmode="none"
+          role="combobox"
+          tabindex="0"
+          value=""
+        />
+      </div>
+      <div
+        class="CalculationOptions__indicators css-1hb7zxy-IndicatorsContainer"
+      >
+        <div
+          aria-hidden="true"
+          class="CalculationOptions__indicator CalculationOptions__clear-indicator css-tpaeio-indicatorContainer"
+        >
+          <svg
+            aria-hidden="true"
+            class="css-tj5bde-Svg"
+            focusable="false"
+            height="20"
+            viewBox="0 0 20 20"
+            width="20"
+          >
+            <path
+              d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+            />
+          </svg>
+        </div>
+        <span
+          class="CalculationOptions__indicator-separator css-43ykx9-indicatorSeparator"
+        />
+        <div
+          aria-hidden="true"
+          class="CalculationOptions__indicator CalculationOptions__dropdown-indicator css-wpsttr-indicatorContainer"
+        >
+          <i
+            class="CompassIcon icon-chevron-up ChevronUpIcon"
+          />
+        </div>
+      </div>
+    </div>
+    <input
+      name="calculation_options"
+      type="hidden"
+      value="count"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/kanban/calculations/KanbanCalculationOptions with menu open 1`] = `
+<div>
+  <div
+    class="CalculationOptions css-b62m3t-container"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-3-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class="CalculationOptions__control CalculationOptions__control--menu-is-open css-1s59geg-Control"
+    >
+      <div
+        class="CalculationOptions__value-container CalculationOptions__value-container--has-value css-1mxrbau-ValueContainer"
+      >
+        <div
+          class="CalculationOptions__single-value css-1qlwihv-singleValue"
+        >
+          Count
+        </div>
+        <input
+          aria-autocomplete="list"
+          aria-controls="react-select-3-listbox"
+          aria-expanded="true"
+          aria-haspopup="true"
+          aria-owns="react-select-3-listbox"
+          aria-readonly="true"
+          class="css-mohuvp-dummyInput-DummyInput"
+          id="react-select-3-input"
+          inputmode="none"
+          role="combobox"
+          tabindex="0"
+          value=""
+        />
+      </div>
+      <div
+        class="CalculationOptions__indicators css-1hb7zxy-IndicatorsContainer"
+      >
+        <div
+          aria-hidden="true"
+          class="CalculationOptions__indicator CalculationOptions__clear-indicator css-tpaeio-indicatorContainer"
+        >
+          <svg
+            aria-hidden="true"
+            class="css-tj5bde-Svg"
+            focusable="false"
+            height="20"
+            viewBox="0 0 20 20"
+            width="20"
+          >
+            <path
+              d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+            />
+          </svg>
+        </div>
+        <span
+          class="CalculationOptions__indicator-separator css-43ykx9-indicatorSeparator"
+        />
+        <div
+          aria-hidden="true"
+          class="CalculationOptions__indicator CalculationOptions__dropdown-indicator css-wpsttr-indicatorContainer"
+        >
+          <i
+            class="CompassIcon icon-chevron-up ChevronUpIcon"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="CalculationOptions__menu css-1rsmi4x-menu"
+      id="react-select-3-listbox"
+    >
+      <div
+        class="CalculationOptions__menu-list css-g29tl0-MenuList"
+      >
+        <div
+          class="KanbanCalculationOptions_CustomOption active"
+        >
+          <span>
+            Count
+             
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Not Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Percent Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Percent Not Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Value
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Unique Values
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+      </div>
+    </div>
+    <input
+      name="calculation_options"
+      type="hidden"
+      value="count"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/kanban/calculations/KanbanCalculationOptions with submenu open 1`] = `
+<div>
+  <div
+    class="CalculationOptions css-b62m3t-container"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-4-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class="CalculationOptions__control CalculationOptions__control--menu-is-open css-1s59geg-Control"
+    >
+      <div
+        class="CalculationOptions__value-container CalculationOptions__value-container--has-value css-1mxrbau-ValueContainer"
+      >
+        <div
+          class="CalculationOptions__single-value css-1qlwihv-singleValue"
+        >
+          Count
+        </div>
+        <input
+          aria-autocomplete="list"
+          aria-controls="react-select-4-listbox"
+          aria-expanded="true"
+          aria-haspopup="true"
+          aria-owns="react-select-4-listbox"
+          aria-readonly="true"
+          class="css-mohuvp-dummyInput-DummyInput"
+          id="react-select-4-input"
+          inputmode="none"
+          role="combobox"
+          tabindex="0"
+          value=""
+        />
+      </div>
+      <div
+        class="CalculationOptions__indicators css-1hb7zxy-IndicatorsContainer"
+      >
+        <div
+          aria-hidden="true"
+          class="CalculationOptions__indicator CalculationOptions__clear-indicator css-tpaeio-indicatorContainer"
+        >
+          <svg
+            aria-hidden="true"
+            class="css-tj5bde-Svg"
+            focusable="false"
+            height="20"
+            viewBox="0 0 20 20"
+            width="20"
+          >
+            <path
+              d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+            />
+          </svg>
+        </div>
+        <span
+          class="CalculationOptions__indicator-separator css-43ykx9-indicatorSeparator"
+        />
+        <div
+          aria-hidden="true"
+          class="CalculationOptions__indicator CalculationOptions__dropdown-indicator css-wpsttr-indicatorContainer"
+        >
+          <i
+            class="CompassIcon icon-chevron-up ChevronUpIcon"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="CalculationOptions__menu css-1rsmi4x-menu"
+      id="react-select-4-listbox"
+    >
+      <div
+        class="CalculationOptions__menu-list css-g29tl0-MenuList"
+      >
+        <div
+          class="KanbanCalculationOptions_CustomOption active"
+        >
+          <span>
+            Count
+             
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Not Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Percent Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Percent Not Empty
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Value
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+        </div>
+        <div
+          class="KanbanCalculationOptions_CustomOption "
+        >
+          <span>
+            Count Unique Values
+             
+            <i
+              class="CompassIcon icon-chevron-right ChevronRightIcon"
+            />
+          </span>
+          <div
+            class="dropdown-submenu"
+            style="top: -10px; left: 0px;"
+          >
+            <div
+              class="drops "
+            >
+              <span>
+                Status
+              </span>
+            </div>
+            <div
+              class="drops active"
+            >
+              <span>
+                Property 1
+              </span>
+            </div>
+            <div
+              class="drops "
+            >
+              <span>
+                Property 2
+              </span>
+            </div>
+            <div
+              class="drops "
+            >
+              <span>
+                Property 3
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <input
+      name="calculation_options"
+      type="hidden"
+      value="count"
+    />
+  </div>
+</div>
+`;

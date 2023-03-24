@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const (
@@ -70,7 +70,6 @@ func (s *Session) Auditable() map[string]interface{} {
 		"is_oauth":         s.IsOAuth,
 		"expired_notify":   s.ExpiredNotify,
 		"local":            s.Local,
-		// TODO: props and members?
 	}
 }
 

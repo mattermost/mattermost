@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ColorSetting should match snapshot, all 1`] = `
+<Settings
+  helpText="helptext"
+  inputId="id"
+  label="label"
+>
+  <ColorInput
+    id="id"
+    isDisabled={false}
+    onChange={[Function]}
+    value="#fff"
+  />
+</Settings>
+`;
+
+exports[`components/ColorSetting should match snapshot, clicked on color setting 1`] = `
+<Settings
+  helpText="helptext"
+  inputId="id"
+  label="label"
+>
+  <ColorInput
+    id="id"
+    isDisabled={false}
+    onChange={[Function]}
+    value="#fff"
+  />
+</Settings>
+`;
+
+exports[`components/ColorSetting should match snapshot, disabled 1`] = `
+<Settings
+  inputId="id"
+  label="label"
+>
+  <ColorInput
+    id="id"
+    isDisabled={true}
+    onChange={[Function]}
+    value="#fff"
+  />
+</Settings>
+`;
+
+exports[`components/ColorSetting should match snapshot, no help text 1`] = `
+<Settings
+  inputId="id"
+  label="label"
+>
+  <ColorInput
+    id="id"
+    isDisabled={false}
+    onChange={[Function]}
+    value="#fff"
+  />
+</Settings>
+`;

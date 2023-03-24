@@ -1,0 +1,197 @@
+.EnterpriseEditionRightPannel {
+    font-family: Metropolis;
+
+    .svg-image {
+        text-align: center;
+
+        svg {
+            margin: 0 auto;
+        }
+    }
+
+    .upgrade-title {
+        margin: 10px 0;
+        color: #3f4350;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 24px;
+    }
+
+    .advantages-list {
+        margin: 7px 0;
+        font-size: 12px;
+        line-height: 16px;
+
+        .item {
+            margin: 10px 0;
+
+            i {
+                margin-right: 5px;
+            }
+        }
+
+        :last-child {
+            color: rgba(63, 69, 80, 0.72);
+        }
+    }
+
+    button {
+        width: 100%;
+        margin: 5px auto;
+        border-radius: 4px;
+    }
+
+    .purchase_buttons {
+        margin-top: 20px;
+
+        button {
+            height: 48px !important;
+            padding: 7px 12px !important;
+            margin: 0 5px !important;
+        }
+    }
+
+    .upgrade-error {
+        margin-top: 10px;
+    }
+}
+
+.EnterpriseEditionLeftPanel {
+    font-family: Metropolis;
+
+    &__Grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: 1fr;
+    }
+
+    .PlanDetails__viewPlansButton {
+        height: 33px;
+    }
+
+    .pre-title {
+        margin-bottom: 10px;
+        color: rgba(63, 67, 80, 0.56) !important;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    .title {
+        display: flex;
+        color: #3f4350;
+        font-size: 18px;
+        font-weight: 700;
+        gap: 4px;
+        line-height: 24px;
+    }
+
+    .subtitle {
+        margin-top: 15px;
+        font-size: 12px;
+    }
+
+    .license-notices {
+        font-size: 12px;
+        text-align: justify;
+    }
+
+    .licenseInformation {
+        padding: 24px;
+        border: 1px solid rgba(63, 67, 80, 0.16);
+        margin: 15px 0;
+        border-radius: 4px;
+
+        .license-details-top {
+            display: flex;
+            justify-content: flex-start;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 24px;
+
+            span.title {
+                display: inline-block;
+                color: #3f4350;
+            }
+
+            span.expiration-days {
+                margin-left: auto;
+                color: var(--denim-status-online);
+                font-size: 12px;
+            }
+        }
+
+        .licenseElements {
+            .item-element {
+                margin: 15px 0;
+                font-family: Open Sans;
+                font-size: 14px;
+                line-height: 20px;
+
+                span.legend {
+                    display: inline-block;
+                    min-width: 150px;
+                    color: rgba(var(--secondary-blue-rgb), 0.4);
+                    font-weight: 600;
+
+                    &--warning-over-seats-purchased {
+                        color: var(--warning-text);
+                    }
+
+                    &--over-seats-purchased {
+                        color: var(--error-text);
+                    }
+                }
+
+                span.value {
+                    margin-left: 10px;
+                    color: var(--secondary-blue);
+
+                    &--warning-over-seats-purchased {
+                        color: var(--warning-text);
+                        font-weight: 600;
+                    }
+
+                    &--over-seats-purchased {
+                        color: var(--error-text);
+                        font-weight: 600;
+                    }
+                }
+            }
+
+            .add-new-licence-btn {
+                display: block;
+                padding: 12px 20px;
+                border: 1px solid var(--sys-button-bg);
+                margin-top: 15px;
+                background-color: var(--sys-center-channel-bg);
+                border-radius: 4px;
+                color: var(--sys-button-bg);
+
+                span {
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 14px;
+                }
+            }
+        }
+
+        #remove-button {
+            padding: 0;
+            border: none !important;
+            margin: 10px 0;
+            background: none !important;
+            color: var(--error-text);
+            font-weight: 700;
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+            &:focus,
+            &:focus-visible {
+                outline: none !important;
+            }
+        }
+    }
+}

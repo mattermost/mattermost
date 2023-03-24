@@ -1,0 +1,13 @@
+diff --git a/node_modules/@testing-library/cypress/dist/index.js b/node_modules/@testing-library/cypress/dist/index.js
+index 9a03c94..b2d3aac 100644
+--- a/node_modules/@testing-library/cypress/dist/index.js
++++ b/node_modules/@testing-library/cypress/dist/index.js
+@@ -38,7 +38,7 @@ function createQuery(queryName, implementationName) {
+       };
+       const log = options.log !== false && Cypress.log({
+         name: queryName,
+-        type: this.get('prev').get('chainerId') === this.get('chainerId') ? 'child' : 'parent',
++        type: this.get('prev') && this.get('prev').get('chainerId') === this.get('chainerId') ? 'child' : 'parent',
+         message: inputArr,
+         timeout: options.timeout,
+         consoleProps: () => consoleProps

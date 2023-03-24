@@ -1,0 +1,655 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_search_result/FileSearchResultItem should match snapshot 1`] = `
+<div
+  className="search-item__container"
+  data-testid="search-item-container"
+>
+  <button
+    className="FileSearchResultItem"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "client_id",
+          "create_at": 1,
+          "delete_at": 1,
+          "extension": "jpg",
+          "has_preview_image": true,
+          "height": 200,
+          "id": "file_info_id",
+          "mime_type": "mime_type",
+          "name": "name",
+          "size": 1,
+          "update_at": 1,
+          "user_id": "user_id",
+          "width": 350,
+        }
+      }
+    />
+    <div
+      className="fileData"
+    >
+      <div
+        className="fileDataName"
+      >
+        name
+      </div>
+      <div
+        className="fileMetadata"
+      >
+        <span>
+          1B
+        </span>
+        <span>
+           • 
+        </span>
+        <Connect(injectIntl(Timestamp))
+          ranges={
+            Array [
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Today"
+                  id="date_separator.today"
+                />,
+                "equals": Array [
+                  "day",
+                  0,
+                ],
+              },
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Yesterday"
+                  id="date_separator.yesterday"
+                />,
+                "equals": Array [
+                  "day",
+                  -1,
+                ],
+              },
+            ]
+          }
+          value={1}
+        />
+      </div>
+    </div>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          More Actions
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className=""
+        onToggle={[Function]}
+        stopPropagationOnToggle={true}
+      >
+        <a
+          className="action-icon dots-icon"
+          href="#"
+        >
+          <i
+            className="icon icon-dots-vertical"
+          />
+        </a>
+        <Menu
+          ariaLabel="file menu"
+          openLeft={true}
+        >
+          <MenuItemAction
+            ariaLabel="Open in channel"
+            onClick={[Function]}
+            show={true}
+            text="Open in channel"
+          />
+          <MenuItemAction
+            ariaLabel="Copy link"
+            onClick={[Function]}
+            show={true}
+            text="Copy link"
+          />
+        </Menu>
+      </MenuWrapper>
+    </OverlayTrigger>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          Download
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <a
+        className="action-icon download-icon"
+        href="/api/v4/files/file_info_id?download=1"
+        onClick={[Function]}
+      >
+        <i
+          className="icon icon-download-outline"
+        />
+      </a>
+    </OverlayTrigger>
+  </button>
+</div>
+`;
+
+exports[`components/file_search_result/FileSearchResultItem should match snapshot with DM 1`] = `
+<div
+  className="search-item__container"
+  data-testid="search-item-container"
+>
+  <button
+    className="FileSearchResultItem"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "client_id",
+          "create_at": 1,
+          "delete_at": 1,
+          "extension": "jpg",
+          "has_preview_image": true,
+          "height": 200,
+          "id": "file_info_id",
+          "mime_type": "mime_type",
+          "name": "name",
+          "size": 1,
+          "update_at": 1,
+          "user_id": "user_id",
+          "width": 350,
+        }
+      }
+    />
+    <div
+      className="fileData"
+    >
+      <div
+        className="fileDataName"
+      >
+        name
+      </div>
+      <div
+        className="fileMetadata"
+      >
+        <Memo(Tag)
+          className="file-search-channel-name"
+          text={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Direct Message"
+              id="search_item.file_tag.direct_message"
+            />
+          }
+        />
+        <span>
+          1B
+        </span>
+        <span>
+           • 
+        </span>
+        <Connect(injectIntl(Timestamp))
+          ranges={
+            Array [
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Today"
+                  id="date_separator.today"
+                />,
+                "equals": Array [
+                  "day",
+                  0,
+                ],
+              },
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Yesterday"
+                  id="date_separator.yesterday"
+                />,
+                "equals": Array [
+                  "day",
+                  -1,
+                ],
+              },
+            ]
+          }
+          value={1}
+        />
+      </div>
+    </div>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          More Actions
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className=""
+        onToggle={[Function]}
+        stopPropagationOnToggle={true}
+      >
+        <a
+          className="action-icon dots-icon"
+          href="#"
+        >
+          <i
+            className="icon icon-dots-vertical"
+          />
+        </a>
+        <Menu
+          ariaLabel="file menu"
+          openLeft={true}
+        >
+          <MenuItemAction
+            ariaLabel="Open in channel"
+            onClick={[Function]}
+            show={true}
+            text="Open in channel"
+          />
+          <MenuItemAction
+            ariaLabel="Copy link"
+            onClick={[Function]}
+            show={true}
+            text="Copy link"
+          />
+        </Menu>
+      </MenuWrapper>
+    </OverlayTrigger>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          Download
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <a
+        className="action-icon download-icon"
+        href="/api/v4/files/file_info_id?download=1"
+        onClick={[Function]}
+      >
+        <i
+          className="icon icon-download-outline"
+        />
+      </a>
+    </OverlayTrigger>
+  </button>
+</div>
+`;
+
+exports[`components/file_search_result/FileSearchResultItem should match snapshot with GM 1`] = `
+<div
+  className="search-item__container"
+  data-testid="search-item-container"
+>
+  <button
+    className="FileSearchResultItem"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "client_id",
+          "create_at": 1,
+          "delete_at": 1,
+          "extension": "jpg",
+          "has_preview_image": true,
+          "height": 200,
+          "id": "file_info_id",
+          "mime_type": "mime_type",
+          "name": "name",
+          "size": 1,
+          "update_at": 1,
+          "user_id": "user_id",
+          "width": 350,
+        }
+      }
+    />
+    <div
+      className="fileData"
+    >
+      <div
+        className="fileDataName"
+      >
+        name
+      </div>
+      <div
+        className="fileMetadata"
+      >
+        <Memo(Tag)
+          className="file-search-channel-name"
+          text={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Group Message"
+              id="search_item.file_tag.group_message"
+            />
+          }
+        />
+        <span>
+          1B
+        </span>
+        <span>
+           • 
+        </span>
+        <Connect(injectIntl(Timestamp))
+          ranges={
+            Array [
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Today"
+                  id="date_separator.today"
+                />,
+                "equals": Array [
+                  "day",
+                  0,
+                ],
+              },
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Yesterday"
+                  id="date_separator.yesterday"
+                />,
+                "equals": Array [
+                  "day",
+                  -1,
+                ],
+              },
+            ]
+          }
+          value={1}
+        />
+      </div>
+    </div>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          More Actions
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className=""
+        onToggle={[Function]}
+        stopPropagationOnToggle={true}
+      >
+        <a
+          className="action-icon dots-icon"
+          href="#"
+        >
+          <i
+            className="icon icon-dots-vertical"
+          />
+        </a>
+        <Menu
+          ariaLabel="file menu"
+          openLeft={true}
+        >
+          <MenuItemAction
+            ariaLabel="Open in channel"
+            onClick={[Function]}
+            show={true}
+            text="Open in channel"
+          />
+          <MenuItemAction
+            ariaLabel="Copy link"
+            onClick={[Function]}
+            show={true}
+            text="Copy link"
+          />
+        </Menu>
+      </MenuWrapper>
+    </OverlayTrigger>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          Download
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <a
+        className="action-icon download-icon"
+        href="/api/v4/files/file_info_id?download=1"
+        onClick={[Function]}
+      >
+        <i
+          className="icon icon-download-outline"
+        />
+      </a>
+    </OverlayTrigger>
+  </button>
+</div>
+`;
+
+exports[`components/file_search_result/FileSearchResultItem should match snapshot with channel name 1`] = `
+<div
+  className="search-item__container"
+  data-testid="search-item-container"
+>
+  <button
+    className="FileSearchResultItem"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "client_id",
+          "create_at": 1,
+          "delete_at": 1,
+          "extension": "jpg",
+          "has_preview_image": true,
+          "height": 200,
+          "id": "file_info_id",
+          "mime_type": "mime_type",
+          "name": "name",
+          "size": 1,
+          "update_at": 1,
+          "user_id": "user_id",
+          "width": 350,
+        }
+      }
+    />
+    <div
+      className="fileData"
+    >
+      <div
+        className="fileDataName"
+      >
+        name
+      </div>
+      <div
+        className="fileMetadata"
+      >
+        <Memo(Tag)
+          className="file-search-channel-name"
+          text="test"
+        />
+        <span>
+          1B
+        </span>
+        <span>
+           • 
+        </span>
+        <Connect(injectIntl(Timestamp))
+          ranges={
+            Array [
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Today"
+                  id="date_separator.today"
+                />,
+                "equals": Array [
+                  "day",
+                  0,
+                ],
+              },
+              Object {
+                "display": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Yesterday"
+                  id="date_separator.yesterday"
+                />,
+                "equals": Array [
+                  "day",
+                  -1,
+                ],
+              },
+            ]
+          }
+          value={1}
+        />
+      </div>
+    </div>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          More Actions
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className=""
+        onToggle={[Function]}
+        stopPropagationOnToggle={true}
+      >
+        <a
+          className="action-icon dots-icon"
+          href="#"
+        >
+          <i
+            className="icon icon-dots-vertical"
+          />
+        </a>
+        <Menu
+          ariaLabel="file menu"
+          openLeft={true}
+        >
+          <MenuItemAction
+            ariaLabel="Open in channel"
+            onClick={[Function]}
+            show={true}
+            text="Open in channel"
+          />
+          <MenuItemAction
+            ariaLabel="Copy link"
+            onClick={[Function]}
+            show={true}
+            text="Copy link"
+          />
+        </Menu>
+      </MenuWrapper>
+    </OverlayTrigger>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={1000}
+      overlay={
+        <Tooltip
+          id="file-name__tooltip"
+        >
+          Download
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <a
+        className="action-icon download-icon"
+        href="/api/v4/files/file_info_id?download=1"
+        onClick={[Function]}
+      >
+        <i
+          className="icon icon-download-outline"
+        />
+      </a>
+    </OverlayTrigger>
+  </button>
+</div>
+`;

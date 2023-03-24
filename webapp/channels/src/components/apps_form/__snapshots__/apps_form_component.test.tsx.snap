@@ -1,0 +1,224 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppsFormComponent should set match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="appsModalLabel"
+  autoFocus={true}
+  backdrop="static"
+  bsClass="modal"
+  dialogClassName="a11y__modal about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="appsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <form
+    autoComplete="off"
+    onSubmit={[Function]}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+      style={
+        Object {
+          "borderBottom": "",
+        }
+      }
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="appsModalLabel"
+      >
+        <img
+          alt="modal title icon"
+          className="more-modal__image"
+          height="36"
+          id="appsModalIconUrl"
+          src="Icon"
+          width="36"
+        />
+        Title
+      </ModalTitle>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <Fade
+        appear={false}
+        in={false}
+        mountOnEnter={false}
+        timeout={300}
+        unmountOnExit={false}
+      >
+        <div
+          className="apps-form-modal-body-common apps-form-modal-body-loaded"
+        >
+          <LoadingSpinner
+            style={
+              Object {
+                "fontSize": "24px",
+              }
+            }
+            text={null}
+          />
+        </div>
+      </Fade>
+      <AppsFormHeader
+        id="appsModalHeader"
+        value="Header"
+      />
+      <Connect(AppsFormField)
+        autoFocus={true}
+        field={
+          Object {
+            "name": "bool1",
+            "type": "bool",
+          }
+        }
+        key="bool1"
+        listComponent={[Function]}
+        name="bool1"
+        onChange={[Function]}
+        performLookup={[Function]}
+        value={false}
+      />
+      <Connect(AppsFormField)
+        autoFocus={false}
+        field={
+          Object {
+            "name": "bool2",
+            "type": "bool",
+            "value": false,
+          }
+        }
+        key="bool2"
+        listComponent={[Function]}
+        name="bool2"
+        onChange={[Function]}
+        performLookup={[Function]}
+        value={false}
+      />
+      <Connect(AppsFormField)
+        autoFocus={false}
+        field={
+          Object {
+            "name": "bool3",
+            "type": "bool",
+            "value": true,
+          }
+        }
+        key="bool3"
+        listComponent={[Function]}
+        name="bool3"
+        onChange={[Function]}
+        performLookup={[Function]}
+        value={true}
+      />
+      <Connect(AppsFormField)
+        autoFocus={false}
+        field={
+          Object {
+            "name": "text1",
+            "type": "text",
+            "value": "initial text",
+          }
+        }
+        key="text1"
+        listComponent={[Function]}
+        name="text1"
+        onChange={[Function]}
+        performLookup={[Function]}
+        value="initial text"
+      />
+      <Connect(AppsFormField)
+        autoFocus={false}
+        field={
+          Object {
+            "name": "select1",
+            "options": Array [
+              Object {
+                "label": "Label1",
+                "value": "Value1",
+              },
+              Object {
+                "label": "Label2",
+                "value": "Value2",
+              },
+            ],
+            "type": "static_select",
+            "value": Object {
+              "label": "Label1",
+              "value": "Value1",
+            },
+          }
+        }
+        key="select1"
+        listComponent={[Function]}
+        name="select1"
+        onChange={[Function]}
+        performLookup={[Function]}
+        value={
+          Object {
+            "label": "Label1",
+            "value": "Value1",
+          }
+        }
+      />
+    </ModalBody>
+    <ModalFooter
+      bsClass="modal-footer"
+      componentClass="div"
+    >
+      <div>
+        <button
+          className="btn btn-link cancel-button"
+          id="appsModalCancel"
+          onClick={[Function]}
+          type="button"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="interactive_dialog.cancel"
+          />
+        </button>
+        <SpinnerButton
+          autoFocus={false}
+          className="btn btn-primary save-button"
+          id="appsModalSubmit"
+          key="submit"
+          spinning={false}
+          spinningText="Submitting..."
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Submit"
+            id="interactive_dialog.submit"
+          />
+        </SpinnerButton>
+      </div>
+    </ModalFooter>
+  </form>
+</Modal>
+`;
