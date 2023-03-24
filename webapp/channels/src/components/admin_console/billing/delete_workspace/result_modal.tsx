@@ -84,7 +84,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
     return (
         <FullScreenModal
             show={isResultModalOpen}
-            onClose={onHide}
+            onClose={handleHide}
             ignoreExit={ignoreExit}
         >
             <div className={modalType}>
