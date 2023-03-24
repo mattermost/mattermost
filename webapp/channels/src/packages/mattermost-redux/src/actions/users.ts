@@ -1241,6 +1241,18 @@ export function switchLdapToEmail(ldapPassword: string, email: string, emailPass
     });
 }
 
+export function switchLdapToOAuth(service: string, ldapPassword: string, email: string, mfaCode = ''): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.switchLdapToOAuth,
+        params: [
+            service,
+            ldapPassword,
+            email,
+            mfaCode,
+        ],
+    });
+}
+
 export function createUserAccessToken(userId: string, description: string): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;

@@ -1,0 +1,14 @@
+@import 'utils/mixins';
+
+.user-settings {
+    .oauth-options__button {
+        @include secondary-button;
+        @include button-small;
+
+        background-color: transparent;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}

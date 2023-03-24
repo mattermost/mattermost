@@ -1106,6 +1106,15 @@ export default class Client4 {
         );
     };
 
+    switchLdapToOAuth = (service: string, ldapPassword: string, email: string, mfaCode = '') => {
+        this.trackEvent('api', 'api_users_ldap_to_oauth');
+
+        return this.doFetch<AuthChangeResponse>(
+            `${this.getUsersRoute()}/login/switch`,
+            {method: 'post', body: JSON.stringify({current_service: 'ldap', new_service: service, email, password: ldapPassword, mfa_code: mfaCode})},
+        );
+    };
+
     getAuthorizedOAuthApps = (userId: string) => {
         return this.doFetch<OAuthApp[]>(
             `${this.getUserRoute(userId)}/oauth/apps/authorized`,

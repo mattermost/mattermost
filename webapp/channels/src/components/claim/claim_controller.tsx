@@ -12,6 +12,7 @@ import BackButton from 'components/common/back_button';
 import OAuthToEmail from 'components/claim/components/oauth_to_email';
 import EmailToOAuth from 'components/claim/components/email_to_oauth';
 import LDAPToEmail from 'components/claim/components/ldap_to_email';
+import LDAPToOAuth from 'components/claim/components/ldap_to_oauth';
 import EmailToLDAP from 'components/claim/components/email_to_ldap';
 
 export interface PasswordConfig {
@@ -36,6 +37,7 @@ export type Props = {
     };
     actions: {
         switchLdapToEmail: (ldapPassword: string, email: string, emailPassword: string, mfaCode?: string) => Promise<{data: AuthChangeResponse; error: {server_error_id: string; message: string}}>;
+        switchLdapToOAuth: (service: string, ldapPassword: string, email: string, mfaToken?: string) => Promise<{ data?: AuthChangeResponse; error?: { server_error_id: string; message: string } }>;
     };
 }
 
@@ -85,6 +87,17 @@ export default class ClaimController extends React.PureComponent<Props> {
                                             email={email}
                                             passwordConfig={this.props.passwordConfig}
                                             switchLdapToEmail={this.props.actions.switchLdapToEmail}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    path={`${this.props.match.url}/ldap_to_oauth`}
+                                    render={() => (
+                                        <LDAPToOAuth
+                                            email={email}
+                                            newType={newType}
+                                            siteName={this.props.siteName}
+                                            switchLdapToOAuth={this.props.actions.switchLdapToOAuth}
                                         />
                                     )}
                                 />
