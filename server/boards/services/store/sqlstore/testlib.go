@@ -90,11 +90,7 @@ func RunStoreTests(t *testing.T, f func(*testing.T, store.Store)) {
 }
 
 func RunStoreTestsWithSqlStore(t *testing.T, f func(*testing.T, *SQLStore)) {
-	RunStoreTestsWithCustomSqlStore(t, f, mainStoreTypes)
-}
-
-func RunStoreTestsWithCustomSqlStore(t *testing.T, f func(*testing.T, *SQLStore), stores []*storeType) {
-	for _, st := range stores {
+	for _, st := range mainStoreTypes {
 		st := st
 		sqlstore := st.Store.(*SQLStore)
 		require.NoError(t, sqlstore.DropAllTables())
