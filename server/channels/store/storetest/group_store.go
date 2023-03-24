@@ -3962,6 +3962,26 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			},
 			Restrictions: nil,
 		},
+		{
+			Name:    "Include archived groups",
+			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: "group-deleted"},
+			Page:    0,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 1
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Only return archived groups",
+			Opts:    model.GroupSearchOpts{FilterArchived: true, Q: "group-1"},
+			Page:    0,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 0
+			},
+			Restrictions: nil,
+		},
 	}
 
 	for _, tc := range testCases {

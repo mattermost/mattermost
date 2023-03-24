@@ -18,9 +18,12 @@ describe('component/user_groups_modal', () => {
         backButtonAction: jest.fn(),
         groupPermissionsMap: {},
         loading: false,
+        loadMoreGroups: jest.fn(),
+        hasNextPage: false,
         actions: {
             openModal: jest.fn(),
             archiveGroup: jest.fn(),
+            restoreGroup: jest.fn(),
         },
     };
 
@@ -53,6 +56,7 @@ describe('component/user_groups_modal', () => {
             groupPermissionsMap[g.id] = {
                 can_delete: true,
                 can_manage_members: true,
+                can_restore: true,
             };
         });
 
