@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/login/LoginMfa should match snapshot 1`] = `
+<Column
+  SVGElement={<Svg />}
+  extraContent={
+    <div
+      className="login-mfa-form"
+    >
+      <ForwardRef
+        autoFocus={true}
+        containerClassName="login-mfa-form-input"
+        disabled={false}
+        inputSize="large"
+        name="token"
+        onChange={[Function]}
+        placeholder="Enter MFA Token"
+        type="text"
+        value=""
+      />
+      <div
+        className="login-mfa-form-button-container"
+      >
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage="Submit"
+          disabled={true}
+          extraClasses="login-mfa-form-button-submit large"
+          onClick={[Function]}
+          saving={false}
+          savingMessage="Logging in…"
+        />
+      </div>
+    </div>
+  }
+  message="To complete the sign in process, please enter a token from your smartphone's authenticator"
+  onEnterKeyDown={[Function]}
+  title="Enter MFA Token"
+/>
+`;

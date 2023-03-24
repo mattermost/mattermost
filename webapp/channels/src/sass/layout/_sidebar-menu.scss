@@ -1,0 +1,121 @@
+@charset 'UTF-8';
+
+.sidebar--menu {
+    position: absolute;
+    right: 0;
+    display: none;
+    overflow: auto;
+    width: 220px;
+    height: 100%;
+    padding: 0 0 2em;
+    border-right: $border-gray;
+    background: var(--sidebar-bg);
+    color: rgba(var(--sidebar-text-rgb), 0.8);
+    -webkit-overflow-scrolling: touch;
+
+    .icon {
+        display: inline-block;
+        width: 20px;
+        margin-right: 8px;
+        text-align: center;
+
+        svg {
+            max-width: 16px;
+            max-height: 16px;
+            fill: var(--sidebar-text);
+        }
+    }
+
+    .nav-pills__container {
+        padding-top: 5px;
+    }
+
+    .team__header {
+        @include pie-clearfix;
+
+        display: none;
+        padding: 0 15px;
+        background: var(--sidebar-header-bg);
+
+        a {
+            color: $white;
+        }
+
+        .navbar-right {
+            margin: 16px -5px 0;
+            font-size: 0.85em;
+
+            .dropdown-toggle {
+                padding: 0 10px;
+            }
+
+            .dropdown-menu {
+                li a {
+                    padding: 3 20px;
+                    color: #555;
+                }
+            }
+
+            .dropdown__icon {
+                display: inline-block;
+                width: 4px;
+                height: 16px;
+                background-size: 100% 100%;
+            }
+        }
+
+        .team__name {
+            overflow: hidden;
+            max-width: 80%;
+            float: left;
+            font-size: 1.2em;
+            font-weight: 600;
+            line-height: 50px;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .nav {
+        > li {
+            > a,
+            > button {
+                padding: 0 15px;
+                background: none !important;
+                color: inherit;
+                font-size: 15px;
+                line-height: 40px;
+
+                svg {
+                    position: relative;
+                    top: 4px;
+                    width: 18px;
+                    height: 18px;
+                    fill-opacity: 0.85;
+                }
+
+                .icon {
+                    position: relative;
+                    left: -5px;
+                    display: inline-block;
+                    width: 25px;
+                    text-align: center;
+                }
+
+                .mentions {
+                    font-size: 17px;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+}
+
+.app__body {
+    .modal-tabs {
+        .nav-tabs > li {
+            background-color: var(--center-channel-bg);
+        }
+    }
+}

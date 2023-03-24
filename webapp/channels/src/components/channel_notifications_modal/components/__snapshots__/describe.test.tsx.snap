@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on DESKTOP/PUSH & ALL 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="For all activity"
+  id="channel_notifications.allActivity"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on MARK_UNREAD & ALL 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Off"
+  id="channel_notifications.muteChannel.off.title"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on MENTION 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Only for mentions"
+  id="channel_notifications.onlyMentions"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on NONE 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Never"
+  id="channel_notifications.never"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on global DEFAULT 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Global default ({notifyLevel})"
+  id="channel_notifications.globalDefault"
+  values={
+    Object {
+      "notifyLevel": <Memo(MemoizedFormattedMessage)
+        defaultMessage="default"
+        id="channel_notifications.levels.default"
+      />,
+    }
+  }
+/>
+`;

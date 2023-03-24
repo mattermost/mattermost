@@ -1,0 +1,1616 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, while loading 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with filters open 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action hidden"
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-search-filters"
+      id="group-filters"
+      onClick={[Function]}
+    >
+      <div
+        className="filter-row"
+      >
+        <span
+          className="filter-check checked"
+          onClick={[Function]}
+        >
+          <CheckboxCheckedIcon />
+        </span>
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="Is Linked"
+            id="admin.group_settings.filters.isLinked"
+          />
+        </span>
+      </div>
+      <div
+        className="filter-row"
+      >
+        <span
+          className="filter-check checked"
+          onClick={[Function]}
+        >
+          <CheckboxCheckedIcon />
+        </span>
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="Is Not Linked"
+            id="admin.group_settings.filters.isUnlinked"
+          />
+        </span>
+      </div>
+      <div
+        className="filter-row"
+      >
+        <span
+          className="filter-check "
+          onClick={[Function]}
+        />
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="Is Configured"
+            id="admin.group_settings.filters.isConfigured"
+          />
+        </span>
+      </div>
+      <div
+        className="filter-row"
+      >
+        <span
+          className="filter-check "
+          onClick={[Function]}
+        />
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="Is Not Configured"
+            id="admin.group_settings.filters.isUnconfigured"
+          />
+        </span>
+      </div>
+      <a
+        className="btn btn-primary search-groups-btn"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Search"
+          id="search_bar.search"
+        />
+      </a>
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with mixed types selected 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-primary"
+        onClick={[Function]}
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 2,
+            "startCount": 1,
+            "total": 2,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with only linked selected 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-primary"
+        onClick={[Function]}
+        type="button"
+      >
+        <i
+          className="icon fa fa-unlink"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Unlink Selected Groups"
+          id="admin.group_settings.groups_list.unlink_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 2,
+            "startCount": 1,
+            "total": 2,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with only not-linked selected 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-primary"
+        onClick={[Function]}
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 2,
+            "startCount": 1,
+            "total": 2,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test1"
+      name="test1"
+      onCheckToggle={[Function]}
+      primary_key="test1"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={false}
+      key="test2"
+      mattermost_group_id="group-id-1"
+      name="test2"
+      onCheckToggle={[Function]}
+      primary_key="test2"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={true}
+      key="test3"
+      mattermost_group_id="group-id-2"
+      name="test3"
+      onCheckToggle={[Function]}
+      primary_key="test3"
+    />
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 3,
+            "startCount": 1,
+            "total": 3,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results and next 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test1"
+      name="test1"
+      onCheckToggle={[Function]}
+      primary_key="test1"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={false}
+      key="test2"
+      mattermost_group_id="group-id-1"
+      name="test2"
+      onCheckToggle={[Function]}
+      primary_key="test2"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={true}
+      key="test3"
+      mattermost_group_id="group-id-2"
+      name="test3"
+      onCheckToggle={[Function]}
+      primary_key="test3"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test4"
+      name="test4"
+      onCheckToggle={[Function]}
+      primary_key="test4"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test5"
+      name="test5"
+      onCheckToggle={[Function]}
+      primary_key="test5"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test6"
+      name="test6"
+      onCheckToggle={[Function]}
+      primary_key="test6"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test7"
+      name="test7"
+      onCheckToggle={[Function]}
+      primary_key="test7"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test8"
+      name="test8"
+      onCheckToggle={[Function]}
+      primary_key="test8"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test9"
+      name="test9"
+      onCheckToggle={[Function]}
+      primary_key="test9"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test10"
+      name="test10"
+      onCheckToggle={[Function]}
+      primary_key="test10"
+    />
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 13,
+            "startCount": 1,
+            "total": 13,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results and next and previous 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test1"
+      name="test1"
+      onCheckToggle={[Function]}
+      primary_key="test1"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={false}
+      key="test2"
+      mattermost_group_id="group-id-1"
+      name="test2"
+      onCheckToggle={[Function]}
+      primary_key="test2"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={true}
+      key="test3"
+      mattermost_group_id="group-id-2"
+      name="test3"
+      onCheckToggle={[Function]}
+      primary_key="test3"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test4"
+      name="test4"
+      onCheckToggle={[Function]}
+      primary_key="test4"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test5"
+      name="test5"
+      onCheckToggle={[Function]}
+      primary_key="test5"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test6"
+      name="test6"
+      onCheckToggle={[Function]}
+      primary_key="test6"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test7"
+      name="test7"
+      onCheckToggle={[Function]}
+      primary_key="test7"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test8"
+      name="test8"
+      onCheckToggle={[Function]}
+      primary_key="test8"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test9"
+      name="test9"
+      onCheckToggle={[Function]}
+      primary_key="test9"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test10"
+      name="test10"
+      onCheckToggle={[Function]}
+      primary_key="test10"
+    />
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 33,
+            "startCount": 201,
+            "total": 33,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results and previous 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      key="test1"
+      name="test1"
+      onCheckToggle={[Function]}
+      primary_key="test1"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={false}
+      key="test2"
+      mattermost_group_id="group-id-1"
+      name="test2"
+      onCheckToggle={[Function]}
+      primary_key="test2"
+    />
+    <GroupRow
+      actions={
+        Object {
+          "link": [MockFunction],
+          "unlink": [MockFunction],
+        }
+      }
+      checked={false}
+      has_syncables={true}
+      key="test3"
+      mattermost_group_id="group-id-2"
+      name="test3"
+      onCheckToggle={[Function]}
+      primary_key="test3"
+    />
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 13,
+            "startCount": 201,
+            "total": 13,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, without results 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-empty"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="No groups found"
+        id="admin.group_settings.groups_list.no_groups_found"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, without selection 1`] = `
+<div
+  className="groups-list"
+>
+  <div
+    className="groups-list--global-actions"
+  >
+    <div
+      className="group-list-search"
+    >
+      <input
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Search"
+        type="text"
+        value=""
+      />
+      <SearchIcon
+        aria-hidden="true"
+        className="search__icon"
+      />
+      <i
+        className="fa fa-times-circle group-filter-action hidden"
+        onClick={[Function]}
+      />
+      <i
+        className="fa fa-caret-down group-filter-action "
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className="group-list-link-unlink"
+    >
+      <button
+        className="btn btn-inactive disabled"
+        type="button"
+      >
+        <i
+          className="icon fa fa-link"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Link Selected Groups"
+          id="admin.group_settings.groups_list.link_selected"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.group_settings.groups_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Mattermost Linking"
+          id="admin.group_settings.groups_list.mappingHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-loading"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 2,
+            "startCount": 1,
+            "total": 2,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;

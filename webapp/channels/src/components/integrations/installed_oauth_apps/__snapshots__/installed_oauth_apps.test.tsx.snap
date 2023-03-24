@@ -1,0 +1,130 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = `
+<BackstageList
+  addButtonId="addOauthApp"
+  addLink="/test/integrations/oauth2-apps/add"
+  addText="Add OAuth 2.0 Application"
+  emptyText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="No OAuth 2.0 Applications found"
+      id="installed_oauth_apps.empty"
+    />
+  }
+  emptyTextSearch={
+    <FormattedMarkdownMessage
+      defaultMessage="No OAuth 2.0 Applications match {searchTerm}"
+      id="installed_oauth_apps.emptySearch"
+    />
+  }
+  header={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="OAuth 2.0 Applications"
+      id="installed_oauth_apps.header"
+    />
+  }
+  helpText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Create {oauthApplications} to securely integrate bots and third-party apps with Mattermost. Visit the {appDirectory} to find available self-hosted apps."
+      id="installed_oauth_apps.help"
+      values={
+        Object {
+          "appDirectory": <ExternalLink
+            href="https://mattermost.com/marketplace/"
+            location="installed_oauth_apps"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="App Directory"
+              id="installed_oauth_apps.help.appDirectory"
+            />
+          </ExternalLink>,
+          "oauthApplications": <ExternalLink
+            href="https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/"
+            location="installed_oauth_apps"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="OAuth 2.0 applications"
+              id="installed_oauth_apps.help.oauthApplications"
+            />
+          </ExternalLink>,
+        }
+      }
+    />
+  }
+  loading={true}
+  searchPlaceholder="Search OAuth 2.0 Applications"
+>
+  <Component />
+</BackstageList>
+`;
+
+exports[`components/integrations/InstalledOAuthApps should match snapshot 2`] = `
+<div>
+  <Connect(InstalledOAuthApp)
+    creatorName=""
+    fromApp={false}
+    key="facxd9wpzpbpfp8pad78xj75pr"
+    oauthApp={
+      Object {
+        "callback_urls": Array [
+          "https://test.com/callback",
+        ],
+        "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+        "create_at": 1501365458934,
+        "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+        "description": "testing",
+        "homepage": "https://test.com",
+        "icon_url": "https://test.com/icon",
+        "id": "facxd9wpzpbpfp8pad78xj75pr",
+        "is_trusted": false,
+        "name": "firstApp",
+        "update_at": 1501365458934,
+      }
+    }
+    onDelete={[Function]}
+    onRegenerateSecret={[MockFunction]}
+    team={
+      Object {
+        "name": "test",
+      }
+    }
+  />
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApps should match snapshot 3`] = `<div />`;
+
+exports[`components/integrations/InstalledOAuthApps should match snapshot for Apps 1`] = `
+<div>
+  <Connect(InstalledOAuthApp)
+    creatorName=""
+    fromApp={true}
+    key="fzcxd9wpzpbpfp8pad78xj75pr"
+    oauthApp={
+      Object {
+        "callback_urls": Array [
+          "https://test2.com/callback",
+          "https://test2.com/callback2",
+        ],
+        "client_secret": "decxd9wpzpbpfp8pad78xj75pr",
+        "create_at": 1501365459984,
+        "creator_id": "88oybd2dwfdoxpkpw1h5kpbyco",
+        "description": "testing2",
+        "homepage": "https://test2.com",
+        "icon_url": "https://test2.com/icon",
+        "id": "fzcxd9wpzpbpfp8pad78xj75pr",
+        "is_trusted": true,
+        "name": "secondApp",
+        "update_at": 1501365479988,
+      }
+    }
+    onDelete={[Function]}
+    onRegenerateSecret={[MockFunction]}
+    team={
+      Object {
+        "name": "test",
+      }
+    }
+  />
+</div>
+`;
