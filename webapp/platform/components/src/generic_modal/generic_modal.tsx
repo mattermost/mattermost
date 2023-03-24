@@ -41,6 +41,7 @@ export type Props = {
     headerButton?: React.ReactNode;
     tabIndex?: number;
     children: React.ReactNode;
+    autoFocusConfirmButton?: boolean;
     keyboardEscape?: boolean;
 };
 
@@ -126,6 +127,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
             confirmButton = (
                 <button
+                    autoFocus={this.props.autoFocusConfirmButton}
                     type='submit'
                     className={classNames('GenericModal__button', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
                         disabled: this.props.isConfirmDisabled,

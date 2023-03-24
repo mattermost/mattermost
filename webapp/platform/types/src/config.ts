@@ -197,6 +197,10 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    AllowPersistentNotifications: string;
+    PersistentNotificationMaxRecipients: string;
+    PersistentNotificationIntervalMinutes: string;
+    AllowPersistentNotificationsForGuests: string;
 };
 
 export type License = {
@@ -364,6 +368,10 @@ export type ServiceSettings = {
     EnableCustomGroups: boolean;
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
+    AllowPersistentNotifications: boolean;
+    PersistentNotificationIntervalMinutes: number;
+    PersistentNotificationMaxCount: number;
+    PersistentNotificationMaxRecipients: number;
     SelfHostedExpansion: boolean;
 };
 
@@ -832,6 +840,7 @@ export type GuestAccountsSettings = {
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
+    AllowPersistentNotifications: boolean;
 };
 
 export type ImageProxySettings = {

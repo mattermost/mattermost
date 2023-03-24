@@ -181,9 +181,18 @@ const defaultServerConfig: AdminConfig = {
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // eslint-disable @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        AllowPersistentNotifications: true,
+        // @ts-ignore
+        PersistentNotificationMaxCount: 6,
+        // @ts-ignore
+        PersistentNotificationMaxRecipients: 5,
+        // @ts-ignore
+        PersistentNotificationIntervalMinutes: 5,
         // @ts-ignore
         SelfHostedExpansion: false,
+        // eslint-enable @typescript-eslint/ban-ts-comment
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -208,6 +217,10 @@ const defaultServerConfig: AdminConfig = {
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
+        // eslint-disable @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        AllowPersistentNotifications: false,
+        // eslint-enable @typescript-eslint/ban-ts-comment
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
