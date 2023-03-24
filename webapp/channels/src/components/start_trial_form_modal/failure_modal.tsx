@@ -13,6 +13,9 @@ import ResultModal from 'components/admin_console/billing/delete_workspace/resul
 
 type Props = {
     onTryAgain?: () => void;
+    title?: JSX.Element;
+    subtitle?: JSX.Element;
+    buttonText?: JSX.Element;
 }
 
 export default function StartTrialFormModalResult(props: Props) {
@@ -23,21 +26,21 @@ export default function StartTrialFormModalResult(props: Props) {
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT));
     };
 
-    const title = (
+    const title = props.title || (
         <FormattedMessage
             defaultMessage={'Please try again'}
             id={'start_trial_form_modal.failureModal.title'}
         />
     );
 
-    const subtitle = (
+    const subtitle = props.subtitle || (
         <FormattedMessage
             id={'start_trial_form_modal.failureModal.subtitle'}
             defaultMessage={'There was in issue processing your trial request. Please try again or contact support.'}
         />
     );
 
-    const buttonText = (
+    const buttonText = props.buttonText || (
         <FormattedMessage
             id='admin.billing.deleteWorkspace.failureModal.buttonText'
             defaultMessage={'Try Again'}

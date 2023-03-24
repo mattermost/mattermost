@@ -184,58 +184,59 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
+	c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.not-available", nil, "", http.StatusUnprocessableEntity)
+	// if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+	// 	c.SetPermissionError(model.PermissionManageLicenseInformation)
+	// 	return
+	// }
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
+	// if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+	// 	c.Err = model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	// 	return
+	// }
 
-	if c.App.Srv().Platform().LicenseManager() == nil {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
-		return
-	}
+	// if c.App.Srv().Platform().LicenseManager() == nil {
+	// 	c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
+	// 	return
+	// }
 
-	canStartTrialLicense, err := c.App.Srv().Platform().LicenseManager().CanStartTrial()
-	if err != nil {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// canStartTrialLicense, err := c.App.Srv().Platform().LicenseManager().CanStartTrial()
+	// if err != nil {
+	// 	c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	if !canStartTrialLicense {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
-		return
-	}
+	// if !canStartTrialLicense {
+	// 	c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
+	// 	return
+	// }
 
-	var trialRequest *model.TrialLicenseRequest
+	// var trialRequest *model.TrialLicenseRequest
 
-	b, readErr := io.ReadAll(r.Body)
-	if readErr != nil {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
-		return
-	}
-	json.Unmarshal(b, &trialRequest)
+	// b, readErr := io.ReadAll(r.Body)
+	// if readErr != nil {
+	// 	c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+	// 	return
+	// }
+	// json.Unmarshal(b, &trialRequest)
 
-	var appErr *model.AppError
-	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
-	if !trialRequest.IsLegacy() {
-		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext.Session().UserId, trialRequest)
-	} else {
-		appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
-	}
+	// var appErr *model.AppError
+	// // If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
+	// if !trialRequest.IsLegacy() {
+	// 	appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext.Session().UserId, trialRequest)
+	// } else {
+	// 	appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
+	// }
 
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
+	// if appErr != nil {
+	// 	c.Err = appErr
+	// 	return
+	// }
 
-	auditRec.Success()
-	c.LogAudit("success")
+	// auditRec.Success()
+	// c.LogAudit("success")
 
-	ReturnStatusOK(w)
+	// ReturnStatusOK(w)
 }
 
 func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -8,7 +8,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 export default function useCWSAvailabilityCheck(teamEditionDefaultAllowed: boolean = false) {
-    const [canReachCWS, setCanReachCWS] = useState(false);
+    const [canReachCWS, setCanReachCWS] = useState<boolean | undefined>(undefined);
     const config = useSelector(getConfig);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     useEffect(() => {

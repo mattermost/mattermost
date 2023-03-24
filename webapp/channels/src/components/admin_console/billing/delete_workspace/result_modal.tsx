@@ -32,7 +32,7 @@ type Props = {
     ignoreExit: boolean;
 };
 
-export default function ResultModal({type, icon, title, subtitle, primaryButtonText, primaryButtonHandler, identifier, contactSupportButtonVisible, resultType, ignoreExit}: Props) {
+export default function ResultModal({type, icon, title, subtitle, primaryButtonText, primaryButtonHandler, identifier, contactSupportButtonVisible, resultType, ignoreExit, onHide}: Props) {
     const dispatch = useDispatch();
 
     const openContactUs = useOpenSalesLink(undefined, InquiryType.Technical);
@@ -41,12 +41,13 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
         isModalOpen(state, identifier),
     );
 
-    const onHide = () => {
+    const handleHide = () => {
         dispatch(closeModal(identifier));
         if (typeof onHide === 'function') {
             onHide();
         }
     };
+
 
     const modalType = `delete-workspace-result_modal__${resultType}`;
     if (type === 'small') {
@@ -54,7 +55,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
             <Modal
                 className='ResultModal__small'
                 show={isResultModalOpen}
-                onHide={onHide}
+                onHide={handleHide}
             >
                 <Modal.Header closeButton={true}/>
                 <div className={modalType}>
