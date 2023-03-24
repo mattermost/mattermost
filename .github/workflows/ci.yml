@@ -9,6 +9,9 @@ on:
       - mono-repo*
 env:
   go-version: "1.19.5"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check-mocks:
     name: Check mocks
