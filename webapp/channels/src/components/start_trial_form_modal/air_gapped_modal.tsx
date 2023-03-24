@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
@@ -10,8 +13,16 @@ type Props = {
     onClose?: () => void;
 }
 
-function AirGappedModal({ onClose }: Props) {
+function AirGappedModal({onClose}: Props) {
     const {formatMessage} = useIntl();
+    const airGappedLink = (
+        <ExternalLink
+            location='start_trial_air_gapped_modal'
+            href='https://mattermost.com/trial/'
+        >
+            {'https://mattermost.com/trial/'}
+        </ExternalLink>
+    );
     return (
         <Modal
             className={'AirGappedModal'}
@@ -23,43 +34,42 @@ function AirGappedModal({ onClose }: Props) {
         >
             <Modal.Header closeButton={true}>
                 <div className='title'>
-                    {formatMessage({ id: 'air_gapped_modal.title', defaultMessage: 'Request a trial key' })}
+                    {formatMessage({id: 'air_gapped_modal.title', defaultMessage: 'Request a trial key'})}
                 </div>
             </Modal.Header>
             <Modal.Body>
                 <div className='body'>
-                    <div className="description">
-                        {formatMessage({
-                            id: "air_gapped_modal.description",
-                            defaultMessage: "To start your trial, please visit {link} and request a trial key."
-                        },
-                            {
-                                link: <ExternalLink
-                                    location='start_trial_air_gapped_modal'
-                                    href="https://mattermost.com/trial/">
-                                    {'https://mattermost.com/trial/'}
-                                </ExternalLink>
-                            }
-                        )}
+                    <div className='description'>
+                        {
+                            formatMessage(
+                                {
+                                    id: 'air_gapped_modal.description',
+                                    defaultMessage: 'To start your trial, please visit {link} and request a trial key.',
+                                },
+                                {
+                                    link: airGappedLink,
+                                },
+                            )
+                        }
                     </div>
-                    <div className="icon">
+                    <div className='icon'>
                         <AirgappedTrialActivationConfirmSvg
                             width={256}
                             height={200}
                         />
                     </div>
                 </div>
-                <div className="buttons">
+                <div className='buttons'>
                     <Button
                         className='confirm-btn'
                         onClick={() => onClose?.()}
                     >
-                        {formatMessage({id: "air_gapped_modal.close", defaultMessage: "Close"})}
+                        {formatMessage({id: 'air_gapped_modal.close', defaultMessage: 'Close'})}
                     </Button>
                 </div>
             </Modal.Body>
-            </Modal>
-    )
+        </Modal>
+    );
 }
 
 export default AirGappedModal;

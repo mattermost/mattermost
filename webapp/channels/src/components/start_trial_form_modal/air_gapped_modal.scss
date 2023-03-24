@@ -17,7 +17,6 @@
 
     .modal-header {
         .close {
-
             &:hover,
             &:active,
             &:focus,
@@ -33,8 +32,7 @@
             height: 24px;
             border-radius: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.56) !important;
-            font-family: 'Open Sans',
-            sans-serif;
+            font-family: 'Open Sans', sans-serif;
             font-size: 32px;
             font-weight: 400;
         }
@@ -47,6 +45,7 @@
             line-height: 28px;
             text-align: left;
         }
+
         display: block;
         min-height: 48px;
         padding-top: 26px;
@@ -81,10 +80,10 @@
         }
 
         .icon {
-            margin-top: 32px;
-            align-items: center;
-            text-align: center;
             width: 100%;
+            align-items: center;
+            margin-top: 32px;
+            text-align: center;
         }
 
         .buttons {
@@ -92,7 +91,6 @@
             text-align: right;
 
             .confirm-btn {
-
                 &:hover,
                 &:active,
                 &:focus,

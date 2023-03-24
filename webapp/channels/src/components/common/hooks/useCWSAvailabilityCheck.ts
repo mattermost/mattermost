@@ -7,7 +7,7 @@ import {useSelector} from 'react-redux';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-export default function useCWSAvailabilityCheck(teamEditionDefaultAllowed: boolean = false) {
+export default function useCWSAvailabilityCheck(teamEditionDefaultAllowed = false) {
     const [canReachCWS, setCanReachCWS] = useState<boolean | undefined>(undefined);
     const config = useSelector(getConfig);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
@@ -16,7 +16,8 @@ export default function useCWSAvailabilityCheck(teamEditionDefaultAllowed: boole
             return;
         }
         Client4.cwsAvailabilityCheck().then(() => {
-            setCanReachCWS(true)
+            setCanReachCWS(true);
+
             // server will respond with 400 for Team Edition. If teamEditionDefaultAllowed is true, and we have a 400
             // Set availability to true, so trial requests from team edition can still be initiated in-product
         }).catch((err) => setCanReachCWS(err.status_code === 400 && teamEditionDefaultAllowed));

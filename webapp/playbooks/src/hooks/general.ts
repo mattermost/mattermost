@@ -404,7 +404,7 @@ export function useOpenStartTrialFormModal() {
                 dialogProps: {
                     page,
                     onClose,
-                }
+                },
             }),
         );
     };

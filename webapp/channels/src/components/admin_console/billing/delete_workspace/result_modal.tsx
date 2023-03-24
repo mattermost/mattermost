@@ -48,7 +48,6 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
         }
     };
 
-
     const modalType = `delete-workspace-result_modal__${resultType}`;
     if (type === 'small') {
         return (

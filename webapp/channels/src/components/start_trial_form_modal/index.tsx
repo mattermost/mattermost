@@ -32,7 +32,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 import './start_trial_form_modal.scss';
 import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import AirGappedModal from './air_gapped_modal';
-import { EmbargoedEntityTrialError } from 'components/admin_console/license_settings/trial_banner/trial_banner';
 
 // TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
 
@@ -66,7 +65,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [orgSize, setOrgSize] = useState<OrgSize | undefined>();
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
-    const { formatMessage } = useIntl();
+    const {formatMessage} = useIntl();
     const canReachCWS = useCWSAvailabilityCheck(true);
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
@@ -136,33 +135,42 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         const error = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
-            let title = undefined;
-            let subtitle = undefined;
-            let buttonText = undefined;
+            let title;
+            let subtitle;
+            let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
             if (error?.data.status === 422) {
                 title = (<></>);
-                subtitle = (<FormattedMessage id='admin.license.trial-request.embargoed'
-                    defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
-                    values={{
-                        link: (text: string) => (
-                            <ExternalLink
-                                location='trial_banner'
-                                href={LicenseLinks.EMBARGOED_COUNTRIES}
-                            >
-                                {text}
-                            </ExternalLink>
-                        ),
-                    }} />);
-                buttonText = (<FormattedMessage id='admin.license.trial-request.embargoed.button' defaultMessage='Close'/>);
+                subtitle = (
+                    <FormattedMessage
+                        id='admin.license.trial-request.embargoed'
+                        defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
+                        values={{
+                            link: (text: string) => (
+                                <ExternalLink
+                                    location='trial_banner'
+                                    href={LicenseLinks.EMBARGOED_COUNTRIES}
+                                >
+                                    {text}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                );
+                buttonText = (
+                    <FormattedMessage
+                        id='admin.license.trial-request.embargoed.button'
+                        defaultMessage='Close'
+                    />
+                );
                 onTryAgain = handleOnClose;
             }
             dispatch(openModal({
                 modalId: ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT,
                 dialogType: StartTrialFormModalResult,
                 dialogProps: {
-                    onTryAgain: onTryAgain,
+                    onTryAgain,
                     title,
                     subtitle,
                     buttonText,
@@ -171,11 +179,11 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             return;
         }
 
-            setLoadStatus(TrialLoadStatus.Success);
-            await dispatch(getLicenseConfig());
-            dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
-            openTrialBenefitsModal();
-        };
+        setLoadStatus(TrialLoadStatus.Success);
+        await dispatch(getLicenseConfig());
+        dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
+        openTrialBenefitsModal();
+    };
 
     const btnText = (status: TrialLoadStatus): string => {
         switch (status) {
