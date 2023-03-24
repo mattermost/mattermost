@@ -88,6 +88,29 @@ func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *
 	return r0
 }
 
+// ConfirmSelfHostedExpansion provides a mock function with given fields: req, requesterEmail
+func (_m *CloudInterface) ConfirmSelfHostedExpansion(req model.SelfHostedExpansionConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error) {
+	ret := _m.Called(req, requesterEmail)
+
+	var r0 *model.SelfHostedSignupConfirmResponse
+	if rf, ok := ret.Get(0).(func(model.SelfHostedExpansionConfirmPaymentMethodRequest, string) *model.SelfHostedSignupConfirmResponse); ok {
+		r0 = rf(req, requesterEmail)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SelfHostedSignupConfirmResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.SelfHostedExpansionConfirmPaymentMethodRequest, string) error); ok {
+		r1 = rf(req, requesterEmail)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ConfirmSelfHostedSignup provides a mock function with given fields: req, requesterEmail
 func (_m *CloudInterface) ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error) {
 	ret := _m.Called(req, requesterEmail)
