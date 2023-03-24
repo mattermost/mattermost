@@ -78,4 +78,5 @@ export interface TrueUpReviewStatusReducer extends TrueUpReviewStatus {
 
 export interface SelfHostedExpansionRequest {
     seats: number;
+    license_id: string;
 }
