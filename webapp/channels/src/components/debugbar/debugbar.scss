@@ -1,0 +1,220 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+.DebugBar {
+    z-index: 1100;
+    width: 100%;
+    height: 400px;
+    background: var(--center-channel-bg-rgb);
+    grid-column: 1/span 5;
+    grid-row: 4;
+
+    .truncate {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .debug {
+        color: rgba(var(--semantic-color-general), 0.5);
+    }
+
+    .success {
+        color: rgb(var(--semantic-color-success));
+    }
+
+    .info {
+        color: rgb(var(--semantic-color-info));
+    }
+
+    .warn {
+        color: rgb(var(--semantic-color-warning));
+    }
+
+    .error {
+        color: rgb(var(--semantic-color-danger));
+    }
+
+    &__Actions {
+        display: flex;
+        margin-left: auto;
+    }
+
+    .handler {
+        width: 100%;
+        padding-top: 2px;
+        background: var(--sidebar-text-active-border);
+        cursor: ns-resize;
+    }
+
+    .header {
+        display: flex;
+        background-color: var(--sidebar-bg);
+        color: var(--sidebar-text);
+
+        &__Button {
+            @include button-style--none;
+
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-left: 2px solid rgba(var(--sidebar-text-active-border), 0);
+            border-radius: 0;
+
+            &.selected,
+            &:hover {
+                @include tertiary-button;
+
+                border-left: 2px solid rgba(var(--sidebar-text-active-border), 0);
+                border-radius: 0;
+                color: var(--sidebar-text-active-color);
+                font-weight: normal;
+                transition: none;
+            }
+
+            &.selected {
+                border-left: 2px solid var(--sidebar-text-active-border);
+                background: rgba(var(--sidebar-text-rgb), 0.1);
+                border-radius: 0;
+            }
+        }
+    }
+
+    .body {
+        overflow: scroll;
+        height: 100%;
+        background: var(--center-channel-bg);
+    }
+
+    .DebugBarTable {
+        width: 100%;
+        background: var(--center-channel-bg);
+
+        &__row {
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+            height: 50px;
+            flex-wrap: nowrap;
+            align-items: center;
+            padding: 3px 8px;
+
+            > .div {
+                padding: 0 10px;
+                text-align: left;
+            }
+
+            .time {
+                width: 100px;
+                flex-shrink: 0;
+            }
+
+            .duration {
+                @extend .truncate;
+
+                width: 100px;
+                flex-shrink: 0;
+                margin-left: auto;
+                text-align: right;
+            }
+
+            .calls {
+                @extend .truncate;
+
+                width: 300px;
+                flex-shrink: 0;
+                text-align: left;
+            }
+
+            .method {
+                overflow: hidden;
+                width: 80px;
+                flex-shrink: 0;
+                padding: 0 6px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+            .address {
+                width: 300px;
+            }
+
+            .subject {
+                width: 100%;
+                font-weight: bold;
+            }
+
+            .logMessage {
+                @extend .truncate;
+
+                width: 242px;
+                flex-shrink: 0;
+            }
+
+            .json {
+                @extend .truncate;
+
+                width: 100%;
+            }
+
+            .level {
+                overflow: hidden;
+                width: 100px;
+                flex-shrink: 0;
+                padding: 0 6px;
+                margin-left: auto;
+                font-weight: bold;
+                text-align: right;
+                text-transform: uppercase;
+            }
+
+            .inline {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            &:nth-child(even) {
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+
+                &.DebugBarTable__row--highlight {
+                    background: rgb(var(--pinned-highlight-bg-mixed-rgb));
+                }
+            }
+
+            &--highlight {
+                background: rgb(var(--pinned-highlight-bg-mixed-rgb));
+            }
+        }
+
+        .Footer {
+            display: flex;
+            align-items: center;
+            background-color: var(--sidebar-bg);
+
+            &--right {
+                margin-left: auto;
+            }
+
+            .warn,
+            .error,
+            .info,
+            .debug {
+                @include button-style--none;
+                @include button-small;
+
+                &.active {
+                    font-weight: bold;
+                    text-decoration: underline;
+                }
+            }
+
+            .debug {
+                color: rgba(var(--sidebar-text-rgb), 0.8);
+            }
+        }
+    }
+}

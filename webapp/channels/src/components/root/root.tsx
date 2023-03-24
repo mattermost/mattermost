@@ -41,6 +41,7 @@ import OpenPricingModalPost from 'components/custom_open_pricing_modal_post_rend
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 
 import AccessProblem from 'components/access_problem';
+import DebugBar from 'components/debugbar/debugbar';
 
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
@@ -703,6 +704,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <SidebarRight/>
                         <AppBar/>
                         <SidebarRightMenu/>
+                        <DebugBar/>
                     </CompassThemeProvider>
                 </Switch>
             </RootProvider>

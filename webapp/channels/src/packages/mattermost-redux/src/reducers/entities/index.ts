@@ -23,6 +23,7 @@ import groups from './groups';
 import bots from './bots';
 import channelCategories from './channel_categories';
 import apps from './apps';
+import debugbar from './debugbar';
 import cloud from './cloud';
 import hostedCustomer from './hosted_customer';
 import usage from './usage';
@@ -52,6 +53,7 @@ export default combineReducers({
     threads,
     channelCategories,
     apps,
+    debugbar,
     cloud,
     insights,
     usage,
