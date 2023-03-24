@@ -2927,7 +2927,7 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'GuestAccountsSettings.AllowPersistentNotifications',
+                        key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
                         label: t('admin.posts.persistentNotificationsGuests.title'),
                         label_default: 'Allow guests to send persistent notifications',
                         help_text: t('admin.posts.persistentNotificationsGuests.desc'),

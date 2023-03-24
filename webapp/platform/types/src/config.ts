@@ -369,6 +369,7 @@ export type ServiceSettings = {
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
     AllowPersistentNotifications: boolean;
+    AllowPersistentNotificationsForGuests: boolean;
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
@@ -840,7 +841,6 @@ export type GuestAccountsSettings = {
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
-    AllowPersistentNotifications: boolean;
 };
 
 export type ImageProxySettings = {

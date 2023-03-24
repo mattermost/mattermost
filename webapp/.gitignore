@@ -2,6 +2,7 @@
 junit.xml
 node_modules
 *.tsbuildinfo
+.rollup.cache
 
 channels/dist
 playbooks/dist
