@@ -44,7 +44,7 @@ import DowngradeTeamRemovalModal from './downgrade_team_removal_modal';
 import ContactSalesCTA from './contact_sales_cta';
 import StarterDisclaimerCTA from './starter_disclaimer_cta';
 import StartTrialCaution from './start_trial_caution';
-import Card, {ButtonCustomiserClasses} from './card';
+import Card, {ButtonCustomiserClasses, BlankCard} from './card';
 
 import './content.scss';
 
@@ -312,7 +312,7 @@ function Content(props: ContentProps) {
                 />
             </Modal.Header>
             <Modal.Body>
-                <div className='pricing-options-container'>
+                {/* <div className='pricing-options-container'>
                     <div className='alert-option-container'>
                         <div className='alert-option'>
                             <span>{formatMessage({id: 'pricing_modal.lookingToSelfHost', defaultMessage: 'Looking to self-host?'})}</span>
@@ -328,10 +328,10 @@ function Content(props: ContentProps) {
                             >{formatMessage({id: 'pricing_modal.reviewDeploymentOptions', defaultMessage: 'Review deployment options'})}</ExternalLink>
                         </div>
                     </div>
-                </div>
+                </div> */}
 
                 <div className='PricingModal__body'>
-                    <Card
+                    {/* <Card
                         id='free'
                         topColor='#339970'
                         plan='Free'
@@ -389,7 +389,7 @@ function Content(props: ContentProps) {
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
                             items: hasLimits ? starterBriefing : legacyStarterBriefing,
                         }}
-                    />
+                    /> */}
 
                     <Card
                         id='professional'
@@ -443,6 +443,15 @@ function Content(props: ContentProps) {
                         topColor='#E07315'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
+                        price={`$${25}`}
+                        rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                            br: <br/>,
+                            b: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                <span style={{fontSize: '14px'}}>
+                                    <b>{chunks}</b>
+                                </span>
+                            ),
+                        })}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel
@@ -481,6 +490,7 @@ function Content(props: ContentProps) {
                             ],
                         }}
                     />
+                    <BlankCard/>
                 </div>
             </Modal.Body>
         </div>

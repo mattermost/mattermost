@@ -3,10 +3,10 @@
 
 import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
-import styled from 'styled-components';
 
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
+import Illus from './illus.svg';
 
 export enum ButtonCustomiserClasses {
     grayed = 'grayed',
@@ -50,13 +50,23 @@ type CardProps = {
     planTrialDisclaimer?: JSX.Element;
 }
 
-type StyledProps = {
-    bgColor?: string;
-}
+export function BlankCard() {
+    return (
+        <div className='BlankCard'>
+            <div>
+                <Illus/>
+            </div>
 
-const StyledDiv = styled.div<StyledProps>`
-background-color: ${(props) => props.bgColor};
-`;
+            <div className="description">
+                <p>{'Questions?'} <a>{'Contact us'}</a></p>
+                <p>{'Reach out to us and we’ll help you decide which plan is right for you and your organization.'}</p>
+            </div>
+            <div>
+            <p>{'Interested in self-hosting?'} <a>{'Learn more'}</a></p>
+            </div>
+        </div>
+    );
+}
 
 function Card(props: CardProps) {
     const {formatMessage} = useIntl();
@@ -66,16 +76,13 @@ function Card(props: CardProps) {
             className='PlanCard'
         >
             {props.planLabel}
-            <StyledDiv
-                className='top'
-                bgColor={props.topColor}
-            />
             <div className='bottom'>
                 <div className='bottom_container'>
                     <div className='plan_price_rate_section'>
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
-                        {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>}
+                        {/* {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>} */}
+                        <h1>{props.price}</h1>
                         <span>{props.rate}</span>
                     </div>
 

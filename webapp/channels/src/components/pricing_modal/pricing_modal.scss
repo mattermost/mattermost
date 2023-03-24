@@ -125,8 +125,19 @@
         position: relative;
         display: flex;
         align-self: center;
+        margin-top: 74px;
         margin-bottom: 111px;
         gap: 48px;
+
+        .BlankCard {
+            position: relative;
+            width: 280px;
+
+            .description {
+                border-bottom: 1px solid rgba(63, 67, 80, 0.16);
+                text-align: center;
+            }
+        }
 
         .PlanCard {
             position: relative;
@@ -163,10 +174,9 @@
 
             .bottom {
                 height: auto;
-                border: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
-                border-top: 1px solid var(--center-channel-bg);
+                border: 1px solid rgba(63, 67, 80, 0.16);
                 background-color: var(--center-channel-bg);
-                border-radius: 0 0 4px 4px;
+                border-radius: 4px;
                 box-shadow: var(--elevation-6);
 
                 .bottom_container {
