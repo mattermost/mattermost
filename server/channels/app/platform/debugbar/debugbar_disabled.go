@@ -9,7 +9,7 @@ import (
 	"io"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
 )
 
 type DebugBar struct{}
