@@ -22,12 +22,14 @@ export type TestConfig = {
     haClusterEnabled: boolean;
     haClusterNodeCount: number;
     haClusterName: string;
+    pluginMockOAuthToken?: string;
     // CI
     isCI: boolean;
     // Playwright
     headless: boolean;
     slowMo: number;
     workers: number;
+    testDir: string;
     // Visual tests
     snapshotEnabled: boolean;
     percyEnabled: boolean;
@@ -46,12 +48,14 @@ const config: TestConfig = {
     haClusterNodeCount: parseNumber(process.env.PW_HA_CLUSTER_NODE_COUNT, 2),
     haClusterName: process.env.PW_HA_CLUSTER_NAME || 'mm_dev_cluster',
     resetBeforeTest: parseBool(process.env.PW_RESET_BEFORE_TEST, false),
+    pluginMockOAuthToken: process.env.PLUGIN_E2E_MOCK_OAUTH_TOKEN,
     // CI
     isCI: !!process.env.CI,
     // Playwright
     headless: parseBool(process.env.PW_HEADLESS, false),
     slowMo: parseNumber(process.env.PW_SLOWMO, 0),
     workers: parseNumber(process.env.PW_WORKERS, 1),
+    testDir: process.env.PW_TEST_DIR || 'tests',
     // Visual tests
     snapshotEnabled: parseBool(process.env.PW_SNAPSHOT_ENABLE, false),
     percyEnabled: parseBool(process.env.PW_PERCY_ENABLE, false),

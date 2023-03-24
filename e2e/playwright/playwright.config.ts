@@ -12,7 +12,7 @@ export default defineConfig({
     globalSetup: require.resolve('./global_setup'),
     forbidOnly: testConfig.isCI,
     outputDir: './test-results',
-    testDir: 'tests',
+    testDir: testConfig.testDir,
     timeout: duration.one_min,
     workers: testConfig.workers,
     expect: {
