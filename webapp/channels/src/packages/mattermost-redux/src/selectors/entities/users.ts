@@ -54,6 +54,16 @@ type Filters = {
     team_roles?: string[];
 };
 
+export const daysOfWeek = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+];
+
 export function getUserIdsInChannels(state: GlobalState): RelationOneToManyUnique<Channel, UserProfile> {
     return state.entities.users.profilesInChannel;
 }
@@ -822,5 +832,17 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
             timestampUnits.push('day');
         }
         return timestampUnits;
+    },
+);
+
+export function getFirstDayOfWeekForCurrentUser(state: GlobalState): number {
+    return Number(getCurrentUser(state)?.props.first_day_of_week ?? '0');
+}
+
+export const getFirstDayOfWeekLabel: (state: GlobalState) => string = createSelector(
+    'getFirstDayOfWeekLabel',
+    (state: GlobalState) => getFirstDayOfWeekForCurrentUser(state),
+    (firstDayOfWeek: number) => {
+        return daysOfWeek[firstDayOfWeek];
     },
 );

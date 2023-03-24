@@ -19,7 +19,12 @@ import Timestamp from 'components/timestamp';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isKeyPressed, localizeMessage} from 'utils/utils';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
-import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
+import Constants, {
+    A11yCustomEventTypes,
+    A11yFocusEventDetail,
+} from 'utils/constants';
+import {GlobalState} from '@mattermost/types/store';
+import {getFirstDayOfWeekForCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
@@ -52,7 +57,7 @@ type Props = {
     handleChange: (date: Moment) => void;
     timezone?: string;
     setIsDatePickerOpen?: (isDatePickerOpen: boolean) => void;
-}
+};
 
 const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const locale = useSelector(getCurrentLocale);
@@ -67,11 +72,17 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         props.setIsDatePickerOpen?.(isOpen);
     }, []);
 
-    const handleKeyDown = useCallback((event: KeyboardEvent) => {
-        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && isPopperOpen) {
-            handlePopperOpenState(false);
-        }
-    }, [isPopperOpen, handlePopperOpenState]);
+    const handleKeyDown = useCallback(
+        (event: KeyboardEvent) => {
+            if (
+                isKeyPressed(event, Constants.KeyCodes.ESCAPE) &&
+                isPopperOpen
+            ) {
+                handlePopperOpenState(false);
+            }
+        },
+        [isPopperOpen, handlePopperOpenState],
+    );
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -98,29 +109,34 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
             const roundedTime = getRoundedTime(currentTime);
             handleChange(roundedTime);
         } else {
-            const dayWithTimezone = timezone ? moment.tz(day, timezone) : moment(day);
+            const dayWithTimezone = timezone ?
+                moment.tz(day, timezone) :
+                moment(day);
             handleChange(dayWithTimezone.startOf('day'));
         }
         handlePopperOpenState(false);
     };
 
-    const handleTimeChange = useCallback((time: Date, e: React.MouseEvent) => {
-        e.preventDefault();
-        handleChange(moment(time));
-        focusTimeButton();
-    }, [handleChange]);
+    const handleTimeChange = useCallback(
+        (time: Date, e: React.MouseEvent) => {
+            e.preventDefault();
+            handleChange(moment(time));
+            focusTimeButton();
+        },
+        [handleChange],
+    );
 
     const currentTime = getCurrentMomentForTimezone(timezone).toDate();
 
     const focusTimeButton = useCallback(() => {
-        document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-            A11yCustomEventTypes.FOCUS, {
+        document.dispatchEvent(
+            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
                 detail: {
                     target: timeButtonRef.current,
                     keyboardOnly: true,
                 },
-            },
-        ));
+            }),
+        );
     }, []);
 
     const formatDate = (date: Date): string => {
@@ -137,15 +153,24 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         />
     );
 
+    const firstDayOfWeek = useSelector((state: GlobalState) =>
+        getFirstDayOfWeekForCurrentUser(state),
+    );
+
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
         mode: 'single',
         selected: currentTime,
         onDayClick: handleDayChange,
-        disabled: [{
-            before: currentTime,
-        }],
+        disabled: [
+            {
+                before: currentTime,
+            },
+        ],
         showOutsideDays: true,
+        weekStartsOn: (firstDayOfWeek >= 0 && firstDayOfWeek < 7 ?
+            firstDayOfWeek :
+            undefined) as 0 | 2 | 1 | 3 | 4 | 5 | 6 | undefined,
     };
 
     return (
@@ -162,7 +187,10 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                         id='customStatus__calendar-input'
                         readOnly={true}
                         className='dateTime__calendar-input'
-                        label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                        label={localizeMessage(
+                            'dnd_custom_time_picker_modal.date',
+                            'Date',
+                        )}
                         onClick={() => handlePopperOpenState(true)}
                         tabIndex={-1}
                         inputPrefix={inputIcon}
@@ -170,20 +198,21 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                 </DatePicker>
             </div>
             <div className='dateTime__time'>
-                <MenuWrapper
-                    className='dateTime__time-menu'
-                >
+                <MenuWrapper className='dateTime__time-menu'>
                     <button
                         className='style--none'
                         ref={timeButtonRef}
                     >
-                        <span className='dateTime__input-title'>{formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'})}</span>
+                        <span className='dateTime__input-title'>
+                            {formatMessage({
+                                id: 'custom_status.expiry.time_picker.title',
+                                defaultMessage: 'Time',
+                            })}
+                        </span>
                         <span className='dateTime__time-icon'>
                             <i className='icon-clock-outline'/>
                         </span>
-                        <div
-                            className='dateTime__input'
-                        >
+                        <div className='dateTime__input'>
                             <Timestamp
                                 useRelative={false}
                                 useDate={false}
@@ -192,23 +221,30 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                         </div>
                     </button>
                     <Menu
-                        ariaLabel={formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'})}
+                        ariaLabel={formatMessage({
+                            id: 'time_dropdown.choose_time',
+                            defaultMessage: 'Choose a time',
+                        })}
                         id='expiryTimeMenu'
                     >
                         <Menu.Group>
-                            {Array.isArray(timeOptions) && timeOptions.map((option, index) => (
-                                <Menu.ItemAction
-                                    onClick={handleTimeChange.bind(this, option)}
-                                    key={index}
-                                    text={
-                                        <Timestamp
-                                            useRelative={false}
-                                            useDate={false}
-                                            value={option}
-                                        />
-                                    }
-                                />
-                            ))}
+                            {Array.isArray(timeOptions) &&
+                                timeOptions.map((option, index) => (
+                                    <Menu.ItemAction
+                                        onClick={handleTimeChange.bind(
+                                            this,
+                                            option,
+                                        )}
+                                        key={index}
+                                        text={
+                                            <Timestamp
+                                                useRelative={false}
+                                                useDate={false}
+                                                value={option}
+                                            />
+                                        }
+                                    />
+                                ))}
                         </Menu.Group>
                     </Menu>
                 </MenuWrapper>

@@ -13,6 +13,9 @@ import * as Utils from 'utils/utils';
 import Constants from 'utils/constants';
 
 import 'react-day-picker/dist/style.css';
+import {GlobalState} from '@mattermost/types/store';
+import {getFirstDayOfWeekForCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {useSelector} from 'react-redux';
 
 export default class SearchDateSuggestion extends Suggestion {
     private loadedLocales: Record<string, Locale> = {};
@@ -24,10 +27,13 @@ export default class SearchDateSuggestion extends Suggestion {
     handleDayClick = (day: Date) => {
         const dayString = day.toISOString().split('T')[0];
         this.props.onClick(dayString, this.props.matchedPretext);
-    }
+    };
 
     handleKeyDown = (e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, Constants.KeyCodes.DOWN) && document.activeElement?.id === 'searchBox') {
+        if (
+            Utils.isKeyPressed(e, Constants.KeyCodes.DOWN) &&
+            document.activeElement?.id === 'searchBox'
+        ) {
             this.setState({datePickerFocused: true});
         } else if (Utils.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             this.props.handleEscape();
@@ -43,22 +49,23 @@ export default class SearchDateSuggestion extends Suggestion {
     }
 
     iconLeft = () => {
-        return (
-            <i className='icon icon-chevron-left'/>
-        );
-    }
+        return <i className="icon icon-chevron-left" />;
+    };
 
     iconRight = () => {
-        return (
-            <i className='icon icon-chevron-right'/>
-        );
-    }
+        return <i className="icon icon-chevron-right" />;
+    };
 
     render() {
         const locale: string = this.props.locale;
 
-        this.loadedLocales = Utils.getDatePickerLocalesForDateFns(locale, this.loadedLocales);
-
+        this.loadedLocales = Utils.getDatePickerLocalesForDateFns(
+            locale,
+            this.loadedLocales
+        );
+        const firstDayOfWeek = useSelector((state: GlobalState) =>
+            getFirstDayOfWeekForCurrentUser(state)
+        );
         return (
             <DayPicker
                 onDayClick={this.handleDayClick}
@@ -67,12 +74,17 @@ export default class SearchDateSuggestion extends Suggestion {
                 locale={this.loadedLocales[locale]}
                 initialFocus={this.state.datePickerFocused}
                 onMonthChange={this.props.preventClose}
-                id='searchDatePicker'
+                id="searchDatePicker"
                 selected={this.props.currentDate}
                 components={{
                     IconRight: this.iconRight,
                     IconLeft: this.iconLeft,
                 }}
+                weekStartsOn={
+                    (firstDayOfWeek >= 0 && firstDayOfWeek < 7
+                        ? firstDayOfWeek
+                        : undefined) as 0 | 2 | 1 | 3 | 4 | 5 | 6 | undefined
+                }
             />
         );
     }

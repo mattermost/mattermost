@@ -13,7 +13,7 @@ import {updateMe} from 'mattermost-redux/actions/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getFirstDayOfWeekLabel, getUser} from 'mattermost-redux/selectors/entities/users';
 import {get, isCollapsedThreadsAllowed, getCollapsedThreadsPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getTimezoneLabel, makeGetUserTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
@@ -86,6 +86,7 @@ export function makeMapStateToProps() {
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,
+            firstDayOfWeekLabel: getFirstDayOfWeekLabel(state),
         };
     };
 }

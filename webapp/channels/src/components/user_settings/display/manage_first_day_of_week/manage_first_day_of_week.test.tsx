@@ -6,21 +6,17 @@ import {shallow} from 'enzyme';
 
 import {UserProfile} from '@mattermost/types/users';
 
-import ManageTimezones from './manage_timezones';
+import ManageFirstDayOfWeek from './manage_first_day_of_week';
 
-describe('components/user_settings/display/manage_timezones/manage_timezones', () => {
+describe('components/user_settings/display/manage_first_day_of_week/manage_first_day_of_week', () => {
     const user = {
         id: 'user_id',
     };
 
     const requiredProps = {
+        firstDayOfWeek: 0,
+        daysOfWeek: [],
         user: user as UserProfile,
-        locale: '',
-        useAutomaticTimezone: true,
-        automaticTimezone: '',
-        manualTimezone: '',
-        timezoneLabel: '',
-        timezones: [],
         updateSection: jest.fn(),
         actions: {
             updateMe: jest.fn(() => Promise.resolve({})),
@@ -32,18 +28,15 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
         const props = {
             ...requiredProps,
             actions: {...requiredProps.actions, updateMe},
+            firstDayOfWeek: 2,
         };
-        const wrapper = shallow(<ManageTimezones {...props} />);
+        const wrapper = shallow(<ManageFirstDayOfWeek {...props} />);
 
-        await (wrapper.instance() as ManageTimezones).submitUser();
+        await (wrapper.instance() as ManageFirstDayOfWeek).submitUser();
 
         const expected = {
             ...props.user,
-            timezone: {
-                useAutomaticTimezone: props.useAutomaticTimezone.toString(),
-                manualTimezone: props.manualTimezone,
-                automaticTimezone: props.automaticTimezone,
-            },
+            first_day_of_week: props.firstDayOfWeek,
         };
 
         expect(props.actions.updateMe).toHaveBeenCalled();

@@ -1652,6 +1652,384 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 </div>
 `;
 
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, first day of week section 1`] = `
+<div
+  id="displaySettings"
+>
+  <div
+    className="modal-header"
+  >
+    <button
+      aria-label="Close"
+      className="close"
+      data-dismiss="modal"
+      id="closeButton"
+      onClick={[MockFunction]}
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+    </button>
+    <h4
+      className="modal-title"
+    >
+      <div
+        className="modal-back"
+      >
+        <span
+          onClick={[MockFunction]}
+        >
+          <BackIcon />
+        </span>
+      </div>
+      <MemoizedFormattedMessage
+        defaultMessage="Display Settings"
+        id="user.settings.display.title"
+      />
+    </h4>
+  </div>
+  <div
+    className="user-settings"
+  >
+    <h3
+      className="tab-header"
+      id="displaySettingsTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Display Settings"
+        id="user.settings.display.title"
+      />
+    </h3>
+    <div
+      className="divider-dark first"
+    />
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="collapsed_reply_threads"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Collapsed Reply Threads"
+            id="user.settings.display.collapsedReplyThreadsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="clock"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Clock Display"
+            id="user.settings.display.clockDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={true}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="Sunday"
+        infoPosition="bottom"
+        max={
+          <Memo(Connect(ManageFirstDayOfWeek))
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        saving={false}
+        section="first_day_of_week"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="First Day of Week"
+            id="user.settings.display.firstDayOfWeek"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Show first and last name"
+            id="user.settings.display.teammateNameDisplayFullname"
+          />
+        }
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="name_format"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Teammate Name Display"
+            id="user.settings.display.teammateNameDisplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="availabilityStatus"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Show user availability on posts"
+            id="user.settings.display.availabilityStatusOnPostsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="On"
+            id="user.settings.display.lastActiveOn"
+          />
+        }
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="lastactive"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Share last active time"
+            id="user.settings.display.lastActiveDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="linkpreview"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Website Link Previews"
+            id="user.settings.display.linkPreviewDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="collapse"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Default Appearance of Image Previews"
+            id="user.settings.display.collapseDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="message_display"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Message Display"
+            id="user.settings.display.messageDisplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="click_to_reply"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Click to open threads"
+            id="user.settings.display.clickToReply"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="channel_display_mode"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Channel Display"
+            id="user.settings.display.channelDisplayTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        infoPosition="bottom"
+        max={null}
+        saving={false}
+        section="one_click_reactions_enabled"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Quick reactions on messages"
+            id="user.settings.display.oneClickReactionsOnPostsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <SettingItem
+        active={false}
+        areAllSectionsInactive={false}
+        containerStyle=""
+        describe="English (US)"
+        infoPosition="bottom"
+        max={
+          <Memo(Connect(injectIntl(ManageLanguage)))
+            locale="en"
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        saving={false}
+        section="languages"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Language"
+            id="user.settings.display.language"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, languages section 1`] = `
 <div
   id="displaySettings"
