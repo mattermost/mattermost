@@ -10,12 +10,9 @@
         "skipLibCheck": true,
         "strictNullChecks": true,
         "isolatedModules": true,
-        "noEmit": true,
         "declaration": true,
         "outDir": "dist",
-        "paths": {
-            "mattermost-redux/*": ["./node_modules/mattermost-redux/src/*"],
-            "@mattermost/types/*": ["./node_modules/@mattermost/types/src/*"]
-        }
+        "rootDir": "src",
+        "composite": true
     }
 }
