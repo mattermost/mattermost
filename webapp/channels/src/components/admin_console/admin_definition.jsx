@@ -2830,13 +2830,12 @@ const AdminDefinition = {
                         help_text_default: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
                         help_text_values: {
                             link: (msg) => (
-                                <a
+                                <ExternalLink
+                                    location='admin_console'
                                     href='https://mattermost.com/pl/message-priority/'
-                                    target='_blank'
-                                    rel='noreferrer'
                                 >
                                     {msg}
-                                </a>
+                                </ExternalLink>
                             ),
                         },
                         help_text_markdown: false,
@@ -2855,13 +2854,12 @@ const AdminDefinition = {
                         help_text_default: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
                         help_text_values: {
                             link: (msg) => (
-                                <a
+                                <ExternalLink
+                                    location='admin_console'
                                     href='https://mattermost.com/pl/message-priority/'
-                                    target='_blank'
-                                    rel='noreferrer'
                                 >
                                     {msg}
-                                </a>
+                                </ExternalLink>
                             ),
                         },
                         help_text_markdown: false,
@@ -2881,13 +2879,12 @@ const AdminDefinition = {
                         help_text_default: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
                         help_text_values: {
                             link: (msg) => (
-                                <a
+                                <ExternalLink
+                                    location='admin_console'
                                     href='https://mattermost.com/pl/message-priority/'
-                                    target='_blank'
-                                    rel='noreferrer'
                                 >
                                     {msg}
-                                </a>
+                                </ExternalLink>
                             ),
                         },
                         help_text_markdown: false,
@@ -2908,13 +2905,12 @@ const AdminDefinition = {
                         help_text_default: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
                         help_text_values: {
                             link: (msg) => (
-                                <a
+                                <ExternalLink
+                                    location='admin_console'
                                     href='https://mattermost.com/pl/message-priority/'
-                                    target='_blank'
-                                    rel='noreferrer'
                                 >
                                     {msg}
-                                </a>
+                                </ExternalLink>
                             ),
                         },
                         help_text_markdown: false,
@@ -2934,13 +2930,12 @@ const AdminDefinition = {
                         help_text_default: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
                         help_text_values: {
                             link: (msg) => (
-                                <a
+                                <ExternalLink
+                                    location='admin_console'
                                     href='https://mattermost.com/pl/message-priority/'
-                                    target='_blank'
-                                    rel='noreferrer'
                                 >
                                     {msg}
-                                </a>
+                                </ExternalLink>
                             ),
                         },
                         help_text_markdown: false,
