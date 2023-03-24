@@ -102,7 +102,7 @@ func GetTestConfig(t *testing.T) *config.Configuration {
 		driver = model.PostgresDBType
 	}
 
-	storeType := sqlstore.NewStoreType(driver, driver, true, nil)
+	storeType := sqlstore.NewStoreType(driver, driver, true)
 	storeType.Store.Shutdown()
 	storeType.Logger.Shutdown()
 

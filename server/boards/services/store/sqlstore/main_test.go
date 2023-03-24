@@ -9,7 +9,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	mainStoreTypes = initStores(false, nil)
+	mainStoreTypes = initStores(false)
 
 	status := m.Run()
 

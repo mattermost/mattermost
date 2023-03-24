@@ -26,7 +26,7 @@ type storeType struct {
 
 var mainStoreTypes []*storeType
 
-func NewStoreType(name string, driver string, skipMigrations bool, overrideParams *Params) *storeType {
+func NewStoreType(name string, driver string, skipMigrations bool) *storeType {
 	settings := storetest.MakeSqlSettings(driver, false)
 	connectionString := *settings.DataSource
 
@@ -51,28 +51,6 @@ func NewStoreType(name string, driver string, skipMigrations bool, overrideParam
 		IsPlugin:         false, // ToDo: to be removed
 	}
 
-	if overrideParams != nil {
-		if overrideParams.DBType != "" {
-			storeParams.DBType = overrideParams.DBType
-		}
-
-		if overrideParams.ConnectionString != "" {
-			storeParams.ConnectionString = overrideParams.ConnectionString
-		}
-
-		if overrideParams.SkipMigrations {
-			storeParams.SkipMigrations = overrideParams.SkipMigrations
-		}
-
-		if overrideParams.TablePrefix != "" {
-			storeParams.TablePrefix = overrideParams.TablePrefix
-		}
-
-		if overrideParams.IsPlugin {
-			storeParams.IsPlugin = overrideParams.IsPlugin
-		}
-	}
-
 	store, err := New(storeParams)
 	if err != nil {
 		panic(fmt.Sprintf("cannot create store: %s", err))
@@ -81,20 +59,20 @@ func NewStoreType(name string, driver string, skipMigrations bool, overrideParam
 	return &storeType{name, connectionString, store, logger}
 }
 
-func initStores(skipMigrations bool, overrideParams *Params) []*storeType {
+func initStores(skipMigrations bool) []*storeType {
 	var storeTypes []*storeType
 
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, NewStoreType("MySQL", model.MysqlDBType, skipMigrations, overrideParams))
+			storeTypes = append(storeTypes, NewStoreType("MySQL", model.MysqlDBType, skipMigrations))
 		case "postgres":
-			storeTypes = append(storeTypes, NewStoreType("PostgreSQL", model.PostgresDBType, skipMigrations, overrideParams))
+			storeTypes = append(storeTypes, NewStoreType("PostgreSQL", model.PostgresDBType, skipMigrations))
 		}
 	} else {
 		storeTypes = append(storeTypes,
-			NewStoreType("PostgreSQL", model.PostgresDBType, skipMigrations, overrideParams),
-			NewStoreType("MySQL", model.MysqlDBType, skipMigrations, overrideParams),
+			NewStoreType("PostgreSQL", model.PostgresDBType, skipMigrations),
+			NewStoreType("MySQL", model.MysqlDBType, skipMigrations),
 		)
 	}
 
@@ -130,7 +108,7 @@ func RunStoreTestsWithCustomSqlStore(t *testing.T, f func(*testing.T, *SQLStore)
 // requires a new instance of each store type as migration tests
 // cannot reuse old stores with already run migrations
 func RunStoreTestsWithFoundation(t *testing.T, f func(*testing.T, *foundation.Foundation)) {
-	storeTypes := initStores(true, nil)
+	storeTypes := initStores(true)
 
 	for _, st := range storeTypes {
 		st := st
