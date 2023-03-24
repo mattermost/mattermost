@@ -30,6 +30,8 @@ import ExternalLink from 'components/external_link';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import './start_trial_form_modal.scss';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import AirGappedModal from './air_gapped_modal';
 
 // TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
 
@@ -63,7 +65,8 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [orgSize, setOrgSize] = useState<OrgSize | undefined>();
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
+    const isAirGapped = !useCWSAvailabilityCheck(true);
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
@@ -189,6 +192,14 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         status === TrialLoadStatus.Started ||
         status === TrialLoadStatus.Success
     );
+
+    if (isAirGapped) {
+        return (
+            <AirGappedModal
+                onClose={handleOnClose}
+            />
+        );
+    }
 
     return (
         <Modal
