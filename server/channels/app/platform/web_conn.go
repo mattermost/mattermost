@@ -470,7 +470,7 @@ func (wc *WebConn) writePump() {
 				continue
 			}
 
-			if len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold{
+			if len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
 					mlog.String("type", msg.EventType()),
