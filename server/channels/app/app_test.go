@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,7 +61,9 @@ func TestUnitUpdateConfig(t *testing.T) {
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
+	var called int32
 	th.App.AddConfigListener(func(old, current *model.Config) {
+		atomic.AddInt32(&called, 1)
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
@@ -68,6 +71,9 @@ func TestUnitUpdateConfig(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "http://foo.com"
 	})
+
+	// callback should be called once
+	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
