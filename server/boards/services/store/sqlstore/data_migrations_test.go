@@ -263,3 +263,73 @@ func TestCheckForMismatchedCollation(t *testing.T) {
 		}
 	})
 }
+
+func TestRunDeDuplicateCategoryBoardsMigration(t *testing.T) {
+	tablePrefix := "focalboard_dedupe_test_"
+	customStoreTypes := initStores(false, &Params{
+		TablePrefix: tablePrefix,
+	})
+
+	defer func(stores []*storeType) {
+		for _, st := range stores {
+			_ = st.Store.Shutdown()
+			_ = st.Logger.Shutdown()
+		}
+	}(customStoreTypes)
+
+	RunStoreTestsWithCustomSqlStore(t, func(t *testing.T, sqlStore *SQLStore) {
+
+		// bringing table schema to pre-migration version
+		if sqlStore.dbType == model.MysqlDBType {
+			alterQuery := "ALTER TABLE " + sqlStore.tablePrefix + "category_boards DROP INDEX unique_user_category_board"
+			_, err := sqlStore.db.Exec(alterQuery)
+			assert.NoError(t, err)
+		} else if sqlStore.dbType == model.PostgresDBType {
+			alterQuery := "ALTER TABLE " + sqlStore.tablePrefix + "category_boards DROP CONSTRAINT unique_user_category_board"
+			_, err := sqlStore.db.Exec(alterQuery)
+			assert.NoError(t, err)
+		} else {
+			assert.Fail(t, "unknown DB type encountered", "dbType", sqlStore.dbType)
+		}
+
+		// setting up data to test on
+
+		query := sqlStore.getQueryBuilder(sqlStore.db).
+			Insert(sqlStore.tablePrefix+"category_boards").
+			Columns("id", "user_id", "category_id", "board_id", "create_at", "update_at", "sort_order")
+
+		values := [][]interface{}{
+			{"id_1", "user_id_1", "category_id_1", "board_id_1", 0, 0, 0},
+			{"id_2", "user_id_1", "category_id_2", "board_id_1", 0, 0, 0},
+			{"id_3", "user_id_1", "category_id_3", "board_id_1", 0, 0, 0},
+			{"id_4", "user_id_2", "category_id_4", "board_id_2", 0, 0, 0},
+			{"id_5", "user_id_2", "category_id_5", "board_id_2", 0, 0, 0},
+			{"id_6", "user_id_3", "category_id_6", "board_id_3", 0, 0, 0},
+			{"id_7", "user_id_4", "category_id_6", "board_id_4", 0, 0, 0},
+		}
+
+		for _, value := range values {
+			rowQuery := query.Values(value...)
+			_, err := rowQuery.Exec()
+			assert.NoError(t, err)
+		}
+
+		// verifying count of rows
+		var count int
+		countQuery := "SELECT COUNT(*) FROM " + sqlStore.tablePrefix + "category_boards"
+		row := sqlStore.db.QueryRow(countQuery)
+		err := row.Scan(&count)
+		assert.NoError(t, err)
+		assert.Equal(t, 7, count)
+
+		// once base data is setup and verified, we'll run the data migration
+		err = sqlStore.RunDeDuplicateCategoryBoardsMigration(35)
+		assert.NoError(t, err)
+
+		// now the duplicates should have been removed
+		row = sqlStore.db.QueryRow(countQuery)
+		err = row.Scan(&count)
+		assert.NoError(t, err)
+		assert.Equal(t, 4, count)
+	}, customStoreTypes)
+}
