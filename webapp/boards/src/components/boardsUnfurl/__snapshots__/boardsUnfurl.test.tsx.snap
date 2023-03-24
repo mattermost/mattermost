@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/boardsUnfurl/BoardsUnfurl renders normally 1`] = `
+<div>
+  <a
+    class="FocalboardUnfurl"
+    href="http://localhost:8065/test"
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    <div
+      class="header"
+    >
+      <span
+        class="icon"
+      />
+      <div
+        class="information"
+      >
+        <span
+          class="card_title"
+        >
+          test card
+        </span>
+        <span
+          class="board_title"
+        >
+          test board
+        </span>
+      </div>
+    </div>
+    <div
+      class="body"
+    >
+      <div />
+    </div>
+    <div
+      class="footer"
+    >
+      <div
+        class="avatar"
+      >
+        
+      </div>
+      <div
+        class="timestamp_properties"
+      >
+        <div
+          class="properties"
+        />
+        <span
+          class="post-preview__time"
+        >
+          Updated January 01, 1970, 12:00 AM
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`components/boardsUnfurl/BoardsUnfurl renders when limited 1`] = `
+<div>
+  <a
+    class="FocalboardUnfurl"
+    href="http://localhost:8065/test"
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    <div
+      class="header"
+    >
+      <span
+        class="icon"
+      />
+      <div
+        class="information"
+      >
+        <span
+          class="card_title"
+        >
+          test card
+        </span>
+        <span
+          class="board_title"
+        >
+          test board
+        </span>
+      </div>
+    </div>
+    <p
+      class="limited"
+    >
+      Additional details are hidden due to the card being archived
+    </p>
+  </a>
+</div>
+`;

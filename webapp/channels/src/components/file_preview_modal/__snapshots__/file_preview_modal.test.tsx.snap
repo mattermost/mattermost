@@ -1,0 +1,1794 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/FilePreviewModal should fall back to default preview if plugin does not need to override preview component 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <LoadingImagePreview
+            containerClass="view-image__loading"
+            loading="Loading"
+            progress={0}
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <LoadingImagePreview
+            containerClass="view-image__loading"
+            loading="Loading"
+            progress={0}
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot for external file 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "png",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_info_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_info_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <LoadingImagePreview
+            containerClass="view-image__loading"
+            loading="Loading"
+            progress={0}
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot when plugin overrides the preview component 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <component
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            onModalDismissed={[Function]}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <ImagePreview
+            canDownloadFiles={true}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded and showing footer 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <ImagePreview
+            canDownloadFiles={true}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded with .js file 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal modal-code"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={true}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "js",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <CodePreview
+            className="file-preview-modal__code-preview"
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "js",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileUrl="/api/v4/files/file_id"
+            getContent={[Function]}
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded with .m4a file 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "m4a",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <Connect(AudioVideoPreview)
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "m4a",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileUrl="/api/v4/files/file_id"
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded with .mov file 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "mov",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <Connect(AudioVideoPreview)
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "mov",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileUrl="/api/v4/files/file_id"
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded with footer 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "gif",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id_1",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id_1?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={3}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <ImagePreview
+            canDownloadFiles={true}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "gif",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id_1",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded with image 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <ImagePreview
+            canDownloadFiles={true}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "jpg",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/FilePreviewModal should match snapshot, loaded with other file 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewImageModalLabel"
+  autoFocus={true}
+  backdrop={false}
+  bsClass="modal"
+  className="modal-image file-preview-modal"
+  dialogClassName="a11y__modal modal-image file-preview-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+  style={
+    Object {
+      "paddingLeft": 0,
+    }
+  }
+>
+  <ModalBody
+    bsClass="modal-body"
+    className="file-preview-modal__body"
+    componentClass="div"
+  >
+    <div
+      className="modal-image__wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="file-preview-modal__main-ctr"
+        onClick={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+      >
+        <ModalTitle
+          bsClass="modal-title"
+          className="file-preview-modal__title"
+          componentClass="div"
+          id="viewImageModalLabel"
+        >
+          <Memo(FilePreviewModalHeader)
+            canCopyContent={false}
+            canDownloadFiles={true}
+            content=""
+            enablePublicLink={true}
+            fileIndex={0}
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "other",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileURL="/api/v4/files/file_id?download=1"
+            filename="name"
+            handleModalClose={[Function]}
+            handleNext={[Function]}
+            handlePrev={[Function]}
+            isExternalFile={false}
+            isMobileView={false}
+            post={
+              Object {
+                "channel_id": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "edit_at": 0,
+                "hashtags": "",
+                "id": "id",
+                "is_pinned": false,
+                "message": "post message",
+                "metadata": Object {
+                  "embeds": Array [],
+                  "emojis": Array [],
+                  "files": Array [],
+                  "images": Object {},
+                  "reactions": Array [],
+                },
+                "original_id": "",
+                "pending_post_id": "",
+                "props": Object {},
+                "reply_count": 0,
+                "root_id": "",
+                "type": "system_add_remove",
+                "update_at": 0,
+                "user_id": "user_id",
+              }
+            }
+            showPublicLink={true}
+            totalFiles={1}
+          />
+        </ModalTitle>
+        <div
+          className="file-preview-modal__content"
+          onClick={[Function]}
+        >
+          <Connect(FileInfoPreview)
+            fileInfo={
+              Object {
+                "archived": false,
+                "clientId": "client_id",
+                "create_at": 1,
+                "delete_at": 1,
+                "extension": "other",
+                "has_preview_image": true,
+                "height": 200,
+                "id": "file_id",
+                "mime_type": "mime_type",
+                "name": "name",
+                "size": 1,
+                "update_at": 1,
+                "user_id": "user_id",
+                "width": 350,
+              }
+            }
+            fileUrl="/api/v4/files/file_id"
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;

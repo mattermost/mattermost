@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/createBoardFromTemplate renders the Create Boards from template component and match snapshot 1`] = `
+<div>
+  <div
+    class="CreateBoardFromTemplate"
+  >
+    <div
+      class="add-board-to-channel"
+    >
+      <label>
+        <input
+          data-testid="add-board-to-channel-check"
+          id="add-board-to-channel"
+          type="checkbox"
+        />
+        <span>
+          Create a board for this channel
+        </span>
+        <i
+          class="icon-information-outline"
+        />
+      </label>
+    </div>
+  </div>
+</div>
+`;

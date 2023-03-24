@@ -1,0 +1,14 @@
+.AddDescriptionTourStep {
+    &.tutorial-tour-tip__pulsating-dot-ctr {
+        top: -10px;
+        left: calc(120px + 20%);
+    }
+
+    .tippy-arrow {
+        left: 21px !important;
+    }
+
+    &.tippy-box.tutorial-tour-tip__box {
+        left: -21px;
+    }
+}

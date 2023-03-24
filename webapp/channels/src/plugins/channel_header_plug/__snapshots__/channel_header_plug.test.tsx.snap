@@ -1,0 +1,2192 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`plugins/ChannelHeaderPlug should match snapshot when the App Bar is visible 1`] = `
+<ChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid2",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid3",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid4",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  shouldShowAppBar={true}
+  sidebarOpen={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/ChannelHeaderPlug should match snapshot with no extended component 1`] = `
+<ChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={Array []}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  shouldShowAppBar={false}
+  sidebarOpen={false}
+  theme={Object {}}
+/>
+`;
+
+exports[`plugins/ChannelHeaderPlug should match snapshot with one extended component 1`] = `
+<ChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  shouldShowAppBar={false}
+  sidebarOpen={false}
+  theme={Object {}}
+>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+</ChannelHeaderPlug>
+`;
+
+exports[`plugins/ChannelHeaderPlug should match snapshot with six extended components 1`] = `
+<ChannelHeaderPlug
+  actions={
+    Object {
+      "handleBindingClick": [MockFunction],
+      "openAppsModal": [MockFunction],
+      "postEphemeralCallResponseForChannel": [MockFunction],
+    }
+  }
+  appBindings={Array []}
+  appsEnabled={false}
+  channel={Object {}}
+  channelMember={Object {}}
+  components={
+    Array [
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid2",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid3",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid4",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid5",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid6",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid7",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid8",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid9",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid10",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid11",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid12",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid13",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid14",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+      Object {
+        "action": [Function],
+        "dropdownText": "some dropdown text",
+        "icon": <i
+          className="fa fa-anchor"
+        />,
+        "id": "someid15",
+        "pluginId": "pluginid",
+        "tooltipText": "some tooltip text",
+      },
+    ]
+  }
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  shouldShowAppBar={false}
+  sidebarOpen={false}
+  theme={Object {}}
+>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid2"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid2"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid2"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid3"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid3"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid3"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid4"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid4"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid4"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid5"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid5"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid5"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid6"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid6"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid6"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid7"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid7"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid7"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid8"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid8"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid8"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid9"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid9"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid9"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid10"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid10"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid10"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid11"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid11"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid11"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid12"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid12"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid12"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid13"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid13"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid13"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid14"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid14"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid14"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+  <HeaderIconWrapper
+    buttonClass="channel-header__icon"
+    buttonId="someid15"
+    iconComponent={
+      <i
+        className="fa fa-anchor"
+      />
+    }
+    key="channelHeaderButtonsomeid15"
+    onClick={[Function]}
+    pluginId="pluginid"
+    tooltipKey="plugin"
+    tooltipText="some tooltip text"
+  >
+    <div>
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delayShow={400}
+        overlay={
+          <Tooltip
+            className=""
+            id="pluginTooltip"
+          >
+            <span>
+              some tooltip text
+            </span>
+          </Tooltip>
+        }
+        placement="bottom"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <OverlayWrapper
+              className=""
+              id="pluginTooltip"
+              intl={
+                Object {
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
+              }
+            >
+              <span>
+                some tooltip text
+              </span>
+            </OverlayWrapper>
+          }
+          placement="bottom"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            className="channel-header__icon"
+            id="someid15"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
+          >
+            <i
+              className="fa fa-anchor"
+            />
+          </button>
+        </OverlayTrigger>
+      </OverlayTrigger>
+    </div>
+  </HeaderIconWrapper>
+</ChannelHeaderPlug>
+`;

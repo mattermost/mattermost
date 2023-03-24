@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
+<div
+  className="more-modal__row clickable"
+  onClick={[Function]}
+  onMouseEnter={[Function]}
+>
+  <GMDetails
+    option={
+      Object {
+        "display_name": "user1, user2, user3",
+        "id": "channel_id_1",
+        "last_post_at": 0,
+        "profiles": Array [
+          Object {
+            "id": "user_id_1",
+            "username": "user1",
+          },
+          Object {
+            "id": "user_id_2",
+            "username": "user2",
+          },
+          Object {
+            "id": "user_id_3",
+            "username": "user3",
+          },
+        ],
+        "type": "G",
+      }
+    }
+  />
+  <div
+    className="more-modal__actions"
+  >
+    <div
+      className="more-modal__actions--round"
+    >
+      <AddIcon />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ListItem should match snapshot when rendering user 1`] = `
+<div
+  className="more-modal__row clickable"
+  onClick={[Function]}
+  onMouseEnter={[Function]}
+>
+  <Connect(UserDetails)
+    option={
+      Object {
+        "id": "user_id_1",
+        "last_post_at": 0,
+        "username": "username1",
+      }
+    }
+  />
+  <div
+    className="more-modal__actions"
+  >
+    <div
+      className="more-modal__actions--round"
+    >
+      <AddIcon />
+    </div>
+  </div>
+</div>
+`;

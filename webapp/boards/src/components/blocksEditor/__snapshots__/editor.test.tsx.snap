@@ -1,0 +1,128 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/editor should match snapshot 1`] = `
+<div>
+  <div
+    class="Editor"
+  >
+    <div
+      class="TextContent"
+      data-testid="text"
+    >
+      <div
+        class="MarkdownEditor octo-editor  active"
+      >
+        <div
+          class="MarkdownEditorInput"
+        >
+          <div
+            class="DraftEditor-root"
+          >
+            <div
+              class="DraftEditor-editorContainer"
+            >
+              <div
+                aria-autocomplete="list"
+                aria-expanded="false"
+                class="notranslate public-DraftEditor-content"
+                contenteditable="true"
+                role="combobox"
+                spellcheck="false"
+                style="outline: none; user-select: text; white-space: pre-wrap; word-wrap: break-word;"
+              >
+                <div
+                  data-contents="true"
+                >
+                  <div
+                    class=""
+                    data-block="true"
+                    data-editor="123"
+                    data-offset-key="123-0-0"
+                  >
+                    <div
+                      class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                      data-offset-key="123-0-0"
+                    >
+                      <span
+                        data-offset-key="123-0-0"
+                      >
+                        <span
+                          data-text="true"
+                        >
+                          test-value
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/editor should match snapshot on empty 1`] = `
+<div>
+  <div
+    class="Editor"
+  >
+    <div
+      class="RootInput css-b62m3t-container"
+    >
+      <span
+        class="css-1f43avz-a11yText-A11yText"
+        id="react-select-2-live-region"
+      />
+      <span
+        aria-atomic="false"
+        aria-live="polite"
+        aria-relevant="additions text"
+        class="css-1f43avz-a11yText-A11yText"
+      />
+      <div
+        class=" css-4bb158-control"
+      >
+        <div
+          class=" css-30zlo3-ValueContainer"
+        >
+          <div
+            class=" css-14el2xx-placeholder"
+            id="react-select-2-placeholder"
+          >
+            Introduce your text or your slash command
+          </div>
+          <div
+            class=" css-g5309v-Input"
+            data-value=""
+          >
+            <input
+              aria-autocomplete="list"
+              aria-describedby="react-select-2-placeholder"
+              aria-expanded="false"
+              aria-haspopup="true"
+              autocapitalize="none"
+              autocomplete="off"
+              autocorrect="off"
+              class=""
+              id="react-select-2-input"
+              role="combobox"
+              spellcheck="false"
+              style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+              tabindex="0"
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class=" css-1hb7zxy-IndicatorsContainer"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

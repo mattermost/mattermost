@@ -1,0 +1,58 @@
+@import 'utils/mixins';
+
+.CenterMessageLock {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border: 1px rgba(var(--center-channel-color-rgb), 0.08) solid;
+    margin: 0 24px 13px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: 4px;
+
+    &__left {
+        align-self: flex-start;
+        padding: 0 12px;
+    }
+
+    &__icon {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__title {
+        padding-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__cta {
+        padding-top: 12px;
+
+        .btn {
+            @include tertiary-button;
+
+            font-size: 12px;
+
+            &:hover,
+            &:focus {
+                color: var(--button-color);
+            }
+
+            &:focus {
+                border: 0;
+            }
+
+            &.is-admin {
+                @include primary-button;
+
+                &:hover,
+                &:focus {
+                    color: var(--button-color);
+                }
+
+                &:focus {
+                    border: 0;
+                }
+            }
+        }
+    }
+}

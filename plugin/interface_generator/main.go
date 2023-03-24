@@ -453,7 +453,7 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -495,7 +495,7 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 

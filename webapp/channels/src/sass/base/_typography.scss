@@ -1,0 +1,238 @@
+@charset 'UTF-8';
+
+b,
+strong {
+    font-weight: 600;
+}
+
+a {
+    color: $primary-color;
+    cursor: pointer;
+    text-decoration: none;
+    word-break: break-word;
+
+    &:focus,
+    &:hover {
+        color: $primary-color--hover;
+    }
+}
+
+.color--link {
+    color: $link-color;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+        text-decoration: underline;
+    }
+}
+
+body {
+    @include font-smoothing;
+
+    font-family: 'Open Sans', sans-serif;
+}
+
+h1,
+h2,
+h3 {
+    font-family: Metropolis, sans-serif;
+}
+
+h1 {
+    font-weight: 600;
+}
+
+.is-empty:empty {
+    display: none;
+}
+
+label {
+    &.has-error {
+        color: $red;
+        font-weight: normal;
+    }
+}
+
+.small {
+    font-size: 12px;
+}
+
+.light {
+    opacity: 0.56;
+}
+
+.word-break--all {
+    word-break: break-all;
+}
+
+.whitespace--nowrap {
+    white-space: nowrap;
+}
+
+.whitespace--normal {
+    white-space: normal;
+}
+
+.overflow--ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+ul,
+ol {
+    padding-left: 22px;
+    margin-top: 3px;
+    margin-bottom: 0.11em;
+}
+
+.fa {
+    &.fa-1x {
+        font-size: 1.6rem;
+    }
+}
+
+.font-weight--normal {
+    font-weight: normal;
+}
+
+.font-weight--semibold {
+    font-weight: 600;
+}
+
+.cursor--pointer {
+    cursor: pointer;
+}
+
+// Metropolis font definitions
+@font-face {
+    font-family: 'Metropolis';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../fonts/Metropolis-SemiBold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 600;
+    src: url('../fonts/Metropolis-SemiBoldItalic.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/Metropolis-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 400;
+    src: url('../fonts/Metropolis-RegularItalic.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../fonts/Metropolis-Light.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 300;
+    src: url('../fonts/Metropolis-LightItalic.woff') format('woff');
+}
+
+/* open-sans-300 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 300;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-300.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-300.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-300italic - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: italic;
+    font-weight: 300;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-300italic.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-300italic.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-regular - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 400;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-italic - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: italic;
+    font-weight: 400;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-italic.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-italic.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-600italic - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: italic;
+    font-weight: 600;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600italic.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600italic.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-600 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 600;
+    src:
+        local(''),
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('../fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+.app__body.font--open_sans {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.app__body {
+    h1,
+    h2,
+    h3 {
+        font-family: Metropolis, sans-serif;
+    }
+}
+
+.color--link--adminack {
+    padding-left: 20px;
+    color: $white;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:hover,
+    &:focus {
+        text-decoration: underline;
+    }
+}

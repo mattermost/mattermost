@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/post_view should match snapshot for channel loading 1`] = `
+<div
+  id="post-list"
+>
+  <LoadingScreen
+    centered={true}
+  />
+</div>
+`;
+
+exports[`components/post_view/post_view should match snapshot for loaderForChangeOfPostsChunk 1`] = `
+<div
+  id="post-list"
+>
+  <LoadingScreen
+    centered={true}
+  />
+</div>
+`;
