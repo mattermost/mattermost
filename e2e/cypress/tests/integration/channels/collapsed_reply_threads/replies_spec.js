@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
-import * as TIMEOUTS from "../../../fixtures/timeouts";
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam;
@@ -176,7 +176,6 @@ describe('Collapsed Reply Threads', () => {
             cy.uiCloseRHS();
         });
     });
-
 
     it('should auto-scroll to bottom upon pasting long text in reply', () => {
         // # Post a root post as current user
