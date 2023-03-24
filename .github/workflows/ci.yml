@@ -202,6 +202,13 @@ jobs:
     with:
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
       drivername: mysql
+  test-mmctl:
+    name: Run mmctl tests
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/test-mmctl.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
   build-mattermost-server:
     name: Build mattermost-server
     runs-on: ubuntu-latest-8-cores
