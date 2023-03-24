@@ -228,6 +228,7 @@ export default function SelfHostedExpansionModal() {
                 submitProgress,
                 {
                     seats: formState.seats,
+                    license_id: license.ID,
                 },
             ));
 
