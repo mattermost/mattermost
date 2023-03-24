@@ -5,6 +5,9 @@ on:
     branches:
       - master
       - mono-repo*
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 defaults:
   run:
     shell: bash

@@ -1,5 +1,9 @@
 name: "CodeQL"
 
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     # The branches below must be a subset of the branches above

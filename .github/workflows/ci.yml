@@ -7,6 +7,9 @@ on:
       - cloud
       - release-*
       - mono-repo*
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 jobs:
   check-mocks:
     name: Check mocks
