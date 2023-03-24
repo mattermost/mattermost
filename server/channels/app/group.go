@@ -220,6 +220,15 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 
 	deletedGroup.MemberCount = model.NewInt(int(count))
 
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
+
+	groupJSON, err := json.Marshal(deletedGroup)
+	if err != nil {
+		return nil, model.NewAppError("DeleteGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	messageWs.Add("group", string(groupJSON))
+	a.Publish(messageWs)
+
 	return deletedGroup, nil
 }
 
