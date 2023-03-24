@@ -8,6 +8,8 @@ on:
       drivername:
         required: true
         type: string
+env:
+  go-version: "1.19.5"
 jobs:
   run-tests:
     runs-on: ubuntu-latest-8-cores
@@ -17,6 +19,10 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
       - name: Run docker compose
         run: |
           cd server/build
