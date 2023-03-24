@@ -155,7 +155,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                             </ExternalLink>
                         ),
                     }} />);
-                buttonText = formatMessage({id: 'admin.license.trial-request.close', defaultMessage: 'Close'});
+                buttonText = (<FormattedMessage id='admin.license.trial-request.embargoed.button' defaultMessage='Close'/>);
                 onTryAgain = handleOnClose;
             }
             dispatch(openModal({
@@ -165,6 +165,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     onTryAgain: onTryAgain,
                     title,
                     subtitle,
+                    buttonText,
                 },
             }));
             return;
