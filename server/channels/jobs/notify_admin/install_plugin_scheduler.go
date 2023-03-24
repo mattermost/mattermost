@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 const installPluginSchedFreq = 24 * time.Hour
@@ -21,4 +21,5 @@ func MakeInstallPluginScheduler(jobServer *jobs.JobServer, license *model.Licens
 		return enabled
 	}
 	return jobs.NewPeriodicScheduler(jobServer, jobType, installPluginSchedFreq, isEnabled)
+
 }
