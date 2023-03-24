@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/onboardingTour/addComments/ShareBoardTourStep after hover 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box ShareBoardTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="bottom-end"
+  data-reference-hidden=""
+  data-state="hidden"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 0ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="hidden"
+    style="transition-duration: 0ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Share board
+          </h4>
+          <button
+            class="IconButton tutorial-tour-tip__header__close size--small"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          You can share your board internally, within your team, or publish it publicly for visibility outside of your organization.
+        </div>
+        <div
+          class="tutorial-tour-tip__image"
+        >
+          <img
+            alt="tutorial tour tip product image"
+            src="test-file-stub"
+          />
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            >
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="0"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="1"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
+              >
+                <a
+                  class="tutorial-tour-tip__circle active"
+                  data-screen="2"
+                  href="#"
+                />
+              </div>
+            </div>
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            >
+              <button
+                class="Button emphasis--tertiary size--small"
+                title="Previous"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-chevron-left icon"
+                />
+                <span>
+                  Previous
+                </span>
+              </button>
+              <button
+                class="Button filled size--small tipNextButton"
+                type="button"
+              >
+                <span>
+                  Done
+                </span>
+                
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; left: 0px; transform: translate(3px, 0px);"
+  />
+</div>
+`;
+
+exports[`components/onboardingTour/addComments/ShareBoardTourStep before hover 1`] = `
+<div>
+  <div
+    aria-expanded="true"
+    class="tutorial-tour-tip__pulsating-dot-ctr ShareBoardTourStep"
+  >
+    <span
+      class="pulsating_dot"
+    />
+  </div>
+</div>
+`;

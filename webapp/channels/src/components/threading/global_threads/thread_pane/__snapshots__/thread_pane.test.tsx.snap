@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/global_threads/thread_pane should match snapshot 1`] = `
+<div
+  className="ThreadPane"
+  id="thread-pane-container"
+>
+  <Header
+    className="ThreadPane___header"
+    heading={
+      <React.Fragment>
+        <Memo(Button)
+          className="Button___icon Button___large back"
+          onClick={[Function]}
+        >
+          <i
+            className="icon icon-arrow-back-ios"
+          />
+        </Memo(Button)>
+        <h3>
+          <span
+            className="separated"
+          >
+            Thread
+          </span>
+          <Memo(Button)
+            allowTextOverflow={true}
+            className="separated"
+            onClick={[Function]}
+          >
+            Team name
+          </Memo(Button)>
+        </h3>
+      </React.Fragment>
+    }
+    right={
+      <React.Fragment>
+        <Memo(FollowButton)
+          disabled={false}
+          isFollowing={true}
+          onClick={[Function]}
+        />
+        <Memo(ThreadMenu)
+          hasUnreads={false}
+          isFollowing={true}
+          threadId="1y8hpek81byspd4enyk9mp1ncw"
+          unreadTimestamp={1611786714912}
+        >
+          <SimpleTooltip
+            content="More Actions"
+            id="threadActionMenu"
+          >
+            <Memo(Button)
+              className="Button___icon Button___large"
+            >
+              <DotsVerticalIcon
+                size={18}
+              />
+            </Memo(Button)>
+          </SimpleTooltip>
+        </Memo(ThreadMenu)>
+      </React.Fragment>
+    }
+  />
+</div>
+`;

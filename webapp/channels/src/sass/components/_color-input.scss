@@ -1,0 +1,39 @@
+@charset 'UTF-8';
+
+.color-input {
+    position: relative;
+
+    input {
+        height: 36px;
+    }
+}
+
+.color-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.color-pad {
+    padding: 5px;
+    border-color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+    background: v(center-channel-bg) !important;
+    border-radius: 0 2px 2px 0;
+    line-height: 0;
+}
+
+.color-popover {
+    position: absolute;
+    z-index: 12;
+    top: 100%;
+    right: 0;
+    padding-top: 8px;
+}
+
+/* hiding hex input from color picker */
+.chrome-picker .flexbox-fix:nth-child(2) {
+    display: none !important;
+}

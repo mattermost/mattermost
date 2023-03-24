@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CommandSuggestion should match snapshot 1`] = `
+<div
+  className="slash-command suggestion--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+  role="button"
+  tabIndex={-1}
+>
+  <div
+    className="slash-command__icon"
+  >
+    <span>
+      /
+    </span>
+  </div>
+  <div
+    className="slash-command__info"
+  >
+    <div
+      className="slash-command__title"
+    >
+      invite @[username] ~[channel]
+    </div>
+    <div
+      className="slash-command__desc"
+    >
+      Invite a user to a channel
+    </div>
+  </div>
+</div>
+`;

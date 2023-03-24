@@ -125,8 +125,9 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
-type SubscriptionExpandStatus struct {
+type SubscriptionLicenseSelfServeStatusResponse struct {
 	IsExpandable bool `json:"is_expandable"`
+	IsRenewable  bool `json:"is_renewable"`
 }
 
 // CloudCustomerInfo represents editable info of a customer.
@@ -264,16 +265,16 @@ type CloudWorkspaceOwner struct {
 }
 
 type SubscriptionChange struct {
-	ProductID         string             `json:"product_id"`
-	Seats             int                `json:"seats"`
-	DowngradeFeedback *DowngradeFeedback `json:"downgrade_feedback"`
-	ShippingAddress   *Address           `json:"shipping_address"`
+	ProductID       string    `json:"product_id"`
+	Seats           int       `json:"seats"`
+	Feedback        *Feedback `json:"downgrade_feedback"`
+	ShippingAddress *Address  `json:"shipping_address"`
 }
 
 // TODO remove BoardsLimits.
 // It is not used for real.
 // Focalboard has some lingering code using this struct
-// https://github.com/mattermost/focalboard/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+// https://github.com/mattermost/mattermost-server/v6/server/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
 // we should remove this struct once that code is removed.
 type BoardsLimits struct {
 	Cards *int `json:"cards"`
@@ -296,7 +297,7 @@ type ProductLimits struct {
 	// TODO remove Boards property.
 	// It is not used for real.
 	// Focalboard has some lingering code using this property
-	// https://github.com/mattermost/focalboard/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+	// https://github.com/mattermost/mattermost-server/v6/server/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
 	// we should remove this property once that code is removed.
 	Boards   *BoardsLimits   `json:"boards,omitempty"`
 	Files    *FilesLimits    `json:"files,omitempty"`
@@ -314,9 +315,14 @@ type CreateSubscriptionRequest struct {
 	DiscountID            string   `json:"discount_id"`
 }
 
-type DowngradeFeedback struct {
+type Feedback struct {
 	Reason   string `json:"reason"`
 	Comments string `json:"comments"`
+}
+
+type WorkspaceDeletionRequest struct {
+	SubscriptionID string    `json:"subscription_id"`
+	Feedback       *Feedback `json:"delete_feedback"`
 }
 
 func (p *Product) IsYearly() bool {
@@ -327,7 +333,7 @@ func (p *Product) IsMonthly() bool {
 	return p.RecurringInterval == RecurringIntervalMonthly
 }
 
-func (df *DowngradeFeedback) ToMap() map[string]any {
+func (df *Feedback) ToMap() map[string]any {
 	var res map[string]any
 	feedback, err := json.Marshal(df)
 	if err != nil {

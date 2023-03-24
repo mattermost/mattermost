@@ -142,6 +142,13 @@ type ChannelModerationPatch struct {
 	Roles *ChannelModeratedRolesPatch `json:"roles"`
 }
 
+func (c *ChannelModerationPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"name":  c.Name,
+		"roles": c.Roles,
+	}
+}
+
 type ChannelModeratedRolesPatch struct {
 	Guests  *bool `json:"guests"`
 	Members *bool `json:"members"`

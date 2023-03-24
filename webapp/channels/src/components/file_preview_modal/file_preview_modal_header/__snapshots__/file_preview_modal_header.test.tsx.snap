@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModalHeader should match snapshot the desktop view 1`] = `
+<div
+  className="file-preview-modal-header"
+>
+  <Memo(FilePreviewModalInfo)
+    filename="img.png"
+    post={Object {}}
+    showFileName={true}
+  />
+  <Memo(FilePreviewModalMainNav)
+    fileIndex={1}
+    handleNext={[MockFunction]}
+    handlePrev={[MockFunction]}
+    totalFiles={3}
+  />
+  <Memo(FilePreviewModalMainActions)
+    canCopyContent={true}
+    canDownloadFiles={true}
+    content=""
+    enablePublicLink={false}
+    fileInfo={
+      Object {
+        "archived": false,
+        "clientId": "client_id",
+        "create_at": 1,
+        "delete_at": 1,
+        "extension": "jpg",
+        "has_preview_image": true,
+        "height": 200,
+        "id": "file_info_id",
+        "mime_type": "mime_type",
+        "name": "name",
+        "size": 1,
+        "update_at": 1,
+        "user_id": "user_id",
+        "width": 350,
+      }
+    }
+    fileURL="http://example.com/img.png"
+    filename="img.png"
+    handleModalClose={[MockFunction]}
+    handleNext={[MockFunction]}
+    handlePrev={[MockFunction]}
+    isExternalFile={false}
+    isMobileView={false}
+    onGetPublicLink={[MockFunction]}
+    showOnlyClose={false}
+    showPublicLink={false}
+    usedInside="Header"
+  />
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModalHeader should match snapshot the mobile view 1`] = `
+<div
+  className="file-preview-modal-header"
+>
+  <Memo(FilePreviewModalMainActions)
+    canCopyContent={true}
+    canDownloadFiles={true}
+    content=""
+    enablePublicLink={false}
+    fileInfo={
+      Object {
+        "archived": false,
+        "clientId": "client_id",
+        "create_at": 1,
+        "delete_at": 1,
+        "extension": "jpg",
+        "has_preview_image": true,
+        "height": 200,
+        "id": "file_info_id",
+        "mime_type": "mime_type",
+        "name": "name",
+        "size": 1,
+        "update_at": 1,
+        "user_id": "user_id",
+        "width": 350,
+      }
+    }
+    fileURL="http://example.com/img.png"
+    filename="img.png"
+    handleModalClose={[MockFunction]}
+    handleNext={[MockFunction]}
+    handlePrev={[MockFunction]}
+    isExternalFile={false}
+    isMobileView={true}
+    onGetPublicLink={[MockFunction]}
+    showOnlyClose={true}
+    showPublicLink={false}
+    usedInside="Header"
+  />
+  <Memo(FilePreviewModalMainNav)
+    fileIndex={1}
+    handleNext={[MockFunction]}
+    handlePrev={[MockFunction]}
+    totalFiles={3}
+  />
+</div>
+`;

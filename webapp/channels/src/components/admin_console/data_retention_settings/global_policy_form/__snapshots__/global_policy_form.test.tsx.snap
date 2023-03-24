@@ -1,0 +1,234 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/PluginManagement should match snapshot 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header with-back"
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/compliance/data_retention_settings"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Global Retention Policy"
+        id="admin.data_retention.globalPolicyTitle"
+      />
+    </div>
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardBody>
+          <div
+            className="global_policy"
+          >
+            <p>
+              Applies to all teams and channels, but does not apply to custom retention policies.
+            </p>
+            <div
+              id="global_direct_message_dropdown"
+            >
+              <DropdownInputHybrid
+                defaultValue={
+                  Object {
+                    "label": <div>
+                      <i
+                        className="icon icon-infinity option-icon"
+                      />
+                      <span
+                        className="option_forever"
+                      >
+                        Keep forever
+                      </span>
+                    </div>,
+                    "value": "FOREVER",
+                  }
+                }
+                dropdownClassNamePrefix="channel_message_retention_dropdown"
+                exceptionToInput={
+                  Array [
+                    "FOREVER",
+                  ]
+                }
+                inputId="channel_message_retention_input"
+                inputType="number"
+                inputValue="60"
+                legend="Channel & direct message retention"
+                name="channel_message_retention"
+                onDropdownChange={[Function]}
+                onInputChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": <span
+                        className="option_days"
+                      >
+                        Days
+                      </span>,
+                      "value": "DAYS",
+                    },
+                    Object {
+                      "label": <span
+                        className="option_years"
+                      >
+                        Years
+                      </span>,
+                      "value": "YEARS",
+                    },
+                    Object {
+                      "label": <div>
+                        <i
+                          className="icon icon-infinity option-icon"
+                        />
+                        <span
+                          className="option_forever"
+                        >
+                          Keep forever
+                        </span>
+                      </div>,
+                      "value": "FOREVER",
+                    },
+                  ]
+                }
+                placeholder="Channel & direct message retention"
+                value={
+                  Object {
+                    "label": <span
+                      className="option_days"
+                    >
+                      Days
+                    </span>,
+                    "value": "DAYS",
+                  }
+                }
+                width={90}
+              />
+            </div>
+            <div
+              id="global_file_dropdown"
+            >
+              <DropdownInputHybrid
+                defaultValue={
+                  Object {
+                    "label": <div>
+                      <i
+                        className="icon icon-infinity option-icon"
+                      />
+                      <span
+                        className="option_forever"
+                      >
+                        Keep forever
+                      </span>
+                    </div>,
+                    "value": "FOREVER",
+                  }
+                }
+                dropdownClassNamePrefix="file_retention_dropdown"
+                exceptionToInput={
+                  Array [
+                    "FOREVER",
+                  ]
+                }
+                inputId="file_retention_input"
+                inputType="number"
+                inputValue="40"
+                legend="File retention"
+                name="file_retention"
+                onDropdownChange={[Function]}
+                onInputChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": <span
+                        className="option_days"
+                      >
+                        Days
+                      </span>,
+                      "value": "DAYS",
+                    },
+                    Object {
+                      "label": <span
+                        className="option_years"
+                      >
+                        Years
+                      </span>,
+                      "value": "YEARS",
+                    },
+                    Object {
+                      "label": <div>
+                        <i
+                          className="icon icon-infinity option-icon"
+                        />
+                        <span
+                          className="option_forever"
+                        >
+                          Keep forever
+                        </span>
+                      </div>,
+                      "value": "FOREVER",
+                    },
+                  ]
+                }
+                placeholder="File retention"
+                value={
+                  Object {
+                    "label": <span
+                      className="option_days"
+                    >
+                      Days
+                    </span>,
+                    "value": "DAYS",
+                  }
+                }
+                width={90}
+              />
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass="btn-primary"
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="admin.data_retention.custom_policy.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Saving"
+          id="save_button.saving"
+        />
+      }
+    />
+    <Connect(BlockableLink)
+      className="cancel-button"
+      to="/admin_console/compliance/data_retention_settings"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="admin.data_retention.custom_policy.cancel"
+      />
+    </Connect(BlockableLink)>
+  </div>
+</div>
+`;
