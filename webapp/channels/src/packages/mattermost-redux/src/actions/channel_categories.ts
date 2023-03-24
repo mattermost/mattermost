@@ -137,7 +137,7 @@ function updateCategory(category: ChannelCategory) {
     };
 }
 
-export function fetchMyCategories(teamId: string,isWebSocket: boolean) {
+export function fetchMyCategories(teamId: string, isWebSocket: boolean) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUserId = getCurrentUserId(getState());
 

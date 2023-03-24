@@ -360,9 +360,9 @@ describe('fetchMyCategories', () => {
             }});
 
         nock(Client4.getBaseRoute()).
-        get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-        reply(200, {categories, order: categories.map((category) => category.id)});
-            await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
+            get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            reply(200, {categories, order: categories.map((category) => category.id)});
+        await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
         const categoriesById = getAllCategoriesByIds(store.getState());
 
         expect(categoriesById.category1.collapsed).toEqual(false);
@@ -400,8 +400,8 @@ describe('fetchMyCategories', () => {
                 },
             }});
         nock(Client4.getBaseRoute()).
-        get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-        reply(200, {categories, order: categories.map((category) => category.id)});
+            get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            reply(200, {categories, order: categories.map((category) => category.id)});
 
         await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
         const categoriesById = getAllCategoriesByIds(store.getState());
