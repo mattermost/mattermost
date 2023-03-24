@@ -30,7 +30,7 @@ describe('components/user_settings/display/manage_first_day_of_week/manage_first
             actions: {...requiredProps.actions, updateMe},
             firstDayOfWeek: 2,
         };
-        const wrapper = shallow(<ManageFirstDayOfWeek {...props} />);
+        const wrapper = shallow(<ManageFirstDayOfWeek {...props}/>);
 
         await (wrapper.instance() as ManageFirstDayOfWeek).submitUser();
 

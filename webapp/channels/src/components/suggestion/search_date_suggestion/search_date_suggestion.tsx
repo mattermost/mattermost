@@ -49,11 +49,11 @@ export default class SearchDateSuggestion extends Suggestion {
     }
 
     iconLeft = () => {
-        return <i className="icon icon-chevron-left" />;
+        return <i className='icon icon-chevron-left'/>;
     };
 
     iconRight = () => {
-        return <i className="icon icon-chevron-right" />;
+        return <i className='icon icon-chevron-right'/>;
     };
 
     render() {
@@ -61,10 +61,10 @@ export default class SearchDateSuggestion extends Suggestion {
 
         this.loadedLocales = Utils.getDatePickerLocalesForDateFns(
             locale,
-            this.loadedLocales
+            this.loadedLocales,
         );
         const firstDayOfWeek = useSelector((state: GlobalState) =>
-            getFirstDayOfWeekForCurrentUser(state)
+            getFirstDayOfWeekForCurrentUser(state),
         );
         return (
             <DayPicker
@@ -74,16 +74,16 @@ export default class SearchDateSuggestion extends Suggestion {
                 locale={this.loadedLocales[locale]}
                 initialFocus={this.state.datePickerFocused}
                 onMonthChange={this.props.preventClose}
-                id="searchDatePicker"
+                id='searchDatePicker'
                 selected={this.props.currentDate}
                 components={{
                     IconRight: this.iconRight,
                     IconLeft: this.iconLeft,
                 }}
                 weekStartsOn={
-                    (firstDayOfWeek >= 0 && firstDayOfWeek < 7
-                        ? firstDayOfWeek
-                        : undefined) as 0 | 2 | 1 | 3 | 4 | 5 | 6 | undefined
+                    (firstDayOfWeek >= 0 && firstDayOfWeek < 7 ?
+                        firstDayOfWeek :
+                        undefined) as 0 | 2 | 1 | 3 | 4 | 5 | 6 | undefined
                 }
             />
         );
