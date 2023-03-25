@@ -4,19 +4,20 @@
 
     .form-view {
         display: flex;
-        overflow: hidden;
         width: 100%;
         height: 100%;
         flex-direction: row;
         flex-grow: 1;
         flex-wrap: wrap;
-        align-content: top;
+        align-items: flex-start;
         justify-content: center;
         padding: 77px 107px;
         color: var(--center-channel-color);
         font-family: "Open Sans";
         font-size: 16px;
         font-weight: 600;
+        overflow-x: hidden;
+        overflow-y: auto;
 
         .title {
             font-size: 22px;
@@ -39,14 +40,12 @@
                 margin-right: 16px;
 
                 .DropdownInput {
-                    z-index: 99999;
                     margin-top: 0;
                 }
             }
 
             .DropdownInput {
                 position: relative;
-                z-index: 999999;
                 height: 36px;
                 margin-bottom: 24px;
 
@@ -517,6 +516,9 @@
         }
 
         input[type=checkbox] {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
             margin-right: 12px;
         }
 

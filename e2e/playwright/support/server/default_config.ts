@@ -73,8 +73,8 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
     };
 };
 
-// Should be based only from the generated default config from mattermost-server via "make config-reset"
-// Based on v7.9 server
+// Should be based only from the generated default config from ./server via "make config-reset"
+// Based on v7.10 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -180,9 +180,6 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         SelfHostedExpansion: false,
     },
     TeamSettings: {
@@ -636,7 +633,7 @@ const defaultServerConfig: AdminConfig = {
                 Enable: true,
             },
             focalboard: {
-                Enable: false,
+                Enable: true,
             },
             playbooks: {
                 Enable: true,
@@ -689,13 +686,12 @@ const defaultServerConfig: AdminConfig = {
         GraphQL: false,
         InsightsEnabled: true,
         CommandPalette: false,
-        BoardsProduct: true,
+        BoardsProduct: false,
         SendWelcomePost: true,
         WorkTemplate: false,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
-        AnnualSubscription: false,
         ReduceOnBoardingTaskList: false,
         OnboardingAutoShowLinkedBoard: true,
         ThreadsEverywhere: false,
