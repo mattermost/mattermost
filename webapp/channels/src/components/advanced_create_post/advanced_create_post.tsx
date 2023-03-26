@@ -1208,6 +1208,15 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                     selectionEnd,
                     message: value,
                 });
+            } else if (Utils.isTextSelectedInPostOrReply(e) && Utils.isKeyPressed(e, KeyCodes.K)) {
+                e.stopPropagation();
+                e.preventDefault();
+                this.applyMarkdown({
+                    markdownMode: 'link',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
             }
         } else if (ctrlAltCombo) {
             if (Utils.isKeyPressed(e, KeyCodes.K)) {

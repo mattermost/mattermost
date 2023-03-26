@@ -78,7 +78,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
 
     handleQuickSwitchKeyPress = (e: KeyboardEvent) => {
         if (Utils.cmdOrCtrlPressed(e) && !e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.K)) {
-            if (!e.altKey) {
+            if (!e.altKey && !Utils.isTextSelectedInPostOrReply(e)) {
                 e.preventDefault();
                 this.toggleQuickSwitchModal();
             }
