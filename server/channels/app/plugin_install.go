@@ -174,6 +174,16 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
+	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+		if _, ok := cfg.PluginSettings.Plugins[manifest.Id]; !ok {
+			cfg.PluginSettings.Plugins[manifest.Id] = make(map[string]any)
+		}
+
+		for _, pluginSetting := range manifest.SettingsSchema.Settings {
+			cfg.PluginSettings.Plugins[manifest.Id][pluginSetting.Key] = pluginSetting.Default
+		}
+	})
+
 	return manifest, nil
 }
 
