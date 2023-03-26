@@ -163,7 +163,7 @@ export default class Markdown extends React.PureComponent<Props> {
 
         const htmlFormattedText = formatText(message, options, this.props.emojiMap);
 
-        return messageHtmlToComponent(htmlFormattedText, this.props.isRHS, {
+        return messageHtmlToComponent(htmlFormattedText, {
             imageProps: this.props.imageProps,
             imagesMetadata: this.props.imagesMetadata,
             hasPluginTooltips: this.props.hasPluginTooltips,
@@ -177,6 +177,6 @@ export default class Markdown extends React.PureComponent<Props> {
             editedAt,
             atSumOfMembersMentions: this.props.options.atSumOfMembersMentions,
             atPlanMentions: this.props.options.atPlanMentions,
-        });
+        }, this.props.isRHS);
     }
 }
