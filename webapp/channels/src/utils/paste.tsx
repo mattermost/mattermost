@@ -55,6 +55,14 @@ export function isGitHubCodeBlock(tableClassName: string): boolean {
     return result;
 }
 
+export function isHttpProtocol(url: string): boolean {
+    return url.startsWith('http://');
+}
+
+export function isHttpsProtocol(url: string): boolean {
+    return url.startsWith('https://');
+}
+
 function isHeaderlessTable(table: HTMLTableElement): boolean {
     return table.querySelectorAll('th').length === 0;
 }
@@ -85,9 +93,7 @@ export function formatMarkdownMessage(clipboardData: DataTransfer, message?: str
 
 export function formatGithubCodePaste({message, clipboardData, selectionStart, selectionEnd}: FormatCodeOptions): {formattedMessage: string; formattedCodeBlock: string} {
     const textSelected = selectionStart !== selectionEnd;
-    const {firstPiece, lastPiece} = textSelected ?
-        splitMessageBasedOnTextSelection(selectionStart ?? message.length, selectionEnd ?? message.length, message) :
-        splitMessageBasedOnCaretPosition(selectionStart ?? message.length, message);
+    const {firstPiece, lastPiece} = textSelected ? splitMessageBasedOnTextSelection(selectionStart ?? message.length, selectionEnd ?? message.length, message) : splitMessageBasedOnCaretPosition(selectionStart ?? message.length, message);
 
     // Add new lines if content exists before or after the cursor.
     const requireStartLF = firstPiece === '' ? '' : '\n';
