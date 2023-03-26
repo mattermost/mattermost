@@ -23,6 +23,8 @@ import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 
+import {ProfileTimezone} from './profile_localtime';
+
 import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -40,7 +42,7 @@ import Tooltip from 'components/tooltip';
 import ProfilePopoverCallButton from 'components/profile_popover_call_button';
 
 import {ServerError} from '@mattermost/types/errors';
-import {UserCustomStatus, UserProfile, UserTimezone, CustomStatusDuration} from '@mattermost/types/users';
+import {UserCustomStatus, UserProfile, CustomStatusDuration} from '@mattermost/types/users';
 
 import './profile_popover.scss';
 import BotTag from '../widgets/tag/bot_tag';
@@ -574,27 +576,11 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
             !haveOverrideProp
         ) {
             dataContent.push(
-                <div
+                <ProfileTimezone
+                    currentUserTimezone={this.props.currentUserTimezone}
+                    profileUserTimezone={this.props.user.timezone}
                     key='user-popover-local-time'
-                    className='user-popover__time-status-container'
-                >
-                    <span className='user-popover__subtitle' >
-                        <FormattedMessage
-                            id='user_profile.account.localTime'
-                            defaultMessage='Local Time'
-                        />
-                    </span>
-                    <Timestamp
-                        useRelative={false}
-                        useDate={false}
-                        userTimezone={this.props.user?.timezone as UserTimezone | undefined}
-                        useTime={{
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            timeZoneName: 'short',
-                        }}
-                    />
-                </div>,
+                />,
             );
         }
 
