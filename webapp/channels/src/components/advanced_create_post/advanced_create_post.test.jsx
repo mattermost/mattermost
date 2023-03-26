@@ -1580,6 +1580,7 @@ describe('components/advanced_create_post', () => {
         (instance) => instance.find(AdvanceTextEditor),
         (instance) => instance.state().message,
         false,
+        'post_textbox',
     );
 
     /**
