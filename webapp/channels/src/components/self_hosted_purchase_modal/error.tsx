@@ -4,13 +4,11 @@
 import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {getCloudContactUsLink, InquiryType} from 'selectors/cloud';
 
 import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import AccessDeniedHappySvg from 'components/common/svg_images_components/access_denied_happy_svg';
 import IconMessage from 'components/purchase_modal/icon_message';
+import {useOpenSelfHostedZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
 
 interface Props {
@@ -20,7 +18,7 @@ interface Props {
 }
 
 export default function ErrorPage(props: Props) {
-    const contactSupportLink = useSelector(getCloudContactUsLink)(InquiryType.Technical);
+    const [, contactSupportLink] = useOpenSelfHostedZendeskSupportForm('Purchase error');
     let formattedTitle = (
         <FormattedMessage
             id='admin.billing.subscription.paymentVerificationFailed'

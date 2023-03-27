@@ -18,6 +18,7 @@ export interface SelfHostedSignupForm {
     first_name: string;
     last_name: string;
     billing_address: Address;
+    shipping_address: Address;
     organization: string;
 }
 

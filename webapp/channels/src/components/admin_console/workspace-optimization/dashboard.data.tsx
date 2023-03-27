@@ -18,8 +18,9 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {GlobalState} from '@mattermost/types/store';
 
-import {CloudLinks, ConsolePages, DocLinks, LicenseLinks} from 'utils/constants';
+import {CloudLinks, ConsolePages, DocLinks} from 'utils/constants';
 import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 export type DataModel = {
     [key: string]: {
@@ -84,8 +85,10 @@ const useMetricsData = () => {
     const isEnterpriseLicense = isEnterpriseOrE20License(license);
     const isStarterLicense = getIsStarterLicense(license);
 
+    const [, contactSalesLink] = useOpenSalesLink();
+
     const trialOrEnterpriseCtaConfig = {
-        configUrl: canStartTrial ? ConsolePages.LICENSE : LicenseLinks.CONTACT_SALES,
+        configUrl: canStartTrial ? ConsolePages.LICENSE : contactSalesLink,
         configText: canStartTrial ? formatMessage({id: 'admin.reporting.workspace_optimization.cta.startTrial', defaultMessage: 'Start trial'}) : formatMessage({id: 'admin.reporting.workspace_optimization.cta.upgradeLicense', defaultMessage: 'Contact sales'}),
     };
 
