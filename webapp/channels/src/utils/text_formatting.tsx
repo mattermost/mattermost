@@ -481,7 +481,7 @@ export function allAtMentions(text: string): RegExpMatchArray {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
 }
 
-function autolinkChannelMentions(
+export function autolinkChannelMentions(
     text: string,
     tokens: Tokens,
     channelNamesMap: ChannelNamesMap,
