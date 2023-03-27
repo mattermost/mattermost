@@ -34,7 +34,8 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        height: 600px;
+        width: 600px;
+        height: 360px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin: auto;
         border-radius: 8px;
@@ -48,8 +49,23 @@
         .modal-content {
             height: 100%;
 
+            .IconMessage__svg-wrapper {
+                margin-left: 0;
+            }
+
             .IconMessage-h3 {
                 margin-top: 0;
+            }
+
+            .IconMessage-sub {
+                max-width: 504px;
+                margin-top: 0;
+            }
+
+            .IconMessage-buttons {
+                justify-content: right;
+                padding-right: 24px;
+                margin-top: 60px;
             }
         }
     }
