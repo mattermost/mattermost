@@ -223,7 +223,6 @@ const UserGroupsList = (props: Props) => {
                 isItemLoaded={isItemLoaded}
                 itemCount={100000}
                 loadMoreItems={loadMoreItems}
-                threshold={5}
             >
                 {({onItemsRendered, ref}) => (
                     <VariableSizeList

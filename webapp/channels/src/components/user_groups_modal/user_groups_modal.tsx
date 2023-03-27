@@ -49,7 +49,7 @@ const UserGroupsModal = (props: Props) => {
     const [page, setPage] = useState(0);
     const [myGroupsPage, setMyGroupsPage] = useState(0);
     const [archivedGroupsPage, setArchivedGroupsPage] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [show, setShow] = useState(true);
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [groupsFull, setGroupsFull] = useState(false);
@@ -89,7 +89,7 @@ const UserGroupsModal = (props: Props) => {
         }
         setLoading(false);
         setSelectedFilter('all');
-    }, [props.actions.getGroups]);
+    }, [props.actions.getGroups,]);
 
     const getArchivedGroups = useCallback(async (page: number) => {
         const {actions} = props;
@@ -197,7 +197,7 @@ const UserGroupsModal = (props: Props) => {
             setArchivedGroupsPage(newPage);
             getArchivedGroups(newPage);
         }
-    }, [selectedFilter, myGroupsPage, page, archivedGroupsPage, getGroups, getMyGroups, getArchivedGroups]);
+    }, [selectedFilter, myGroupsPage, page, archivedGroupsPage, getGroups, getMyGroups, getArchivedGroups, loading]);
 
     const inputPrefix = useMemo(() => {
         return <i className={'icon icon-magnify'}/>;
