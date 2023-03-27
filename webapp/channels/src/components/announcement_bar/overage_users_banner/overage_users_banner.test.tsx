@@ -7,7 +7,7 @@ import {fireEvent, screen} from '@testing-library/react';
 import {DeepPartial} from '@mattermost/types/utilities';
 import {GlobalState} from 'types/store';
 import {General} from 'mattermost-redux/constants';
-import {LicenseLinks, OverActiveUserLimits, Preferences, StatTypes} from 'utils/constants';
+import {OverActiveUserLimits, Preferences, StatTypes} from 'utils/constants';
 import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -249,7 +249,10 @@ describe('components/overage_users_banner', () => {
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toBeCalledTimes(1);
-        expect(windowSpy).toBeCalledWith(LicenseLinks.CONTACT_SALES, '_blank');
+
+        // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
+        const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
+        expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
         expect(trackEvent).toBeCalledTimes(1);
         expect(trackEvent).toBeCalledWith('insights', 'click_true_up_warning', {
             cta: 'Contact Sales',
@@ -368,7 +371,10 @@ describe('components/overage_users_banner', () => {
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toBeCalledTimes(1);
-        expect(windowSpy).toBeCalledWith(LicenseLinks.CONTACT_SALES, '_blank');
+
+        // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
+        const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
+        expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
         expect(trackEvent).toBeCalledTimes(1);
         expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
             cta: 'Contact Sales',

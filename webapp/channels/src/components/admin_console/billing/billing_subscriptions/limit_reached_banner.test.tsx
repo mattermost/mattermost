@@ -177,7 +177,7 @@ describe('limits_reached_banner', () => {
         const store = mockStore(state);
         const spies = makeSpies();
         const mockOpenSalesLink = jest.fn();
-        spies.useOpenSalesLink.mockReturnValue(mockOpenSalesLink);
+        spies.useOpenSalesLink.mockReturnValue([mockOpenSalesLink, '']);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
         renderWithIntl(<Provider store={store}><LimitReachedBanner product={free}/></Provider>);
         screen.getByText(titleFree);
