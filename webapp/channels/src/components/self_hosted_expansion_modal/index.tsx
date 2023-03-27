@@ -3,7 +3,7 @@
 
 import React, {useEffect, useRef, useState} from 'react';
 
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -47,18 +47,34 @@ import SelfHostedExpansionCard from './expansion_card';
 import './self_hosted_expansion_modal.scss';
 
 import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from './constants';
+import Address from 'components/self_hosted_purchase_modal/address';
+import ChooseDifferentShipping from 'components/choose_different_shipping';
+import Terms from 'components/self_hosted_purchase_modal/terms';
 
 export interface FormState {
+    cardName: string;
+    cardFilled: boolean;
+
     address: string;
     address2: string;
     city: string;
     state: string;
     country: string;
     postalCode: string;
-    cardName: string;
     organization: string;
-    cardFilled: boolean;
+
     seats: number;
+
+    shippingSame: boolean;
+    shippingAddress: string;
+    shippingAddress2: string;
+    shippingCity: string;
+    shippingState: string;
+    shippingCountry: string;
+    shippingPostalCode: string;
+
+    agreedTerms: boolean;
+
     submitting: boolean;
     succeeded: boolean;
     progressBar: number;
@@ -67,16 +83,24 @@ export interface FormState {
 
 export function makeInitialState(seats: number): FormState {
     return {
+        cardName: '',
+        cardFilled: false,
         address: '',
         address2: '',
         city: '',
         state: '',
         country: '',
         postalCode: '',
-        cardName: '',
         organization: '',
-        cardFilled: false,
+        shippingSame: true,
+        shippingAddress: '',
+        shippingAddress2: '',
+        shippingCity: '',
+        shippingState: '',
+        shippingCountry: '',
+        shippingPostalCode: '',
         seats,
+        agreedTerms: false,
         submitting: false,
         succeeded: false,
         progressBar: 0,
@@ -97,6 +121,18 @@ export function canSubmit(formState: FormState, progress: ValueOf<typeof SelfHos
         formState.postalCode &&
         formState.country,
     );
+
+    const validShippingAddress = Boolean(
+        formState.shippingSame ||
+        formState.shippingAddress &&
+        formState.shippingCity &&
+        formState.shippingState &&
+        formState.shippingPostalCode &&
+        formState.shippingCountry,
+    );
+
+    const agreedToTerms = formState.agreedTerms;
+
     const validCard = Boolean(
         formState.cardName &&
         formState.cardFilled,
@@ -104,27 +140,28 @@ export function canSubmit(formState: FormState, progress: ValueOf<typeof SelfHos
     const validSeats = formState.seats > 0;
 
     switch (progress) {
-    case SelfHostedSignupProgress.PAID:
-    case SelfHostedSignupProgress.CREATED_LICENSE:
-    case SelfHostedSignupProgress.CREATED_SUBSCRIPTION:
-        return true;
-    case SelfHostedSignupProgress.CONFIRMED_INTENT: {
-        return Boolean(
-            validAddress &&
-                validSeats,
-        );
-    }
-    case SelfHostedSignupProgress.START:
-    case SelfHostedSignupProgress.CREATED_CUSTOMER:
-    case SelfHostedSignupProgress.CREATED_INTENT:
-        return Boolean(
-            validCard &&
+        case SelfHostedSignupProgress.PAID:
+        case SelfHostedSignupProgress.CREATED_LICENSE:
+        case SelfHostedSignupProgress.CREATED_SUBSCRIPTION:
+            return true;
+        case SelfHostedSignupProgress.CONFIRMED_INTENT: {
+            return Boolean(
+                validAddress && validShippingAddress && validSeats && agreedToTerms
+            );
+        }
+        case SelfHostedSignupProgress.START:
+        case SelfHostedSignupProgress.CREATED_CUSTOMER:
+        case SelfHostedSignupProgress.CREATED_INTENT:
+            return Boolean(
+                validCard &&
                 validAddress &&
-                validSeats,
-        );
-    default: {
-        return false;
-    }
+                validShippingAddress &&
+                validSeats &&
+                agreedToTerms
+            );
+        default: {
+            return false;
+        }
     }
 }
 
@@ -166,6 +203,14 @@ export default function SelfHostedExpansionModal() {
                 first_name: firstName,
                 last_name: lastName,
                 billing_address: {
+                    city: formState.city,
+                    country: formState.country,
+                    line1: formState.address,
+                    line2: formState.address2,
+                    postal_code: formState.postalCode,
+                    state: formState.state,
+                },
+                shipping_address: {
                     city: formState.city,
                     country: formState.country,
                     line1: formState.address,
@@ -361,104 +406,87 @@ export default function SelfHostedExpansionModal() {
                                         />
                                     </div>
                                     <span className='section-title'>
-                                        {intl.formatMessage({
-                                            id: 'payment_form.billing_address',
-                                            defaultMessage: 'Billing address',
-                                        })}
+                                        <FormattedMessage
+                                            id='payment_form.billing_address'
+                                            defaultMessage='Billing address'
+                                        />
                                     </span>
-                                    <DropdownInput
-                                        testId='selfHostedExpansionCountrySelector'
-                                        onChange={(option: {value: string}) => {
+                                    <Address
+                                        type='billing'
+                                        country={formState.country}
+                                        changeCountry={(option) => {
                                             setFormState({...formState, country: option.value});
                                         }}
-                                        value={
-                                            formState.country ? {value: formState.country, label: formState.country} : undefined
-                                        }
-                                        options={COUNTRIES.map((country) => ({
-                                            value: country.name,
-                                            label: country.name,
-                                        }))}
-                                        legend={intl.formatMessage({
-                                            id: 'payment_form.country',
-                                            defaultMessage: 'Country',
-                                        })}
-                                        placeholder={intl.formatMessage({
-                                            id: 'payment_form.country',
-                                            defaultMessage: 'Country',
-                                        })}
-                                        name={'billing_dropdown'}
+                                        address={formState.address}
+                                        changeAddress={(e) => {
+                                            setFormState({...formState, address: e.target.value});
+                                        }}
+                                        address2={formState.address2}
+                                        changeAddress2={(e) => {
+                                            setFormState({...formState, address2: e.target.value});
+                                        }}
+                                        city={formState.city}
+                                        changeCity={(e) => {
+                                            setFormState({...formState, city: e.target.value});
+                                        }}
+                                        state={formState.state}
+                                        changeState={(state: string) => {
+                                            setFormState({...formState, state});
+                                        }}
+                                        postalCode={formState.postalCode}
+                                        changePostalCode={(e) => {
+                                            setFormState({...formState, postalCode: e.target.value});
+                                        }}
                                     />
-                                    <div className='form-row'>
-                                        <Input
-                                            name='address'
-                                            type='text'
-                                            value={formState.address}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                setFormState({...formState, address: e.target.value});
-                                            }}
-                                            placeholder={intl.formatMessage({
-                                                id: 'payment_form.address',
-                                                defaultMessage: 'Address',
-                                            })}
-                                            required={true}
-                                        />
-                                    </div>
-                                    <div className='form-row'>
-                                        <Input
-                                            name='address2'
-                                            type='text'
-                                            value={formState.address2}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                setFormState({...formState, address2: e.target.value});
-                                            }}
-                                            placeholder={intl.formatMessage({
-                                                id: 'payment_form.address_2',
-                                                defaultMessage: 'Address 2',
-                                            })}
-                                        />
-                                    </div>
-                                    <div className='form-row'>
-                                        <Input
-                                            name='city'
-                                            type='text'
-                                            value={formState.city}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                setFormState({...formState, city: e.target.value});
-                                            }}
-                                            placeholder={intl.formatMessage({
-                                                id: 'payment_form.city',
-                                                defaultMessage: 'City',
-                                            })}
-                                            required={true}
-                                        />
-                                    </div>
-                                    <div className='form-row'>
-                                        <div className='form-row-third-1'>
-                                            <StateSelector
-                                                testId='selfHostedExpansionStateSelector'
-                                                country={formState.country}
-                                                state={formState.state}
-                                                onChange={(state: string) => {
-                                                    setFormState({...formState, state});
+                                    <ChooseDifferentShipping
+                                        shippingIsSame={formState.shippingSame}
+                                        setShippingIsSame={(val: boolean) => {
+                                            setFormState({...formState, shippingSame: val});
+                                        }}
+                                    />
+                                    {!formState.shippingSame && (
+                                        <>
+                                            <div className='section-title'>
+                                                <FormattedMessage
+                                                    id='payment_form.shipping_address'
+                                                    defaultMessage='Shipping Address'
+                                                />
+                                            </div>
+                                            <Address
+                                                type='shipping'
+                                                country={formState.shippingCountry}
+                                                changeCountry={(option) => {
+                                                    setFormState({...formState, shippingCountry: option.value});
+                                                }}
+                                                address={formState.shippingAddress}
+                                                changeAddress={(e) => {
+                                                    setFormState({...formState, shippingAddress: e.target.value});
+                                                }}
+                                                address2={formState.shippingAddress2}
+                                                changeAddress2={(e) => {
+                                                    setFormState({...formState, shippingAddress2: e.target.value});
+                                                }}
+                                                city={formState.shippingCity}
+                                                changeCity={(e) => {
+                                                    setFormState({...formState, shippingCity: e.target.value});
+                                                }}
+                                                state={formState.shippingState}
+                                                changeState={(state: string) => {
+                                                    setFormState({...formState, shippingState: state});
+                                                }}
+                                                postalCode={formState.shippingPostalCode}
+                                                changePostalCode={(e) => {
+                                                    setFormState({...formState, shippingPostalCode: e.target.value});
                                                 }}
                                             />
-                                        </div>
-                                        <div className='form-row-third-2'>
-                                            <Input
-                                                name='postalCode'
-                                                type='text'
-                                                value={formState.postalCode}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    setFormState({...formState, postalCode: e.target.value});
-                                                }}
-                                                placeholder={intl.formatMessage({
-                                                    id: 'payment_form.zipcode',
-                                                    defaultMessage: 'Zip/Postal Code',
-                                                })}
-                                                required={true}
-                                            />
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
+                                    <Terms
+                                        agreed={formState.agreedTerms}
+                                        setAgreed={(data: boolean) => {
+                                            setFormState({...formState, agreedTerms: data});
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className='rhs'>
