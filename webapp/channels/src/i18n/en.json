@@ -2649,7 +2649,6 @@
   "app.channel.post_update_channel_purpose_message.removed": "{username} removed the channel purpose (was: {old})",
   "app.channel.post_update_channel_purpose_message.updated_from": "{username} updated the channel purpose from: {old} to: {new}",
   "app.channel.post_update_channel_purpose_message.updated_to": "{username} updated the channel purpose to: {new}",
-  "app.plugin.marketplace_plugins.app_error": "Error connecting to the marketplace server. Please check your settings in the [System Console]({siteURL}/admin_console/plugins/plugin_management).",
   "apps.error": "Error: {error}",
   "apps.error.command.field_missing": "Required fields missing: `{fieldName}`.",
   "apps.error.command.same_channel": "Channel repeated for field `{fieldName}`: `{option}`.",
