@@ -498,7 +498,7 @@ function autolinkChannelMentions(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href = ((window as any).basename || '') + '/' + teamName + '/channels/' + channelName;
             tokens.set(alias, {
-                value: `<a class="mention-link" href="${href}" data-channel-mention-team="${teamName}" "data-channel-mention="${channelName}">~${displayName}</a>`,
+                value: `<a class="mention-link" href="${href}" data-channel-mention-team="${teamName}" data-channel-mention="${channelName}">~${displayName}</a>`,
                 originalText: mention,
             });
         } else if (team) {
