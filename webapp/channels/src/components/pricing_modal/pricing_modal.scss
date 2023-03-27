@@ -136,6 +136,56 @@
             .description {
                 border-bottom: 1px solid rgba(63, 67, 80, 0.16);
                 text-align: center;
+
+                .title {
+                    margin-top: 24px;
+                    margin-bottom: 8px;
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: 20px;
+
+                    .questions {
+                        margin-right: 2px;
+                        color: #3f4350;
+                    }
+
+                    .contact {
+                        color: var(--denim-button-bg);
+                    }
+                }
+
+                .content {
+                    margin-bottom: 25px;
+                    color: rgba(63, 67, 80, 0.72);
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+            }
+
+            .self-hosted-interest {
+                padding: 8px;
+                margin-top: 24px;
+                background: rgba(28, 88, 217, 0.08);
+                border-radius: 8px;
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 20px;
+
+                .interested {
+                    margin-right: 2px;
+                    color: #3f4350;
+                }
+
+                .learn {
+                    color: var(--denim-button-bg);
+                }
             }
         }
 

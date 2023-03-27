@@ -4,7 +4,6 @@
 import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 
-import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
 import Illus from './illus.svg';
 
@@ -35,7 +34,6 @@ type ButtonDetails = {
 
 type CardProps = {
     id: string;
-    topColor: string;
     planLabel?: JSX.Element;
     plan: string;
     planSummary?: string;
@@ -51,18 +49,38 @@ type CardProps = {
 }
 
 export function BlankCard() {
+    const {formatMessage} = useIntl();
+
     return (
         <div className='BlankCard'>
             <div>
                 <Illus/>
             </div>
 
-            <div className="description">
-                <p>{'Questions?'} <a>{'Contact us'}</a></p>
-                <p>{'Reach out to us and we’ll help you decide which plan is right for you and your organization.'}</p>
+            <div className='description'>
+                <div className='title'>
+                    <span className='questions'>
+                        {formatMessage({id: 'pricing_modal.questions', defaultMessage: 'Questions?'})}
+                    </span>
+                    <span className='contact'>
+                        <a>
+                            {formatMessage({id: 'pricing_modal.contact_us', defaultMessage: 'Contact us'})}
+                        </a>
+                    </span>
+                </div>
+                <div className='content'>
+                    {formatMessage({id: 'pricing_modal.reach_out', defaultMessage: 'Reach out to us and we’ll help you decide which plan is right for you and your organization.'})}
+                </div>
             </div>
-            <div>
-            <p>{'Interested in self-hosting?'} <a>{'Learn more'}</a></p>
+            <div className='self-hosted-interest'>
+                <span className='interested'>
+                    {formatMessage({id: 'pricing_modal.interested_self_hosting', defaultMessage: 'Interested in self-hosting?'})}
+                </span>
+                <span className='learn'>
+                    <a>
+                        {formatMessage({id: 'pricing_modal.learn_more', defaultMessage: 'Learn more'})}
+                    </a>
+                </span>
             </div>
         </div>
     );
@@ -81,7 +99,6 @@ function Card(props: CardProps) {
                     <div className='plan_price_rate_section'>
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
-                        {/* {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>} */}
                         <h1>{props.price}</h1>
                         <span>{props.rate}</span>
                     </div>
