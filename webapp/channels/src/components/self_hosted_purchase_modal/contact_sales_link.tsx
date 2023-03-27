@@ -4,18 +4,17 @@
 import React from 'react';
 
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {getCloudContactUsLink, InquiryType} from 'selectors/cloud';
 import {
     TELEMETRY_CATEGORIES,
 } from 'utils/constants';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 
 export default function ContactSalesLink() {
-    const contactSupportLink = useSelector(getCloudContactUsLink)(InquiryType.Technical);
+    const [, contactSalesLink] = useOpenSalesLink();
     const intl = useIntl();
     return (
         <ExternalLink
@@ -26,7 +25,7 @@ export default function ContactSalesLink() {
                     'click_contact_sales',
                 );
             }}
-            href={contactSupportLink}
+            href={contactSalesLink}
             location='contact_sales_link'
         >
             {intl.formatMessage({id: 'self_hosted_signup.contact_sales', defaultMessage: 'Contact Sales'})}
