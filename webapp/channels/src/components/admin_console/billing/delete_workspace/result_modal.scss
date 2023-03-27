@@ -34,8 +34,8 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        height: 360px;
         width: 600px;
+        height: 360px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin: auto;
         border-radius: 8px;
@@ -58,13 +58,13 @@
             }
 
             .IconMessage-sub {
-                margin-top: 0;
                 max-width: 504px;
+                margin-top: 0;
             }
 
             .IconMessage-buttons {
-                margin-top: 60px;
                 justify-content: right;
+                margin-top: 60px;
                 padding-right: 24px;
             }
         }

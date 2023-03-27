@@ -123,13 +123,14 @@
         }
 
         .Input___error {
-            line-height: 16px;
             height: 100%;
+            line-height: 16px;
+
             .icon.error.icon-alert-circle-outline {
-                height: 16px;
                 width: 16px;
-                font-size: 16px;
+                height: 16px;
                 margin-right: 4px;
+                font-size: 16px;
             }
 
             font-weight: 600;
