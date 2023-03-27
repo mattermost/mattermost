@@ -19,10 +19,7 @@ import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 import Input from 'components/widgets/inputs/input/input';
 
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
-import {COUNTRIES} from 'utils/countries';
-import StateSelector from 'components/payment_form/state_selector';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import DropdownInput from 'components/dropdown_input';
 import StripeProvider from '../self_hosted_purchase_modal/stripe_provider';
 
 import {closeModal} from 'actions/views/modals';
@@ -124,11 +121,11 @@ export function canSubmit(formState: FormState, progress: ValueOf<typeof SelfHos
 
     const validShippingAddress = Boolean(
         formState.shippingSame ||
-        formState.shippingAddress &&
+        (formState.shippingAddress &&
         formState.shippingCity &&
         formState.shippingState &&
         formState.shippingPostalCode &&
-        formState.shippingCountry,
+        formState.shippingCountry),
     );
 
     const agreedToTerms = formState.agreedTerms;
@@ -140,28 +137,28 @@ export function canSubmit(formState: FormState, progress: ValueOf<typeof SelfHos
     const validSeats = formState.seats > 0;
 
     switch (progress) {
-        case SelfHostedSignupProgress.PAID:
-        case SelfHostedSignupProgress.CREATED_LICENSE:
-        case SelfHostedSignupProgress.CREATED_SUBSCRIPTION:
-            return true;
-        case SelfHostedSignupProgress.CONFIRMED_INTENT: {
-            return Boolean(
-                validAddress && validShippingAddress && validSeats && agreedToTerms
-            );
-        }
-        case SelfHostedSignupProgress.START:
-        case SelfHostedSignupProgress.CREATED_CUSTOMER:
-        case SelfHostedSignupProgress.CREATED_INTENT:
-            return Boolean(
-                validCard &&
+    case SelfHostedSignupProgress.PAID:
+    case SelfHostedSignupProgress.CREATED_LICENSE:
+    case SelfHostedSignupProgress.CREATED_SUBSCRIPTION:
+        return true;
+    case SelfHostedSignupProgress.CONFIRMED_INTENT: {
+        return Boolean(
+            validAddress && validShippingAddress && validSeats && agreedToTerms,
+        );
+    }
+    case SelfHostedSignupProgress.START:
+    case SelfHostedSignupProgress.CREATED_CUSTOMER:
+    case SelfHostedSignupProgress.CREATED_INTENT:
+        return Boolean(
+            validCard &&
                 validAddress &&
                 validShippingAddress &&
                 validSeats &&
-                agreedToTerms
-            );
-        default: {
-            return false;
-        }
+                agreedToTerms,
+        );
+    default: {
+        return false;
+    }
     }
 }
 
@@ -273,7 +270,7 @@ export default function SelfHostedExpansionModal() {
                 submitProgress,
                 {
                     seats: formState.seats,
-                    license_id: license.ID,
+                    license_id: license.Id,
                 },
             ));
 
