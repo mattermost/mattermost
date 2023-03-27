@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ManageTeamsDropdown should match snapshot for guest 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <a>
+    <span>
+      Guest
+       
+    </span>
+    <span
+      className="caret"
+    />
+  </a>
+  <Menu
+    ariaLabel="Change the role of a team member"
+    openLeft={true}
+  >
+    <MenuItemAction
+      onClick={[Function]}
+      show={false}
+      text="Make Team Admin"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={false}
+      text="Make Team Member"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Remove from Team"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`ManageTeamsDropdown should match snapshot for system admin 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <a>
+    <span>
+      System Admin
+       
+    </span>
+    <span
+      className="caret"
+    />
+  </a>
+  <Menu
+    ariaLabel="Change the role of a team member"
+    openLeft={true}
+  >
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Make Team Admin"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={false}
+      text="Make Team Member"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Remove from Team"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`ManageTeamsDropdown should match snapshot for team admin 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <a>
+    <span>
+      Team Admin
+       
+    </span>
+    <span
+      className="caret"
+    />
+  </a>
+  <Menu
+    ariaLabel="Change the role of a team member"
+    openLeft={true}
+  >
+    <MenuItemAction
+      onClick={[Function]}
+      show={false}
+      text="Make Team Admin"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Make Team Member"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Remove from Team"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`ManageTeamsDropdown should match snapshot for team member 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <a>
+    <span>
+      Team Member
+       
+    </span>
+    <span
+      className="caret"
+    />
+  </a>
+  <Menu
+    ariaLabel="Change the role of a team member"
+    openLeft={true}
+  >
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Make Team Admin"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={false}
+      text="Make Team Member"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Remove from Team"
+    />
+  </Menu>
+</MenuWrapper>
+`;

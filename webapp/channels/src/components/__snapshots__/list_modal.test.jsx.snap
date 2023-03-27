@@ -1,0 +1,225 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ListModal should match snapshot 1`] = `
+<div>
+  <Modal
+    animation={true}
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    dialogClassName="a11y__modal more-modal more-modal--action"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onExited={[Function]}
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+      >
+        <span
+          className="name"
+        >
+          foo list modal
+        </span>
+      </ModalTitle>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <div
+        className="filtered-user-list"
+      >
+        <div
+          className="filter-row"
+        >
+          <div
+            className="col-xs-12"
+          >
+            <label
+              className="hidden-label"
+              htmlFor="searchUsersInput"
+            >
+              search for foos
+            </label>
+            <input
+              className="form-control filter-textbox"
+              id="searchUsersInput"
+              onChange={[Function]}
+              placeholder="search for foos"
+            />
+          </div>
+          <div
+            className="col-sm-12"
+          >
+            <span
+              className="member-count pull-left"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="{startCount, number} - {endCount, number} of {total, number} total"
+                id="list_modal.paginatorCount"
+                values={
+                  Object {
+                    "endCount": 0,
+                    "startCount": 0,
+                    "total": 0,
+                  }
+                }
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          className="more-modal__list"
+        >
+          <div>
+            <div>
+              <LoadingScreen
+                key="loading"
+                position="absolute"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          className="filter-controls"
+        />
+      </div>
+    </ModalBody>
+  </Modal>
+</div>
+`;
+
+exports[`components/ListModal should match snapshot with title bar button 1`] = `
+<div>
+  <Modal
+    animation={true}
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    dialogClassName="a11y__modal more-modal more-modal--action"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onExited={[Function]}
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+      >
+        <span
+          className="name"
+        >
+          foo list modal
+        </span>
+      </ModalTitle>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <div
+        className="filtered-user-list"
+      >
+        <div
+          className="filter-row"
+        >
+          <div
+            className="col-xs-12"
+          >
+            <label
+              className="hidden-label"
+              htmlFor="searchUsersInput"
+            >
+              search for foos
+            </label>
+            <input
+              className="form-control filter-textbox"
+              id="searchUsersInput"
+              onChange={[Function]}
+              placeholder="search for foos"
+            />
+          </div>
+          <div
+            className="col-sm-12"
+          >
+            <span
+              className="member-count pull-left"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="{startCount, number} - {endCount, number} of {total, number} total"
+                id="list_modal.paginatorCount"
+                values={
+                  Object {
+                    "endCount": 0,
+                    "startCount": 0,
+                    "total": 0,
+                  }
+                }
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          className="more-modal__list"
+        >
+          <div>
+            <div>
+              <LoadingScreen
+                key="loading"
+                position="absolute"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          className="filter-controls"
+        />
+      </div>
+    </ModalBody>
+  </Modal>
+</div>
+`;

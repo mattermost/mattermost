@@ -1,0 +1,81 @@
+@import 'sass/utils/module';
+
+.TeamRow {
+    &:nth-child(odd) {
+        background: alpha-color($white, 0.5);
+    }
+}
+
+.TeamRow__row {
+    display: flex;
+    height: 80px;
+    flex-direction: row;
+    align-items: center;
+    border: 2px solid $transparent;
+}
+
+.TeamRow__row .TeamRow__team-name {
+    display: inline-block;
+    min-width: 300px;
+    flex-grow: 3;
+
+    .TeamIcon {
+        margin-right: 0;
+    }
+
+    .TeamRow__team-description {
+        min-width: 276px;
+        max-width: 400px;
+    }
+}
+
+.SystemUserDetail .TeamRow__col-description {
+    min-width: 276px;
+    max-width: 400px;
+}
+
+.TeamRow__row .TeamRow__description {
+    display: flex;
+    overflow: hidden;
+    width: 150px;
+    max-width: 400px;
+    height: 100%;
+    align-items: center;
+
+    &.adjusted {
+        width: 120px;
+    }
+
+    i {
+        margin-right: 5px;
+    }
+
+    > a {
+        padding: 3px 5px;
+        color: $black;
+        text-decoration: none;
+
+        &:hover {
+            background-color: $light-gray;
+            border-radius: 3px;
+        }
+
+        &.warning {
+            color: $red;
+        }
+    }
+}
+
+.TeamRow__row .TeamRow__actions {
+    display: flex;
+    width: 150px;
+    max-width: 400px;
+    height: 100%;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 15px;
+}
+
+.TeamRow__row .TeamIcon__content {
+    opacity: 1;
+}

@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/QuickSwitchModal should match snapshot 1`] = `
+<Modal
+  animation={false}
+  aria-describedby="quickSwitchHeader"
+  aria-labelledby="quickSwitchModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal channel-switcher"
+  dialogComponentClass={[Function]}
+  enforceFocus={false}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={false}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="quickSwitchModalLabel"
+  />
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="channel-switcher__header"
+      id="quickSwitchHeader"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Find Channels"
+          id="quick_switch_modal.switchChannels"
+        />
+      </h1>
+      <div
+        className="channel-switcher__hint"
+        id="quickSwitchHint"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="Type to find a channel. Use **UP/DOWN** to browse, **ENTER** to select, **ESC** to dismiss."
+          id="quick_switch_modal.help_no_team"
+        />
+      </div>
+    </div>
+    <div
+      className="channel-switcher__suggestion-box"
+    >
+      <i
+        className="icon icon-magnify icon-16"
+      />
+      <Connect(SuggestionBox)
+        aria-label="quick switch input"
+        className="form-control focused"
+        completeOnTab={false}
+        delayInputUpdate={true}
+        forceSuggestionsWhenBlur={true}
+        id="quickSwitchInput"
+        listComponent={[Function]}
+        listPosition="bottom"
+        maxLength={64}
+        onChange={[Function]}
+        onItemSelected={[Function]}
+        onSuggestionsReceived={[Function]}
+        openWhenEmpty={true}
+        providers={
+          Array [
+            SwitchChannelProvider {
+              "disableDispatches": false,
+              "forceDispatch": false,
+              "latestComplete": true,
+              "latestPrefix": "",
+              "requestStarted": false,
+            },
+          ]
+        }
+        renderDividers={
+          Array [
+            "mention.unread",
+            "mention.recent.channels",
+          ]
+        }
+        shouldSearchCompleteText={true}
+        spellCheck="false"
+        value=""
+      />
+    </div>
+  </ModalBody>
+</Modal>
+`;

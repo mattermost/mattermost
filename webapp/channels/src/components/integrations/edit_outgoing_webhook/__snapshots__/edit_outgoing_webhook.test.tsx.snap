@@ -1,0 +1,229 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditOutgoingWebhook should have match renderExtra 1`] = `
+<ConfirmModal
+  confirmButtonClass="btn btn-primary"
+  confirmButtonText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Update"
+      id="update_outgoing_webhook.update"
+    />
+  }
+  message={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Your changes may break the existing outgoing webhook. Are you sure you would like to update it?"
+      id="update_outgoing_webhook.question"
+    />
+  }
+  modalClass=""
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  show={false}
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Edit Outgoing Webhook"
+      id="update_outgoing_webhook.confirm"
+    />
+  }
+/>
+`;
+
+exports[`components/integrations/EditOutgoingWebhook should match snapshot 1`] = `
+<AbstractOutgoingWebhook
+  action={[Function]}
+  enablePostIconOverride={false}
+  enablePostUsernameOverride={false}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_outgoing_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialHook={
+    Object {
+      "callback_urls": Array [
+        "https://test.com/callback",
+        "https://test.com/callback2",
+      ],
+      "channel_id": "r18hw9hgq3gtiymtpb6epf8qtr",
+      "content_type": "application/json",
+      "create_at": 1504447824673,
+      "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+      "delete_at": 0,
+      "description": "description",
+      "display_name": "name",
+      "icon_url": "",
+      "id": "ne8miib4dtde5jmgwqsoiwxpiy",
+      "team_id": "m5gix3oye3du8ghk4ko6h9cq7y",
+      "token": "nbxtx9hkhb8a5q83gw57jzi9cc",
+      "trigger_when": 0,
+      "trigger_words": Array [
+        "trigger",
+        "trigger2",
+      ],
+      "update_at": 1504447824673,
+      "username": "",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_outgoing_webhook.updating",
+    }
+  }
+  renderExtra={
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Update"
+          id="update_outgoing_webhook.update"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Your changes may break the existing outgoing webhook. Are you sure you would like to update it?"
+          id="update_outgoing_webhook.question"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Edit Outgoing Webhook"
+          id="update_outgoing_webhook.confirm"
+        />
+      }
+    />
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "team_id",
+      "invite_id": "",
+      "name": "DN",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditOutgoingWebhook should match snapshot when EnableOutgoingWebhooks is false 1`] = `
+<AbstractOutgoingWebhook
+  action={[Function]}
+  enablePostIconOverride={false}
+  enablePostUsernameOverride={false}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_outgoing_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialHook={
+    Object {
+      "callback_urls": Array [
+        "https://test.com/callback",
+        "https://test.com/callback2",
+      ],
+      "channel_id": "r18hw9hgq3gtiymtpb6epf8qtr",
+      "content_type": "application/json",
+      "create_at": 1504447824673,
+      "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+      "delete_at": 0,
+      "description": "description",
+      "display_name": "name",
+      "icon_url": "",
+      "id": "ne8miib4dtde5jmgwqsoiwxpiy",
+      "team_id": "m5gix3oye3du8ghk4ko6h9cq7y",
+      "token": "nbxtx9hkhb8a5q83gw57jzi9cc",
+      "trigger_when": 0,
+      "trigger_words": Array [
+        "trigger",
+        "trigger2",
+      ],
+      "update_at": 1504447824673,
+      "username": "",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_outgoing_webhook.updating",
+    }
+  }
+  renderExtra={
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Update"
+          id="update_outgoing_webhook.update"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Your changes may break the existing outgoing webhook. Are you sure you would like to update it?"
+          id="update_outgoing_webhook.question"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Edit Outgoing Webhook"
+          id="update_outgoing_webhook.confirm"
+        />
+      }
+    />
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "team_id",
+      "invite_id": "",
+      "name": "DN",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditOutgoingWebhook should match snapshot, loading 1`] = `<LoadingScreen />`;

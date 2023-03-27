@@ -1,0 +1,659 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelHeaderModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={false}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  onKeyDown={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelHeaderModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Header"
+        id="edit_channel_header_modal.title_dm"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body edit-modal-body"
+    componentClass="div"
+  >
+    <div>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit the text appearing next to the channel name in the header."
+          id="edit_channel_header_modal.description"
+        />
+      </p>
+      <div
+        className="textarea-wrapper"
+      >
+        <Connect(Textbox)
+          channelId="fake-id"
+          characterLimit={1024}
+          createMessage="Edit the Channel Header..."
+          handlePostError={[Function]}
+          id="edit_textbox"
+          onChange={[Function]}
+          onKeyDown={[Function]}
+          onKeyPress={[Function]}
+          preview={false}
+          suggestionListPosition="bottom"
+          supportsCommands={false}
+          useChannelMentions={false}
+          value="Fake Channel"
+        />
+      </div>
+      <div
+        className="post-create-footer"
+      >
+        <Connect(TextboxLinks)
+          hasExceededCharacterLimit={false}
+          hasText={true}
+          isMarkdownPreviewEnabled={false}
+          previewMessageLink="Edit Header"
+          showPreview={false}
+          updatePreview={[Function]}
+        />
+      </div>
+      <br />
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_header_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary save-button"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_header_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/EditChannelHeaderModal error with intl message 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelHeaderModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={false}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  onKeyDown={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelHeaderModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Header for {channel}"
+        id="edit_channel_header_modal.title"
+        values={
+          Object {
+            "channel": "Fake Channel",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body edit-modal-body"
+    componentClass="div"
+  >
+    <div>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit the text appearing next to the channel name in the header."
+          id="edit_channel_header_modal.description"
+        />
+      </p>
+      <div
+        className="textarea-wrapper"
+      >
+        <Connect(Textbox)
+          channelId="fake-id"
+          characterLimit={1024}
+          createMessage="Edit the Channel Header..."
+          handlePostError={[Function]}
+          id="edit_textbox"
+          onChange={[Function]}
+          onKeyDown={[Function]}
+          onKeyPress={[Function]}
+          preview={false}
+          suggestionListPosition="bottom"
+          supportsCommands={false}
+          useChannelMentions={false}
+          value="Fake Channel"
+        />
+      </div>
+      <div
+        className="post-create-footer"
+      >
+        <Connect(TextboxLinks)
+          hasExceededCharacterLimit={false}
+          hasText={true}
+          isMarkdownPreviewEnabled={false}
+          previewMessageLink="Edit Header"
+          showPreview={false}
+          updatePreview={[Function]}
+        />
+      </div>
+      <br />
+      <div
+        className="form-group has-error"
+      >
+        <br />
+        <label
+          className="control-label"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="The text entered exceeds the character limit. The channel header is limited to {maxLength} characters."
+            id="edit_channel_header_modal.error"
+            values={
+              Object {
+                "maxLength": 1024,
+              }
+            }
+          />
+        </label>
+      </div>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_header_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary save-button"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_header_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/EditChannelHeaderModal error without intl message 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelHeaderModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={false}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  onKeyDown={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelHeaderModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Header for {channel}"
+        id="edit_channel_header_modal.title"
+        values={
+          Object {
+            "channel": "Fake Channel",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body edit-modal-body"
+    componentClass="div"
+  >
+    <div>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit the text appearing next to the channel name in the header."
+          id="edit_channel_header_modal.description"
+        />
+      </p>
+      <div
+        className="textarea-wrapper"
+      >
+        <Connect(Textbox)
+          channelId="fake-id"
+          characterLimit={1024}
+          createMessage="Edit the Channel Header..."
+          handlePostError={[Function]}
+          id="edit_textbox"
+          onChange={[Function]}
+          onKeyDown={[Function]}
+          onKeyPress={[Function]}
+          preview={false}
+          suggestionListPosition="bottom"
+          supportsCommands={false}
+          useChannelMentions={false}
+          value="Fake Channel"
+        />
+      </div>
+      <div
+        className="post-create-footer"
+      >
+        <Connect(TextboxLinks)
+          hasExceededCharacterLimit={false}
+          hasText={true}
+          isMarkdownPreviewEnabled={false}
+          previewMessageLink="Edit Header"
+          showPreview={false}
+          updatePreview={[Function]}
+        />
+      </div>
+      <br />
+      <div
+        className="form-group has-error"
+      >
+        <br />
+        <label
+          className="control-label"
+        >
+          some error
+        </label>
+      </div>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_header_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary save-button"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_header_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelHeaderModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={false}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  onKeyDown={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelHeaderModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Header for {channel}"
+        id="edit_channel_header_modal.title"
+        values={
+          Object {
+            "channel": "Fake Channel",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body edit-modal-body"
+    componentClass="div"
+  >
+    <div>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit the text appearing next to the channel name in the header."
+          id="edit_channel_header_modal.description"
+        />
+      </p>
+      <div
+        className="textarea-wrapper"
+      >
+        <Connect(Textbox)
+          channelId="fake-id"
+          characterLimit={1024}
+          createMessage="Edit the Channel Header..."
+          handlePostError={[Function]}
+          id="edit_textbox"
+          onChange={[Function]}
+          onKeyDown={[Function]}
+          onKeyPress={[Function]}
+          preview={false}
+          suggestionListPosition="bottom"
+          supportsCommands={false}
+          useChannelMentions={false}
+          value="Fake Channel"
+        />
+      </div>
+      <div
+        className="post-create-footer"
+      >
+        <Connect(TextboxLinks)
+          hasExceededCharacterLimit={false}
+          hasText={true}
+          isMarkdownPreviewEnabled={false}
+          previewMessageLink="Edit Header"
+          showPreview={false}
+          updatePreview={[Function]}
+        />
+      </div>
+      <br />
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_header_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary save-button"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_header_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/EditChannelHeaderModal submitted 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelHeaderModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={false}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  onKeyDown={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelHeaderModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Header for {channel}"
+        id="edit_channel_header_modal.title"
+        values={
+          Object {
+            "channel": "Fake Channel",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body edit-modal-body"
+    componentClass="div"
+  >
+    <div>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit the text appearing next to the channel name in the header."
+          id="edit_channel_header_modal.description"
+        />
+      </p>
+      <div
+        className="textarea-wrapper"
+      >
+        <Connect(Textbox)
+          channelId="fake-id"
+          characterLimit={1024}
+          createMessage="Edit the Channel Header..."
+          handlePostError={[Function]}
+          id="edit_textbox"
+          onChange={[Function]}
+          onKeyDown={[Function]}
+          onKeyPress={[Function]}
+          preview={false}
+          suggestionListPosition="bottom"
+          supportsCommands={false}
+          useChannelMentions={false}
+          value="Fake Channel"
+        />
+      </div>
+      <div
+        className="post-create-footer"
+      >
+        <Connect(TextboxLinks)
+          hasExceededCharacterLimit={false}
+          hasText={true}
+          isMarkdownPreviewEnabled={false}
+          previewMessageLink="Edit Header"
+          showPreview={false}
+          updatePreview={[Function]}
+        />
+      </div>
+      <br />
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-link cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_header_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary save-button"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_header_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

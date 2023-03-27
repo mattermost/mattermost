@@ -1,0 +1,76 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Avatars {
+    display: inline-flex;
+    flex-flow: nowrap;
+    align-items: center;
+    justify-content: center;
+
+    &.Avatars___xxs {
+        --offset: -4px;
+        --border-width: 1px;
+    }
+
+    &.Avatars___xs {
+        --offset: -5px;
+        --border-width: 1px;
+    }
+
+    &.Avatars___sm {
+        --offset: -5px;
+        --border-width: 1px;
+    }
+
+    &.Avatars___md {
+        --offset: -6px;
+        --border-width: 1.5px;
+    }
+
+    &.Avatars___lg {
+        --offset: -7px;
+        --border-width: 2px;
+    }
+
+    &.Avatars___xl {
+        --offset: -10px;
+        --border-width: 2px;
+    }
+
+    &.Avatars___xxl {
+        --offset: -26px;
+        --border-width: 5px;
+    }
+
+    > button {
+        &:not(:first-child) {
+            margin-left: var(--offset);
+        }
+
+        &:hover,
+        &:focus {
+            z-index: 1;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.08));
+        }
+    }
+
+    .Avatar {
+        border: var(--border-width) solid rgba(var(--center-channel-bg-rgb), 1);
+
+        &:not(:first-child) {
+            margin-left: var(--offset);
+        }
+
+        &:hover,
+        &:focus {
+            z-index: 1;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.08));
+        }
+
+        &.Avatar-plain {
+            &[data-content^='+']::before {
+                text-indent: -4%;
+            }
+        }
+    }
+}

@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/components/create_team/components/display_name should match snapshot 1`] = `
+<div>
+  <form>
+    <img
+      alt="signup logo"
+      className="signup-team-logo"
+      src="logo.png"
+    />
+    <h5>
+      <MemoizedFormattedMessage
+        defaultMessage="Team Name"
+        id="create_team.display_name.teamName"
+        tagName="strong"
+      />
+    </h5>
+    <div
+      className="form-group"
+    >
+      <div
+        className="row"
+      >
+        <div
+          className="col-sm-9"
+        >
+          <input
+            autoFocus={true}
+            className="form-control"
+            id="teamNameInput"
+            maxLength={128}
+            onChange={[Function]}
+            onFocus={[Function]}
+            placeholder=""
+            spellCheck="false"
+            type="text"
+            value="test-team"
+          />
+        </div>
+      </div>
+    </div>
+    <div>
+      <MemoizedFormattedMessage
+        defaultMessage="Name your team in any language. Your team name shows in menus and headings."
+        id="create_team.display_name.nameHelp"
+      />
+    </div>
+    <button
+      className="btn btn-primary mt-8"
+      id="teamNameNextButton"
+      onClick={[Function]}
+      type="submit"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Next"
+        id="create_team.display_name.next"
+      />
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </form>
+</div>
+`;
