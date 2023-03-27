@@ -275,12 +275,11 @@ describe('Actions.Groups', () => {
             get('/groups?filter_allow_reference=true&page=0&per_page=0').
             reply(200, response1.groups);
 
-
         const groupParams: GetGroupsParams = {
             filter_allow_reference: true,
             page: 0,
             per_page: 0,
-        }
+        };
         await Actions.getGroups(groupParams)(store.dispatch, store.getState);
 
         const state = store.getState();
