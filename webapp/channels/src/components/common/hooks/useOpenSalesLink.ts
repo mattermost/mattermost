@@ -26,7 +26,7 @@ export default function useOpenSalesLink(): [() => void, string] {
         companyName = customer.name || '';
         utmMedium = 'in-product-cloud';
     } else {
-        customerEmail = currentUser.email || '';
+        customerEmail = currentUser?.email || '';
     }
 
     const contactSalesLink = buildMMURL(LicenseLinks.CONTACT_SALES, firstName, lastName, companyName, customerEmail, utmSource, utmMedium);
