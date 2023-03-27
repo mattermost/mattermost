@@ -4,31 +4,24 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
-import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {CloudProducts, LicenseSkus, MattermostFeatures, RecurringIntervals} from 'utils/constants';
 import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
 
-import {getCloudContactUsLink, InquiryType, SalesInquiryIssue} from 'selectors/cloud';
-
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal} from 'actions/views/modals';
 import {
     getCloudSubscription as selectCloudSubscription,
     getSubscriptionProduct as selectSubscriptionProduct,
     getCloudProducts as selectCloudProducts,
 } from 'mattermost-redux/selectors/entities/cloud';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 import PlanLabel from 'components/common/plan_label';
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
-import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
 import Card, {ButtonCustomiserClasses, BlankCard} from './card';
 
@@ -44,10 +37,8 @@ type ContentProps = {
 
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
 
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
-    const contactSalesLink = useSelector(getCloudContactUsLink)(InquiryType.Sales, SalesInquiryIssue.UpgradeEnterprise);
 
     const subscription = useSelector(selectCloudSubscription);
     const currentProduct = useSelector(selectSubscriptionProduct);
@@ -98,7 +89,7 @@ function Content(props: ContentProps) {
         trial_notification: isPreTrial,
     });
 
-    const adminProfessionalTierText = currentSubscriptionIsMonthlyProfessional ? formatMessage({id: 'pricing_modal.btn.switch_to_annual', defaultMessage: 'Switch to annual billing'}) : formatMessage({id: 'pricing_modal.btn.upgrade', defaultMessage: 'Upgrade'});
+    const adminProfessionalTierText = currentSubscriptionIsMonthlyProfessional ? formatMessage({id: 'pricing_modal.btn.switch_to_annual', defaultMessage: 'Switch to annual billing'}) : formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'});
 
     const openCloudPurchaseModal = useOpenCloudPurchaseModal({});
     const openCloudDelinquencyModal = useOpenCloudPurchaseModal({
@@ -112,10 +103,6 @@ function Content(props: ContentProps) {
             openCloudDelinquencyModal({trackingLocation: telemetryInfo});
         }
         openCloudPurchaseModal({trackingLocation: telemetryInfo});
-    };
-
-    const closePricingModal = () => {
-        dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
     };
 
     const professionalBtnDetails = () => {
@@ -149,14 +136,12 @@ function Content(props: ContentProps) {
     };
 
     const enterpriseBtnDetails = () => {
-        if (isPostTrial && isAdmin) {
+        if (isAdmin) {
             return {
-                action: () => {
-                    trackEvent(TELEMETRY_CATEGORIES.CLOUD_PRICING, 'click_enterprise_contact_sales');
-                    window.open(contactSalesLink, '_blank');
-                },
-                text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
-                customClass: ButtonCustomiserClasses.active,
+                action: () => openPurchaseModal('click_pricing_modal_enterprise_card_upgrade_button'),
+                text: formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'}),
+                disabled: (isEnterprise && !isEnterpriseTrial),
+                customClass: isEnterpriseTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
             };
         }
 
@@ -179,22 +164,6 @@ function Content(props: ContentProps) {
                 disabled: isEnterprise,
                 customClass: trialBtnClass,
             };
-        }
-
-        return undefined;
-    };
-
-    const enterpriseCustomBtnDetails = () => {
-        if (!isPostTrial && isAdmin) {
-            return (
-                <CloudStartTrialButton
-                    message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
-                    telemetryId='start_cloud_trial_from_pricing_modal'
-                    disabled={isEnterprise || isEnterpriseTrial || isProfessional}
-                    extraClass={`plan_action_btn ${(isEnterprise || isEnterpriseTrial || isProfessional) ? ButtonCustomiserClasses.grayed : ButtonCustomiserClasses.special}`}
-                    afterTrialRequest={closePricingModal}
-                />
-            );
         }
 
         return undefined;
@@ -296,9 +265,7 @@ function Content(props: ContentProps) {
                                     renderLastDaysOnTrial={true}
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
-                        customButtonDetails={enterpriseCustomBtnDetails()}
                         planTrialDisclaimer={(!isPostTrial && isAdmin) ? <StartTrialCaution/> : undefined}
-                        contactSalesCTA={(isPostTrial || !isAdmin) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
                             items: [

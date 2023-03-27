@@ -4531,6 +4531,7 @@
   "pricing_modal.btn.contactSales": "Contact Sales",
   "pricing_modal.btn.contactSalesForQuote": "Contact Sales",
   "pricing_modal.btn.downgrade": "Downgrade",
+  "pricing_modal.btn.purchase": "Purchase",
   "pricing_modal.btn.switch_to_annual": "Switch to annual billing",
   "pricing_modal.btn.tooltip": "Only visible to system admins",
   "pricing_modal.btn.tryDays": "Try free for {days} days",
