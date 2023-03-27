@@ -26,8 +26,6 @@ import {GlobalState} from 'types/store';
 import {isModalOpen} from 'selectors/views/modals';
 import {isDevModeEnabled} from 'selectors/general';
 
-import {COUNTRIES} from 'utils/countries';
-
 import {
     ModalIdentifiers,
     StatTypes,
@@ -35,8 +33,6 @@ import {
 } from 'utils/constants';
 
 import CardInput, {CardInputType} from 'components/payment_form/card_input';
-import StateSelector from 'components/payment_form/state_selector';
-import DropdownInput from 'components/dropdown_input';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 
@@ -47,6 +43,7 @@ import RootPortal from 'components/root_portal';
 import useLoadStripe from 'components/common/hooks/useLoadStripe';
 import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
 import useFetchStandardAnalytics from 'components/common/hooks/useFetchStandardAnalytics';
+import ChooseDifferentShipping from 'components/choose_different_shipping';
 
 import {ValueOf} from '@mattermost/types/utilities';
 import {UserProfile} from '@mattermost/types/users';
@@ -64,6 +61,7 @@ import SuccessPage from './success_page';
 import SelfHostedCard from './self_hosted_card';
 import StripeProvider from './stripe_provider';
 import Terms from './terms';
+import Address from './address';
 import useNoEscape from './useNoEscape';
 
 import {SetPrefix, UnionSetActions} from './types';
@@ -73,12 +71,24 @@ import './self_hosted_purchase_modal.scss';
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
 
 export interface State {
+
+    // billing address
     address: string;
     address2: string;
     city: string;
     state: string;
     country: string;
     postalCode: string;
+
+    // shipping address
+    shippingSame: boolean;
+    shippingAddress: string;
+    shippingAddress2: string;
+    shippingCity: string;
+    shippingState: string;
+    shippingCountry: string;
+    shippingPostalCode: string;
+
     cardName: string;
     organization: string;
     agreedTerms: boolean;
@@ -113,6 +123,15 @@ export function makeInitialState(): State {
         state: '',
         country: '',
         postalCode: '',
+
+        shippingSame: true,
+        shippingAddress: '',
+        shippingAddress2: '',
+        shippingCity: '',
+        shippingState: '',
+        shippingCountry: '',
+        shippingPostalCode: '',
+
         cardName: '',
         organization: '',
         agreedTerms: false,
@@ -170,8 +189,18 @@ const simpleSetters: Array<Extract<keyof State, string>> = [
     'address2',
     'city',
     'country',
-    'postalCode',
     'state',
+    'postalCode',
+
+    // shipping address
+    'shippingSame',
+    'shippingAddress',
+    'shippingAddress2',
+    'shippingCity',
+    'shippingState',
+    'shippingCountry',
+    'shippingPostalCode',
+
     'agreedTerms',
     'cardFilled',
     'cardName',
@@ -220,7 +249,7 @@ export function canSubmit(state: State, progress: ValueOf<typeof SelfHostedSignu
         return false;
     }
 
-    const validAddress = Boolean(
+    let validAddress = Boolean(
         state.organization &&
             state.address &&
             state.city &&
@@ -228,6 +257,16 @@ export function canSubmit(state: State, progress: ValueOf<typeof SelfHostedSignu
             state.postalCode &&
             state.country,
     );
+    if (!state.shippingSame) {
+        validAddress = validAddress && Boolean(
+            state.shippingAddress &&
+            state.shippingCity &&
+            state.shippingState &&
+            state.shippingPostalCode &&
+            state.shippingCountry,
+
+        );
+    }
     const validCard = Boolean(
         state.cardName &&
         state.cardFilled,
@@ -366,16 +405,25 @@ export default function SelfHostedPurchaseModal(props: Props) {
         try {
             const [firstName, lastName] = inferNames(user, state.cardName);
 
+            const billingAddress = {
+                city: state.city,
+                country: state.country,
+                line1: state.address,
+                line2: state.address2,
+                postal_code: state.postalCode,
+                state: state.state,
+            };
             signupCustomerResult = await Client4.createCustomerSelfHostedSignup({
                 first_name: firstName,
                 last_name: lastName,
-                billing_address: {
-                    city: state.city,
-                    country: state.country,
-                    line1: state.address,
-                    line2: state.address2,
-                    postal_code: state.postalCode,
-                    state: state.state,
+                billing_address: billingAddress,
+                shipping_address: state.shippingSame ? billingAddress : {
+                    city: state.shippingCity,
+                    country: state.shippingCountry,
+                    line1: state.shippingAddress,
+                    line2: state.shippingAddress2,
+                    postal_code: state.shippingPostalCode,
+                    state: state.shippingState,
                 },
                 organization: state.organization,
             });
@@ -586,99 +634,76 @@ export default function SelfHostedPurchaseModal(props: Props) {
                                             defaultMessage='Billing address'
                                         />
                                     </div>
-                                    <DropdownInput
-                                        testId='selfHostedPurchaseCountrySelector'
-                                        onChange={(option: {value: string}) => {
+                                    <Address
+                                        type='billing'
+                                        country={state.country}
+                                        changeCountry={(option) => {
                                             dispatch({type: 'set_country', data: option.value});
                                         }}
-                                        value={
-                                            state.country ? {value: state.country, label: state.country} : undefined
-                                        }
-                                        options={COUNTRIES.map((country) => ({
-                                            value: country.name,
-                                            label: country.name,
-                                        }))}
-                                        legend={intl.formatMessage({
-                                            id: 'payment_form.country',
-                                            defaultMessage: 'Country',
-                                        })}
-                                        placeholder={intl.formatMessage({
-                                            id: 'payment_form.country',
-                                            defaultMessage: 'Country',
-                                        })}
-                                        name={'billing_dropdown'}
+                                        address={state.address}
+                                        changeAddress={(e) => {
+                                            dispatch({type: 'set_address', data: e.target.value});
+                                        }}
+                                        address2={state.address2}
+                                        changeAddress2={(e) => {
+                                            dispatch({type: 'set_address2', data: e.target.value});
+                                        }}
+                                        city={state.city}
+                                        changeCity={(e) => {
+                                            dispatch({type: 'set_city', data: e.target.value});
+                                        }}
+                                        state={state.state}
+                                        changeState={(state: string) => {
+                                            dispatch({type: 'set_state', data: state});
+                                        }}
+                                        postalCode={state.postalCode}
+                                        changePostalCode={(e) => {
+                                            dispatch({type: 'set_postalCode', data: e.target.value});
+                                        }}
                                     />
-                                    <div className='form-row'>
-                                        <Input
-                                            name='address'
-                                            type='text'
-                                            value={state.address}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                dispatch({type: 'set_address', data: e.target.value});
-                                            }}
-                                            placeholder={intl.formatMessage({
-                                                id: 'payment_form.address',
-                                                defaultMessage: 'Address',
-                                            })}
-                                            required={true}
-                                        />
-                                    </div>
-                                    <div className='form-row'>
-                                        <Input
-                                            name='address2'
-                                            type='text'
-                                            value={state.address2}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                dispatch({type: 'set_address2', data: e.target.value});
-                                            }}
-                                            placeholder={intl.formatMessage({
-                                                id: 'payment_form.address_2',
-                                                defaultMessage: 'Address 2',
-                                            })}
-                                        />
-                                    </div>
-                                    <div className='form-row'>
-                                        <Input
-                                            name='city'
-                                            type='text'
-                                            value={state.city}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                dispatch({type: 'set_city', data: e.target.value});
-                                            }}
-                                            placeholder={intl.formatMessage({
-                                                id: 'payment_form.city',
-                                                defaultMessage: 'City',
-                                            })}
-                                            required={true}
-                                        />
-                                    </div>
-                                    <div className='form-row'>
-                                        <div className='form-row-third-1'>
-                                            <StateSelector
-                                                testId='selfHostedPurchaseStateSelector'
-                                                country={state.country}
-                                                state={state.state}
-                                                onChange={(state: string) => {
-                                                    dispatch({type: 'set_state', data: state});
+                                    <ChooseDifferentShipping
+                                        shippingIsSame={state.shippingSame}
+                                        setShippingIsSame={(val: boolean) => {
+                                            dispatch({type: 'set_shippingSame', data: val});
+                                        }}
+                                    />
+                                    {!state.shippingSame && (
+                                        <>
+                                            <div className='section-title'>
+                                                <FormattedMessage
+                                                    id='payment_form.shipping_address'
+                                                    defaultMessage='Shipping Address'
+                                                />
+                                            </div>
+                                            <Address
+                                                type='shipping'
+                                                country={state.shippingCountry}
+                                                changeCountry={(option) => {
+                                                    dispatch({type: 'set_shippingCountry', data: option.value});
+                                                }}
+                                                address={state.shippingAddress}
+                                                changeAddress={(e) => {
+                                                    dispatch({type: 'set_shippingAddress', data: e.target.value});
+                                                }}
+                                                address2={state.shippingAddress2}
+                                                changeAddress2={(e) => {
+                                                    dispatch({type: 'set_shippingAddress2', data: e.target.value});
+                                                }}
+                                                city={state.shippingCity}
+                                                changeCity={(e) => {
+                                                    dispatch({type: 'set_shippingCity', data: e.target.value});
+                                                }}
+                                                state={state.shippingState}
+                                                changeState={(state: string) => {
+                                                    dispatch({type: 'set_shippingState', data: state});
+                                                }}
+                                                postalCode={state.shippingPostalCode}
+                                                changePostalCode={(e) => {
+                                                    dispatch({type: 'set_shippingPostalCode', data: e.target.value});
                                                 }}
                                             />
-                                        </div>
-                                        <div className='form-row-third-2'>
-                                            <Input
-                                                name='postalCode'
-                                                type='text'
-                                                value={state.postalCode}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    dispatch({type: 'set_postalCode', data: e.target.value});
-                                                }}
-                                                placeholder={intl.formatMessage({
-                                                    id: 'payment_form.zipcode',
-                                                    defaultMessage: 'Zip/Postal Code',
-                                                })}
-                                                required={true}
-                                            />
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
                                     <Terms
                                         agreed={state.agreedTerms}
                                         setAgreed={(data: boolean) => {

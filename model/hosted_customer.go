@@ -21,10 +21,11 @@ type BootstrapSelfHostedSignupResponseInternal struct {
 
 // email contained in token, so not in the request body.
 type SelfHostedCustomerForm struct {
-	FirstName      string   `json:"first_name"`
-	LastName       string   `json:"last_name"`
-	BillingAddress *Address `json:"billing_address"`
-	Organization   string   `json:"organization"`
+	FirstName       string   `json:"first_name"`
+	LastName        string   `json:"last_name"`
+	BillingAddress  *Address `json:"billing_address"`
+	ShippingAddress *Address `json:"shipping_address"`
+	Organization    string   `json:"organization"`
 }
 
 type SelfHostedConfirmPaymentMethodRequest struct {

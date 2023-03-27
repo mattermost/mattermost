@@ -13,6 +13,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
@@ -274,6 +276,10 @@ func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
 	invoices, err := c.App.Cloud().GetSelfHostedInvoices()
 
 	if err != nil {
+		if err.Error() == "404" {
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotFound).Wrap(errors.New("invoices for license not found"))
+			return
+		}
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
