@@ -337,6 +337,12 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 	}
 
 	for _, imageURL := range imageURLs {
+		// prevent infinite loop if a OG image URL is the same post's permalink
+		resolvedURL := resolveMetadataURL(imageURL, a.GetSiteURL())
+		if looksLikeAPermalink(resolvedURL, a.GetSiteURL()) {
+			continue
+		}
+
 		if _, image, _, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
 			appErr, ok := err.(*model.AppError)
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
@@ -597,6 +603,9 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 			var res *http.Response
 			res, err = client.Do(request)
+			if err != nil {
+				mlog.Warn("error fetching OG image data", mlog.Err(err))
+			}
 
 			if res != nil {
 				body = res.Body
