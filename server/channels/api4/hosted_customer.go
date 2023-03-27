@@ -39,7 +39,10 @@ func (api *API) InitHostedCustomer() {
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
-	ensureCloudInterface(c, where)
+	ensured := ensureCloudInterface(c, where)
+	if !ensured {
+		return
+	}
 
 	license := c.App.Channels().License()
 
