@@ -253,7 +253,6 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         }
 
         if (props.isMentionSearch) {
-            e.preventDefault();
             actions.updateRhsState(RHSStates.SEARCH);
         }
     };
