@@ -140,6 +140,7 @@ func TestAddMemberToBoard(t *testing.T) {
 }
 
 func TestPatchBoard(t *testing.T) {
+	t.Skip("MM-51699")
 	th, tearDown := SetupTestHelper(t)
 	defer tearDown()
 

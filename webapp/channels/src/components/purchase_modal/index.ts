@@ -19,7 +19,7 @@ import {GlobalState} from 'types/store';
 import {BillingDetails} from 'types/cloud/sku';
 
 import {isModalOpen} from 'selectors/views/modals';
-import {getCloudContactUsLink, InquiryType, getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days} from 'selectors/cloud';
+import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days} from 'selectors/cloud';
 import {isDevModeEnabled} from 'selectors/general';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -29,6 +29,7 @@ import {completeStripeAddPaymentMethod, subscribeCloudSubscription} from 'action
 import {ModalData} from 'types/actions';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 import {findOnlyYearlyProducts} from 'utils/products';
+import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
 
 const PurchaseModal = makeAsyncComponent('PurchaseModal', React.lazy(() => import('./purchase_modal')));
 
@@ -39,19 +40,27 @@ function mapStateToProps(state: GlobalState) {
     const products = state.entities.cloud!.products;
     const yearlyProducts = findOnlyYearlyProducts(products || {});
 
+    const customer = state.entities.cloud.customer;
+    const customerEmail = customer?.email || '';
+    const firstName = customer?.contact_first_name || '';
+    const lastName = customer?.contact_last_name || '';
+    const companyName = customer?.name || '';
+    const contactSalesLink = getCloudContactSalesLink(firstName, lastName, companyName, customerEmail, 'mattermost', 'in-product-cloud');
+    const contactSupportLink = getCloudSupportLink(customerEmail, 'Cloud purchase', '', window.location.host);
+
     return {
         show: isModalOpen(state, ModalIdentifiers.CLOUD_PURCHASE),
         products,
         yearlyProducts,
         isDevMode: isDevModeEnabled(state),
-        contactSupportLink: getCloudContactUsLink(state)(InquiryType.Technical),
+        contactSupportLink,
         invoices: getCloudDelinquentInvoices(state),
         isCloudDelinquencyGreaterThan90Days: isCloudDelinquencyGreaterThan90Days(state),
         isFreeTrial: subscription?.is_free_trial === 'true',
         isComplianceBlocked: subscription?.compliance_blocked === 'true',
-        contactSalesLink: getCloudContactUsLink(state)(InquiryType.Sales),
+        contactSalesLink,
         productId: subscription?.product_id,
-        customer: state.entities.cloud.customer,
+        customer,
         currentTeam: getCurrentTeam(state),
         theme: getTheme(state),
         isDelinquencyModal,
