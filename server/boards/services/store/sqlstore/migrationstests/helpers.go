@@ -22,6 +22,10 @@ func (th *TestHelper) IsMySQL() bool {
 	return th.f.DB().DriverName() == "mysql"
 }
 
+func (th *TestHelper) F() *foundation.Foundation {
+	return th.f
+}
+
 func SetupTestHelper(t *testing.T, f *foundation.Foundation) (*TestHelper, func()) {
 	th := &TestHelper{t, f}
 
