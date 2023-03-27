@@ -10014,5 +10014,29 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Nie można usunąć danych oauth."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Uruchomienia w Trakcie"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Masz 0 zaległych uruchomień."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "few": "Masz {{.Count}} zaległości w aktualizacji statusu:",
+      "many": "Masz {{.Count}} zaległości w aktualizacji statusu:",
+      "one": "Masz {{.Count}} zaległość w aktualizacji statusu:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Zaległe aktualizacje statusu"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Nie można wykonać polecenia."
   }
 ]
