@@ -1,5 +1,9 @@
 name: "CodeQL"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     # The branches below must be a subset of the branches above
