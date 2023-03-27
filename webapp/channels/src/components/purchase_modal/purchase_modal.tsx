@@ -6,6 +6,7 @@
 import React, {ReactNode} from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
+import classnames from 'classnames';
 import {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import {Elements} from '@stripe/react-stripe-js';
@@ -812,7 +813,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className={this.state.processing ? 'processing' : ''}>
+            <div className={classnames('PurchaseModal__purchase-body', {processing: this.state.processing})}>
                 <div className='LHS'>
                     <h2 className='title'>{title}</h2>
                     <UpgradeSvg
