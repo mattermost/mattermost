@@ -126,4 +126,24 @@ describe('components/IntlProvider', () => {
 
         expect(props.actions.loadTranslations).not.toBeCalled();
     });
+
+    test('on locale change, should update the lang attribute to the current locale', () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                loadTranslations: jest.fn(),
+            },
+        };
+
+        const wrapper = shallow(<IntlProvider {...props}/>);
+
+        expect(document.documentElement.lang).toBe('en');
+
+        wrapper.setProps({
+            locale: 'fr',
+            translations: {},
+        });
+
+        expect(document.documentElement.lang).toBe('fr');
+    });
 });
