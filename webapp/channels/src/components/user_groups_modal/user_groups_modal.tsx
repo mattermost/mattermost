@@ -89,7 +89,7 @@ const UserGroupsModal = (props: Props) => {
         }
         setLoading(false);
         setSelectedFilter('all');
-    }, [props.actions.getGroups,]);
+    }, [props.actions.getGroups]);
 
     const getArchivedGroups = useCallback(async (page: number) => {
         const {actions} = props;
