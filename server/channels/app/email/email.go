@@ -24,8 +24,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 )
 
-const serverInactivityHours = 100
-
 // Returns category if enabled is true (default false)
 // If "" is returned when enabled is false, the category headers aren't attached to the email
 func getSendGridCategory(category string, enabled bool) string {
