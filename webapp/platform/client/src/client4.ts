@@ -3896,7 +3896,7 @@ export default class Client4 {
     confirmSelfHostedExpansion = (setupIntentId: string, expandRequest: SelfHostedExpansionRequest) => {
         return this.doFetch<SelfHostedSignupSuccessResponse>(
             `${this.getHostedCustomerRoute()}/confirm?expand=true`,
-            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, subscription: expandRequest})},
+            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, expand_request: expandRequest})},
         );
     }
 
