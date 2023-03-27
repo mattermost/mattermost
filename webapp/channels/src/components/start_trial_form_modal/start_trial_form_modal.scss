@@ -124,6 +124,7 @@
 
         .Input___error {
             height: 100%;
+            font-weight: 600;
             line-height: 16px;
 
             .icon.error.icon-alert-circle-outline {
@@ -133,7 +134,6 @@
                 font-size: 16px;
             }
 
-            font-weight: 600;
         }
 
         .countries-section {
