@@ -2,12 +2,45 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Provider} from 'react-redux';
 
 import {LicenseSkus} from 'utils/constants';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
 
 import EnterpriseEditionRightPanel, {EnterpriseEditionProps} from './enterprise_edition_right_panel';
+
+const initialState = {
+    views: {
+        announcementBar: {
+            announcementBarState: {
+                announcementBarCount: 1,
+            },
+        },
+    },
+    entities: {
+        general: {
+            config: {
+                CWSURL: '',
+            },
+            license: {
+                IsLicensed: 'true',
+                Cloud: 'true',
+            },
+        },
+        users: {
+            currentUserId: 'current_user_id',
+            profiles: {
+                current_user_id: {roles: 'system_user'},
+            },
+        },
+        preferences: {
+            myPreferences: {},
+        },
+        cloud: {},
+    },
+};
 
 describe('components/admin_console/license_settings/enterprise_edition/enterprise_edition_right_panel', () => {
     const license = {
@@ -28,8 +61,11 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     } as EnterpriseEditionProps;
 
     test('should render for no Gov no Trial no Enterprise', () => {
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(
-            <EnterpriseEditionRightPanel {...props}/>,
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel {...props}/>
+            </Provider>,
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to the Enterprise Plan');
@@ -43,11 +79,14 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should render for Gov no Trial no Enterprise', () => {
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(
-            <EnterpriseEditionRightPanel
-                license={{...props.license, IsGovSku: 'true'}}
-                isTrialLicense={props.isTrialLicense}
-            />,
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={{...props.license, IsGovSku: 'true'}}
+                    isTrialLicense={props.isTrialLicense}
+                />
+            </Provider>,
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to the Enterprise Gov Plan');
@@ -61,11 +100,14 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should render for Enterprise no Trial', () => {
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(
-            <EnterpriseEditionRightPanel
-                license={{...props.license, SkuShortName: LicenseSkus.Enterprise}}
-                isTrialLicense={props.isTrialLicense}
-            />,
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={{...props.license, SkuShortName: LicenseSkus.Enterprise}}
+                    isTrialLicense={props.isTrialLicense}
+                />
+            </Provider>,
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
@@ -73,11 +115,14 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should render for E20 no Trial', () => {
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(
-            <EnterpriseEditionRightPanel
-                license={{...props.license, SkuShortName: LicenseSkus.E20}}
-                isTrialLicense={props.isTrialLicense}
-            />,
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={{...props.license, SkuShortName: LicenseSkus.E20}}
+                    isTrialLicense={props.isTrialLicense}
+                />
+            </Provider>,
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
@@ -85,11 +130,14 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should render for Trial no Gov', () => {
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(
-            <EnterpriseEditionRightPanel
-                license={props.license}
-                isTrialLicense={true}
-            />,
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={props.license}
+                    isTrialLicense={true}
+                />
+            </Provider>,
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase the Enterprise Plan');
@@ -97,11 +145,14 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     });
 
     test('should render for Trial Gov', () => {
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(
-            <EnterpriseEditionRightPanel
-                license={{...props.license, IsGovSku: 'true'}}
-                isTrialLicense={true}
-            />,
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={{...props.license, IsGovSku: 'true'}}
+                    isTrialLicense={true}
+                />
+            </Provider>,
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase the Enterprise Gov Plan');

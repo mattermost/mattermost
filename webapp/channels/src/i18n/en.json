@@ -4378,6 +4378,7 @@
   "payment_form.no_billing_address": "No billing address added",
   "payment_form.no_credit_card": "No credit card added",
   "payment_form.saved_payment_method": "Saved Payment Method",
+  "payment_form.shipping_address": "Shipping Address",
   "payment_form.zipcode": "Zip/Postal Code",
   "payment.card_number": "Card Number",
   "payment.field_required": "This field is required",

@@ -16,7 +16,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {checkHadPriorTrial, isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getBrowserTimezone} from 'utils/timezone';
 
-import {CloudProducts, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {CloudProducts, LicenseSkus} from 'utils/constants';
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 
@@ -28,7 +28,7 @@ function ADLDAPUpsellBanner() {
 
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
-    const openSalesLink = useOpenSalesLink();
+    const [openSalesLink] = useOpenSalesLink();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -54,14 +54,6 @@ function ADLDAPUpsellBanner() {
 
     const currentLicenseEndDate = new Date(parseInt(currentLicense?.ExpiresAt, 10));
 
-    const openLink = () => {
-        if (isCloud) {
-            openSalesLink();
-        } else {
-            window.open(LicenseLinks.CONTACT_SALES, '_blank');
-        }
-    };
-
     const confirmBanner = (
         <div className='ad_ldap_upsell_confirm'>
             <div className='upsell-confirm-backdrop'/>
@@ -71,7 +63,7 @@ function ADLDAPUpsellBanner() {
                 <div className='btns-container'>
                     <button
                         className='confrim-btn learn-more'
-                        onClick={openLink}
+                        onClick={openSalesLink}
                     >
                         {formatMessage({id: 'adldap_upsell_banner.confirm.learn_more', defaultMessage: 'Learn more'})}
                     </button>
@@ -122,7 +114,7 @@ function ADLDAPUpsellBanner() {
         btn = (
             <button
                 className='ad-ldap-banner-btn'
-                onClick={openLink}
+                onClick={openSalesLink}
             >
                 {formatMessage({id: 'adldap_upsell_banner.sales_btn', defaultMessage: 'Contact sales to use'})}
             </button>
