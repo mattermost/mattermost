@@ -1,4 +1,4 @@
-name: mattermost-build
+name: Mattermost Build
 on:
   pull_request:
   push:
