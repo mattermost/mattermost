@@ -46,7 +46,6 @@ import useFetchStandardAnalytics from 'components/common/hooks/useFetchStandardA
 import ChooseDifferentShipping from 'components/choose_different_shipping';
 
 import {ValueOf} from '@mattermost/types/utilities';
-import {UserProfile} from '@mattermost/types/users';
 import {
     SelfHostedSignupProgress,
     SelfHostedSignupCustomerResponse,
@@ -307,17 +306,6 @@ interface Props {
 
 interface FakeProgress {
     intervalId?: NodeJS.Timeout;
-}
-
-function inferNames(user: UserProfile, cardName: string): [string, string] {
-    if (user.first_name) {
-        return [user.first_name, user.last_name];
-    }
-    const names = cardName.split(' ');
-    if (cardName.length === 2) {
-        return [names[0], names[1]];
-    }
-    return [names[0], names.slice(1).join(' ')];
 }
 
 export default function SelfHostedPurchaseModal(props: Props) {
