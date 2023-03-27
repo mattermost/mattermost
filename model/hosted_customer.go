@@ -58,3 +58,13 @@ type SelfHostedBillingAccessRequest struct {
 type SelfHostedBillingAccessResponse struct {
 	Token string `json:"token"`
 }
+
+type SelfHostedExpansionRequest struct {
+	Seats     int    `json:"seats"`
+	LicenseId string `json:"license_id"`
+}
+
+type SelfHostedExpansionConfirmPaymentMethodRequest struct {
+	StripeSetupIntentID string                     `json:"stripe_setup_intent_id"`
+	ExpandRequest       SelfHostedExpansionRequest `json:"expand_request"`
+}
