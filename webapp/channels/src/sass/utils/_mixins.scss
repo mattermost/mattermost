@@ -114,8 +114,12 @@
         display: flex;
         font-size: 18px;
 
-        &::before {
+        &:first-child::before {
             margin: 0 7px 0 0;
+        }
+
+        &:last-child::before {
+            margin: 0 0 0 7px;
         }
     }
 }

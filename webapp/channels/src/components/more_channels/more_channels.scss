@@ -232,20 +232,6 @@
         }
     }
 
-    .modal-header {
-        .GenericModal__header {
-            display: flex;
-            width: 95%;
-            align-items: center;
-            justify-content: space-between;
-            padding-right: 4px;
-        }
-
-        .close {
-            top: 22px;
-        }
-    }
-
     .outlineButton {
         border: 1px solid var(--button-bg);
         background: none;

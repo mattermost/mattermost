@@ -181,7 +181,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         const instance = wrapper.instance();
 
         // First start trial
-        actions.requestTrialLicense = jest.fn().mockImplementation(() => Promise.resolve({percentage: 1, error: null}));
+        actions.requestTrialLicense = jest.fn().mockImplementation(() => ({percentage: 1, error: null}));
         actions.getLicenseConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
         await instance.requestLicense({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>);
         expect(wrapper.state('gettingTrial')).toBe(false);
