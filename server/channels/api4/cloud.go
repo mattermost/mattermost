@@ -62,7 +62,7 @@ func (api *API) InitCloud() {
 
 func ensureCloudInterface(c *Context, where string) bool {
 	cloud := c.App.Cloud()
-	if cloud != nil {
+	if cloud == nil {
 		c.Err = model.NewAppError(where, "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
 		return false
 	}
