@@ -68,3 +68,7 @@ type SelfHostedExpansionRequest struct {
 	Seats     int    `json:"seats"`
 	LicenseId string `json:"license_id"`
 }
+
+type GetSelfHostedCustomerRequest struct {
+	LicenseID string `json:"license_id"`
+}
