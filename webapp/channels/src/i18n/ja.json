@@ -4161,11 +4161,14 @@
   "more_channels.count_one": "1件",
   "more_channels.count_zero": "0件",
   "more_channels.create": "チャンネルを作成する",
+<<<<<<< HEAD
   "more_channels.hide_joined": "参加したことを表示しない",
   "more_channels.hide_joined_checked": "チャンネルに参加したことを表示しないチェックボックスがチェック済です",
   "more_channels.hide_joined_not_checked": "チャンネルに参加したことを表示しないチェックボックスがチェックされていません",
   "more_channels.joined": "参加済",
   "more_channels.membership_indicator": "メンバーシップ状況: 参加済",
+=======
+>>>>>>> 1a01dedfee (Update translation files)
   "more_channels.next": "次へ",
   "more_channels.noArchived": "アーカイブされたチャンネルはありません",
   "more_channels.noMore": "\"{text}\"の結果はありません",

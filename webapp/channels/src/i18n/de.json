@@ -4161,11 +4161,14 @@
   "more_channels.count_one": "1 Ergebnis",
   "more_channels.count_zero": "Keine Ergebnisse",
   "more_channels.create": "Kanal erstellen",
+<<<<<<< HEAD
   "more_channels.hide_joined": "Verbundene Kanäle ausblenden",
   "more_channels.hide_joined_checked": "Kontrollkästchen Verbundene Kanäle ausblenden, aktiviert",
   "more_channels.hide_joined_not_checked": "Kontrollkästchen Verbundene Kanäle ausblenden, deaktiviert",
   "more_channels.joined": "Verknüpft",
   "more_channels.membership_indicator": "Mitgliedschaftsindikator: Beigetreten",
+=======
+>>>>>>> 1a01dedfee (Update translation files)
   "more_channels.next": "Weiter",
   "more_channels.noArchived": "Keine archivierten Kanäle",
   "more_channels.noMore": "Keine Ergebnisse für \"{text}\"",
