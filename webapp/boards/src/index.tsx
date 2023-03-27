@@ -6,13 +6,13 @@ import {Store, Action} from 'redux'
 import {Provider as ReduxProvider} from 'react-redux'
 import {createBrowserHistory, History} from 'history'
 
-import {rudderAnalytics, RudderTelemetryHandler} from 'src/rudder'
-
 import {GlobalState} from '@mattermost/types/store'
 
 import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
+
+import {rudderAnalytics, RudderTelemetryHandler} from 'src/rudder'
 
 import appBarIcon from 'static/app-bar-icon.png'
 
@@ -183,8 +183,6 @@ const HeaderComponent = () => {
     )
 }
 
-(window as any).setTeam = setTeam;
-
 export default class Plugin {
     channelHeaderButtonId?: string
     rhsId?: string
@@ -293,7 +291,6 @@ export default class Plugin {
             const currentTeamID: string = store.getState().teams.currentId
             const currentUserId = mmStore.getState().entities.users.currentUserId
             if (currentTeamID !== fbPrevTeamID) {
-                console.log('HARRISON boards team changed to', currentTeamID);
                 fbPrevTeamID = currentTeamID
 
                 mmStore.dispatch({
