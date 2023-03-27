@@ -537,7 +537,7 @@ func (s *Server) runJobs() {
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
-		go complianceI.StartComplianceDailyJob()
+		complianceI.StartComplianceDailyJob()
 	}
 
 	if *s.platform.Config().JobSettings.RunJobs && s.Jobs != nil {
