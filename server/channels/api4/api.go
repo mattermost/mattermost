@@ -144,6 +144,8 @@ type Routes struct {
 
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
+	HostedCustomerRenew *mux.Router // 'api/v4/hosted_customer/renew'
+
 	Drafts *mux.Router // 'api/v4/drafts'
 }
 
@@ -274,6 +276,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.WorkTemplates = api.BaseRoutes.APIRoot.PathPrefix("/worktemplates").Subrouter()
 
 	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
+	api.BaseRoutes.HostedCustomerRenew = api.BaseRoutes.HostedCustomer.PathPrefix("/renew").Subrouter()
 
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
 

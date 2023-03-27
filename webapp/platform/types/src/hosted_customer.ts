@@ -21,6 +21,11 @@ export interface SelfHostedSignupForm {
     organization: string;
 }
 
+export interface SelfHostedRenewalForm {
+    billing_address: Address;
+    shipping_address: Address;
+}
+
 export interface SelfHostedSignupBootstrapResponse {
     progress: ValueOf<typeof SelfHostedSignupProgress>;
     email: string;

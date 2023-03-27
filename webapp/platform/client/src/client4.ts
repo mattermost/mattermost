@@ -29,6 +29,7 @@ import {
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
+    SelfHostedRenewalForm,
     SelfHostedSignupCustomerResponse,
     SelfHostedSignupSuccessResponse,
     SelfHostedSignupBootstrapResponse,
@@ -478,6 +479,10 @@ export default class Client4 {
 
     getHostedCustomerRoute() {
         return `${this.getBaseRoute()}/hosted_customer`;
+    }
+
+    getHostedCustomerRenewRoute() {
+        return `${this.getHostedCustomerRoute()}/renew`;
     }
 
     getUsageRoute() {
@@ -3888,6 +3893,20 @@ export default class Client4 {
     confirmSelfHostedSignup = (setupIntentId: string, createSubscriptionRequest: CreateSubscriptionRequest) => {
         return this.doFetch<SelfHostedSignupSuccessResponse>(
             `${this.getHostedCustomerRoute()}/confirm`,
+            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, subscription: createSubscriptionRequest})},
+        );
+    };
+
+    renewCustomerSelfHostedSignup = (form: SelfHostedRenewalForm) => {
+        return this.doFetch<SelfHostedSignupCustomerResponse>(
+            `${this.getHostedCustomerRenewRoute()}/customer`,
+            {method: 'post', body: JSON.stringify(form)},
+        );
+    };
+
+    confirmSelfHostedRenewal = (setupIntentId: string, createSubscriptionRequest: CreateSubscriptionRequest) => {
+        return this.doFetch<SelfHostedSignupSuccessResponse>(
+            `${this.getHostedCustomerRenewRoute()}/confirm`,
             {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, subscription: createSubscriptionRequest})},
         );
     };

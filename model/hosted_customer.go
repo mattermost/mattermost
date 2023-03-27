@@ -27,6 +27,12 @@ type SelfHostedCustomerForm struct {
 	Organization   string   `json:"organization"`
 }
 
+// email contained in token, so not in the request body.
+type SelfHostedRenewalCustomerForm struct {
+	BillingAddress  *Address `json:"billing_address"`
+	ShippingAddress *Address `json:"shipping_address"`
+}
+
 type SelfHostedConfirmPaymentMethodRequest struct {
 	StripeSetupIntentID string                    `json:"stripe_setup_intent_id"`
 	Subscription        CreateSubscriptionRequest `json:"subscription"`
@@ -34,6 +40,13 @@ type SelfHostedConfirmPaymentMethodRequest struct {
 
 // SelfHostedSignupPaymentResponse contains feels needed for self hosted signup to confirm payment and receive license.
 type SelfHostedSignupCustomerResponse struct {
+	CustomerId        string `json:"customer_id"`
+	SetupIntentId     string `json:"setup_intent_id"`
+	SetupIntentSecret string `json:"setup_intent_secret"`
+	Progress          string `json:"progress"`
+}
+
+type SelfHostedRenewalCustomerResponse struct {
 	CustomerId        string `json:"customer_id"`
 	SetupIntentId     string `json:"setup_intent_id"`
 	SetupIntentSecret string `json:"setup_intent_secret"`
