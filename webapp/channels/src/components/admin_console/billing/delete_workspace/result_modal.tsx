@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import IconMessage from 'components/purchase_modal/icon_message';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
@@ -14,9 +15,6 @@ import {GlobalState} from 'types/store';
 import {Modal} from 'react-bootstrap';
 
 import './result_modal.scss';
-
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import {InquiryType} from 'selectors/cloud';
 
 type Props = {
     type?: string;
@@ -35,7 +33,7 @@ type Props = {
 export default function ResultModal({type, icon, title, subtitle, primaryButtonText, primaryButtonHandler, identifier, contactSupportButtonVisible, resultType, ignoreExit, onHide}: Props) {
     const dispatch = useDispatch();
 
-    const openContactUs = useOpenSalesLink(undefined, InquiryType.Technical);
+    const [openContactSupport] = useOpenCloudZendeskSupportForm('Delete workspace', '');
 
     const isResultModalOpen = useSelector((state: GlobalState) =>
         isModalOpen(state, identifier),
@@ -43,9 +41,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
 
     const handleHide = () => {
         dispatch(closeModal(identifier));
-        if (typeof onHide === 'function') {
-            onHide();
-        }
+        onHide?.();
     };
 
     const modalType = `delete-workspace-result_modal__${resultType}`;
@@ -74,7 +70,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
                                 /> :
                                 undefined
                         }
-                        tertiaryButtonHandler={contactSupportButtonVisible ? openContactUs : undefined}
+                        tertiaryButtonHandler={contactSupportButtonVisible ? openContactSupport : undefined}
                     />
                 </div>
             </Modal>
@@ -97,14 +93,14 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
                     buttonHandler={primaryButtonHandler}
                     className={'success'}
                     formattedTertiaryButonText={
-                        contactSupportButtonVisible ?
+                        contactSupportButtonVisible ? (
+
                             <FormattedMessage
                                 id={'admin.billing.deleteWorkspace.resultModal.ContactSupport'}
                                 defaultMessage={'Contact Support'}
-                            /> :
-                            undefined
+                            />) : undefined
                     }
-                    tertiaryButtonHandler={contactSupportButtonVisible ? openContactUs : undefined}
+                    tertiaryButtonHandler={contactSupportButtonVisible ? openContactSupport : undefined}
                 />
             </div>
         </FullScreenModal>
