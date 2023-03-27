@@ -1,9 +1,15 @@
 import {test as base, Browser} from '@playwright/test';
 
 import {TestBrowser} from './browser_context';
-import {shouldHaveBoardsEnabled, shouldHaveFeatureFlag, shouldSkipInSmallScreen, shouldRunInLinux} from './flag';
+import {
+    shouldHaveBoardsEnabled,
+    shouldHaveCallsEnabled,
+    shouldHaveFeatureFlag,
+    shouldSkipInSmallScreen,
+    shouldRunInLinux,
+} from './flag';
 import {initSetup, getAdminClient} from './server';
-import {hideDynamicChannelsContent, waitForAnimationEnd} from './test_action';
+import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 
@@ -30,24 +36,26 @@ class PlaywrightExtended {
     readonly testBrowser: TestBrowser;
 
     // ./flag
-    readonly shouldHaveBoardsEnabled: typeof shouldHaveBoardsEnabled;
-    readonly shouldHaveFeatureFlag: typeof shouldHaveFeatureFlag;
-    readonly shouldSkipInSmallScreen: typeof shouldSkipInSmallScreen;
-    readonly shouldRunInLinux: typeof shouldRunInLinux;
+    readonly shouldHaveBoardsEnabled;
+    readonly shouldHaveCallsEnabled;
+    readonly shouldHaveFeatureFlag;
+    readonly shouldSkipInSmallScreen;
+    readonly shouldRunInLinux;
 
     // ./server
-    readonly getAdminClient: typeof getAdminClient;
-    readonly initSetup: typeof initSetup;
+    readonly getAdminClient;
+    readonly initSetup;
 
     // ./test_action
-    readonly hideDynamicChannelsContent: typeof hideDynamicChannelsContent;
-    readonly waitForAnimationEnd: typeof waitForAnimationEnd;
+    readonly hideDynamicChannelsContent;
+    readonly waitForAnimationEnd;
+    readonly waitUntil;
 
     // ./ui/pages
-    readonly pages: typeof pages;
+    readonly pages;
 
     // ./visual
-    readonly matchSnapshot: typeof matchSnapshot;
+    readonly matchSnapshot;
 
     constructor(browser: Browser) {
         // ./browser_context
@@ -55,6 +63,7 @@ class PlaywrightExtended {
 
         // ./flag
         this.shouldHaveBoardsEnabled = shouldHaveBoardsEnabled;
+        this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldSkipInSmallScreen = shouldSkipInSmallScreen;
         this.shouldRunInLinux = shouldRunInLinux;
@@ -66,6 +75,7 @@ class PlaywrightExtended {
         // ./test_action
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
         this.waitForAnimationEnd = waitForAnimationEnd;
+        this.waitUntil = waitUntil;
 
         // ./ui/pages
         this.pages = pages;

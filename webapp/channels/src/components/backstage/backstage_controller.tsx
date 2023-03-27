@@ -5,9 +5,9 @@ import React, {ComponentType, useRef} from 'react';
 import {match, Route, Switch} from 'react-router-dom';
 import {createGlobalStyle} from 'styled-components';
 
-import {UserProfile} from '@mattermost/types/users.js';
+import {UserProfile} from '@mattermost/types/users';
 
-import {Team} from '@mattermost/types/teams.js';
+import {Team} from '@mattermost/types/teams';
 
 import Bots from 'components/integrations/bots';
 import AddBot from 'components/integrations/bots/add_bot';

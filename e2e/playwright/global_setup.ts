@@ -2,18 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
-import {AdminConfig} from '@mattermost/types/config';
 import {UserProfile} from '@mattermost/types/users';
-import {PluginsResponse} from '@mattermost/types/plugins';
 
-import {
-    Client,
-    createRandomTeam,
-    getAdminClient,
-    getDefaultAdminUser,
-    getOnPremServerConfig,
-    makeClient,
-} from './support/server';
+import {Client, createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './support/server';
+import {boardsPluginId, callsPluginId} from './support/constant';
 import {defaultTeam} from './support/util';
 import testConfig from './test.config';
 
@@ -43,9 +35,6 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
         await client.verifyUserEmail(client.token);
     }
 
-    // Update default server config
-    const adminConfig = await client.updateConfig(getOnPremServerConfig());
-
     // Log license and config info
     await printLicenseInfo(client);
     await printClientInfo(client);
@@ -74,9 +63,6 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
                 .map((channel) => client.deleteChannel(channel.id))
         );
     }
-
-    // Log boards product status
-    printBoardsProductStatus(adminConfig);
 
     // Ensure all products as plugin are installed and active.
     await ensurePluginsLoaded(client);
@@ -110,9 +96,6 @@ async function printClientInfo(client: Client) {
   - BuildHash                   = ${config.BuildHash}
   - BuildHashEnterprise         = ${config.BuildHashEnterprise}
   - BuildEnterpriseReady        = ${config.BuildEnterpriseReady}
-  - BuildHashBoards             = ${config.BuildHashBoards}
-  - BuildBoards                 = ${config.BuildBoards}
-  - BuildHashPlaybooks          = ${config.BuildHashPlaybooks}
   - FeatureFlagAppsEnabled      = ${config.FeatureFlagAppsEnabled}
   - FeatureFlagBoardsProduct    = ${config.FeatureFlagBoardsProduct}
   - FeatureFlagCallsEnabled     = ${config.FeatureFlagCallsEnabled}
@@ -120,10 +103,10 @@ async function printClientInfo(client: Client) {
 }
 
 function getProductsAsPlugin() {
-    const productsAsPlugin = ['com.mattermost.calls', 'playbooks'];
+    const productsAsPlugin = [callsPluginId];
 
     if (!testConfig.boardsProductEnabled) {
-        productsAsPlugin.push('focalboard');
+        productsAsPlugin.push(boardsPluginId);
     }
 
     return productsAsPlugin;
@@ -131,7 +114,7 @@ function getProductsAsPlugin() {
 
 async function ensurePluginsLoaded(client: Client) {
     const pluginStatus = await client.getPluginStatuses();
-    const plugins = (await client.getPlugins()) as PluginsResponse;
+    const plugins = await client.getPlugins();
 
     getProductsAsPlugin().forEach(async (pluginId) => {
         const isInstalled = pluginStatus.some((plugin) => plugin.plugin_id === pluginId);
@@ -154,19 +137,8 @@ async function ensurePluginsLoaded(client: Client) {
     });
 }
 
-function printBoardsProductStatus(config: AdminConfig) {
-    // Ensure boards as product is enabled
-    if (!config.FeatureFlags.BoardsProduct) {
-        // eslint-disable-next-line no-console
-        console.log('FeatureFlags.BoardsProduct is disabled. Related visual test will fail.');
-    } else {
-        // eslint-disable-next-line no-console
-        console.log('FeatureFlags.BoardsProduct is enabled.');
-    }
-}
-
 async function printPluginDetails(client: Client) {
-    const plugins = (await client.getPlugins()) as PluginsResponse;
+    const plugins = await client.getPlugins();
 
     if (plugins.active.length) {
         // eslint-disable-next-line no-console

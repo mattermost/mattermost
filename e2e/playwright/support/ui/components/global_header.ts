@@ -5,7 +5,8 @@ import {expect, Locator} from '@playwright/test';
 
 export default class GlobalHeader {
     readonly container: Locator;
-    readonly productSwitchMenu: Locator;
+
+    readonly productSwitchMenu;
 
     constructor(container: Locator) {
         this.container = container;
