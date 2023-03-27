@@ -1,349 +1,675 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/admin_console/admin_user_card/admin_user_card should match default snapshot 1`] = `
-<div
-  className="AdminUserCard"
->
-  <div
-    className="AdminUserCard__header"
-  >
-    <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
-      popoverPlacement="right"
-      size="xxl"
-      src="/api/v4/users/1234/image"
-      userId="1234"
-      wrapperClass="admin-user-card"
-    />
-    <div
-      className="AdminUserCard__user-info"
-    >
-      <span>
-        Jim
-         
-        Halpert
-      </span>
-      <Bullet
-        user={
-          Object {
-            "auth_service": "",
-            "bot_description": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "email": "",
-            "first_name": "Jim",
-            "id": "1234",
-            "is_bot": false,
-            "last_activity_at": 0,
-            "last_name": "Halpert",
-            "last_password_update": 0,
-            "last_picture_update": 0,
-            "locale": "",
-            "mfa_active": false,
-            "nickname": "Big Tuna",
-            "notify_props": Object {
-              "channel": "false",
-              "comments": "never",
-              "desktop": "default",
-              "desktop_sound": "false",
-              "email": "false",
-              "first_name": "false",
-              "mark_unread": "mention",
-              "mention_keys": "",
-              "push": "none",
-              "push_status": "offline",
-            },
-            "password": "",
-            "position": "",
-            "props": Object {},
-            "roles": "",
-            "terms_of_service_create_at": 0,
-            "terms_of_service_id": "",
-            "update_at": 0,
-            "username": "some-user",
-          }
-        }
-      />
-      <span
-        className="AdminUserCard__user-nickname"
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="AdminUserCard"
       >
-        Big Tuna
-      </span>
+        <div
+          class="AdminUserCard__header"
+        >
+          <span
+            class="status-wrapper  admin-user-card"
+          >
+            <button
+              class="RoundButton-dvlhqG gnYSKj style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                  tabindex="-1"
+                />
+              </span>
+            </button>
+          </span>
+          <div
+            class="AdminUserCard__user-info"
+          >
+            <span>
+              Jim
+               
+              Halpert
+            </span>
+            <span>
+               • 
+            </span>
+            <span
+              class="AdminUserCard__user-nickname"
+            >
+              Big Tuna
+            </span>
+          </div>
+          <div
+            class="AdminUserCard__user-id"
+          >
+            User ID:
+             
+            1234
+          </div>
+        </div>
+        <div
+          class="AdminUserCard__body"
+        />
+        <div
+          class="AdminUserCard__footer"
+        />
+      </div>
     </div>
+  </body>,
+  "container": <div>
     <div
-      className="AdminUserCard__user-id"
+      class="AdminUserCard"
     >
-      User ID:
-       
-      1234
+      <div
+        class="AdminUserCard__header"
+      >
+        <span
+          class="status-wrapper  admin-user-card"
+        >
+          <button
+            class="RoundButton-dvlhqG gnYSKj style--none"
+          >
+            <span
+              class="profile-icon "
+            >
+              <img
+                alt="user profile image"
+                class="Avatar Avatar-xxl"
+                loading="lazy"
+                src="/api/v4/users/1234/image"
+                tabindex="-1"
+              />
+            </span>
+          </button>
+        </span>
+        <div
+          class="AdminUserCard__user-info"
+        >
+          <span>
+            Jim
+             
+            Halpert
+          </span>
+          <span>
+             • 
+          </span>
+          <span
+            class="AdminUserCard__user-nickname"
+          >
+            Big Tuna
+          </span>
+        </div>
+        <div
+          class="AdminUserCard__user-id"
+        >
+          User ID:
+           
+          1234
+        </div>
+      </div>
+      <div
+        class="AdminUserCard__body"
+      />
+      <div
+        class="AdminUserCard__footer"
+      />
     </div>
-  </div>
-  <div
-    className="AdminUserCard__body"
-  />
-  <div
-    className="AdminUserCard__footer"
-  />
-</div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
 
 exports[`components/admin_console/admin_user_card/admin_user_card should match snapshot if no first/last name is defined 1`] = `
-<div
-  className="AdminUserCard"
->
-  <div
-    className="AdminUserCard__header"
-  >
-    <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
-      popoverPlacement="right"
-      size="xxl"
-      src="/api/v4/users/1234/image"
-      userId="1234"
-      wrapperClass="admin-user-card"
-    />
-    <div
-      className="AdminUserCard__user-info"
-    >
-      <span>
-         
-      </span>
-      <Bullet
-        user={
-          Object {
-            "auth_service": "",
-            "bot_description": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "email": "",
-            "first_name": null,
-            "id": "1234",
-            "is_bot": false,
-            "last_activity_at": 0,
-            "last_name": null,
-            "last_password_update": 0,
-            "last_picture_update": 0,
-            "locale": "",
-            "mfa_active": false,
-            "nickname": "Big Tuna",
-            "notify_props": Object {
-              "channel": "false",
-              "comments": "never",
-              "desktop": "default",
-              "desktop_sound": "false",
-              "email": "false",
-              "first_name": "false",
-              "mark_unread": "mention",
-              "mention_keys": "",
-              "push": "none",
-              "push_status": "offline",
-            },
-            "password": "",
-            "position": "",
-            "props": Object {},
-            "roles": "",
-            "terms_of_service_create_at": 0,
-            "terms_of_service_id": "",
-            "update_at": 0,
-            "username": "some-user",
-          }
-        }
-      />
-      <span
-        className="AdminUserCard__user-nickname"
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="AdminUserCard"
       >
-        Big Tuna
-      </span>
+        <div
+          class="AdminUserCard__header"
+        >
+          <span
+            class="status-wrapper  admin-user-card"
+          >
+            <button
+              class="RoundButton-dvlhqG gnYSKj style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                  tabindex="-1"
+                />
+              </span>
+            </button>
+          </span>
+          <div
+            class="AdminUserCard__user-info"
+          >
+            <span>
+               
+            </span>
+            <span
+              class="AdminUserCard__user-nickname"
+            >
+              Big Tuna
+            </span>
+          </div>
+          <div
+            class="AdminUserCard__user-id"
+          >
+            User ID:
+             
+            1234
+          </div>
+        </div>
+        <div
+          class="AdminUserCard__body"
+        />
+        <div
+          class="AdminUserCard__footer"
+        />
+      </div>
     </div>
+  </body>,
+  "container": <div>
     <div
-      className="AdminUserCard__user-id"
+      class="AdminUserCard"
     >
-      User ID:
-       
-      1234
+      <div
+        class="AdminUserCard__header"
+      >
+        <span
+          class="status-wrapper  admin-user-card"
+        >
+          <button
+            class="RoundButton-dvlhqG gnYSKj style--none"
+          >
+            <span
+              class="profile-icon "
+            >
+              <img
+                alt="user profile image"
+                class="Avatar Avatar-xxl"
+                loading="lazy"
+                src="/api/v4/users/1234/image"
+                tabindex="-1"
+              />
+            </span>
+          </button>
+        </span>
+        <div
+          class="AdminUserCard__user-info"
+        >
+          <span>
+             
+          </span>
+          <span
+            class="AdminUserCard__user-nickname"
+          >
+            Big Tuna
+          </span>
+        </div>
+        <div
+          class="AdminUserCard__user-id"
+        >
+          User ID:
+           
+          1234
+        </div>
+      </div>
+      <div
+        class="AdminUserCard__body"
+      />
+      <div
+        class="AdminUserCard__footer"
+      />
     </div>
-  </div>
-  <div
-    className="AdminUserCard__body"
-  />
-  <div
-    className="AdminUserCard__footer"
-  />
-</div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
 
 exports[`components/admin_console/admin_user_card/admin_user_card should match snapshot if no first/last name or nickname is defined 1`] = `
-<div
-  className="AdminUserCard"
->
-  <div
-    className="AdminUserCard__header"
-  >
-    <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
-      popoverPlacement="right"
-      size="xxl"
-      src="/api/v4/users/1234/image"
-      userId="1234"
-      wrapperClass="admin-user-card"
-    />
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="AdminUserCard"
+      >
+        <div
+          class="AdminUserCard__header"
+        >
+          <span
+            class="status-wrapper  admin-user-card"
+          >
+            <button
+              class="RoundButton-dvlhqG gnYSKj style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                  tabindex="-1"
+                />
+              </span>
+            </button>
+          </span>
+          <div
+            class="AdminUserCard__user-info"
+          >
+            <span>
+               
+            </span>
+            <span
+              class="AdminUserCard__user-nickname"
+            />
+          </div>
+          <div
+            class="AdminUserCard__user-id"
+          >
+            User ID:
+             
+            1234
+          </div>
+        </div>
+        <div
+          class="AdminUserCard__body"
+        />
+        <div
+          class="AdminUserCard__footer"
+        />
+      </div>
+    </div>
+  </body>,
+  "container": <div>
     <div
-      className="AdminUserCard__user-info"
+      class="AdminUserCard"
     >
-      <span>
-         
-      </span>
-      <Bullet
-        user={
-          Object {
-            "auth_service": "",
-            "bot_description": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "email": "",
-            "first_name": null,
-            "id": "1234",
-            "is_bot": false,
-            "last_activity_at": 0,
-            "last_name": null,
-            "last_password_update": 0,
-            "last_picture_update": 0,
-            "locale": "",
-            "mfa_active": false,
-            "nickname": null,
-            "notify_props": Object {
-              "channel": "false",
-              "comments": "never",
-              "desktop": "default",
-              "desktop_sound": "false",
-              "email": "false",
-              "first_name": "false",
-              "mark_unread": "mention",
-              "mention_keys": "",
-              "push": "none",
-              "push_status": "offline",
-            },
-            "password": "",
-            "position": "",
-            "props": Object {},
-            "roles": "",
-            "terms_of_service_create_at": 0,
-            "terms_of_service_id": "",
-            "update_at": 0,
-            "username": "some-user",
-          }
-        }
+      <div
+        class="AdminUserCard__header"
+      >
+        <span
+          class="status-wrapper  admin-user-card"
+        >
+          <button
+            class="RoundButton-dvlhqG gnYSKj style--none"
+          >
+            <span
+              class="profile-icon "
+            >
+              <img
+                alt="user profile image"
+                class="Avatar Avatar-xxl"
+                loading="lazy"
+                src="/api/v4/users/1234/image"
+                tabindex="-1"
+              />
+            </span>
+          </button>
+        </span>
+        <div
+          class="AdminUserCard__user-info"
+        >
+          <span>
+             
+          </span>
+          <span
+            class="AdminUserCard__user-nickname"
+          />
+        </div>
+        <div
+          class="AdminUserCard__user-id"
+        >
+          User ID:
+           
+          1234
+        </div>
+      </div>
+      <div
+        class="AdminUserCard__body"
       />
-      <span
-        className="AdminUserCard__user-nickname"
+      <div
+        class="AdminUserCard__footer"
       />
     </div>
-    <div
-      className="AdminUserCard__user-id"
-    >
-      User ID:
-       
-      1234
-    </div>
-  </div>
-  <div
-    className="AdminUserCard__body"
-  />
-  <div
-    className="AdminUserCard__footer"
-  />
-</div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
 
 exports[`components/admin_console/admin_user_card/admin_user_card should match snapshot if no nickname is defined 1`] = `
-<div
-  className="AdminUserCard"
->
-  <div
-    className="AdminUserCard__header"
-  >
-    <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
-      popoverPlacement="right"
-      size="xxl"
-      src="/api/v4/users/1234/image"
-      userId="1234"
-      wrapperClass="admin-user-card"
-    />
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="AdminUserCard"
+      >
+        <div
+          class="AdminUserCard__header"
+        >
+          <span
+            class="status-wrapper  admin-user-card"
+          >
+            <button
+              class="RoundButton-dvlhqG gnYSKj style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                  tabindex="-1"
+                />
+              </span>
+            </button>
+          </span>
+          <div
+            class="AdminUserCard__user-info"
+          >
+            <span>
+              Jim
+               
+              Halpert
+            </span>
+            <span
+              class="AdminUserCard__user-nickname"
+            />
+          </div>
+          <div
+            class="AdminUserCard__user-id"
+          >
+            User ID:
+             
+            1234
+          </div>
+        </div>
+        <div
+          class="AdminUserCard__body"
+        />
+        <div
+          class="AdminUserCard__footer"
+        />
+      </div>
+    </div>
+  </body>,
+  "container": <div>
     <div
-      className="AdminUserCard__user-info"
+      class="AdminUserCard"
     >
-      <span>
-        Jim
-         
-        Halpert
-      </span>
-      <Bullet
-        user={
-          Object {
-            "auth_service": "",
-            "bot_description": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "email": "",
-            "first_name": "Jim",
-            "id": "1234",
-            "is_bot": false,
-            "last_activity_at": 0,
-            "last_name": "Halpert",
-            "last_password_update": 0,
-            "last_picture_update": 0,
-            "locale": "",
-            "mfa_active": false,
-            "nickname": null,
-            "notify_props": Object {
-              "channel": "false",
-              "comments": "never",
-              "desktop": "default",
-              "desktop_sound": "false",
-              "email": "false",
-              "first_name": "false",
-              "mark_unread": "mention",
-              "mention_keys": "",
-              "push": "none",
-              "push_status": "offline",
-            },
-            "password": "",
-            "position": "",
-            "props": Object {},
-            "roles": "",
-            "terms_of_service_create_at": 0,
-            "terms_of_service_id": "",
-            "update_at": 0,
-            "username": "some-user",
-          }
-        }
+      <div
+        class="AdminUserCard__header"
+      >
+        <span
+          class="status-wrapper  admin-user-card"
+        >
+          <button
+            class="RoundButton-dvlhqG gnYSKj style--none"
+          >
+            <span
+              class="profile-icon "
+            >
+              <img
+                alt="user profile image"
+                class="Avatar Avatar-xxl"
+                loading="lazy"
+                src="/api/v4/users/1234/image"
+                tabindex="-1"
+              />
+            </span>
+          </button>
+        </span>
+        <div
+          class="AdminUserCard__user-info"
+        >
+          <span>
+            Jim
+             
+            Halpert
+          </span>
+          <span
+            class="AdminUserCard__user-nickname"
+          />
+        </div>
+        <div
+          class="AdminUserCard__user-id"
+        >
+          User ID:
+           
+          1234
+        </div>
+      </div>
+      <div
+        class="AdminUserCard__body"
       />
-      <span
-        className="AdminUserCard__user-nickname"
+      <div
+        class="AdminUserCard__footer"
       />
     </div>
-    <div
-      className="AdminUserCard__user-id"
-    >
-      User ID:
-       
-      1234
-    </div>
-  </div>
-  <div
-    className="AdminUserCard__body"
-  />
-  <div
-    className="AdminUserCard__footer"
-  />
-</div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
 import {Team} from '@mattermost/types/teams';
 import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
@@ -16,6 +15,8 @@ import * as Utils from 'utils/utils';
 
 import AdminConsole from './admin_console';
 import type {Props} from './admin_console';
+import {renderWithIntl} from 'tests/react_testing_utils';
+import {BrowserRouter} from 'react-router-dom';
 
 describe('components/AdminConsole', () => {
     const baseProps: Props = {
@@ -87,8 +88,8 @@ describe('components/AdminConsole', () => {
             consoleAccess: {read: {}, write: {}},
             team: {name: 'development'} as Team,
         };
-        const wrapper = shallow(
-            <AdminConsole {...props}/>,
+        const wrapper = renderWithIntl(
+            <BrowserRouter><AdminConsole {...props}/></BrowserRouter>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -102,8 +103,8 @@ describe('components/AdminConsole', () => {
             consoleAccess: {read: {}, write: {}},
             team: {name: 'development'} as Team,
         };
-        const wrapper = shallow(
-            <AdminConsole {...props}/>,
+        const wrapper = renderWithIntl(
+            <BrowserRouter><AdminConsole {...props}/></BrowserRouter>,
         );
         expect(wrapper).toMatchSnapshot();
     });

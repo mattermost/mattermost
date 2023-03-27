@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
 import {TestHelper} from 'utils/test_helper';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 describe('components/admin_console/admin_user_card/admin_user_card', () => {
     const user = TestHelper.getUserMock({
@@ -22,7 +22,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
 
     test('should match default snapshot', () => {
         const props = defaultProps;
-        const wrapper = shallow(<AdminUserCard {...props}/>);
+        const wrapper = renderWithIntl(<AdminUserCard {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -34,7 +34,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 nickname: null,
             },
         };
-        const wrapper = shallow(<AdminUserCard {...props}/>);
+        const wrapper = renderWithIntl(<AdminUserCard {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -47,7 +47,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 last_name: null,
             },
         };
-        const wrapper = shallow(<AdminUserCard {...props}/>);
+        const wrapper = renderWithIntl(<AdminUserCard {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -61,7 +61,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 nickname: null,
             },
         };
-        const wrapper = shallow(<AdminUserCard {...props}/>);
+        const wrapper = renderWithIntl(<AdminUserCard {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 });

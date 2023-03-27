@@ -1,59 +1,563 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/ColorSetting should match snapshot, all 1`] = `
-<Settings
-  helpText="helptext"
-  inputId="id"
-  label="label"
->
-  <ColorInput
-    id="id"
-    isDisabled={false}
-    onChange={[Function]}
-    value="#fff"
-  />
-</Settings>
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="form-group"
+        data-testid="id"
+      >
+        <label
+          class="control-label col-sm-4"
+          for="id"
+        >
+          label
+        </label>
+        <div
+          class="col-sm-8"
+        >
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              id="id-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#fff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="id-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="id-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+          <div
+            class="help-text"
+            data-testid="idhelp-text"
+          >
+            helptext
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="form-group"
+      data-testid="id"
+    >
+      <label
+        class="control-label col-sm-4"
+        for="id"
+      >
+        label
+      </label>
+      <div
+        class="col-sm-8"
+      >
+        <div
+          class="color-input input-group"
+        >
+          <input
+            class="form-control"
+            id="id-inputColorValue"
+            maxlength="7"
+            type="text"
+            value="#fff"
+          />
+          <span
+            class="input-group-addon color-pad"
+            id="id-squareColorIcon"
+          >
+            <i
+              class="color-icon"
+              id="id-squareColorIconValue"
+              style="background-color: rgb(255, 255, 255);"
+            />
+          </span>
+        </div>
+        <div
+          class="help-text"
+          data-testid="idhelp-text"
+        >
+          helptext
+        </div>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
 
 exports[`components/ColorSetting should match snapshot, clicked on color setting 1`] = `
-<Settings
-  helpText="helptext"
-  inputId="id"
-  label="label"
->
-  <ColorInput
-    id="id"
-    isDisabled={false}
-    onChange={[Function]}
-    value="#fff"
-  />
-</Settings>
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="form-group"
+        data-testid="id"
+      >
+        <label
+          class="control-label col-sm-4"
+          for="id"
+        >
+          label
+        </label>
+        <div
+          class="col-sm-8"
+        >
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              id="id-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#fff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="id-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="id-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+          <div
+            class="help-text"
+            data-testid="idhelp-text"
+          >
+            helptext
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="form-group"
+      data-testid="id"
+    >
+      <label
+        class="control-label col-sm-4"
+        for="id"
+      >
+        label
+      </label>
+      <div
+        class="col-sm-8"
+      >
+        <div
+          class="color-input input-group"
+        >
+          <input
+            class="form-control"
+            id="id-inputColorValue"
+            maxlength="7"
+            type="text"
+            value="#fff"
+          />
+          <span
+            class="input-group-addon color-pad"
+            id="id-squareColorIcon"
+          >
+            <i
+              class="color-icon"
+              id="id-squareColorIconValue"
+              style="background-color: rgb(255, 255, 255);"
+            />
+          </span>
+        </div>
+        <div
+          class="help-text"
+          data-testid="idhelp-text"
+        >
+          helptext
+        </div>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
 
 exports[`components/ColorSetting should match snapshot, disabled 1`] = `
-<Settings
-  inputId="id"
-  label="label"
->
-  <ColorInput
-    id="id"
-    isDisabled={true}
-    onChange={[Function]}
-    value="#fff"
-  />
-</Settings>
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="form-group"
+        data-testid="id"
+      >
+        <label
+          class="control-label col-sm-4"
+          for="id"
+        >
+          label
+        </label>
+        <div
+          class="col-sm-8"
+        >
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              disabled=""
+              id="id-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#fff"
+            />
+          </div>
+          <div
+            class="help-text"
+            data-testid="idhelp-text"
+          />
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="form-group"
+      data-testid="id"
+    >
+      <label
+        class="control-label col-sm-4"
+        for="id"
+      >
+        label
+      </label>
+      <div
+        class="col-sm-8"
+      >
+        <div
+          class="color-input input-group"
+        >
+          <input
+            class="form-control"
+            disabled=""
+            id="id-inputColorValue"
+            maxlength="7"
+            type="text"
+            value="#fff"
+          />
+        </div>
+        <div
+          class="help-text"
+          data-testid="idhelp-text"
+        />
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
 
 exports[`components/ColorSetting should match snapshot, no help text 1`] = `
-<Settings
-  inputId="id"
-  label="label"
->
-  <ColorInput
-    id="id"
-    isDisabled={false}
-    onChange={[Function]}
-    value="#fff"
-  />
-</Settings>
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="form-group"
+        data-testid="id"
+      >
+        <label
+          class="control-label col-sm-4"
+          for="id"
+        >
+          label
+        </label>
+        <div
+          class="col-sm-8"
+        >
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              id="id-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#fff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="id-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="id-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+          <div
+            class="help-text"
+            data-testid="idhelp-text"
+          />
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="form-group"
+      data-testid="id"
+    >
+      <label
+        class="control-label col-sm-4"
+        for="id"
+      >
+        label
+      </label>
+      <div
+        class="col-sm-8"
+      >
+        <div
+          class="color-input input-group"
+        >
+          <input
+            class="form-control"
+            id="id-inputColorValue"
+            maxlength="7"
+            type="text"
+            value="#fff"
+          />
+          <span
+            class="input-group-addon color-pad"
+            id="id-squareColorIcon"
+          >
+            <i
+              class="color-icon"
+              id="id-squareColorIconValue"
+              style="background-color: rgb(255, 255, 255);"
+            />
+          </span>
+        </div>
+        <div
+          class="help-text"
+          data-testid="idhelp-text"
+        />
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
 `;
