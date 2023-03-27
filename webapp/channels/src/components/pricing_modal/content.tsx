@@ -49,7 +49,9 @@ function Content(props: ContentProps) {
     const isEnterprise = currentProduct?.sku === CloudProducts.ENTERPRISE;
     const isEnterpriseTrial = subscription?.is_free_trial === 'true';
     const yearlyProfessionalProduct = findProductBySku(yearlyProducts, CloudProducts.PROFESSIONAL);
+    const enterpriseProduct = findProductBySku(yearlyProducts, CloudProducts.ENTERPRISE);
     const professionalPrice = formatNumber((yearlyProfessionalProduct?.price_per_seat || 0) / 12, {maximumFractionDigits: 2});
+    const enterprisePrice = formatNumber((enterpriseProduct?.price_per_seat || 0) / 12, {maximumFractionDigits: 2});
 
     const isStarter = currentProduct?.sku === CloudProducts.STARTER;
     const isProfessional = currentProduct?.sku === CloudProducts.PROFESSIONAL;
@@ -96,19 +98,19 @@ function Content(props: ContentProps) {
         isDelinquencyModal: true,
     });
 
-    const openPurchaseModal = (callerInfo: string) => {
+    const openPurchaseModal = (callerInfo: string, wantedProduct: string) => {
         props.onHide();
         const telemetryInfo = props.callerCTA + ' > ' + callerInfo;
         if (subscription?.delinquent_since) {
-            openCloudDelinquencyModal({trackingLocation: telemetryInfo});
+            openCloudDelinquencyModal({trackingLocation: telemetryInfo}, wantedProduct);
         }
-        openCloudPurchaseModal({trackingLocation: telemetryInfo});
+        openCloudPurchaseModal({trackingLocation: telemetryInfo}, wantedProduct);
     };
 
     const professionalBtnDetails = () => {
         if (isAdmin) {
             return {
-                action: () => openPurchaseModal('click_pricing_modal_professional_card_upgrade_button'),
+                action: () => openPurchaseModal('click_pricing_modal_professional_card_upgrade_button', CloudProducts.PROFESSIONAL),
                 text: adminProfessionalTierText,
                 disabled: isProfessionalAnnual || (isEnterprise && !isEnterpriseTrial),
                 customClass: isPostTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
@@ -138,7 +140,7 @@ function Content(props: ContentProps) {
     const enterpriseBtnDetails = () => {
         if (isAdmin) {
             return {
-                action: () => openPurchaseModal('click_pricing_modal_enterprise_card_upgrade_button'),
+                action: () => openPurchaseModal('click_pricing_modal_enterprise_card_upgrade_button', CloudProducts.ENTERPRISE),
                 text: formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'}),
                 disabled: (isEnterprise && !isEnterpriseTrial),
                 customClass: isEnterpriseTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
@@ -246,7 +248,7 @@ function Content(props: ContentProps) {
                         id='enterprise'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
-                        price={`$${25}`}
+                        price={`$${enterprisePrice}`}
                         rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
                             br: <br/>,
                             b: (chunks: React.ReactNode | React.ReactNodeArray) => (

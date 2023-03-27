@@ -12,6 +12,7 @@ import StartTrialCaution from 'components/pricing_modal/start_trial_caution';
 
 import {Message, t} from 'utils/i18n';
 import {openExternalPricingLink, FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import {CloudProducts} from 'utils/constants';
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
@@ -163,7 +164,7 @@ export const UpgradeToProfessionalCard = () => {
                 id: t('admin.billing.subscriptions.billing_summary.upgrade_professional.cta'),
                 defaultMessage: 'Upgrade',
             }}
-            ctaAction={() => openPurchaseModal({trackingLocation: 'billing_summary_upsell_professional_card'})}
+            ctaAction={() => openPurchaseModal({trackingLocation: 'billing_summary_upsell_professional_card'}, CloudProducts.PROFESSIONAL)}
             ctaPrimary={true}
             andMore={true}
             advantages={professionalAdvantages}

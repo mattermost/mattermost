@@ -124,6 +124,7 @@ type Props = {
     usersCount: number;
     isComplianceBlocked: boolean;
     contactSupportLink: string;
+    wantedProduct: string;
 
     // callerCTA is information about the cta that opened this modal. This helps us provide a telemetry path
     // showing information about how the modal was opened all the way to more CTAs within the modal itself
@@ -202,6 +203,7 @@ function findProductInDictionary(products: Record<string, Product> | undefined, 
 function getSelectedProduct(
     products: Record<string, Product> | undefined,
     yearlyProducts: Record<string, Product>,
+    wantedCloudProduct: string,
     currentProductId?: string | null,
     isDelinquencyModal?: boolean,
     isCloudDelinquencyGreaterThan90Days?: boolean) {
@@ -213,7 +215,7 @@ function getSelectedProduct(
     }
 
     // Otherwise, we will default to upgrading them to the yearly professional plan
-    return findProductInDictionary(yearlyProducts, null, CloudProducts.PROFESSIONAL, RecurringIntervals.YEAR);
+    return findProductInDictionary(yearlyProducts, null, wantedCloudProduct, RecurringIntervals.YEAR);
 }
 
 export function Card(props: CardProps) {
@@ -377,13 +379,20 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             selectedProduct: getSelectedProduct(
                 props.products,
                 props.yearlyProducts,
+                props.wantedProduct,
                 props.productId,
                 props.isDelinquencyModal,
                 props.isCloudDelinquencyGreaterThan90Days,
             ),
             isUpgradeFromTrial: props.isFreeTrial,
             buttonClickedInfo: '',
-            selectedProductPrice: getSelectedProduct(props.products, props.yearlyProducts, props.productId, props.isDelinquencyModal, props.isCloudDelinquencyGreaterThan90Days)?.price_per_seat.toString() || null,
+            selectedProductPrice: getSelectedProduct(
+                props.products,
+                props.yearlyProducts,
+                props.wantedProduct,
+                props.productId,
+                props.isDelinquencyModal,
+                props.isCloudDelinquencyGreaterThan90Days)?.price_per_seat.toString() || null,
             usersCount: this.props.usersCount,
             seats: {
                 quantity: this.props.usersCount.toString(),
@@ -398,8 +407,8 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             await this.props.actions.getCloudProducts();
             this.setState({
                 currentProduct: findProductInDictionary(this.props.products, this.props.productId),
-                selectedProduct: getSelectedProduct(this.props.products, this.props.yearlyProducts, this.props.productId, this.props.isDelinquencyModal, this.props.isCloudDelinquencyGreaterThan90Days),
-                selectedProductPrice: getSelectedProduct(this.props.products, this.props.yearlyProducts, this.props.productId, false)?.price_per_seat.toString() ?? null,
+                selectedProduct: getSelectedProduct(this.props.products, this.props.yearlyProducts, props.wantedProduct, this.props.productId, this.props.isDelinquencyModal, this.props.isCloudDelinquencyGreaterThan90Days),
+                selectedProductPrice: getSelectedProduct(this.props.products, this.props.yearlyProducts, props.wantedProduct, this.props.productId, false)?.price_per_seat.toString() ?? null,
             });
         }
 

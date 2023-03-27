@@ -13,7 +13,7 @@ import {t, Message} from 'utils/i18n';
 import CloudUsageModal from 'components/cloud_usage_modal';
 import useGetMultiplesExceededCloudLimit from 'components/common/hooks/useGetMultiplesExceededCloudLimit';
 import {LimitTypes} from 'utils/limits';
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
+import {CloudProducts, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import './delinquency_modal.scss';
@@ -91,7 +91,7 @@ export const FreemiumModal = ({onClose, onExited, planName, isAdminConsole}: Fre
     const handleReactivate = () => {
         handleClose();
         trackEvent(TELEMETRY_CATEGORIES.CLOUD_DELINQUENCY, 'clicked_re_activate_plan');
-        openPurchaseModal({trackingLocation: 'delinquency_modal_freemium_admin'});
+        openPurchaseModal({trackingLocation: 'delinquency_modal_freemium_admin'}, CloudProducts.PROFESSIONAL);
     };
 
     const title: Message = {

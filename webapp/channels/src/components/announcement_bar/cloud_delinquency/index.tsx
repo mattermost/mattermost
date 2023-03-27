@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {t} from 'utils/i18n';
 import {
-    AnnouncementBarTypes, TELEMETRY_CATEGORIES,
+    AnnouncementBarTypes, CloudProducts, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
 
 import AnnouncementBar from '../default_announcement_bar';
@@ -74,7 +74,7 @@ const CloudDelinquencyAnnouncementBar = () => {
                 openPurchaseModal({
                     trackingLocation:
                         'cloud_delinquency_announcement_bar',
-                });
+                }, CloudProducts.PROFESSIONAL);
             }
             }
             modalButtonText={t('cloud_delinquency.banner.buttonText')}
