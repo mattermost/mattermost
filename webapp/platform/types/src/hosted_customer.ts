@@ -75,7 +75,7 @@ export interface TrueUpReviewStatusReducer extends TrueUpReviewStatus {
     getRequestState: RequestState;
 }
 
-export interface SelfHostedExpansionRequest {
+export type SelfHostedExpansionRequest = {
     seats: number;
     license_id: string;
 }
