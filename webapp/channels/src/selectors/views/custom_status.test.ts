@@ -11,6 +11,7 @@ import {makeGetCustomStatus, getRecentCustomStatuses, isCustomStatusEnabled, sho
 
 import {TestHelper} from 'utils/test_helper';
 import {CustomStatusDuration} from '@mattermost/types/users';
+import {addTimeToTimestamp, TimeInformation} from 'utils/utils';
 
 jest.mock('mattermost-redux/selectors/entities/users');
 jest.mock('mattermost-redux/selectors/entities/general');
@@ -86,6 +87,7 @@ describe('isCustomStatusEnabled', () => {
 });
 
 describe('showStatusDropdownPulsatingDot and showPostHeaderUpdateStatusButton', () => {
+    const user = TestHelper.getUserMock();
     const preference = {
         myPreference: {
             value: '',
@@ -103,5 +105,27 @@ describe('showStatusDropdownPulsatingDot and showPostHeaderUpdateStatusButton', 
         preference.myPreference.value = JSON.stringify({[Preferences.CUSTOM_STATUS_MODAL_VIEWED]: true});
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         expect(showPostHeaderUpdateStatusButton(store.getState())).toBeFalsy();
+    });
+
+    it('should return false if user has been created before seven days from today', async () => {
+        const store = await configureStore();
+        (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
+        const todayTimestapm = new Date().getTime();
+        const todayPlusEightDays = addTimeToTimestamp(todayTimestapm, TimeInformation.DAYS, 8, TimeInformation.PAST);
+        const newUser = {...user, created_at: todayPlusEightDays};
+        newUser.props.customStatus = JSON.stringify(customStatus);
+        (UserSelectors.getCurrentUser as jest.Mock).mockReturnValue(newUser);
+        expect(showStatusDropdownPulsatingDot(store.getState())).toBeFalsy();
+    });
+
+    it('should return true if user has been created after seven days from today', async () => {
+        const store = await configureStore();
+        (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
+        const todayTimestapm = new Date().getTime();
+        const todayPlusEightDays = addTimeToTimestamp(todayTimestapm, TimeInformation.DAYS, 8, TimeInformation.FUTURE);
+        const newUser = {...user, created_at: todayPlusEightDays};
+        newUser.props.customStatus = JSON.stringify(customStatus);
+        (UserSelectors.getCurrentUser as jest.Mock).mockReturnValue(newUser);
+        expect(showStatusDropdownPulsatingDot(store.getState())).toBeFalsy();
     });
 });

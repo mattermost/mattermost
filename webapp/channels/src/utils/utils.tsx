@@ -90,6 +90,23 @@ const CLICKABLE_ELEMENTS = [
     'audio',
     'video',
 ];
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
+
+export enum TimeInformation {
+    MILLISECONDS = 'm',
+    SECONDS = 's',
+    MINUTES = 'x',
+    HOURS = 'h',
+    DAYS = 'd',
+    FUTURE = 'f',
+    PAST = 'p'
+}
+
+export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
+export type TimeDirection = TimeInformation.FUTURE | TimeInformation.PAST;
 
 export function isMac() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -256,13 +273,42 @@ export function getTimestamp(): number {
 }
 
 export function getRemainingDaysFromFutureTimestamp(timestamp?: number): number {
-    const MS_PER_DAY = 24 * 60 * 60 * 1000;
     const futureDate = new Date(timestamp as number);
     const utcFuture = Date.UTC(futureDate.getFullYear(), futureDate.getMonth(), futureDate.getDate());
     const today = new Date();
     const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
     return Math.floor((utcFuture - utcToday) / MS_PER_DAY);
+}
+
+export function addTimeToTimestamp(timestamp: number, type: TimeUnit, diff: number, timeline: TimeDirection) {
+    switch (type) {
+    case TimeInformation.MILLISECONDS:
+        return timeline === TimeInformation.FUTURE ? timestamp + diff : timestamp - diff;
+    case TimeInformation.SECONDS:
+        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_SECOND) : timestamp + (diff * MS_PER_SECOND);
+    case TimeInformation.MINUTES:
+        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_MINUTE) : timestamp + (diff * MS_PER_MINUTE);
+    case TimeInformation.HOURS:
+        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_HOUR) : timestamp + (diff * MS_PER_HOUR);
+    case TimeInformation.DAYS:
+        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_DAY) : timestamp + (diff * MS_PER_DAY);
+    default:
+        return timeline === TimeInformation.FUTURE ? diff + timestamp : timestamp - diff;
+    }
+}
+
+/**
+ * Verifies if a date is in a particular given range of days from today
+ * @param timestamp date you want to check is in the range of the provided number of days from today
+ * @param days number of days you want to check your date against to
+ * @param timeline 'f' represents future, 'p' represents past
+ * @returns boolean, true if your date is in the range of the provided number of days
+ */
+export function isDateWithinDaysRange(timestamp: number, days: number, timeline: TimeDirection): boolean {
+    const today = new Date().getTime();
+    const daysSince = Math.round((today - timestamp) / MS_PER_DAY);
+    return timeline === TimeInformation.PAST ? daysSince <= days : daysSince >= days;
 }
 
 export function getLocaleDateFromUTC(timestamp: number, format = 'YYYY/MM/DD HH:mm:ss', userTimezone = '') {
