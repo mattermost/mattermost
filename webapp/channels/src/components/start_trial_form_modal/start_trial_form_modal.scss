@@ -122,6 +122,19 @@
             }
         }
 
+        .Input___error {
+            line-height: 16px;
+            height: 100%;
+            .icon.error.icon-alert-circle-outline {
+                height: 16px;
+                width: 16px;
+                font-size: 16px;
+                margin-right: 4px;
+            }
+
+            font-weight: 600;
+        }
+
         .countries-section {
             z-index: 999;
             max-height: 164px;

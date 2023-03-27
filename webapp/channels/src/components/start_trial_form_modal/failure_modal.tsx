@@ -57,8 +57,8 @@ export default function StartTrialFormModalResult(props: Props) {
             resultType='failure'
             icon={
                 <LaptopAlertSvg
-                    width={444}
-                    height={313}
+                    width={158}
+                    height={100}
                 />
             }
             contactSupportButtonVisible={true}

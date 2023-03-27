@@ -30,7 +30,7 @@ type Props = {
     ignoreExit: boolean;
 };
 
-export default function ResultModal({type, icon, title, subtitle, primaryButtonText, primaryButtonHandler, identifier, contactSupportButtonVisible, resultType, ignoreExit}: Props) {
+export default function ResultModal({type, icon, title, subtitle, primaryButtonText, primaryButtonHandler, identifier, contactSupportButtonVisible, resultType, ignoreExit, onHide}: Props) {
     const dispatch = useDispatch();
 
     const [openContactSupport] = useOpenCloudZendeskSupportForm('Delete workspace', '');
@@ -39,11 +39,9 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
         isModalOpen(state, identifier),
     );
 
-    const onHide = () => {
+    const handleHide = () => {
         dispatch(closeModal(identifier));
-        if (typeof onHide === 'function') {
-            onHide();
-        }
+        onHide?.();
     };
 
     const modalType = `delete-workspace-result_modal__${resultType}`;
@@ -52,7 +50,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
             <Modal
                 className='ResultModal__small'
                 show={isResultModalOpen}
-                onHide={onHide}
+                onHide={handleHide}
             >
                 <Modal.Header closeButton={true}/>
                 <div className={modalType}>
@@ -72,7 +70,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
                                 /> :
                                 undefined
                         }
-                        tertiaryButtonHandler={contactSupportButtonVisible ? openContactUs : undefined}
+                        tertiaryButtonHandler={contactSupportButtonVisible ? openContactSupport : undefined}
                     />
                 </div>
             </Modal>
@@ -82,7 +80,7 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
     return (
         <FullScreenModal
             show={isResultModalOpen}
-            onClose={onHide}
+            onClose={handleHide}
             ignoreExit={ignoreExit}
         >
             <div className={modalType}>
