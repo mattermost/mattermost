@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Stripe} from '@stripe/stripe-js';
+import {Stripe, StripeCardElement} from '@stripe/stripe-js';
 
 import {getCode} from 'country-list';
 
-import {CreateSubscriptionRequest} from '@mattermost/types/cloud';
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import {Address, CreateSubscriptionRequest} from '@mattermost/types/cloud';
+import {SelfHostedSignupProgress, SelfHostedRenewalProgress} from '@mattermost/types/hosted_customer';
 import {ValueOf} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
@@ -100,6 +100,98 @@ export function confirmSelfHostedSignup(
             confirmResult = await Client4.confirmSelfHostedSignup(stripeSetupIntent.id, subscriptionRequest);
             dispatch({
                 type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
+                data: confirmResult.progress,
+            });
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+
+            // unprocessable entity, e.g. failed export compliance
+            if (error.status_code === 422) {
+                return {data: false, error: error.status_code};
+            }
+            return {data: false, error};
+        }
+
+        return {data: confirmResult.license};
+    };
+}
+
+export function confirmSelfHostedRenewal(
+    stripe: Stripe,
+    stripeSetupIntent: StripeSetupIntent,
+    isDevMode: boolean,
+    billingAddress: Address,
+    cardName: string,
+    card: StripeCardElement,
+    initialProgress: ValueOf<typeof SelfHostedRenewalProgress>,
+    // subscriptionRequest: CreateSubscriptionRequest,
+): ActionFunc {
+    return async (dispatch: DispatchFunc) => {
+        const cardSetupFunction = getConfirmCardSetup(isDevMode);
+        const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
+
+        const shouldConfirmCard = selfHostedNeedsConfirmation(initialProgress);
+        if (shouldConfirmCard) {
+            const result = await confirmCardSetup(
+                stripeSetupIntent.client_secret,
+                {
+                    payment_method: {
+                        card,
+                        billing_details: {
+                            name: cardName,
+                            address: {
+                                line1: billingAddress.line1,
+                                line2: billingAddress.line2,
+                                city: billingAddress.city,
+                                state: billingAddress.state,
+                                country: getCode(billingAddress.country),
+                                postal_code: billingAddress.postal_code,
+                            },
+                        },
+                    },
+                },
+            );
+            if (!result) {
+                return {data: false, error: 'failed to confirm card with Stripe'};
+            }
+
+            const {setupIntent, error: stripeError} = result;
+
+            if (stripeError) {
+                if (stripeError.code === STRIPE_UNEXPECTED_STATE && stripeError.message === STRIPE_ALREADY_SUCCEEDED && stripeError.setup_intent?.status === 'succeeded') {
+                    dispatch({
+                        type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
+                        data: SelfHostedSignupProgress.CONFIRMED_INTENT,
+                    });
+                } else {
+                    return {data: false, error: stripeError.message || 'Stripe failed to confirm payment method'};
+                }
+            } else {
+                if (setupIntent === null || setupIntent === undefined) {
+                    return {data: false, error: 'Stripe did not return successful setup intent'};
+                }
+
+                if (setupIntent.status !== 'succeeded') {
+                    return {data: false, error: `Stripe setup intent status was: ${setupIntent.status}`};
+                }
+                dispatch({
+                    type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS,
+                    data: SelfHostedRenewalProgress.CONFIRMED_INTENT,
+                });
+            }
+        }
+
+        let confirmResult;
+        try {
+            // confirmResult = await Client4.confirmSelfHostedSignup(stripeSetupIntent.id, subscriptionRequest);
+            confirmResult = await Client4.confirmSelfHostedRenewal(stripeSetupIntent.id, {
+                product_id: 'prod_K3evf2gg2LIzrD',
+                add_ons: [],
+                seats: 9001,
+            })
+            dispatch({
+                type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS,
                 data: confirmResult.progress,
             });
         } catch (error) {

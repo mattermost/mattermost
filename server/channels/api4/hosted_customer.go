@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -166,7 +167,21 @@ func selfHostedRenewalCustomer(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	license := c.App.License()
 	if license == nil {
-		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest)
+		oldLicenses, err := c.App.Srv().Store().License().GetAll()
+		if err != nil || len(oldLicenses) == 0 {
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		sort.Slice(oldLicenses, func(i, j int) bool {
+			a := oldLicenses[i]
+			b := oldLicenses[j]
+			return a == nil || b == nil || a.CreateAt < b.CreateAt
+		})
+		license, err = utils.LicenseValidator.LicenseFromBytes([]byte(oldLicenses[0].Bytes))
+		if err != nil {
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 		return
 	}
 	if license.DaysToExpiration() > 60 {

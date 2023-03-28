@@ -40,7 +40,7 @@ type CloudInterface interface {
 	ConfirmSelfHostedSignupLicenseApplication() error
 	GetSelfHostedInvoices() ([]*model.Invoice, error)
 	GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error)
-	RenewCustomerSelfHosted(req model.SelfHostedRenewalCustomerForm) (*model.SelfHostedSignupCustomerResponse, error)
+	RenewCustomerSelfHosted(req model.SelfHostedRenewalCustomerForm) (*model.SelfHostedRenewalCustomerResponse, error)
 	ConfirmSelfHostedRenewal(req model.SelfHostedConfirmPaymentMethodRequest) (*model.SelfHostedSignupConfirmResponse, error)
 
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
