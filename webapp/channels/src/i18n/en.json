@@ -5748,5 +5748,8 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": "View upgrade options",
   "workspace_limits.upgrade": "Upgrade to avoid {planName} data limits",
   "workspace_limits.upgrade_reasons.free": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-  "yourcomputer": "Your computer"
+  "yourcomputer": "Your computer",
+  "newsletter_optin.title": "Interested in receiving Mattermost security updates via newsletter?",
+  "newsletter_optin.desc": "Sign up at <a>{link}</a>.",
+  "newsletter_optin.checkmark.text": "I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply"
 }

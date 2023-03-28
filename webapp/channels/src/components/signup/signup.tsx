@@ -47,7 +47,10 @@ import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import Input, {CustomMessageInputType, SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
+import CheckInput from 'components/widgets/inputs/check';
 import SaveButton from 'components/save_button';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import ExternalLink from 'components/external_link';
 
 import {Constants, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
@@ -98,7 +101,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         TermsOfServiceLink,
         PrivacyPolicyLink,
     } = config;
-    const {IsLicensed} = useSelector(getLicense);
+    const {IsLicensed, Cloud} = useSelector(getLicense);
     const loggedIn = Boolean(useSelector(getCurrentUserId));
     const useCaseOnboarding = useSelector(getUseCaseOnboarding);
     const usedBefore = useSelector((state: GlobalState) => (!inviteId && !loggedIn && token ? getGlobalItem(state, token, null) : undefined));
@@ -109,6 +112,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     const isLicensed = IsLicensed === 'true';
+    const isCloud = Cloud === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const noAccounts = NoAccounts === 'true';
     const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
@@ -135,6 +139,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [teamName, setTeamName] = useState(parsedTeamName ?? '');
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
+    const [subscribeToNewsletter, setSubscribeToNewsletter] = useState(false);
+
+    const canReachCWS = useCWSAvailabilityCheck();
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
@@ -550,6 +557,60 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const handleReturnButtonOnClick = () => history.replace('/');
 
+    const getNewsletterCheck = () => {
+        if (!isCloud) {
+            if (canReachCWS) {
+                return (
+                    <CheckInput
+                        id='signup-body-card-form-check-newsletter'
+                        name='newsletter'
+                        onChange={() => setSubscribeToNewsletter(!subscribeToNewsletter)}
+                        text={
+                            formatMessage(
+                                {id: 'newsletter_optin.checkmark.text', defaultMessage: 'I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply'},
+                                {
+                                    a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                        <ExternalLink
+                                            location='signup-newsletter-checkmark'
+                                            href='https://mattermost.com/security-updates/'
+                                        >
+                                            {chunks}
+                                        </ExternalLink>
+                                    ),
+                                },
+                            )}
+                        checked={subscribeToNewsletter}
+                    />
+                );
+            }
+            return (
+                <div className='newsletter'>
+                    <span className='interested'>
+                        {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security updates via newsletter?'})}
+                    </span>
+                    <span className='link'>
+                        {formatMessage(
+                            {id: 'newsletter_optin.desc', defaultMessage: 'Sign up at <a>{link}</a>.'},
+                            {
+                                link: 'https://mattermost.com/security-updates/',
+                                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <ExternalLink
+                                        location='signup'
+                                        href='https://mattermost.com/security-updates/'
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                            },
+                        )}
+                    </span>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
             return (
@@ -704,6 +765,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         info={passwordInfo as string}
                                         error={passwordError}
                                     />
+                                    {getNewsletterCheck()}
                                     <SaveButton
                                         extraClasses='signup-body-card-form-button-submit large'
                                         saving={isWaiting}

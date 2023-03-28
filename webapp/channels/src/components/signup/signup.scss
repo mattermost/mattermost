@@ -166,6 +166,22 @@
                         margin-top: 22px;
                     }
 
+                    .newsletter {
+                        font-family: 'Open Sans';
+                        font-style: normal;
+                        font-weight: 400;
+                        font-size: 12px;
+                        line-height: 16px;
+                        color: #3F4350;
+                        margin-top: 24px;
+                        margin-bottom: 32px;
+
+                        .interested {
+                            display: block;
+                            font-weight: 600;
+                        }
+                    }
+
                     .signup-body-card-form-button-submit {
                         @include primary-button;
                         @include button-large;
