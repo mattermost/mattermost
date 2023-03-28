@@ -256,7 +256,7 @@ const PostComponent = (props: Props): JSX.Element => {
             'current--user': props.currentUserId === post.user_id && !isSystemMessage,
             'post--system': isSystemMessage || isMeMessage,
             'post--root': props.hasReplies && !(post.root_id && post.root_id.length > 0),
-            'post--comment': post.root_id && post.root_id.length > 0 && !props.isCollapsedThreadsEnabled,
+            'post--comment': post.root_id && post.root_id.length > 0 && !props.isCollapsedThreadsEnabled || (props.location === Locations.RHS_COMMENT),
             'post--compact': props.compactDisplay,
             'post--hovered': hovered,
             'same--user': props.isConsecutivePost && !props.compactDisplay,
