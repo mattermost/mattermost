@@ -62,37 +62,25 @@ export const ToPaidPlanBannerDismissable = () => {
     const snoozeInfo = JSON.parse(snoozePreferenceVal) as ToPaidPlanDismissPreference;
     const show = snoozeInfo.show;
 
-    const snoozedForRangeGreaterThanEqual90 = () => {
-        return snoozeInfo.range === DismissShowRange.GreaterThanEqual90;
-    };
-
-    const snoozedForRangeBetweenNinetyAnd60 = () => {
-        return snoozeInfo.range === DismissShowRange.BetweenNinetyAnd60;
-    };
-
-    const snoozedForRangeSixetyTo31 = () => {
-        return snoozeInfo.range === DismissShowRange.SixetyTo31;
-    };
-
-    const snoozedForRangeThirtyTo11 = () => {
-        return snoozeInfo.range === DismissShowRange.ThirtyTo11;
+    const snoozedForRange = (range: DismissShowRange) => {
+        return snoozeInfo.range === range;
     };
 
     useEffect(() => {
         if (!snoozeInfo.show) {
-            if (daysToCloudFreeEnd >= 90 && !snoozedForRangeGreaterThanEqual90()) {
+            if (daysToCloudFreeEnd >= 90 && !snoozedForRange(DismissShowRange.GreaterThanEqual90)) {
                 snoozeBanner(true);
             }
 
-            if (daysToCloudFreeEnd < 90 && daysToCloudFreeEnd > 60 && !snoozedForRangeBetweenNinetyAnd60()) {
+            if (daysToCloudFreeEnd < 90 && daysToCloudFreeEnd > 60 && !snoozedForRange(DismissShowRange.BetweenNinetyAnd60)) {
                 snoozeBanner(true);
             }
 
-            if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30 && !snoozedForRangeSixetyTo31()) {
+            if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30 && !snoozedForRange(DismissShowRange.SixetyTo31)) {
                 snoozeBanner(true);
             }
 
-            if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10 && !snoozedForRangeThirtyTo11()) {
+            if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10 && !snoozedForRange(DismissShowRange.ThirtyTo11)) {
                 snoozeBanner(true);
             }
 
@@ -158,7 +146,7 @@ export const ToPaidPlanBannerDismissable = () => {
         },
     };
 
-    const announcementType = (daysToCloudFreeEnd < 10) ? AnnouncementBarTypes.CRITICAL : AnnouncementBarTypes.ANNOUNCEMENT;
+    const announcementType = (daysToCloudFreeEnd <= 10) ? AnnouncementBarTypes.CRITICAL : AnnouncementBarTypes.ANNOUNCEMENT;
 
     return (
         <AnnouncementBar
