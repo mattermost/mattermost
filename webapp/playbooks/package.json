@@ -1,4 +1,5 @@
 {
+  "name": "playbooks",
   "private": true,
   "engines": {
     "npm": ">=7.0.0",
@@ -121,12 +122,12 @@
     "debug": "webpack --mode=development",
     "debug:watch": "webpack --mode=development --watch",
     "dev-server": "webpack serve --mode=development",
-    "lint": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --cache",
+    "check": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --cache",
     "fix": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --fix --cache",
     "test": "jest --forceExit --detectOpenHandles --verbose",
     "test:watch": "jest --watch",
-    "test-ci": "jest --forceExit --detectOpenHandles --maxWorkers=2",
-    "check-types": "tsc",
+    "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
+    "check-types": "tsc -b",
     "extract": "formatjs extract 'src/**/*.{ts,tsx}' --out-file i18n/temp.json --id-interpolation-pattern '[sha512:contenthash:base64:6]' && formatjs compile 'i18n/temp.json' --out-file i18n/en.json && rm i18n/temp.json",
     "graphql": "graphql-codegen --config graphql_gen.ts",
     "report-unused-exports": "ts-prune",

@@ -2883,8 +2883,6 @@
   "modal.manual_status.title_offline": "상태가 \"오프라인\"이 되셨습니다",
   "modal.manual_status.title_ooo": "상태가 \"오프라인\"이 되셨습니다",
   "more_channels.create": "채널 만들기",
-  "more_channels.createClick": "'새로 만들기'를 클릭하여 새로운 채널을 만드세요",
-  "more_channels.joining": "참가 중...",
   "more_channels.next": "다음",
   "more_channels.noMore": "가입할 수 있는 채널이 없습니다",
   "more_channels.prev": "이전",
