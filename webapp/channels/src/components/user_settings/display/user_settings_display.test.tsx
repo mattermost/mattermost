@@ -100,13 +100,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should match snapshot, no active section', () => {
-        const wrapper = shallow(<UserSettingsDisplay {...requiredProps} />);
+        const wrapper = shallow(<UserSettingsDisplay {...requiredProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, collapse section', () => {
         const props = {...requiredProps, activeSection: 'collapse'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -116,7 +116,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'linkpreview',
             enableLinkPreviews: false,
         };
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -126,13 +126,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'linkpreview',
             enableLinkPreviews: true,
         };
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, clock section', () => {
         const props = {...requiredProps, activeSection: 'clock'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -141,37 +141,37 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             ...requiredProps,
             activeSection: 'teammate_name_display',
         };
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, timezone section', () => {
         const props = {...requiredProps, activeSection: 'timezone'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, first day of week section', () => {
         const props = {...requiredProps, activeSection: 'first_day_of_week'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, message display section', () => {
         const props = {...requiredProps, activeSection: 'message_display'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, channel display mode section', () => {
         const props = {...requiredProps, activeSection: 'channel_display_mode'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, languages section', () => {
         const props = {...requiredProps, activeSection: 'languages'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -181,7 +181,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'theme',
             enableThemeSelection: false,
         };
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -191,13 +191,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'theme',
             enableThemeSelection: true,
         };
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, clickToReply section', () => {
         const props = {...requiredProps, activeSection: 'click_to_reply'};
-        const wrapper = shallow(<UserSettingsDisplay {...props} />);
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -207,8 +207,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {...requiredProps, updateSection};
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...props} />
-            </Provider>
+                <UserSettingsDisplay {...props}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         await (wrapper.instance() as UserSettingsDisplay).handleSubmit();
@@ -221,15 +221,15 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {...requiredProps, updateSection};
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...props} />
-            </Provider>
+                <UserSettingsDisplay {...props}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).updateSection('');
         expect(updateSection).toHaveBeenCalledWith('');
 
         (wrapper.instance() as UserSettingsDisplay).updateSection(
-            'linkpreview'
+            'linkpreview',
         );
         expect(updateSection).toHaveBeenCalledWith('linkpreview');
     });
@@ -239,8 +239,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {...requiredProps, closeModal};
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...props} />
-            </Provider>
+                <UserSettingsDisplay {...props}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         wrapper.find('#closeButton').simulate('click');
@@ -252,8 +252,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {...requiredProps, collapseModal};
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...props} />
-            </Provider>
+                <UserSettingsDisplay {...props}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         wrapper.find('.fa-angle-left').simulate('click');
@@ -263,8 +263,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update militaryTime state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).handleClockRadio('false');
@@ -277,8 +277,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update teammateNameDisplay state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (
@@ -300,8 +300,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update channelDisplayMode state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (
@@ -318,17 +318,17 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update messageDisplay state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio(
-            'clean'
+            'clean',
         );
         expect(wrapper.state('messageDisplay')).toBe('clean');
 
         (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio(
-            'compact'
+            'compact',
         );
         expect(wrapper.state('messageDisplay')).toBe('compact');
     });
@@ -336,12 +336,12 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update collapseDisplay state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).handleCollapseRadio(
-            'false'
+            'false',
         );
         expect(wrapper.state('collapseDisplay')).toBe('false');
 
@@ -352,17 +352,17 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update linkPreviewDisplay state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).handleLinkPreviewRadio(
-            'false'
+            'false',
         );
         expect(wrapper.state('linkPreviewDisplay')).toBe('false');
 
         (wrapper.instance() as UserSettingsDisplay).handleLinkPreviewRadio(
-            'true'
+            'true',
         );
         expect(wrapper.state('linkPreviewDisplay')).toBe('true');
     });
@@ -370,19 +370,19 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update display state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).handleOnChange(
             {} as React.ChangeEvent,
-            {display: 'linkPreviewDisplay'}
+            {display: 'linkPreviewDisplay'},
         );
         expect(wrapper.state('display')).toBe('linkPreviewDisplay');
 
         (wrapper.instance() as UserSettingsDisplay).handleOnChange(
             {} as React.ChangeEvent,
-            {display: 'collapseDisplay'}
+            {display: 'collapseDisplay'},
         );
         expect(wrapper.state('display')).toBe('collapseDisplay');
     });
@@ -390,8 +390,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update collapsed reply threads state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (
@@ -408,17 +408,17 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should update last active state', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <UserSettingsDisplay {...requiredProps} />
-            </Provider>
+                <UserSettingsDisplay {...requiredProps}/>
+            </Provider>,
         ).find(UserSettingsDisplay);
 
         (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio(
-            'false'
+            'false',
         );
         expect(wrapper.state('lastActiveDisplay')).toBe('false');
 
         (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio(
-            'true'
+            'true',
         );
         expect(wrapper.state('lastActiveDisplay')).toBe('true');
     });
@@ -428,7 +428,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             <UserSettingsDisplay
                 {...requiredProps}
                 lastActiveTimeEnabled={false}
-            />
+            />,
         );
 
         expect(wrapper).toMatchSnapshot();
