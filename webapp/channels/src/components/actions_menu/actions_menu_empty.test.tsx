@@ -44,6 +44,7 @@ describe('components/actions_menu/ActionsMenu returning empty ("")', () => {
             showTutorialTip: false,
             appsEnabled: false,
             isSysAdmin: true,
+            canOpenMarketplace: false,
         };
 
         const wrapper = shallow(
