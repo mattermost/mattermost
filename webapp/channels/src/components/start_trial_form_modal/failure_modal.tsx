@@ -34,7 +34,7 @@ export default function StartTrialFormModalResult(props: Props) {
         <>
             <FormattedMessage
                 id={'start_trial_form_modal.failureModal.subtitle'}
-                defaultMessage={'There was in issue processing your trial request.'}
+                defaultMessage={'There was an issue processing your trial request.'}
             />
             <br/>
             <FormattedMessage
