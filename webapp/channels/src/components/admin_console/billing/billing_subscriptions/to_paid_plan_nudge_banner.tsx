@@ -12,7 +12,6 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
-import {SalesInquiryIssue} from 'selectors/cloud';
 import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -41,7 +40,6 @@ interface ToPaidPlanDismissPreference {
 
 export const ToPaidPlanBannerDismissable = () => {
     const dispatch = useDispatch();
-    const {formatDate} = useIntl();
 
     const openPricingModal = useOpenPricingModal();
 
@@ -146,7 +144,7 @@ export const ToPaidPlanBannerDismissable = () => {
 export const ToPaidNudgeBanner = () => {
     const {formatMessage} = useIntl();
 
-    const openSalesLink = useOpenSalesLink(SalesInquiryIssue.AboutPurchasing);
+    const [openSalesLink] = useOpenSalesLink();
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
     const product = useSelector(selectSubscriptionProduct);
