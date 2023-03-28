@@ -4247,6 +4247,9 @@
   "navbar.viewPinnedPosts": "View Pinned Posts",
   "newChannelWithBoard.tutorialTip.description": "The board you just created can be quickly accessed by clicking on the Boards icon in the App bar. You can view the boards that are linked to this channel in the right-hand sidebar and open one in full view.",
   "newChannelWithBoard.tutorialTip.title": "Access linked boards from the App Bar",
+  "newsletter_optin.checkmark.text": "I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply",
+  "newsletter_optin.desc": "Sign up at <a>{link}</a>.",
+  "newsletter_optin.title": "Interested in receiving Mattermost security updates via newsletter?",
   "next_steps_view.welcomeToMattermost": "Welcome to Mattermost",
   "no_results.channel_files_filtered.subtitle": "This channel doesn't contains any file with the selected file format.",
   "no_results.channel_files_filtered.title": "No files found",
@@ -5748,8 +5751,5 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": "View upgrade options",
   "workspace_limits.upgrade": "Upgrade to avoid {planName} data limits",
   "workspace_limits.upgrade_reasons.free": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-  "yourcomputer": "Your computer",
-  "newsletter_optin.title": "Interested in receiving Mattermost security updates via newsletter?",
-  "newsletter_optin.desc": "Sign up at <a>{link}</a>.",
-  "newsletter_optin.checkmark.text": "I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply"
+  "yourcomputer": "Your computer"
 }
