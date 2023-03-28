@@ -626,6 +626,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 			RootId:    rpost.Id,
 		}
 		_, err = th.App.CreatePost(th.Context, reply, th.BasicChannel, false, true)
+		require.Nil(t, err)
 
 		threads, err := th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
 		require.Nil(t, err)
