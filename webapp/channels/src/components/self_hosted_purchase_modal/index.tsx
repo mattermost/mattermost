@@ -26,7 +26,6 @@ import {GlobalState} from 'types/store';
 import {isModalOpen} from 'selectors/views/modals';
 import {isDevModeEnabled} from 'selectors/general';
 
-import {COUNTRIES} from 'utils/countries';
 import {inferNames} from 'utils/hosted_customer';
 
 import {
@@ -71,7 +70,6 @@ import {SetPrefix, UnionSetActions} from './types';
 import './self_hosted_purchase_modal.scss';
 
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
-import {inferNames} from 'utils/hosted_customer';
 
 export interface State {
 
