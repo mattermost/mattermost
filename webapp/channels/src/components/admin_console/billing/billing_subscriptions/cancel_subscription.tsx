@@ -5,16 +5,12 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
+import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
 
-type Props = {
-    cancelAccountLink: any;
-}
-
-const CancelSubscription = (props: Props) => {
-    const {
-        cancelAccountLink,
-    } = props;
+const CancelSubscription = () => {
+    const description = `I am requesting that workspace "${window.location.host}" be deleted`;
+    const [, contactSupportURL] = useOpenCloudZendeskSupportForm('Request workspace be deleted', description);
 
     return (
         <div className='cancelSubscriptionSection'>
@@ -33,7 +29,7 @@ const CancelSubscription = (props: Props) => {
                 </div>
                 <ExternalLink
                     location='cancel_subscription'
-                    href={cancelAccountLink}
+                    href={contactSupportURL}
                     className='cancelSubscriptionSection__contactUs'
                     onClick={() => trackEvent('cloud_admin', 'click_contact_us')}
                 >

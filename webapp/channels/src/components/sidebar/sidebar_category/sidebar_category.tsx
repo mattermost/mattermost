@@ -24,6 +24,8 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
+import AddChannelsCtaButton from '../add_channels_cta_button';
+
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 import SidebarCategoryMenu from './sidebar_category_menu';
 
@@ -342,6 +344,13 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         );
                     }
 
+                    let addChannelsCtaButton = null;
+                    if (category.type === 'channels' && !category.collapsed) {
+                        addChannelsCtaButton = (
+                            <AddChannelsCtaButton/>
+                        );
+                    }
+
                     return (
                         <div
                             className={classNames('SidebarChannelGroup a11y__section', {
@@ -399,6 +408,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 }}
                             </Droppable>
                             {inviteMembersButton}
+                            {addChannelsCtaButton}
                         </div>
                     );
                 }}

@@ -167,7 +167,6 @@
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": "",
-        "EnableInactivityEmail": true
     },
     "RateLimitSettings": {
         "Enable": false,
