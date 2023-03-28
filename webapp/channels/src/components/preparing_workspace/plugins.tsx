@@ -23,6 +23,7 @@ import Description from './description';
 import PageBody from './page_body';
 import SingleColumnLayout from './single_column_layout';
 
+import PageLine from './page_line';
 import './plugins.scss';
 
 type Props = PreparingWorkspacePageProps & {
@@ -82,6 +83,14 @@ const Plugins = (props: Props) => {
         >
             <div className={className}>
                 <SingleColumnLayout>
+                    <PageLine
+                        style={{
+                            marginBottom: '50px',
+                            marginLeft: '50px',
+                            height: 'calc(25vh)',
+                        }}
+                        noLeft={true}
+                    />
                     {props.previous}
                     <Title>
                         {title}
@@ -198,6 +207,14 @@ const Plugins = (props: Props) => {
                             />
                         </button>
                     </div>
+                    <PageLine
+                        style={{
+                            marginTop: '50px',
+                            marginLeft: '50px',
+                            height: 'calc(30vh)',
+                        }}
+                        noLeft={true}
+                    />
                 </SingleColumnLayout>
             </div>
         </CSSTransition>
