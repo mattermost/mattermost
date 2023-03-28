@@ -42,7 +42,7 @@ describe('Messaging', () => {
         // * Check that the Korean message got posted in the channel
         cy.get(`#postMessageText_${lastPostId}`).should('contain', '휴');
 
-        // # Change channels to the Town Square channel
+        // # Change channels to the Town Square (aka General) channel
         cy.get('#sidebarItem_town-square').click();
 
         // * Check that the draft icon does not exist next to the Test Channel name

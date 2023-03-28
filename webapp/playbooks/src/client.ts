@@ -180,7 +180,7 @@ export function fetchPlaybookRunChannels(teamID: string, userID: string) {
 export async function clientExecuteCommand(dispatch: Dispatch<AnyAction>, getState: GetStateFunc, command: string, teamId: string) {
     let currentChannel = getCurrentChannel(getState());
 
-    // Default to town square if there is no current channel (i.e., if Mattermost has not yet loaded)
+    // Default to town square (aka General) if there is no current channel (i.e., if Mattermost has not yet loaded)
     // or in a different team.
     if (!currentChannel || currentChannel.team_id !== teamId) {
         currentChannel = await Client4.getChannelByName(teamId, 'town-square');

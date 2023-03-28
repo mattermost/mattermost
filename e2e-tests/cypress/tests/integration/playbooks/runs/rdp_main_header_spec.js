@@ -283,8 +283,8 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
                         // # Enable broadcast to channels
                         cy.findByText('Broadcast update to selected channels').click();
 
-                        // # Select a couple of channels
-                        cy.findByText('Select channels').click().type('town square{enter}off-topic{enter}');
+                        // # Select a couple of channels todocambiar
+                        cy.findByText('Select channels').click().type('general{enter}off-topic{enter}');
 
                         // # Save the changes
                         saveRunActionsModal();
@@ -297,7 +297,7 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
 
                         // * Check that the channels previously added are shown with their full name,
                         // * verifying that the store has been populated by the modal component.
-                        cy.findByText('Town Square').should('exist');
+                        cy.findByText('General').should('exist');
                         cy.findByText('Off-Topic').should('exist');
                     });
 
@@ -309,7 +309,7 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
                         cy.findByText('Broadcast update to selected channels').click();
 
                         // # Select a couple of channels
-                        cy.findByText('Select channels').click().type('town square{enter}off-topic{enter}', {delay: 100});
+                        cy.findByText('Select channels').click().type('general{enter}off-topic{enter}', {delay: 100});
 
                         // # Save the changes
                         saveRunActionsModal();
@@ -321,7 +321,7 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
                             message,
                         });
 
-                        // # Navigate to the town square channel
+                        // # Navigate to the town square (aka General) channel
                         cy.visit(`/${testTeam.name}/channels/town-square`);
 
                         // * Verify that the last post contains the status update
@@ -346,7 +346,7 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
                         cy.findByText('Broadcast update to selected channels').click();
 
                         // # Select a couple of channels
-                        cy.findByText('Select channels').click().type('town square{enter}off-topic{enter}', {delay: 100});
+                        cy.findByText('Select channels').click().type('general{enter}off-topic{enter}', {delay: 100});
 
                         // # Disable broadcast to channels
                         cy.findByText('Broadcast update to selected channels').click();
@@ -361,7 +361,7 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
                             message,
                         });
 
-                        // # Navigate to the town square channel
+                        // # Navigate to the town square (aka General) channel
                         cy.visit(`/${testTeam.name}/channels/town-square`);
 
                         // * Verify that the last post does not contain the status update

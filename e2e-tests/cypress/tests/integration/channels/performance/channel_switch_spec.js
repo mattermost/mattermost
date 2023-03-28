@@ -19,7 +19,7 @@ describe('Channel switch performance test', () => {
         cy.apiInitSetup({loginAfter: true}).then(({team}) => {
             teamName = team;
 
-            // # Go to town square
+            // # Go to town square (aka General)
             cy.visit(`/${team.name}/channels/town-square`);
             cy.get('#sidebarItem_off-topic').should('be.visible');
         });

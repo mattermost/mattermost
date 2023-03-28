@@ -108,12 +108,12 @@ describe('Onboarding', () => {
         // * Check that the display name of the team the user successfully joined is correct
         cy.uiGetLHSHeader().findByText(testTeam.display_name);
 
-        // * Check that 'Town Square' is currently being selected
+        // * Check that 'General' is currently being selected
         cy.get('.active').within(() => {
-            cy.findByText('Town Square').should('exist');
+            cy.findByText('General').should('exist');
         });
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible').wait(TIMEOUTS.ONE_SEC);
+        // * Check that the 'Beginning of 'General message is visible
+        cy.findByText('Beginning of 'General).should('be.visible').wait(TIMEOUTS.ONE_SEC);
     });
 });

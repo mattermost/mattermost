@@ -36,7 +36,7 @@ describe('Reply in existing GM', () => {
                 cy.apiAddUserToTeam(team.id, newUser.id);
             });
 
-            // # Login as test user and go to town square
+            // # Login as test user and go to town square (aka General)
             cy.apiLogin(testUser);
             cy.visit(`/${team.name}/channels/town-square`);
         });

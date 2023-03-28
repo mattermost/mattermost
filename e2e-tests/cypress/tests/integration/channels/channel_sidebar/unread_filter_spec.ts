@@ -118,16 +118,16 @@ describe('Channel sidebar unread filter', () => {
         // * Verify that the unread filter is not enabled
         cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible');
 
-        // # Switch to the town square
+        // # Switch to the town square (aka General)
         cy.get('#sidebarItem_town-square').click();
-        cy.get('#channelHeaderTitle').should('contain', 'Town Square');
+        cy.get('#channelHeaderTitle').should('contain', 'General');
 
-        // * Verify that the Town Square is not unread
+        // * Verify that the Town Square (aka General) is not unread
         cy.get('#sidebarItem_town-square').should('be.visible').should(beRead);
 
         enableUnreadFilter();
 
-        // * Verify that the Town Square is still visible
+        // * Verify that the Town Square (aka General) is still visible
         cy.get('#sidebarItem_town-square').should('be.visible').should(beRead);
 
         disableUnreadFilter();

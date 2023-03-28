@@ -261,7 +261,7 @@
   },
   {
     "id": "api.channel.create_default_channels.town_square",
-    "translation": "Town Square"
+    "translation": "General"
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",

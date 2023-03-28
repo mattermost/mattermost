@@ -21,7 +21,7 @@ import {getRandomId, stubClipboard} from '../../../utils';
 
 describe('Sidebar channel menu', () => {
     const sysadmin = getAdminAccount();
-    const townSquare = 'Town Square';
+    const townSquare = 'General';
 
     let teamName;
     let userName;
@@ -36,20 +36,20 @@ describe('Sidebar channel menu', () => {
     });
 
     it('MM-T3349_1 should be able to mark a channel as read', () => {
-        // # Start in Town Square
+        // # Start in Town Square (aka General)
         cy.uiGetLHS().within(() => {
             cy.findByText(townSquare).should('be.visible');
         });
         cy.get('#channelHeaderTitle').should('contain', townSquare);
 
-        // # Save the ID of the Town Square channel for later
+        // # Save the ID of the Town Square (aka General) channel for later
         cy.getCurrentChannelId().as('townSquareId');
 
         // # Switch to the Off Topic channel
         cy.get('#sidebarItem_off-topic').click();
         cy.get('#channelHeaderTitle').should('contain', 'Off-Topic');
 
-        // # Have another user send a message in the Town Square
+        // # Have another user send a message in the Town Square (aka General)
         cy.get('@townSquareId').then((townSquareId) => {
             cy.postMessageAs({
                 sender: sysadmin,
@@ -58,7 +58,7 @@ describe('Sidebar channel menu', () => {
             });
         });
 
-        // * Verify that the Town Square channel is now unread
+        // * Verify that the Town Square (aka General) channel is now unread
         cy.get('#sidebarItem_town-square').should(beUnread);
 
         // # Open the channel menu and select the Mark as Read option
@@ -66,7 +66,7 @@ describe('Sidebar channel menu', () => {
             cy.findByText('Mark as Read').click();
         });
 
-        // * Verify that the Town Square channel is now read
+        // * Verify that the Town Square (aka General) channel is now read
         cy.get('#sidebarItem_town-square').should(beRead);
     });
 
@@ -121,14 +121,14 @@ describe('Sidebar channel menu', () => {
         // # Move the channel into a new category
         cy.uiMoveChannelToCategory(townSquare, categoryName, true);
 
-        // * Verify that Town Square has moved into the new category
+        // * Verify that Town Square (aka General) has moved into the new category
         cy.uiGetLhsSection(categoryName).findByText(townSquare).should('be.visible');
         cy.uiGetLhsSection('CHANNELS').findByText(townSquare).should('not.exist');
 
         // # Move the channel back to Channels
         cy.uiMoveChannelToCategory(townSquare, 'Channels');
 
-        // * Verify that Town Square has moved back to Channels
+        // * Verify that Town Square (aka General) has moved back to Channels
         cy.uiGetLhsSection(categoryName).findByText(townSquare).should('not.exist');
         cy.uiGetLhsSection('CHANNELS').findByText(townSquare).should('be.visible');
     });
@@ -155,23 +155,23 @@ describe('Sidebar channel menu', () => {
         });
 
         // * Verify that the modal appears and then close it
-        cy.get('#addUsersToChannelModal').should('be.visible').findByText('Add people to Town Square');
+        cy.get('#addUsersToChannelModal').should('be.visible').findByText('Add people to General');
         cy.uiClose();
     });
 
     it('MM-T3350 Mention badge should remain hidden as long as the channel/dm/gm menu is open', () => {
-        // # Start in Town Square
+        // # Start in Town Square (aka General)
         cy.get('#sidebarItem_town-square').click();
         cy.get('#channelHeaderTitle').should('contain', townSquare);
 
-        // # Save the ID of the Town Square channel for later
+        // # Save the ID of the Town Square (aka General) channel for later
         cy.getCurrentChannelId().as('townSquareId');
 
         // # Switch to the Off Topic channel
         cy.get('#sidebarItem_off-topic').click();
         cy.get('#channelHeaderTitle').should('contain', 'Off-Topic');
 
-        // # Have another user send a message in the Town Square
+        // # Have another user send a message in the Town Square (aka General)
         cy.get('@townSquareId').then((townSquareId) => {
             cy.postMessageAs({
                 sender: sysadmin,

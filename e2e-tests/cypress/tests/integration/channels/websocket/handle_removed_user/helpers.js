@@ -37,9 +37,9 @@ export function verifyRHS(teamName, sidebarItemClass, postId) {
     // # Dismiss the modal informing the user they were kicked out
     cy.get('#removedChannelBtn').click();
 
-    // * Verify that the channel changed back to Town Square
+    // * Verify that the channel changed back to Town Square (aka General)
     cy.url().should('include', `/${teamName}/channels/town-square`);
-    cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'Town Square');
+    cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'General');
 
     // * Verify that Off-Topic has been removed
     cy.get(`${sidebarItemClass}:contains(Off-Topic)`).should('not.exist');

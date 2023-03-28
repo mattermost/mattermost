@@ -61,7 +61,7 @@ describe('Notifications', () => {
         cy.apiLogin(user1);
         cy.visit(testTeam1TownSquareUrl);
 
-        // # Return to town square
+        // # Return to town square (aka General)
         cy.visit(testTeam1TownSquareUrl);
 
         // * Check for no unreads or mentions
@@ -78,7 +78,7 @@ describe('Notifications', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // * Browser tab should displays (1) * channel - [team name] Mattermost
-        cy.title().should('include', `(1) Town Square - ${team1.display_name} ${siteName}`);
+        cy.title().should('include', `(1) General- ${team1.display_name} ${siteName}`);
 
         // * Team sidebar: Small dot left of team B icon in team sidebar
         cy.get(`#${team2.name}TeamButton`).parent('.unread').should('be.visible').within(() => {
@@ -96,7 +96,7 @@ describe('Notifications', () => {
         cy.visit(testTeam1TownSquareUrl);
 
         // * Browser tab should displays (1) * channel - [team name] Mattermost (for verify count increase)
-        cy.title().should('include', `(1) Town Square - ${team1.display_name} ${siteName}`);
+        cy.title().should('include', `(1) General- ${team1.display_name} ${siteName}`);
 
         // # Have another user view team B
         cy.apiLogin(user2);
@@ -129,7 +129,7 @@ describe('Notifications', () => {
 
         // * Title should be increased
         // * Browser tab should displays (1) * channel - [team name] Mattermost
-        cy.title().should('include', `(2) Town Square - ${team1.display_name} ${siteName}`);
+        cy.title().should('include', `(2) General- ${team1.display_name} ${siteName}`);
 
         // * Team sidebar: Small dot left of team B icon in team sidebar
         cy.get(`#${team2.name}TeamButton`).should('be.visible').within(() => {

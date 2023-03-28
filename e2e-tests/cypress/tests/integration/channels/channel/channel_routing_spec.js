@@ -33,15 +33,15 @@ describe('Channel routing', () => {
                 cy.apiAddUserToTeam(team.id, newUser.id);
             });
 
-            // # Login as test user and go to town square
+            // # Login as test user and go to town square (aka General)
             cy.apiLogin(testUser);
             cy.visit(`/${team.name}/channels/town-square`);
         });
     });
 
-    it('should go to town square channel view', () => {
+    it('should go to town square (aka General) channel view', () => {
         // * Check if the channel is loaded correctly
-        cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'Town Square');
+        cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'General');
     });
 
     it('should go to private channel view', () => {

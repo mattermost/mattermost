@@ -20,7 +20,7 @@ describe('Team switch performance test', () => {
             cy.apiCreateTeam('team-b', 'Team B').then(({team: team2}) => {
                 testTeam2 = team2;
 
-                // # Go to town square
+                // # Go to town square (aka General)
                 cy.visit(`/${testTeam1.name}/channels/town-square`);
                 cy.get('#teamSidebarWrapper').should('be.visible');
                 cy.get(`#${testTeam2.name}TeamButton`).should('be.visible');

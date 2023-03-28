@@ -49,7 +49,7 @@ describe('Channel sidebar', () => {
 
         // * Verify that both channels are visible when not collapsed
         cy.get('.SidebarChannelGroup').should('be.visible').as('sidebarChannelGroup');
-        cy.get('@sidebarChannelGroup').findByText('Town Square').should('exist').and('be.visible');
+        cy.get('@sidebarChannelGroup').findByText('General').should('exist').and('be.visible');
         cy.get('@sidebarChannelGroup').findByText('Off-Topic').should('be.visible');
 
         // # Click on CHANNELS
@@ -57,7 +57,7 @@ describe('Channel sidebar', () => {
 
         // * Verify that both channels are visible when not collapsed
         cy.get('.SidebarChannelGroup').should('be.visible').as('sidebarChannelGroup');
-        cy.get('@sidebarChannelGroup').findByText('Town Square').should('be.visible');
+        cy.get('@sidebarChannelGroup').findByText('General').should('be.visible');
         cy.get('@sidebarChannelGroup').findByText('Off-Topic').should('not.exist');
     });
 

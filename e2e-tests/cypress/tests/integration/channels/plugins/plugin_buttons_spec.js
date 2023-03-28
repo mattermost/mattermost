@@ -30,7 +30,7 @@ describe('collapse on 15 plugin buttons', () => {
     });
 
     it('MM-T1649 Greater than 15 plugin buttons collapse to one icon in top nav', () => {
-        // # Go to town square
+        // # Go to town square (aka General)
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Upload and enable test plugin with 15 channel header icons

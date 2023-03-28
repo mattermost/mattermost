@@ -84,7 +84,7 @@ describe('Pinned posts', () => {
             // * Number of pinned posts in RHS should be 1
             cy.findByTestId('search-item-container').should('have.length', 1);
 
-            // # Go to town square
+            // # Go to town square (aka General)
             cy.get('#sidebarItem_town-square').should('be.visible').click();
 
             // * Should not have any pinned posts
@@ -212,7 +212,7 @@ describe('Pinned posts', () => {
         // # Login
         cy.apiLogin(testUser);
 
-        // # Visit town square
+        // # Visit town square (aka General)
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Pinned count should be zero
@@ -268,7 +268,7 @@ describe('Pinned posts', () => {
             // # Click pin icon
             cy.uiGetChannelPinButton().should('be.visible').click();
 
-            // # Go to town square
+            // # Go to town square (aka General)
             cy.get('#sidebarItem_town-square').should('be.visible').click();
 
             // * Pinned count should be 1

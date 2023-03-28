@@ -52,7 +52,7 @@ describe('Channel', () => {
         cy.get('@suggestionList').eq(0).contains(myChannelsDividerText, {matchCase: false});
         cy.get('@suggestionList').eq(1).should('contain', ownChannel.display_name);
         cy.get('@suggestionList').eq(2).should('contain', 'Off-Topic');
-        cy.get('@suggestionList').eq(3).should('contain', 'Town Square');
+        cy.get('@suggestionList').eq(3).should('contain', 'General');
 
         // * Should render "OTHER CHANNELS" suggestion list divider
         cy.get('@suggestionList').eq(4).contains(otherChannelsDividerText, {matchCase: false});
@@ -79,7 +79,7 @@ describe('Channel', () => {
         cy.get('@suggestionList').eq(1).should('contain', ownChannel.display_name);
         cy.get('@suggestionList').eq(2).should('contain', otherChannel.display_name);
         cy.get('@suggestionList').eq(3).should('contain', 'Off-Topic');
-        cy.get('@suggestionList').eq(4).should('contain', 'Town Square');
+        cy.get('@suggestionList').eq(4).should('contain', 'General');
     });
 
     it('Getting removed from a channel should alter channel mention autocomplete lists accordingly', () => {
@@ -104,7 +104,7 @@ describe('Channel', () => {
             cy.get('@suggestionList').eq(0).contains(myChannelsDividerText, {matchCase: false});
             cy.get('@suggestionList').eq(1).should('contain', ownChannel.display_name);
             cy.get('@suggestionList').eq(2).should('contain', 'Off-Topic');
-            cy.get('@suggestionList').eq(3).should('contain', 'Town Square');
+            cy.get('@suggestionList').eq(3).should('contain', 'General');
 
             // * Should render "OTHER CHANNELS" suggestion list divider
             cy.get('@suggestionList').eq(4).contains(otherChannelsDividerText, {matchCase: false});

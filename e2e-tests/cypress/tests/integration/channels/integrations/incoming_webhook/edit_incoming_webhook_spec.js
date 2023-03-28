@@ -52,7 +52,7 @@ describe('Incoming webhook', () => {
 
         // # Change the channel from Off Topic to another channel that you have access to, then click "Update"
         cy.get('.backstage-form').should('be.visible').within(() => {
-            cy.get('#channelSelect').select('Town Square');
+            cy.get('#channelSelect').select('General');
             cy.findByRole('button', {name: 'Update'}).scrollIntoView().click();
         });
 

@@ -38,7 +38,7 @@ describe('System Console', () => {
         // # Change the role of the user back to user
         cy.externalRequest({user: sysadmin, method: 'put', baseUrl, path: `users/${testUser.id}/roles`, data: {roles: 'system_user'}});
 
-        // # User should get redirected to town square
+        // # User should get redirected to town square (aka General)
         cy.get('#adminConsoleWrapper').should('not.exist');
         cy.get('#postListContent', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
         cy.url().should('include', 'town-square');

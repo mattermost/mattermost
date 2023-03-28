@@ -20,7 +20,7 @@ describe('Leave Channel Command', () => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             testChannel = channel;
             cy.visit(`/${team.name}/channels/town-square`);
-            cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'Town Square');
+            cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'General');
         });
     });
 
@@ -35,6 +35,6 @@ describe('Leave Channel Command', () => {
 
         // * Assert that user is redirected to townsquare
         cy.url().should('include', '/channels/town-square');
-        cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'Town Square');
+        cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'General');
     });
 });

@@ -63,7 +63,7 @@ describe('Verify unread toast appears after repeated manual marking post as unre
     });
 
     it('MM-T1429 Toast when navigating to channel with unread messages and after repeated marking as unread', () => {
-        // # Switch to town square channel that has unread messages
+        // # Switch to town square (aka General) channel that has unread messages
         switchToChannel(testChannel);
 
         // * Check that the toast is visible

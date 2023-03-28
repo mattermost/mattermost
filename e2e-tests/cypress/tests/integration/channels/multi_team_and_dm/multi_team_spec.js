@@ -72,7 +72,7 @@ describe('Send a DM', () => {
         cy.get(`#${teamB.name}TeamButton`, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
 
         // * Channel list in the LHS is scrolled to the top.
-        cy.uiGetLhsSection('CHANNELS').get('.active').should('contain', 'Town Square');
+        cy.uiGetLhsSection('CHANNELS').get('.active').should('contain', 'General');
 
         // * Verify team display name changes correctly.
         cy.uiGetLHSHeader().findByText(teamB.display_name);

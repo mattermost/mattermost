@@ -33,16 +33,16 @@ describe('Subpath Channel routing', () => {
         });
     });
 
-    it('MM-T986 - Should go to town square channel view', () => {
-        // # Go to town square channel
+    it('MM-T986 - Should go to town square (aka General) channel view', () => {
+        // # Go to town square (aka General) channel
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Check if the channel is loaded correctly
-        cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').should('contain', 'Town Square');
+        cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').should('contain', 'General');
     });
 
     it('MM-T987 - Rejoin channel with permalink', () => {
-        // # Visit Town Square channel
+        // # Visit Town Square (aka General) channel
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Create a new channel

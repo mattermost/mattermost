@@ -31,7 +31,7 @@ describe('Sidebar category menu', () => {
         cy.get('@channelsCategory').find('#sidebarItem_town-square');
 
         // # Open the channel menu and select the Favorite option
-        cy.uiGetChannelSidebarMenu('Town Square').within(() => {
+        cy.uiGetChannelSidebarMenu('General').within(() => {
             cy.findByText('Favorite').click();
         });
 

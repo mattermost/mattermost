@@ -56,7 +56,7 @@ describe('channels > actions', {testIsolation: true}, () => {
         // # Size the viewport to show the RHS without covering posts.
         cy.viewport('macbook-13');
 
-        // # Go to Town Square
+        // # Go to Town Square (aka General)
         cy.visit(`/${testTeam.name}/channels/town-square`);
     });
 

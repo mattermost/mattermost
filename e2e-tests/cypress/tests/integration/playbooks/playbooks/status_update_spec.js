@@ -83,7 +83,7 @@ describe('playbooks > edit status update', {testIsolation: true}, () => {
 
             // # Select a channel
             cy.findAllByTestId('status-update-broadcast-channels').click();
-            cy.get('#playbook-automation-broadcast').contains('Town Square').click({force: true});
+            cy.get('#playbook-automation-broadcast').contains('General').click({force: true});
             cy.findAllByTestId('status-update-broadcast-channels').click();
 
             // # Refresh the page
@@ -171,7 +171,7 @@ describe('playbooks > edit status update', {testIsolation: true}, () => {
 
                 // # Select a channel
                 cy.findAllByTestId('status-update-broadcast-channels').click();
-                cy.get('#playbook-automation-broadcast').contains('Town Square').click({force: true});
+                cy.get('#playbook-automation-broadcast').contains('General').click({force: true});
                 cy.findAllByTestId('status-update-broadcast-channels').click();
 
                 // * Verify status update message.

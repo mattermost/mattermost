@@ -115,7 +115,7 @@ describe('Keyboard Shortcuts', () => {
     it('MM-T3002 CTRL/CMD+K - Unread Channels and input field focus', () => {
         const team1 = teamAndChannels[0].team;
 
-        // # Visit town square channel by teamUser
+        // # Visit town square (aka General) channel by teamUser
         cy.visit(`/${team1.name}/channels/off-topic`);
 
         // # Post message in other channels by otherUser

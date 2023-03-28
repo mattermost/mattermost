@@ -137,7 +137,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 
 			if ch.Channel.DisplayName == "Off-Topic" {
 				numOffTopic++
-			} else if ch.Channel.DisplayName == "Town Square" {
+			} else if ch.Channel.DisplayName == "General" {
 				numTownSquare++
 			}
 

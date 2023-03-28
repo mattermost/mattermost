@@ -1478,7 +1478,7 @@ describe('Selectors.Channels.getRedirectChannelNameForTeam', () => {
                         },
                         [channel1.id]: {
                             id: channel1.id,
-                            display_name: 'Town Square',
+                            display_name: 'General',
                             name: 'town-square',
                             team_id: team1.id,
                         },
@@ -1571,7 +1571,7 @@ describe('Selectors.Channels.getRedirectChannelNameForTeam', () => {
                         },
                         [channel3.id]: {
                             id: channel3.id,
-                            display_name: 'Town Square',
+                            display_name: 'General',
                             name: 'town-square',
                             team_id: team2.id,
                         },

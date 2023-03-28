@@ -11,7 +11,7 @@
 
 describe('Scroll', () => {
     before(() => {
-        // # Create new team and new user and visit Town Square channel
+        // # Create new team and new user and visit Town Square (aka General) channel
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
             // # Switch the settings for the test user to have images collapsed by default
             cy.apiSaveCollapsePreviewsPreference('true');

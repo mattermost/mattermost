@@ -58,7 +58,7 @@ describe('Verify Guest User Identification in different screens', () => {
         cy.externalActivateUser(guestUser.id, false).wait(TIMEOUTS.FIVE_SEC);
 
         // # Switch channels away and back to reload the header
-        cy.get('.SidebarChannel:contains(Town Square)').click();
+        cy.get('.SidebarChannel:contains(General)').click();
         cy.get(`.SidebarChannel:contains(${testChannel.display_name})`).click();
 
         // * Verify the text 'This channel has guests' is removed from the header

@@ -71,12 +71,12 @@ describe('Close group messages', () => {
         });
     }
 
-    // Make sure that the current channel is Town Square and that the
+    // Make sure that the current channel is Town Square (aka General) and that the
     // channel identified by the passed name is no longer in the channel
     // sidebar
     function verifyChannelWasProperlyClosed(channelName) {
         // * Make sure that we have switched channels
-        cy.get('#channelHeaderTitle').should('contain', 'Town Square');
+        cy.get('#channelHeaderTitle').should('contain', 'General');
 
         // * Make sure the old DM no longer exists
         cy.get('#sidebarItem_' + channelName).should('not.exist');

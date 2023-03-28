@@ -37,7 +37,7 @@ declare namespace Cypress {
          * @param [isChannelId=false] whether channelName is a channel ID
          *
          * @example
-         *   cy.uiMoveChannelToCategory('Town Square', 'Favorites');
+         *   cy.uiMoveChannelToCategory('General', 'Favorites');
          */
         uiMoveChannelToCategory(channelName: string, categoryName: string, newCategory: boolean = false, isChannelId: boolean = false): Chainable;
     }

@@ -96,7 +96,7 @@ describe('Teams Suite', () => {
             cy.get('#inviteMembersButton').click();
             cy.findByTestId('confirm-done').click();
 
-            // * As sysadmin, verify system message posts in Town Square and Off-Topic
+            // * As sysadmin, verify system message posts in Town Square (aka General) and Off-Topic
             cy.getLastPost().wait(TIMEOUTS.HALF_SEC).then(($el) => {
                 cy.wrap($el).get('.user-popover').
                     should('be.visible').
@@ -127,7 +127,7 @@ describe('Teams Suite', () => {
 
             const sysadmin = getAdminAccount();
 
-            // * As other user, verify system message posts in Town Square and Off-Topic
+            // * As other user, verify system message posts in Town Square (aka General) and Off-Topic
             cy.getLastPost().wait(TIMEOUTS.HALF_SEC).then(($el) => {
                 cy.wrap($el).get('.user-popover').
                     should('be.visible').
@@ -287,7 +287,7 @@ describe('Teams Suite', () => {
 
         // # Verify Town square is visible
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        cy.findByText('Beginning of 'General).should('be.visible');
     });
 
     it('MM-T2322 Do not allow anyone to join this team', () => {
@@ -326,7 +326,7 @@ describe('Teams Suite', () => {
         cy.apiLogout();
         cy.wait(TIMEOUTS.ONE_SEC);
 
-        // * Login as test user and join town square
+        // * Login as test user and join town square (aka General)
         cy.apiLogin(testUser);
         cy.visit(`/${testTeam.name}/channels/town-square`);
 

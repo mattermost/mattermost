@@ -1037,7 +1037,7 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                     // * Verify that the toggle is checked and input is enabled
                     cy.get('input[type=radio]').should('be.checked');
                     cy.get('input[type=text]').should('not.be.disabled');
-                    cy.findByText('Town Square').should('exist');
+                    cy.findByText('General').should('exist');
                 });
             });
         });

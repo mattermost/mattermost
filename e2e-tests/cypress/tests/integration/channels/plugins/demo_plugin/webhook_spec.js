@@ -83,7 +83,7 @@ describe('Demo plugin - Webhook events', () => {
 
         // * Verify message is posted in the demo channel
         cy.visit(`/${team1.name}/channels/demo_plugin`);
-        cy.findAllByTestId('postView').should('contain', `MessageHasBeenPosted: @${testUser.username}, ~Town Square`);
+        cy.findAllByTestId('postView').should('contain', `MessageHasBeenPosted: @${testUser.username}, ~General`);
     });
 
     it('MM-T2408_2 - User joined a channel Webhook event', () => {

@@ -121,7 +121,7 @@ describe('Authentication', () => {
         });
     });
 
-    it('MM-T1763 - Security - Signup: Email verification not required, user immediately sees Town Square', () => {
+    it('MM-T1763 - Security - Signup: Email verification not required, user immediately sees Town Square (aka General)', () => {
         // # Disable email verification
         cy.apiUpdateConfig({
             EmailSettings: {

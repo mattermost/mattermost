@@ -46,7 +46,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
                 cy.apiAddUserToTeam(testTeam.id, newUser.id);
             });
 
-            // # Go to town square
+            // # Go to town square (aka General)
             cy.visit(`/${team.name}/channels/town-square`);
         });
     });
@@ -82,7 +82,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
 
         cy.get('.channels-input__control').should('be.visible').within(() => {
             // * Verify the input placeholder text
-            cy.get('.channels-input__placeholder').should('have.text', 'e.g. Town Square');
+            cy.get('.channels-input__placeholder').should('have.text', 'e.g. General');
 
             // # Type the channel name
             cy.get('input').typeWithForce('town sq');
@@ -90,7 +90,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
 
         cy.get('.channels-input__menu').
             children().should('have.length', 1).
-            eq(0).should('contain', 'Town Square').click();
+            eq(0).should('contain', 'General').click();
 
         // * Verify Set Custom Message before clicking on the link
         cy.get('.AddToChannels').should('be.visible').within(() => {
@@ -138,7 +138,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.reload();
 
         const email = `temp-${getRandomId()}@mattermost.com`;
-        invitePeople(email, 1, email, 'Town Square', false);
+        invitePeople(email, 1, email, 'General', false);
 
         // * Verify Invite Guests button is disabled
         cy.get('#inviteGuestButton').should('be.disabled');
@@ -206,7 +206,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         // * Verify the channel is preselected
         cy.get('.channels-input__control').should('be.visible').within(() => {
             cy.get('.public-channel-icon').should('be.visible');
-            cy.findByText('Town Square').should('be.visible');
+            cy.findByText('General').should('be.visible');
         });
 
         // * Verify the email field is empty

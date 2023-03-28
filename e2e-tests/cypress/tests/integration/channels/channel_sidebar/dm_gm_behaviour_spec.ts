@@ -200,10 +200,10 @@ describe('DM category', () => {
                     // * Verify that the GM has moved to a new category
                     cy.get(`.SidebarChannelGroup:contains(Category ${user.username})`).find(`#sidebarItem_${channel.name}`).should('be.visible');
 
-                    // # Go to Town Square
+                    // # Go to Town Square (aka General)
                     cy.get('#sidebarItem_town-square').should('be.visible').click();
 
-                    // * Verify we are now in town square
+                    // * Verify we are now in town square (aka General)
                     cy.url().should('include', '/channels/town-square');
 
                     // # Click the + button next to the DM category

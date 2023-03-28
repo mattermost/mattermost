@@ -103,7 +103,7 @@ func TestGraphQLChannels(t *testing.T) {
 
 			if ch.DisplayName == "Off-Topic" {
 				numOffTopic++
-			} else if ch.DisplayName == "Town Square" {
+			} else if ch.DisplayName == "General" {
 				numTownSquare++
 			}
 		}

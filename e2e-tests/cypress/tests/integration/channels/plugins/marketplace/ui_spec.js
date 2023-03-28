@@ -47,7 +47,7 @@ describe('Plugin Marketplace', () => {
         // # Cleanup installed plugins
         cy.apiUninstallAllPlugins();
 
-        // # Visit the Town Square channel
+        // # Visit the Town Square (General) channel
         cy.visit(townsquareLink);
 
         // # Open up marketplace

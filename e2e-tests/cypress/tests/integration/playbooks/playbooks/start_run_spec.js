@@ -324,7 +324,7 @@ describe('playbooks > start a run', {testIsolation: true}, () => {
                 // # Click channel link
                 cy.findByTestId('runinfo-channel-link').click();
 
-                // * Verify we are on town square
+                // * Verify we are on town square (aka General)
                 cy.url().should('include', `/${testTeam.name}/channels/town-square`);
             });
         });
@@ -392,7 +392,7 @@ describe('playbooks > start a run', {testIsolation: true}, () => {
                 // # Click channel link
                 cy.findByTestId('runinfo-channel-link').click();
 
-                // * Verify we are on town square
+                // * Verify we are on town square (aka General)
                 cy.url().should('include', `/${testTeam.name}/channels/town-square`);
             });
 
@@ -461,7 +461,7 @@ describe('playbooks > start a run', {testIsolation: true}, () => {
                 // # Click channel link
                 cy.findByTestId('runinfo-channel-link').click();
 
-                // * Verify we are on town square
+                // * Verify we are on town square (aka General)
                 cy.url().should('include', `/${testTeam.name}/channels/town-square`);
             });
 

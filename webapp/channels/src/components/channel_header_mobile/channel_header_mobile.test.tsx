@@ -55,7 +55,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 type: 'O',
                 id: '123',
                 name: 'town-square',
-                display_name: 'Town Square',
+                display_name: 'General',
                 team_id: 'team_id',
             }),
         };

@@ -243,7 +243,7 @@ declare global {
              * @param {string} channelName - name of channel, ex. 'town-square'
              * @param {boolean} isChannelId - default false. If true, it will use channel id instead of channel name
              * @example
-             *   cy.uiGetChannelSidebarMenu('Town Square');
+             *   cy.uiGetChannelSidebarMenu('General');
              *   cy.uiGetChannelSidebarMenu('user1212__user333', true);
              */
             uiGetChannelSidebarMenu(channelName: string, isChannelId?: boolean): Chainable;

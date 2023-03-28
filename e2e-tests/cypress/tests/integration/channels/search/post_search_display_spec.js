@@ -27,7 +27,7 @@ describe('Search', () => {
     beforeEach(() => {
         cy.apiAdminLogin();
 
-        // Visit town square as an admin
+        // Visit town square (aka General) as an admin
         cy.visit(`/${testTeam.name}/channels/town-square`);
     });
 
@@ -143,7 +143,7 @@ describe('Search', () => {
         cy.get('#searchBox').click().type('in:town-square').wait(TIMEOUTS.HALF_SEC);
 
         // * Assert that channel name displays appropriately
-        cy.get('.suggestion-list__item').first().should('contain.text', 'Town Square~town-square');
+        cy.get('.suggestion-list__item').first().should('contain.text', 'General~town-square');
 
         // # Press enter to register search term
         cy.get('#searchBox').click().type('{enter}');

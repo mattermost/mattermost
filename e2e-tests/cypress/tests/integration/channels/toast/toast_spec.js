@@ -316,11 +316,11 @@ describe('toasts', () => {
         // # Visit other channel
         cy.uiClickSidebarItem(otherChannel.name);
 
-        // # Add less number of messages to town square channel
+        // # Add less number of messages to town square (aka General) channel
         cy.postMessageAs({sender: otherUser, message: 'This is an new message 1', channelId: testChannelId});
         cy.postMessageAs({sender: otherUser, message: 'This is an new message 2', channelId: testChannelId});
 
-        // # Visit town square channel
+        // # Visit town square (aka General) channel
         cy.uiClickSidebarItem(testChannelName);
 
         // * Assert toast should not be present as the messages are visible without scrolling down

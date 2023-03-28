@@ -37,7 +37,7 @@ describe('Channels', () => {
                     testChannel = channel;
                 });
 
-                // # Go to town square
+                // # Go to town square (aka General)
                 cy.visit(`/${team.name}/channels/town-square`);
             });
         });
@@ -159,7 +159,7 @@ describe('Channels', () => {
                 // # Leave the channel
                 cy.uiLeaveChannel();
 
-                // * Verify that we've switched to Town Square
+                // * Verify that we've switched to Town Square (aka General)
                 cy.url().should('include', '/channels/town-square');
             });
 
@@ -175,7 +175,7 @@ describe('Channels', () => {
                 // # Leave the channel
                 cy.uiLeaveChannel();
 
-                // * Verify that we've switched to Town Square
+                // * Verify that we've switched to Town Square (aka General)
                 cy.url().should('include', '/channels/town-square');
             });
 

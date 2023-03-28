@@ -50,7 +50,7 @@ describe('Subpath Direct Message Search', () => {
                 expect(userRes.status).to.equal(201);
                 const otherSubpathUser = userRes.body;
 
-                // # Go to town square channel of primary subpath server
+                // # Go to town square (aka General) channel of primary subpath server
                 cy.visit(`/${testTeam.name}/channels/town-square`);
 
                 // # Open DM modal

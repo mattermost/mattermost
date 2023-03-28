@@ -57,7 +57,7 @@ describe('Notifications', () => {
         cy.apiLogin(testUser);
         cy.visit(testTeamTownSquareUrl);
 
-        cy.title().should('include', `Town Square - ${testTeam.display_name} ${siteName}`);
+        cy.title().should('include', `General - ${testTeam.display_name} ${siteName}`);
 
         // * Browser tab shows channel name with no unread indicator
         cy.get(`#${testTeam.name}TeamButton`).parent('.unread').should('not.exist');

@@ -37,7 +37,7 @@ describe('Multi Team and DM', () => {
         });
     });
 
-    it('MM-T439 Town Square is not marked as unread for existing users when a new user is added to the team', () => {
+    it('MM-T439 Town Square (aka General) is not marked as unread for existing users when a new user is added to the team', () => {
         // # Open 'Advanced' section of 'Settings' modal
         cy.uiOpenSettingsModal('Advanced').within(() => {
             // # Open 'Enable Join/Leave Messages' and turn it off
@@ -48,20 +48,20 @@ describe('Multi Team and DM', () => {
             cy.uiSaveAndClose();
         });
 
-        // # Confirm Town Square is marked as read
-        cy.findByLabelText('town square public channel').should('be.visible');
+        // # Confirm Town Square (aka General) is marked as read
+        cy.findByLabelText('general public channel').should('be.visible');
 
-        // # Remove focus from Town Square
+        // # Remove focus from Town Square (aka General)
         cy.findByLabelText('off-topic public channel').click();
 
         // # Add second user to team in external session
         cy.externalRequest({user: sysadmin, method: 'post', path: `teams/${testTeam.id}/members`, data: {team_id: testTeam.id, user_id: otherUser.id}});
 
-        // * Assert that Town Square is still marked as read after second user added to team
-        cy.findByLabelText('town square public channel').should('be.visible');
+        // * Assert that Town Square (aka General) is still marked as read after second user added to team
+        cy.findByLabelText('general public channel').should('be.visible');
 
-        // * Switch to different channel and assert that Town Square is still marked as read
+        // * Switch to different channel and assert that Town Square (aka General) is still marked as read
         cy.findByText(testChannel.display_name).click();
-        cy.findByLabelText('town square public channel').should('not.have.css', 'font-weight', '600');
+        cy.findByLabelText('general public channel').should('not.have.css', 'font-weight', '600');
     });
 });

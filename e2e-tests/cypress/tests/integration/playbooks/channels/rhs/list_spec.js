@@ -193,8 +193,8 @@ describe('channels > rhs > runlist', {testIsolation: true}, () => {
 
             // # type new name
             cy.get('.modal-body').within(() => {
-                // # select town square
-                cy.findByText(testChannel.display_name).click().type('Town Square{enter}');
+                // # select town square (aka General)
+                cy.findByText(testChannel.display_name).click().type('General{enter}');
             });
 
             // # click save
@@ -248,8 +248,8 @@ describe('channels > rhs > runlist', {testIsolation: true}, () => {
 
                 // # type new name
                 cy.get('.modal-body').within(() => {
-                    // # select town square
-                    cy.findByText(testChannelWith2Runs.display_name).click().type('Town Square{enter}');
+                    // # select town square (aka General)
+                    cy.findByText(testChannelWith2Runs.display_name).click().type('General{enter}');
                 });
 
                 // # click save

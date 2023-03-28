@@ -552,7 +552,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 </Menu>
 `;
 
-exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is Town Square 1`] = `
+exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show correct menu items when channel is General 1`] = `
 <Menu
   menu={
     Object {

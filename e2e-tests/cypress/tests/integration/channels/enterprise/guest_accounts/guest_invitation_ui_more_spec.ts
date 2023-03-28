@@ -42,7 +42,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.apiInitSetup().then(({team}) => {
             testTeam = team;
 
-            // # Go to town square
+            // # Go to town square (aka General)
             cy.visit(`/${team.name}/channels/town-square`);
         });
     });

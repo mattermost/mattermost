@@ -109,8 +109,8 @@ describe('Channel header menu', () => {
             // # Click the "Leave Channel" option
             cy.get('#channelLeaveChannel').click();
 
-            // * Should now be in Town Square
-            cy.get('#channelHeaderInfo').should('be.visible').and('contain', 'Town Square');
+            // * Should now be in Town Square (aka General)
+            cy.get('#channelHeaderInfo').should('be.visible').and('contain', 'General');
         });
     });
 });

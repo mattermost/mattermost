@@ -52,7 +52,7 @@ describe('Integrations page', () => {
         cy.get('#addIncomingWebhook').click();
 
         // # Pick the channel
-        cy.get('#channelSelect').select('Town Square');
+        cy.get('#channelSelect').select('General');
 
         // # Save
         cy.get('#saveWebhook').click();
@@ -79,7 +79,7 @@ describe('Integrations page', () => {
         cy.get('#addOutgoingWebhook').click();
 
         // # Pick the channel and dummy callback
-        cy.get('#channelSelect').select('Town Square');
+        cy.get('#channelSelect').select('General');
         cy.get('#callbackUrls').type('https://dummy');
 
         // # Save

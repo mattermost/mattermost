@@ -50,7 +50,7 @@ describe('Custom Terms of Service', () => {
         // # Login as the test user
         cy.apiLogin(testUser);
 
-        // # Visit the test team town square
+        // # Visit the test team town square (aka General)
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Ensure that the terms of service text shows as expected
@@ -101,7 +101,7 @@ describe('Custom Terms of Service', () => {
         // # Login as the test user
         cy.apiLogin(testUser);
 
-        // # Visit the test team town square
+        // # Visit the test team town square (aka General)
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Ensure that the first terms of service is visible
@@ -131,7 +131,7 @@ describe('Custom Terms of Service', () => {
         // # Login as the test user
         cy.apiLogin(testUser);
 
-        // # Visit the test team town square
+        // # Visit the test team town square (aka General)
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Ensure that the new terms of service is visible

@@ -48,7 +48,7 @@ describe('components/LeaveChannelModal', () => {
         'town-square': {
             id: 'town-square-id',
             name: 'town-square',
-            display_name: 'Town Square',
+            display_name: 'General',
             type: ('O' as ChannelType),
             team_id: 'team-1',
             header: '',

@@ -84,7 +84,7 @@ describe('Message permalink', () => {
 
     it('MM-T2222 - Channel shortlinking - ~ autocomplete', () => {
         const publicChannelName = 'town-square';
-        const publicChannelDisplayName = 'Town Square';
+        const publicChannelDisplayName = 'General';
 
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 

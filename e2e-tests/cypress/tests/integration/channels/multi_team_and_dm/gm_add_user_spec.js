@@ -50,7 +50,7 @@ describe('Multi-user group messages', () => {
 
         // # Go to town-square channel
         cy.visit(`/${testTeam.name}/channels/town-square`);
-        cy.contains('#channelHeaderTitle', 'Town Square');
+        cy.contains('#channelHeaderTitle', 'General');
 
         // # Open the 'Direct messages' dialog
         cy.uiAddDirectMessage().click().wait(TIMEOUTS.ONE_SEC);

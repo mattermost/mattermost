@@ -215,7 +215,7 @@ describe('channels rhs > start a run', {testIsolation: true}, () => {
                     runSummaryTemplate: 'run summary template',
                     channelMode: 'create_new_channel',
                 }).then((playbook) => {
-                    // # Visit the town square channel
+                    // # Visit the town square (aka General) channel
                     cy.visit(`/${testTeam.name}/channels/town-square`);
 
                     // # Open playbooks RHS.
@@ -241,7 +241,7 @@ describe('channels rhs > start a run', {testIsolation: true}, () => {
                         cy.findByTestId('link-existing-channel-radio').click();
 
                         // * Assert current channel is selected
-                        cy.findByText('Town Square').should('be.visible');
+                        cy.findByText('General').should('be.visible');
                     });
                 });
             });
@@ -255,7 +255,7 @@ describe('channels rhs > start a run', {testIsolation: true}, () => {
                     channelMode: 'create_new_channel',
                     channelId: testChannel.id,
                 }).then((playbook) => {
-                    // # Visit the town square channel
+                    // # Visit the town square (aka General) channel
                     cy.visit(`/${testTeam.name}/channels/town-square`);
 
                     // # Open playbooks RHS.
@@ -323,7 +323,7 @@ describe('channels rhs > start a run', {testIsolation: true}, () => {
                         cy.findByTestId('run-name-input').clear().type('Test Run Name');
 
                         // # Select test channel instead of current channel
-                        cy.findByText('Town Square').click().type(`${testChannel.display_name}{enter}`);
+                        cy.findByText('General').click().type(`${testChannel.display_name}{enter}`);
 
                         // # Click start button
                         cy.findByTestId('modal-confirm-button').click();

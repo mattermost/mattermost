@@ -32,7 +32,7 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1672_1 User can close archived channel (1/2)', () => {
-        // # Open a channel that's not the town square
+        // # Open a channel that's not the town square (aka General)
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
         // # repeat searching and navigating to the archived channel steps 3 times.

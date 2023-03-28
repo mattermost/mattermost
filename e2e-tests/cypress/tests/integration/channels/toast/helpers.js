@@ -13,7 +13,7 @@ import {getRandomId} from '../../../utils';
 export function visitTownSquareAndWaitForPageToLoad() {
     // # Click town-square at LHS and wait for post list to load
     cy.get('#sidebarItem_town-square').should('be.visible').click();
-    cy.get('#channelHeaderTitle').should('be.visible').and('have.text', 'Town Square');
+    cy.get('#channelHeaderTitle').should('be.visible').and('have.text', 'General');
     cy.findAllByTestId('postView').should('be.visible');
 }
 

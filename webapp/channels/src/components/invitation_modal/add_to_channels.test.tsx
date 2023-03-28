@@ -29,7 +29,7 @@ const defaultProps: Props = deepFreeze({
     currentChannel: {
         display_name: '',
     },
-    townSquareDisplayName: 'Town Square',
+    townSquareDisplayName: 'General',
 });
 
 let props = defaultProps;

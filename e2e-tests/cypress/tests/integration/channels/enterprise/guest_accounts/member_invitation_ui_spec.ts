@@ -43,7 +43,7 @@ describe('Guest Account - Member Invitation Flow', () => {
             testUser = user;
             testTeam = team;
 
-            // # Go to town square
+            // # Go to town square (aka General)
             cy.visit(`/${testTeam.name}/channels/town-square`);
         });
     });
@@ -114,7 +114,7 @@ describe('Guest Account - Member Invitation Flow', () => {
         // * Verify if user has access to the default channels
         cy.uiGetLhsSection('CHANNELS').within(() => {
             cy.findByText('Off-Topic').should('be.visible');
-            cy.findByText('Town Square').should('be.visible');
+            cy.findByText('General').should('be.visible');
         });
     });
 
@@ -149,7 +149,7 @@ describe('Guest Account - Member Invitation Flow', () => {
             // * Verify if user has access to the default channels in the invited teams
             cy.uiGetLhsSection('CHANNELS').within(() => {
                 cy.findByText('Off-Topic').should('be.visible');
-                cy.findByText('Town Square').should('be.visible');
+                cy.findByText('General').should('be.visible');
             });
         });
     });

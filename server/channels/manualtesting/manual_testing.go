@@ -93,7 +93,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.ChannelTypeOpen, TeamId: createdTeam.Id}
+		channel := &model.Channel{DisplayName: "General", Name: "town-square", Type: model.ChannelTypeOpen, TeamId: createdTeam.Id}
 		if _, err := c.App.CreateChannel(c.AppContext, channel, false); err != nil {
 			c.Err = err
 			return

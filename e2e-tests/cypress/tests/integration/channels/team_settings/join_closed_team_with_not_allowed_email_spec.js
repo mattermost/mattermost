@@ -126,7 +126,7 @@ describe('Team Settings', () => {
                     // # Login as new team admin
                     cy.apiLogin(user);
 
-                    // # Go to Town Square
+                    // # Go to Town Square (aka General)
                     cy.visit(`/${otherTeam.name}/channels/town-square`);
 
                     // # Open team menu and click 'Join Another Team'

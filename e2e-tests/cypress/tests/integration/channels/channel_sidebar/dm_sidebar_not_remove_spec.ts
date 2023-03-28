@@ -40,10 +40,10 @@ describe('DM on sidebar', () => {
             // # Click on the new DM channel to mark it read
             cy.get(`#sidebarItem_${channel.name}`).should('be.visible').click();
 
-            // # Click on Town Square
-            cy.get('.SidebarLink:contains(Town Square)').should('be.visible').click();
+            // # Click on Town Square (aka General)
+            cy.get('.SidebarLink:contains(General)').should('be.visible').click();
 
-            // * Verify we're on Town Square
+            // * Verify we're on Town Square (aka General)
             cy.url().should('contain', 'town-square');
 
             // # Refresh the page

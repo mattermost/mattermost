@@ -39,8 +39,8 @@ describe('Teams Suite', () => {
         // # Click finish button
         cy.get('#teamURLFinishButton').should('be.visible').click();
 
-        // * Should redirect to Town Square channel
-        cy.get('#channelHeaderTitle').should('contain', 'Town Square');
+        // * Should redirect to Town Square (aka General) channel
+        cy.get('#channelHeaderTitle').should('contain', 'General');
 
         // * check url is correct
         cy.url().should('include', teamURL + '/channels/town-square');

@@ -55,7 +55,7 @@ describe('Collapsed Reply Threads', () => {
     });
 
     it('MM-T4887 should stay on threads view when switching teams', () => {
-        // # Navigate to the new teams town square
+        // # Navigate to the new teams town square (aka General)
         cy.visit(`/${teamA.name}/channels/town-square`);
 
         // # Switch to Team B

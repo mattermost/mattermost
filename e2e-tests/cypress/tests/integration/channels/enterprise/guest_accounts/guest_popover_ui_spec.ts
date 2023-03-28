@@ -49,7 +49,7 @@ describe('Guest Account - Guest User Badge and Popover', () => {
                 });
             });
 
-            // # Login as regular user and go to town square
+            // # Login as regular user and go to town square (aka General)
             cy.apiLogin(regularUser);
             cy.visit(`/${team.name}/channels/${testChannel.name}`);
         });

@@ -37,7 +37,7 @@ describe('Leaving archived channels', () => {
             // # Leave the channel
             cy.uiLeaveChannel();
 
-            // * Verify that we've switched to Town Square
+            // * Verify that we've switched to Town Square (aka General)
             cy.url().should('include', '/channels/town-square');
         });
     });
@@ -54,7 +54,7 @@ describe('Leaving archived channels', () => {
             // # Leave the channel
             cy.uiLeaveChannel(true);
 
-            // * Verify that we've switched to Town Square
+            // * Verify that we've switched to Town Square (aka General)
             cy.url().should('include', '/channels/town-square');
         });
     });

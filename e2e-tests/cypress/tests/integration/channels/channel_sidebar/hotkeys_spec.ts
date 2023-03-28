@@ -75,7 +75,7 @@ describe('Channel switching', () => {
         cy.url().should('include', `/${testTeam.name}/channels/${testChannel.name}`);
         cy.get('#channelHeaderTitle').should('contain', testChannel.display_name);
 
-        // # Have another user post a message in the town square
+        // # Have another user post a message in the town square (aka General)
         cy.get('@offTopicId').then((offTopicId) => cy.postMessageAs({sender: sysadmin, message: 'Test', channelId: offTopicId.text()}));
 
         // # Press alt + shift + down

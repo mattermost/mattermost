@@ -33,9 +33,9 @@ describe('Handle removed user - new sidebar', () => {
         createNewTeamAndMoveToOffTopic(teamName, sidebarItemClass);
 
         removeMeFromCurrentChannel().then(() => {
-            // * Verify that the channel changed back to Town Square
+            // * Verify that the channel changed back to Town Square (aka General)
             cy.url().should('include', `/${teamName}/channels/town-square`);
-            cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'Town Square');
+            cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'General');
         });
     });
 

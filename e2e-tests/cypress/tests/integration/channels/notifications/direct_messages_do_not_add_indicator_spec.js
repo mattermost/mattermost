@@ -59,8 +59,8 @@ describe('Notifications', () => {
             cy.postMessageAs({sender: user2, message: `@${user1.username}`, channelId: ownDMChannel.id});
         });
 
-        // * Browser tab shows: (1) * Town Square - [team name] Mattermost
-        cy.title().should('include', `(1) Town Square - ${team1.display_name} ${siteName}`);
+        // * Browser tab shows: (1) * Town Square (aka General) - [team name] Mattermost
+        cy.title().should('include', `(1) General - ${team1.display_name} ${siteName}`);
 
         // * Team sidebar shows: No unread / mention indicator in team sidebar on either team
         cy.get(`#${team2.name}TeamButton`).parent('.unread').should('not.exist');

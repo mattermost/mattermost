@@ -60,22 +60,22 @@ describe('Category muting', () => {
             // # Mute the new category
             clickCategoryMenuItem(category.displayName, 'Mute Category');
 
-            // * Verify that Town Square starts unmuted
+            // * Verify that Town Square (aka General) starts unmuted
             cy.get('#sidebarItem_town-square').should('not.have.class', 'muted');
 
             // * Verify that the new category is muted
             cy.get(`.SidebarChannelGroupHeader:contains(${category.displayName})`).should('have.class', 'muted');
 
-            // # Move Town Square into the custom category
-            cy.uiMoveChannelToCategory('Town Square', category.displayName);
+            // # Move Town Square (aka General) into the custom category
+            cy.uiMoveChannelToCategory('General', category.displayName);
 
-            // * Verify that Town Square is now muted
+            // * Verify that Town Square (aka General) is now muted
             cy.get('#sidebarItem_town-square').should('have.class', 'muted');
 
-            // # Move Town Square back to Channels
-            cy.uiMoveChannelToCategory('Town Square', 'Channels');
+            // # Move Town Square (aka General) back to Channels
+            cy.uiMoveChannelToCategory('General', 'Channels');
 
-            // * Verify that Town Square is now unmuted
+            // * Verify that Town Square (aka General) is now unmuted
             cy.get('#sidebarItem_town-square').should('not.have.class', 'muted');
         });
     });

@@ -16,7 +16,7 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
       values={
         Object {
           "channel": <b>
-            Town Square
+            General
           </b>,
         }
       }
@@ -34,7 +34,7 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
       values={
         Object {
           "channel": <b>
-            Town Square
+            General
           </b>,
         }
       }

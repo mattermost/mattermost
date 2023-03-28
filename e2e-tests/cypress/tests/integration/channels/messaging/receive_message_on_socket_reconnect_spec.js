@@ -64,7 +64,7 @@ describe('Messaging', () => {
             cy.postMessageReplyInRHS('def');
 
             // # Change channel
-            cy.uiGetLhsSection('CHANNELS').findByText('Town Square').click().then(() => {
+            cy.uiGetLhsSection('CHANNELS').findByText('General').click().then(() => {
                 // # Close all sockets
                 window.mockWebsockets.forEach((value) => {
                     if (value.close) {
@@ -93,7 +93,7 @@ describe('Messaging', () => {
                     cy.wait(TIMEOUTS.THREE_SEC);
                     cy.uiGetLhsSection('CHANNELS').findByText('Off-Topic').click();
                     cy.postMessage('any');
-                    cy.uiGetLhsSection('CHANNELS').findByText('Town Square').click();
+                    cy.uiGetLhsSection('CHANNELS').findByText('General').click();
                     cy.postMessage('any');
                     cy.wait(TIMEOUTS.THREE_SEC);
 

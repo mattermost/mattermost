@@ -114,7 +114,7 @@ describe('playbooks > overview', {testIsolation: true}, () => {
 
     describe('should switch to channels and prompt to run when clicking run', () => {
         const openAndRunPlaybook = (team) => {
-            // # Navigate directly to town square on the team
+            // # Navigate directly to town square (aka General) on the team
             cy.visit(`${team.name}/channels/town-square`);
 
             // # Open Playbooks

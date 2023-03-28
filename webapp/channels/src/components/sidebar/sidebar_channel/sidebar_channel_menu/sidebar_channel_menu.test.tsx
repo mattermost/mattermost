@@ -166,7 +166,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should show correct menu items when channel is Town Square', () => {
+    test('should show correct menu items when channel is General', () => {
         const props = {
             ...baseProps,
             channel: {

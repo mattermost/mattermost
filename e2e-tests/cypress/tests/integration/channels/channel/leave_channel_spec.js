@@ -66,7 +66,7 @@ describe('Leave channel', () => {
 
             // * Assert that user is redirected to townsquare
             cy.url().should('include', '/channels/town-square');
-            cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'Town Square');
+            cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'General');
         });
     });
 
@@ -104,7 +104,7 @@ describe('Leave channel', () => {
 
             // * Assert that user is redirected to townsquare
             cy.url().should('include', '/channels/town-square');
-            cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'Town Square');
+            cy.get('#channelHeaderTitle').should('be.visible').and('contain', 'General');
         });
     });
 });

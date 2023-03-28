@@ -43,7 +43,7 @@ describe('Channel sidebar', () => {
             cy.get('.SidebarChannel > .SidebarLink').should('be.visible').as('fromChannelSidebarLink');
             cy.get('@fromChannelSidebarLink').eq(0).should('contain', channelName);
             cy.get('@fromChannelSidebarLink').eq(1).should('contain', 'Off-Topic');
-            cy.get('@fromChannelSidebarLink').eq(2).should('contain', 'Town Square');
+            cy.get('@fromChannelSidebarLink').eq(2).should('contain', 'General');
         });
 
         // # Perform drag using keyboard
@@ -56,7 +56,7 @@ describe('Channel sidebar', () => {
         cy.uiGetLhsSection('CHANNELS').within(() => {
             cy.get('.SidebarChannel > .SidebarLink').as('toChannelSidebarLink');
             cy.get('@toChannelSidebarLink').eq(0).should('contain', channelName);
-            cy.get('@toChannelSidebarLink').eq(1).should('contain', 'Town Square');
+            cy.get('@toChannelSidebarLink').eq(1).should('contain', 'General');
             cy.get('@toChannelSidebarLink').eq(2).should('contain', 'Off-Topic');
         });
     });

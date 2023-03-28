@@ -5885,7 +5885,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 
 	o9 := model.Channel{
 		TeamId:      teamID,
-		DisplayName: "Town Square",
+		DisplayName: "General",
 		Name:        "town-square",
 		Type:        model.ChannelTypeOpen,
 	}
@@ -6416,7 +6416,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o9 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "A9 Town Square",
+		DisplayName: "A9 General",
 		Name:        "town-square",
 		Type:        model.ChannelTypeOpen,
 	}

@@ -18,9 +18,9 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 function removeUserFromAllChannels(verifyAlert, user) {
     // # Remove the Guest user from all channels of a team as a sysadmin
-    const channels = ['Town Square', 'Off-Topic'];
+    const channels = ['General', 'Off-Topic'];
 
-    // # Always click on the Town Square channel first
+    // # Always click on the Town Square (aka General) channel first
     cy.get('#sidebarItem_town-square').click({force: true});
 
     channels.forEach((channel) => {
@@ -30,7 +30,7 @@ function removeUserFromAllChannels(verifyAlert, user) {
         });
 
         // * Verify if guest user gets a message when the channel is removed. Does not appears when removed from last channel of the last team
-        if (channel === 'Town Square' || verifyAlert) {
+        if (channel === 'General' || verifyAlert) {
             cy.get('#removeFromChannelModalLabel').should('be.visible').and('have.text', `Removed from ${channel}`);
             cy.get('.modal-body').should('be.visible').contains(`removed you from ${channel}`);
             cy.get('#removedChannelBtn').should('be.visible').and('have.text', 'Okay').click().wait(TIMEOUTS.HALF_SEC);
