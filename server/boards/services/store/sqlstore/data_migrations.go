@@ -863,10 +863,8 @@ func (s *SQLStore) doesDuplicateCategoryBoardsExist() (bool, error) {
 }
 
 func (s *SQLStore) runMySQLDeDuplicateCategoryBoardsMigration() error {
-	query := "WITH duplicates AS (SELECT id, ROW_NUMBER() OVER(PARTITION BY user_id, board_id) AS rownum " +
-		"FROM " + s.tablePrefix + "category_boards) " +
-		"DELETE " + s.tablePrefix + "category_boards FROM " + s.tablePrefix + "category_boards " +
-		"JOIN duplicates USING(id) WHERE duplicates.rownum > 1;"
+	query := "DELETE FROM " + s.tablePrefix + "category_boards WHERE id NOT IN " +
+		"(SELECT * FROM ( SELECT min(id) FROM " + s.tablePrefix + "category_boards GROUP BY user_id, board_id ) as data)"
 	if _, err := s.db.Exec(query); err != nil {
 		s.logger.Error("Failed to de-duplicate data in category_boards table", mlog.Err(err))
 	}

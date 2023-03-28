@@ -484,7 +484,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
 			runPostReminderJob(appInstance)
 		})
@@ -538,7 +537,7 @@ func (s *Server) runJobs() {
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
-		complianceI.StartComplianceDailyJob()
+		go complianceI.StartComplianceDailyJob()
 	}
 
 	if *s.platform.Config().JobSettings.RunJobs && s.Jobs != nil {
@@ -1195,12 +1194,6 @@ func runConfigCleanupJob(s *Server) {
 	doConfigCleanup(s)
 	model.CreateRecurringTask("Configuration Cleanup", func() {
 		doConfigCleanup(s)
-	}, time.Hour*24)
-}
-
-func (s *Server) runInactivityCheckJob() {
-	model.CreateRecurringTask("Server inactivity Check", func() {
-		s.doInactivityCheck()
 	}, time.Hour*24)
 }
 

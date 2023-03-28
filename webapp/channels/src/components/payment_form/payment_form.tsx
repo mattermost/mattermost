@@ -251,7 +251,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
                         />
                     </div>
                     <div className='form-row'>
-                        <div className='form-row-third-1 selector'>
+                        <div className='form-row-third-1 selector second-dropdown-sibling-wrapper'>
                             <StateSelector
                                 country={this.state.country}
                                 state={this.state.state}

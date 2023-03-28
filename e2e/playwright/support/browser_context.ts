@@ -15,12 +15,16 @@ export class TestBrowser {
         this.browser = browser;
     }
 
-    async login(user: UserProfile) {
-        // Log in via API request and save user storage
-        const storagePath = await loginByAPI(user.username, user.password);
+    async login(user: UserProfile | null) {
+        const options = {storageState: ''};
+        if (user) {
+            // Log in via API request and save user storage
+            const storagePath = await loginByAPI(user.username, user.password);
+            options.storageState = storagePath;
+        }
 
         // Sign in a user in new browser context
-        const context = await this.browser.newContext({storageState: storagePath});
+        const context = await this.browser.newContext(options);
         const page = await context.newPage();
 
         return {context, page};

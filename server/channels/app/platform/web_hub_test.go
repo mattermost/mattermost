@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
 	"time"
 
@@ -537,6 +538,42 @@ func BenchmarkHubConnIndex(b *testing.B) {
 			connIndex.Remove(wc2)
 		}
 	})
+}
+
+func TestHubConnIndexRemoveMemLeak(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(1 * time.Second)
+
+	wc := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+	}
+	wc.SetConnectionID(model.NewId())
+	wc.SetSession(&model.Session{})
+
+	ch := make(chan struct{})
+
+	runtime.SetFinalizer(wc, func(*WebConn) {
+		close(ch)
+	})
+
+	connIndex.Add(wc)
+	connIndex.Remove(wc)
+
+	runtime.GC()
+
+	timer := time.NewTimer(3 * time.Second)
+	defer timer.Stop()
+
+	select {
+	case <-ch:
+	case <-timer.C:
+		require.Fail(t, "timeout waiting for collection of wc")
+	}
+
+	assert.Len(t, connIndex.byConnection, 0)
 }
 
 var hubSink *Hub
