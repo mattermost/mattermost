@@ -41,10 +41,6 @@ func (w *licenseWrapper) RequestTrialLicenseWithExtraFields(requesterID string, 
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	if !trialRequest.IsValid() {
-		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
-	}
-
 	requester, err := w.srv.userService.GetUser(requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -75,6 +71,10 @@ func (w *licenseWrapper) RequestTrialLicenseWithExtraFields(requesterID string, 
 		CompanyName:           trialRequest.CompanyName,
 		CompanySize:           trialRequest.CompanySize,
 		CompanyCountry:        trialRequest.CompanyCountry,
+	}
+
+	if !sanitizedRequest.IsValid() {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 	}
 
 	return w.srv.platform.RequestTrialLicense(sanitizedRequest)
