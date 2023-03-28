@@ -31,10 +31,17 @@ export default function StartTrialFormModalResult(props: Props) {
     );
 
     const subtitle = (
-        <FormattedMessage
-            id={'start_trial_form_modal.failureModal.subtitle'}
-            defaultMessage={'There was in issue processing your trial request. Please try again or contact support.'}
-        />
+        <>
+            <FormattedMessage
+                id={'start_trial_form_modal.failureModal.subtitle'}
+                defaultMessage={'There was in issue processing your trial request.'}
+            />
+            <br/>
+            <FormattedMessage
+                id={'start_trial_form_modal.failureModal.subtitle2'}
+                defaultMessage={'Please try again or contact support.'}
+            />
+        </>
     );
 
     const buttonText = (
@@ -57,7 +64,7 @@ export default function StartTrialFormModalResult(props: Props) {
             resultType='failure'
             icon={
                 <LaptopAlertSvg
-                    width={158}
+                    width={135}
                     height={100}
                 />
             }
