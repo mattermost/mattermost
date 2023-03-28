@@ -115,7 +115,7 @@ func createEmoji(ss store.Store, userId string) *model.Emoji {
 	return emoji
 }
 
-func createFileInfo(ss store.Store, postId, userId string) *model.FileInfo {
+func createFileInfo(ss store.Store, postId, channelId, userId string) *model.FileInfo {
 	m := model.FileInfo{}
 	m.PostId = postId
 	m.CreatorId = userId
@@ -623,7 +623,7 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			postId := model.NewId()
-			info := createFileInfo(ss, postId, model.NewId())
+			info := createFileInfo(ss, postId, model.NewId(), model.NewId())
 			result := checkPostsFileInfoIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
@@ -1226,7 +1226,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(ss)
 			userId := user.Id
-			info := createFileInfo(ss, model.NewId(), userId)
+			info := createFileInfo(ss, model.NewId(), model.NewId(), userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersFileInfoIntegrity(store)
 			require.NoError(t, result.Err)

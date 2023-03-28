@@ -11,8 +11,7 @@ import (
 )
 
 func TestAPI(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 
 	t.Run("404", func(t *testing.T) {

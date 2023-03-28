@@ -5,7 +5,8 @@ import {expect, Locator} from '@playwright/test';
 
 export default class ChannelsAppBar {
     readonly container: Locator;
-    readonly playbooksIcon: Locator;
+
+    readonly playbooksIcon;
 
     constructor(container: Locator) {
         this.container = container;
