@@ -462,6 +462,7 @@ export const ModalIdentifiers = {
     SCREENING_IN_PROGRESS: 'screening_in_progress',
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
     EXPANSION_IN_PROGRESS: 'expansion_in_progress',
+    SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
 };
 
 export const UserStatuses = {
