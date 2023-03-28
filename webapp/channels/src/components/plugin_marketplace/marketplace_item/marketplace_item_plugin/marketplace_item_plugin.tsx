@@ -325,7 +325,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         return (
             <button
                 onClick={this.onInstall}
-                className='plugin-install'
+                className='plugin-install always-show-enabled'
                 disabled={this.props.installing}
             >
                 <LoadingWrapper

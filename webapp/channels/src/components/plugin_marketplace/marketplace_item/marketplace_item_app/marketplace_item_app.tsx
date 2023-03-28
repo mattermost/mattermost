@@ -81,7 +81,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
         return (
             <button
                 onClick={this.onInstall}
-                className='app-install'
+                className='app-install always-show-enabled'
                 disabled={this.props.installing}
             >
                 <LoadingWrapper

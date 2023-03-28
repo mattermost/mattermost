@@ -11,7 +11,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -137,7 +137,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -202,7 +202,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -265,7 +265,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -328,7 +328,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -390,7 +390,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -463,7 +463,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -540,7 +540,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -605,7 +605,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
     }
     button={
       <button
-        className="plugin-install"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
