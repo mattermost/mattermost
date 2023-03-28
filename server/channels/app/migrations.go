@@ -593,4 +593,5 @@ func (s *Server) doAppMigrations() {
 	s.doFirstAdminSetupCompleteMigration()
 	s.doRemainingSchemaMigrations()
 	s.doPostPriorityConfigDefaultTrueMigration()
+	s.doElasticsearchFixChannelIndex()
 }
