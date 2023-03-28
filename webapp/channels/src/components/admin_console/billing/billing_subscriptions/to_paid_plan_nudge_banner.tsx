@@ -33,7 +33,7 @@ enum DismissShowRange {
     Zero = '0'
 }
 
-const cloudFreeCloseMoment = '20230428'; // TBD, final day of cloud free
+const cloudFreeCloseMoment = '20230327'; // TBD, final day of cloud free
 
 interface ToPaidPlanDismissPreference {
 
@@ -143,13 +143,20 @@ export const ToPaidPlanBannerDismissable = () => {
         return null;
     }
 
-    const message = {
+    let message = {
         id: 'cloud_billing.nudge_to_paid.announcement_bar',
         defaultMessage: 'Cloud Free will be deprecated on {date}. To keep your workspace, upgrade to a paid plan',
         values: {
             date: moment(cloudFreeCloseMoment, 'YYYYMMDD').format('MMMM DD, YYYY'),
         },
     };
+
+    if (daysToCloudFreeEnd < 0) {
+        message = {
+            id: 'cloud_billing.nudge_to_paid.announcement_bar_deprecated',
+            defaultMessage: 'Cloud Free was deprecated. To keep your workspace, upgrade to a paid plan',
+        } as any;
+    }
 
     const announcementType = (daysToCloudFreeEnd <= 10) ? AnnouncementBarTypes.CRITICAL : AnnouncementBarTypes.ANNOUNCEMENT;
 
@@ -200,7 +207,7 @@ export const ToPaidNudgeBanner = () => {
         <FormattedMessage
             id='cloud_billing.nudge_to_paid.description'
             defaultMessage='Cloud Starter will be deprecated in {days} days. Upgrade to a paid plan or contact sales.'
-            values={{days: daysToCloudFreeEnd}}
+            values={{days: daysToCloudFreeEnd < 0 ? 0 : daysToCloudFreeEnd}}
         />
     );
 
