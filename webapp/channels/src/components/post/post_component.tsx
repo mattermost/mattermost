@@ -265,7 +265,7 @@ const PostComponent = (props: Props): JSX.Element => {
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
-            'post--thread': props.location === Locations.RHS_COMMENT || Locations.RHS_ROOT,
+            'post--thread': props.location === Locations.RHS_COMMENT || props.location === Locations.RHS_ROOT,
         });
     };
 
@@ -380,7 +380,8 @@ const PostComponent = (props: Props): JSX.Element => {
 
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
-    if (!hideProfilePicture) {
+    const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
                 compactDisplay={props.compactDisplay}
@@ -530,7 +531,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='col d-flex align-items-center'>
-                                {
+                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         eventTime={post.create_at}
