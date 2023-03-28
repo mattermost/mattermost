@@ -24,17 +24,23 @@ import {GlobalState} from '@mattermost/types/store';
 
 import './to_paid_plan_nudge_banner.scss';
 
-// make range a string
-// > 90
-// 90 - 60
-// 60 - 30
-// 30 - 10
-// < 10
+enum DismissShowRange {
+    GreaterThanEqual90 = '>=90',
+    BetweenNinetyAnd60 = '89-61',
+    SixetyTo31 = '60-31',
+    ThirtyTo11 = '30-11',
+    TenTo1 = '10-1',
+    Zero = '0'
+}
 
-const cloudFreeCloseMoment = '20230420';
+const cloudFreeCloseMoment = '20230428'; // TBD, final day of cloud free
 
 interface ToPaidPlanDismissPreference {
-    dismissRange: number;
+
+    // range represents the range for the days to the deprecation of cloud free e.g. in 30 to 10 days to deprecate cloud free
+    // Incase of dismissing the banner, range represents the time (days) period when this banner was dismissed.
+    // This is important because in case the banner was dismissed for a certain period, it helps us know that we should not show it again for that period.
+    range: DismissShowRange;
     show: boolean;
 }
 
@@ -52,48 +58,75 @@ export const ToPaidPlanBannerDismissable = () => {
     const cloudFreeEndDate = moment(cloudFreeCloseMoment, 'YYYYMMDD');
     const daysToCloudFreeEnd = cloudFreeEndDate.diff(now, 'days');
 
-    const snoozePreferenceVal = useSelector((state: GlobalState) => getPreference(state, Preferences.TO_PAID_PLAN_NUDGE, CloudBanners.NUDGE_TO_PAID_PLAN_SNOOZED, '{"dismissRange": 0, "show": true}'));
+    const snoozePreferenceVal = useSelector((state: GlobalState) => getPreference(state, Preferences.TO_PAID_PLAN_NUDGE, CloudBanners.NUDGE_TO_PAID_PLAN_SNOOZED, '{"range": 0, "show": true}'));
     const snoozeInfo = JSON.parse(snoozePreferenceVal) as ToPaidPlanDismissPreference;
     const show = snoozeInfo.show;
 
+    const snoozedForRangeGreaterThanEqual90 = () => {
+        return snoozeInfo.range === DismissShowRange.GreaterThanEqual90;
+    };
+
+    const snoozedForRangeBetweenNinetyAnd60 = () => {
+        return snoozeInfo.range === DismissShowRange.BetweenNinetyAnd60;
+    };
+
+    const snoozedForRangeSixetyTo31 = () => {
+        return snoozeInfo.range === DismissShowRange.SixetyTo31;
+    };
+
+    const snoozedForRangeThirtyTo11 = () => {
+        return snoozeInfo.range === DismissShowRange.ThirtyTo11;
+    };
+
     useEffect(() => {
-        if (daysToCloudFreeEnd >= 90 && snoozeInfo.dismissRange !== 90) {
-            snoozeBanner(true);
-        }
+        if (!snoozeInfo.show) {
+            if (daysToCloudFreeEnd >= 90 && !snoozedForRangeGreaterThanEqual90()) {
+                snoozeBanner(true);
+            }
 
-        if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10 && snoozeInfo.dismissRange !== 30) {
-            snoozeBanner(true);
-        }
+            if (daysToCloudFreeEnd < 90 && daysToCloudFreeEnd > 60 && !snoozedForRangeBetweenNinetyAnd60()) {
+                snoozeBanner(true);
+            }
 
-        if (daysToCloudFreeEnd <= 10 && daysToCloudFreeEnd > 0 && snoozeInfo.dismissRange !== 10) {
-            snoozeBanner(true);
+            if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30 && !snoozedForRangeSixetyTo31()) {
+                snoozeBanner(true);
+            }
+
+            if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10 && !snoozedForRangeThirtyTo11()) {
+                snoozeBanner(true);
+            }
+
+            if (daysToCloudFreeEnd <= 10) {
+                snoozeBanner(true);
+            }
         }
     }, []);
 
     const snoozeBanner = (show = false) => {
-        let dRange = 0;
+        let dRange = DismissShowRange.Zero;
         if (daysToCloudFreeEnd >= 90) {
-            dRange = 90;
+            dRange = DismissShowRange.GreaterThanEqual90;
         }
 
         if (daysToCloudFreeEnd < 90 && daysToCloudFreeEnd > 60) {
-            dRange = 90;
+            dRange = DismissShowRange.BetweenNinetyAnd60;
         }
 
         if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30) {
-            dRange = 60;
+            dRange = DismissShowRange.SixetyTo31;
         }
 
         if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10) {
-            dRange = 30;
+            dRange = DismissShowRange.ThirtyTo11;
         }
 
+        // ideally this case should not happen because snooze button is not shown when TenTo1 days are remaining
         if (daysToCloudFreeEnd <= 10 && daysToCloudFreeEnd > 0) {
-            dRange = 10;
+            dRange = DismissShowRange.TenTo1;
         }
 
         const snoozeInfo: ToPaidPlanDismissPreference = {
-            dismissRange: dRange,
+            range: dRange,
             show,
         };
 
