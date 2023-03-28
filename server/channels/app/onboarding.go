@@ -28,6 +28,17 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 }
 
 func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
+	if request.Organization != "" {
+		err := a.Srv().Store().System().SaveOrUpdate(&model.System{
+			Name:  model.SystemOrganizationName,
+			Value: request.Organization,
+		})
+		if err != nil {
+			// don't block onboarding because of that.
+			a.Log().Error("failed to save organization name", mlog.Err(err))
+		}
+	}
+
 	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return a.markAdminOnboardingComplete(c)
