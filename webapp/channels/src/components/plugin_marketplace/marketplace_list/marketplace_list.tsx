@@ -7,7 +7,6 @@ import {useIntl} from 'react-intl';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import {isPlugin, getName} from 'mattermost-redux/utils/marketplace';
 
-import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 
 import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
@@ -77,16 +76,6 @@ const MarketplaceList = ({
             ));
     }, [listing, page]);
 
-    const getNoResultsIcon = useCallback(() => (
-        filter ? (
-            <span className='icon__plugin'>
-                <MagnifyingGlassSVG/>
-            </span>
-        ) : (
-            <PluginIcon className='icon__plugin'/>
-        )
-    ), [filter]);
-
     const getNoResultsMessage = useCallback(() => (
         filter ? (
             formatMessage(
@@ -100,7 +89,7 @@ const MarketplaceList = ({
 
     return (listing.length === 0 ? (
         <div className='no_plugins'>
-            {getNoResultsIcon()}
+            <PluginIcon className='icon__plugin'/>
             <div className='no_plugins__message'>
                 {getNoResultsMessage()}
             </div>
