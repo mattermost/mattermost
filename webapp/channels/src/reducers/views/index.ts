@@ -25,6 +25,7 @@ import productMenu from './product_menu';
 import textbox from './textbox';
 import statusDropdown from './status_dropdown';
 import addChannelDropdown from './add_channel_dropdown';
+import addChannelCtaDropdown from './add_channel_cta_dropdown';
 import threads from './threads';
 import onboardingTasks from './onboarding_tasks';
 
@@ -50,6 +51,7 @@ export default combineReducers({
     channelSidebar,
     statusDropdown,
     addChannelDropdown,
+    addChannelCtaDropdown,
     onboardingTasks,
     threads,
     productMenu,

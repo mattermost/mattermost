@@ -5,10 +5,10 @@ export function verifyPluginMarketplaceVisibility(shouldBeVisible) {
     cy.uiOpenProductMenu().within(() => {
         if (shouldBeVisible) {
             // * Verify Marketplace button should exist
-            cy.findByText('Marketplace').should('exist');
+            cy.findByText('App Marketplace').should('exist');
         } else {
             // * Verify Marketplace button should not exist
-            cy.findByText('Marketplace').should('not.exist');
+            cy.findByText('App Marketplace').should('not.exist');
         }
     });
 }
