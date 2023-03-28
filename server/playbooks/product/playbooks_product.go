@@ -582,7 +582,7 @@ func (pp *playbooksProduct) runMetricsServer() {
 	// Run server to expose metrics
 	go func() {
 		err := pp.metricsServer.Run()
-		if err != nil {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logrus.WithError(err).Error("Metrics server could not be started")
 		}
 	}()
