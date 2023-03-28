@@ -26,7 +26,7 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
     const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
     const controlModal = useControlModal({
-        modalId: ModalIdentifiers.SELF_HOSTED_EXPANSION,
+        modalId: ModalIdentifiers.EXPANSION_IN_PROGRESS,
         dialogType: SelfHostedExpansionModal,
     });
 
