@@ -26,7 +26,7 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
     const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
     const controlModal = useControlModal({
-        modalId: ModalIdentifiers.EXPANSION_IN_PROGRESS,
+        modalId: ModalIdentifiers.SELF_HOSTED_EXPANSION,
         dialogType: SelfHostedExpansionModal,
     });
 
@@ -42,7 +42,7 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
                     // is already trying to purchase. Notify them of this
                     // and request the exit that purchase flow before attempting again.
                     dispatch(openModal({
-                        modalId: ModalIdentifiers.PURCHASE_IN_PROGRESS,
+                        modalId: ModalIdentifiers.EXPANSION_IN_PROGRESS,
                         dialogType: PurchaseInProgressModal,
                         dialogProps: {
                             purchaserEmail: currentUser.email,
