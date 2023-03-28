@@ -336,7 +336,7 @@ export default function SelfHostedExpansionModal() {
                     show={show}
                     ariaLabelledBy='self_hosted_expansion_modal_title'
                     onClose={() => {
-                        dispatch(closeModal(ModalIdentifiers.SELF_HOSTED_EXPANSION));
+                        dispatch(closeModal(ModalIdentifiers.EXPANSION_IN_PROGRESS));
                         resetToken();
                     }}
                 >

@@ -459,7 +459,7 @@ export const ModalIdentifiers = {
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',
     SCREENING_IN_PROGRESS: 'screening_in_progress',
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
-    SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
+    EXPANSION_IN_PROGRESS: 'expansion_in_progress',
 };
 
 export const UserStatuses = {
@@ -1070,7 +1070,6 @@ export const CloudLinks = {
     SELF_HOSTED_SIGNUP: 'https://customers.mattermost.com/signup',
     DELINQUENCY_DOCS: 'https://docs.mattermost.com/about/cloud-subscriptions.html#failed-or-late-payments',
     SELF_HOSTED_PRICING: 'https://mattermost.com/pricing/#self-hosted',
-    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
 };
 
 export const HostedCustomerLinks = {
@@ -1090,6 +1089,7 @@ export const DocLinks = {
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
+    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
 };
 
 export const LicenseLinks = {
