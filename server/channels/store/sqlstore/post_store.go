@@ -2300,17 +2300,6 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 	return v, nil
 }
 
-func (s *SqlPostStore) GetLastPostRowCreateAt() (int64, error) {
-	query := `SELECT CREATEAT FROM Posts ORDER BY CREATEAT DESC LIMIT 1`
-	var createAt int64
-	err := s.GetReplicaX().Get(&createAt, query)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get last post createat")
-	}
-
-	return createAt, nil
-}
-
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {
 	query := `SELECT * FROM Posts WHERE CreateAt = ? AND ChannelId = ?`
 
