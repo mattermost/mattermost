@@ -4150,7 +4150,7 @@ export default class Client4 {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',
                 url,
-            });
+            }, err);
         }
 
         if (headers.has(HEADER_X_VERSION_ID) && !headers.get('Cache-Control')) {
@@ -4293,8 +4293,8 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
 
-    constructor(baseUrl: string, data: ServerError) {
-        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''));
+    constructor(baseUrl: string, data: ServerError, cause?: any) {
+        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
 
         this.message = data.message;
         this.url = data.url;
