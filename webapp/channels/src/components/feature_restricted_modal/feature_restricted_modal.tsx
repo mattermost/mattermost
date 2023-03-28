@@ -141,6 +141,7 @@ const FeatureRestrictedModal = ({
         trialBtn = (
             <StartTrialBtn
                 message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
+                onClick={dismissAction}
                 telemetryId='start_self_hosted_trial_after_team_creation_restricted'
                 btnClass='btn btn-primary'
                 renderAsButton={true}

@@ -154,13 +154,6 @@ jobs:
           npm run test-ci --workspace=channels
           npm run test-ci --workspace=platform/client
           npm run test-ci --workspace=playbooks
-      - name: ci/publish-test-results
-        uses: EnricoMi/publish-unit-test-result-action@a3caf02865c0604ad3dc1ecfcc5cdec9c41b7936  # v2.3.0
-        if: always()
-        with:
-          junit_files: "webapp/channels/build/**/*.xml"
-          comment_mode: always
-          compare_to_earlier_commit: false
   build:
     runs-on: ubuntu-22.04
     defaults:

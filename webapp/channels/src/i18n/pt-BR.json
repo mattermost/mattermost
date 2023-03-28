@@ -3216,8 +3216,6 @@
   "modal.manual_status.title_offline": "Seu Status está configurado para \"Desconectado\"",
   "modal.manual_status.title_ooo": "Seu Status está configurado para \"Fora do Escritório\"",
   "more_channels.create": "Criar Canal",
-  "more_channels.createClick": "Clique em 'Criar Novo Canal' para fazer um novo",
-  "more_channels.joining": "Juntando...",
   "more_channels.next": "Próximo",
   "more_channels.noMore": "Não há mais canais para participar",
   "more_channels.prev": "Anterior",
