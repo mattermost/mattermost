@@ -148,6 +148,15 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
+    const subscribeToNewsletterFunc = async () => {
+        try {
+            await Client4.subscribeToNewsletter({email});
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+        }
+    };
+
     const getExternalSignupOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
@@ -550,6 +559,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             }
 
             await handleSignupSuccess(user, data as UserProfile);
+            if (subscribeToNewsletter) {
+                subscribeToNewsletterFunc();
+            }
         } else {
             setIsWaiting(false);
         }

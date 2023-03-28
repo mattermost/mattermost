@@ -47,4 +47,5 @@ type CloudInterface interface {
 	CheckCWSConnection(userId string) error
 
 	SelfServeDeleteWorkspace(userID string, deletionRequest *model.WorkspaceDeletionRequest) error
+	SubscribeToNewletter(userID string, req *model.SubscribeNewletterRequest) error
 }

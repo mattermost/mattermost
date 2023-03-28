@@ -26,6 +26,7 @@ import {
     CreateSubscriptionRequest,
     Feedback,
     WorkspaceDeletionRequest,
+    NewsletterRequestBody,
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
@@ -3889,6 +3890,13 @@ export default class Client4 {
         return this.doFetch<SelfHostedSignupSuccessResponse>(
             `${this.getHostedCustomerRoute()}/confirm`,
             {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, subscription: createSubscriptionRequest})},
+        );
+    };
+
+    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
+            {method: 'post', body: JSON.stringify(newletterRequestBody)},
         );
     };
 

@@ -36,6 +36,8 @@ func (api *API) InitHostedCustomer() {
 	api.BaseRoutes.HostedCustomer.Handle("/invoices", api.APISessionRequired(selfHostedInvoices)).Methods("GET")
 	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
 	api.BaseRoutes.HostedCustomer.Handle("/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(selfHostedInvoicePDF)).Methods("GET")
+
+	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewletter)).Methods(http.MethodPost)
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
@@ -293,4 +295,35 @@ func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
 		w,
 		r,
 	)
+}
+
+func handleSubscribeToNewletter(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.handleSubscribeToNewletter"
+	cloud := c.App.Cloud()
+	if cloud == nil {
+		c.Err = model.NewAppError(where, "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	req := new(model.SubscribeNewletterRequest)
+	err = json.Unmarshal(bodyBytes, req)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	req.ServerID = c.App.Srv().TelemetryId()
+
+	if err := c.App.Cloud().SubscribeToNewletter("", req); err != nil {
+		c.Err = model.NewAppError(where, "api.server.cws.subscribe_to_newsletter.app_error", nil, "CWS Server failed to subscribe to newsletter.", http.StatusInternalServerError)
+		return
+	}
+
+	ReturnStatusOK(w)
 }
