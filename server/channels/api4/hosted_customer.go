@@ -114,7 +114,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedPurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) && !checkSelfHostedExpansionEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -157,7 +157,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedPurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) && !checkSelfHostedExpansionEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
