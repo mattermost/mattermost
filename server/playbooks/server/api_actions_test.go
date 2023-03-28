@@ -15,8 +15,7 @@ import (
 )
 
 func TestActionCreation(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createNewChannel := func(t *testing.T, name string) *model.Channel {
@@ -201,8 +200,7 @@ func TestActionCreation(t *testing.T) {
 }
 
 func TestActionList(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	// Create three valid actions
@@ -294,8 +292,7 @@ func TestActionList(t *testing.T) {
 }
 
 func TestActionUpdate(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	// Create a valid action
