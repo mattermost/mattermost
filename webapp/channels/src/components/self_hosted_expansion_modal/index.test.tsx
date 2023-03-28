@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent, waitFor} from '@testing-library/react';
 
 import {GlobalState} from 'types/store';
 
@@ -11,7 +11,7 @@ import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/
 
 import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {TestHelper as TH} from 'utils/test_helper';
-import {SelfHostedProducts, ModalIdentifiers} from 'utils/constants';
+import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 
@@ -76,6 +76,7 @@ const mockProfessionalProduct = TH.getProductMock({
     name: 'Professional',
     sku: SelfHostedProducts.PROFESSIONAL,
     price_per_seat: 7.5,
+    recurring_interval: RecurringIntervals.MONTH
 });
 
 jest.mock('mattermost-redux/client', () => {
@@ -129,6 +130,11 @@ jest.mock('utils/hosted_customer', () => {
 
 const productName = SelfHostedProducts.PROFESSIONAL;
 
+// Licensed expiry set as 3 months from the current date (rolls over to new years).
+const licenseExpiry = new Date();
+const monthsUntilLicenseExpiry = 3;
+licenseExpiry.setMonth(licenseExpiry.getMonth() + monthsUntilLicenseExpiry);
+
 const initialState: DeepPartial<GlobalState> = {
     views: {
         modals: {
@@ -143,11 +149,6 @@ const initialState: DeepPartial<GlobalState> = {
         storage: {},
     },
     entities: {
-        admin: {
-            analytics: {
-                TOTAL_USERS: existingUsers,
-            },
-        },
         teams: {
             currentTeamId: '',
         },
@@ -163,6 +164,7 @@ const initialState: DeepPartial<GlobalState> = {
             license: {
                 Sku: productName,
                 Users: '50',
+                ExpiresAt: licenseExpiry.getTime().toString()
             },
         },
         cloud: {
@@ -224,6 +226,7 @@ interface PurchaseForm {
     state: string;
     zip: string;
     seats: string;
+    agree: boolean;
 }
 
 const defaultSuccessForm: PurchaseForm = {
@@ -236,6 +239,7 @@ const defaultSuccessForm: PurchaseForm = {
     state: 'MN',
     zip: '55423',
     seats: '10',
+    agree: true,
 };
 
 function fillForm(form: PurchaseForm) {
@@ -248,6 +252,9 @@ function fillForm(form: PurchaseForm) {
     selectDropdownValue('selfHostedExpansionStateSelector', form.state);
     changeByPlaceholder('Zip/Postal Code', form.zip);
     changeByTestId('seatsInput', form.seats);
+    if (form.agree) {
+        fireEvent.click(screen.getByText('I have read and agree', {exact: false}));
+    }
 
     expect(document.getElementsByClassName('SelfHostedExpansionRHSCard__AddSeatsWarning')[0] as HTMLElement).toBeEnabled();
 
@@ -263,7 +270,7 @@ function fillForm(form: PurchaseForm) {
     return completeButton;
 }
 
-describe('SelfHostedExpansionModal', () => {
+describe('SelfHostedExpansionModal Open', () => {
     it('renders the form', () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
@@ -321,7 +328,45 @@ describe('SelfHostedExpansionModal', () => {
     // });
 });
 
-describe('SelfHostedExpansionModal :: canSubmit', () => {
+describe('SelfHostedExpansionModal RHS Card', () => {
+    it("New seats input should be pre-populated with the difference from the active users and licensed seats", () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+
+        const expectedPrePopulatedSeats = (initialState.entities?.users?.filteredStats?.total_users_count || 1) - parseInt(initialState.entities?.general?.license?.Users || '0', 10);
+
+        const seatsField = screen.getByTestId('seatsInput').querySelector('input');
+        expect(seatsField).toBeInTheDocument();
+        expect(seatsField?.value).toBe(expectedPrePopulatedSeats.toString());
+    });
+
+    it("Cost per User should be represented as the current subscription price multiplied by the remaining months", () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+
+        const expectedCostPerUser = monthsUntilLicenseExpiry * mockProfessionalProduct.price_per_seat;
+
+        const costPerUser = document.getElementsByClassName('costPerUser')[0];
+        expect(costPerUser).toBeInTheDocument();
+        expect(costPerUser.innerHTML).toContain('Cost per user<br>$' + mockProfessionalProduct.price_per_seat.toFixed(2) + ' x ' + monthsUntilLicenseExpiry + ' months');
+
+        const costAmount = document.getElementsByClassName('costAmount')[0];
+        expect(costAmount).toBeInTheDocument();
+        expect(costAmount.innerHTML).toContain('$' + expectedCostPerUser)
+    });
+
+    it("Total cost User should be represented as the current subscription price multiplied by the remaining months multiplied by the number of users", () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        const seatsInputValue = 100;
+        changeByTestId('seatsInput', seatsInputValue.toString());
+
+        const expectedTotalCost = monthsUntilLicenseExpiry * mockProfessionalProduct.price_per_seat * seatsInputValue;
+
+        const costAmount = document.getElementsByClassName('totalCostAmount')[0];
+        expect(costAmount).toBeInTheDocument();
+        expect(costAmount.innerHTML).toContain('$' + expectedTotalCost)
+    });
+});
+
+describe('SelfHostedExpansionModal Submit', () => {
     function makeHappyPathState(): FormState {
         return {
             address: 'string',
@@ -366,7 +411,6 @@ describe('SelfHostedExpansionModal :: canSubmit', () => {
         expect(canSubmit(state, SelfHostedSignupProgress.PAID)).toBe(true);
     });
 
-    // TODO: Needed?
     it('if created subscription, can submit', () => {
         const state = makeInitialState(1);
         state.submitting = false;

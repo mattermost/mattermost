@@ -409,6 +409,7 @@ export default function SelfHostedExpansionModal() {
                                         />
                                     </span>
                                     <Address
+                                        testPrefix='selfHostedExpansion'
                                         type='billing'
                                         country={formState.country}
                                         changeCountry={(option) => {
@@ -450,6 +451,7 @@ export default function SelfHostedExpansionModal() {
                                                 />
                                             </div>
                                             <Address
+                                                testPrefix='selfHostedExpansion'
                                                 type='shipping'
                                                 country={formState.shippingCountry}
                                                 changeCountry={(option) => {
