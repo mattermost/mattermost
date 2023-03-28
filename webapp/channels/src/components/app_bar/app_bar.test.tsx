@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import 'jest-styled-components';
 
 import {AppBinding} from '@mattermost/types/apps';
@@ -10,6 +10,7 @@ import {AppBinding} from '@mattermost/types/apps';
 import {PluginComponent} from 'types/store/plugins';
 import {GlobalState} from 'types/store';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 
 import AppBar from './app_bar';
@@ -82,6 +83,21 @@ describe('components/app_bar/app_bar', () => {
                     myPreferences: {
                     },
                 } as any,
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {
+                        user1: {
+                            roles: 'system_user',
+                        },
+                    },
+                } as any,
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [],
+                        },
+                    },
+                } as any,
             },
         } as GlobalState;
     });
@@ -133,5 +149,49 @@ describe('components/app_bar/app_bar', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should not show marketplace if disabled or user does not have SYSCONSOLE_WRITE_PLUGINS permission', async () => {
+        mockState.entities.general = {
+            config: {
+                EnableAppBar: 'true',
+                FeatureFlagAppsEnabled: 'true',
+                EnableMarketplace: 'true',
+                PluginsEnabled: 'true',
+            },
+        } as any;
+
+        const wrapper = shallow(
+            <AppBar/>,
+        );
+
+        expect(wrapper.find('AppBarMarketplace').exists()).toEqual(false);
+    });
+
+    test('should show marketplace if enabled and user has SYSCONSOLE_WRITE_PLUGINS permission', async () => {
+        mockState.entities.general = {
+            config: {
+                EnableAppBar: 'true',
+                FeatureFlagAppsEnabled: 'true',
+                EnableMarketplace: 'true',
+                PluginsEnabled: 'true',
+            },
+        } as any;
+
+        mockState.entities.roles = {
+            roles: {
+                system_user: {
+                    permissions: [
+                        Permissions.SYSCONSOLE_WRITE_PLUGINS,
+                    ],
+                },
+            },
+        } as any;
+
+        const wrapper = shallow(
+            <AppBar/>,
+        );
+
+        expect(wrapper.find('AppBarMarketplace').exists()).toEqual(true);
     });
 });

@@ -38,7 +38,6 @@ export type Props = {
     compassDesign?: boolean;
     backdrop?: boolean;
     backdropClassName?: string;
-    headerButton?: React.ReactNode;
     tabIndex?: number;
     children: React.ReactNode;
     keyboardEscape?: boolean;
@@ -166,7 +165,6 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 <h1 id='genericModalLabel'>
                     {this.props.modalHeaderText}
                 </h1>
-                {this.props.headerButton}
             </div>
         );
 
