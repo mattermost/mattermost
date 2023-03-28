@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {Post} from 'mattermost-redux/types/posts'
+import {Post} from '@mattermost/types/posts'
 
 const PostTypeCloudUpgradeNudge = (props: {post: Post}): JSX.Element => {
     const ctaHandler = (e: React.MouseEvent) => {
