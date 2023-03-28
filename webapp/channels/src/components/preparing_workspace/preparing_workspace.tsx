@@ -1,23 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect, useRef} from 'react';
+import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RouterProps} from 'react-router-dom';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Team} from '@mattermost/types/teams';
-import {getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getFirstAdminSetupComplete, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
 
 import Constants from 'utils/constants';
+import {getSiteURL, teamNameToUrl} from 'utils/url';
+import {makeNewTeam} from 'utils/team_utils';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
@@ -35,10 +36,14 @@ import {
     mapStepToPageView,
     mapStepToSubmitFail,
     PLUGIN_NAME_TO_ID_MAP,
+    mapStepToPrevious,
 } from './steps';
 
+import Organization from './organization';
 import Plugins from './plugins';
 import Progress from './progress';
+import InviteMembers from './invite_members';
+import InviteMembersIllustration from './invite_members_illustration';
 import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
 
 import './preparing_workspace.scss';
@@ -81,12 +86,16 @@ function makeSubmitFail(step: WizardStep) {
 }
 
 const trackSubmitFail = {
+    [WizardSteps.Organization]: makeSubmitFail(WizardSteps.Organization),
     [WizardSteps.Plugins]: makeSubmitFail(WizardSteps.Plugins),
+    [WizardSteps.InviteMembers]: makeSubmitFail(WizardSteps.InviteMembers),
     [WizardSteps.LaunchingWorkspace]: makeSubmitFail(WizardSteps.LaunchingWorkspace),
 };
 
 const onPageViews = {
+    [WizardSteps.Organization]: makeOnPageView(WizardSteps.Organization),
     [WizardSteps.Plugins]: makeOnPageView(WizardSteps.Plugins),
+    [WizardSteps.InviteMembers]: makeOnPageView(WizardSteps.InviteMembers),
     [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
 };
 
@@ -98,28 +107,35 @@ const PreparingWorkspace = (props: Props) => {
         defaultMessage: 'Something went wrong. Please try again.',
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
-    const useCaseOnboarding = useSelector(getUseCaseOnboarding);
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
 
     // In cloud instances created from portal,
     // new admin user has a team in myTeams but not in currentTeam.
-    const team = currentTeam || myTeams?.[0];
+    let team = currentTeam || myTeams?.[0];
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
     const showOnMountTimeout = useRef<NodeJS.Timeout>();
+    const configSiteUrl = config.SiteURL;
+    const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
 
     const stepOrder = [
+        isSelfHosted && WizardSteps.Organization,
         pluginsEnabled && WizardSteps.Plugins,
+        isSelfHosted && WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,
     ].filter((x) => Boolean(x)) as WizardStep[];
+
+    // first steporder that is not false
+    const firstShowablePage = stepOrder.filter((x) => Boolean(x))[0];
 
     const firstAdminSetupComplete = useSelector(getFirstAdminSetupComplete);
 
     const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
     const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
+    const browserSiteUrl = useMemo(getSiteURL, []);
     const [form, setForm] = useState({
         ...emptyForm,
     });
@@ -192,6 +208,21 @@ const PreparingWorkspace = (props: Props) => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
 
+        if (form.organization) {
+            try {
+                // eslint-disable-next-line
+                const data = await props.actions.createTeam(makeNewTeam(form.organization, teamNameToUrl(form.organization || '').url));
+                if (data.error) {
+                    redirectWithError(WizardSteps.Organization, genericSubmitError);
+                    return;
+                }
+                team = data.data;
+            } catch (e) {
+                redirectWithError(WizardSteps.Organization, genericSubmitError);
+                return;
+            }
+        }
+
         // send plugins
         const {skipped: skippedPlugins, ...pluginChoices} = form.plugins;
         let pluginsToSetup: string[] = [];
@@ -204,6 +235,7 @@ const PreparingWorkspace = (props: Props) => {
         // This endpoint sets setup complete state, so we need to make this request
         // even if admin skipped submitting plugins.
         const completeSetupRequest = {
+            organization: form.organization,
             install_plugins: pluginsToSetup,
         };
         try {
@@ -236,7 +268,7 @@ const PreparingWorkspace = (props: Props) => {
     }, [submissionState]);
 
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
-    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !useCaseOnboarding;
+    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage;
     useEffect(() => {
         if (shouldRedirect) {
             props.history.push('/');
@@ -256,6 +288,23 @@ const PreparingWorkspace = (props: Props) => {
         return stepIndex > currentStepIndex ? Animations.Reasons.ExitToBefore : Animations.Reasons.ExitToAfter;
     };
 
+    const goPrevious = useCallback((e?: React.KeyboardEvent | React.MouseEvent) => {
+        if (e && (e as React.KeyboardEvent).key) {
+            const key = (e as React.KeyboardEvent).key;
+            if (key !== Constants.KeyCodes.ENTER[0] && key !== Constants.KeyCodes.SPACE[0]) {
+                return;
+            }
+        }
+        if (submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail) {
+            return;
+        }
+        const stepIndex = stepOrder.indexOf(currentStep);
+        if (stepIndex <= 0) {
+            return;
+        }
+        trackEvent('first_admin_setup', mapStepToPrevious(currentStep));
+        setStepHistory([currentStep, stepOrder[stepIndex - 1]]);
+    }, [currentStep]);
     const skipPlugins = useCallback((skipped: boolean) => {
         if (skipped === form.plugins.skipped) {
             return;
@@ -268,6 +317,36 @@ const PreparingWorkspace = (props: Props) => {
             },
         });
     }, [form]);
+    const skipTeamMembers = useCallback((skipped: boolean) => {
+        if (skipped === form.teamMembers.skipped) {
+            return;
+        }
+        setForm({
+            ...form,
+            teamMembers: {
+                ...form.teamMembers,
+                skipped,
+            },
+        });
+    }, [form]);
+
+    let previous: React.ReactNode = (
+        <div
+            onClick={goPrevious}
+            onKeyUp={goPrevious}
+            tabIndex={0}
+            className='PreparingWorkspace__previous'
+        >
+            <i className='icon-chevron-up'/>
+            <FormattedMessage
+                id={'onboarding_wizard.previous'}
+                defaultMessage='Previous'
+            />
+        </div>
+    );
+    if (currentStep === firstShowablePage) {
+        previous = null;
+    }
 
     return (
         <div className='PreparingWorkspace PreparingWorkspaceContainer'>
@@ -285,23 +364,43 @@ const PreparingWorkspace = (props: Props) => {
             <div className='PreparingWorkspace__logo'>
                 <LogoSvg/>
             </div>
+            {currentStep === WizardSteps.InviteMembers && (
+                <div style={{display: 'flex', position: 'absolute', flexDirection: 'row-reverse', alignItems: 'center', width: '100%', height: '100%'}}>
+                    <InviteMembersIllustration/>
+                </div>
+            )}
             <Progress
                 step={currentStep}
                 stepOrder={stepOrder}
                 transitionSpeed={Animations.PAGE_SLIDE}
             />
             <div className='PreparingWorkspacePageContainer'>
+                <Organization
+                    onPageView={onPageViews[WizardSteps.Organization]}
+                    show={shouldShowPage(WizardSteps.Organization)}
+                    next={makeNext(WizardSteps.Organization)}
+                    transitionDirection={getTransitionDirection(WizardSteps.Organization)}
+                    organization={form.organization || ''}
+                    setOrganization={(organization: Form['organization']) => {
+                        setForm({
+                            ...form,
+                            organization,
+                        });
+                    }}
+                    className='child-page'
+                />
+
                 <Plugins
+                    isSelfHosted={isSelfHosted}
                     onPageView={onPageViews[WizardSteps.Plugins]}
+                    previous={previous}
                     next={() => {
                         const pluginChoices = {...form.plugins};
                         delete pluginChoices.skipped;
-                        setSubmissionState(SubmissionStates.UserRequested);
                         makeNext(WizardSteps.Plugins)(pluginChoices);
                         skipPlugins(false);
                     }}
                     skip={() => {
-                        setSubmissionState(SubmissionStates.UserRequested);
                         makeNext(WizardSteps.Plugins, true)();
                         skipPlugins(true);
                     }}
@@ -318,6 +417,31 @@ const PreparingWorkspace = (props: Props) => {
                     show={shouldShowPage(WizardSteps.Plugins)}
                     transitionDirection={getTransitionDirection(WizardSteps.Plugins)}
                     className='child-page'
+                />
+                <InviteMembers
+                    onPageView={onPageViews[WizardSteps.InviteMembers]}
+                    next={() => {
+                        skipTeamMembers(false);
+                        const inviteMembersTracking = {
+                            inviteCount: form.teamMembers.invites.length,
+                        };
+                        setSubmissionState(SubmissionStates.UserRequested);
+                        makeNext(WizardSteps.InviteMembers)(inviteMembersTracking);
+                    }}
+                    skip={() => {
+                        skipTeamMembers(true);
+                        setSubmissionState(SubmissionStates.UserRequested);
+                        makeNext(WizardSteps.InviteMembers, true)();
+                    }}
+                    previous={previous}
+                    show={shouldShowPage(WizardSteps.InviteMembers)}
+                    transitionDirection={getTransitionDirection(WizardSteps.InviteMembers)}
+                    disableEdits={submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail}
+                    className='child-page'
+                    teamInviteId={(currentTeam || myTeams?.[0])?.invite_id || ''}
+                    configSiteUrl={configSiteUrl}
+                    formUrl={form.url}
+                    browserSiteUrl={browserSiteUrl}
                 />
                 <LaunchingWorkspace
                     onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}
