@@ -609,7 +609,6 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
 		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
-		"enable_inactivity_email":              *cfg.EmailSettings.EnableInactivityEmail,
 	})
 
 	ts.SendTelemetry(TrackConfigRate, map[string]any{
