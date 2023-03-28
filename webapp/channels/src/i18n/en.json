@@ -739,6 +739,8 @@
   "admin.database.migrations_table.name": "Name",
   "admin.database.migrations_table.title": "Applied Schema Migrations",
   "admin.database.migrations_table.version": "Version",
+  "admin.database.search_backend.title": "Active Search Backend",
+  "admin.database.search_backend.help_text": "Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc.",
   "admin.database.title": "Database",
   "admin.developer.title": "Developer Settings",
   "admin.elasticsearch.bulkIndexingTitle": "Bulk Indexing:",

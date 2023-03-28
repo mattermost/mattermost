@@ -190,6 +190,8 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
 	}
 
+	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
+
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
