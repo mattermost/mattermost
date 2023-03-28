@@ -13,7 +13,6 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
     isItemLoaded={[Function]}
     itemCount={100000}
     loadMoreItems={[MockFunction]}
-    threshold={5}
   >
     <Component />
   </InfiniteLoader>
@@ -34,7 +33,6 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
     isItemLoaded={[Function]}
     itemCount={100000}
     loadMoreItems={[MockFunction]}
-    threshold={5}
   >
     <Component />
   </InfiniteLoader>

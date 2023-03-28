@@ -115,7 +115,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
       }
       hasNextPage={true}
       loadMoreGroups={[Function]}
-      loading={true}
+      loading={false}
       onExited={[MockFunction]}
       searchTerm=""
     />
