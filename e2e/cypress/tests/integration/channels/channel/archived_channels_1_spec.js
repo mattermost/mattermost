@@ -97,7 +97,7 @@ describe('Leave an archived channel', () => {
             // # More channels modal opens
             cy.get('#moreChannelsModal').should('be.visible').within(() => {
                 // # Click on dropdown
-                cy.findByText('Channel Type: Public').should('be.visible').click();
+                cy.findByText('Show: Public Channels').should('be.visible').click();
 
                 // # Click archived channels
                 cy.findByText('Archived Channels').click();
@@ -143,9 +143,9 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('.more-modal').should('be.visible').within(() => {
             // # Public channel list opens by default
-            cy.findByText('Channel Type: Public').should('be.visible').click();
+            cy.findByText('Show: Public Channels').should('be.visible').click();
 
             // # Click on archived channels
             cy.findByText('Archived Channels').click();
@@ -196,9 +196,9 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('.more-modal').should('be.visible').within(() => {
             // # Public channels are shown by default
-            cy.findByText('Channel Type: Public').should('be.visible').click();
+            cy.findByText('Show: Public Channels').should('be.visible').click();
 
             // # Go to archived channels
             cy.findByText('Archived Channels').click();
@@ -250,9 +250,9 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('.more-modal').should('be.visible').within(() => {
             // # Show public channels is visible by default
-            cy.findByText('Channel Type: Public').should('be.visible').click();
+            cy.findByText('Show: Public Channels').should('be.visible').click();
 
             // # Go to archived channels
             cy.findByText('Archived Channels').click();
@@ -286,7 +286,7 @@ describe('Leave an archived channel', () => {
 
         // # More channels modal opens and lands on public channels
         cy.get('#moreChannelsModal').should('be.visible').within(() => {
-            cy.findByText('Channel Type: Public').should('be.visible').click();
+            cy.findByText('Show: Public Channels').should('be.visible').click();
 
             // # Go to archived channels
             cy.findByText('Archived Channels').click();
