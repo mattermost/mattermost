@@ -2018,7 +2018,7 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 		require.ElementsMatch(t, []*model.ThreadMembership{memA2}, membershipsA)
 	})
 
-	t.Run("deleting memberships for channel for userA should affect userB", func(t *testing.T) {
+	t.Run("deleting memberships for channel for userA should not affect userB", func(t *testing.T) {
 		_, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
 		defer cleanupA1()
 		_, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
