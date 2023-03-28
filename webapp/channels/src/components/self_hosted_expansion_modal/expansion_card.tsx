@@ -18,7 +18,6 @@ import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 import ExternalLink from 'components/external_link';
 
 const MONTHS_IN_YEAR = 12;
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_TRANSACTION_VALUE = 1_000_000 - 1;
 
 interface Props {
@@ -35,14 +34,14 @@ export default function SelfHostedExpansionCard(props: Props) {
     const endsAt = moment(parseInt(license.ExpiresAt, 10)).format('MMM. D, YYYY');
     const [additionalSeats, setAdditionalSeats] = useState(props.initialSeats);
     const [overMaxSeats, setOverMaxSeats] = useState(false);
-    const licenseExpiry = parseInt(license.ExpiresAt, 10);
+    const licenseExpiry = new Date(parseInt(license.ExpiresAt, 10));
     const invalidAdditionalSeats = additionalSeats === 0 || isNaN(additionalSeats);
     const [products] = useGetSelfHostedProducts();
     const currentProduct = findSelfHostedProductBySku(products, license.SkuShortName);
 
     const getMonthsUntilExpiry = () => {
         const now = new Date();
-        return Math.ceil((licenseExpiry - now.getTime()) / MILLISECONDS_PER_DAY / 30);
+        return (licenseExpiry.getMonth() - now.getMonth()) + 12 * (licenseExpiry.getFullYear() - now.getFullYear());
     };
 
     const getMonthlyPrice = () => {
@@ -209,7 +208,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                         <br/>
                         <FormattedMessage
                             id='self_hosted_expansion_rhs_card_cost_per_user_breakdown'
-                            defaultMessage='{costPerUser} x {monthsUntilExpiry} months'
+                            defaultMessage='${costPerUser} x {monthsUntilExpiry} months'
                             values={{
                                 costPerUser: getMonthlyPrice().toFixed(2),
                                 monthsUntilExpiry: getMonthsUntilExpiry(),
@@ -219,7 +218,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                     <div className='costAmount'>
                         <span>{'$' + getCostPerUser().toFixed(2)}</span>
                     </div>
-                    <div className='totalCost'>
+                    <div className='totalCostWarning'>
                         <FormattedMessage
                             id='self_hosted_expansion_rhs_card_total_title'
                             defaultMessage='Total'
@@ -230,7 +229,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                             defaultMessage='The total will be prorated'
                         />
                     </div>
-                    <span className='costAmount'>
+                    <span className='totalCostAmount'>
                         <span>{'$' + getTotal().toFixed(2)}</span>
                     </span>
                 </div>

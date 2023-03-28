@@ -88,18 +88,18 @@
             font-size: 12px;
         }
 
-        .totalCost {
+        .totalCostWarning {
             width: 141px;
         }
 
-        .totalCost > span:first-child {
+        .totalCostWarning > span:first-child {
             color: var(--sys-denim-center-channel-text);
             font-family: 'Open Sans';
             font-size: 14px;
             font-weight: 700;
         }
 
-        .totalCost > span:last-child {
+        .totalCostWarning > span:last-child {
             color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
             font-family: 'Open Sans';
             font-size: 12px;
