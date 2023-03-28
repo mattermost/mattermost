@@ -15,7 +15,7 @@ import AnnouncementBar from 'components/announcement_bar/default_announcement_ba
 import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {cloudFreeDeprecationUIEnabled, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
@@ -52,6 +52,7 @@ export const ToPaidPlanBannerDismissable = () => {
     const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
+    const enabled = useSelector(cloudFreeDeprecationUIEnabled);
     const currentProductStarter = product?.sku === CloudProducts.STARTER;
 
     const now = moment(Date.now());
@@ -126,6 +127,10 @@ export const ToPaidPlanBannerDismissable = () => {
         }]));
     };
 
+    if (!enabled) {
+        return null;
+    }
+
     if (!show) {
         return null;
     }
@@ -169,7 +174,12 @@ export const ToPaidNudgeBanner = () => {
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
     const product = useSelector(selectSubscriptionProduct);
+    const enabled = useSelector(cloudFreeDeprecationUIEnabled);
     const currentProductStarter = product?.sku === CloudProducts.STARTER;
+
+    if (!enabled) {
+        return null;
+    }
 
     if (!currentProductStarter) {
         return null;

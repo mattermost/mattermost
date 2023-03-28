@@ -77,6 +77,8 @@ type FeatureFlags struct {
 	GlobalDrafts bool
 
 	OnboardingTourTips bool
+
+	EnableCloudFreeDeprecationUI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -103,6 +105,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
+	f.EnableCloudFreeDeprecationUI = false
 	f.WysiwygEditor = false
 	f.OnboardingAutoShowLinkedBoard = true
 	f.OnboardingTourTips = true
