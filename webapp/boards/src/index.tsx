@@ -30,6 +30,7 @@ windowAny.baseURL = '/plugins/boards'
 windowAny.frontendBaseURL = '/boards'
 
 import App from 'src/app'
+import PublicApp from 'src/public/app'
 
 import store from 'src/store'
 import WithWebSockets from 'src/components/withWebSockets'
@@ -177,10 +178,38 @@ const MainApp = (props: Props) => {
     )
 }
 
+const PublicMainApp = () => {
+    useEffect(() => {
+        document.body.classList.add('focalboard-body')
+        const root = document.getElementById('root')
+        if (root) {
+            root.classList.add('focalboard-plugin-root')
+        }
+
+        return () => {
+            document.body.classList.remove('focalboard-body')
+            if (root) {
+                root.classList.remove('focalboard-plugin-root')
+            }
+        }
+    }, [])
+
+    return (
+        <ErrorBoundary>
+            <ReduxProvider store={store}>
+                <div id='focalboard-app'>
+                    <PublicApp />
+                </div>
+                <div id='focalboard-root-portal' />
+            </ReduxProvider>
+        </ErrorBoundary>
+    )
+}
+
 const HeaderComponent = () => {
     return (
         <ErrorBoundary>
-            <GlobalHeader history={browserHistory}/>
+            <GlobalHeader history={browserHistory} />
         </ErrorBoundary>
     )
 }
@@ -331,6 +360,7 @@ export default class Plugin {
                 'Boards',
                 '/boards',
                 MainApp,
+                PublicMainApp,
                 HeaderComponent,
                 () => null,
                 true,
