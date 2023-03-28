@@ -660,7 +660,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                                 pluggableName={'Product'}
                                                 subComponentName={'publicComponent'}
                                                 pluggableId={product.id}
-                                                css={{ gridArea: 'center' }}
+                                                css={{gridArea: 'center'}}
                                                 {...props}
                                             />
                                         );

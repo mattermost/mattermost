@@ -348,9 +348,9 @@ describe('components/Root', () => {
                 } as unknown as ProductComponent],
             };
 
-            const wrapper = shallow(<Root {...props} />);
+            const wrapper = shallow(<Root {...props}/>);
 
-            (wrapper.instance() as any).setState({ configLoaded: true });
+            (wrapper.instance() as any).setState({configLoaded: true});
             expect(wrapper).toMatchSnapshot();
             wrapper.unmount();
         });

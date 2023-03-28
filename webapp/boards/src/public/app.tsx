@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React from 'react'
-import {
-    Router,
-    Switch,
-} from 'react-router-dom'
+import {Router, Switch} from 'react-router-dom'
 
 import {IntlProvider} from 'react-intl'
 import {DndProvider} from 'react-dnd'
