@@ -3484,8 +3484,6 @@
   "modal.manual_status.title_offline": "Вашето състояние е зададено на \"Извън линия\"",
   "modal.manual_status.title_ooo": "Вашето състояние е зададено на \"Извън офиса\"",
   "more_channels.create": "Създайте канал",
-  "more_channels.createClick": "Кликнете върху \"Създаване на нов канал\", за да създадете канал",
-  "more_channels.joining": "Присъединявне ...",
   "more_channels.next": "Следващ",
   "more_channels.noMore": "Няма повече канали за присъединяване",
   "more_channels.prev": "Предишен",

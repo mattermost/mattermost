@@ -1445,13 +1445,9 @@ func TestPushNotificationRace(t *testing.T) {
 		Router:   mux.NewRouter(),
 	}
 	var err error
-	s.platform, err = platform.New(
-		platform.ServiceConfig{
-			ConfigStore: memoryStore,
-		},
-		platform.SetFileStore(&fmocks.FileBackend{}),
-		platform.StoreOverride(th.GetSqlStore()),
-	)
+	s.platform, err = platform.New(platform.ServiceConfig{
+		ConfigStore: memoryStore,
+	}, platform.SetFileStore(&fmocks.FileBackend{}))
 	s.SetStore(mockStore)
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{

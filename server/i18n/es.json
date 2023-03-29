@@ -9546,5 +9546,9 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "plantillas"
   }
 ]
