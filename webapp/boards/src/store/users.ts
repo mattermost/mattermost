@@ -13,10 +13,6 @@ import {IUser, parseUserProps, UserPreference} from 'src/user'
 
 import {Subscription} from 'src/wsclient'
 
-// TODO: change this whene the initial load is complete
-// import {initialLoad} from './initialLoad'
-import {UserSettings} from 'src/userSettings'
-
 import {initialLoad} from './initialLoad'
 
 import {RootState} from './index'
