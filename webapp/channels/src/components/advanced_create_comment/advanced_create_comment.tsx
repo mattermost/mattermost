@@ -437,10 +437,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             message = formattedMessage;
             this.setCaretPosition(newCaretPosition);
         } else {
-            const originalSize = draft.message.length;
             message = formatMarkdownMessage(clipboardData, draft.message.trim(), this.state.caretPosition);
-            const newCaretPosition = message.length - (originalSize - caretPosition);
-            this.setCaretPosition(newCaretPosition);
+            document.execCommand('insertText', false, message);
+            return;
         }
 
         const updatedDraft = {...draft, message};
