@@ -63,7 +63,7 @@ const MarketplaceModal = ({
     const listing = useSelector(getListing);
     const installedListing = useSelector(getInstalledListing);
     const pluginStatuses = useSelector((state: GlobalState) => state.entities.admin.pluginStatuses);
-    const firstAdminVisitMarketplaceStatus = useSelector(getFirstAdminVisitMarketplaceStatus);
+    const hasFirstAdminVisitedMarketplace = useSelector(getFirstAdminVisitMarketplaceStatus);
 
     const [tabKey, setTabKey] = useState(MarketplaceTabs.ALL_LISTING);
     const [filter, setFilter] = useState('');
@@ -103,7 +103,7 @@ const MarketplaceModal = ({
 
         trackEvent('plugins', 'ui_marketplace_opened', {from: openedFrom});
 
-        if (firstAdminVisitMarketplaceStatus) {
+        if (!hasFirstAdminVisitedMarketplace) {
             trackEvent('plugins', 'ui_first_admin_visit_marketplace_status');
             dispatch(setFirstAdminVisitMarketplaceStatus());
         }
