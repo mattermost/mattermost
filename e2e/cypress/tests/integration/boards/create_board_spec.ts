@@ -50,36 +50,48 @@ describe('Create and delete board / card', () => {
     it('MM-T4275 Set up Board description', () => {
         cy.visit('/boards');
 
-        // Create empty board
+        // # Create empty board and change tile to Testing
         cy.findByText('Create an empty board').should('exist').click({force: true});
         cy.get('.BoardComponent').should('exist');
 
         // Change Title
-        cy.findByPlaceholderText('Untitled board').should('be.visible').wait(timeouts.HALF_SEC).as('editableTitle');
-        cy.get('@editableTitle').should('be.visible').
+        cy.findByPlaceholderText('Untitled board').should('be.visible').wait(timeouts.HALF_SEC);
+
+        // * Assert that the title is changed to "testing"
+        cy.findByPlaceholderText('Untitled board').
             clear().
             type('Testing').
             type('{enter}').
             should('have.value', 'Testing');
 
+        // # "Add icon" and "Show description" options appear
         cy.findByText('Add icon').should('exist').click({force: true});
         cy.findByText('show description').should('exist').click({force: true});
 
-        // Change Description
-        cy.findByText('Add a description...').should('be.visible').wait(timeouts.HALF_SEC).as('editableDescription');
-        cy.get('@editableDescription').should('be.visible').click({force: true});
+        // # Click on "Add a description" below the board title and type "for testing purposes only"
+        cy.findByText('Add a description...').should('be.visible').wait(timeouts.HALF_SEC)
+
+        // * Assert that the editable description should be visible
+        cy.findByText('Add a description...').should('be.visible');
+        cy.findByText('Add a description...').click({force: true});
         cy.get('.description').
             click().
             get('.description .MarkdownEditorInput').
             type('for testing purposes only');
+
+        // * Assert that the description is changed to "for testing purposes only"
         cy.findByText('for testing purposes only').should('be.visible');
 
-        //Hide Description
+        // # Hide Description options should appear and click on it to hide description
         cy.findByText('hide description').should('exist').click({force: true});
+
+        // * Assert that description should not appear"
         cy.get('.description').should('not.exist');
 
-        //Show Description
+        // # Show Description options should appear and click on it to show description
         cy.findByText('show description').should('exist').click({force: true});
+
+        // * Assert that the description "for testing purposes should be visible"
         cy.findByText('for testing purposes only').should('be.visible');
     });
 
