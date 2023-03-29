@@ -1649,7 +1649,6 @@ type EmailSettings struct {
 	LoginButtonColor                  *string `access:"experimental_features"`
 	LoginButtonBorderColor            *string `access:"experimental_features"`
 	LoginButtonTextColor              *string `access:"experimental_features"`
-	EnableInactivityEmail             *bool
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -1791,10 +1790,6 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
-	}
-
-	if s.EnableInactivityEmail == nil {
-		s.EnableInactivityEmail = NewBool(true)
 	}
 }
 
@@ -2897,19 +2892,9 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdPlaybooks] == nil {
-		// Enable the playbooks plugin by default
-		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
 		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Enable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {

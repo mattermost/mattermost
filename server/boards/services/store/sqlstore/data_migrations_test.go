@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore/migrationstests"
+	"github.com/mgdelacroix/foundation"
+
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 
 	"github.com/stretchr/testify/assert"
@@ -261,5 +264,25 @@ func TestCheckForMismatchedCollation(t *testing.T) {
 
 			assert.Equalf(t, collation, actualCollation, "for table_name='%s', index=%d", name, i)
 		}
+	})
+}
+
+func TestRunDeDuplicateCategoryBoardsMigration(t *testing.T) {
+	RunStoreTestsWithFoundation(t, func(t *testing.T, f *foundation.Foundation) {
+		th, tearDown := migrationstests.SetupTestHelper(t, f)
+		defer tearDown()
+
+		th.F().MigrateToStepSkippingLastInterceptor(35).
+			ExecFile("./fixtures/testDeDuplicateCategoryBoardsMigration.sql")
+
+		th.F().RunInterceptor(35)
+
+		// verifying count of rows
+		var count int
+		countQuery := "SELECT COUNT(*) FROM focalboard_category_boards"
+		row := th.F().DB().QueryRow(countQuery)
+		err := row.Scan(&count)
+		assert.NoError(t, err)
+		assert.Equal(t, 4, count)
 	})
 }

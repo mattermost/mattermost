@@ -130,7 +130,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
             return {data: true};
         case '/marketplace':
             // check if user has permissions to access the read plugins
-            if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_READ_PLUGINS)) {
+            if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)) {
                 return {error: {message: localizeMessage('marketplace_command.no_permission', 'You do not have the appropriate permissions to access the marketplace.')}};
             }
 
@@ -139,7 +139,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                 return {error: {message: localizeMessage('marketplace_command.disabled', 'The marketplace is disabled. Please contact your System Administrator for details.')}};
             }
 
-            dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal}));
+            dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));
             return {data: true};
         case '/templates': {
             const workTemplateEnabled = areWorkTemplatesEnabled(state);

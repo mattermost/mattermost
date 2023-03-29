@@ -21,8 +21,7 @@ import (
 )
 
 func TestGraphQLPlaybooks(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("basic get", func(t *testing.T) {
@@ -206,8 +205,7 @@ func TestGraphQLPlaybooks(t *testing.T) {
 
 }
 func TestGraphQLUpdatePlaybookFails(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("update playbook fails because size constraints.", func(t *testing.T) {
@@ -370,8 +368,7 @@ func TestGraphQLUpdatePlaybookFails(t *testing.T) {
 }
 
 func TestUpdatePlaybookFavorite(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("favorite", func(t *testing.T) {
@@ -493,8 +490,7 @@ func gqlTestPlaybookUpdate(e *TestEnvironment, t *testing.T, playbookID string, 
 }
 
 func TestGraphQLPlaybooksMetrics(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("metrics get", func(t *testing.T) {

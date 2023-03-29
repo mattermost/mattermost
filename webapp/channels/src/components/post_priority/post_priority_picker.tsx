@@ -136,7 +136,7 @@ function PostPriorityPicker({
         onClose();
     };
 
-    const feedbackLink = postAcknowledgementsEnabled ? 'https://forms.gle/noA8Azg7RdaBZtMB6' : 'https://forms.gle/XRb63s3KZqpLNyqr9';
+    const feedbackLink = postAcknowledgementsEnabled ? 'https://forms.gle/noA8Azg7RdaBZtMB6' : 'https://forms.gle/mMcRFQzyKAo9Sv49A';
 
     return (
         <Picker className='PostPriorityPicker'>

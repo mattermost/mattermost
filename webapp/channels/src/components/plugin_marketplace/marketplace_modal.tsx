@@ -31,6 +31,8 @@ const MarketplaceTabs = {
 
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
+export type OpenedFromType = 'actions_menu' | 'app_bar' | 'channel_header' | 'command' | 'open_plugin_install_post' | 'product_menu';
+
 type AllListingProps = {
     listing: Array<MarketplacePlugin | MarketplaceApp>;
 };
@@ -97,6 +99,7 @@ export type MarketplaceModalProps = {
     siteURL: string;
     pluginStatuses?: Record<string, PluginStatusRedux>;
     firstAdminVisitMarketplaceStatus: boolean;
+    openedFrom: OpenedFromType;
     actions: {
         closeModal: () => void;
         fetchListing(localOnly?: boolean): Promise<{error?: Error}>;
@@ -131,7 +134,7 @@ export default class MarketplaceModal extends React.PureComponent<MarketplaceMod
     }
 
     componentDidMount(): void {
-        trackEvent('plugins', 'ui_marketplace_opened');
+        trackEvent('plugins', 'ui_marketplace_opened', {from: this.props.openedFrom});
 
         this.fetchListing();
         this.props.actions.getPluginStatuses();
