@@ -172,20 +172,6 @@ export const getOnboardingTourCategory = createSelector(
     (myConfig): string => (myConfig.tourCategory ? myConfig.tourCategory.value : ''),
 )
 
-export const getCloudMessageCanceled = createSelector(
-    getMe,
-    getMyConfig,
-    (me, myConfig): boolean => {
-        if (!me) {
-            return false
-        }
-        if (me.id === 'single-user') {
-            return UserSettings.hideCloudMessage
-        }
-        return Boolean(myConfig.cloudMessageCanceled?.value)
-    },
-)
-
 export const getVersionMessageCanceled = createSelector(
     getMe,
     getMyConfig,
