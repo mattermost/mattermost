@@ -43,8 +43,8 @@ export default class DatabaseSettings extends AdminSettings {
         return config;
     }
 
-    public componentDidMount() {
-        this.getSearchBackend().then((searchBackend: string) => {
+    componentDidMount() {
+        this.getSearchBackend().then((searchBackend) => {
             this.setState({searchBackend});
         });
     }
