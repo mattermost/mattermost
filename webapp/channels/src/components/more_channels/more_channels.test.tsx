@@ -99,7 +99,7 @@ describe('components/MoreChannels', () => {
 
         // on componentDidMount
         expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledWith(wrapper.instance().props.teamId, 0, 100);
+        expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledWith(wrapper.instance().props.teamId, 0, 60);
     });
 
     test('should match state on handleHide', () => {
@@ -144,7 +144,7 @@ describe('components/MoreChannels', () => {
         wrapper.instance().nextPage(1);
 
         expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledTimes(2);
-        expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledWith(wrapper.instance().props.teamId, 2, 50);
+        expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledWith(wrapper.instance().props.teamId, 2, 30);
     });
 
     test('should have loading prop true when searching state is true', () => {

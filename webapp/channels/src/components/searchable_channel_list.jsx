@@ -20,8 +20,7 @@ import {t} from 'utils/i18n';
 
 import MenuWrapper from './widgets/menu/menu_wrapper';
 import Menu from './widgets/menu/menu';
-
-const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
+import InfiniteScroll from './gif_picker/components/InfiniteScroll';
 
 export default class SearchableChannelList extends React.PureComponent {
     static getDerivedStateFromProps(props, state) {
@@ -31,16 +30,12 @@ export default class SearchableChannelList extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.nextTimeoutId = 0;
-
         this.state = {
             joiningChannel: '',
             page: 0,
-            nextDisabled: false,
         };
 
         this.filter = React.createRef();
-        this.channelListScroll = React.createRef();
     }
 
     componentDidMount() {
@@ -124,18 +119,11 @@ export default class SearchableChannelList extends React.PureComponent {
         );
     }
 
-    nextPage = (e) => {
-        e.preventDefault();
-        this.setState({page: this.state.page + 1, nextDisabled: true});
-        this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT_MILLISECONDS);
-        this.props.nextPage(this.state.page + 1);
-        this.channelListScroll.current?.scrollTo({top: 0});
-    }
-
-    previousPage = (e) => {
-        e.preventDefault();
-        this.setState({page: this.state.page - 1});
-        this.channelListScroll.current?.scrollTo({top: 0});
+    nextPage = () => {
+        if (!this.props.loading) {
+            this.props.nextPage(this.state.page + 1);
+            this.setState({page: this.state.page + 1});
+        }
     }
 
     doSearch = () => {
@@ -152,11 +140,20 @@ export default class SearchableChannelList extends React.PureComponent {
         this.props.toggleArchivedChannels(false);
     }
 
+    hasMore = () => {
+        if (this.props.loading) {
+            return false;
+        }
+        const pageStart = this.state.page * this.props.channelsPerPage;
+        const pageEnd = pageStart + this.props.channelsPerPage;
+        const channelsToDisplay = this.props.channels.slice(0, pageEnd);
+        return channelsToDisplay.length < this.props.channels.length;
+    }
+
     render() {
         const channels = this.props.channels;
         let listContent;
-        let nextButton;
-        let previousButton;
+        let content;
 
         if (this.props.loading && channels.length === 0) {
             listContent = <LoadingScreen/>;
@@ -176,37 +173,19 @@ export default class SearchableChannelList extends React.PureComponent {
         } else {
             const pageStart = this.state.page * this.props.channelsPerPage;
             const pageEnd = pageStart + this.props.channelsPerPage;
-            const channelsToDisplay = this.props.channels.slice(pageStart, pageEnd);
-            listContent = channelsToDisplay.map(this.createChannelRow);
-
-            if (channelsToDisplay.length >= this.props.channelsPerPage && pageEnd < this.props.channels.length) {
-                nextButton = (
-                    <button
-                        className='btn btn-link filter-control filter-control__next'
-                        onClick={this.nextPage}
-                        disabled={this.state.nextDisabled}
-                    >
-                        <FormattedMessage
-                            id='more_channels.next'
-                            defaultMessage='Next'
-                        />
-                    </button>
-                );
-            }
-
-            if (this.state.page > 0) {
-                previousButton = (
-                    <button
-                        className='btn btn-link filter-control filter-control__prev'
-                        onClick={this.previousPage}
-                    >
-                        <FormattedMessage
-                            id='more_channels.prev'
-                            defaultMessage='Previous'
-                        />
-                    </button>
-                );
-            }
+            const channelsToDisplay = this.props.channels.slice(0, pageEnd);
+            content = channelsToDisplay.map(this.createChannelRow);
+            listContent = (
+                <InfiniteScroll
+                    hasMore={this.hasMore()}
+                    loadMore={this.nextPage}
+                    useWindow={false}
+                    thresHold={this.props.channelsPerPage}
+                    initialLoad={false}
+                    loader={<LoadingScreen className='more-modal_loading'/>}
+                >
+                    {content}
+                </InfiniteScroll>);
         }
 
         let input = (
@@ -284,14 +263,9 @@ export default class SearchableChannelList extends React.PureComponent {
                 >
                     <div
                         id='moreChannelsList'
-                        ref={this.channelListScroll}
                     >
                         {listContent}
                     </div>
-                </div>
-                <div className='filter-controls'>
-                    {previousButton}
-                    {nextButton}
                 </div>
             </div>
         );
