@@ -2,7 +2,7 @@ name: "CodeQL"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ contains( github.ref , 'heads/ref/master') }}
+  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
 
 on:
   pull_request:

@@ -11,7 +11,7 @@ env:
   go-version: "1.19.5"
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ contains( github.ref , 'heads/ref/master') }}
+  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
 jobs:
   check-mocks:
     name: Check mocks
