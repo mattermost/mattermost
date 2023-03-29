@@ -147,6 +147,11 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       teamId=""
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -157,14 +162,14 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
         icon={
           <Icon
-            glyph="apps"
+            glyph="view-grid-plus-outline"
             size={16}
           />
         }
         id="marketplaceModal"
         modalId="plugin_marketplace"
         show={false}
-        text="Marketplace"
+        text="App Marketplace"
       />
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
@@ -350,6 +355,11 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       teamId=""
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -360,14 +370,14 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
         icon={
           <Icon
-            glyph="apps"
+            glyph="view-grid-plus-outline"
             size={16}
           />
         }
         id="marketplaceModal"
         modalId="plugin_marketplace"
         show={true}
-        text="Marketplace"
+        text="App Marketplace"
       />
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
@@ -673,6 +683,11 @@ exports[`components/global/product_switcher_menu should show integrations should
       teamId=""
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -683,14 +698,14 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
         icon={
           <Icon
-            glyph="apps"
+            glyph="view-grid-plus-outline"
             size={16}
           />
         }
         id="marketplaceModal"
         modalId="plugin_marketplace"
         show={false}
-        text="Marketplace"
+        text="App Marketplace"
       />
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
