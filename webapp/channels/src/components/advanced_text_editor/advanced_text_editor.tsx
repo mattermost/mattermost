@@ -363,7 +363,7 @@ const AdvanceTextEditor = ({
             return;
         }
 
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
+        const maxWidth = editorBodyRef.current.offsetWidth - (showFormattingBar ? 0 : editorActionsRef.current.offsetWidth);
 
         if (!message) {
             // if we do not have a message we can just render the default state
@@ -384,7 +384,7 @@ const AdvanceTextEditor = ({
             input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
         }
-    }, [message, input]);
+    }, [message, input, showFormattingBar]);
 
     useEffect(() => {
         if (!message) {
