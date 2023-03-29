@@ -700,12 +700,9 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 	query := s.getQueryBuilder().
 		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Email", "u.EmailVerified",
 			"u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props",
-			"u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.Locale", "u.Timezone",
-			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription",
-			"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate", "u.RemoteId").
+			"u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.Locale", "u.Timezone", "u.RemoteId").
 		Distinct().
 		From("Users AS u").
-		LeftJoin("Bots b ON ( b.UserId = u.Id )").
 		Join("SharedChannelUsers AS scu ON u.Id = scu.UserId").
 		OrderBy("u.Id").
 		Limit(filter.Limit)
