@@ -158,7 +158,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $GITHUB_HEAD_REF || git checkout master
+          git checkout $GITHUB_HEAD_REF || git checkout release-7.10
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           FILE_DIST=dist.tar.gz
