@@ -863,12 +863,7 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	cloud := c.App.Cloud()
-	if cloud == nil {
-		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
-		return
-	}
-	if err := cloud.CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
+	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
 		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
 		return
 	}
