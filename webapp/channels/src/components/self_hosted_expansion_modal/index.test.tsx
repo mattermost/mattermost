@@ -76,7 +76,7 @@ const mockProfessionalProduct = TH.getProductMock({
     name: 'Professional',
     sku: SelfHostedProducts.PROFESSIONAL,
     price_per_seat: 7.5,
-    recurring_interval: RecurringIntervals.MONTH
+    recurring_interval: RecurringIntervals.MONTH,
 });
 
 jest.mock('mattermost-redux/client', () => {
@@ -164,7 +164,7 @@ const initialState: DeepPartial<GlobalState> = {
             license: {
                 Sku: productName,
                 Users: '50',
-                ExpiresAt: licenseExpiry.getTime().toString()
+                ExpiresAt: licenseExpiry.getTime().toString(),
             },
         },
         cloud: {
@@ -329,7 +329,7 @@ describe('SelfHostedExpansionModal Open', () => {
 });
 
 describe('SelfHostedExpansionModal RHS Card', () => {
-    it("New seats input should be pre-populated with the difference from the active users and licensed seats", () => {
+    it('New seats input should be pre-populated with the difference from the active users and licensed seats', () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
         const expectedPrePopulatedSeats = (initialState.entities?.users?.filteredStats?.total_users_count || 1) - parseInt(initialState.entities?.general?.license?.Users || '0', 10);
@@ -339,7 +339,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
         expect(seatsField?.value).toBe(expectedPrePopulatedSeats.toString());
     });
 
-    it("Cost per User should be represented as the current subscription price multiplied by the remaining months", () => {
+    it('Cost per User should be represented as the current subscription price multiplied by the remaining months', () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
         const expectedCostPerUser = monthsUntilLicenseExpiry * mockProfessionalProduct.price_per_seat;
@@ -350,10 +350,10 @@ describe('SelfHostedExpansionModal RHS Card', () => {
 
         const costAmount = document.getElementsByClassName('costAmount')[0];
         expect(costAmount).toBeInTheDocument();
-        expect(costAmount.innerHTML).toContain('$' + expectedCostPerUser)
+        expect(costAmount.innerHTML).toContain('$' + expectedCostPerUser);
     });
 
-    it("Total cost User should be represented as the current subscription price multiplied by the remaining months multiplied by the number of users", () => {
+    it('Total cost User should be represented as the current subscription price multiplied by the remaining months multiplied by the number of users', () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         const seatsInputValue = 100;
         changeByTestId('seatsInput', seatsInputValue.toString());
@@ -362,7 +362,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
 
         const costAmount = document.getElementsByClassName('totalCostAmount')[0];
         expect(costAmount).toBeInTheDocument();
-        expect(costAmount.innerHTML).toContain('$' + expectedTotalCost)
+        expect(costAmount.innerHTML).toContain('$' + expectedTotalCost);
     });
 });
 
