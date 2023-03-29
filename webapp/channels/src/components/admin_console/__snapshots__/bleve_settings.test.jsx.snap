@@ -15,18 +15,8 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         id="admin.bleve.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. {documentationLink}"
@@ -55,12 +45,6 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -158,12 +142,6 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
       />
       <BooleanSetting
         disabled={true}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
@@ -179,22 +157,10 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <BooleanSetting
         disabled={true}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Bleve will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
@@ -210,12 +176,6 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
     </SettingsGroup>
@@ -277,18 +237,8 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         id="admin.bleve.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. {documentationLink}"
@@ -317,12 +267,6 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -418,13 +362,6 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
       />
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
@@ -440,22 +377,9 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Bleve will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
@@ -471,12 +395,6 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
     </SettingsGroup>

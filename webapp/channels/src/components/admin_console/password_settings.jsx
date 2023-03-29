@@ -10,7 +10,7 @@ import {t} from 'utils/i18n';
 
 import AdminSettings from './admin_settings';
 import Setting from './setting';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 export default class PasswordSettings extends AdminSettings {

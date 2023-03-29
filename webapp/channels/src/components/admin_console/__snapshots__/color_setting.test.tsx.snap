@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/ColorSetting should match snapshot, all 1`] = `
-<Settings
+<Setting
   helpText="helptext"
   inputId="id"
   label="label"
@@ -12,11 +12,11 @@ exports[`components/ColorSetting should match snapshot, all 1`] = `
     onChange={[Function]}
     value="#fff"
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/ColorSetting should match snapshot, clicked on color setting 1`] = `
-<Settings
+<Setting
   helpText="helptext"
   inputId="id"
   label="label"
@@ -27,11 +27,11 @@ exports[`components/ColorSetting should match snapshot, clicked on color setting
     onChange={[Function]}
     value="#fff"
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/ColorSetting should match snapshot, disabled 1`] = `
-<Settings
+<Setting
   inputId="id"
   label="label"
 >
@@ -41,11 +41,11 @@ exports[`components/ColorSetting should match snapshot, disabled 1`] = `
     onChange={[Function]}
     value="#fff"
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/ColorSetting should match snapshot, no help text 1`] = `
-<Settings
+<Setting
   inputId="id"
   label="label"
 >
@@ -55,5 +55,5 @@ exports[`components/ColorSetting should match snapshot, no help text 1`] = `
     onChange={[Function]}
     value="#fff"
   />
-</Settings>
+</Setting>
 `;

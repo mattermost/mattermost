@@ -15,18 +15,8 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -47,12 +37,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -89,7 +73,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -192,18 +175,8 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -224,12 +197,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <AdminTextSetting
@@ -266,7 +233,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -294,9 +260,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
       />
       <SettingsGroup
-        container={true}
         id="globalRelaySettings"
-        show={true}
       >
         <RadioSetting
           disabled={true}
@@ -466,18 +430,8 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -498,12 +452,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -540,7 +488,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -643,18 +590,8 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
@@ -675,12 +612,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <AdminTextSetting
@@ -717,7 +648,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -745,9 +675,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
       />
       <SettingsGroup
-        container={true}
         id="globalRelaySettings"
-        show={true}
       >
         <RadioSetting
           disabled={false}

@@ -15,10 +15,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         id="admin.database.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <div
         className="banner"
       >
@@ -208,13 +205,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         value={10}
       />
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="(Development Mode) When true, executing SQL statements are written to the log."
@@ -230,12 +220,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <RequestButton
@@ -290,13 +274,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
       />
       <BooleanSetting
-        disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured."
@@ -317,12 +294,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={true}
       />
       <div

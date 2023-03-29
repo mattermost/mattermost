@@ -28,7 +28,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             );
             expect(wrapper).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('');
+            expect(wrapper.find('LocalizedInput').prop('value')).toEqual('');
         });
 
         test('with one item', () => {
@@ -42,7 +42,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             );
             expect(wrapper).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('git');
+            expect(wrapper.find('LocalizedInput').prop('value')).toEqual('git');
         });
 
         test('with multiple items', () => {
@@ -55,8 +55,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(wrapper).toMatchSnapshot();
-
-            expect(wrapper.state('value')).toEqual('git,smtp,steam');
+            expect(wrapper.find('LocalizedInput').prop('value')).toEqual('git,smtp,steam');
         });
     });
 

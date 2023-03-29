@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
-<Settings
+<Setting
   inputId="string.id"
   label="some label"
   setByEnv={false}
 >
   <div
     className="radio"
-    key="Engineering"
+    key="Sales"
   >
     <label>
       <input
@@ -17,7 +17,7 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
         name="string.id"
         onChange={[Function]}
         type="radio"
-        value="Engineering"
+        value="Sales"
       />
       this is engineering
     </label>
@@ -40,7 +40,7 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
   </div>
   <div
     className="radio"
-    key="Administration"
+    key="Sales"
   >
     <label>
       <input
@@ -49,10 +49,10 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
         name="string.id"
         onChange={[Function]}
         type="radio"
-        value="Administration"
+        value="Sales"
       />
       this is administration
     </label>
   </div>
-</Settings>
+</Setting>
 `;

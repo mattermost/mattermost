@@ -14,9 +14,9 @@ import ExternalLink from 'components/external_link';
 
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import DropdownSetting from './dropdown_setting.jsx';
+import DropdownSetting from './dropdown_setting';
 import JobsTable from './jobs';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import RadioSetting from './radio_setting';
 

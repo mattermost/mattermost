@@ -17,12 +17,12 @@ import ConfirmModal from 'components/confirm_modal';
 
 import AdminSettings, {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
-import SettingsGroup from '../settings_group.jsx';
+import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 import {appsPluginID} from 'utils/apps';
 import ExternalLink from 'components/external_link';
 
-const PluginItemState = ({state}: {state: number}) => {
+const PluginItemState = ({state}: { state: number }) => {
     switch (state) {
     case PluginState.PLUGIN_STATE_NOT_RUNNING:
         return (
@@ -76,7 +76,7 @@ const PluginItemState = ({state}: {state: number}) => {
     }
 };
 
-const PluginItemStateDescription = ({state, error}: {state: number; error?: string}) => {
+const PluginItemStateDescription = ({state, error}: { state: number; error?: string }) => {
     switch (state) {
     case PluginState.PLUGIN_STATE_NOT_RUNNING:
         return (
@@ -204,15 +204,18 @@ const PluginItem = ({
                 className={deactivating || isDisabled ? 'disabled' : ''}
                 onClick={handleDisable}
             >
-                {deactivating ?
-                    <FormattedMessage
-                        id='admin.plugin.disabling'
-                        defaultMessage='Disabling...'
-                    /> :
-                    <FormattedMessage
-                        id='admin.plugin.disable'
-                        defaultMessage='Disable'
-                    />
+                {
+                    deactivating ? (
+                        <FormattedMessage
+                            id='admin.plugin.disabling'
+                            defaultMessage='Disabling...'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.plugin.disable'
+                            defaultMessage='Disable'
+                        />
+                    )
                 }
             </a>
         );
@@ -223,15 +226,17 @@ const PluginItem = ({
                 className={activating || isDisabled ? 'disabled' : ''}
                 onClick={handleEnable}
             >
-                {activating ?
+                {activating ? (
                     <FormattedMessage
                         id='admin.plugin.enabling'
                         defaultMessage='Enabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.enable'
                         defaultMessage='Enable'
                     />
+                )
                 }
             </a>
         );
@@ -430,7 +435,7 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;
@@ -439,7 +444,7 @@ type State = BaseState & {
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -785,7 +790,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
 
     renderOverwritePluginModal = (
         {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
+        { show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
         const title = (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_modal.title'
@@ -1087,7 +1092,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     >
                         {this.renderEnablePluginsSetting()}
 
-                        { !this.props.config.ExperimentalSettings?.RestrictSystemAdmin && (
+                        {!this.props.config.ExperimentalSettings?.RestrictSystemAdmin && (
                             <>
                                 <BooleanSetting
                                     id='requirePluginSignature'

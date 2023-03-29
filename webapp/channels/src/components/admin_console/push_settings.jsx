@@ -10,8 +10,8 @@ import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
-import DropdownSetting from './dropdown_setting.jsx';
-import SettingsGroup from './settings_group.jsx';
+import DropdownSetting from './dropdown_setting';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 const PUSH_NOTIFICATIONS_OFF = 'off';

@@ -62,7 +62,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       >
         <SettingsGroup
           container={false}
-          show={true}
         >
           <AdminTextSetting
             disabled={false}
@@ -85,12 +84,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 isTranslated={true}
@@ -103,12 +96,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <DropdownSetting
@@ -121,7 +108,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               />
             }
             id="FirstSettings.settingc"
-            isDisabled={false}
             key="Config_dropdown_FirstSettings.settingc"
             label="Setting Three"
             onChange={[Function]}
@@ -279,7 +265,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               />
             }
             id="SecondSettings.settingi"
-            isDisabled={false}
             key="Config_language_SecondSettings.settingi"
             label="Setting Nine"
             onChange={[Function]}
@@ -561,12 +546,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 isTranslated={true}
@@ -579,12 +558,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="Setting Twelve"
             onChange={[Function]}
             setByEnv={true}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <ColorSetting
@@ -657,12 +630,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 isTranslated={true}
@@ -675,12 +642,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="Escaped Setting A"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
         </SettingsGroup>

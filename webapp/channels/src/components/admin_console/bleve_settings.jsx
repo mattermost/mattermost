@@ -15,7 +15,7 @@ import BooleanSetting from './boolean_setting';
 import TextSetting from './text_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 
 export default class BleveSettings extends AdminSettings {
     getConfigFromState = (config) => {

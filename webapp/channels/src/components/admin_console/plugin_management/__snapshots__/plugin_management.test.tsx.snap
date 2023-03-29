@@ -24,16 +24,8 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -54,22 +46,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -90,22 +70,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -121,12 +89,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -192,12 +154,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -218,22 +174,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -249,12 +193,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -374,16 +312,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -404,22 +334,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -440,22 +358,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -471,12 +377,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -542,12 +442,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -568,22 +462,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={true}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -599,12 +481,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -724,7 +600,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <div
             className="form-group"
@@ -821,16 +696,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -851,22 +718,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -887,22 +742,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -918,12 +761,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -989,12 +826,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -1015,22 +846,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -1046,12 +865,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <AdminTextSetting
@@ -1171,16 +984,8 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -1201,22 +1006,10 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -1237,22 +1030,10 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -1268,12 +1049,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -1341,12 +1116,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -1367,22 +1136,10 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -1398,12 +1155,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -1523,16 +1274,8 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -1553,22 +1296,10 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -1589,22 +1320,10 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -1620,12 +1339,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -1691,12 +1404,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -1717,22 +1424,10 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -1748,12 +1443,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -1877,16 +1566,8 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -1907,22 +1588,10 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -1943,22 +1612,10 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -1974,12 +1631,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -2045,12 +1696,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -2071,22 +1716,10 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -2102,12 +1735,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -2227,16 +1854,8 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -2257,22 +1876,10 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={true}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -2293,22 +1900,10 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={true}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -2324,12 +1919,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -2397,12 +1986,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
           </div>
           <BooleanSetting
             disabled={true}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -2423,22 +2006,10 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={true}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -2454,12 +2025,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -2554,16 +2119,8 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -2584,22 +2141,10 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -2620,22 +2165,10 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -2651,12 +2184,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -2722,12 +2249,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -2748,22 +2269,10 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -2779,12 +2288,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -2904,16 +2407,8 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -2934,22 +2429,10 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -2970,22 +2453,10 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -3001,12 +2472,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -3074,12 +2539,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -3100,22 +2559,10 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={true}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -3131,12 +2578,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -3261,16 +2702,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -3291,22 +2724,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -3327,22 +2748,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -3358,12 +2767,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -3429,12 +2832,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -3455,22 +2852,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -3486,12 +2871,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -3674,16 +3053,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -3704,22 +3075,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -3740,22 +3099,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -3771,12 +3118,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -3842,12 +3183,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -3868,22 +3203,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -3899,12 +3222,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -4055,16 +3372,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -4085,22 +3394,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -4121,22 +3418,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -4152,12 +3437,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -4223,12 +3502,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -4249,22 +3522,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -4280,12 +3541,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -4436,16 +3691,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -4466,22 +3713,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -4502,22 +3737,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -4533,12 +3756,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -4604,12 +3821,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -4630,22 +3841,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -4661,12 +3860,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting
@@ -4817,16 +4010,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
-            disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
@@ -4847,22 +4032,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
@@ -4883,22 +4056,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
@@ -4914,12 +4075,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <div
@@ -4985,12 +4140,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           </div>
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
@@ -5011,22 +4160,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <BooleanSetting
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
-                id="admin.false"
-              />
-            }
             helpText={
               <FormattedMarkdownMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
@@ -5042,12 +4179,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <AdminTextSetting

@@ -115,6 +115,7 @@ export type AdminSectionPages = {
         id: string;
         component?: React.ElementType;
         isHidden?: CheckFunction | boolean;
+        translate?: boolean;
         name?: string;
         name_default?: string;
         settings?: Record<string, any>[];

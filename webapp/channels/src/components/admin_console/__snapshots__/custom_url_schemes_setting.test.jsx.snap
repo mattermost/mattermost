@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multiple items 1`] = `
-<Settings
+<Setting
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
@@ -21,11 +21,11 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
     type="text"
     value="git,smtp,steam"
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no items 1`] = `
-<Settings
+<Setting
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
@@ -45,11 +45,11 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
     type="text"
     value=""
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one item 1`] = `
-<Settings
+<Setting
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
@@ -69,11 +69,11 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
     type="text"
     value="git"
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when disabled 1`] = `
-<Settings
+<Setting
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
@@ -93,11 +93,11 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
     type="text"
     value="git,smtp"
   />
-</Settings>
+</Setting>
 `;
 
 exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when set by environment variable 1`] = `
-<Settings
+<Setting
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
@@ -117,5 +117,5 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
     type="text"
     value="git,smtp"
   />
-</Settings>
+</Setting>
 `;
