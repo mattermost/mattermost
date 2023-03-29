@@ -9868,10 +9868,6 @@
     "translation": "项目面板可以使迭代计划前所未来的容易。频道可以用来对话和保证问题的被关注。迭代计划面板可以使所以有本周对任务的关注，回顾面板让团队作为一个整体不断改进。"
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "这里描述了为什么需要面板"
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
   },

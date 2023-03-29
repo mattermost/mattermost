@@ -9907,10 +9907,6 @@
     "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Beschrijving van waarom het kanaal of de kanalen nodig zijn"
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Duidelijke focus is essentieel voor teamsucces en met dit Project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
   },

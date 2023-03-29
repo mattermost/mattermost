@@ -9831,10 +9831,6 @@
     "translation": "Använd ett projekt för att göra sprintplaneringen enkel. Kanalen håller konversationen och frågorna fokuserade. Sprintplanen håller alla på uppgiften för veckan och retrospektivtavlan samlar teamet för att kontinuerligt förbättra sig."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Beskrivning av varför kanalen/kanalerna behövs"
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
   },

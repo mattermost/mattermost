@@ -9771,10 +9771,6 @@
     "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Description of why the channel(s) are necessary"
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKRs, as well as post updates in the dedicated channel."
   },

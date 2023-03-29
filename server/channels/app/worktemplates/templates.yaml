@@ -126,21 +126,6 @@ content:
   - integration:
       id: zoom
 ---
-id: 'product_teams/product_roadmap:v1'
-category: product_teams
-useCase: Create a product roadmap
-illustration: /static/worktemplates/product_teams/product_roadmap/product_roadmap.png
-visibility: public
-description:
-  channel:
-    id: worktemplate.product_teams.product_roadmap.channel
-    defaultMessage: Description of why the channel(s) are needed
-content:
-  - channel:
-      id: channel-1674851139450
-      illustration: /static/worktemplates/product_teams/product_roadmap/channel.png
-      name: Product Roadmap
----
 ######################
 # DEVOPS
 ######################

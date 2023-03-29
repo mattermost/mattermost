@@ -9815,10 +9815,6 @@
     "translation": "Verwende ein Projekt, um die Sprint-Planung zum Kinderspiel zu machen. Der Kanal sorgt dafür, dass die Unterhaltungen und Fragen fokussiert bleiben. Der Sprintplan hält alle Beteiligten auf dem Laufenden, und das Retrospektive Board bringt das Team zusammen, um sich kontinuierlich zu verbessern."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Beschreibung, warum der/die Kanal/Kanäle benötigt werden"
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
   },

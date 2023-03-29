@@ -15,7 +15,6 @@ func init() {
 	registerWorkTemplate("product_teams/goals_and_okrs:v1", wt5baa68055bf9ea423273662e01ccc575)
 	registerWorkTemplate("product_teams/bug_bash:v1", wtfeb56bc6a8f277c47b503bd1c92d830e)
 	registerWorkTemplate("product_teams/sprint_planning:v1", wt8d2ef53deac5517eb349dc5de6150196)
-	registerWorkTemplate("product_teams/product_roadmap:v1", wt00ab91a945627f4a624957dd80490bb2)
 	registerWorkTemplate("devops/incident_resolution:v1", wtce19b9352a59d6a5d26f292d83e84377)
 	registerWorkTemplate("devops/product_release:v1", wt37406285a41c18bcdeb881189f7acde0)
 	registerWorkTemplate("companywide/goals_and_okrs:v1", wtf7b846d35810f8272eeb9a1a562025b5)
@@ -39,7 +38,6 @@ func init() {
 	_ = T("worktemplate.product_teams.bug_bash.integration")
 	_ = T("worktemplate.product_teams.sprint_planning.channel")
 	_ = T("worktemplate.product_teams.sprint_planning.integration")
-	_ = T("worktemplate.product_teams.product_roadmap.channel")
 	_ = T("worktemplate.devops.incident_resolution.description.channel")
 	_ = T("worktemplate.devops.incident_resolution.description.playbook")
 	_ = T("worktemplate.devops.product_release.channel")
@@ -250,33 +248,6 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 		{
 			Integration: &Integration{
 				ID: "zoom",
-			},
-		},
-	},
-}
-
-var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
-	ID:           "product_teams/product_roadmap:v1",
-	Category:     "product_teams",
-	UseCase:      "Create a product roadmap",
-	Illustration: "/static/worktemplates/product_teams/product_roadmap/product_roadmap.png",
-	Visibility:   "public",
-
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.product_teams.product_roadmap.channel",
-			DefaultMessage: "Description of why the channel(s) are needed",
-			Illustration:   "",
-		},
-	},
-	Content: []Content{
-		{
-			Channel: &Channel{
-				ID:           "channel-1674851139450",
-				Name:         "Product Roadmap",
-				Purpose:      "",
-				Playbook:     "",
-				Illustration: "/static/worktemplates/product_teams/product_roadmap/channel.png",
 			},
 		},
 	},

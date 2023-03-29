@@ -9752,10 +9752,6 @@
     "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "チャンネルが必要な理由について"
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
   },
