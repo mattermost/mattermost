@@ -65,7 +65,7 @@ const useGetTaskDetails = () => {
             svg: Newspaper,
             message: formatMessage({
                 id: 'onboardingTask.checklist.task_create_from_work_template',
-                defaultMessage: 'Create from a template - set up a channel with linked boards and playbooks.',
+                defaultMessage: 'Start from a template',
             }),
         },
         [OnboardingTasksName.CHANNELS_TOUR]: {
