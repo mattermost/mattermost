@@ -112,6 +112,9 @@ const CompletedWrapper = styled.div`
         display: inline-block;
         min-width: fit-content;
         margin-top: 18px;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 20px;
         &:hover {
             text-decoration: underline;
         }
