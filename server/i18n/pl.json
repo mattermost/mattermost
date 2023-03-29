@@ -9676,10 +9676,6 @@
     "translation": "Czatuj ze swoim zespołem na kanale Feature Release, który łatwo łączy się z tablicami, playbookami i botami aplikacji."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Użyj naszego szablonu tablicy Meeting Agenda do powtarzających się spotkań, takich jak standup, oraz naszej tablicy Project Tasks do zarządzania postępem zadań w trakcie."
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "Zespoły Produkcyjne"
   },
@@ -9780,19 +9776,11 @@
     "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
     "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
   },
   {
@@ -9804,19 +9792,11 @@
     "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
   },
   {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
     "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
     "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
   },
   {
@@ -9828,19 +9808,11 @@
     "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
     "id": "worktemplate.companywide.create_project.integration",
     "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
   },
   {
     "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
     "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
   },
   {
@@ -9920,16 +9892,8 @@
     "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
-  },
-  {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Opis, dlaczego kanał(y) jest(są) potrzebny(e)"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Opis powodów, dla których tablica(e) jest(są) potrzebna(e)"
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
@@ -9937,10 +9901,6 @@
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
   },
   {

@@ -9667,10 +9667,6 @@
     "translation": "Chatten mit deinem Team in einem Feature-Release-Kanal, der sich problemlos mit deinen Boards, Playbooks und App-Bots verbinden lässt."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Verwende unsere Vorlage für die Besprechungsagenda für wiederkehrende Besprechungen wie z. B. Standup-Meetings und unsere Projektaufgabentafel, um den Fortschritt der Aufgaben zu verwalten."
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "Produkt-Teams"
   },
@@ -9819,16 +9815,8 @@
     "translation": "Verwende ein Projekt, um die Sprint-Planung zum Kinderspiel zu machen. Der Kanal sorgt dafür, dass die Unterhaltungen und Fragen fokussiert bleiben. Der Sprintplan hält alle Beteiligten auf dem Laufenden, und das Retrospektive Board bringt das Team zusammen, um sich kontinuierlich zu verbessern."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Verwende ein Projekt, um die Sprint-Planung zum Kinderspiel zu machen. Der Kanal sorgt dafür, dass die Unterhaltungen und Fragen fokussiert bleiben. Der Sprintplan hält alle Beteiligten auf dem Laufenden, und das Retrospektive Board bringt das Team zusammen, um sich kontinuierlich zu verbessern."
-  },
-  {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Beschreibung, warum der/die Kanal/Kanäle benötigt werden"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Beschreibung, warum das/die Board(s) benötigt werden"
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
@@ -9836,10 +9824,6 @@
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
   },
   {
@@ -9855,19 +9839,11 @@
     "translation": "Organisiere dich und beseitige alle Bugs mit   diesem Projekt! Bauen eine Dynamik auf und messe den Fortschritt mit dem zugeordneten Playbook, Board und Kanal."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Organisiere dich und beseitige alle Bugs mit   diesem Projekt! Bauen eine Dynamik auf und messe den Fortschritt mit dem zugeordneten Playbook, Board und Kanal."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
     "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
   },
   {
@@ -9879,19 +9855,11 @@
     "translation": "Verpasse mit diesem Projekt keinen Schritt während einer Produktfreigabe. Weise Aufgaben aus der Playbook-Checkliste zu und setze Meilensteine mit dem Board. Verwende Kanäle, um alle auf dem gleichen Stand zu halten."
   },
   {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Verpasse mit diesem Projekt keinen Schritt während einer Produktfreigabe. Weise Aufgaben aus der Playbook-Checkliste zu und setze Meilensteine mit dem Board. Verwende Kanäle, um alle auf dem gleichen Stand zu halten."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
     "translation": "Wenn alles schief läuft, ist ein wiederholbarer Prozess der Schlüssel, um sicherzustellen, dass alles so schnell wie möglich in Ordnung gebracht wird. Dieses Projekt kombiniert alles, was Mattermost bietet, um sicherzustellen, dass die Probleme gelöst und die Beteiligten auf dem Weg dahin informiert werden."
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Wenn alles schief läuft, ist ein wiederholbarer Prozess der Schlüssel, um sicherzustellen, dass alles so schnell wie möglich in Ordnung gebracht wird. Dieses Projekt kombiniert alles, was Mattermost bietet, um sicherzustellen, dass die Probleme gelöst und die Beteiligten auf dem Weg dahin informiert werden."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
     "translation": "Wenn alles schief läuft, ist ein wiederholbarer Prozess der Schlüssel, um sicherzustellen, dass alles so schnell wie möglich in Ordnung gebracht wird. Dieses Projekt kombiniert alles, was Mattermost bietet, um sicherzustellen, dass die Probleme gelöst und die Beteiligten auf dem Weg dahin informiert werden."
   },
   {
@@ -9903,20 +9871,12 @@
     "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Ein klarer Fokus ist für den Teamerfolg unerlässlich. Mit diesem Projekt kannst du die Ziele und OKRs des Teams dokumentieren und Aktualisierungen in den entsprechenden Kanal einstellen."
-  },
-  {
     "id": "worktemplate.companywide.create_project.integration",
     "translation": "Plane eine Roadmap mit diesem Projekt-Board und arbeite gemeinsam in dem mit dieser Vorlage erstellten Kanal an einem Thema."
   },
   {
     "id": "worktemplate.companywide.create_project.channel",
     "translation": "Plane eine Roadmap mit diesem Projekt-Board und arbeite im Team in dem mit dieser Vorlage erstellten Kanal an einem Thema."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Plane mit diesem Projektboard eine Roadmap und arbeite in dem mit dieser Vorlage erstellten Kanal an einem Thema."
   },
   {
     "id": "worktemplate.category.leadership",

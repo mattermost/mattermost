@@ -9567,10 +9567,6 @@
     "translation": "Chat met je team in een Feature Release-kanaal dat gemakkelijk verbinding maakt met je boards, playbooks en app bots."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Gebruik ons vergaderagenda-bord voor terugkerende vergaderingen zoals stand-up en ons Projecttakenbord om de voortgang van taken onderweg te beheren."
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "Productteams"
   },
@@ -9775,15 +9771,7 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
     "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
   },
   {
@@ -9797,10 +9785,6 @@
   {
     "id": "worktemplate.devops.product_release.channel",
     "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op één lijn te houden."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op dezelfde lijn te houden."
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
@@ -9819,15 +9803,7 @@
     "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
     "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
     "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
   },
   {
@@ -9919,20 +9895,8 @@
     "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
   },
   {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Alleen beschikbaar in Mattermost Enterprise editie"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.channel",
@@ -9945,10 +9909,6 @@
   {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Beschrijving van waarom het kanaal of de kanalen nodig zijn"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Beschrijving van waarom het bord of de borden nodig zijn"
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",

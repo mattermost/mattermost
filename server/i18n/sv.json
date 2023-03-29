@@ -9595,10 +9595,6 @@
     "translation": "Chatta med ditt team i kanalen för kommande leveranser, som enkelt kan anslutas till dina tavlor, playbooks och app-bottar."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Använd vår mall för mötesagenda för återkommande möten exempelvis standup och vår Projekt-board för projektuppgifter och att hantera uppgifternas framskridande."
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "Produkt-team"
   },
@@ -9835,16 +9831,8 @@
     "translation": "Använd ett projekt för att göra sprintplaneringen enkel. Kanalen håller konversationen och frågorna fokuserade. Sprintplanen håller alla på uppgiften för veckan och retrospektivtavlan samlar teamet för att kontinuerligt förbättra sig."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Använd ett projekt för att göra sprintplaneringen enkel. Kanalen håller konversationen och frågorna fokuserade. Sprintplanen håller alla på uppgiften för veckan och retrospektivtavlan samlar teamet för att kontinuerligt förbättra sig."
-  },
-  {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Beskrivning av varför kanalen/kanalerna behövs"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Beskrivning av varför tavlan/tavlorna behövs"
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
@@ -9852,10 +9840,6 @@
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
   },
   {
@@ -9871,19 +9855,11 @@
     "translation": "Bli organiserad och kläm åt alla buggar med det här projektet! Skapa framdrift och mät framstegen med hjälp av den medföljande Playbook, Board och Channel."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Bli organiserad och kläm åt alla buggar med det här projektet! Skapa framdrift och mät framstegen med hjälp av den medföljande Playbook, Board och Channel."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
     "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
   },
   {
@@ -9895,10 +9871,6 @@
     "translation": "Med det här projektet kan du inte missa något steg under en produktlansering. Tilldela uppgifter från checklistan i Playbook och uppnå milstolpar med Board. Använd Channel för att se till att alla har samma information."
   },
   {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Med det här projektet kan du inte missa något steg under en produktlansering. Tilldela uppgifter från checklistan i Playbook och uppnå milstolpar med Board. Använd Channel för att se till att alla har samma information."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
     "translation": "När saker är på väg att gå fel är en återupprepningsbar process en nyckel för att kunna rätta till så snabbt som möjligt. Det här projektet kombinerar allt som Mattermost erbjuder för att se till att bränderna släcks och att intressenterna informeras på vägen."
   },
@@ -9907,20 +9879,8 @@
     "translation": "När saker är på väg att gå fel är en återupprepningsbar process en nyckel för att kunna rätta till så snabbt som möjligt. Det här projektet kombinerar allt som Mattermost erbjuder för att se till att bränderna släcks och att intressenterna informeras på vägen."
   },
   {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "När saker är på väg att gå fel är en återupprepningsbar process en nyckel för att kunna rätta till så snabbt som möjligt. Det här projektet kombinerar allt som Mattermost erbjuder för att se till att bränderna släcks och att intressenterna informeras på vägen."
-  },
-  {
     "id": "worktemplate.companywide.goals_and_okrs.integration",
     "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Planera en roadmap med hjälp av projekttavlan och samarbeta i ämnet i kanalen som skapats från den här mallen."
   },
   {
     "id": "worktemplate.companywide.create_project.channel",
