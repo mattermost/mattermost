@@ -163,7 +163,6 @@ type ServiceInterface interface {
 	InitEmailBatching()
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
-	SendLicenseInactivityEmail(email, name, locale, siteURL string) error
 	Stop()
 }
 

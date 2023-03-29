@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	rudderKey                  = "placeholder_rudder_key"
+	rudderKey                  = "placeholder_boards_rudder_key"
 	rudderDataplaneURL         = "placeholder_rudder_dataplane_url"
 	timeBetweenTelemetryChecks = 10 * time.Minute
 )
