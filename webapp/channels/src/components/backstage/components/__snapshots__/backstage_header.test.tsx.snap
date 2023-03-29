@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/backstage/components/BackstageHeader should match snapshot with children 1`] = `
+<div
+  className="backstage-header"
+>
+  <h1>
+    <div>
+      Child 1
+    </div>
+    <span
+      className="backstage-header__divider"
+      key="divider1"
+    >
+      <LocalizedIcon
+        className="fa fa-angle-right"
+        title={
+          Object {
+            "defaultMessage": "Breadcrumb Icon",
+            "id": "generic_icons.breadcrumb",
+          }
+        }
+      />
+    </span>
+    <div>
+      Child 2
+    </div>
+  </h1>
+</div>
+`;
+
+exports[`components/backstage/components/BackstageHeader should match snapshot without children 1`] = `
+<div
+  className="backstage-header"
+>
+  <h1 />
+</div>
+`;

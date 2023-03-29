@@ -1,0 +1,45 @@
+@import 'src/styles/z-index';
+
+.NotificationBox {
+    @include z-index(notification-box);
+    position: fixed;
+    bottom: 52px;
+    right: 32px;
+    border-radius: 4px;
+    background: rgb(var(--center-channel-bg-rgb));
+    box-shadow: rgba(var(--center-channel-color-rgb), 0.1) 0 0 0 1px,
+        rgba(var(--center-channel-color-rgb), 0.1) 0 2px 4px;
+    display: flex;
+    padding: 22px;
+    width: 400px;
+
+    .NotificationBox__icon {
+        margin-right: 10px;
+    }
+
+    .content {
+        font-size: 14px;
+        font-weight: 400;
+
+        .title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 0;
+            line-height: 25px;
+        }
+    }
+
+    .IconButton {
+        margin-left: auto;
+    }
+
+    .octo-tooltip {
+        font-size: 12px;
+        font-weight: 600;
+
+        .IconButton {
+            font-size: 14px;
+            font-weight: 400;
+        }
+    }
+}

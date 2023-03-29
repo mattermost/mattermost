@@ -1,0 +1,632 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/display/CustomThemeChooser should match, init 1`] = `
+<div
+  className="appearance-section pt-2"
+>
+  <div
+    className="theme-elements row"
+  >
+    <div
+      className="theme-elements__header"
+      id="sidebarStyles"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Sidebar Styles"
+        id="user.settings.custom_theme.sidebarTitle"
+      />
+      <div
+        className="header__icon"
+      >
+        <LocalizedIcon
+          className="fa fa-plus"
+          title={
+            Object {
+              "defaultMessage": "Expand Icon",
+              "id": "generic_icons.expand",
+            }
+          }
+        />
+        <LocalizedIcon
+          className="fa fa-minus"
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="theme-elements__body"
+    >
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key0"
+      >
+        <ColorChooser
+          id="sidebarBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar BG"
+              id="user.settings.custom_theme.sidebarBg"
+            />
+          }
+          onChange={[Function]}
+          value="#1e325c"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key1"
+      >
+        <ColorChooser
+          id="sidebarText"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Text"
+              id="user.settings.custom_theme.sidebarText"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key2"
+      >
+        <ColorChooser
+          id="sidebarHeaderBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Header BG"
+              id="user.settings.custom_theme.sidebarHeaderBg"
+            />
+          }
+          onChange={[Function]}
+          value="#192a4d"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key3"
+      >
+        <ColorChooser
+          id="sidebarTeamBarBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Team Sidebar BG"
+              id="user.settings.custom_theme.sidebarTeamBarBg"
+            />
+          }
+          onChange={[Function]}
+          value="#14213e"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key4"
+      >
+        <ColorChooser
+          id="sidebarHeaderTextColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Header Text"
+              id="user.settings.custom_theme.sidebarHeaderTextColor"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key5"
+      >
+        <ColorChooser
+          id="sidebarUnreadText"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Unread Text"
+              id="user.settings.custom_theme.sidebarUnreadText"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key6"
+      >
+        <ColorChooser
+          id="sidebarTextHoverBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Text Hover BG"
+              id="user.settings.custom_theme.sidebarTextHoverBg"
+            />
+          }
+          onChange={[Function]}
+          value="#28427b"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key7"
+      >
+        <ColorChooser
+          id="sidebarTextActiveBorder"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Text Active Border"
+              id="user.settings.custom_theme.sidebarTextActiveBorder"
+            />
+          }
+          onChange={[Function]}
+          value="#5d89ea"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key8"
+      >
+        <ColorChooser
+          id="sidebarTextActiveColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Sidebar Text Active Color"
+              id="user.settings.custom_theme.sidebarTextActiveColor"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key9"
+      >
+        <ColorChooser
+          id="onlineIndicator"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Online Indicator"
+              id="user.settings.custom_theme.onlineIndicator"
+            />
+          }
+          onChange={[Function]}
+          value="#3db887"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key10"
+      >
+        <ColorChooser
+          id="awayIndicator"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Away Indicator"
+              id="user.settings.custom_theme.awayIndicator"
+            />
+          }
+          onChange={[Function]}
+          value="#ffbc1f"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key11"
+      >
+        <ColorChooser
+          id="dndIndicator"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Do Not Disturb Indicator"
+              id="user.settings.custom_theme.dndIndicator"
+            />
+          }
+          onChange={[Function]}
+          value="#d24b4e"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key12"
+      >
+        <ColorChooser
+          id="mentionBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Mention Jewel BG"
+              id="user.settings.custom_theme.mentionBg"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key13"
+      >
+        <ColorChooser
+          id="mentionColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Mention Jewel Text"
+              id="user.settings.custom_theme.mentionColor"
+            />
+          }
+          onChange={[Function]}
+          value="#1e325c"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    className="theme-elements row"
+  >
+    <div
+      className="theme-elements__header"
+      id="centerChannelStyles"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Center Channel Styles"
+        id="user.settings.custom_theme.centerChannelTitle"
+      />
+      <div
+        className="header__icon"
+      >
+        <LocalizedIcon
+          className="fa fa-plus"
+          title={
+            Object {
+              "defaultMessage": "Expand Icon",
+              "id": "generic_icons.expand",
+            }
+          }
+        />
+        <LocalizedIcon
+          className="fa fa-minus"
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="theme-elements__body"
+      id="centerChannelStyles"
+    >
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key14"
+      >
+        <ColorChooser
+          id="centerChannelBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Center Channel BG"
+              id="user.settings.custom_theme.centerChannelBg"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key15"
+      >
+        <ColorChooser
+          id="centerChannelColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Center Channel Text"
+              id="user.settings.custom_theme.centerChannelColor"
+            />
+          }
+          onChange={[Function]}
+          value="#3f4350"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key16"
+      >
+        <ColorChooser
+          id="newMessageSeparator"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="New Message Separator"
+              id="user.settings.custom_theme.newMessageSeparator"
+            />
+          }
+          onChange={[Function]}
+          value="#cc8f00"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key17"
+      >
+        <ColorChooser
+          id="errorTextColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Error Text Color"
+              id="user.settings.custom_theme.errorTextColor"
+            />
+          }
+          onChange={[Function]}
+          value="#d24b4e"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key18"
+      >
+        <ColorChooser
+          id="mentionHighlightBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Mention Highlight BG"
+              id="user.settings.custom_theme.mentionHighlightBg"
+            />
+          }
+          onChange={[Function]}
+          value="#ffd470"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key20"
+      >
+        <ColorChooser
+          id="mentionHighlightLink"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Mention Highlight Link"
+              id="user.settings.custom_theme.mentionHighlightLink"
+            />
+          }
+          onChange={[Function]}
+          value="#1b1d22"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group"
+        key="custom-theme-key23"
+      >
+        <label
+          className="custom-label"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Code Theme"
+            id="user.settings.custom_theme.codeTheme"
+          />
+        </label>
+        <div
+          className="input-group theme-group group--code dropdown"
+          id="codeTheme"
+        >
+          <select
+            className="form-control"
+            defaultValue="github"
+            id="codeThemeSelect"
+            onChange={[Function]}
+          >
+            <option
+              key="code-theme-key0"
+              value="solarized-dark"
+            >
+              Solarized Dark
+            </option>
+            <option
+              key="code-theme-key1"
+              value="solarized-light"
+            >
+              Solarized Light
+            </option>
+            <option
+              key="code-theme-key2"
+              value="github"
+            >
+              GitHub
+            </option>
+            <option
+              key="code-theme-key3"
+              value="monokai"
+            >
+              Monokai
+            </option>
+          </select>
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            overlay={
+              <Popover
+                className="code-popover"
+                id="code-popover"
+                placement="right"
+                popoverSize="sm"
+                popoverStyle="info"
+              >
+                <img
+                  alt="code theme image"
+                  src={null}
+                  width="200"
+                />
+              </Popover>
+            }
+            placement="top"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <span
+              className="input-group-addon"
+            >
+              <img
+                alt="code theme image"
+                src={null}
+              />
+            </span>
+          </OverlayTrigger>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    className="theme-elements row"
+  >
+    <div
+      className="theme-elements__header"
+      id="linkAndButtonsStyles"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Link and Button Styles"
+        id="user.settings.custom_theme.linkButtonTitle"
+      />
+      <div
+        className="header__icon"
+      >
+        <LocalizedIcon
+          className="fa fa-plus"
+          title={
+            Object {
+              "defaultMessage": "Expand Icon",
+              "id": "generic_icons.expand",
+            }
+          }
+        />
+        <LocalizedIcon
+          className="fa fa-minus"
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="theme-elements__body"
+    >
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key19"
+      >
+        <ColorChooser
+          id="linkColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Link Color"
+              id="user.settings.custom_theme.linkColor"
+            />
+          }
+          onChange={[Function]}
+          value="#386fe5"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key21"
+      >
+        <ColorChooser
+          id="buttonBg"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Button BG"
+              id="user.settings.custom_theme.buttonBg"
+            />
+          }
+          onChange={[Function]}
+          value="#1c58d9"
+        />
+      </div>
+      <div
+        className="col-sm-6 form-group element"
+        key="custom-theme-key22"
+      >
+        <ColorChooser
+          id="buttonColor"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Button Text"
+              id="user.settings.custom_theme.buttonColor"
+            />
+          }
+          onChange={[Function]}
+          value="#ffffff"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    className="row mt-3"
+  >
+    <div
+      className="col-sm-12"
+    >
+      <label
+        className="custom-label"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Copy to share or paste theme colors here:"
+          id="user.settings.custom_theme.copyPaste"
+        />
+      </label>
+      <textarea
+        className="form-control"
+        id="pasteBox"
+        onChange={[Function]}
+        onClick={[Function]}
+        onCopy={[Function]}
+        onPaste={[Function]}
+        value="{\\"sidebarBg\\":\\"#1e325c\\",\\"sidebarText\\":\\"#ffffff\\",\\"sidebarUnreadText\\":\\"#ffffff\\",\\"sidebarTextHoverBg\\":\\"#28427b\\",\\"sidebarTextActiveBorder\\":\\"#5d89ea\\",\\"sidebarTextActiveColor\\":\\"#ffffff\\",\\"sidebarHeaderBg\\":\\"#192a4d\\",\\"sidebarHeaderTextColor\\":\\"#ffffff\\",\\"sidebarTeamBarBg\\":\\"#14213e\\",\\"onlineIndicator\\":\\"#3db887\\",\\"awayIndicator\\":\\"#ffbc1f\\",\\"dndIndicator\\":\\"#d24b4e\\",\\"mentionBg\\":\\"#ffffff\\",\\"mentionBj\\":\\"#ffffff\\",\\"mentionColor\\":\\"#1e325c\\",\\"centerChannelBg\\":\\"#ffffff\\",\\"centerChannelColor\\":\\"#3f4350\\",\\"newMessageSeparator\\":\\"#cc8f00\\",\\"linkColor\\":\\"#386fe5\\",\\"buttonBg\\":\\"#1c58d9\\",\\"buttonColor\\":\\"#ffffff\\",\\"errorTextColor\\":\\"#d24b4e\\",\\"mentionHighlightBg\\":\\"#ffd470\\",\\"mentionHighlightLink\\":\\"#1b1d22\\",\\"codeTheme\\":\\"github\\"}"
+      />
+      <div
+        className="mt-3"
+      >
+        <button
+          className="btn btn-link copy-theme-button"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Copy Theme Colors"
+            id="user.settings.custom_theme.copyThemeColors"
+          />
+        </button>
+        <span
+          className="alert alert-success copy-theme-success"
+          role="alert"
+          style={
+            Object {
+              "display": "none",
+            }
+          }
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="✔ Copied"
+            id="user.settings.custom_theme.copied"
+          />
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;

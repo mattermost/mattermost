@@ -18,9 +18,9 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
 type supervisor struct {
@@ -59,9 +59,13 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		".",
 		pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH),
 	))
+	if executable == "" {
+		return nil, fmt.Errorf("backend executable not found for environment %s/%s", runtime.GOOS, runtime.GOARCH)
+	}
 	if strings.HasPrefix(executable, "..") {
 		return nil, fmt.Errorf("invalid backend executable")
 	}
+
 	executable = filepath.Join(pluginInfo.Path, executable)
 
 	cmd := exec.Command(executable)
@@ -71,7 +75,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	// https://mattermost.atlassian.net/browse/MM-49167
 	pluginChecksum, err := getPluginExecutableChecksum(executable)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to generate a checksum for the plugin %s", pluginInfo.Path)
+		return nil, errors.Wrapf(err, "unable to generate plugin checksum")
 	}
 
 	sup.client = plugin.NewClient(&plugin.ClientConfig{

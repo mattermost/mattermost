@@ -1,0 +1,158 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/UserProfile should match snapshot 1`] = `
+<Fragment>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    overlay={
+      <Memo(Connect(injectIntl(ProfilePopover)))
+        className="user-profile-popover"
+        hasMention={false}
+        hide={[Function]}
+        hideStatus={false}
+        isBusy={false}
+        isRHS={false}
+        overwriteName=""
+        src="/api/v4/users/undefined/image?_=0"
+        userId="user_id"
+      />
+    }
+    placement="right"
+    rootClose={true}
+    trigger={
+      Array [
+        "click",
+      ]
+    }
+  >
+    <button
+      aria-label="nickname"
+      className="user-popover style--none"
+    >
+      nickname
+    </button>
+  </OverlayTrigger>
+</Fragment>
+`;
+
+exports[`components/UserProfile should match snapshot, when displayUsername is enabled 1`] = `
+<Fragment>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    overlay={
+      <Memo(Connect(injectIntl(ProfilePopover)))
+        className="user-profile-popover"
+        hasMention={false}
+        hide={[Function]}
+        hideStatus={false}
+        isBusy={false}
+        isRHS={false}
+        overwriteName=""
+        src="/api/v4/users/undefined/image?_=0"
+        userId="user_id"
+      />
+    }
+    placement="right"
+    rootClose={true}
+    trigger={
+      Array [
+        "click",
+      ]
+    }
+  >
+    <button
+      aria-label="@username"
+      className="user-popover style--none"
+    >
+      @username
+    </button>
+  </OverlayTrigger>
+</Fragment>
+`;
+
+exports[`components/UserProfile should match snapshot, when popover is disabled 1`] = `
+<div
+  className="user-popover"
+>
+  nickname
+</div>
+`;
+
+exports[`components/UserProfile should match snapshot, when user is shared 1`] = `
+<Fragment>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    overlay={
+      <Memo(Connect(injectIntl(ProfilePopover)))
+        className="user-profile-popover"
+        hasMention={false}
+        hide={[Function]}
+        hideStatus={false}
+        isBusy={false}
+        isRHS={false}
+        overwriteName=""
+        src="/api/v4/users/undefined/image?_=0"
+        userId="user_id"
+      />
+    }
+    placement="right"
+    rootClose={true}
+    trigger={
+      Array [
+        "click",
+      ]
+    }
+  >
+    <button
+      aria-label="nickname"
+      className="user-popover style--none"
+    >
+      nickname
+    </button>
+  </OverlayTrigger>
+  <SharedUserIndicator
+    className="shared-user-icon"
+    withTooltip={true}
+  />
+</Fragment>
+`;
+
+exports[`components/UserProfile should match snapshot, with colorization 1`] = `
+<Fragment>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    overlay={
+      <Memo(Connect(injectIntl(ProfilePopover)))
+        className="user-profile-popover"
+        hasMention={false}
+        hide={[Function]}
+        hideStatus={false}
+        isBusy={false}
+        isRHS={false}
+        overwriteName=""
+        src="/api/v4/users/undefined/image?_=0"
+        userId="user_id"
+      />
+    }
+    placement="right"
+    rootClose={true}
+    trigger={
+      Array [
+        "click",
+      ]
+    }
+  >
+    <button
+      aria-label="nickname"
+      className="user-popover style--none"
+      style={
+        Object {
+          "color": "#000000",
+        }
+      }
+    >
+      nickname
+    </button>
+  </OverlayTrigger>
+</Fragment>
+`;
