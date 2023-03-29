@@ -8,7 +8,7 @@ import {ServerError} from '@mattermost/types/errors';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Provider from './provider';
-import Suggestion from './suggestion.jsx';
+import Suggestion from 'components/suggestion/suggestion';
 
 export type Results = {
     matchedPretext: string;

@@ -54,7 +54,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import Provider from './provider';
-import Suggestion from './suggestion.jsx';
+import Suggestion from 'components/suggestion/suggestion';
 
 const getState = store.getState;
 const searchProfilesMatchingWithTerm = makeSearchProfilesMatchingWithTerm();

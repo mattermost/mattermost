@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactNode} from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl, IntlShape, WrappedComponentProps} from 'react-intl';
 
 import classNames from 'classnames';
 
@@ -18,7 +18,7 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import StatusIcon from 'components/status_icon';
 
-import Suggestion from '../suggestion.jsx';
+import Suggestion, {SuggestionProps} from 'components/suggestion/suggestion';
 
 import {UserProfile} from '@mattermost/types/users';
 
@@ -32,8 +32,12 @@ interface Item extends UserProfile {
 interface Group extends Item {
     member_count: number;
 }
+type Props = {
+    intl: IntlShape;
+}
 
-class AtMentionSuggestion extends Suggestion {
+type AtMentionSuggestionProps<P, T = Item> = P & SuggestionProps<T>
+class AtMentionSuggestion extends Suggestion<Props, Group> {
     render() {
         const {intl} = this.props;
         const {isSelection, item} = this.props;
@@ -163,7 +167,7 @@ class AtMentionSuggestion extends Suggestion {
                                 id='suggestion.group.members'
                                 defaultMessage='{member_count} {member_count, plural, one {member} other {members}}'
                                 values={{
-                                    member_count: (item as Group).member_count,
+                                    member_count: item.member_count,
                                 }}
                             />
                         }
@@ -198,4 +202,4 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
-export default injectIntl(AtMentionSuggestion);
+export default injectIntl<'intl', WrappedComponentProps<'intl'> & AtMentionSuggestionProps<Props, Group>>(AtMentionSuggestion);

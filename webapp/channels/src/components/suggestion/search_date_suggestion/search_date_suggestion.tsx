@@ -7,7 +7,7 @@ import {DayPicker} from 'react-day-picker';
 
 import type {Locale} from 'date-fns';
 
-import Suggestion from '../suggestion.jsx';
+import Suggestion from 'components/suggestion/suggestion';
 
 import * as Utils from 'utils/utils';
 import Constants from 'utils/constants';

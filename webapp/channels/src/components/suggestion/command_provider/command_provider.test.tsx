@@ -24,6 +24,8 @@ describe('CommandSuggestion', () => {
         isSelection: true,
         term: '/',
         matchedPretext: '',
+        onClick: () => jest.fn(),
+        onMouseMove: () => jest.fn(),
     };
 
     test('should match snapshot', () => {

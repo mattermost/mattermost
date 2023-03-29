@@ -34,6 +34,9 @@ describe('at mention suggestion', () => {
                 item={userid1}
                 matchedPretext='@'
                 term='@user'
+                onClick={() => jest.fn()}
+                onMouseMove={() => jest.fn()}
+                isSelection={false}
             />,
         );
 
@@ -49,6 +52,9 @@ describe('at mention suggestion', () => {
                 item={userid2}
                 matchedPretext='@'
                 term='@user'
+                onClick={() => jest.fn()}
+                onMouseMove={() => jest.fn()}
+                isSelection={false}
             />,
         );
 

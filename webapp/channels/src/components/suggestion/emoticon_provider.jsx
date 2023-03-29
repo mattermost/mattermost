@@ -15,7 +15,7 @@ import store from 'stores/redux_store.jsx';
 import * as Emoticons from 'utils/emoticons';
 import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
 
-import Suggestion from './suggestion.jsx';
+import Suggestion from 'components/suggestion/suggestion';
 import Provider from './provider';
 
 export const MIN_EMOTICON_LENGTH = 2;
