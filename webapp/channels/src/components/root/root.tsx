@@ -366,11 +366,11 @@ export default class Root extends React.PureComponent<Props, State> {
             return;
         }
 
-        // const firstAdminSetupComplete = await this.props.actions.getFirstAdminSetupComplete();
-        // if (firstAdminSetupComplete?.data) {
-        //     GlobalActions.redirectUserToDefaultTeam();
-        //     return;
-        // }
+        const firstAdminSetupComplete = await this.props.actions.getFirstAdminSetupComplete();
+        if (firstAdminSetupComplete?.data) {
+            GlobalActions.redirectUserToDefaultTeam();
+            return;
+        }
 
         const profilesResult = await this.props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
         if (profilesResult.error) {

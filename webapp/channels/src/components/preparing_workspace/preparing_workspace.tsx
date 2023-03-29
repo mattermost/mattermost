@@ -5,6 +5,7 @@ import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RouterProps} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {CSSTransition} from 'react-transition-group';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
@@ -37,6 +38,7 @@ import {
     mapStepToSubmitFail,
     PLUGIN_NAME_TO_ID_MAP,
     mapStepToPrevious,
+    mapAnimationReasonToClass,
 } from './steps';
 
 import Organization from './organization';
@@ -330,6 +332,15 @@ const PreparingWorkspace = (props: Props) => {
         });
     }, [form]);
 
+    const getInviteMembersAnimationClass = useCallback(() => {
+        if (currentStep === WizardSteps.InviteMembers) {
+            return 'enter';
+        } else if (mostRecentStep === WizardSteps.InviteMembers) {
+            return 'exit';
+        }
+        return '';
+    }, [currentStep]);
+
     let previous: React.ReactNode = (
         <div
             onClick={goPrevious}
@@ -364,11 +375,6 @@ const PreparingWorkspace = (props: Props) => {
             <div className='PreparingWorkspace__logo'>
                 <LogoSvg/>
             </div>
-            {currentStep === WizardSteps.InviteMembers && (
-                <div style={{display: 'flex', position: 'absolute', flexDirection: 'row-reverse', alignItems: 'center', width: '100%', height: '100%'}}>
-                    <InviteMembersIllustration/>
-                </div>
-            )}
             <Progress
                 step={currentStep}
                 stepOrder={stepOrder}
@@ -448,6 +454,9 @@ const PreparingWorkspace = (props: Props) => {
                     show={currentStep === WizardSteps.LaunchingWorkspace}
                     transitionDirection={getTransitionDirection(WizardSteps.LaunchingWorkspace)}
                 />
+            </div>
+            <div className={`PreparingWorkspace__invite-members-illustration ${getInviteMembersAnimationClass()}`}>
+                <InviteMembersIllustration/>
             </div>
         </div>
     );

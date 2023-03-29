@@ -70,6 +70,41 @@
         position: absolute;
         height: 100vh;
     }
+
+    &__invite-members-illustration {
+        position: absolute;
+        right: -651px;
+        top: 25%;
+        animation-duration: 0.3s;
+        animation-timing-function: ease-in-out;
+        animation-fill-mode: forwards;
+    }
+}
+
+.enter {
+    animation-name: slideInRight;
+}
+
+.exit {
+    animation-name: slideOutRight;
+}
+
+@keyframes slideInRight {
+    from {
+        right: -651px;
+    }
+    to {
+        right: 0;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        right: 0;
+    }
+    to {
+        right: -651px;
+    }
 }
 
 .PreparingWorkspacePageContainer {

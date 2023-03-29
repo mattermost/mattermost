@@ -12,8 +12,9 @@ import Description from './description';
 import PageBody from './page_body';
 import SingleColumnLayout from './single_column_layout';
 
-import './invite_members.scss';
 import InviteMembersLink from './invite_members_link';
+import PageLine from './page_line';
+import './invite_members.scss';
 
 type Props = PreparingWorkspacePageProps & {
     disableEdits: boolean;
@@ -63,6 +64,14 @@ const InviteMembers = (props: Props) => {
         >
             <div className={className}>
                 <SingleColumnLayout style={{width: 547}}>
+                    <PageLine
+                        style={{
+                            marginBottom: '50px',
+                            marginLeft: '50px',
+                            height: 'calc(25vh)',
+                        }}
+                        noLeft={true}
+                    />
                     {props.previous}
                     <Title>
                         <FormattedMessage
@@ -88,6 +97,14 @@ const InviteMembers = (props: Props) => {
                             />
                         </button>
                     </div>
+                    <PageLine
+                        style={{
+                            marginTop: '50px',
+                            marginLeft: '50px',
+                            height: 'calc(25vh)',
+                        }}
+                        noLeft={true}
+                    />
                 </SingleColumnLayout>
             </div>
         </CSSTransition>
