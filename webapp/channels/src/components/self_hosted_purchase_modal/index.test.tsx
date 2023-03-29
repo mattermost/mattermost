@@ -310,6 +310,15 @@ describe('SelfHostedPurchaseModal :: canSubmit', () => {
             state: 'string',
             country: 'string',
             postalCode: '12345',
+
+            shippingSame: true,
+            shippingAddress: '',
+            shippingAddress2: '',
+            shippingCity: '',
+            shippingState: '',
+            shippingCountry: '',
+            shippingPostalCode: '',
+
             cardName: 'string',
             organization: 'string',
             agreedTerms: true,
@@ -361,6 +370,21 @@ describe('SelfHostedPurchaseModal :: canSubmit', () => {
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_CUSTOMER)).toBe(false);
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_INTENT)).toBe(false);
     });
+
+    it('if shipping address different and is not filled, can not submit', () => {
+        const state = makeHappyPathState();
+        state.shippingSame = false;
+        expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(false);
+
+        state.shippingAddress = 'more shipping info';
+        state.shippingAddress2 = 'more shipping info';
+        state.shippingCity = 'more shipping info';
+        state.shippingState = 'more shipping info';
+        state.shippingCountry = 'more shipping info';
+        state.shippingPostalCode = 'more shipping info';
+        expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(true);
+    });
+
     it('if card number missing and card has not been confirmed, can not submit', () => {
         const state = makeHappyPathState();
         state.cardFilled = false;
