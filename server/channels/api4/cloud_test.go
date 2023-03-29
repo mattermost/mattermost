@@ -20,6 +20,15 @@ func Test_getCloudLimits(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		cloud := &mocks.CloudInterface{}
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("Unable to get limits"))
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
 		th.App.Srv().RemoveLicense()
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -33,6 +42,15 @@ func Test_getCloudLimits(t *testing.T) {
 	t.Run("non cloud license returns not implemented", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		cloud := &mocks.CloudInterface{}
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("Unable to get limits"))
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
