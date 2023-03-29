@@ -7,7 +7,7 @@ on:
       - mono-repo*
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ github.ref != 'Web App CI-refs/heads/master' }}
 defaults:
   run:
     shell: bash
