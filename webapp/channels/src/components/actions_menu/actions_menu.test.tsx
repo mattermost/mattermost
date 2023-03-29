@@ -45,6 +45,7 @@ describe('components/actions_menu/ActionsMenu', () => {
         handleDismissTip: jest.fn(),
         showPulsatingDot: false,
         location: 'center',
+        canOpenMarketplace: false,
         actions: {
             openModal: jest.fn(),
             openAppsModal: jest.fn(),
@@ -62,27 +63,29 @@ describe('components/actions_menu/ActionsMenu', () => {
 
         wrapper.setProps({
             pluginMenuItems: dropdownComponents,
+            canOpenMarketplace: true,
         });
         expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(true);
     });
 
-    test('has actions - sysadmin - should show actions and app marketplace', () => {
+    test('has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace', () => {
         const wrapper = shallowWithIntl(
             <ActionsMenu {...baseProps}/>,
         );
         wrapper.setProps({
             pluginMenuItems: dropdownComponents,
+            canOpenMarketplace: true,
         });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('has actions - end user - should not show actions and app marketplace', () => {
+    test('has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace', () => {
         const wrapper = shallowWithIntl(
             <ActionsMenu {...baseProps}/>,
         );
         wrapper.setProps({
             pluginMenuItems: dropdownComponents,
-            isSysAdmin: false,
+            canOpenMarketplace: false,
         });
         expect(wrapper).toMatchSnapshot();
     });
@@ -91,6 +94,11 @@ describe('components/actions_menu/ActionsMenu', () => {
         const wrapper = shallowWithIntl(
             <ActionsMenu {...baseProps}/>,
         );
+
+        wrapper.setProps({
+            canOpenMarketplace: true,
+        });
+
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -116,6 +124,7 @@ describe('components/actions_menu/ActionsMenu', () => {
             components: {
                 [PLUGGABLE_COMPONENT]: dropdownComponents,
             },
+            canOpenMarketplace: true,
         });
         expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(true);
     });

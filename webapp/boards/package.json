@@ -45,7 +45,6 @@
 		"glob-parent": "6.0.2",
 		"lodash": "^4.17.21",
 		"marked": "^4.0.12",
-		"mattermost-redux": "5.33.1",
 		"mini-create-react-context": "^0.4.1",
 		"moment": "^2.29.1",
 		"nanoevents": "^5.1.13",
