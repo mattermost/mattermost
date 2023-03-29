@@ -12,6 +12,37 @@ import mockStore from 'tests/test_store';
 
 import RenewalLicenseCard from './renew_license_card';
 
+const initialState = {
+    views: {
+        announcementBar: {
+            announcementBarState: {
+                announcementBarCount: 1,
+            },
+        },
+    },
+    entities: {
+        general: {
+            config: {
+                CWSURL: '',
+            },
+            license: {
+                IsLicensed: 'true',
+                Cloud: 'true',
+            },
+        },
+        users: {
+            currentUserId: 'current_user_id',
+            profiles: {
+                current_user_id: {roles: 'system_user'},
+            },
+        },
+        preferences: {
+            myPreferences: {},
+        },
+        cloud: {},
+    },
+};
+
 const actImmediate = (wrapper: ReactWrapper) =>
     act(
         () =>
@@ -47,7 +78,7 @@ describe('components/RenewalLicenseCard', () => {
             });
         });
         getRenewalLinkSpy.mockImplementation(() => promise);
-        const store = mockStore({});
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(<Provider store={store}><RenewalLicenseCard {...props}/></Provider>);
 
         // wait for the promise to resolve and component to update
@@ -64,7 +95,7 @@ describe('components/RenewalLicenseCard', () => {
             reject(new Error('License cannot be renewed from portal'));
         });
         getRenewalLinkSpy.mockImplementation(() => promise);
-        const store = mockStore({});
+        const store = mockStore(initialState);
         const wrapper = mountWithIntl(<Provider store={store}><RenewalLicenseCard {...props}/></Provider>);
 
         // wait for the promise to resolve and component to update

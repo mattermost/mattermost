@@ -48,12 +48,12 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 
 func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 	ctx := request.EmptyContext(a.Srv().Log())
+	currentSKU := "starter"
 	license := a.Srv().License()
-	if license == nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, "No license found", http.StatusInternalServerError)
+	if license != nil {
+		currentSKU = license.SkuShortName
 	}
 
-	currentSKU := license.SkuShortName
 	workspaceName := ""
 
 	return a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, trial)

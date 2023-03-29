@@ -231,6 +231,9 @@ func (bm *BoardsMigrator) MigrateToStep(step int) error {
 func (bm *BoardsMigrator) Interceptors() map[int]foundation.Interceptor {
 	return map[int]foundation.Interceptor{
 		18: bm.store.RunDeletedMembershipBoardsMigration,
+		35: func() error {
+			return bm.store.RunDeDuplicateCategoryBoardsMigration(35)
+		},
 	}
 }
 

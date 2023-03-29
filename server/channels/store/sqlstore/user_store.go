@@ -1540,7 +1540,7 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 			} else {
 				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
 			}
-			termArgs = append(termArgs, fmt.Sprintf("%s%%", strings.TrimLeft(term, "@")))
+			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}
