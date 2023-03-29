@@ -164,8 +164,8 @@ func TestAppendMultipleStatementsFlag(t *testing.T) {
 
 func TestSanitizeDataSource(t *testing.T) {
 	t.Run(model.DatabaseDriverPostgres, func(t *testing.T) {
-		testCases := []struct{
-			Original string
+		testCases := []struct {
+			Original  string
 			Sanitized string
 		}{
 			{
@@ -180,8 +180,8 @@ func TestSanitizeDataSource(t *testing.T) {
 	})
 
 	t.Run(model.DatabaseDriverMysql, func(t *testing.T) {
-		testCases := []struct{
-			Original string
+		testCases := []struct {
+			Original  string
 			Sanitized string
 		}{
 			{
