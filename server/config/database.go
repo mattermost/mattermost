@@ -407,7 +407,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
-	return stripPassword(ds.originalDsn, ds.driverName)
+	return sqlstore.SanitizeDataSource(ds.driverName, ds.originalDsn)
 }
 
 // Close cleans up resources associated with the store.

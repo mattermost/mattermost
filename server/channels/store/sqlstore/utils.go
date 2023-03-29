@@ -206,3 +206,20 @@ func ResetReadTimeout(dataSource string) (string, error) {
 	config.ReadTimeout = 0
 	return config.FormatDSN(), nil
 }
+
+func SanitizeDataSource(driverName, dataSource string) string {
+	switch driverName {
+	// At this point sql.Open has already passed, so we don't expect an error.
+	case model.DatabaseDriverPostgres:
+		u, _ := url.Parse(dataSource)
+		u.User = url.UserPassword("****", "****")
+		return u.String()
+	case model.DatabaseDriverMysql:
+		cfg, _ := mysql.ParseDSN(dataSource)
+		cfg.User = "****"
+		cfg.Passwd = "****"
+		return cfg.FormatDSN()
+	default:
+		return ""
+	}
+}
