@@ -211,14 +211,14 @@ function startAtMention(string: string) {
     cy.get('#suggestionList').should('be.visible');
 }
 
-function verifySuggestionAtPostTextbox(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtPostTextbox(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.wait(TIMEOUTS.HALF_SEC);
-        cy.uiVerifyAtMentionSuggestion(user);
+        cy.uiVerifyAtMentionSuggestion(user as Cypress.UserProfile);
     });
 }
 
-function verifySuggestionAtChannelSwitcher(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.findByTestId(user.username).
             should('be.visible').
