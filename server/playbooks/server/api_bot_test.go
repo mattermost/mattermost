@@ -16,8 +16,7 @@ func TestTrialLicences(t *testing.T) {
 	// This test is flaky due to upstream connectivity issues.
 	t.Skip()
 
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("request trial license without permissions", func(t *testing.T) {

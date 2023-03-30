@@ -7,7 +7,7 @@ export type WorkTemplatesState = {
     categories: Category[];
     templatesInCategory: Record<string, WorkTemplate[]>;
     playbookTemplates: PlaybookTemplateType[];
-    linkedProducts: Record<string, number>;
+    linkedProducts: Record<string, string | number>;
 }
 
 export interface PlaybookTemplateType {

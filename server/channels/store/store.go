@@ -381,7 +381,6 @@ type PostStore interface {
 	AnalyticsPostCount(options *model.PostCountOptions) (int64, error)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelID string)
-	GetLastPostRowCreateAt() (int64, error)
 	GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error)
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
@@ -510,7 +509,6 @@ type SessionStore interface {
 	Remove(sessionIDOrToken string) error
 	RemoveAllSessions() error
 	PermanentDeleteSessionsByUser(teamID string) error
-	GetLastSessionRowCreateAt() (int64, error)
 	UpdateExpiresAt(sessionID string, timestamp int64) error
 	UpdateLastActivityAt(sessionID string, timestamp int64) error
 	UpdateRoles(userID string, roles string) (string, error)
