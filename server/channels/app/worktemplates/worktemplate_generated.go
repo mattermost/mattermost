@@ -15,6 +15,7 @@ func init() {
 	registerWorkTemplate("product_teams/goals_and_okrs:v1", wt5baa68055bf9ea423273662e01ccc575)
 	registerWorkTemplate("product_teams/bug_bash:v1", wtfeb56bc6a8f277c47b503bd1c92d830e)
 	registerWorkTemplate("product_teams/sprint_planning:v1", wt8d2ef53deac5517eb349dc5de6150196)
+	registerWorkTemplate("product_teams/product_roadmap:v1", wt00ab91a945627f4a624957dd80490bb2)
 	registerWorkTemplate("devops/incident_resolution:v1", wtce19b9352a59d6a5d26f292d83e84377)
 	registerWorkTemplate("devops/product_release:v1", wt37406285a41c18bcdeb881189f7acde0)
 	registerWorkTemplate("companywide/goals_and_okrs:v1", wtf7b846d35810f8272eeb9a1a562025b5)
@@ -29,24 +30,34 @@ func init() {
 
 	// Register translation strings
 	_ = T("worktemplate.product_teams.feature_release.description.channel")
+	_ = T("worktemplate.product_teams.feature_release.description.board")
 	_ = T("worktemplate.product_teams.feature_release.description.playbook")
 	_ = T("worktemplate.product_teams.feature_release.description.integration")
 	_ = T("worktemplate.product_teams.goals_and_okrs.channel")
+	_ = T("worktemplate.product_teams.goals_and_okrs.board")
 	_ = T("worktemplate.product_teams.goals_and_okrs.integration")
 	_ = T("worktemplate.product_teams.bug_bash.channel")
 	_ = T("worktemplate.product_teams.bug_bash.playbook")
 	_ = T("worktemplate.product_teams.bug_bash.integration")
 	_ = T("worktemplate.product_teams.sprint_planning.channel")
+	_ = T("worktemplate.product_teams.sprint_planning.board")
 	_ = T("worktemplate.product_teams.sprint_planning.integration")
+	_ = T("worktemplate.product_teams.product_roadmap.channel")
+	_ = T("worktemplate.product_teams.product_roadmap.board")
 	_ = T("worktemplate.devops.incident_resolution.description.channel")
+	_ = T("worktemplate.devops.incident_resolution.description.board")
 	_ = T("worktemplate.devops.incident_resolution.description.playbook")
 	_ = T("worktemplate.devops.product_release.channel")
+	_ = T("worktemplate.devops.product_release.board")
 	_ = T("worktemplate.devops.product_release.playbook")
 	_ = T("worktemplate.companywide.goals_and_okrs.channel")
+	_ = T("worktemplate.companywide.goals_and_okrs.board")
 	_ = T("worktemplate.companywide.goals_and_okrs.integration")
 	_ = T("worktemplate.companywide.create_project.channel")
+	_ = T("worktemplate.companywide.create_project.board")
 	_ = T("worktemplate.companywide.create_project.integration")
 	_ = T("worktemplate.leadership.goals_and_okrs.channel")
+	_ = T("worktemplate.leadership.goals_and_okrs.board")
 	_ = T("worktemplate.leadership.goals_and_okrs.integration")
 }
 
@@ -83,7 +94,11 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 			DefaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations.",
 			Illustration:   "",
 		},
-
+		Board: &TranslatableString{
+			ID:             "worktemplate.product_teams.feature_release.description.board",
+			DefaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board.",
+			Illustration:   "",
+		},
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.playbook",
 			DefaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release.",
@@ -103,6 +118,24 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Purpose:      "",
 				Playbook:     "product-release-playbook",
 				Illustration: "/static/worktemplates/product_teams/feature_release/channel.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-meeting-agenda",
+				Template:     "54fcf9c610f0ac5e4c522c0657c90602",
+				Name:         "Meeting Agenda",
+				Channel:      "feature-release",
+				Illustration: "/static/worktemplates/boards/meeting_agenda.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-project-task",
+				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
+				Name:         "Project Task",
+				Channel:      "feature-release",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 		{
@@ -137,6 +170,11 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.channel",
 			DefaultMessage: "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.",
+			Illustration:   "",
+		},
+		Board: &TranslatableString{
+			ID:             "worktemplate.product_teams.goals_and_okrs.board",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
 			Illustration:   "",
 		},
 
@@ -228,6 +266,11 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
 			Illustration:   "",
 		},
+		Board: &TranslatableString{
+			ID:             "worktemplate.product_teams.sprint_planning.board",
+			DefaultMessage: "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments. ",
+			Illustration:   "",
+		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.integration",
@@ -246,8 +289,58 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 			},
 		},
 		{
+			Board: &Board{
+				ID:           "board-1674850783973",
+				Template:     "99b74e26d2f5d0a9b346d43c0a7bfb09",
+				Name:         "Sprint planning",
+				Channel:      "channel-1674850783500",
+				Illustration: "/static/worktemplates/boards/sprint_planner.png",
+			},
+		},
+		{
 			Integration: &Integration{
 				ID: "zoom",
+			},
+		},
+	},
+}
+
+var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
+	ID:           "product_teams/product_roadmap:v1",
+	Category:     "product_teams",
+	UseCase:      "Create a product roadmap",
+	Illustration: "/static/worktemplates/product_teams/product_roadmap/product_roadmap.png",
+	Visibility:   "public",
+
+	Description: Description{
+		Channel: &TranslatableString{
+			ID:             "worktemplate.product_teams.product_roadmap.channel",
+			DefaultMessage: "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together.",
+			Illustration:   "",
+		},
+		Board: &TranslatableString{
+			ID:             "worktemplate.product_teams.product_roadmap.board",
+			DefaultMessage: "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues.",
+			Illustration:   "",
+		},
+	},
+	Content: []Content{
+		{
+			Channel: &Channel{
+				ID:           "channel-1674851139450",
+				Name:         "Product Roadmap",
+				Purpose:      "",
+				Playbook:     "",
+				Illustration: "/static/worktemplates/product_teams/product_roadmap/channel.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-1674851139759",
+				Template:     "b728c6ca730e2cfc229741c5a4712b65",
+				Name:         "Product Roadmap",
+				Channel:      "channel-1674851139450",
+				Illustration: "/static/worktemplates/boards/roadmap.png",
 			},
 		},
 	},
@@ -266,7 +359,11 @@ var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 			DefaultMessage: "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel.",
 			Illustration:   "",
 		},
-
+		Board: &TranslatableString{
+			ID:             "worktemplate.devops.incident_resolution.description.board",
+			DefaultMessage: "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team.",
+			Illustration:   "",
+		},
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.devops.incident_resolution.description.playbook",
 			DefaultMessage: "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution.",
@@ -291,6 +388,15 @@ var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 				Illustration: "/static/worktemplates/devops/incident_resolution/channel.png",
 			},
 		},
+		{
+			Board: &Board{
+				ID:           "irb",
+				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
+				Name:         "Incident Resolution",
+				Channel:      "irc",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
+			},
+		},
 	},
 }
 
@@ -307,7 +413,11 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 			DefaultMessage: "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.",
 			Illustration:   "",
 		},
-
+		Board: &TranslatableString{
+			ID:             "worktemplate.devops.product_release.board",
+			DefaultMessage: "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.",
+			Illustration:   "",
+		},
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.devops.product_release.playbook",
 			DefaultMessage: "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.",
@@ -321,6 +431,15 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 				Name:         "Product Release",
 				ID:           "playbook-1674851385983",
 				Illustration: "/static/worktemplates/playbooks/product_release.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-1674851386432",
+				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
+				Name:         "Product Release",
+				Channel:      "channel-1674851385983",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 		{
@@ -348,6 +467,11 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 			DefaultMessage: "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.",
 			Illustration:   "",
 		},
+		Board: &TranslatableString{
+			ID:             "worktemplate.companywide.goals_and_okrs.board",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			Illustration:   "",
+		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.integration",
@@ -363,6 +487,15 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 				Purpose:      "",
 				Playbook:     "",
 				Illustration: "/static/worktemplates/companywide/goals_and_okrs/channel.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-1674845139258",
+				Template:     "7ba22ccfdfac391d63dea5c4b8cde0de",
+				Name:         "Goals and OKR",
+				Channel:      "channel-1674845108569",
+				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.png",
 			},
 		},
 		{
@@ -386,6 +519,11 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 			DefaultMessage: "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.",
 			Illustration:   "",
 		},
+		Board: &TranslatableString{
+			ID:             "worktemplate.companywide.create_project.board",
+			DefaultMessage: "Use a Kanban board to define and track your project tasks and progress.",
+			Illustration:   "",
+		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.companywide.create_project.integration",
@@ -401,6 +539,15 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 				Purpose:      "",
 				Playbook:     "",
 				Illustration: "/static/worktemplates/companywide/create_project/channel.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-1674851940548",
+				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
+				Name:         "Create Project",
+				Channel:      "channel-1674851940114",
+				Illustration: "/static/worktemplates/boards/project_tasks.png",
 			},
 		},
 		{
@@ -434,6 +581,11 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 			DefaultMessage: "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.",
 			Illustration:   "",
 		},
+		Board: &TranslatableString{
+			ID:             "worktemplate.leadership.goals_and_okrs.board",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			Illustration:   "",
+		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.integration",
@@ -449,6 +601,15 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 				Purpose:      "",
 				Playbook:     "",
 				Illustration: "/static/worktemplates/leadership/goals_and_okrs/channel.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-1674845139258",
+				Template:     "7ba22ccfdfac391d63dea5c4b8cde0de",
+				Name:         "Goals and OKR",
+				Channel:      "channel-1674845108569",
+				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.png",
 			},
 		},
 		{

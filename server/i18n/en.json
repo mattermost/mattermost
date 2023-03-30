@@ -10096,6 +10096,10 @@
     "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
   },
   {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+  },
+  {
     "id": "worktemplate.product_teams.feature_release.description.channel",
     "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
   },
@@ -10105,7 +10109,11 @@
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you're done, run a retrospective and make improvements for your next release."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.channel",
@@ -10114,6 +10122,38 @@
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.channel",
