@@ -111,9 +111,9 @@ const RHSInfoOverview = ({run, role, channel, runMetadata, followState, editable
                     message = formatMessage({defaultMessage: 'It was not possible to change the owner'});
                 }
 
-                message = formatMessage({defaultMessage: 'Zubair testing', description: 'Zubair testing description'});
-                message = formatMessage({defaultMessage: 'Zubair testing'});
-                message = formatMessage({defaultMessage: 'Zubair testing 2nd', description: 'Zubair testing description again'});
+                message = formatMessage({defaultMessage: 'Zubair testing 1', description: 'Zubair testing description 1'});
+                message = formatMessage({defaultMessage: 'Zubair testing 2'});
+                message = formatMessage({defaultMessage: 'Zubair testing 3', description: 'Zubair testing description 3'});
 
                 addToast({
                     content: message,
