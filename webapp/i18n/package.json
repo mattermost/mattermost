@@ -2,8 +2,10 @@
     "name": "i18n",
     "private": true,
     "scripts": {
-        "prei18n-extract1": "formatjs extract '../**/src/**/!(*.d).{ts,tsx,jsx}' --ignore '../**/node_modules/**' --id-interpolation-pattern '[sha512:contenthash:base64:6]' --additional-function-names '$t' --format './formatter.js' --out-file 'src/translations.json'",
-        "i18n-extract1": "formatjs extract '../**/src/**/!(*.d).{ts,tsx,jsx}' --ignore '../**/node_modules/**' --id-interpolation-pattern '[sha512:contenthash:base64:6]' --additional-function-names '$t' --format simple --out-file 'src/en.json'"
+        "extract-description": "formatjs extract '../**/src/**/!(*.d).{ts,tsx,jsx}' --ignore '../**/node_modules/**' --id-interpolation-pattern '[sha512:contenthash:base64:6]' --additional-function-names '$t' --format './formatter_description.js' --out-file 'src/descriptions.json'",
+        "extract-nestedjson": "formatjs extract '../**/src/**/!(*.d).{ts,tsx,jsx}' --ignore '../**/node_modules/**' --id-interpolation-pattern '[sha512:contenthash:base64:6]' --additional-function-names '$t' --format './formatter.js' --out-file 'src/translations.json'",
+        "i18n-extract": "formatjs extract '../**/src/**/!(*.d).{ts,tsx,jsx}' --ignore '../**/node_modules/**' --id-interpolation-pattern '[sha512:contenthash:base64:6]' --additional-function-names '$t' --format simple --out-file 'src/en.json'",
+        "i18n-extract1": "npm run extract-description && npm run extract-nestedjson && npm run i18n-extract"
     },
     "devDependencies": {
         "@formatjs/cli": "^6.0.4"
