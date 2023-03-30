@@ -59,7 +59,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateUploadSessions procedure starting.') AS DEBUG;
-CALL MigrateUploadSessions ();
+CALL MigrateUploadSessions();
 SELECT CONCAT('-- ', NOW(), ' MigrateUploadSessions procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateUploadSessions;
 
@@ -92,7 +92,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateThreadMemberships procedure starting.') AS DEBUG;
-CALL MigrateThreadMemberships ();
+CALL MigrateThreadMemberships();
 SELECT CONCAT('-- ', NOW(), ' MigrateThreadMemberships procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateThreadMemberships;
 
@@ -229,7 +229,7 @@ END//
 DELIMITER ;
 
 SELECT CONCAT('-- ', NOW(), ' MigrateChannels procedure starting.') AS DEBUG;
-CALL MigrateChannels ();
+CALL MigrateChannels();
 SELECT CONCAT('-- ', NOW(), ' MigrateChannels procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateChannels;
 
@@ -253,7 +253,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateCommandWebhooks procedure starting.') AS DEBUG;
-CALL MigrateCommandWebhooks ();
+CALL MigrateCommandWebhooks();
 SELECT CONCAT('-- ', NOW(), ' MigrateCommandWebhooks procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateCommandWebhooks;
 
@@ -374,7 +374,7 @@ END//
 DELIMITER ;
 
 SELECT CONCAT('-- ', NOW(), ' MigrateChannelMembers procedure starting.') AS DEBUG;
-CALL MigrateChannelMembers ();
+CALL MigrateChannelMembers();
 SELECT CONCAT('-- ', NOW(), ' MigrateChannelMembers procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateChannelMembers;
 
@@ -510,7 +510,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateUsers procedure starting.') AS DEBUG;
-CALL MigrateUsers ();
+CALL MigrateUsers();
 SELECT CONCAT('-- ', NOW(), ' MigrateUsers procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateUsers;
 
@@ -557,7 +557,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateJobs procedure starting.') AS DEBUG;
-CALL MigrateJobs ();
+CALL MigrateJobs();
 SELECT CONCAT('-- ', NOW(), ' MigrateJobs procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateJobs;
 
@@ -581,7 +581,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateLinkMetadata procedure starting.') AS DEBUG;
-CALL MigrateLinkMetadata ();
+CALL MigrateLinkMetadata();
 SELECT CONCAT('-- ', NOW(), ' MigrateLinkMetadata procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateLinkMetadata;
 
@@ -631,7 +631,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateSessions procedure starting.') AS DEBUG;
-CALL MigrateSessions ();
+CALL MigrateSessions();
 SELECT CONCAT('-- ', NOW(), ' MigrateSessions procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateSessions;
 
@@ -759,7 +759,7 @@ BEGIN
 END//
 DELIMITER ;
 SELECT CONCAT('-- ', NOW(), ' MigrateThreads procedure starting.') AS DEBUG;
-CALL MigrateThreads ();
+CALL MigrateThreads();
 SELECT CONCAT('-- ', NOW(), ' MigrateThreads procedure finished.') AS DEBUG;
 DROP PROCEDURE IF EXISTS MigrateThreads;
 
