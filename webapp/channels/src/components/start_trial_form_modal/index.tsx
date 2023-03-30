@@ -21,7 +21,7 @@ import {makeAsyncComponent} from 'components/async_load';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import {COUNTRIES} from 'utils/countries';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import DropdownInput from 'components/dropdown_input';
@@ -30,6 +30,8 @@ import ExternalLink from 'components/external_link';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import './start_trial_form_modal.scss';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import AirGappedModal from './air_gapped_modal';
 
 // TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
 
@@ -64,6 +66,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
     const {formatMessage} = useIntl();
+    const canReachCWS = useCWSAvailabilityCheck();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
@@ -108,8 +111,8 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     };
 
     // Reset the TrialLoadStatus so the user can re-submit the form
-    const handleErrorModalTryAgain = async () => {
-        await dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT));
+    const handleErrorModalTryAgain = () => {
+        dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT));
         setLoadStatus(TrialLoadStatus.NotStarted);
     };
 
@@ -126,14 +129,48 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             company_country: country,
             company_size: orgSize,
         };
-        const {error} = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
+        const error = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
+            let title;
+            let subtitle;
+            let buttonText;
+            let onTryAgain = handleErrorModalTryAgain;
+
+            if (error?.data.status === 422) {
+                title = (<></>);
+                subtitle = (
+                    <FormattedMessage
+                        id='admin.license.trial-request.embargoed'
+                        defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
+                        values={{
+                            link: (text: string) => (
+                                <ExternalLink
+                                    location='trial_banner'
+                                    href={LicenseLinks.EMBARGOED_COUNTRIES}
+                                >
+                                    {text}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                );
+                buttonText = (
+                    <FormattedMessage
+                        id='admin.license.trial-request.embargoed.button'
+                        defaultMessage='Close'
+                    />
+                );
+                onTryAgain = handleOnClose;
+            }
             dispatch(openModal({
                 modalId: ModalIdentifiers.START_TRIAL_FORM_MODAL_RESULT,
                 dialogType: StartTrialFormModalResult,
                 dialogProps: {
-                    onTryAgain: handleErrorModalTryAgain,
+                    onTryAgain,
+                    title,
+                    subtitle,
+                    buttonText,
                 },
             }));
             return;
@@ -186,6 +223,14 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         status === TrialLoadStatus.Started ||
         status === TrialLoadStatus.Success
     );
+
+    if (typeof canReachCWS !== 'undefined' && !canReachCWS) {
+        return (
+            <AirGappedModal
+                onClose={handleOnClose}
+            />
+        );
+    }
 
     return (
         <Modal
