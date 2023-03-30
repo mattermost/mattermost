@@ -19,7 +19,6 @@ import (
 // Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false".
 func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, loggedInUserID string, checkMentionedUser bool) *model.AppError {
 	if !a.IsPersistentNotificationsEnabled() {
-		c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled.")
 		return nil
 	}
 
@@ -53,14 +52,14 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 	}
 
 	// if checkMentionedUser is "false" that would mean user is already authorized to delete the persistent-notification
-	// and the mention-validation can be skipped, so isUserMentioned will be "true".
-	isUserMentioned := !checkMentionedUser
+	// and the mention-validation can be skipped, so shouldDeletePost will be "true".
+	shouldDeletePost := !checkMentionedUser
 
 	// post owner is not allowed to stop the persistent notifications via ack, reply or reaction.
 	if checkMentionedUser && loggedInUserID != post.UserId {
 		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			if mentions.isUserMentioned(loggedInUserID) {
-				isUserMentioned = true
+				shouldDeletePost = true
 			}
 			return nil
 		}); err != nil {
@@ -68,7 +67,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 		}
 	}
 
-	if isUserMentioned {
+	if shouldDeletePost {
 		if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
 			return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

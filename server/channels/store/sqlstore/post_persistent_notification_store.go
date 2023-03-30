@@ -161,8 +161,8 @@ func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string
 	}
 
 	builder = builder.Where(sq.And{
-		sq.Expr("Id = PostId"),
-		sq.Eq{"ChannelId": channelIds},
+		sq.Expr("Posts.Id = PersistentNotifications.PostId"),
+		sq.Eq{"Posts.ChannelId": channelIds},
 	})
 
 	_, err := s.GetMasterX().ExecBuilder(builder)
