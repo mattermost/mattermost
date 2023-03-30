@@ -2749,7 +2749,6 @@
   "audit_table.successfullPassword": "Successfully changed password",
   "audit_table.successfullReset": "Successfully reset password",
   "audit_table.successfullWebhookCreate": "Successfully created a webhook",
-  "audit_table.successfullWebhookDelete": "Successfully deleted a webhook",
   "audit_table.timestamp": "Timestamp",
   "audit_table.updatedRol": "Updated user role(s) to ",
   "audit_table.updateGeneral": "Updated the general settings of your account",

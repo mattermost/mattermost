@@ -159,7 +159,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to delete a webhook',
     },
     successfullWebhookDelete: {
-        id: t('audit_table.successfullWebhookDelete'),
+        id: 'audit_table.successfullWebhookDelete',
         defaultMessage: 'Successfully deleted a webhook',
     },
     failedWebhookDelete: {

@@ -69,6 +69,8 @@ const GettingStarted = (props: {canCreatePlaybooks: boolean, scrollToNext: () =>
         <Container>
             <RocketManSvg/>
             <Title><FormattedMessage defaultMessage='Get started with Playbooks'/></Title>
+            <Title><FormattedMessage defaultMessage='Get started with Playbooks'/></Title>
+            <FormattedMessage id='helloaasas' defaultMessage='Get started with asasasasasas'/>
             <Description>
                 <FormattedMessage
                     defaultMessage='Playbooks make important procedures more repeatable and accountable. A playbook can be run multiple times, and each run has its own record and retrospective.'
