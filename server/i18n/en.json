@@ -10060,14 +10060,6 @@
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
   },
   {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
   },
@@ -10076,32 +10068,20 @@
     "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
   },
   {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
     "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
   },
   {
     "id": "worktemplate.product_teams.bug_bash.channel",
@@ -10116,11 +10096,31 @@
     "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
   },
   {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+  },
+  {
     "id": "worktemplate.product_teams.goals_and_okrs.channel",
     "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
   }
 ]
