@@ -32,7 +32,7 @@ type Props = {
     isAdmin: boolean;
 }
 
-const InviteMembersButton: React.FC<Props> = (props: Props): JSX.Element | null => {
+const InviteMembersButton = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch<DispatchFunc>();
 
     const intl = useIntl();
@@ -50,10 +50,10 @@ const InviteMembersButton: React.FC<Props> = (props: Props): JSX.Element | null 
         props.onClick();
     };
 
-    let buttonClass = 'SidebarChannelNavigator_inviteMembersLhsButton';
+    let buttonClass = 'SidebarChannelNavigator__inviteMembersLhsButton';
 
     if (!props.touchedInviteMembersButton && Number(totalUserCount) <= Constants.USER_LIMIT) {
-        buttonClass += ' SidebarChannelNavigator_inviteMembersLhsButton--untouched';
+        buttonClass += ' SidebarChannelNavigator__inviteMembersLhsButton--untouched';
     }
 
     if (!currentTeamId || !totalUserCount) {
