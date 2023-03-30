@@ -2376,9 +2376,9 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
+
+	audit.AddEventParameterAuditable(auditRec, "user", user)
 
 	if c.AppContext.Session().IsOAuth {
 		c.SetPermissionError(model.PermissionCreateUserAccessToken)
