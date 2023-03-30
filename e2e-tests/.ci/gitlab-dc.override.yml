@@ -26,7 +26,7 @@ services:
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_LICENSE: "${MM_LICENSE}"
     env_file:
-      - "../../e2e/.ci/.env.server"
+      - "../../e2e-tests/.ci/.env.server"
     ports:
       - "8065:8065"
     depends_on:
@@ -63,7 +63,7 @@ services:
       retries: 3
     working_dir: /cypress
     volumes:
-      - "../../e2e/cypress/:/cypress:ro"
+      - "../../e2e-tests/cypress/:/cypress:ro"
     networks:
       default:
         aliases:
@@ -76,7 +76,7 @@ services:
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     env_file:
-      - "../../e2e/.ci/.env.cypress"
+      - "../../e2e-tests/.ci/.env.cypress"
     environment:
       REPO: "mattermost-server"
       BRANCH: "${MM_BRANCH}"
@@ -111,4 +111,4 @@ services:
       CI: "1"
     working_dir: /app
     volumes:
-      - "../../e2e/cypress/:/app"
+      - "../../e2e-tests/cypress/:/app"

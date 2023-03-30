@@ -26,22 +26,35 @@ mme2e_load_env_files () {
   done
   set ${MME2E_PREVIOUS_ALLEXPORT}
 }
-mme2e_wait_service_healthy () {
-  SERVICE_NAME=${1?}
-  RETRIES_LEFT=${2:-1}
-  RETRIES_INTERVAL=${3:-10}
-  MME2E_PREVIOUS_PIPEFAIL=$(mme2e_get_current_shopt_arg allexport)
+mme2e_wait_command_success () {
+  COMMAND=${1?}
+  RETRY_MESSAGE=${2?}
+  RETRIES_LEFT=${3:-1}
+  RETRIES_INTERVAL=${4:-10}
+  MME2E_PREVIOUS_PIPEFAIL=$(mme2e_get_current_shopt_arg pipefail)
   set -o pipefail
-  until ${MME2E_DOCKER_COMPOSE} ps ${SERVICE_NAME} | grep -q '\(healthy\)'; do
+  until ${COMMAND}; do
     RETRIES_LEFT=$((RETRIES_LEFT - 1))
     [ "$RETRIES_LEFT" -le "0" ] && break
-    mme2e_log "Waiting for ${SERVICE_NAME} container to be healhty, sleeping $RETRIES_INTERVAL seconds ($RETRIES_LEFT retries left)"
+    mme2e_log "${RETRY_MESSAGE} ($RETRIES_LEFT retries left, sleeping $RETRIES_INTERVAL seconds)"
     sleep $RETRIES_INTERVAL
   done
   set ${MME2E_PREVIOUS_PIPEFAIL}
   if [ "$RETRIES_LEFT" = "0" ]; then
     exit 1
   fi
+}
+mme2e_wait_service_healthy () {
+  SERVICE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "${MME2E_DOCKER_COMPOSE} ps ${SERVICE_NAME} | grep -q '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
+mme2e_wait_image () {
+  IMAGE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "docker pull $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
 }
 
 # Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
@@ -50,4 +63,3 @@ alias docker-compose="${MME2E_DOCKER_COMPOSE}"
 
 # Call prerequisite utility functions
 mme2e_load_env_files
-

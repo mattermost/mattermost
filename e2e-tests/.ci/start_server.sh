@@ -7,6 +7,7 @@ cd $(dirname $0)
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"
+mme2e_wait_image ${MM_SERVER_IMAGE} 30 60
 ${MME2E_DOCKER_COMPOSE} up -d --force-recreate -V
 if ! mme2e_wait_service_healthy server 60 10; then
   mme2e_log "Mattermost container not healthy, retry attempts exhausted. Giving up." >&2
