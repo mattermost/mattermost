@@ -88,7 +88,7 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
             data-post-id={postId}
             data-edited-at={editedAt}
         >
-            <PencilOutlineIcon size={10}/>
+            <PencilOutlineIcon size={12}/>
             {editedText}
         </span>
     );

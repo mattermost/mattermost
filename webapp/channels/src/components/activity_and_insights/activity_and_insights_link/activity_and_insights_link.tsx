@@ -62,7 +62,7 @@ const ActivityAndInsightsLink = () => {
                     tabIndex={0}
                 >
                     <span className='icon'>
-                        <ChartLineIcon size={12}/>
+                        <ChartLineIcon size={14}/>
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>

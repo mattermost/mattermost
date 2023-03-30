@@ -85,7 +85,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       <MenuItemLink
         icon={
           <ApplicationCogIcon
-            size={16}
+            size={18}
           />
         }
         id="systemConsole"
@@ -101,7 +101,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
-          size={16}
+          size={18}
         />
       }
       id="integrations"
@@ -126,7 +126,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       disabled={false}
       icon={
         <AccountMultipleOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="userGroups"
@@ -159,7 +159,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
         icon={
           <ViewGridPlusOutlineIcon
-            size={16}
+            size={18}
           />
         }
         id="marketplaceModal"
@@ -171,7 +171,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="nativeAppLink"
@@ -190,7 +190,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       }
       icon={
         <InformationOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="about"
@@ -287,7 +287,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       <MenuItemLink
         icon={
           <ApplicationCogIcon
-            size={16}
+            size={18}
           />
         }
         id="systemConsole"
@@ -303,7 +303,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
-          size={16}
+          size={18}
         />
       }
       id="integrations"
@@ -328,7 +328,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       disabled={false}
       icon={
         <AccountMultipleOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="userGroups"
@@ -361,7 +361,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
         icon={
           <ViewGridPlusOutlineIcon
-            size={16}
+            size={18}
           />
         }
         id="marketplaceModal"
@@ -373,7 +373,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="nativeAppLink"
@@ -392,7 +392,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       }
       icon={
         <InformationOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="about"
@@ -422,7 +422,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   disabled={false}
   icon={
     <AccountMultipleOutlineIcon
-      size={16}
+      size={18}
     />
   }
   id="userGroups"
@@ -451,7 +451,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   disabled={true}
   icon={
     <AccountMultipleOutlineIcon
-      size={16}
+      size={18}
     />
   }
   id="userGroups"
@@ -493,7 +493,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   disabled={false}
   icon={
     <AccountMultipleOutlineIcon
-      size={16}
+      size={18}
     />
   }
   id="userGroups"
@@ -606,7 +606,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       <MenuItemLink
         icon={
           <ApplicationCogIcon
-            size={16}
+            size={18}
           />
         }
         id="systemConsole"
@@ -622,7 +622,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
-          size={16}
+          size={18}
         />
       }
       id="integrations"
@@ -647,7 +647,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       disabled={false}
       icon={
         <AccountMultipleOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="userGroups"
@@ -680,7 +680,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
         icon={
           <ViewGridPlusOutlineIcon
-            size={16}
+            size={18}
           />
         }
         id="marketplaceModal"
@@ -692,7 +692,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="nativeAppLink"
@@ -711,7 +711,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       }
       icon={
         <InformationOutlineIcon
-          size={16}
+          size={18}
         />
       }
       id="about"

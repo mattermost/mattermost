@@ -134,7 +134,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                                 )}
                             </>
                         )}
-                        icon={<ApplicationCogIcon size={16}/>}
+                        icon={<ApplicationCogIcon size={18}/>}
                     />
                 </SystemPermissionGate>
                 <Menu.ItemLink
@@ -142,7 +142,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     show={isMessaging && showIntegrations}
                     to={'/' + teamName + '/integrations'}
                     text={formatMessage({id: 'navbar_dropdown.integrations', defaultMessage: 'Integrations'})}
-                    icon={<WebhookIncomingIcon size={16}/>}
+                    icon={<WebhookIncomingIcon size={18}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='userGroups'
@@ -153,7 +153,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         backButtonAction: openGroupsModal,
                     }}
                     text={formatMessage({id: 'navbar_dropdown.userGroups', defaultMessage: 'User Groups'})}
-                    icon={<AccountMultipleOutlineIcon size={16}/>}
+                    icon={<AccountMultipleOutlineIcon size={18}/>}
                     disabled={isStarterFree}
                     sibling={(isStarterFree || isFreeTrial) && (
                         <RestrictedIndicator
@@ -206,7 +206,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         dialogType={MarketplaceModal}
                         dialogProps={{openedFrom: 'product_menu'}}
                         text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={<ViewGridPlusOutlineIcon size={16}/>}
+                        icon={<ViewGridPlusOutlineIcon size={18}/>}
                     />
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
@@ -214,14 +214,14 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     show={appDownloadLink && !UserAgent.isMobileApp()}
                     url={makeUrlSafe(appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
-                    icon={<DownloadOutlineIcon size={16}/>}
+                    icon={<DownloadOutlineIcon size={18}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='about'
                     modalId={ModalIdentifiers.ABOUT}
                     dialogType={AboutBuildModal}
                     text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName})}
-                    icon={<InformationOutlineIcon size={16}/>}
+                    icon={<InformationOutlineIcon size={18}/>}
                 />
             </div>
         </Menu.Group>
