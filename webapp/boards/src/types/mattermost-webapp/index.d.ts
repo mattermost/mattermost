@@ -3,7 +3,7 @@
 
 import type React from 'react'
 
-import type {Channel, ChannelMembership} from 'mattermost-redux/types/channels'
+import type {Channel, ChannelMembership} from '@mattermost/types/channels'
 
 type ReactResolvable = React.ReactNode | React.ElementType
 

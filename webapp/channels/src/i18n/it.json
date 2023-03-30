@@ -2997,8 +2997,6 @@
   "modal.manual_status.title_offline": "Il tuo stato è \"Non in linea\"",
   "modal.manual_status.title_ooo": "Il tuo stato è \"Fuori sede\"",
   "more_channels.create": "Crea canale",
-  "more_channels.createClick": "Click 'Crea un nuovo canale' per crearne uno nuovo",
-  "more_channels.joining": "Accoppiamento...",
   "more_channels.next": "Prossimo",
   "more_channels.noMore": "Nessun altro canale in cui entrare",
   "more_channels.prev": "Precedente",

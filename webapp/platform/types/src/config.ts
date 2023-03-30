@@ -18,13 +18,10 @@ export type ClientConfig = {
     BannerColor: string;
     BannerText: string;
     BannerTextColor: string;
-    BuildBoards: string;
     BuildDate: string;
     BuildEnterpriseReady: string;
     BuildHash: string;
-    BuildHashBoards: string;
     BuildHashEnterprise: string;
-    BuildHashPlaybooks: string;
     BuildNumber: string;
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
