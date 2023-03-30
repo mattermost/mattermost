@@ -189,14 +189,12 @@ const AddChannelDropdown = ({
                 placement='top'
                 overlay={tooltip}
             >
-                <>
-                    <button
-                        className={'AddChannelDropdown_dropdownButton'}
-                        aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
-                    >
-                        <i className='icon-plus'/>
-                    </button>
-                </>
+                <button
+                    className={'AddChannelDropdown_dropdownButton'}
+                    aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                >
+                    <i className='icon-plus'/>
+                </button>
             </OverlayTrigger>
             <Menu
                 id='AddChannelDropdown'

@@ -1126,6 +1126,15 @@ export default class SchemaAdminSettings extends React.PureComponent {
             }
 
             if (setting.validate) {
+                if (setting.isHidden?.(this.props.config)) {
+                    // MM-50952
+                    // If the setting is hidden, then it is not being set in state so there is
+                    // nothing to validate, and validation would fail anyways and prevent saving
+                    // In practice, this only happens in custom cloud setup environments like RFQA
+                    // where it sets things in the config file directly instead of in the environment
+                    // (like cloud Mattermost does)
+                    continue;
+                }
                 const result = setting.validate(this.state[setting.key]);
                 if (!result.isValid()) {
                     return false;
