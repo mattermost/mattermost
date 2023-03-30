@@ -72,6 +72,18 @@ content:
       id: channel-1674845108569
       illustration: /static/worktemplates/product_teams/goals_and_okrs/channel.png
       name: Goals and OKR
+  - board:
+      id: board-1674845139258
+      template: 7ba22ccfdfac391d63dea5c4b8cde0de
+      name: Goals and OKR
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
+      channel: channel-1674845108569
+  - board:
+      id: board-1674845175528
+      template: 54fcf9c610f0ac5e4c522c0657c90602
+      name: Meeting Agenda
+      illustration: /static/worktemplates/boards/meeting_agenda.png
+      channel: channel-1674845108569
   - integration:
       id: zoom
 

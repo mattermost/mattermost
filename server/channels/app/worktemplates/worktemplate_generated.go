@@ -195,6 +195,24 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 			},
 		},
 		{
+			Board: &Board{
+				ID:           "board-1674845139258",
+				Template:     "7ba22ccfdfac391d63dea5c4b8cde0de",
+				Name:         "Goals and OKR",
+				Channel:      "channel-1674845108569",
+				Illustration: "/static/worktemplates/boards/company_goal_and_okrs.png",
+			},
+		},
+		{
+			Board: &Board{
+				ID:           "board-1674845175528",
+				Template:     "54fcf9c610f0ac5e4c522c0657c90602",
+				Name:         "Meeting Agenda",
+				Channel:      "channel-1674845108569",
+				Illustration: "/static/worktemplates/boards/meeting_agenda.png",
+			},
+		},
+		{
 			Integration: &Integration{
 				ID: "zoom",
 			},
