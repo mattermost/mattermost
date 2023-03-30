@@ -206,7 +206,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         dialogType={MarketplaceModal}
                         dialogProps={{openedFrom: 'product_menu'}}
                         text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={<ViewGridPlusOutlineIcon size={16}/> }
+                        icon={<ViewGridPlusOutlineIcon size={16}/>}
                     />
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
