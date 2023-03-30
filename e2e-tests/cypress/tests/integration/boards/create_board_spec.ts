@@ -50,7 +50,7 @@ describe('Create and delete board / card', () => {
     it('MM-T4275 Set up Board description', () => {
         cy.visit('/boards');
 
-        // # Create empty board and change tile to Testing
+        // # Create an empty board and change tile to Testing
         cy.findByText('Create an empty board').should('exist').click({force: true});
         cy.get('.BoardComponent').should('exist');
 
