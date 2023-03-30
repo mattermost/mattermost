@@ -49,7 +49,7 @@ const CompletedWrapper = styled.div`
     &.fade-exit-done {
         transform: scale(1);
     }
-    .start-trial-btn, button {
+    .start-trial-btn {
         padding: 13px 20px;
         background: var(--button-bg);
         border-radius: 4px;
@@ -100,6 +100,24 @@ const CompletedWrapper = styled.div`
         margin-top: 24px;
         width: 200px;
         font-size: 12px;
+    }
+
+    .style-link {
+        border: none;
+        background: none !important;
+        color: var(--button-bg) !important;
+    }
+
+    .no-thanks-link {
+        display: inline-block;
+        min-width: fit-content;
+        margin-top: 18px;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 20px;
+        &:hover {
+            text-decoration: underline;
+        }
     }
 `;
 
@@ -193,6 +211,15 @@ const Completed = (props: Props): JSX.Element => {
                                     onClick={dismissAction}
                                 />
                             )}
+                            <button
+                                onClick={dismissAction}
+                                className={'no-thanks-link style-link'}
+                            >
+                                <FormattedMessage
+                                    id={'onboardingTask.checklist.no_tanks'}
+                                    defaultMessage='No, thanks'
+                                />
+                            </button>
                         </>
 
                     ) : (
