@@ -12,7 +12,7 @@ type Props = {
     checked: boolean;
 }
 
-function Check(props: Props) {
+function CheckInput(props: Props) {
     return (
         <div className='check-input'>
             <input
@@ -24,4 +24,4 @@ function Check(props: Props) {
     );
 }
 
-export default Check;
+export default CheckInput;
