@@ -59,7 +59,7 @@ const AddChannelDropdown = ({
                     id='invitePeople'
                     onClick={invitePeopleModal}
                     icon={<i className='icon-account-plus-outline'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.invitePeople', defaultMessage: 'Invite People'})}
+                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.invitePeople', defaultMessage: 'Invite people'})}
                     extraText={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.invitePeopleExtraText', defaultMessage: 'Add people to the team'})}
                 />
                 {showInviteTutorialTip && <InvitePeopleTour/>}
@@ -88,7 +88,7 @@ const AddChannelDropdown = ({
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
                     icon={<i className='icon-globe'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse Channels'})}
+                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'})}
                 />
             );
         }
@@ -100,7 +100,7 @@ const AddChannelDropdown = ({
                     id='showNewChannel'
                     onClick={showNewChannelModal}
                     icon={<i className='icon-plus'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create New Channel'})}
+                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create new channel'})}
                 />
             );
         }
@@ -113,7 +113,7 @@ const AddChannelDropdown = ({
                         id='createCategory'
                         onClick={showCreateCategoryModal}
                         icon={<i className='icon-folder-plus-outline'/>}
-                        text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createCategory', defaultMessage: 'Create New Category'})}
+                        text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createCategory', defaultMessage: 'Create new category'})}
                     />
                 </Menu.Group>);
         }
