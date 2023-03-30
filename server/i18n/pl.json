@@ -9664,18 +9664,6 @@
     "translation": "Nie można usunąć potwierdzenia w zarchiwizowanym kanale."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Twórz przejrzyste przepływy pracy pomiędzy zespołami programistów, aby zapewnić płynny proces rozwoju funkcji."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Zwiększ wydajność na swoim kanale, integrując bota Jira i bota Github. Zostaną one pobrane za Ciebie."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Czatuj ze swoim zespołem na kanale Feature Release, który łatwo łączy się z tablicami, playbookami i botami aplikacji."
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "Zespoły Produkcyjne"
   },
@@ -9772,50 +9760,6 @@
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "Przywództwo"
   },
@@ -9882,30 +9826,6 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Nie udało się zaktualizować tłumaczeń serwera."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",

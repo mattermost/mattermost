@@ -9656,18 +9656,6 @@
     "translation": "アーカイブされたチャンネルでは、確認応答を削除することはできません。"
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "開発チーム間で透明性の高いワークフローを作成し、機能開発プロセスをシームレスにすることができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Jira BotやGitHub Botと統合し、生産性を高めましょう。これらはあなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Boards、Playbooks、Botと簡単に接続できる Feature Release チャンネルでチームとチャットできます。"
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "製品チーム"
   },
@@ -9742,74 +9730,6 @@
   {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "総アクティブユーザー数を取得できませんでした"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
   },
   {
     "id": "worktemplate.category.leadership",
