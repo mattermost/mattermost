@@ -185,6 +185,9 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 
 		a.invalidateCacheForChannelMembers(channel.Id)
 
+		options := a.Config().GetSanitizeOptions()
+		user.SanitizeProfile(options)
+
 		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("user", user)
@@ -1614,6 +1617,9 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	if err != nil {
 		return nil, err
 	}
+
+	options := a.Config().GetSanitizeOptions()
+	user.SanitizeProfile(options)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 	message.Add("user_id", user.Id)
