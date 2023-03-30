@@ -43,6 +43,7 @@ const config = {
         "^src(.*)$": "<rootDir>/src$1",
         "^i18n(.*)$": "<rootDir>/i18n$1",
         "^static(.*)$": "<rootDir>/static$1",
+        "^moment(.*)$": "<rootDir>/../node_modules/moment$1",
     },
     moduleDirectories: [
         "src",
