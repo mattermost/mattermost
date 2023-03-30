@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {screen} from '@testing-library/react';
 
-import {Provider} from 'react-redux';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import {ToPaidNudgeBanner, ToPaidPlanBannerDismissable} from './to_paid_plan_nudge_banner';
@@ -63,14 +61,9 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidPlanBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(true);
+        expect(screen.getByTestId('cloud-free-deprecation-announcement-bar')).toBeInTheDocument();
     });
 
     test('should NOT show for NON admins', () => {
@@ -92,14 +85,9 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidPlanBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins on cloud pro', () => {
@@ -121,14 +109,9 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidPlanBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins on cloud enterprise', () => {
@@ -150,14 +133,9 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidPlanBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins when banner was dismissed in preferences', () => {
@@ -189,14 +167,9 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidPlanBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
 });
 
@@ -217,14 +190,9 @@ describe('ToPaidNudgeBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidNudgeBanner/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
 
-        expect(wrapper.find('AlertBanner').exists()).toBe(true);
+        expect(screen.getByTestId('cloud-free-deprecation-alert-banner')).toBeInTheDocument();
     });
 
     test('should NOT show for cloud professional', () => {
@@ -243,14 +211,9 @@ describe('ToPaidNudgeBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidNudgeBanner/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
 
-        expect(wrapper.find('AlertBanner').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-free-deprecation-alert-banner')).toThrow();
     });
 
     test('should NOT show for cloud enterprise', () => {
@@ -269,13 +232,8 @@ describe('ToPaidNudgeBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToPaidNudgeBanner/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
 
-        expect(wrapper.find('AlertBanner').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-free-deprecation-alert-banner')).toThrow();
     });
 });

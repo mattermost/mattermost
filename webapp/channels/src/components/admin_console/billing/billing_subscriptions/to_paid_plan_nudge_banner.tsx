@@ -27,7 +27,7 @@ import './to_paid_plan_nudge_banner.scss';
 enum DismissShowRange {
     GreaterThanEqual90 = '>=90',
     BetweenNinetyAnd60 = '89-61',
-    SixetyTo31 = '60-31',
+    SixtyTo31 = '60-31',
     ThirtyTo11 = '30-11',
     TenTo1 = '10-1',
     Zero = '0'
@@ -70,28 +70,28 @@ export const ToPaidPlanBannerDismissable = () => {
     useEffect(() => {
         if (!snoozeInfo.show) {
             if (daysToCloudFreeEnd >= 90 && !snoozedForRange(DismissShowRange.GreaterThanEqual90)) {
-                snoozeBanner(true);
+                showBanner(true);
             }
 
             if (daysToCloudFreeEnd < 90 && daysToCloudFreeEnd > 60 && !snoozedForRange(DismissShowRange.BetweenNinetyAnd60)) {
-                snoozeBanner(true);
+                showBanner(true);
             }
 
-            if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30 && !snoozedForRange(DismissShowRange.SixetyTo31)) {
-                snoozeBanner(true);
+            if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30 && !snoozedForRange(DismissShowRange.SixtyTo31)) {
+                showBanner(true);
             }
 
             if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10 && !snoozedForRange(DismissShowRange.ThirtyTo11)) {
-                snoozeBanner(true);
+                showBanner(true);
             }
 
             if (daysToCloudFreeEnd <= 10) {
-                snoozeBanner(true);
+                showBanner(true);
             }
         }
     }, []);
 
-    const snoozeBanner = (show = false) => {
+    const showBanner = (show = false) => {
         let dRange = DismissShowRange.Zero;
         if (daysToCloudFreeEnd >= 90) {
             dRange = DismissShowRange.GreaterThanEqual90;
@@ -102,7 +102,7 @@ export const ToPaidPlanBannerDismissable = () => {
         }
 
         if (daysToCloudFreeEnd <= 60 && daysToCloudFreeEnd > 30) {
-            dRange = DismissShowRange.SixetyTo31;
+            dRange = DismissShowRange.SixtyTo31;
         }
 
         if (daysToCloudFreeEnd <= 30 && daysToCloudFreeEnd > 10) {
@@ -162,14 +162,15 @@ export const ToPaidPlanBannerDismissable = () => {
 
     return (
         <AnnouncementBar
+            id='cloud-free-deprecation-announcement-bar'
             type={announcementType}
             showCloseButton={daysToCloudFreeEnd > 10}
-            onButtonClick={() => openPricingModal()}
+            onButtonClick={openPricingModal}
             modalButtonText={t('cloud_billing.nudge_to_paid.view_plans')}
             modalButtonDefaultText='View plans'
             message={<FormattedMessage {...message}/>}
             showLinkAsButton={true}
-            handleClose={snoozeBanner}
+            handleClose={showBanner}
         />
     );
 };
@@ -231,6 +232,7 @@ export const ToPaidNudgeBanner = () => {
 
     return (
         <AlertBanner
+            id='cloud-free-deprecation-alert-banner'
             mode='info'
             title={title}
             message={description}
