@@ -265,6 +265,7 @@
   "admin.billing.history.allPaymentsShowHere": "All of your invoices will be shown here",
   "admin.billing.history.date": "Date",
   "admin.billing.history.description": "Description",
+  "admin.billing.history.fractionalAndRatedSeats": "{fractionalSeats} metered seats, {fullSeats} seats at full rate, {partialSeats} seats with partial charges",
   "admin.billing.history.fractionalSeats": "{fractionalUsers} seats",
   "admin.billing.history.noBillingHistory": "In the future, this is where your billing history will show.",
   "admin.billing.history.onPremSeats": "{num} seats",

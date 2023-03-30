@@ -21,6 +21,7 @@ export default function InvoiceUserCount({invoice}: {invoice: Invoice}): JSX.Ele
                 id='admin.billing.history.onPremSeats'
                 defaultMessage='{num} seats'
                 values={{
+                    
                     // should always be a whole number, but truncate just in case
                     num: Math.floor(onPremUsers),
                 }}
