@@ -48,6 +48,7 @@
 
         .modal-content {
             height: 100%;
+            border-radius: 8px;
 
             .IconMessage__svg-wrapper {
                 margin-left: 0;
@@ -66,6 +67,12 @@
                 justify-content: right;
                 padding-right: 24px;
                 margin-top: 60px;
+
+                .btn {
+                    font-family: 'Open sans', sans-serif;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
             }
         }
     }
