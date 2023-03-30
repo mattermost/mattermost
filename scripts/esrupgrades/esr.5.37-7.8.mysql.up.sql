@@ -1282,7 +1282,6 @@ BEGIN
 		AND column_name = 'ChannelId'
 		INTO AddChannelId;
 
-
 	SELECT COUNT(*) = 0 FROM INFORMATION_SCHEMA.STATISTICS
 		WHERE table_name = 'Reactions'
 		AND table_schema = DATABASE()
