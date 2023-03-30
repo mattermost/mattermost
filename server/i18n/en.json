@@ -10045,82 +10045,82 @@
   },
   {
     "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
   },
   {
     "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template."
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
   },
   {
     "id": "worktemplate.devops.product_release.channel",
-    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
   },
   {
     "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page."
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel."
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel."
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve."
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
   }
 ]
