@@ -73,7 +73,7 @@ const AddChannelDropdown = ({
                     id='work-template'
                     modalId={ModalIdentifiers.WORK_TEMPLATE}
                     dialogType={WorkTemplateModal}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.work_template', defaultMessage: 'Start from a template'})}
+                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.work_template', defaultMessage: 'Create from a template'})}
                     extraText={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.work_template_extra', defaultMessage: 'Link channels, boards, and playbooks together'})}
                     icon={<i className='icon-layers-outline'/>}
                     className='work-template'
@@ -143,8 +143,8 @@ const AddChannelDropdown = ({
             <>
                 <Menu.Group>
                     {workTemplate}
-                    {joinPublicChannel}
                     {createChannel}
+                    {joinPublicChannel}
                     {createDirectMessage}
                     {showCreateTutorialTip && <CreateAndJoinChannelsTour/>}
                     {createUserGroup}

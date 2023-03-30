@@ -10029,11 +10029,11 @@
   },
   {
     "id": "worktemplate.category.companywide",
-    "translation": "Company - Wide"
+    "translation": "Company-wide"
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.leadership",
@@ -10041,7 +10041,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "Product Teams"
+    "translation": "Product"
   },
   {
     "id": "worktemplate.companywide.create_project.channel",

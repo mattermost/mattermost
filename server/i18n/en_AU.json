@@ -9652,7 +9652,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "Product Teams"
+    "translation": "Product"
   },
   {
     "id": "model.draft.is_valid.priority.app_error",
@@ -9836,11 +9836,11 @@
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
-    "translation": "Company - Wide"
+    "translation": "Company-wide"
   },
   {
     "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
