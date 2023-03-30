@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 
 import {Constants} from 'utils/constants';
+
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Channel, ChannelStats} from '@mattermost/types/channels';
 
@@ -32,6 +34,9 @@ const RightSide = styled.div`
 const Badge = styled.div`
     font-size: 12px;
     line-height: 18px;
+    width: 20px;
+    display: flex;
+    place-content: center;
 `;
 
 interface MenuItemProps {
@@ -39,7 +44,7 @@ interface MenuItemProps {
     icon: JSX.Element;
     text: string;
     opensSubpanel?: boolean;
-    badge?: string|number;
+    badge?: string|number|JSX.Element;
     onClick: () => void;
 }
 
@@ -94,14 +99,26 @@ interface MenuProps {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
+        getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
     };
 }
 
 const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps) => {
     const {formatMessage} = useIntl();
+    const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
     const showMembers = channel.type !== Constants.DM_CHANNEL;
+    const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
+
+    useEffect(() => {
+        actions.getChannelStats(channel.id).then(() => {
+            setLoadingStats(false);
+        });
+        return () => {
+            setLoadingStats(true);
+        };
+    }, [channel.id]);
 
     return (
         <div
@@ -135,7 +152,7 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
                 icon={<i className='icon icon-file-text-outline'/>}
                 text={formatMessage({id: 'channel_info_rhs.menu.files', defaultMessage: 'Files'})}
                 opensSubpanel={true}
-                badge={channelStats?.files_count}
+                badge={loadingStats ? <LoadingSpinner/> : fileCount}
                 onClick={() => actions.showChannelFiles(channel.id)}
             />
         </div>

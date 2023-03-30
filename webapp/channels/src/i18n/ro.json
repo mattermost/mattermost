@@ -3306,8 +3306,6 @@
   "modal.manual_status.title_offline": "Starea dvs. este setată la \"Offline\"",
   "modal.manual_status.title_ooo": "Starea dvs. este setată la \"Plecat din birou\"",
   "more_channels.create": "Creați un nou canal",
-  "more_channels.createClick": "Dați clic pe \"Creați un nou canal\" pentru a crea unul nou",
-  "more_channels.joining": "Aderarea...",
   "more_channels.next": "Următor",
   "more_channels.noMore": "Nu mai există canale care să se alăture",
   "more_channels.prev": "Anterior",

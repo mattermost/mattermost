@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors.js';
+import {ServerError} from '@mattermost/types/errors';
 import {ActionFunc} from 'mattermost-redux/types/actions.js';
 
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
