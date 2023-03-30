@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ReactElement} from 'react';
+import {DeepPartial} from 'redux';
+
 import {Audit} from './audits';
+import {CloudState, Product} from './cloud';
 import {Compliance} from './compliance';
 import {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
 import {DataRetentionCustomPolicies} from './data_retention';
@@ -91,3 +95,77 @@ export type SchemaMigration = {
     version: number;
     name: string;
 };
+
+export type ConsoleAccess = {
+    read: Record<string, boolean>;
+    write: Record<string, boolean>;
+}
+
+export type CheckFunction = (config?: DeepPartial<AdminConfig>, state?: Record<string, any>, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => boolean;
+
+export type AdminSectionPages = {
+    id: string;
+    url: string;
+
+    /** If the title of the page is not provided it will not render in the sidebar */
+    title?: string;
+    title_default?: string;
+    isDiscovery?: boolean;
+    schema: {
+        id: string;
+        component?: React.ElementType;
+        isHidden?: CheckFunction | boolean;
+        name?: string;
+        name_default?: string;
+        settings?: Record<string, any>[];
+        sections?: Record<string, any>[];
+        onConfigLoad?: (config: any) => unknown | undefined;
+        onConfigSave?: (config: any) => unknown | undefined;
+    };
+    searchableStrings?: Array<string | [string, Record<string, string>]>;
+    isHidden: CheckFunction | boolean;
+    isDisabled: CheckFunction | boolean;
+    restrictedIndicator?: {
+        value: (cloud: CloudState) => JSX.Element;
+        shouldDisplay: (license: ClientLicense, subscriptionProduct: Product | undefined) => boolean;
+    };
+}
+
+export type AdminSection<T extends string> = {
+    icon: JSX.Element | ReactElement<any, any>;
+    sectionTitle: string;
+    sectionTitleDefault: string;
+    isHidden: CheckFunction | boolean;
+    id?: string;
+
+    /** Every page here will be rendered into the sidebar */
+    pages: Array<AdminSectionPages>;
+};
+
+type AboutSections = 'license'
+type ReportingSections = 'workspace_optimization' | 'system_analytics' | 'team_statistics' | 'server_logs';
+type BillingSections = 'billing_history' | 'subscription' | 'company_info' | 'company_info_edit' | 'payment_info' | 'payment_info_edit';
+type UserManagementSections = 'system_users' | 'system_user_detail' | 'group_detail' | 'groups' | 'groups_feature_discovery' | 'team_detail' | 'teams' | 'channel_detail' | 'channel' | 'systemScheme' | 'teamSchemeDetail' | 'teamScheme' | 'permissions' | 'system_role' | 'system_roles' | 'system_roles_feature_discovery';
+type EnvironmentSections = 'web_server' | 'database' | 'elasticsearch' | 'storage' | 'image_proxy' | 'smtp' | 'push_notification_server' | 'high_availability' | 'rate_limiting' | 'logging' | 'session_lengths' | 'metrics' | 'developer';
+type SiteSections = 'customization' | 'localization' | 'users_and_teams' |'notifications' | 'announcement_banner' | 'announcement_banner_feature_discovery' | 'emoji' | 'posts' | 'file_sharing_downloads' | 'public_links' | 'notices';
+type AuthenticationSections = 'signup' | 'email' | 'password' | 'mfa' | 'ldap' | 'ldap_feature_discovery' | 'saml' | 'saml_feature_discovery' | 'gitlab' | 'oauth' | 'openid' | 'openid_feature_discovery' | 'guest_access' | 'guest_access_feature_discovery';
+type PluginsSections = 'plugin_management' | 'custom';
+type ProductsSections = 'boards';
+type IntegrationsSections = 'integration_management' | 'bot_accounts' | 'gif' | 'cors';
+type ComplianceSections = 'custom_policy_form_edit' | 'custom_policy_form' | 'global_policy_form' | 'data_retention' | 'data_retention_feature_discovery' | 'message_export' | 'compliance_export_feature_discovery' | 'audits' | 'custom_terms_of_service' | 'custom_terms_of_service_feature_discovery';
+type ExperimentalSections = 'experimental_features' | 'feature_flags' | 'bleve';
+
+export type AdminDefinitions = {
+    about: AdminSection<AboutSections>;
+    reporting: AdminSection<ReportingSections>;
+    billing: AdminSection<BillingSections>;
+    user_management: AdminSection<UserManagementSections>;
+    environment: AdminSection<EnvironmentSections>;
+    site: AdminSection<SiteSections>;
+    authentication: AdminSection<AuthenticationSections>;
+    plugins: AdminSection<PluginsSections>;
+    products: AdminSection<ProductsSections>;
+    integrations: AdminSection<IntegrationsSections>;
+    compliance: AdminSection<ComplianceSections>;
+    experimental: AdminSection<ExperimentalSections>;
+} & Record<string, AdminSection<string>>;
