@@ -301,6 +301,7 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
                                 className='color--link'
                                 modalId={ModalIdentifiers.PLUGIN_MARKETPLACE}
                                 dialogType={MarketplaceModal}
+                                dialogProps={{openedFrom: 'open_plugin_install_post'}}
                             >
                                 {text}
                             </ToggleModalButton>

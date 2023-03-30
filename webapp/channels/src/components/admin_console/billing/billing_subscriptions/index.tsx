@@ -13,7 +13,6 @@ import FormattedAdminHeader from 'components/widgets/admin_console/formatted_adm
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
 
-import {getCloudContactUsLink, InquiryType, SalesInquiryIssue} from 'selectors/cloud';
 import {
     getSubscriptionProduct,
     getCloudSubscription as selectCloudSubscription,
@@ -63,9 +62,6 @@ const BillingSubscriptions = () => {
 
     const isCardExpired = isCustomerCardExpired(useSelector(selectCloudCustomer));
 
-    const contactSalesLink = useSelector(getCloudContactUsLink)(InquiryType.Sales);
-    const cancelAccountLink = useSelector(getCloudContactUsLink)(InquiryType.Sales, SalesInquiryIssue.CancelAccount);
-    const trialQuestionsLink = useSelector(getCloudContactUsLink)(InquiryType.Sales, SalesInquiryIssue.TrialQuestions);
     const trialEndDate = subscription?.trial_end_at || 0;
 
     const [showCreditCardBanner, setShowCreditCardBanner] = useState(true);
@@ -159,19 +155,12 @@ const BillingSubscriptions = () => {
                             <Limits/>
                         ) : (
                             <ContactSalesCard
-                                contactSalesLink={contactSalesLink}
                                 isFreeTrial={isFreeTrial}
-                                trialQuestionsLink={trialQuestionsLink}
                                 subscriptionPlan={product?.sku}
                                 onUpgradeMattermostCloud={openPricingModal}
                             />
                         )}
-                        {isAnnualProfessionalOrEnterprise && !isFreeTrial ?
-                            <CancelSubscription
-                                cancelAccountLink={cancelAccountLink}
-                            /> :
-                            <DeleteWorkspaceCTA/>
-                        }
+                        {isAnnualProfessionalOrEnterprise && !isFreeTrial ? <CancelSubscription/> : <DeleteWorkspaceCTA/>}
                     </>}
                 </div>
             </div>
