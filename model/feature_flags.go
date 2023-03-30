@@ -100,7 +100,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 }
 
