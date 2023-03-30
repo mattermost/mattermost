@@ -107,7 +107,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalDrafts = true
 	f.EnableCloudFreeDeprecationUI = false
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 }
 

@@ -82,7 +82,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
             >
               <li
                 aria-label="Invite Members"
-                className="SidebarChannelNavigator_inviteMembersLhsButton SidebarChannelNavigator_inviteMembersLhsButton--untouched"
+                className="SidebarChannelNavigator__inviteMembersLhsButton SidebarChannelNavigator__inviteMembersLhsButton--untouched"
               >
                 <i
                   className="icon-plus-box"
