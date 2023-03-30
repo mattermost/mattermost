@@ -9,8 +9,9 @@ type BootstrapSelfHostedSignupRequest struct {
 }
 
 type SubscribeNewletterRequest struct {
-	Email    string `json:"email"`
-	ServerID string `json:"server_id"`
+	Email             string `json:"email"`
+	ServerID          string `json:"server_id"`
+	SubscribedContent string `json:"subscribed_content"`
 }
 
 type BootstrapSelfHostedSignupResponse struct {
