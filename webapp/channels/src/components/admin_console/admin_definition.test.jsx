@@ -3,7 +3,7 @@
 
 import * as yup from 'yup';
 
-import adminDefinition from 'components/admin_console/admin_definition.jsx';
+import adminDefinition from 'components/admin_console/admin_definition';
 import {Constants} from 'utils/constants';
 
 const baseShape = {
@@ -144,26 +144,26 @@ const setting = yup.mixed().test('is-setting', 'not a valid setting: ${path}', (
     return valid;
 });
 
-var baseSchema = {
+const baseSchema = {
     id: yup.string().required(),
     name: yup.string().required(),
     name_default: yup.string().required(),
 };
 
-var schema = yup.object(baseSchema).shape({
+const schema = yup.object(baseSchema).shape({
     settings: yup.array().of(setting).required(),
 });
 
-var sectionSchema = yup.object(baseSchema).shape({
+const sectionSchema = yup.object(baseSchema).shape({
     sections: yup.array().of(schema).required(),
 });
 
-var customComponentSchema = yup.object().shape({
+const customComponentSchema = yup.object().shape({
     id: yup.string().required(),
     component: yup.object().required(),
 });
 
-var definition = yup.object().shape({
+const definition = yup.object().shape({
     reporting: yup.object().shape({
         system_analytics: yup.object().shape({schema: customComponentSchema}),
         team_analytics: yup.object().shape({schema: customComponentSchema}),

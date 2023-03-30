@@ -18,9 +18,11 @@ import {LhsItemType} from 'types/store/lhs';
 import {applyTheme, resetTheme} from 'utils/utils';
 
 import {Role} from '@mattermost/types/roles';
-import {CloudState, Product} from '@mattermost/types/cloud';
+import {CloudState} from '@mattermost/types/cloud';
 import {DeepPartial} from '@mattermost/types/utilities';
-import {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
+import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+
+import {AdminSectionPages} from '@mattermost/types/admin';
 
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';
@@ -48,22 +50,6 @@ type ExtraProps = {
     updateConfig?: (config: AdminConfig) => ActionFunc;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
-}
-
-type ConsoleAccess = {
-    read: Record<string, boolean>;
-    write: Record<string, boolean>;
-}
-
-type Item = {
-    isHidden?: (config?: Record<string, any>, state?: Record<string, any>, license?: Record<string, any>, buildEnterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isCurrentUserSystemAdmin?: boolean) => boolean;
-    isDisabled?: (config?: Record<string, any>, state?: Record<string, any>, license?: Record<string, any>, buildEnterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isCurrentUserSystemAdmin?: boolean) => boolean;
-    schema: Record<string, any>;
-    url: string;
-    restrictedIndicator?: {
-        value: (cloud: CloudState) => React.ReactNode;
-        shouldDisplay: (license: ClientLicense, subscriptionProduct?: Product) => boolean;
-    };
 }
 
 export default class AdminConsole extends React.PureComponent<Props, State> {
@@ -114,44 +100,26 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
     private renderRoutes = (extraProps: ExtraProps) => {
         const {adminDefinition, config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = this.props;
 
-        const schemas: Item[] = Object.values(adminDefinition).reduce((acc, section) => {
-            let items: Item[] = [];
+        const schemas: AdminSectionPages[] = [];
 
-            let isSectionHidden = false;
-            Object.entries(section).find(([key, value]) => {
-                if (key === 'isHidden') {
-                    if (typeof value === 'function') {
-                        isSectionHidden = value(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
-                    } else {
-                        isSectionHidden = Boolean(value);
-                    }
-                }
-                return null;
-            });
+        // looking at each section of the adminDefinitions
+        Object.values(adminDefinition).forEach((section) => {
+            const isSectionHidden = (typeof section.isHidden === 'function') ? section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(section.isHidden);
 
             if (!isSectionHidden) {
-                items = Object.values(section).filter((item: Item) => Boolean(item.schema));
+                const items: AdminSectionPages[] = section.pages.filter((value) => value?.schema);
+                schemas.push(...items);
             }
-            return acc.concat(items);
-        }, [] as Item[]);
+        });
 
         let defaultUrl = '';
 
-        const schemaRoutes = schemas.map((item: Item, index: number) => {
-            if (typeof item.isHidden !== 'undefined') {
-                const isHidden = (typeof item.isHidden === 'function') ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(item.isHidden);
-                if (isHidden) {
-                    return false;
-                }
-            }
+        const schemaRoutes = schemas.filter((page) => {
+            const isPageHidden = (typeof page.isHidden === 'function') ? page.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(page.isHidden);
 
-            let isItemDisabled: boolean;
-
-            if (typeof item.isDisabled === 'function') {
-                isItemDisabled = item.isDisabled(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
-            } else {
-                isItemDisabled = Boolean(item.isDisabled);
-            }
+            return !isPageHidden;
+        }).map((page, index) => {
+            const isItemDisabled = (typeof page.isDisabled === 'function') ? page.isDisabled(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(page.isDisabled);
 
             if (!isItemDisabled && defaultUrl === '') {
                 const {url} = schemas[index];
@@ -165,14 +133,14 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
 
             return (
                 <Route
-                    key={item.url}
-                    path={`${this.props.match.url}/${item.url}`}
+                    key={page.url}
+                    path={`${this.props.match.url}/${page.url}`}
                     render={(props) => (
                         <SchemaAdminSettings
                             {...extraProps}
                             {...props}
                             consoleAccess={this.props.consoleAccess}
-                            schema={item.schema}
+                            schema={page.schema}
                             isDisabled={isItemDisabled}
                         />
                     )}
