@@ -81,7 +81,7 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 	}
 
 	return &config.Configuration{
-		ServerRoot:               "/boards",
+		ServerRoot:               baseURL + "/boards",
 		Port:                     -1,
 		DBType:                   *mmconfig.SqlSettings.DriverName,
 		DBConfigString:           *mmconfig.SqlSettings.DataSource,
