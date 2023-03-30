@@ -306,8 +306,6 @@
   "admin.billing.subscriptions.billing_summary.lastInvoice.taxes": "Taxas",
   "admin.billing.subscriptions.billing_summary.lastInvoice.title": "Última Fatura",
   "admin.billing.subscriptions.billing_summary.lastInvoice.total": "Total",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.userCount": " x {users} usuários",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.userCountPartial": "{users} usuários",
   "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges": "O que são cobranças parciais?",
   "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message": "Os usuários que não foram ativados durante todo o mês são cobrados a uma taxa mensal rateada.",
   "admin.billing.subscriptions.billing_summary.noBillingHistory.description": "No futuro, é aqui que o resumo de sua fatura mais recente será exibido.",
