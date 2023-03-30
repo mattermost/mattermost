@@ -50,6 +50,7 @@ func NewStoreType(name string, driver string, skipMigrations bool) *storeType {
 		DB:               sqlDB,
 		IsPlugin:         false, // ToDo: to be removed
 	}
+
 	store, err := New(storeParams)
 	if err != nil {
 		panic(fmt.Sprintf("cannot create store: %s", err))

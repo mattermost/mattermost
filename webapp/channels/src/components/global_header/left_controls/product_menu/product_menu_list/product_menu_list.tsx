@@ -6,9 +6,9 @@ import {useIntl} from 'react-intl';
 import {
     AccountMultipleOutlineIcon,
     ApplicationCogIcon,
-    AppsIcon,
     DownloadOutlineIcon,
     InformationOutlineIcon,
+    ViewGridPlusOutlineIcon,
     WebhookIncomingIcon,
 } from '@mattermost/compass-icons/components';
 
@@ -204,8 +204,9 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         modalId={ModalIdentifiers.PLUGIN_MARKETPLACE}
                         show={isMessaging && !isMobile && enablePluginMarketplace}
                         dialogType={MarketplaceModal}
-                        text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'Marketplace'})}
-                        icon={<AppsIcon size={16}/>}
+                        dialogProps={{openedFrom: 'product_menu'}}
+                        text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'App Marketplace'})}
+                        icon={<ViewGridPlusOutlineIcon size={16}/> }
                     />
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink

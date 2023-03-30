@@ -5,6 +5,9 @@ on:
     branches:
       - master
       - mono-repo*
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 defaults:
   run:
     shell: bash
@@ -29,16 +32,15 @@ jobs:
       #   with:
       #     path: |
       #       '**/node_modules'
-      #       'e2e/playwright/node_modules'
-      #       'e2e/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e/cypress/package-lock.json') }}-${{ hashFiles('e2e/playwright/package-lock.json') }}
+      #       'e2e-tests/playwright/node_modules'
+      #       'e2e-tests/cypress/node_modules'
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          # make channels/e2e/playwright/node_modules
+          # make channels/e2e-tests/playwright/node_modules
       - name: ci/lint
-        working-directory: webapp/channels
         run: |
           npm run check
   check-i18n:
@@ -61,14 +63,14 @@ jobs:
       #   with:
       #     path: |
       #       '**/node_modules'
-      #       'e2e/playwright/node_modules'
-      #       'e2e/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e/cypress/package-lock.json') }}-${{ hashFiles('e2e/playwright/package-lock.json') }}
+      #       'e2e-tests/playwright/node_modules'
+      #       'e2e-tests/cypress/node_modules'
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          # make channels/e2e/playwright/node_modules
+          # make channels/e2e-tests/playwright/node_modules
       - name: ci/lint
         working-directory: webapp/channels
         run: |
@@ -81,7 +83,7 @@ jobs:
           npm run mmjstool -- i18n clean-empty --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir --check
           npm run mmjstool -- i18n check-empty-src --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir
           rm -rf tmp
-  check-type:
+  check-types:
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -101,21 +103,20 @@ jobs:
       #   with:
       #     path: |
       #       '**/node_modules'
-      #       'e2e/playwright/node_modules'
-      #       'e2e/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e/cypress/package-lock.json') }}-${{ hashFiles('e2e/playwright/package-lock.json') }}
+      #       'e2e-tests/playwright/node_modules'
+      #       'e2e-tests/cypress/node_modules'
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          # make channels/e2e/playwright/node_modules
+          # make channels/e2e-tests/playwright/node_modules
       - name: ci/lint
-        working-directory: webapp/channels
         run: |
           npm run check-types
-  tests:
+  test:
     runs-on: ubuntu-22.04
-    needs: [check-type, check-i18n, check-lint]
+    needs: [check-types, check-i18n, check-lint]
     permissions:
       checks: write
       pull-requests: write
@@ -137,28 +138,22 @@ jobs:
       #   with:
       #     path: |
       #       '**/node_modules'
-      #       'e2e/playwright/node_modules'
-      #       'e2e/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e/cypress/package-lock.json') }}-${{ hashFiles('e2e/playwright/package-lock.json') }}
+      #       'e2e-tests/playwright/node_modules'
+      #       'e2e-tests/cypress/node_modules'
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          # make channels/e2e/playwright/node_modules
-      - name: ci/detect-cpu-core
-        id: cpu-cores
-        uses: SimenB/github-actions-cpu-cores@c508d404ab007faae80a014072fd8c0e17792118 # v1.1.0
+          # make channels/e2e-tests/playwright/node_modules
       - name: ci/test
-        working-directory: webapp/channels
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
-      - name: ci/publish-test-results
-        uses: EnricoMi/publish-unit-test-result-action@a3caf02865c0604ad3dc1ecfcc5cdec9c41b7936  # v2.3.0
-        if: always()
-        with:
-          junit_files: "webapp/channels/build/**/*.xml"
-          comment_mode: always
-          compare_to_earlier_commit: false
+          # npm run test-ci --workspace=boards
+          npm run test-ci --workspace=channels
+          npm run test-ci --workspace=platform/client
+          npm run test-ci --workspace=playbooks
   build:
     runs-on: ubuntu-22.04
     defaults:
@@ -179,16 +174,15 @@ jobs:
       #   with:
       #     path: |
       #       '**/node_modules'
-      #       'e2e/playwright/node_modules'
-      #       'e2e/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e/cypress/package-lock.json') }}-${{ hashFiles('e2e/playwright/package-lock.json') }}
+      #       'e2e-tests/playwright/node_modules'
+      #       'e2e-tests/cypress/node_modules'
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
         # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
-          # make channels/e2e/playwright/node_modules
+          # make channels/e2e-tests/playwright/node_modules
       - name: ci/build
-        working-directory: webapp/channels
         run: |
           npm run build
   # run-performance-bechmarks:

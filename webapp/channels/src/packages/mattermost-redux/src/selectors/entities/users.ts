@@ -442,7 +442,7 @@ export function makeSearchProfilesStartingWithTerm(): (state: GlobalState, term:
         (state: GlobalState, term: string, skipCurrent?: boolean) => skipCurrent || false,
         (stateGlobalState, term: string, skipCurrent?: boolean, filters?: Filters) => filters,
         (users, currentUserId, term, skipCurrent, filters) => {
-            const profiles = filterProfilesStartingWithTerm(Object.values(users), term);
+            const profiles = filterProfilesMatchingWithTerm(Object.values(users), term);
             return filterFromProfiles(currentUserId, profiles, skipCurrent, filters);
         },
     );
@@ -509,7 +509,7 @@ export function searchProfilesInCurrentTeam(state: GlobalState, term: string, sk
 }
 
 export function searchProfilesInTeam(state: GlobalState, teamId: Team['id'], term: string, skipCurrent = false, filters?: Filters): UserProfile[] {
-    const profiles = filterProfilesStartingWithTerm(getProfilesInTeam(state, teamId, filters), term);
+    const profiles = filterProfilesMatchingWithTerm(getProfilesInTeam(state, teamId, filters), term);
     if (skipCurrent) {
         removeCurrentUserFromList(profiles, getCurrentUserId(state));
     }

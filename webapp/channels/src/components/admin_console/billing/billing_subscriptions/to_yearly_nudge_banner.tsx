@@ -10,7 +10,6 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
-import {SalesInquiryIssue} from 'selectors/cloud';
 import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -79,7 +78,7 @@ const ToYearlyNudgeBannerDismissable = () => {
 const ToYearlyNudgeBanner = () => {
     const {formatMessage} = useIntl();
 
-    const openSalesLink = useOpenSalesLink(SalesInquiryIssue.AboutPurchasing);
+    const [openSalesLink] = useOpenSalesLink();
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
     const product = useSelector(selectSubscriptionProduct);
