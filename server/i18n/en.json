@@ -10044,12 +10044,20 @@
     "translation": "Product"
   },
   {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
     "id": "worktemplate.companywide.create_project.channel",
     "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
   },
   {
     "id": "worktemplate.companywide.create_project.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.channel",
@@ -10060,6 +10068,10 @@
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
   },
   {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+  },
+  {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
   },
@@ -10068,12 +10080,20 @@
     "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
   },
   {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
     "id": "worktemplate.devops.product_release.channel",
     "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
   },
   {
     "id": "worktemplate.devops.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
@@ -10122,26 +10142,6 @@
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
   },
   {
     "id": "worktemplate.product_teams.product_roadmap.board",
