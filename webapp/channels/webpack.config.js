@@ -171,9 +171,6 @@ var config = {
         new webpack.ProvidePlugin({
             process: 'process/browser',
         }),
-        new webpack.DefinePlugin({
-            COMMIT_HASH: JSON.stringify(childProcess.execSync('git rev-parse HEAD || echo dev').toString()),
-        }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
             chunkFilename: '[name].[contenthash].css',
