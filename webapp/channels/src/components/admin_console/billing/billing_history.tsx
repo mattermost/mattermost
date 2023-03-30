@@ -16,14 +16,17 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 
-import {CloudLinks} from 'utils/constants';
+import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import ExternalLink from 'components/external_link';
 
 import BillingHistoryTable from './billing_history_table';
 
 import './billing_history.scss';
 
-const noBillingHistorySection = (
+interface NoBillingHistorySectionProps {
+    selfHosted: boolean;
+}
+export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => (
     <div className='BillingHistory__noHistory'>
         <EmptyBillingHistorySvg
             width={300}
@@ -37,7 +40,7 @@ const noBillingHistorySection = (
         </div>
         <ExternalLink
             location='billing_history'
-            href={CloudLinks.BILLING_DOCS}
+            href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
             className='BillingHistory__noHistory-link'
             onClick={() => trackEvent('cloud_admin', 'click_billing_history', {screen: 'billing'})}
         >
@@ -92,9 +95,7 @@ const BillingHistory = () => {
 
                         <div className='BillingHistory__cardBody'>
                             {invoices != null && (
-                                <>
-                                    {areInvoicesEmpty ? noBillingHistorySection : billingHistoryTable}
-                                </>
+                                areInvoicesEmpty ? <NoBillingHistorySection selfHosted={!isCloud}/> : billingHistoryTable
                             )}
                             {invoices == null && (
                                 <div className='BillingHistory__spinner'>

@@ -11,10 +11,10 @@ import {useShowTourTip} from './useShowTourTip';
 
 export const BoardsTourTip = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
-
     const {playbooksCount, boardsCount, showBoardsTour} = useShowTourTip();
     const dimensions = useFollowElementDimensions('sidebar-right');
     const overlayPunchOut = useMeasurePunchouts(['sidebar-right'], [dimensions?.width]);
+
     if (!showBoardsTour) {
         return null;
     }
