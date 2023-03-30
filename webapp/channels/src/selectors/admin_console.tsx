@@ -1,52 +1,57 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import AdminDefinition from 'components/admin_console/admin_definition';
 
-import {createSelector} from 'reselect';
+import {getAdminDefinition} from 'selectors/admin_console';
 
-import {getMySystemPermissions} from 'mattermost-redux/selectors/entities/roles_helpers';
-import {ResourceToSysConsolePermissionsTable, RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
+describe('Selectors.AdminConsole', () => {
+    describe('get admin definitions', () => {
+        it('should return the default admin definition if there is not plugins', () => {
+            const state = {plugins: {adminConsoleReducers: {}}};
+            expect(getAdminDefinition(state)).toEqual(AdminDefinition);
+        });
 
-import AdminDefinition from 'components/admin_console/admin_definition.jsx';
+        it('should allow to remove everything with a plugin', () => {
+            const result = getAdminDefinition({
+                plugins: {
+                    adminConsoleReducers: {clean: () => ({})},
+                },
+            });
+            expect(result).toEqual({});
+        });
 
-export const getAdminDefinition = createSelector(
-    'getAdminDefinition',
-    () => AdminDefinition,
-    (state) => state.plugins.adminConsoleReducers,
-    (adminDefinition, reducers) => {
-        let result = cloneDeep(AdminDefinition);
-        for (const reducer of Object.values(reducers)) {
-            result = reducer(result);
-        }
-        return result;
-    },
-);
+        it('should allow to add a value to the existing definition', () => {
+            const result = getAdminDefinition({
+                plugins: {
+                    adminConsoleReducers: {
+                        'add-something': (data: Record<string, string>) => {
+                            data.something = 'test';
+                            return data;
+                        },
+                    },
+                },
+            });
+            expect(result.something).toEqual('test');
+        });
 
-export const getAdminConsoleCustomComponents = (state, pluginId) =>
-    state.plugins.adminConsoleCustomComponents[pluginId] || {};
-
-export const getConsoleAccess = createSelector(
-    'getConsoleAccess',
-    getAdminDefinition,
-    getMySystemPermissions,
-    (adminDefinition, mySystemPermissions) => {
-        const consoleAccess = {read: {}, write: {}};
-        const addEntriesForKey = (entryKey) => {
-            const permissions = ResourceToSysConsolePermissionsTable[entryKey].filter((x) => mySystemPermissions.has(x));
-            consoleAccess.read[entryKey] = permissions.length !== 0;
-            consoleAccess.write[entryKey] = permissions.some((permission) => permission.startsWith('sysconsole_write_'));
-        };
-        const mapAccessValuesForKey = ([key]) => {
-            if (typeof RESOURCE_KEYS[key.toUpperCase()] === 'object') {
-                Object.values(RESOURCE_KEYS[key.toUpperCase()]).forEach((entry) => {
-                    addEntriesForKey(entry);
-                });
-            } else {
-                addEntriesForKey(key);
-            }
-        };
-        Object.entries(adminDefinition).forEach(mapAccessValuesForKey);
-        return consoleAccess;
-    },
-);
+        it('should allow to use multiple plugins', () => {
+            const result = getAdminDefinition({
+                plugins: {
+                    adminConsoleReducers: {
+                        'add-something': (data: Record<string, string>) => {
+                            data.something = 'test';
+                            return data;
+                        },
+                        'add-other-thing': (data: Record<string, string>) => {
+                            data.otherThing = 'other-thing';
+                            return data;
+                        },
+                    },
+                },
+            });
+            expect(result.something).toEqual('test');
+            expect(result.otherThing).toEqual('other-thing');
+        });
+    });
+});
