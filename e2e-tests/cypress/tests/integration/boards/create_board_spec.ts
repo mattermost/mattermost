@@ -54,7 +54,7 @@ describe('Create and delete board / card', () => {
         cy.findByText('Create an empty board').should('exist').click({force: true});
         cy.get('.BoardComponent').should('exist');
 
-        // Change Title
+        // # Change Title
         cy.findByPlaceholderText('Untitled board').should('be.visible').wait(timeouts.HALF_SEC);
 
         // * Assert that the title is changed to "testing"
@@ -78,6 +78,9 @@ describe('Create and delete board / card', () => {
             click().
             get('.description .MarkdownEditorInput').
             type('for testing purposes only');
+
+        // # Click to other element to give some time for the description to be saved.
+        cy.findByPlaceholderText('Untitled board').click();
 
         // * Assert that the description is changed to "for testing purposes only"
         cy.findByText('for testing purposes only').should('be.visible');
