@@ -362,8 +362,6 @@
   "admin.billing.subscriptions.billing_summary.lastInvoice.taxes": "مالیات",
   "admin.billing.subscriptions.billing_summary.lastInvoice.title": "آخرین صورت‌حساب",
   "admin.billing.subscriptions.billing_summary.lastInvoice.total": "جمع",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.userCount": " × {users} کاربر",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.userCountPartial": "{users} کاربر",
   "admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice": "نمایش فاکتور",
   "admin.billing.subscriptions.billing_summary.noBillingHistory.description": "در آینده، این جایی است که آخرین خلاصه صورتحساب شما نشان داده خواهد شد.",
   "admin.billing.subscriptions.billing_summary.noBillingHistory.link": "ببینید صورتحساب چگونه کار می کند",

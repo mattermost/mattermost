@@ -340,7 +340,7 @@ describe('Self hosted Purchase', () => {
 
         getCurrentUsers().then((currentUsers) => {
             // * Verify form can not be submitted
-            cy.contains(`Your workspace currently has ${currentUsers} users`).should('not.be.enabled');
+            cy.contains(`Your workspace currently has ${currentUsers} active users`).should('not.be.enabled');
             cy.contains('Upgrade').should('not.be.enabled');
 
             // # Fill form the same number of seats as current users
