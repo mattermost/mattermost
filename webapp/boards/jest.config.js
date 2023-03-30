@@ -43,11 +43,6 @@ const config = {
         "^src(.*)$": "<rootDir>/src$1",
         "^i18n(.*)$": "<rootDir>/i18n$1",
         "^static(.*)$": "<rootDir>/static$1",
-        "^react-day-picker(.*)$": "<rootDir>/node_modules/react-day-picker$1",
-        "^moment(.*)$": "<rootDir>/../node_modules/moment$1",
-        "^react$": "<rootDir>/../node_modules/react",
-        // "^react-redux$": "<rootDir>/../node_modules/react-redux",
-        // "^react-intl$": "<rootDir>/../node_modules/react-intl",
     },
     moduleDirectories: [
         "src",
