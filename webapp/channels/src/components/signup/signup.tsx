@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, FocusEvent} from 'react';
+
 import {useIntl} from 'react-intl';
 import {useLocation, useHistory} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
@@ -455,16 +456,25 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     };
 
+    function sendSignUpTelemetryEvents(telemetryId: string, props?: any) {
+        trackEvent('signup', telemetryId, props);
+    }
+
+    type TelemetryErrorList = {errors: Array<{field: string; rule: string}>; success: boolean};
+
     const isUserValid = () => {
         let isValid = true;
 
         const providedEmail = emailInput.current?.value.trim();
+        const telemetryEvents: TelemetryErrorList = {errors: [], success: true};
 
         if (!providedEmail) {
             setEmailError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
+            telemetryEvents.errors.push({field: 'email', rule: 'not_provided'});
             isValid = false;
         } else if (!isEmail(providedEmail)) {
             setEmailError(formatMessage({id: 'signup_user_completed.validEmail', defaultMessage: 'Please enter a valid email address'}));
+            telemetryEvents.errors.push({field: 'email', rule: 'invalid_email'});
             isValid = false;
         }
 
@@ -474,10 +484,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             const usernameError = isValidUsername(providedUsername);
 
             if (usernameError) {
-                setNameError(usernameError.id === ValidationErrors.RESERVED_NAME ? (
-                    formatMessage({id: 'signup_user_completed.reserved', defaultMessage: 'This username is reserved, please choose a new one.'})
-                ) : (
-                    formatMessage(
+                let nameError = '';
+                if (usernameError.id === ValidationErrors.RESERVED_NAME) {
+                    nameError = formatMessage({id: 'signup_user_completed.reserved', defaultMessage: 'This username is reserved, please choose a new one.'});
+                } else {
+                    nameError = formatMessage(
                         {
                             id: 'signup_user_completed.usernameLength',
                             defaultMessage: 'Usernames have to begin with a lowercase letter and be {min}-{max} characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
@@ -486,22 +497,32 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             min: Constants.MIN_USERNAME_LENGTH,
                             max: Constants.MAX_USERNAME_LENGTH,
                         },
-                    )
-                ));
+                    );
+                }
+                telemetryEvents.errors.push({field: 'username', rule: usernameError.id.toLowerCase()});
+                setNameError(nameError);
                 isValid = false;
             }
         } else {
             setNameError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
+            telemetryEvents.errors.push({field: 'username', rule: 'not_provided'});
             isValid = false;
         }
 
         const providedPassword = passwordInput.current?.value ?? '';
-        const {error} = isValidPassword(providedPassword, getPasswordConfig(config), intl);
+        const {error, telemetryErrorIds} = isValidPassword(providedPassword, getPasswordConfig(config), intl);
 
         if (error) {
             setPasswordError(error as string);
+            telemetryEvents.errors = [...telemetryEvents.errors, ...telemetryErrorIds];
             isValid = false;
         }
+
+        if (telemetryEvents.errors.length) {
+            telemetryEvents.success = false;
+        }
+
+        sendSignUpTelemetryEvents('validate_user', telemetryEvents);
 
         return isValid;
     };
@@ -512,7 +533,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const handleSubmit = async (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
-        trackEvent('signup_email', 'click_create_account', getRoleFromTrackFlow());
+        sendSignUpTelemetryEvents('click_create_account', getRoleFromTrackFlow());
         setIsWaiting(true);
 
         if (isUserValid()) {
@@ -549,6 +570,14 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     };
 
     const handleReturnButtonOnClick = () => history.replace('/');
+
+    const handleOnBlur = (e: FocusEvent<HTMLInputElement>, inputId: string) => {
+        const text = e.target.value;
+        if (!text) {
+            return;
+        }
+        sendSignUpTelemetryEvents(`typed_input_${inputId}`);
+    };
 
     const getContent = () => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
@@ -671,6 +700,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         disabled={isWaiting || Boolean(parsedEmail)}
                                         autoFocus={true}
                                         customMessage={emailCustomLabelForInput}
+                                        onBlur={(e) => handleOnBlur(e, 'email')}
                                     />
                                     <Input
                                         ref={nameInput}
@@ -692,6 +722,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                 value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
                                             }
                                         }
+                                        onBlur={(e) => handleOnBlur(e, 'username')}
                                     />
                                     <PasswordInput
                                         ref={passwordInput}
@@ -703,6 +734,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         createMode={true}
                                         info={passwordInfo as string}
                                         error={passwordError}
+                                        onBlur={(e) => handleOnBlur(e, 'password')}
                                     />
                                     <SaveButton
                                         extraClasses='signup-body-card-form-button-submit large'
