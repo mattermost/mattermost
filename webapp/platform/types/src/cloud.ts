@@ -222,6 +222,7 @@ export interface CreateSubscriptionRequest {
 
 export interface NewsletterRequestBody {
     email: string;
+    subscribed_content: string;
 }
 
 export const areShippingDetailsValid = (address: Address | null | undefined): boolean => {

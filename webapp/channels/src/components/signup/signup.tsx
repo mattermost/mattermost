@@ -140,7 +140,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [teamName, setTeamName] = useState(parsedTeamName ?? '');
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
-    const [subscribeToNewsletter, setSubscribeToNewsletter] = useState(false);
+    const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
 
     const canReachCWS = useCWSAvailabilityCheck();
 
@@ -149,9 +149,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
-    const subscribeToNewsletterFunc = async () => {
+    const subscribeToSecurityNewsletterFunc = async () => {
         try {
-            await Client4.subscribeToNewsletter({email});
+            await Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
@@ -580,8 +580,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             }
 
             await handleSignupSuccess(user, data as UserProfile);
-            if (subscribeToNewsletter) {
-                subscribeToNewsletterFunc();
+            if (subscribeToSecurityNewsletter) {
+                subscribeToSecurityNewsletterFunc();
             }
         } else {
             setIsWaiting(false);
@@ -597,7 +597,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     <CheckInput
                         id='signup-body-card-form-check-newsletter'
                         name='newsletter'
-                        onChange={() => setSubscribeToNewsletter(!subscribeToNewsletter)}
+                        onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
                         text={
                             formatMessage(
                                 {id: 'newsletter_optin.checkmark.text', defaultMessage: 'I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply'},
@@ -612,7 +612,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     ),
                                 },
                             )}
-                        checked={subscribeToNewsletter}
+                        checked={subscribeToSecurityNewsletter}
                     />
                 );
             }
