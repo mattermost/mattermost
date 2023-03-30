@@ -240,7 +240,6 @@
   "admin.billing.history.title": "Istoricul facturării",
   "admin.billing.history.total": "Total",
   "admin.billing.history.transactions": "Tranzacții",
-  "admin.billing.history.usersAndRates": "{fullUsers} utilizatori la tarif complet, {partialUsers} utilizatori cu taxe parțiale",
   "admin.billing.payment_info.add": "Adăugați un card de credit",
   "admin.billing.payment_info.billingAddress": "Adresa De Facturare",
   "admin.billing.payment_info.cardBrandAndDigits": "{brand} care se termină cu {digits}",

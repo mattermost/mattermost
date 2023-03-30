@@ -242,7 +242,6 @@
   "admin.billing.history.title": "История на плащания",
   "admin.billing.history.total": "Общо",
   "admin.billing.history.transactions": "Транзакции",
-  "admin.billing.history.usersAndRates": "{fullUsers} потребители на пълна тарифа, {partialUsers} потребители с частично таксуване",
   "admin.billing.payment_info.add": "Добави кредитна карта",
   "admin.billing.payment_info.billingAddress": "Адрес за фактуриране",
   "admin.billing.payment_info.cardBrandAndDigits": "{brand} завършва на {digits}",
