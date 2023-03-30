@@ -23,6 +23,7 @@ import QuickInput from 'components/quick_input';
 import AdminDefinition from '../admin_definition';
 
 import type {PropsFromRedux} from './index';
+import {AdminSectionPages} from '@mattermost/types/admin';
 
 export interface Props extends PropsFromRedux {
     intl: IntlShape;
@@ -143,25 +144,31 @@ class AdminSidebar extends React.PureComponent<Props, State> {
 
     visibleSections = () => {
         const {config, license, buildEnterpriseReady, consoleAccess, adminDefinition, cloud} = this.props;
-        const isVisible = (item: any) => {
-            if (!item.schema) {
-                return false;
+        const isVisible = (page: AdminSectionPages) => {
+            // The items don't meet the criteria to be a section.
+            if (!page.url || !page.title || !page.schema) {
+                return null;
             }
 
-            if (!item.title) {
-                return false;
+            if (
+                page.isHidden && (
+                    typeof page.isHidden === 'boolean' ||
+                    page.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud)
+                )
+            ) {
+                return page;
             }
-
-            if (item.isHidden && item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud)) {
-                return false;
-            }
-            return true;
+            return undefined;
         };
+
         const result = new Set();
         for (const section of Object.values(adminDefinition)) {
-            for (const item of Object.values(section)) {
-                if (isVisible(item)) {
-                    result.add(item.url);
+            if (section?.pages?.length > 0) {
+                for (const page of section.pages) {
+                    const visiblePage = isVisible(page);
+                    if (visiblePage) {
+                        result.add(visiblePage.url);
+                    }
                 }
             }
         }
@@ -172,19 +179,20 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct} = this.props;
         const sidebarSections: JSX.Element[] = [];
         Object.entries(definition).forEach(([key, section]) => {
-            let isSectionHidden = false;
-            if (section.isHidden) {
-                isSectionHidden = typeof section.isHidden === 'function' ? section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(section.isHidden);
+            const isSectionHidden = typeof section.isHidden === 'function' ? section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(section.isHidden);
+            if (isSectionHidden) {
+                return;
             }
-            if (!isSectionHidden) {
-                const sidebarItems: JSX.Element[] = [];
-                Object.entries(section).forEach(([subKey, item]) => {
-                    if (!item.title) {
+            const sidebarItems: JSX.Element[] = [];
+
+            section.pages.
+                forEach((sectionPage) => {
+                    if (!sectionPage.title) {
                         return;
                     }
 
-                    if (item.isHidden) {
-                        if (typeof item.isHidden === 'function' ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(item.isHidden)) {
+                    if (sectionPage.isHidden) {
+                        if (typeof sectionPage.isHidden === 'function' ? sectionPage.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(sectionPage.isHidden)) {
                             return;
                         }
                     }
@@ -192,7 +200,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     if (this.state.sections !== null) {
                         let active = false;
                         for (const url of this.state.sections) {
-                            if (url === item.url) {
+                            if (url === sectionPage.url) {
                                 active = true;
                             }
                         }
@@ -200,53 +208,52 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             return;
                         }
                     }
-                    const subDefinitionKey = `${key}.${subKey}`;
+                    const subDefinitionKey = `${key}.${sectionPage.id}`;
                     sidebarItems.push((
                         <AdminSidebarSection
                             key={subDefinitionKey}
                             definitionKey={subDefinitionKey}
-                            name={item.url}
-                            restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
+                            name={sectionPage.url}
+                            restrictedIndicator={sectionPage.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? sectionPage.restrictedIndicator.value(cloud) : undefined}
                             title={
                                 <FormattedMessage
-                                    id={item.title}
-                                    defaultMessage={item.title_default}
+                                    id={sectionPage.title}
+                                    defaultMessage={sectionPage.title_default}
                                 />
                             }
                         />
                     ));
                 });
 
-                // Special case for plugins entries
-                if ((section as typeof AdminDefinition['plugins']).id === 'plugins') {
-                    const sidebarPluginItems = this.renderPluginsMenu();
-                    sidebarItems.push(...sidebarPluginItems);
-                }
-
-                // If no visible items, don't display this section
-                if (sidebarItems.length === 0) {
-                    return null;
-                }
-
-                sidebarSections.push((
-                    <AdminSidebarCategory
-                        key={key}
-                        definitionKey={key}
-                        parentLink='/admin_console'
-                        icon={section.icon}
-                        sectionClass=''
-                        title={
-                            <FormattedMessage
-                                id={section.sectionTitle}
-                                defaultMessage={section.sectionTitleDefault}
-                            />
-                        }
-                    >
-                        {sidebarItems}
-                    </AdminSidebarCategory>
-                ));
+            // Special case for plugins entries
+            // if ((section as typeof AdminDefinition['plugins']).id === 'plugins') {
+            if (section.id === 'plugins') {
+                const sidebarPluginItems = this.renderPluginsMenu();
+                sidebarItems.push(...sidebarPluginItems);
             }
-            return null;
+
+            // If no visible items, don't display this section
+            if (sidebarItems.length === 0) {
+                return;
+            }
+
+            sidebarSections.push((
+                <AdminSidebarCategory
+                    key={key}
+                    definitionKey={key}
+                    parentLink='/admin_console'
+                    icon={section.icon}
+                    sectionClass=''
+                    title={
+                        <FormattedMessage
+                            id={section.sectionTitle}
+                            defaultMessage={section.sectionTitleDefault}
+                        />
+                    }
+                >
+                    {sidebarItems}
+                </AdminSidebarCategory>
+            ));
         });
         return sidebarSections;
     }

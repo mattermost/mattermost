@@ -20,7 +20,9 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     let link = parentLink;
     let titleDiv = (
         <div className='category-title category-title--active'>
-            {icon}
+            <span className='category-icon fa'>
+                {icon}
+            </span>
             <span className='category-title__text'>
                 {title}
             </span>
