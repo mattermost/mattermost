@@ -52,7 +52,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', CreateIndexQuery, AlterIndexQuery, AlterColumnQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE UploadSessions ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE UploadSessions ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -197,7 +197,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', DropIndexQuery, CreateIndexTeamDisplayQuery, CreateIndexTeamTypeQuery, AddLastRootPostAtQuery, ModifyColumnQuery, SetDefaultQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Channels ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Channels ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -360,7 +360,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', ModifyNotifyPropsQuery, DropIndexQuery, CreateIndexLastViewedAtQuery, CreateIndexSchemeGuestQuery, ModifyRolesQuery, AddUrgentMentionCountQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE ChannelMembers ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE ChannelMembers ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -506,7 +506,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', ChangePropsQuery, ChangeNotifyPropsQuery, DropTimezoneDefaultQuery, ChangeTimezoneQuery, ChangeRolesQuery, DropTermsOfServiceQuery, DropServiceTermsQuery, DropThemePropsQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Users ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Users ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -554,7 +554,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', ModifyDataQuery, CreateIndexQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Jobs ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Jobs ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -628,7 +628,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', ModifyPropsQuery, ModifyRolesQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Sessions ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Sessions ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -748,7 +748,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', ChangeParticipantsQuery, DropDeleteAtQuery, CreateThreadDeleteAtQuery, DropTeamIdQuery, CreateThreadTeamIdQuery, CreateIndexQuery, DropIndexQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Threads ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Threads ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -804,7 +804,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', CreateIndexQuery, DropIndexQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Status ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Status ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -934,7 +934,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', DropParentIdQuery, ModifyFileIdsQuery, ModifyPropsQuery, CreateIndexRootIdQuery, DropIndexQuery, CreateIndexCreateAtQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Posts ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Posts ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -997,7 +997,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', ModifyRolesQuery, AddCreateAtQuery, CreateIndexQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE TeamMembers ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE TeamMembers ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -1071,7 +1071,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', AddDefaultPlaybookAdminRoleQuery, AddDefaultPlaybookMemberRoleQuery, AddDefaultRunAdminRoleQuery, AddDefaultRunMemberRoleQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Schemes ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Schemes ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -1234,7 +1234,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', AddCloudLimitsArchivedQuery, ModifyTypeQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Teams ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Teams ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -1307,7 +1307,7 @@ BEGIN
 
 	SET @alterQuery = CONCAT_WS(', ', AddChannelIdQuery, CreateIndexQuery);
 	IF @alterQuery <> '' THEN
-	    SET @query = CONCAT('ALTER TABLE Reactions ', alterQuery);
+	    SET @query = CONCAT('ALTER TABLE Reactions ', @alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
