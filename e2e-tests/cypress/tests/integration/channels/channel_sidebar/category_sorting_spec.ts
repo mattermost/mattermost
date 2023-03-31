@@ -23,7 +23,7 @@ describe('Category sorting', () => {
 
     it('MM-T3916 Create Category character limit', () => {
         // # Click on the sidebar menu dropdown
-        cy.get('.AddChannelDropdown_dropdownButton').click();
+        cy.uiGetLHSAddChannelButton().click();
 
         // # Click on create category link
         cy.findByText('Create New Category').should('be.visible').click();

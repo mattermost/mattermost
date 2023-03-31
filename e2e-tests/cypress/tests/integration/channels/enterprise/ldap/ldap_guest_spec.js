@@ -159,7 +159,7 @@ describe('LDAP guest', () => {
         // # Create team if no membership
         cy.skipOrCreateTeam(testSettings, getRandomId()).then(() => {
             // * Verify user is a member
-        cy.get('.AddChannelDropdown_dropdownButton').should('exist');
+            cy.uiGetLHSAddChannelButton().should('exist');
 
             // # Demote the user
             demoteUserToGuest(user2Data);
@@ -173,7 +173,7 @@ describe('LDAP guest', () => {
                 cy.uiAddDirectMessage().should('exist');
 
                 // * Check the user is a guest
-                cy.get('.AddChannelDropdown_dropdownButton').should('not.exist');
+                cy.uiGetLHSAddChannelButton().should('not.exist');
             });
         });
     });
