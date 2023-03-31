@@ -104,11 +104,11 @@ function Card(props: CardProps) {
             id={props.id}
             className='PlanCard'
         >
+            {props.planLabel}
             <StyledDiv
                 className='top'
                 bgColor={props.topColor}
             />
-            {props.planLabel}
             <div className='bottom'>
                 <div className='bottom_container'>
                     <div className='plan_price_rate_section'>
