@@ -3,11 +3,17 @@
 
 import React from 'react'
 
-import {render, act, screen} from '@testing-library/react'
+import {
+    render,
+    act,
+    screen,
+    fireEvent
+} from '@testing-library/react'
 
-import '@testing-library/jest-dom'
 
-import userEvent from '@testing-library/user-event'
+
+
+
 
 import {wrapIntl} from 'src/testUtils'
 
@@ -15,16 +21,10 @@ import FlashMessages, {sendFlashMessage} from './flashMessages'
 
 jest.mock('src/mutator')
 
-beforeEach(() => {
-    jest.useFakeTimers()
-})
-
-afterEach(() => {
-    jest.clearAllTimers()
-})
+jest.useFakeTimers()
 
 describe('components/flashMessages', () => {
-    test('renders a flash message with high severity', () => {
+    test('renders a flash message with high severity', async () => {
         const {container} = render(
             wrapIntl(<FlashMessages milliseconds={200}/>),
         )
@@ -40,7 +40,7 @@ describe('components/flashMessages', () => {
         expect(container).toMatchSnapshot()
 
         act(() => {
-            jest.advanceTimersByTime(200)
+            jest.runAllTimers()
         })
 
         expect(screen.queryByText('Mock Content')).toBeNull()
@@ -60,7 +60,7 @@ describe('components/flashMessages', () => {
         expect(container).toMatchSnapshot()
 
         act(() => {
-            jest.advanceTimersByTime(200)
+            jest.runAllTimers()
         })
 
         expect(screen.queryByText('Mock Content')).toBeNull()
@@ -80,7 +80,7 @@ describe('components/flashMessages', () => {
         expect(container).toMatchSnapshot()
 
         act(() => {
-            jest.advanceTimersByTime(200)
+            jest.runAllTimers()
         })
 
         expect(screen.queryByText('Mock Content')).toBeNull()
@@ -100,13 +100,13 @@ describe('components/flashMessages', () => {
         expect(container).toMatchSnapshot()
 
         act(() => {
-            jest.advanceTimersByTime(200)
+            jest.runAllTimers()
         })
 
         expect(screen.queryByText('Mock Content')).toBeNull()
     })
 
-    test('renders a flash message with low severity and check onClick on flash works', () => {
+    test('renders a flash message with low severity and check onClick on flash works', async () => {
         const {container} = render(
             wrapIntl(<FlashMessages milliseconds={200}/>),
         )
@@ -115,12 +115,12 @@ describe('components/flashMessages', () => {
             sendFlashMessage({content: 'Mock Content', severity: 'low'})
         })
 
-        userEvent.click(screen.getByText('Mock Content'))
+        fireEvent.click(screen.getByText('Mock Content'))
 
         expect(container).toMatchSnapshot()
 
         act(() => {
-            jest.advanceTimersByTime(200)
+            jest.runAllTimers()
         })
 
         expect(screen.queryByText('Mock Content')).toBeNull()
