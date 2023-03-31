@@ -14,7 +14,7 @@ export default class MenuGroup extends React.PureComponent<Props> {
     handleDividerClick = (e: React.MouseEvent): void => {
         e.preventDefault();
         e.stopPropagation();
-    }
+    };
 
     public render() {
         const {children} = this.props;

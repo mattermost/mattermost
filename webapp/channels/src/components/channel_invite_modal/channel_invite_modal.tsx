@@ -231,13 +231,13 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             return '';
         }
         return option.username;
-    }
+    };
 
     private filterOutDeletedAndExcludedAndNotInTeamUsers = (users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
         return users.filter((user) => {
             return user.delete_at === 0 && !excludeUserIds.has(user.id);
         }) as UserProfileValue[];
-    }
+    };
 
     renderOption = (option: UserProfileValue, isSelected: boolean, onAdd: (user: UserProfileValue) => void, onMouseMove: (user: UserProfileValue) => void) => {
         let rowSelected = '';
@@ -454,5 +454,5 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 </Modal.Body>
             </Modal>
         );
-    }
+    };
 }

@@ -178,11 +178,11 @@ export default class SidebarList extends React.PureComponent<Props, State> {
 
     getDisplayedChannelIds = () => {
         return this.props.displayedChannels.map((channel) => channel.id);
-    }
+    };
 
     getDisplayedStaticPageIds = () => {
         return this.props.staticPages.map((item) => item.id);
-    }
+    };
 
     setChannelRef = (channelId: string, ref: HTMLLIElement) => {
         if (ref) {
@@ -190,26 +190,26 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         } else {
             this.channelRefs.delete(channelId);
         }
-    }
+    };
 
     getFirstUnreadChannelFromChannelIdArray = (channelIds: string[]) => {
         return channelIds.find((channelId) => {
             return channelId !== this.props.currentChannelId && this.props.unreadChannelIds.includes(channelId);
         });
-    }
+    };
 
     handleScrollAnimationUpdate = (spring: Spring) => {
         const val = spring.getCurrentValue();
         this.scrollbar.current!.scrollTop(val);
-    }
+    };
 
     scrollToFirstUnreadChannel = () => {
         this.scrollToChannel(this.getFirstUnreadChannel(), true);
-    }
+    };
 
     scrollToLastUnreadChannel = () => {
         this.scrollToChannel(this.getLastUnreadChannel(), true);
-    }
+    };
 
     scrollToChannel = (channelId: string | null | undefined, scrollingToUnread = false) => {
         if (!channelId) {
@@ -248,14 +248,14 @@ export default class SidebarList extends React.PureComponent<Props, State> {
 
             this.scrollToPosition(scrollEnd);
         }
-    }
+    };
 
     scrollToPosition = (scrollEnd: number) => {
         // Stop the current animation before scrolling
         this.scrollAnimation.setCurrentValue(this.scrollbar.current!.getScrollTop()).setAtRest();
 
         this.scrollAnimation.setEndValue(scrollEnd);
-    }
+    };
 
     updateUnreadIndicators = () => {
         if (this.props.draggingState.state) {
@@ -295,15 +295,15 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                 showBottomUnread,
             });
         }
-    }
+    };
 
     getFirstUnreadChannel = () => {
         return this.getFirstUnreadChannelFromChannelIdArray(this.getDisplayedChannelIds());
-    }
+    };
 
     getLastUnreadChannel = () => {
         return this.getFirstUnreadChannelFromChannelIdArray(this.getDisplayedChannelIds().reverse());
-    }
+    };
 
     navigateById = (id: string) => {
         if (this.props.staticPages.findIndex((i) => i.id === id) === -1) {
@@ -311,7 +311,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         } else {
             this.props.actions.switchToLhsStaticPage(id);
         }
-    }
+    };
 
     navigateChannelShortcut = (e: KeyboardEvent) => {
         if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (Utils.isKeyPressed(e, Constants.KeyCodes.UP) || Utils.isKeyPressed(e, Constants.KeyCodes.DOWN))) {
@@ -388,7 +388,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                 isNewCategory={this.props.newCategoryIds.includes(category.id)}
             />
         );
-    }
+    };
 
     onScroll = debounce(() => {
         this.updateUnreadIndicators();
@@ -429,11 +429,11 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.setDraggingState(draggingState);
-    }
+    };
 
     onBeforeDragStart = () => {
         this.props.actions.setDraggingState({state: DraggingStates.BEFORE});
-    }
+    };
 
     onDragStart = (initial: DragStart) => {
         this.props.onDragStart(initial);
@@ -443,7 +443,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         // Re-enable scroll box resizing
         const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = '';
-    }
+    };
 
     onDragEnd = (result: DropResult) => {
         this.props.onDragEnd(result);
@@ -459,7 +459,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.stopDragging();
-    }
+    };
 
     render() {
         const {categories} = this.props;

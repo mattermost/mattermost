@@ -15,7 +15,7 @@ type Props = {
 export default class SpinnerButton extends PureComponent<Props & React.ButtonHTMLAttributes<HTMLButtonElement>> {
     public static defaultProps: Partial<Props> = {
         spinning: false,
-    }
+    };
 
     public render(): JSX.Element {
         const {spinning, spinningText, children, ...props} = this.props;

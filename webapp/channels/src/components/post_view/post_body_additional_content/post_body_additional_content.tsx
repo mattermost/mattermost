@@ -36,12 +36,12 @@ export type Props = {
 export default class PostBodyAdditionalContent extends React.PureComponent<Props> {
     toggleEmbedVisibility = () => {
         this.props.actions.toggleEmbedVisibility(this.props.post.id);
-    }
+    };
 
     getEmbed = () => {
         const {metadata} = this.props.post;
         return getEmbedFromMetadata(metadata);
-    }
+    };
 
     isEmbedToggleable = (embed: PostEmbed) => {
         const postWillRenderEmbedComponents = this.props.pluginPostWillRenderEmbedComponents || [];
@@ -52,7 +52,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
         }
 
         return embed.type === 'image' || (embed.type === 'opengraph' && YoutubeVideo.isYoutubeLink(embed.url));
-    }
+    };
 
     renderEmbed = (embed: PostEmbed) => {
         const postWillRenderEmbedComponents = this.props.pluginPostWillRenderEmbedComponents || [];
@@ -135,7 +135,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
         default:
             return null;
         }
-    }
+    };
 
     renderToggle = (prependToggle: boolean) => {
         return (
@@ -147,7 +147,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
                 onClick={this.toggleEmbedVisibility}
             />
         );
-    }
+    };
 
     render() {
         const embed = this.getEmbed();

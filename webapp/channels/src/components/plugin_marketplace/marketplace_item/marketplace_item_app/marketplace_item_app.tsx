@@ -44,7 +44,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
                 this.props.actions.closeMarketplaceModal();
             }
         });
-    }
+    };
 
     getItemButton(): JSX.Element {
         if (this.props.installed && !this.props.installing && !this.props.error) {

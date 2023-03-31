@@ -98,17 +98,17 @@ export class MainMenu extends React.PureComponent<Props> {
             e.preventDefault();
             this.props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
         }
-    }
+    };
 
     handleEmitUserLoggedOutEvent = (): void => {
         GlobalActions.emitUserLoggedOutEvent();
-    }
+    };
 
     getFlagged = (e: Event): void => {
         e.preventDefault();
         this.props.actions.showFlaggedPosts();
         this.props.actions.closeRhsMenu();
-    }
+    };
 
     searchMentions = (e: Event): void => {
         e.preventDefault();
@@ -119,7 +119,7 @@ export class MainMenu extends React.PureComponent<Props> {
             this.props.actions.closeRhsMenu();
             this.props.actions.showMentions();
         }
-    }
+    };
 
     render() {
         const {

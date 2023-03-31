@@ -157,16 +157,16 @@ export default class MarketplaceModal extends React.PureComponent<MarketplaceMod
     fetchListing = async (): Promise<void> => {
         const {error} = await this.props.actions.fetchListing();
         this.setState({loading: false, serverError: error});
-    }
+    };
 
     close = (): void => {
         trackEvent('plugins', 'ui_marketplace_closed');
         this.props.actions.closeModal();
-    }
+    };
 
     changeTab: SelectCallback = (tabKey: any): void => {
         this.setState({tabKey});
-    }
+    };
 
     onInput = (): void => {
         if (this.filterRef.current) {
@@ -174,14 +174,14 @@ export default class MarketplaceModal extends React.PureComponent<MarketplaceMod
 
             this.debouncedSearch();
         }
-    }
+    };
 
     handleClearSearch = (): void => {
         if (this.filterRef.current) {
             this.filterRef.current.value = '';
             this.setState({filter: this.filterRef.current.value}, this.doSearch);
         }
-    }
+    };
 
     doSearch = async (): Promise<void> => {
         trackEvent('plugins', 'ui_marketplace_search', {filter: this.state.filter});
@@ -189,7 +189,7 @@ export default class MarketplaceModal extends React.PureComponent<MarketplaceMod
         const {error} = await this.props.actions.filterListing(this.state.filter);
 
         this.setState({serverError: error});
-    }
+    };
 
     debouncedSearch = debounce(this.doSearch, SEARCH_TIMEOUT_MILLISECONDS);
 

@@ -87,7 +87,7 @@ export default class PluginRegistry {
     supports = {
         globalAppBar: true,
         globalRhs: true,
-    }
+    };
 
     // Register a component at the root of the channel view of the app.
     // Accepts a React component. Returns a unique identifier.
@@ -966,7 +966,7 @@ export default class PluginRegistry {
         });
 
         return id;
-    })
+    });
 
     /**
      * INTERNAL: Subject to change without notice.

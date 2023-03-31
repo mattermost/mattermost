@@ -32,16 +32,16 @@ type Props = {
 }
 
 export default class Menu extends React.PureComponent<Props> {
-    public static Header = MenuHeader
-    public static Group = MenuGroup
-    public static ItemAction = MenuItemAction
-    public static ItemExternalLink = MenuItemExternalLink
-    public static ItemLink = MenuItemLink
-    public static ItemToggleModalRedux = MenuItemToggleModalRedux
-    public static ItemSubMenu = SubMenuItem
-    public static CloudTrial = MenuCloudTrial
-    public static StartTrial = MenuStartTrial
-    public static ItemCloudLimit = MenuItemCloudLimit
+    public static Header = MenuHeader;
+    public static Group = MenuGroup;
+    public static ItemAction = MenuItemAction;
+    public static ItemExternalLink = MenuItemExternalLink;
+    public static ItemLink = MenuItemLink;
+    public static ItemToggleModalRedux = MenuItemToggleModalRedux;
+    public static ItemSubMenu = SubMenuItem;
+    public static CloudTrial = MenuCloudTrial;
+    public static StartTrial = MenuStartTrial;
+    public static ItemCloudLimit = MenuItemCloudLimit;
 
     public node: React.RefObject<HTMLUListElement>; //Public because it is used by tests
     private observer: MutationObserver;
@@ -86,7 +86,7 @@ export default class Menu extends React.PureComponent<Props> {
             }
         }
         this.observer.observe(this.node.current, {attributes: true, childList: true, subtree: true});
-    }
+    };
 
     public componentDidMount() {
         this.hideUnneededDividers();
@@ -113,7 +113,7 @@ export default class Menu extends React.PureComponent<Props> {
             e.preventDefault();
             e.stopPropagation();
         }
-    }
+    };
 
     public render() {
         const {children, openUp, openLeft, id, listId, ariaLabel, customStyles} = this.props;

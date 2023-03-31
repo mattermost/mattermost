@@ -59,7 +59,7 @@ export default class AbstractIncomingWebhook extends React.PureComponent {
         * The async function to run when the action button is pressed
         */
         action: PropTypes.func.isRequired,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -79,7 +79,7 @@ export default class AbstractIncomingWebhook extends React.PureComponent {
             serverError: '',
             clientError: null,
         };
-    }
+    };
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -118,43 +118,43 @@ export default class AbstractIncomingWebhook extends React.PureComponent {
         };
 
         this.props.action(hook).then(() => this.setState({saving: false}));
-    }
+    };
 
     updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value,
         });
-    }
+    };
 
     updateDescription = (e) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateChannelId = (e) => {
         this.setState({
             channelId: e.target.value,
         });
-    }
+    };
 
     updateChannelLocked = (e) => {
         this.setState({
             channelLocked: e.target.checked,
         });
-    }
+    };
 
     updateUsername = (e) => {
         this.setState({
             username: e.target.value,
         });
-    }
+    };
 
     updateIconURL = (e) => {
         this.setState({
             iconURL: e.target.value,
         });
-    }
+    };
 
     render() {
         var headerToRender = this.props.header;
