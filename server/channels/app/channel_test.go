@@ -554,7 +554,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
 	// create a user and add it to a channel

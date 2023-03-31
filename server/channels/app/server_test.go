@@ -32,12 +32,17 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
+func newServer(t *testing.T) (*Server, error) {
+	return newServerWithConfig(t, func(_ *model.Config) {})
+}
+
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
 	store, err := config.NewStoreFromBacking(configStore, nil, false)
 	require.NoError(t, err)
 	cfg := store.Get()
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	f(cfg)
 
 	store.Set(cfg)
@@ -61,11 +66,11 @@ func TestStartServerSuccess(t *testing.T) {
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
-	s, err := NewServer()
-	require.NoError(t, err)
-
 	// Listen on the next available port
 	listener, err := net.Listen("tcp", ":0")
+	require.NoError(t, err)
+
+	s, err := newServer(t)
 	require.NoError(t, err)
 
 	// Attempt to listen on the port used above.
@@ -105,6 +110,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		AmazonS3SSL:             model.NewBool(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = ":0"
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
 
@@ -162,7 +168,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 
-	th := Setup(t)
+	th := Setup(t, SkipProductsInitialization())
 	defer th.TearDown()
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
@@ -171,7 +177,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
-	th2 := Setup(t)
+	th2 := Setup(t, SkipProductsInitialization())
 	defer th2.TearDown()
 
 	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
@@ -190,6 +196,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	*cfg.ServiceSettings.TLSMinVer = "1.2"
 	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 
 	store.Set(cfg)
 
@@ -316,7 +323,7 @@ func TestPanicLog(t *testing.T) {
 	logger.LockConfiguration()
 
 	// Creating a server with logger
-	s, err := NewServer()
+	s, err := newServer(t)
 	require.NoError(t, err)
 	s.Platform().SetLogger(logger)
 

@@ -278,7 +278,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 
 	OwnerId1 := model.NewId()

@@ -2714,7 +2714,7 @@ func TestGetUsersInTeam(t *testing.T) {
 }
 
 func TestGetUsersNotInTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 

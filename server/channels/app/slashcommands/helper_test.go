@@ -51,6 +51,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if configSet != nil {
 		configSet(memoryConfig)
 	}
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -142,6 +143,7 @@ func setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadBoardsMigrationsIfNeeded()
 
 	return setupTestHelper(dbStore, false, true, tb, nil)
 }

@@ -66,7 +66,7 @@ func createSubscriptionsNotifyBackend(params notifyBackendParams) (*notifysubscr
 }
 
 func createDelivery(servicesAPI model.ServicesAPI, serverRoot string) (*plugindelivery.PluginDelivery, error) {
-	bot := model.FocalboardBot
+	bot := model.GetDefaultFocalboardBot()
 
 	botID, err := servicesAPI.EnsureBot(bot)
 	if err != nil {

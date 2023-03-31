@@ -465,7 +465,6 @@ func (p *TProduct) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*
 }
 
 func TestProductCommands(t *testing.T) {
-
 	products := map[string]product.Manifest{
 		"productT": {
 			Initializer:  newTProduct,
@@ -474,10 +473,11 @@ func TestProductCommands(t *testing.T) {
 	}
 
 	t.Run("Execute product command", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t, SkipProductsInitialization()).InitBasic()
 		defer th.TearDown()
 		// Server hijack.
 		// This must be done in a cleaner way.
+		th.Server.skipProductsInit = false
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels
@@ -504,11 +504,11 @@ func TestProductCommands(t *testing.T) {
 	})
 
 	t.Run("Product commands can override builtin commands", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t, SkipProductsInitialization()).InitBasic()
 		defer th.TearDown()
-
 		// Server hijack.
 		// This must be done in a cleaner way.
+		th.Server.skipProductsInit = false
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels
@@ -535,8 +535,7 @@ func TestProductCommands(t *testing.T) {
 	})
 
 	t.Run("Plugin commands can override product commands", func(t *testing.T) {
-
-		th := Setup(t).InitBasic()
+		th := Setup(t, SkipProductsInitialization()).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -602,6 +601,7 @@ func TestProductCommands(t *testing.T) {
 
 		// Server hijack.
 		// This must be done in a cleaner way.
+		th.Server.skipProductsInit = false
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels

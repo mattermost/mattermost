@@ -209,7 +209,7 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 			    FROM   pg_class
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
-				AND NOT relname = 'schema_migrations'
+				AND NOT relname = '` + s.tablePrefix + `schema_migrations'
 			   );
 			END
 			$func$;`)

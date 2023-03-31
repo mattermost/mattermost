@@ -304,7 +304,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIGetUsers(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1171,7 +1171,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 				mainPath := path.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
-				th := Setup(t).InitBasic()
+				th := Setup(t).InitBasic().DeleteBots()
 				defer th.TearDown()
 				setDefaultPluginConfig(th, dir.Name())
 				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), defaultSchema)

@@ -450,9 +450,9 @@ else
 endif
 
 test-server-race: test-server-pre
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -463,9 +463,9 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -477,19 +477,19 @@ endif
 
 test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
 
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(TE_PACKAGES) $(EE_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES) $(EE_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
 else
 	@echo Running only TE tests
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
 endif
 
 internal-test-web-client: ## Runs web client tests.

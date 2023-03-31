@@ -99,6 +99,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
+	options = append(options, StoreOverride(mockStore))
 	th := setupTestHelper(mockStore, false, false, tb, options...)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
@@ -136,6 +137,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	configStore := config.NewTestMemoryStore()
 
 	memoryConfig := configStore.Get()
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
