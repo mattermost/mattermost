@@ -352,24 +352,21 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
         };
 
-        const InviteModalLink = ({
-            children,
-            inviteAsGuest,
-        }: {children: React.ReactNode; inviteAsGuest?: boolean}) => {
+        const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode}) => {
             return (
                 <ToggleModalButton
                     id='inviteGuest'
-                    className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     dialogProps={{
                         channelToInvite: this.props.channel,
                         initialValue: this.state.term,
-                        inviteAsGuest,
+                        inviteAsGuest: props.inviteAsGuest,
                     }}
                     onClick={closeMembersInviteModal}
                 >
-                    {children}
+                    {props.children}
                 </ToggleModalButton>
             );
         };
