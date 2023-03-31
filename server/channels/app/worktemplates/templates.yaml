@@ -286,7 +286,7 @@ content:
 id: 'companywide/create_project:v1'
 category: companywide
 useCase: Create a project
-illustration: /static/worktemplates/companywide/create_project/create_project.svg
+illustration: /static/worktemplates/companywide/create_project/create_project.png
 visibility: public
 description:
   channel:
