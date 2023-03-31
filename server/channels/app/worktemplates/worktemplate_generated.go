@@ -528,7 +528,7 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 	ID:           "companywide/create_project:v1",
 	Category:     "companywide",
 	UseCase:      "Create a project",
-	Illustration: "/static/worktemplates/companywide/create_project/create_project.svg",
+	Illustration: "/static/worktemplates/companywide/create_project/create_project.png",
 	Visibility:   "public",
 
 	Description: Description{
