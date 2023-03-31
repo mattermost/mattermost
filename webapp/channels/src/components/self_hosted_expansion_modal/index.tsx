@@ -12,6 +12,9 @@ import {StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import RootPortal from 'components/root_portal';
 import ContactSalesLink from 'components/self_hosted_purchase_modal/contact_sales_link';
+import ErrorPage from 'components/self_hosted_expansion_modal/error_page';
+import SuccessPage from 'components/self_hosted_expansion_modal/success_page';
+import Submitting from 'components/self_hosted_purchase_modal/submitting';
 
 import useLoadStripe from 'components/common/hooks/useLoadStripe';
 import CardInput, {CardInputType} from 'components/payment_form/card_input';
@@ -47,6 +50,7 @@ import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from './constants';
 import Address from 'components/self_hosted_purchase_modal/address';
 import ChooseDifferentShipping from 'components/choose_different_shipping';
 import Terms from 'components/self_hosted_purchase_modal/terms';
+import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
 
 export interface FormState {
     cardName: string;
@@ -163,6 +167,7 @@ export function canSubmit(formState: FormState, progress: ValueOf<typeof SelfHos
 }
 
 export default function SelfHostedExpansionModal() {
+    const selfHostedExpansionModal = useControlSelfHostedExpansionModal({});
     const dispatch = useDispatch<DispatchFunc>();
     const intl = useIntl();
     const cardRef = useRef<CardInputType | null>(null);
@@ -173,6 +178,7 @@ export default function SelfHostedExpansionModal() {
 
     const license = useSelector(getLicense);
     const licensedSeats = parseInt(license.Users, 10);
+    const currentPlan = license.SkuName;
     const activeUsers = useSelector(getFilteredUsersStats)?.total_users_count || 0;
     const [additionalSeats, setAdditionalSeats] = useState(activeUsers <= licensedSeats ? 1 : activeUsers - licensedSeats);
 
@@ -182,6 +188,7 @@ export default function SelfHostedExpansionModal() {
     const initialState = makeInitialState(additionalSeats);
     const [formState, setFormState] = useState<FormState>(initialState);
     const [show] = useState(true);
+    const canRetry = formState.error !== '422';
 
     const title = intl.formatMessage({
         id: 'self_hosted_expansion.expansion_modal.title',
@@ -501,25 +508,22 @@ export default function SelfHostedExpansionModal() {
                                 />
                             </div>
                         </div>
-                        {/* {((formState.succeeded || progress === SelfHostedSignupProgress.CREATED_LICENSE) && hasLicense) && !formState.error && !formState.submitting && (
+                        {((formState.succeeded || progress === SelfHostedSignupProgress.CREATED_LICENSE)) && !formState.error && !formState.submitting && (
                             <SuccessPage
-                                onClose={controlModal.close}
-                                planName={desiredPlanName}
+                                onClose={selfHostedExpansionModal.close}
                             />
                         )}
-                        {formState.submitting && (
+                        {formState.submitting && !formState.error && (
                             <Submitting
-                                desiredPlanName={desiredPlanName}
+                                desiredPlanName={currentPlan}
                                 progressBar={formState.progressBar}
                             />
                         )}
                         {formState.error && (
                             <ErrorPage
-                                nextAction={errorAction}
                                 canRetry={canRetry}
-                                errorType={canRetry ? 'generic' : 'failed_export'}
                             />
-                        )} */}
+                        )}
                         <div className='background-svg'>
                             <BackgroundSvg/>
                         </div>

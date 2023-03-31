@@ -250,14 +250,14 @@ export default function SelfHostedExpansionCard(props: Props) {
                         defaultMessage='Your credit card will be charged today.<see_how_billing_works>See how billing works.</see_how_billing_works>'
                         values={{
                             see_how_billing_works: (text: string) => (
-                                <Fragment>
+                                <>
                                     <br/>
                                     <ExternalLink
                                         href={DocLinks.SELF_HOSTED_BILLING}
                                     >
                                         {text}
                                     </ExternalLink>
-                                </Fragment>
+                                </>
                             ),
                         }}
                     />

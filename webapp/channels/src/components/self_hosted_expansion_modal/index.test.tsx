@@ -132,7 +132,7 @@ jest.mock('utils/hosted_customer', () => {
 const productName = SelfHostedProducts.PROFESSIONAL;
 
 // Licensed expiry set as 3 months from the current date (rolls over to new years).
-let licenseExpiry = moment()
+let licenseExpiry = moment();
 const monthsUntilLicenseExpiry = 3;
 licenseExpiry = licenseExpiry.add(monthsUntilLicenseExpiry, 'months');
 
