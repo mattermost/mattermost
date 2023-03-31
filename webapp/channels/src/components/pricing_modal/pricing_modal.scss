@@ -224,9 +224,10 @@
 
             .bottom {
                 height: auto;
-                border: 1px solid rgba(63, 67, 80, 0.16);
+                border: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+                border-top: 1px solid var(--center-channel-bg);
                 background-color: var(--center-channel-bg);
-                border-radius: 4px;
+                border-radius: 0 0 4px 4px;
                 box-shadow: var(--elevation-6);
 
                 .bottom_container {

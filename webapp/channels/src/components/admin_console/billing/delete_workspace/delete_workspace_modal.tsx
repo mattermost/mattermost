@@ -13,14 +13,18 @@ import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert
 import {closeModal, openModal} from 'actions/views/modals';
 
 import './delete_workspace_modal.scss';
-import {ModalIdentifiers, StatTypes} from 'utils/constants';
+import {CloudProducts, ModalIdentifiers, StatTypes} from 'utils/constants';
 import DeleteFeedbackModal from 'components/admin_console/billing/delete_workspace/delete_feedback';
+import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
 import {Feedback} from '@mattermost/types/cloud';
 import {GlobalState} from 'types/store';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import {fileSizeToString} from 'utils/utils';
-import {deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
+import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal';
+import {subscribeCloudSubscription, deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
+import ErrorModal from 'components/cloud_subscribe_result_modal/error';
 import DeleteWorkspaceProgressModal from 'components/admin_console/billing/delete_workspace/progress_modal';
+import SuccessModal from 'components/cloud_subscribe_result_modal/success';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {isCloudLicense} from 'utils/license_utils';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -31,14 +35,28 @@ import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import DeleteWorkspaceSuccessModal from './success_modal';
 import DeleteWorkspaceFailureModal from './failure_modal';
 
-export default function DeleteWorkspaceModal() {
+type Props = {
+    callerCTA: string;
+}
+
+export default function DeleteWorkspaceModal(props: Props) {
     const dispatch = useDispatch<DispatchFunc>();
+    const openDowngradeModal = useOpenDowngradeModal();
 
     // License/product checks.
     const subscription = useGetSubscription();
     const product = useSelector(getSubscriptionProduct);
+    const isStarter = product?.sku === CloudProducts.STARTER;
+    const isEnterprise = product?.sku === CloudProducts.ENTERPRISE;
     const license = useSelector(getLicense);
     const isNotCloud = !isCloudLicense(license);
+
+    // Starter product for downgrade purposes.
+    const starterProduct = useSelector((state: GlobalState) => {
+        return Object.values(state.entities.cloud.products || {}).find((product) => {
+            return product.sku === CloudProducts.STARTER;
+        });
+    });
 
     // Get usage information in an attempt to defer customer from deleting.
     const usage = useGetUsage();
@@ -60,6 +78,20 @@ export default function DeleteWorkspaceModal() {
             dialogType: DeleteFeedbackModal,
             dialogProps: {
                 onSubmit: deleteWorkspace,
+            },
+        }));
+    };
+
+    // Handles the downgrade button clicks.
+    const handleClickDowngradeWorkspace = () => {
+        // Close the delete workspace modal and ope na feedback modal, with a workspace
+        // downgrade upon completion of the feedback.
+        dispatch(closeModal(ModalIdentifiers.DELETE_WORKSPACE));
+        dispatch(openModal({
+            modalId: ModalIdentifiers.FEEDBACK,
+            dialogType: DowngradeFeedbackModal,
+            dialogProps: {
+                onSubmit: downgradeWorkspace,
             },
         }));
     };
@@ -97,6 +129,51 @@ export default function DeleteWorkspaceModal() {
                 dialogType: DeleteWorkspaceFailureModal,
             }));
             dispatch(closeModal(ModalIdentifiers.DELETE_WORKSPACE_PROGRESS));
+        }
+    };
+
+    // Processes the workspace downgrade, opening and closing the appropriate modals (progress, success/failure).
+    const downgradeWorkspace = async (downgradeFeedback: Feedback) => {
+        if (!starterProduct) {
+            return;
+        }
+
+        const telemetryInfo = props.callerCTA + ' > delete_workspace_modal';
+        openDowngradeModal({trackingLocation: telemetryInfo});
+
+        const result = await dispatch(subscribeCloudSubscription(starterProduct.id, undefined, 0, downgradeFeedback));
+
+        // Success
+        if (result.data) {
+            dispatch(closeModal(ModalIdentifiers.DOWNGRADE_MODAL));
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.SUCCESS_MODAL,
+                    dialogType: SuccessModal,
+                    dialogProps: {
+                        newProductName: starterProduct.name,
+                    },
+                }),
+            );
+        } else { // Failure
+            dispatch(closeModal(ModalIdentifiers.DOWNGRADE_MODAL));
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.ERROR_MODAL,
+                    dialogType: ErrorModal,
+                    dialogProps: {
+                        backButtonAction: () => {
+                            dispatch(openModal({
+                                modalId: ModalIdentifiers.DELETE_WORKSPACE,
+                                dialogType: DeleteWorkspaceModal,
+                                dialogProps: {
+                                    callerCTA: props.callerCTA,
+                                },
+                            }));
+                        },
+                    },
+                }),
+            );
         }
     };
 
@@ -153,6 +230,17 @@ export default function DeleteWorkspaceModal() {
                         defaultMessage='Delete Workspace'
                     />
                 </button>
+                {!isStarter && !isEnterprise &&
+                    <button
+                        className='btn DeleteWorkspaceModal__Buttons-Downgrade'
+                        onClick={handleClickDowngradeWorkspace}
+                    >
+                        <FormattedMessage
+                            id='admin.billing.subscription.deleteWorkspaceModal.downgradeButton'
+                            defaultMessage='Downgrade To Free'
+                        />
+                    </button>
+                }
                 <button
                     className='btn btn-primary DeleteWorkspaceModal__Buttons-Cancel'
                     onClick={handleClickCancel}
