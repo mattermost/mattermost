@@ -4,26 +4,47 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {CloudProducts, LicenseSkus, MattermostFeatures, RecurringIntervals} from 'utils/constants';
+import {CloudLinks, CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
 import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {subscribeCloudSubscription} from 'actions/cloud';
 import {
     getCloudSubscription as selectCloudSubscription,
     getSubscriptionProduct as selectSubscriptionProduct,
     getCloudProducts as selectCloudProducts,
 } from 'mattermost-redux/selectors/entities/cloud';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import {Feedback} from '@mattermost/types/cloud';
+import useGetUsage from 'components/common/hooks/useGetUsage';
+import useGetLimits from 'components/common/hooks/useGetLimits';
+import SuccessModal from 'components/cloud_subscribe_result_modal/success';
+import ErrorModal from 'components/cloud_subscribe_result_modal/error';
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 import PlanLabel from 'components/common/plan_label';
+import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
+import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
+import ExternalLink from 'components/external_link';
+
+import DowngradeTeamRemovalModal from './downgrade_team_removal_modal';
+import ContactSalesCTA from './contact_sales_cta';
+import StarterDisclaimerCTA from './starter_disclaimer_cta';
 import StartTrialCaution from './start_trial_caution';
-import Card, {ButtonCustomiserClasses, BlankCard} from './card';
+import Card, {ButtonCustomiserClasses} from './card';
 
 import './content.scss';
 
@@ -37,6 +58,10 @@ type ContentProps = {
 
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
+    const dispatch = useDispatch<DispatchFunc>();
+    const usage = useGetUsage();
+    const [limits] = useGetLimits();
+    const openPricingModalBackAction = useOpenPricingModal();
 
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
 
@@ -49,9 +74,11 @@ function Content(props: ContentProps) {
     const isEnterprise = currentProduct?.sku === CloudProducts.ENTERPRISE;
     const isEnterpriseTrial = subscription?.is_free_trial === 'true';
     const yearlyProfessionalProduct = findProductBySku(yearlyProducts, CloudProducts.PROFESSIONAL);
-    const enterpriseProduct = findProductBySku(yearlyProducts, CloudProducts.ENTERPRISE);
     const professionalPrice = formatNumber((yearlyProfessionalProduct?.price_per_seat || 0) / 12, {maximumFractionDigits: 2});
-    const enterprisePrice = formatNumber((enterpriseProduct?.price_per_seat || 0) / 12, {maximumFractionDigits: 2});
+
+    const starterProduct = Object.values(products || {}).find(((product) => {
+        return product.sku === CloudProducts.STARTER;
+    }));
 
     const isStarter = currentProduct?.sku === CloudProducts.STARTER;
     const isProfessional = currentProduct?.sku === CloudProducts.PROFESSIONAL;
@@ -91,13 +118,16 @@ function Content(props: ContentProps) {
         trial_notification: isPreTrial,
     });
 
-    const adminProfessionalTierText = currentSubscriptionIsMonthlyProfessional ? formatMessage({id: 'pricing_modal.btn.switch_to_annual', defaultMessage: 'Switch to annual billing'}) : formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'});
+    const freeTierText = (!isStarter && !currentSubscriptionIsMonthly) ? formatMessage({id: 'pricing_modal.btn.contactSupport', defaultMessage: 'Contact Support'}) : formatMessage({id: 'pricing_modal.btn.downgrade', defaultMessage: 'Downgrade'});
+    const adminProfessionalTierText = currentSubscriptionIsMonthlyProfessional ? formatMessage({id: 'pricing_modal.btn.switch_to_annual', defaultMessage: 'Switch to annual billing'}) : formatMessage({id: 'pricing_modal.btn.upgrade', defaultMessage: 'Upgrade'});
 
+    const [openContactSales] = useOpenSalesLink();
+    const [openContactSupport] = useOpenCloudZendeskSupportForm('Workspace downgrade', '');
     const openCloudPurchaseModal = useOpenCloudPurchaseModal({});
     const openCloudDelinquencyModal = useOpenCloudPurchaseModal({
         isDelinquencyModal: true,
     });
-
+    const openDowngradeModal = useOpenDowngradeModal();
     const openPurchaseModal = (callerInfo: string) => {
         props.onHide();
         const telemetryInfo = props.callerCTA + ' > ' + callerInfo;
@@ -106,6 +136,72 @@ function Content(props: ContentProps) {
         }
         openCloudPurchaseModal({trackingLocation: telemetryInfo});
     };
+
+    const closePricingModal = () => {
+        dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
+    };
+
+    const handleClickDowngrade = (downgradeFeedback?: Feedback) => {
+        downgrade('click_pricing_modal_free_card_downgrade_button', downgradeFeedback);
+    };
+
+    const downgrade = async (callerInfo: string, downgradeFeedback?: Feedback) => {
+        if (!starterProduct) {
+            return;
+        }
+
+        const telemetryInfo = props.callerCTA + ' > ' + callerInfo;
+        openDowngradeModal({trackingLocation: telemetryInfo});
+        dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
+
+        const result = await dispatch(subscribeCloudSubscription(starterProduct.id, undefined, 0, downgradeFeedback));
+
+        if (result.error) {
+            dispatch(closeModal(ModalIdentifiers.DOWNGRADE_MODAL));
+            dispatch(closeModal(ModalIdentifiers.CLOUD_DOWNGRADE_CHOOSE_TEAM));
+            dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
+
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.ERROR_MODAL,
+                    dialogType: ErrorModal,
+                    dialogProps: {
+                        backButtonAction: openPricingModalBackAction,
+                    },
+                }),
+            );
+            return;
+        }
+
+        dispatch(closeModal(ModalIdentifiers.DOWNGRADE_MODAL));
+        dispatch(closeModal(ModalIdentifiers.CLOUD_DOWNGRADE_CHOOSE_TEAM));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.SUCCESS_MODAL,
+                dialogType: SuccessModal,
+            }),
+        );
+
+        props.onHide();
+    };
+
+    const hasLimits = hasSomeLimits(limits);
+
+    const starterBriefing = [
+        formatMessage({id: 'pricing_modal.briefing.free.recentMessageBoards', defaultMessage: 'Access to {messages} most recent messages'}, {messages: formatNumber(fallbackStarterLimits.messages.history)}),
+        formatMessage({id: 'pricing_modal.briefing.storageStarter', defaultMessage: '{storage} file storage limit'}, {storage: asGBString(fallbackStarterLimits.files.totalStorage, formatNumber)}),
+        formatMessage({id: 'pricing_modal.briefing.free.noLimitBoards', defaultMessage: 'Unlimited board cards'}),
+        formatMessage({id: 'pricing_modal.briefing.free.oneTeamPerWorkspace', defaultMessage: 'One team per workspace'}),
+        formatMessage({id: 'pricing_modal.briefing.free.gitLabGitHubGSuite', defaultMessage: 'GitLab, GitHub, and GSuite SSO'}),
+        formatMessage({id: 'pricing_modal.extra_briefing.cloud.free.calls', defaultMessage: 'Group calls of up to 8 people, 1:1 calls, and screen share'}),
+    ];
+
+    const legacyStarterBriefing = [
+        formatMessage({id: 'admin.billing.subscription.planDetails.features.groupAndOneToOneMessaging', defaultMessage: 'Group and one-to-one messaging, file sharing, and search'}),
+        formatMessage({id: 'admin.billing.subscription.planDetails.features.incidentCollaboration', defaultMessage: 'Incident collaboration'}),
+        formatMessage({id: 'admin.billing.subscription.planDetails.features.unlimittedUsersAndMessagingHistory', defaultMessage: 'Unlimited users & message history'}),
+        formatMessage({id: 'admin.billing.subscription.planDetails.features.mfa', defaultMessage: 'Multi-Factor Authentication (MFA)'}),
+    ];
 
     const professionalBtnDetails = () => {
         if (isAdmin) {
@@ -138,12 +234,14 @@ function Content(props: ContentProps) {
     };
 
     const enterpriseBtnDetails = () => {
-        if (isAdmin) {
+        if (isPostTrial && isAdmin) {
             return {
-                action: () => openPurchaseModal('click_pricing_modal_enterprise_card_upgrade_button'),
-                text: formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'}),
-                disabled: (isEnterprise && !isEnterpriseTrial),
-                customClass: isEnterpriseTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
+                action: () => {
+                    trackEvent(TELEMETRY_CATEGORIES.CLOUD_PRICING, 'click_enterprise_contact_sales');
+                    openContactSales();
+                },
+                text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
+                customClass: ButtonCustomiserClasses.active,
             };
         }
 
@@ -166,6 +264,22 @@ function Content(props: ContentProps) {
                 disabled: isEnterprise,
                 customClass: trialBtnClass,
             };
+        }
+
+        return undefined;
+    };
+
+    const enterpriseCustomBtnDetails = () => {
+        if (!isPostTrial && isAdmin) {
+            return (
+                <CloudStartTrialButton
+                    message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
+                    telemetryId='start_cloud_trial_from_pricing_modal'
+                    disabled={isEnterprise || isEnterpriseTrial || isProfessional}
+                    extraClass={`plan_action_btn ${(isEnterprise || isEnterpriseTrial || isProfessional) ? ButtonCustomiserClasses.grayed : ButtonCustomiserClasses.special}`}
+                    afterTrialRequest={closePricingModal}
+                />
+            );
         }
 
         return undefined;
@@ -197,9 +311,88 @@ function Content(props: ContentProps) {
                 />
             </Modal.Header>
             <Modal.Body>
+                <div className='pricing-options-container'>
+                    <div className='alert-option-container'>
+                        <div className='alert-option'>
+                            <span>{formatMessage({id: 'pricing_modal.lookingToSelfHost', defaultMessage: 'Looking to self-host?'})}</span>
+                            <ExternalLink
+                                onClick={() =>
+                                    trackEvent(
+                                        TELEMETRY_CATEGORIES.CLOUD_PURCHASING,
+                                        'click_looking_to_self_host',
+                                    )
+                                }
+                                href={CloudLinks.DEPLOYMENT_OPTIONS}
+                                location='pricing_modal_content'
+                            >{formatMessage({id: 'pricing_modal.reviewDeploymentOptions', defaultMessage: 'Review deployment options'})}</ExternalLink>
+                        </div>
+                    </div>
+                </div>
+
                 <div className='PricingModal__body'>
                     <Card
+                        id='free'
+                        topColor='#339970'
+                        plan='Free'
+                        planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
+                        price='$0'
+                        rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
+                        planLabel={
+                            isStarter ? (
+                                <PlanLabel
+                                    text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
+                                    color='var(--denim-status-online)'
+                                    bgColor='var(--center-channel-bg)'
+                                    firstSvg={<CheckMarkSvg/>}
+                                />) : undefined}
+                        planExtraInformation={<StarterDisclaimerCTA/>}
+                        buttonDetails={{
+                            action: () => {
+                                if (!isStarter && !currentSubscriptionIsMonthly) {
+                                    openContactSupport();
+                                    return;
+                                }
+
+                                if (!starterProduct) {
+                                    return;
+                                }
+
+                                if (usage.teams.active > 1) {
+                                    dispatch(
+                                        openModal({
+                                            modalId: ModalIdentifiers.CLOUD_DOWNGRADE_CHOOSE_TEAM,
+                                            dialogType: DowngradeTeamRemovalModal,
+                                            dialogProps: {
+                                                product_id: starterProduct?.id,
+                                                starterProduct,
+                                            },
+                                        }),
+                                    );
+                                } else {
+                                    dispatch(
+                                        openModal({
+                                            modalId: ModalIdentifiers.FEEDBACK,
+                                            dialogType: DowngradeFeedbackModal,
+                                            dialogProps: {
+                                                onSubmit: handleClickDowngrade,
+                                            },
+                                        }),
+                                    );
+                                }
+                            },
+                            text: freeTierText,
+                            disabled: isStarter || isEnterprise || !isAdmin,
+                            customClass: (isStarter || isEnterprise || !isAdmin) ? ButtonCustomiserClasses.grayed : ButtonCustomiserClasses.secondary,
+                        }}
+                        briefing={{
+                            title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
+                            items: hasLimits ? starterBriefing : legacyStarterBriefing,
+                        }}
+                    />
+
+                    <Card
                         id='professional'
+                        topColor='var(--denim-button-bg)'
                         plan='Professional'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions for growing teams'})}
                         price={`$${professionalPrice}`}
@@ -246,17 +439,9 @@ function Content(props: ContentProps) {
 
                     <Card
                         id='enterprise'
+                        topColor='#E07315'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
-                        price={`$${enterprisePrice}`}
-                        rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
-                            br: <br/>,
-                            b: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                <span style={{fontSize: '14px'}}>
-                                    <b>{chunks}</b>
-                                </span>
-                            ),
-                        })}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel
@@ -267,7 +452,9 @@ function Content(props: ContentProps) {
                                     renderLastDaysOnTrial={true}
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
+                        customButtonDetails={enterpriseCustomBtnDetails()}
                         planTrialDisclaimer={(!isPostTrial && isAdmin) ? <StartTrialCaution/> : undefined}
+                        contactSalesCTA={(isPostTrial || !isAdmin) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
                             items: [
@@ -293,7 +480,6 @@ function Content(props: ContentProps) {
                             ],
                         }}
                     />
-                    <BlankCard/>
                 </div>
             </Modal.Body>
         </div>
