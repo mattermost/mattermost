@@ -1366,11 +1366,13 @@ export function getPasswordConfig(config: Partial<ClientConfig>) {
 
 export function isValidPassword(password: string, passwordConfig: ReturnType<typeof getPasswordConfig>, intl?: IntlShape) {
     let errorId = t('user.settings.security.passwordError');
+    const telemetryErrorIds = [];
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
 
     if (password.length < minimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
         valid = false;
+        telemetryErrorIds.push({field: 'password', rule: 'error_length'});
     }
 
     if (passwordConfig.requireLowercase) {
@@ -1379,6 +1381,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Lowercase';
+        telemetryErrorIds.push({field: 'password', rule: 'lowercase'});
     }
 
     if (passwordConfig.requireUppercase) {
@@ -1387,6 +1390,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Uppercase';
+        telemetryErrorIds.push({field: 'password', rule: 'uppercase'});
     }
 
     if (passwordConfig.requireNumber) {
@@ -1395,6 +1399,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Number';
+        telemetryErrorIds.push({field: 'password', rule: 'number'});
     }
 
     if (passwordConfig.requireSymbol) {
@@ -1403,6 +1408,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Symbol';
+        telemetryErrorIds.push({field: 'password', rule: 'symbol'});
     }
 
     let error;
@@ -1430,7 +1436,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         );
     }
 
-    return {valid, error};
+    return {valid, error, telemetryErrorIds};
 }
 
 function isChannelOrPermalink(link: string) {
@@ -1828,9 +1834,14 @@ export function getRoleForTrackFlow() {
     return {started_by_role: startedByRole};
 }
 
-export function getRoleFromTrackFlow() {
+export function getSbr() {
     const params = new URLSearchParams(window.location.search);
     const sbr = params.get('sbr') ?? '';
+    return sbr;
+}
+
+export function getRoleFromTrackFlow() {
+    const sbr = getSbr();
     const startedByRole = TrackFlowRoles[sbr] ?? '';
 
     return {started_by_role: startedByRole};
