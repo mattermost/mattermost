@@ -1,52 +1,52 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`board tests correctly generate patches for boards and blocks should add fields on update and remove it in the undo 1`] = `
-Array [
-  Object {
-    "blockIDs": Array [
+[
+  {
+    "blockIDs": [
       "test-old-block-id",
     ],
-    "blockPatches": Array [
-      Object {
-        "deletedFields": Array [],
-        "updatedFields": Object {
+    "blockPatches": [
+      {
+        "deletedFields": [],
+        "updatedFields": {
           "newField": "new field",
         },
       },
     ],
-    "boardIDs": Array [
+    "boardIDs": [
       "test-board-id",
     ],
-    "boardPatches": Array [
-      Object {
-        "deletedCardProperties": Array [],
-        "deletedProperties": Array [],
-        "updatedCardProperties": Array [],
-        "updatedProperties": Object {},
+    "boardPatches": [
+      {
+        "deletedCardProperties": [],
+        "deletedProperties": [],
+        "updatedCardProperties": [],
+        "updatedProperties": {},
       },
     ],
   },
-  Object {
-    "blockIDs": Array [
+  {
+    "blockIDs": [
       "test-old-block-id",
     ],
-    "blockPatches": Array [
-      Object {
-        "deletedFields": Array [
+    "blockPatches": [
+      {
+        "deletedFields": [
           "newField",
         ],
-        "updatedFields": Object {},
+        "updatedFields": {},
       },
     ],
-    "boardIDs": Array [
+    "boardIDs": [
       "test-board-id",
     ],
-    "boardPatches": Array [
-      Object {
-        "deletedCardProperties": Array [],
-        "deletedProperties": Array [],
-        "updatedCardProperties": Array [],
-        "updatedProperties": Object {},
+    "boardPatches": [
+      {
+        "deletedCardProperties": [],
+        "deletedProperties": [],
+        "updatedCardProperties": [],
+        "updatedProperties": {},
       },
     ],
   },
@@ -54,48 +54,48 @@ Array [
 `;
 
 exports[`board tests correctly generate patches for boards and blocks should generate two empty patches for the same board and block 1`] = `
-Array [
-  Object {
-    "blockIDs": Array [
+[
+  {
+    "blockIDs": [
       "test-card-id",
     ],
-    "blockPatches": Array [
-      Object {
-        "deletedFields": Array [],
-        "updatedFields": Object {},
+    "blockPatches": [
+      {
+        "deletedFields": [],
+        "updatedFields": {},
       },
     ],
-    "boardIDs": Array [
+    "boardIDs": [
       "test-board-id",
     ],
-    "boardPatches": Array [
-      Object {
-        "deletedCardProperties": Array [],
-        "deletedProperties": Array [],
-        "updatedCardProperties": Array [],
-        "updatedProperties": Object {},
+    "boardPatches": [
+      {
+        "deletedCardProperties": [],
+        "deletedProperties": [],
+        "updatedCardProperties": [],
+        "updatedProperties": {},
       },
     ],
   },
-  Object {
-    "blockIDs": Array [
+  {
+    "blockIDs": [
       "test-card-id",
     ],
-    "blockPatches": Array [
-      Object {
-        "deletedFields": Array [],
-        "updatedFields": Object {},
+    "blockPatches": [
+      {
+        "deletedFields": [],
+        "updatedFields": {},
       },
     ],
-    "boardIDs": Array [
+    "boardIDs": [
       "test-board-id",
     ],
-    "boardPatches": Array [
-      Object {
-        "deletedCardProperties": Array [],
-        "deletedProperties": Array [],
-        "updatedCardProperties": Array [],
-        "updatedProperties": Object {},
+    "boardPatches": [
+      {
+        "deletedCardProperties": [],
+        "deletedProperties": [],
+        "updatedCardProperties": [],
+        "updatedProperties": {},
       },
     ],
   },
@@ -103,16 +103,16 @@ Array [
 `;
 
 exports[`board tests correctly generate patches from two boards should add card properties on the redo and remove them on the undo 1`] = `
-Array [
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [
-      Object {
+[
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [
+      {
         "id": "new-property-id",
         "name": "property-name",
-        "options": Array [
-          Object {
+        "options": [
+          {
             "color": "propColorYellow",
             "id": "opt",
             "value": "val",
@@ -121,30 +121,30 @@ Array [
         "type": "select",
       },
     ],
-    "updatedProperties": Object {},
+    "updatedProperties": {},
   },
-  Object {
-    "deletedCardProperties": Array [
+  {
+    "deletedCardProperties": [
       "new-property-id",
     ],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [],
-    "updatedProperties": Object {},
+    "deletedProperties": [],
+    "updatedCardProperties": [],
+    "updatedProperties": {},
   },
 ]
 `;
 
 exports[`board tests correctly generate patches from two boards should add card properties on the redo and undo if they exists in both, but differ 1`] = `
-Array [
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [
-      Object {
+[
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [
+      {
         "id": "new-property-id",
         "name": "property-name",
-        "options": Array [
-          Object {
+        "options": [
+          {
             "color": "propColorYellow",
             "id": "opt",
             "value": "val",
@@ -153,17 +153,17 @@ Array [
         "type": "select",
       },
     ],
-    "updatedProperties": Object {},
+    "updatedProperties": {},
   },
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [
-      Object {
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [
+      {
         "id": "new-property-id",
         "name": "a-different-name",
-        "options": Array [
-          Object {
+        "options": [
+          {
             "color": "propColorYellow",
             "id": "opt",
             "value": "val",
@@ -172,22 +172,22 @@ Array [
         "type": "select",
       },
     ],
-    "updatedProperties": Object {},
+    "updatedProperties": {},
   },
 ]
 `;
 
 exports[`board tests correctly generate patches from two boards should add card properties on the redo and undo if they exists in both, but their options are different 1`] = `
-Array [
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [
-      Object {
+[
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [
+      {
         "id": "new-property-id",
         "name": "property-name",
-        "options": Array [
-          Object {
+        "options": [
+          {
             "color": "propColorYellow",
             "id": "opt",
             "value": "val",
@@ -196,17 +196,17 @@ Array [
         "type": "select",
       },
     ],
-    "updatedProperties": Object {},
+    "updatedProperties": {},
   },
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [
-      Object {
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [
+      {
         "id": "new-property-id",
         "name": "property-name",
-        "options": Array [
-          Object {
+        "options": [
+          {
             "color": "propColorBrown",
             "id": "another-opt",
             "value": "val",
@@ -215,45 +215,45 @@ Array [
         "type": "select",
       },
     ],
-    "updatedProperties": Object {},
+    "updatedProperties": {},
   },
 ]
 `;
 
 exports[`board tests correctly generate patches from two boards should add properties on the update patch and remove them on the undo 1`] = `
-Array [
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [],
-    "updatedProperties": Object {
+[
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [],
+    "updatedProperties": {
       "prop1": "val1",
     },
   },
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [
       "prop1",
     ],
-    "updatedCardProperties": Array [],
-    "updatedProperties": Object {},
+    "updatedCardProperties": [],
+    "updatedProperties": {},
   },
 ]
 `;
 
 exports[`board tests correctly generate patches from two boards should generate two empty patches for the same board 1`] = `
-Array [
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [],
-    "updatedProperties": Object {},
+[
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [],
+    "updatedProperties": {},
   },
-  Object {
-    "deletedCardProperties": Array [],
-    "deletedProperties": Array [],
-    "updatedCardProperties": Array [],
-    "updatedProperties": Object {},
+  {
+    "deletedCardProperties": [],
+    "deletedProperties": [],
+    "updatedCardProperties": [],
+    "updatedProperties": {},
   },
 ]
 `;

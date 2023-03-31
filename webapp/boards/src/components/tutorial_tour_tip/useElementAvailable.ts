@@ -26,6 +26,12 @@ export default function useElementAvailable(
                 }
             }
         }, 500)
+
+        return () => {
+            if (checkAvailableInterval.current) {
+                clearInterval(checkAvailableInterval.current)
+            }
+        }
     }, [])
 
     return available
