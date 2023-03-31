@@ -385,12 +385,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             ),
             isUpgradeFromTrial: props.isFreeTrial,
             buttonClickedInfo: '',
-            selectedProductPrice: getSelectedProduct(
-                props.products,
-                props.yearlyProducts,
-                props.productId,
-                props.isDelinquencyModal,
-                props.isCloudDelinquencyGreaterThan90Days)?.price_per_seat.toString() || null,
+            selectedProductPrice: getSelectedProduct(props.products, props.yearlyProducts, props.productId, props.isDelinquencyModal, props.isCloudDelinquencyGreaterThan90Days)?.price_per_seat.toString() || null,
             usersCount: this.props.usersCount,
             seats: {
                 quantity: this.props.usersCount.toString(),
