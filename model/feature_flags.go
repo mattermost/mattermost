@@ -95,7 +95,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = false
+	f.WorkTemplate = true
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
