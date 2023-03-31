@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 
-import Icon from '@mattermost/compass-components/foundations/icon';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {openModal} from 'actions/views/modals';
 

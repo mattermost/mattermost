@@ -4,7 +4,7 @@
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
-import Icon from '@mattermost/compass-components/foundations/icon';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {Permissions} from 'mattermost-redux/constants';
 
