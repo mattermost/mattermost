@@ -32,7 +32,7 @@ Cypress.Commands.add('uiOpenTeamMenu', (item = '') => {
 
 Cypress.Commands.add('uiGetLHSAddChannelButton', () => {
     return cy.uiGetLHS().
-        findByRole('button', {name: 'Add Channel Dropdown'});
+        find('.AddChannelDropdown_dropdownButton'); 
 });
 
 Cypress.Commands.add('uiGetLHSTeamMenu', () => {
@@ -89,7 +89,7 @@ Cypress.Commands.add('uiGetLhsSection', (section) => {
 });
 
 Cypress.Commands.add('uiBrowseOrCreateChannel', (item) => {
-    cy.findByRole('button', {name: 'Add Channel Dropdown'}).
+    cy.get('.AddChannelDropdown_dropdownButton').
         should('be.visible').
         click();
     cy.get('.dropdown-menu').should('be.visible');
