@@ -1,0 +1,57 @@
+.PaymentInfoEdit__card {
+    padding: 28px 32px;
+    border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    margin-top: 20px;
+    background-color: var(--sys-center-channel-bg);
+    border-radius: 4px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+}
+
+.PaymentInfoEdit__paymentForm {
+    max-width: 480px;
+    padding: 0;
+    margin: 0;
+
+    .section-title:not(:first-child) {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .section-title {
+        color: var(--sys-center-channel-text);
+    }
+
+    .Input_fieldset {
+        background: var(--sys-center-channel-bg);
+    }
+
+    &.Input_fieldset:focus-within {
+        box-shadow: inset 0 0 0 2px var(--sys-button-bg);
+    }
+
+    &.Input_fieldset___error {
+        box-shadow: inset 0 0 0 1px var(--sys-error-text);
+        color: var(--sys-error-text);
+    }
+
+    &.Input_fieldset___error:focus-within {
+        box-shadow: inset 0 0 0 2px var(--sys-error-text);
+        color: var(--sys-error-text);
+    }
+
+    .Input::placeholder {
+        color: var(--sys-center-channel-color);
+    }
+}
+
+.PaymentInfoEdit__error {
+    display: flex;
+    align-items: center;
+    color: var(--sys-error-text);
+    font-size: 12px;
+
+    i {
+        margin-right: 4px;
+        font-size: 14.4px;
+    }
+}

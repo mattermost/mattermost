@@ -1,0 +1,585 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FileAttachment should match snapshot, after change from file to image 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.png"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "png",
+          "has_preview_image": true,
+          "height": 400,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.png",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 600,
+        }
+      }
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.png
+        </span>
+        <span
+          className="post-image__type"
+        >
+          PNG
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+    <FilenameOverlay
+      canDownload={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "png",
+          "has_preview_image": true,
+          "height": 400,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.png",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 600,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, regular file 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.pdf"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "pdf",
+          "has_preview_image": true,
+          "height": 80,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.pdf",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 100,
+        }
+      }
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.pdf
+        </span>
+        <span
+          className="post-image__type"
+        >
+          PDF
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+    <FilenameOverlay
+      canDownload={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "pdf",
+          "has_preview_image": true,
+          "height": 80,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.pdf",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 100,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, regular image 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.png"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <div
+      className="post-image__load"
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.png
+        </span>
+        <span
+          className="post-image__type"
+        >
+          PNG
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+    <FilenameOverlay
+      canDownload={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "png",
+          "has_preview_image": true,
+          "height": 400,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.png",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 600,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, small image 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.png"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <div
+      className="post-image__load"
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.png
+        </span>
+        <span
+          className="post-image__type"
+        >
+          PNG
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+    <FilenameOverlay
+      canDownload={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "png",
+          "has_preview_image": true,
+          "height": 16,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.png",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 16,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, svg image 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.svg"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "svg",
+          "has_preview_image": true,
+          "height": 400,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.svg",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 600,
+        }
+      }
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.svg
+        </span>
+        <span
+          className="post-image__type"
+        >
+          SVG
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+    <FilenameOverlay
+      canDownload={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "svg",
+          "has_preview_image": true,
+          "height": 400,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.svg",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 600,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.pdf"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <div
+      className="post-image__load"
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.pdf
+        </span>
+        <span
+          className="post-image__type"
+        >
+          JPG
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+    <FilenameOverlay
+      canDownload={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "jpg",
+          "has_preview_image": true,
+          "height": 80,
+          "id": "noLoad",
+          "mime_type": "",
+          "name": "test.pdf",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 100,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, with compact display 1`] = `
+<div
+  className="post-image__column"
+>
+  <div
+    className="post-image__details"
+  >
+    <FilenameOverlay
+      canDownload={true}
+      compactDisplay={true}
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "pdf",
+          "has_preview_image": true,
+          "height": 80,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.pdf",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 100,
+        }
+      }
+      handleImageClick={[Function]}
+      iconClass="post-image__download"
+    >
+      <i
+        className="icon icon-download-outline"
+      />
+    </FilenameOverlay>
+  </div>
+</div>
+`;
+
+exports[`FileAttachment should match snapshot, without compact display and without can download 1`] = `
+<div
+  className="post-image__column"
+>
+  <a
+    aria-label="file thumbnail test.pdf"
+    className="post-image__thumbnail"
+    href="#"
+    onClick={[Function]}
+  >
+    <Connect(FileThumbnail)
+      fileInfo={
+        Object {
+          "archived": false,
+          "clientId": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "extension": "pdf",
+          "has_preview_image": true,
+          "height": 80,
+          "id": "thumbnail_id",
+          "mime_type": "",
+          "name": "test.pdf",
+          "size": 100,
+          "update_at": 0,
+          "user_id": "",
+          "width": 100,
+        }
+      }
+    />
+  </a>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+      onClick={[Function]}
+    >
+      <div
+        className="post-image__detail"
+      >
+        <span
+          className="post-image__name"
+        >
+          test.pdf
+        </span>
+        <span
+          className="post-image__type"
+        >
+          PDF
+        </span>
+        <span
+          className="post-image__size"
+        >
+          100B
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;

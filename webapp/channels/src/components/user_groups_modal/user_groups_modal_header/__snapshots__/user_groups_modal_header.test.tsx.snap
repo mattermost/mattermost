@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/user_groups_modal should match snapshot with groups 1`] = `
+<ModalHeader
+  bsClass="modal-header"
+  closeButton={true}
+  closeLabel="Close"
+>
+  <ModalTitle
+    bsClass="modal-title"
+    componentClass="h1"
+    id="userGroupsModalLabel"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="User Groups"
+      id="user_groups_modal.title"
+    />
+  </ModalTitle>
+</ModalHeader>
+`;
+
+exports[`component/user_groups_modal should match snapshot without groups 1`] = `
+<ModalHeader
+  bsClass="modal-header"
+  closeButton={true}
+  closeLabel="Close"
+>
+  <ModalTitle
+    bsClass="modal-title"
+    componentClass="h1"
+    id="userGroupsModalLabel"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="User Groups"
+      id="user_groups_modal.title"
+    />
+  </ModalTitle>
+  <button
+    className="user-groups-create btn btn-md btn-primary"
+    onClick={[Function]}
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Create Group"
+      id="user_groups_modal.createNew"
+    />
+  </button>
+</ModalHeader>
+`;

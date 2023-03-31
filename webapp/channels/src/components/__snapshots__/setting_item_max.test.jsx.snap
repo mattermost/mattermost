@@ -1,0 +1,302 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SettingItemMax should match snapshot 1`] = `
+<section
+  className="section-max form-horizontal "
+>
+  <h4
+    className="col-sm-12 section-title"
+    id="settingTitle"
+  >
+    title
+  </h4>
+  <div
+    className="col-sm-12"
+  >
+    <div
+      className="setting-list"
+      tabIndex={-1}
+    >
+      <div
+        className="setting-list-item"
+      >
+        input_1
+      </div>
+      <div
+        className="setting-list-item"
+      >
+        <hr />
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Save"
+              id="save_button.save"
+            />
+          }
+          disabled={false}
+          extraClasses=""
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+        <button
+          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          id="cancelSetting"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="setting_item_max.cancel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+`;
+
+exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
+<section
+  className="section-max form-horizontal "
+>
+  <h4
+    className="col-sm-12 section-title"
+    id="settingTitle"
+  >
+    title
+  </h4>
+  <div
+    className="col-sm-12"
+  >
+    <div
+      className="setting-list"
+      tabIndex={-1}
+    >
+      <div
+        className="setting-list-item"
+      >
+        input_1
+      </div>
+      <div
+        className="setting-list-item"
+      >
+        <hr />
+        <div
+          className="form-group"
+        >
+          <label
+            className="col-sm-12 has-error"
+            id="clientError"
+          >
+            clientError
+          </label>
+        </div>
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Save"
+              id="save_button.save"
+            />
+          }
+          disabled={false}
+          extraClasses=""
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+        <button
+          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          id="cancelSetting"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="setting_item_max.cancel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+`;
+
+exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
+<section
+  className="section-max form-horizontal "
+>
+  <h4
+    className="col-sm-12 section-title"
+    id="settingTitle"
+  >
+    title
+  </h4>
+  <div
+    className="col-sm-12"
+  >
+    <div
+      className="setting-list"
+      tabIndex={-1}
+    >
+      <div
+        className="setting-list-item"
+      >
+        input_1
+      </div>
+      <div
+        className="setting-list-item"
+      >
+        <hr />
+        <div
+          className="form-group"
+        >
+          <label
+            className="col-sm-12 has-error"
+            id="serverError"
+          >
+            serverError
+          </label>
+        </div>
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Save"
+              id="save_button.save"
+            />
+          }
+          disabled={false}
+          extraClasses=""
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+        <button
+          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          id="cancelSetting"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="setting_item_max.cancel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+`;
+
+exports[`components/SettingItemMax should match snapshot, with new saveTextButton 1`] = `
+<section
+  className="section-max form-horizontal "
+>
+  <h4
+    className="col-sm-12 section-title"
+    id="settingTitle"
+  >
+    title
+  </h4>
+  <div
+    className="col-sm-12"
+  >
+    <div
+      className="setting-list"
+      tabIndex={-1}
+    >
+      <div
+        className="setting-list-item"
+      >
+        input_1
+      </div>
+      <div
+        className="setting-list-item"
+      >
+        <hr />
+        <SaveButton
+          btnClass="btn-primary"
+          defaultMessage="CustomText"
+          disabled={false}
+          extraClasses=""
+          onClick={[Function]}
+          saving={false}
+          savingMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Saving"
+              id="save_button.saving"
+            />
+          }
+        />
+        <button
+          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          id="cancelSetting"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="setting_item_max.cancel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+`;
+
+exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
+<section
+  className="section-max form-horizontal "
+>
+  <h4
+    className="col-sm-12 section-title"
+    id="settingTitle"
+  >
+    title
+  </h4>
+  <div
+    className="col-sm-12"
+  >
+    <div
+      className="setting-list"
+      tabIndex={-1}
+    >
+      <div
+        className="setting-list-item"
+      >
+        input_1
+      </div>
+      <div
+        className="setting-list-item"
+      >
+        <hr />
+        <button
+          className="btn btn-sm btn-cancel cursor--pointer style--none"
+          id="cancelSetting"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="setting_item_max.cancel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+`;

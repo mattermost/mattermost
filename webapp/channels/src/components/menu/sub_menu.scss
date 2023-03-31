@@ -1,0 +1,11 @@
+.menuModal {
+    & .modal-header {
+        & > .close {
+            visibility: hidden;
+        }
+    }
+
+    & .GenericModal__body {
+        padding: 0;
+    }
+}

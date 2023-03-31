@@ -1,0 +1,69 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+.should-verify-body {
+    display: flex;
+    flex: 1;
+    align-items: center;
+
+    .should-verify-body-content {
+        display: flex;
+        height: fit-content;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+
+        .should-verify-body-content-extra {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+
+            .should-verify-body-content-buttons {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+
+                .should-verify-body-content-button-resend {
+                    @include tertiary-button;
+                }
+
+                .should-verify-body-content-button-return {
+                    @include primary-button;
+
+                    margin-left: 16px;
+                }
+
+                .should-verify-body-content-button-resend,
+                .should-verify-body-content-button-return {
+                    @include button-large;
+                }
+            }
+
+            .should-verify-body-content-message {
+                margin-top: 32px;
+                font-size: 12px;
+                font-weight: 400;
+                line-height: 16px;
+                text-align: center;
+                visibility: hidden;
+
+                &.success {
+                    color: var(--denim-status-online);
+                    visibility: visible;
+                }
+
+                &.failure {
+                    color: var(--error-text);
+                    visibility: visible;
+                }
+
+                .should-verify-body-content-message-label {
+                    margin-left: 4px;
+                }
+            }
+        }
+    }
+}

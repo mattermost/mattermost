@@ -1,0 +1,17 @@
+.EditableAreaWrap {
+    width: 100%;
+}
+
+.EditableArea {
+    resize: none;
+}
+
+.EditableAreaContainer {
+    height: 0;
+    overflow: hidden;
+}
+
+.EditableAreaReference {
+    height: auto;
+    width: 100%;
+}

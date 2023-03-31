@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`properties/updatedBy should match snapshot 1`] = `
+<div>
+  <div
+    class="Person octo-propertyvalue octo-propertyvalue--readonly"
+  >
+    <div
+      class="Person-item"
+    >
+      username_1
+    </div>
+  </div>
+</div>
+`;

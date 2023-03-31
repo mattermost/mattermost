@@ -1,0 +1,61 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ThreadViewer {
+    // negate conflicting css for timestamp
+    .post:not(.same--root.same--user) a.post__permalink {
+        position: initial !important;
+        text-align: left !important;
+    }
+
+    .new-separator {
+        .NotificationSeparator {
+            padding-top: 0;
+        }
+
+        & + .post {
+            padding-top: 1em !important;
+        }
+    }
+
+    .post-list__dynamic--RHS {
+        scrollbar-color: var(--center-channel-color-32) #fff0;
+        scrollbar-width: thin;
+    }
+
+    .post-right-comments-container > .new-separator,
+    .post + .new-separator {
+        .NotificationSeparator {
+            padding-top: 1em;
+        }
+    }
+
+    .Separator + .new-separator {
+        .NotificationSeparator {
+            padding-top: 2em;
+        }
+    }
+
+    > div {
+        flex: 1 1 auto;
+    }
+
+    .channel-archived-warning__container {
+        padding-top: 16px;
+    }
+
+    .channel-archived-warning__content {
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+        padding-right: 47.5px;
+        padding-left: 46.5px;
+        margin: 0 auto;
+        line-height: 20px;
+        text-align: center;
+
+        svg {
+            margin-right: 3.4px;
+        }
+    }
+}
