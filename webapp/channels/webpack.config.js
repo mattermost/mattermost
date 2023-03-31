@@ -446,6 +446,7 @@ if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
     env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
     env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
+    env.STRIPE_PUBLIC_KEY = JSON.stringify(process.env.STRIPE_PUBLIC_KEY || '');
     if (process.env.MM_LIVE_RELOAD) {
         config.plugins.push(new LiveReloadPlugin());
     }
@@ -453,6 +454,7 @@ if (DEV) {
     env.NODE_ENV = JSON.stringify('production');
     env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
     env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
+    env.STRIPE_PUBLIC_KEY = JSON.stringify(process.env.STRIPE_PUBLIC_KEY || '');
 }
 
 config.plugins.push(new webpack.DefinePlugin({
