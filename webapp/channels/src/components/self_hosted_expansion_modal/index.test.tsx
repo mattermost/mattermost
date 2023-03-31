@@ -16,6 +16,7 @@ import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/co
 import {DeepPartial} from '@mattermost/types/utilities';
 
 import SelfHostedExpansionModal, {makeInitialState, canSubmit, FormState} from './';
+import moment from 'moment-timezone';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;
@@ -131,9 +132,9 @@ jest.mock('utils/hosted_customer', () => {
 const productName = SelfHostedProducts.PROFESSIONAL;
 
 // Licensed expiry set as 3 months from the current date (rolls over to new years).
-const licenseExpiry = new Date();
+let licenseExpiry = moment()
 const monthsUntilLicenseExpiry = 3;
-licenseExpiry.setMonth(licenseExpiry.getMonth() + monthsUntilLicenseExpiry);
+licenseExpiry = licenseExpiry.add(monthsUntilLicenseExpiry, 'months');
 
 const initialState: DeepPartial<GlobalState> = {
     views: {
@@ -164,7 +165,7 @@ const initialState: DeepPartial<GlobalState> = {
             license: {
                 Sku: productName,
                 Users: '50',
-                ExpiresAt: licenseExpiry.getTime().toString(),
+                ExpiresAt: licenseExpiry.valueOf().toString(),
             },
         },
         cloud: {
@@ -362,7 +363,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
 
         const costAmount = document.getElementsByClassName('totalCostAmount')[0];
         expect(costAmount).toBeInTheDocument();
-        expect(costAmount.innerHTML).toContain('$' + expectedTotalCost);
+        expect(costAmount).toHaveTextContent('$' + expectedTotalCost);
     });
 });
 

@@ -208,7 +208,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                         <br/>
                         <FormattedMessage
                             id='self_hosted_expansion_rhs_card_cost_per_user_breakdown'
-                            /* eslint-disable no-template-curly-in-string */
+                            /* eslint-disable no-template-curly-in-string*/
                             defaultMessage='${costPerUser} x {monthsUntilExpiry} months'
                             values={{
                                 costPerUser: getMonthlyPrice().toFixed(2),
