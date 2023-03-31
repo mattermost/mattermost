@@ -32,13 +32,13 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
         id="showNewChannel"
         onClick={[Function]}
         show={true}
-        text="Create New Channel"
+        text="Create new channel"
       />
       <MenuItemAction
         id="showMoreChannels"
         onClick={[Function]}
         show={true}
-        text="Browse Channels"
+        text="Browse channels"
       />
     </MenuGroup>
   </Menu>
