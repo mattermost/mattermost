@@ -143,7 +143,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "Product Release",
 				Name:         "Feature release",
 				ID:           "product-release-playbook",
-				Illustration: "/static/worktemplates/playbooks/product_release.png",
+				Illustration: "/static/worktemplates/product_teams/feature_release/playbook.png",
 			},
 		},
 		{

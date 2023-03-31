@@ -42,7 +42,7 @@ content:
       template: "Product Release"
       name: "Feature release"
       id: product-release-playbook
-      illustration: "/static/worktemplates/playbooks/product_release.png"
+      illustration: "/static/worktemplates/product_teams/feature_release/playbook.png"
   - integration:
       id: jira
   - integration:
