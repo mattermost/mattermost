@@ -3,7 +3,9 @@
 
 import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
 
+import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
 import Illus from './illus.svg';
 
@@ -34,6 +36,7 @@ type ButtonDetails = {
 
 type CardProps = {
     id: string;
+    topColor: string;
     planLabel?: JSX.Element;
     plan: string;
     planSummary?: string;
@@ -47,6 +50,14 @@ type CardProps = {
     planAddonsInfo?: PlanAddonsInfo;
     planTrialDisclaimer?: JSX.Element;
 }
+
+type StyledProps = {
+    bgColor?: string;
+}
+
+const StyledDiv = styled.div<StyledProps>`
+background-color: ${(props) => props.bgColor};
+`;
 
 export function BlankCard() {
     const {formatMessage} = useIntl();
@@ -93,13 +104,17 @@ function Card(props: CardProps) {
             id={props.id}
             className='PlanCard'
         >
+            <StyledDiv
+                className='top'
+                bgColor={props.topColor}
+            />
             {props.planLabel}
             <div className='bottom'>
                 <div className='bottom_container'>
                     <div className='plan_price_rate_section'>
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
-                        <h1>{props.price}</h1>
+                        {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>}
                         <span>{props.rate}</span>
                     </div>
 
