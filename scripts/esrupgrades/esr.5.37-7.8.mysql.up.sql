@@ -50,8 +50,9 @@ BEGIN
 		SET AlterColumnQuery = 'MODIFY COLUMN Type ENUM("attachment", "import")';
 	END IF;
 
-	IF CreateIndex OR AlterIndex OR AlterColumn THEN
-		SET @query = CONCAT('ALTER TABLE UploadSessions ', CONCAT_WS(', ', CreateIndexQuery, AlterIndexQuery, AlterColumnQuery));
+	SET @alterQuery = CONCAT_WS(', ', CreateIndexQuery, AlterIndexQuery, AlterColumnQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE UploadSessions ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -194,8 +195,9 @@ BEGIN
 		SET SetDefaultQuery = 'ALTER COLUMN LastRootPostAt SET DEFAULT 0';
 	END IF;
 
-	IF DropIndex OR CreateIndexTeamDisplay OR CreateIndexTeamType OR AddLastRootPostAt OR ModifyColumn OR SetDefault THEN
-		SET @query = CONCAT('ALTER TABLE Channels ', CONCAT_WS(', ', DropIndexQuery, CreateIndexTeamDisplayQuery, CreateIndexTeamTypeQuery, AddLastRootPostAtQuery, ModifyColumnQuery, SetDefaultQuery));
+	SET @alterQuery = CONCAT_WS(', ', DropIndexQuery, CreateIndexTeamDisplayQuery, CreateIndexTeamTypeQuery, AddLastRootPostAtQuery, ModifyColumnQuery, SetDefaultQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Channels ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -356,8 +358,9 @@ BEGIN
 		SET AddUrgentMentionCountQuery = 'ADD COLUMN UrgentMentionCount bigint(20)';
 	END IF;
 
-	IF ModifyNotifyProps OR DropIndex OR CreateIndexLastViewedAt OR CreateIndexSchemeGuest OR ModifyRoles THEN
-		SET @query = CONCAT('ALTER TABLE ChannelMembers ', CONCAT_WS(', ', ModifyNotifyPropsQuery, DropIndexQuery, CreateIndexLastViewedAtQuery, CreateIndexSchemeGuestQuery, ModifyRolesQuery, AddUrgentMentionCountQuery));
+	SET @alterQuery = CONCAT_WS(', ', ModifyNotifyPropsQuery, DropIndexQuery, CreateIndexLastViewedAtQuery, CreateIndexSchemeGuestQuery, ModifyRolesQuery, AddUrgentMentionCountQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE ChannelMembers ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -501,8 +504,9 @@ BEGIN
 		SET DropThemePropsQuery = 'DROP COLUMN ThemeProps';
 	END IF;
 
-	IF ChangeProps OR ChangeNotifyProps OR DropTimezoneDefault OR ChangeTimezone OR ChangeRoles OR DropTermsOfService OR DropServiceTerms OR DropThemeProps THEN
-		SET @query = CONCAT('ALTER TABLE Users ', CONCAT_WS(', ', ChangePropsQuery, ChangeNotifyPropsQuery, DropTimezoneDefaultQuery, ChangeTimezoneQuery, ChangeRolesQuery, DropTermsOfServiceQuery, DropServiceTermsQuery, DropThemePropsQuery));
+	SET @alterQuery = CONCAT_WS(', ', ChangePropsQuery, ChangeNotifyPropsQuery, DropTimezoneDefaultQuery, ChangeTimezoneQuery, ChangeRolesQuery, DropTermsOfServiceQuery, DropServiceTermsQuery, DropThemePropsQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Users ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -548,8 +552,9 @@ BEGIN
 		SET CreateIndexQuery = 'ADD INDEX idx_jobs_status_type (Status, Type)';
 	END IF;
 
-	IF ModifyData OR CreateIndex THEN
-		SET @query = CONCAT('ALTER TABLE Jobs ', CONCAT_WS(', ', ModifyDataQuery, CreateIndexQuery));
+	SET @alterQuery = CONCAT_WS(', ', ModifyDataQuery, CreateIndexQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Jobs ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -621,8 +626,9 @@ BEGIN
 		SET ModifyRolesQuery = 'MODIFY COLUMN Roles text';
 	END IF;
 
-	IF ModifyProps OR ModifyRoles THEN
-		SET @query = CONCAT('ALTER TABLE Sessions ', CONCAT_WS(', ', ModifyPropsQuery, ModifyRolesQuery));
+	SET @alterQuery = CONCAT_WS(', ', ModifyPropsQuery, ModifyRolesQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Sessions ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -740,8 +746,9 @@ BEGIN
 		SET DropIndexQuery = 'DROP INDEX idx_threads_channel_id';
 	END IF;
 
-	IF ChangeParticipants OR DropDeleteAt OR CreateThreadDeleteAt OR DropTeamId OR CreateThreadTeamId OR CreateIndex OR DropIndex THEN
-		SET @query = CONCAT('ALTER TABLE Threads ', CONCAT_WS(', ', ChangeParticipantsQuery, DropDeleteAtQuery, CreateThreadDeleteAtQuery, DropTeamIdQuery, CreateThreadTeamIdQuery, CreateIndexQuery, DropIndexQuery));
+	SET @alterQuery = CONCAT_WS(', ', ChangeParticipantsQuery, DropDeleteAtQuery, CreateThreadDeleteAtQuery, DropTeamIdQuery, CreateThreadTeamIdQuery, CreateIndexQuery, DropIndexQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Threads ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -795,8 +802,9 @@ BEGIN
 		SET DropIndexQuery = 'DROP INDEX idx_status_status';
 	END IF;
 
-	IF CreateIndex OR DropIndex THEN
-		SET @query = CONCAT('ALTER TABLE Status ', CONCAT_WS(', ', CreateIndexQuery, DropIndexQuery));
+	SET @alterQuery = CONCAT_WS(', ', CreateIndexQuery, DropIndexQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Status ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -924,8 +932,9 @@ BEGIN
 		SET CreateIndexCreateAtQuery = 'ADD INDEX idx_posts_create_at_id (CreateAt, Id)';
 	END IF;
 
-	IF DropParentId OR ModifyFileIds OR ModifyProps OR CreateIndexRootId OR DropIndex OR CreateIndexCreateAt THEN
-		SET @query = CONCAT('ALTER TABLE Posts ', CONCAT_WS(', ', DropParentIdQuery, ModifyFileIdsQuery, ModifyPropsQuery, CreateIndexRootIdQuery, DropIndexQuery, CreateIndexCreateAtQuery));
+	SET @alterQuery = CONCAT_WS(', ', DropParentIdQuery, ModifyFileIdsQuery, ModifyPropsQuery, CreateIndexRootIdQuery, DropIndexQuery, CreateIndexCreateAtQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Posts ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -986,8 +995,9 @@ BEGIN
 		SET CreateIndexQuery = 'ADD INDEX idx_teammembers_createat (CreateAt)';
 	END IF;
 
-	IF ModifyRoles OR AddCreateAt OR CreateIndex THEN
-		SET @query = CONCAT('ALTER TABLE TeamMembers ', CONCAT_WS(', ', ModifyRolesQuery, AddCreateAtQuery, CreateIndexQuery));
+	SET @alterQuery = CONCAT_WS(', ', ModifyRolesQuery, AddCreateAtQuery, CreateIndexQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE TeamMembers ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -1059,8 +1069,9 @@ BEGIN
 		SET AddDefaultRunMemberRoleQuery = 'ADD COLUMN DefaultRunMemberRole VARCHAR(64) DEFAULT ""';
 	END IF;
 
-	IF AddDefaultPlaybookAdminRole OR AddDefaultPlaybookMemberRole OR AddDefaultRunAdminRole OR AddDefaultRunMemberRole THEN
-		SET @query = CONCAT('ALTER TABLE Schemes ', CONCAT_WS(', ', AddDefaultPlaybookAdminRoleQuery, AddDefaultPlaybookMemberRoleQuery, AddDefaultRunAdminRoleQuery, AddDefaultRunMemberRoleQuery));
+	SET @alterQuery = CONCAT_WS(', ', AddDefaultPlaybookAdminRoleQuery, AddDefaultPlaybookMemberRoleQuery, AddDefaultRunAdminRoleQuery, AddDefaultRunMemberRoleQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Schemes ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -1221,8 +1232,9 @@ BEGIN
 		SET ModifyTypeQuery = 'MODIFY COLUMN Type ENUM("I", "O")';
 	END IF;
 
-	IF AddCloudLimitsArchived OR ModifyType THEN
-		SET @query = CONCAT('ALTER TABLE Teams ', CONCAT_WS(', ', AddCloudLimitsArchivedQuery, ModifyTypeQuery));
+	SET @alterQuery = CONCAT_WS(', ', AddCloudLimitsArchivedQuery, ModifyTypeQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Teams ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
@@ -1293,8 +1305,9 @@ BEGIN
 		SET CreateIndexQuery = 'ADD INDEX idx_reactions_channel_id (ChannelId)';
 	END IF;
 
-	IF AddChannelId OR CreateIndex THEN
-		SET @query = CONCAT('ALTER TABLE Reactions ', CONCAT_WS(', ', AddChannelIdQuery, CreateIndexQuery));
+	SET @alterQuery = CONCAT_WS(', ', AddChannelIdQuery, CreateIndexQuery);
+	IF @alterQuery <> '' THEN
+	    SET @query = CONCAT('ALTER TABLE Reactions ', alterQuery);
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
 		DEALLOCATE PREPARE stmt;
