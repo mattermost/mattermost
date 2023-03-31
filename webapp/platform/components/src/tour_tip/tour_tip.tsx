@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import Tippy from '@tippyjs/react';
 import {Placement} from 'tippy.js';
 import classNames from 'classnames';
 
 import {PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
+import {useClickOutsideRef} from '../common/hooks/useClickOutsideRef';
 
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/light-border.css';
@@ -89,11 +90,14 @@ export const TourTip = ({
 }: Props) => {
     const FIRST_STEP_INDEX = 0;
     const triggerRef = useRef(null);
+    const [useBackdrop, setUseBackdrop] = useState(!hideBackdrop);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
-        if (handleJump) {
-            handleJump(event, jumpToStep);
-        }
+        handleJump?.(event, jumpToStep);
     };
+
+    useClickOutsideRef(triggerRef, () => {
+        setUseBackdrop(false);
+    });
 
     // This needs to be changed if root-portal node isn't available to maybe body
     const rootPortal = document.getElementById('root-portal');
@@ -210,7 +214,7 @@ export const TourTip = ({
             >
                 <PulsatingDot/>
             </div>
-            <TourTipBackdrop
+            {useBackdrop && <TourTipBackdrop
                 show={show}
                 onDismiss={handleDismiss}
                 onPunchOut={handlePunchOut}
@@ -218,7 +222,7 @@ export const TourTip = ({
                 overlayPunchOut={overlayPunchOut}
                 appendTo={rootPortal!}
                 transparent={hideBackdrop}
-            />
+            />}
             {show && (
                 <Tippy
                     showOnCreate={show}
