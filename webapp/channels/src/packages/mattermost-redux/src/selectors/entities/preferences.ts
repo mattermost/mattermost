@@ -299,3 +299,7 @@ export function autoShowLinkedBoardFFEnabled(state: GlobalState): boolean {
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
 }
+
+export function cloudFreeDeprecationUIEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'EnableCloudFreeDeprecationUI') === 'true';
+}

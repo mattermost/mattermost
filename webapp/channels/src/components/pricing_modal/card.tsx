@@ -4,6 +4,9 @@
 import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
+import {useSelector} from 'react-redux';
+
+import {cloudFreeDeprecationUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
@@ -99,17 +102,29 @@ export function BlankCard() {
 
 function Card(props: CardProps) {
     const {formatMessage} = useIntl();
+
+    const enabled = useSelector(cloudFreeDeprecationUIEnabled);
+
     return (
         <div
             id={props.id}
             className='PlanCard'
         >
             {props.planLabel}
-            <StyledDiv
-                className='top'
-                bgColor={props.topColor}
-            />
-            <div className='bottom'>
+            {!enabled && (
+                <StyledDiv
+                    className='top'
+                    bgColor={props.topColor}
+                />
+            )}
+
+            <div
+                className='bottom'
+                style={enabled ? {
+                    border: '1px solid rgba(63, 67, 80, 0.16)',
+                    borderRadius: '8px',
+                } : {}}
+            >
                 <div className='bottom_container'>
                     <div className='plan_price_rate_section'>
                         <h3>{props.plan}</h3>
