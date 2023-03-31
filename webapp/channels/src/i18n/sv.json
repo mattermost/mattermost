@@ -4704,6 +4704,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "Om du tror att detta är ett misstag, starta om ditt köp från början igen.",
   "self_hosted_signup.purchase_in_progress.reset": "Börja om köpet",
   "self_hosted_signup.purchase_in_progress.title": "Inköp pågår",
+  "self_hosted_signup.error_min_seats": "Din arbetsyta har just nu {num} användare",
   "self_hosted_signup.retry": "Försök igen",
   "self_hosted_signup.screening_description": "Vi kommer att kontrollera saker och ting från vår sida och återkommer till dig inom tre dagar när din licens är godkänd. Under tiden kan du gärna fortsätta att använda gratisversionen av vår produkt.",
   "self_hosted_signup.screening_title": "Din transaktion håller på att granskas",

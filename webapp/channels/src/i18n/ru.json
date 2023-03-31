@@ -4704,6 +4704,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "Если вы считаете, что это ошибка, перезапустите покупку.",
   "self_hosted_signup.purchase_in_progress.reset": "Перезапуск покупки",
   "self_hosted_signup.purchase_in_progress.title": "Покупка в процессе",
+  "self_hosted_signup.error_min_seats": "В вашем рабочем пространстве в настоящее время {num} пользователей",
   "self_hosted_signup.retry": "Попробовать снова",
   "self_hosted_signup.screening_description": "Мы проверим ситуацию на нашей стороне и свяжемся с вами в течение 3 дней, когда ваша лицензия будет одобрена. Тем временем, пожалуйста, продолжайте пользоваться бесплатной версией нашего продукта.",
   "self_hosted_signup.screening_title": "Ваша транзакция находится на рассмотрении",

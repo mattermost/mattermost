@@ -4717,6 +4717,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "Wenn du der Meinung bist, dass dies ein Fehler ist, starte den Kauf erneut.",
   "self_hosted_signup.purchase_in_progress.reset": "Kaufvorgang erneut starten",
   "self_hosted_signup.purchase_in_progress.title": "Kauf in Bearbeitung",
+  "self_hosted_signup.error_min_seats": "Dein Arbeitsbereich hat derzeit {num} Benutzer",
   "self_hosted_signup.retry": "Erneut versuchen",
   "self_hosted_signup.screening_description": "Wir werden die Dinge von unserer Seite aus überprüfen und uns innerhalb von 3 Tagen bei dir melden, sobald deine Lizenz genehmigt ist. In der Zwischenzeit kannst du gerne die kostenlose Version unseres Produkts weiter nutzen.",
   "self_hosted_signup.screening_title": "Deine Transaktion wird überprüft",

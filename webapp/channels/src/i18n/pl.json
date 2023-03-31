@@ -4717,6 +4717,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "Jeśli uważasz, że to błąd, zrestartuj swój zakup.",
   "self_hosted_signup.purchase_in_progress.reset": "Ponowne uruchomienie zakupu",
   "self_hosted_signup.purchase_in_progress.title": "Zakupy w toku",
+  "self_hosted_signup.error_min_seats": "W Twojej przestrzeni roboczej znajduje się obecnie {num} użytkowników",
   "self_hosted_signup.retry": "Spróbuj ponownie",
   "self_hosted_signup.screening_description": "Sprawdzimy wszystko po naszej stronie i skontaktujemy się z Tobą w ciągu 3 dni po zatwierdzeniu licencji. W międzyczasie prosimy o dalsze korzystanie z darmowej wersji naszego produktu.",
   "self_hosted_signup.screening_title": "Twoja transakcja jest sprawdzana",

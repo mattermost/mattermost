@@ -4717,6 +4717,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "間違いがある場合、購入をやり直してください。",
   "self_hosted_signup.purchase_in_progress.reset": "購入をやり直す",
   "self_hosted_signup.purchase_in_progress.title": "進行中の購入",
+  "self_hosted_signup.error_min_seats": "ワークスペースの現在のユーザー数は {num} ユーザーです",
   "self_hosted_signup.retry": "際実行",
   "self_hosted_signup.screening_description": "あなたのライセンスが承認され次第、弊社側で確認を行い、3日以内に返信いたします。それまでの間は、Free版の製品を引き続きご利用ください。",
   "self_hosted_signup.screening_title": "取引きは審査中です",
