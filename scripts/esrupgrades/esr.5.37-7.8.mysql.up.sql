@@ -1113,9 +1113,6 @@ BEGIN
 
 	IF AddMattermostAppID THEN
 		SET AddMattermostAppIDQuery = 'ADD COLUMN MattermostAppID varchar(32) NOT NULL DEFAULT ""';
-	END IF;
-
-	IF AddMattermostAppID THEN
 		SET @query = CONCAT('ALTER TABLE OAuthApps ', CONCAT_WS(', ', AddMattermostAppIDQuery));
 		PREPARE stmt FROM @query;
 		EXECUTE stmt;
