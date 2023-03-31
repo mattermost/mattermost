@@ -11,7 +11,11 @@ import IconMessage from 'components/purchase_modal/icon_message';
 
 import './error_page.scss';
 
-export default function SelfHostedExpansionErrorPage() {
+interface Props {
+    canRetry: boolean;
+}
+
+export default function SelfHostedExpansionErrorPage(props: Props) {
     const [, contactSupportLink] = useOpenSelfHostedZendeskSupportForm('Purchase error');
 
     const formattedTitle = (
@@ -21,12 +25,21 @@ export default function SelfHostedExpansionErrorPage() {
         />
     );
 
-    const formattedButtonText = (
+    let formattedButtonText = (
         <FormattedMessage
             id='error_modal.try_again'
             defaultMessage='Try again'
         />
     );
+
+    if (!props.canRetry) {
+        formattedButtonText = (
+            <FormattedMessage
+                id='error_modal.close'
+                defaultMessage='Close'
+            />
+        );
+    }
 
     const formattedSubtitle = (
         <FormattedMessage

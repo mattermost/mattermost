@@ -20,7 +20,7 @@ import useCanSelfHostedExpand from './useCanSelfHostedExpand';
 
 interface HookOptions{
     onClick?: () => void;
-    trackingLocation: string;
+    trackingLocation?: string;
 }
 
 export default function useControlSelfHostedExpansionModal(options: HookOptions): ControlModal {

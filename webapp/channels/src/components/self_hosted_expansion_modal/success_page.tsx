@@ -16,7 +16,11 @@ import {closeModal} from 'actions/views/modals';
 
 import './success_page.scss';
 
-export default function SelfHostedExpansionSuccessPage() {
+interface Props {
+    onClose: () => void;
+}
+
+export default function SelfHostedExpansionSuccessPage(props: Props) {
     const dispatch = useDispatch();
     const titleText = (
         <FormattedMessage
@@ -66,7 +70,10 @@ export default function SelfHostedExpansionSuccessPage() {
                 testId='selfHostedExpansionSuccess'
                 icon={icon}
                 formattedButtonText={formattedButtonText}
-                buttonHandler={() => dispatch(closeModal(ModalIdentifiers.SUCCESS_MODAL))}
+                buttonHandler={() => {
+                    props.onClose();
+                    dispatch(closeModal(ModalIdentifiers.SUCCESS_MODAL));
+                }}
             />
             <div className='background-svg'>
                 <BackgroundSvg/>
