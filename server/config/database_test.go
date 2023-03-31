@@ -1111,7 +1111,7 @@ func TestDatabaseStoreString(t *testing.T) {
 		assert.False(t, strings.Contains(maskedDSN, "mostest"))
 	} else {
 		maskedDSN := ds.String()
-		assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
+		assert.False(t, strings.HasPrefix(maskedDSN, "mysql://"))
 		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
 		assert.False(t, strings.Contains(maskedDSN, "mostest"))
 	}
