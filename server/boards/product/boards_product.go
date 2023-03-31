@@ -222,11 +222,6 @@ func populateServices(boardsProd *boardsProduct, services map[product.ServiceKey
 }
 
 func (bp *boardsProduct) Start() error {
-	if !bp.configService.Config().FeatureFlags.BoardsProduct {
-		bp.logger.Info("Boards product disabled via feature flag")
-		return nil
-	}
-
 	bp.logger.Info("Starting boards service")
 
 	adapter := newServiceAPIAdapter(bp)
