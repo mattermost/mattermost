@@ -41,7 +41,7 @@ export default function SelfHostedExpansionCard(props: Props) {
 
     const getMonthsUntilExpiry = () => {
         const now = new Date();
-        return (licenseExpiry.getMonth() - now.getMonth()) + 12 * (licenseExpiry.getFullYear() - now.getFullYear());
+        return (licenseExpiry.getMonth() - now.getMonth()) + (MONTHS_IN_YEAR * (licenseExpiry.getFullYear() - now.getFullYear()));
     };
 
     const getMonthlyPrice = () => {
@@ -208,6 +208,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                         <br/>
                         <FormattedMessage
                             id='self_hosted_expansion_rhs_card_cost_per_user_breakdown'
+                            /* eslint-disable no-template-curly-in-string */
                             defaultMessage='${costPerUser} x {monthsUntilExpiry} months'
                             values={{
                                 costPerUser: getMonthlyPrice().toFixed(2),
