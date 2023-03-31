@@ -407,7 +407,10 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
-	return sqlstore.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	// This is called during the running of MM, so we expect the parsing of DSN
+	// to be successful.
+	sanitized, _ := sqlstore.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	return sanitized
 }
 
 // Close cleans up resources associated with the store.

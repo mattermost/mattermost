@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"io"
 	"net/url"
 	"strconv"
@@ -207,19 +208,28 @@ func ResetReadTimeout(dataSource string) (string, error) {
 	return config.FormatDSN(), nil
 }
 
-func SanitizeDataSource(driverName, dataSource string) string {
+func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	switch driverName {
-	// At this point sql.Open has already passed, so we don't expect an error.
 	case model.DatabaseDriverPostgres:
-		u, _ := url.Parse(dataSource)
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			return "", err
+		}
 		u.User = url.UserPassword("****", "****")
-		return u.String()
+		params := u.Query()
+		params.Del("user")
+		params.Del("password")
+		u.RawQuery = params.Encode()
+		return u.String(), nil
 	case model.DatabaseDriverMysql:
-		cfg, _ := mysql.ParseDSN(dataSource)
+		cfg, err := mysql.ParseDSN(dataSource)
+		if err != nil {
+			return "", err
+		}
 		cfg.User = "****"
 		cfg.Passwd = "****"
-		return cfg.FormatDSN()
+		return cfg.FormatDSN(), nil
 	default:
-		return ""
+		return "", errors.New("invalid drivername. Not postgres or mysql.")
 	}
 }

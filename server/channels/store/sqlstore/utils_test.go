@@ -172,10 +172,16 @@ func TestSanitizeDataSource(t *testing.T) {
 				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
 				"postgres://%2A%2A%2A%2A:%2A%2A%2A%2A@localhost/dummy?sslmode=disable",
 			},
+			{
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://%2A%2A%2A%2A:%2A%2A%2A%2A@localhost/dummy?sslmode=disable",
+			},
 		}
 		driver := model.DatabaseDriverPostgres
 		for _, tc := range testCases {
-			assert.Equal(t, tc.Sanitized, SanitizeDataSource(driver, tc.Original))
+			out, err := SanitizeDataSource(driver, tc.Original)
+			require.NoError(t, err)
+			assert.Equal(t, tc.Sanitized, out)
 		}
 	})
 
@@ -191,7 +197,9 @@ func TestSanitizeDataSource(t *testing.T) {
 		}
 		driver := model.DatabaseDriverMysql
 		for _, tc := range testCases {
-			assert.Equal(t, tc.Sanitized, SanitizeDataSource(driver, tc.Original))
+			out, err := SanitizeDataSource(driver, tc.Original)
+			require.NoError(t, err)
+			assert.Equal(t, tc.Sanitized, out)
 		}
 	})
 }
