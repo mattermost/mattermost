@@ -78,7 +78,7 @@ const BillingSubscriptions = () => {
 
     // show the upgrade section when is a free tier customer
     const onUpgradeMattermostCloud = (callerInfo: string) => {
-        openCloudPurchaseModal({trackingLocation: callerInfo}, CloudProducts.PROFESSIONAL);
+        openCloudPurchaseModal({trackingLocation: callerInfo});
     };
 
     let isFreeTrial = false;

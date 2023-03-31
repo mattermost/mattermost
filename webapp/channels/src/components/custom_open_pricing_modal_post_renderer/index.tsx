@@ -13,7 +13,7 @@ import {getUsers} from 'mattermost-redux/selectors/entities/users';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import {openModal} from 'actions/views/modals';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
-import {ModalIdentifiers, MattermostFeatures, CloudProducts} from 'utils/constants';
+import {ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {trackEvent} from 'actions/telemetry_actions';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
@@ -245,7 +245,7 @@ export default function OpenPricingModalPost(props: {post: Post}) {
                 <>
                     <button
                         id='upgrade_to_professional'
-                        onClick={() => openPurchaseModal({trackingLocation: 'notify_admin_message_view'}, CloudProducts.PROFESSIONAL)}
+                        onClick={() => openPurchaseModal({trackingLocation: 'notify_admin_message_view'})}
                         style={btnStyle}
                     >
                         {formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.upgrade_professional', defaultMessage: 'Upgrade to Professional'})}

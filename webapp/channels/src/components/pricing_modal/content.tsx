@@ -98,19 +98,19 @@ function Content(props: ContentProps) {
         isDelinquencyModal: true,
     });
 
-    const openPurchaseModal = (callerInfo: string, wantedProduct: string) => {
+    const openPurchaseModal = (callerInfo: string) => {
         props.onHide();
         const telemetryInfo = props.callerCTA + ' > ' + callerInfo;
         if (subscription?.delinquent_since) {
-            openCloudDelinquencyModal({trackingLocation: telemetryInfo}, wantedProduct);
+            openCloudDelinquencyModal({trackingLocation: telemetryInfo});
         }
-        openCloudPurchaseModal({trackingLocation: telemetryInfo}, wantedProduct);
+        openCloudPurchaseModal({trackingLocation: telemetryInfo});
     };
 
     const professionalBtnDetails = () => {
         if (isAdmin) {
             return {
-                action: () => openPurchaseModal('click_pricing_modal_professional_card_upgrade_button', CloudProducts.PROFESSIONAL),
+                action: () => openPurchaseModal('click_pricing_modal_professional_card_upgrade_button'),
                 text: adminProfessionalTierText,
                 disabled: isProfessionalAnnual || (isEnterprise && !isEnterpriseTrial),
                 customClass: isPostTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
@@ -140,7 +140,7 @@ function Content(props: ContentProps) {
     const enterpriseBtnDetails = () => {
         if (isAdmin) {
             return {
-                action: () => openPurchaseModal('click_pricing_modal_enterprise_card_upgrade_button', CloudProducts.ENTERPRISE),
+                action: () => openPurchaseModal('click_pricing_modal_enterprise_card_upgrade_button'),
                 text: formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'}),
                 disabled: (isEnterprise && !isEnterpriseTrial),
                 customClass: isEnterpriseTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,

@@ -17,7 +17,7 @@ type TelemetryProps = Pick<OpenPurchaseModalOptions, 'trackingLocation'>
 
 export default function useOpenCloudPurchaseModal(options: OpenPurchaseModalOptions) {
     const dispatch = useDispatch();
-    return (telemetryProps: TelemetryProps, wantedProduct: string) => {
+    return (telemetryProps: TelemetryProps) => {
         if (options.onClick) {
             options.onClick();
         }
@@ -29,7 +29,6 @@ export default function useOpenCloudPurchaseModal(options: OpenPurchaseModalOpti
             dialogType: PurchaseModal,
             dialogProps: {
                 callerCTA: telemetryProps.trackingLocation,
-                wantedProduct,
             },
         }));
     };

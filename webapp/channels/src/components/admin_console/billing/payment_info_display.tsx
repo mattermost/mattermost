@@ -16,7 +16,6 @@ import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
 import PaymentDetails from './payment_details';
-import {CloudProducts} from 'utils/constants';
 
 const addInfoButton = (
     <div className='PaymentInfoDisplay__addInfo'>
@@ -77,7 +76,7 @@ const PaymentInfoDisplay: React.FC = () => {
                     {subscription.delinquent_since ? (
                         <div
                             className='PaymentInfoDisplay__paymentInfo-editButton'
-                            onClick={() => openPurchaseModal({trackingLocation: 'edit_payment_info'}, CloudProducts.PROFESSIONAL)}
+                            onClick={() => openPurchaseModal({trackingLocation: 'edit_payment_info'})}
                         >
                             <i className='icon icon-pencil-outline'/>
                         </div>

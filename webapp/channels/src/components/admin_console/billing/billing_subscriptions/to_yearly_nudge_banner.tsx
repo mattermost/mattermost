@@ -65,7 +65,7 @@ const ToYearlyNudgeBannerDismissable = () => {
         <AnnouncementBar
             type={AnnouncementBarTypes.ANNOUNCEMENT}
             showCloseButton={true}
-            onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'}, CloudProducts.PROFESSIONAL)}
+            onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
             modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
             modalButtonDefaultText='Learn more'
             message={<FormattedMessage {...message}/>}
@@ -106,7 +106,7 @@ const ToYearlyNudgeBanner = () => {
 
     const viewPlansAction = (
         <button
-            onClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_banner'}, CloudProducts.PROFESSIONAL)}
+            onClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_banner'})}
             className='btn ToYearlyNudgeBanner__primary'
         >
             {formatMessage({id: 'cloud_billing.nudge_to_yearly.learn_more', defaultMessage: 'Learn more'})}

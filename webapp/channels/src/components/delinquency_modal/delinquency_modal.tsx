@@ -14,7 +14,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
-import {CloudProducts, ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {GlobalState} from 'types/store';
 import {openModal, closeModal as closeModalAction} from 'actions/views/modals';
 
@@ -67,7 +67,7 @@ const DelinquencyModal = (props: DelinquencyModalProps) => {
         trackEvent(TELEMETRY_CATEGORIES.CLOUD_DELINQUENCY, 'clicked_update_billing');
         openPurchaseModal({
             trackingLocation: 'delinquency_modal_downgrade_admin',
-        }, CloudProducts.PROFESSIONAL);
+        });
         dispatch(savePreferences(currentUser.id, [{
             category: Preferences.DELINQUENCY_MODAL_CONFIRMED,
             name: ModalIdentifiers.DELINQUENCY_MODAL_DOWNGRADE,
