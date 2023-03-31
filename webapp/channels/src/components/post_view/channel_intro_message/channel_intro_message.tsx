@@ -28,6 +28,7 @@ import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
+import Markdown from 'components/markdown';
 
 type Props = {
     currentUserId: string;
@@ -468,7 +469,16 @@ function createStandardIntroMessage(channel: Channel, centeredIntro: string, sta
                     <FormattedMessage
                         id='intro_messages.purposePrivate'
                         defaultMessage=" This private channel's purpose is: {purpose}"
-                        values={{purpose: channel.purpose}}
+                        values={{
+                            purpose: (
+                                <Markdown
+                                    message={channel.purpose}
+                                    options={{
+                                        singleline: true,
+                                    }}
+                                />
+                            ),
+                        }}
                     />
                 </span>
             );
@@ -478,7 +488,16 @@ function createStandardIntroMessage(channel: Channel, centeredIntro: string, sta
                     <FormattedMessage
                         id='intro_messages.purpose'
                         defaultMessage=" This channel's purpose is: {purpose}"
-                        values={{purpose: channel.purpose}}
+                        values={{
+                            purpose: (
+                                <Markdown
+                                    message={channel.purpose}
+                                    options={{
+                                        singleline: true,
+                                    }}
+                                />
+                            ),
+                        }}
                     />
                 </span>
             );

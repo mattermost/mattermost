@@ -842,7 +842,14 @@ exports[`components/post_view/ChannelIntroMessages test Open Channel should matc
         id="intro_messages.purpose"
         values={
           Object {
-            "purpose": "test",
+            "purpose": <Memo(Connect(Markdown))
+              message="test"
+              options={
+                Object {
+                  "singleline": true,
+                }
+              }
+            />,
           }
         }
       />
