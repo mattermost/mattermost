@@ -4605,6 +4605,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "Bir hata olduğunu düşünüyorsanız, satın alma işleminizi yeniden başlatın.",
   "self_hosted_signup.purchase_in_progress.reset": "Satın almayı yeniden başlat",
   "self_hosted_signup.purchase_in_progress.title": "Satın alma işlemi sürüyor",
+  "self_hosted_signup.error_min_seats": "Çalışma alanınızda şu anda {num} kullanıcı var",
   "self_hosted_signup.retry": "Yeniden dene",
   "self_hosted_signup.screening_description": "Kontrollerimizi yapacağız ve lisansınızı onaylandıktan sonra 3 gün içinde size geri döneceğiz. Bu arada, lütfen ürünümüzün ücretsiz sürümünü kullanmayı sürdürmekten çekinmeyin.",
   "self_hosted_signup.screening_title": "İşleminiz inceleniyor",

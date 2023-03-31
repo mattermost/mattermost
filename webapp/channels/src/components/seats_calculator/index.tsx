@@ -61,8 +61,8 @@ function validateSeats(seats: string, annualPricePerSeat: number, minSeats: numb
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
     const tooFewUsersErrorMessage = (
         <FormattedMessage
-            id='self_hosted_signup.error_min_users'
-            defaultMessage='Your workspace currently has {num} active users'
+            id='self_hosted_signup.error_min_seats'
+            defaultMessage='Your workspace currently has {num} users'
             values={{
                 num: <FormattedNumber value={minSeats}/>,
             }}

@@ -4702,6 +4702,7 @@
   "self_hosted_signup.purchase_in_progress.by_self_restart": "Als je denkt dat dit een vergissing is, start jouw aankoop opnieuw.",
   "self_hosted_signup.purchase_in_progress.reset": "Aankoop opnieuw starten",
   "self_hosted_signup.purchase_in_progress.title": "Aankoop in uitvoering",
+  "self_hosted_signup.error_min_seats": "Jouw werkruimte heeft momenteel {num} gebruikers",
   "self_hosted_signup.retry": "Probeer opnieuw",
   "self_hosted_signup.screening_description": "Wij controleren de zaken aan onze kant en nemen binnen 3 dagen contact met jou op zodra jouuw licentie is goedgekeurd. In de tussentijd kan je gerust de gratis versie van ons product blijven gebruiken.",
   "self_hosted_signup.screening_title": "Jouw transactie wordt bekeken",
