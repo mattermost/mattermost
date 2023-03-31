@@ -451,12 +451,12 @@ export function ping() {
     };
 }
 
-export function requestTrialLicense(users, termsAccepted, receiveEmailsAccepted, page) {
+export function requestTrialLicense(requestLicenseBody, page) {
     return async () => {
         try {
             trackEvent('api', 'api_request_trial_license', {from_page: page});
-            const response = await Client4.requestTrialLicense({users, terms_accepted: termsAccepted, receive_emails_accepted: receiveEmailsAccepted});
 
+            const response = await Client4.requestTrialLicense(requestLicenseBody);
             return {data: response};
         } catch (e) {
             // In the event that the status code returned is 451, this request has been blocked because it originated from an embargoed country_dropdown

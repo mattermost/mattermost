@@ -463,6 +463,8 @@ export const ModalIdentifiers = {
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
     EXPANSION_IN_PROGRESS: 'expansion_in_progress',
     SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
+    START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
+    START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
 };
 
 export const UserStatuses = {
@@ -1076,6 +1078,7 @@ export const CloudLinks = {
 
 export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
+    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
 };
 

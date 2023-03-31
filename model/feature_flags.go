@@ -51,9 +51,6 @@ type FeatureFlags struct {
 
 	CommandPalette bool
 
-	// Enable Boards as a product (multi-product architecture)
-	BoardsProduct bool
-
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
 
@@ -95,7 +92,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
@@ -104,7 +100,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 }
 
