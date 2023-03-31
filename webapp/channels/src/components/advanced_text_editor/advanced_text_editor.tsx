@@ -364,8 +364,8 @@ const AdvanceTextEditor = ({
         }
 
         const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
-        
-        input.style.maxWidth = `100%`;
+
+        input.style.maxWidth = '100%';
 
         if (!message) {
             // if we do not have a message we can just render the default state
