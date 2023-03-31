@@ -651,7 +651,6 @@ describe('Pricing modal', () => {
         cy.get('div.DowngradeTeamRemovalModal__body').should('exist');
     });
 
-
     it('Should display a "Contact Support" CTA for downgrading when the current subscription is yearly and not on starter', () => {
         const subscription = {
             id: 'sub_test1',
