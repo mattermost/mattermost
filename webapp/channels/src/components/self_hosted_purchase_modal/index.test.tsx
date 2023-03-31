@@ -275,7 +275,7 @@ describe('SelfHostedPurchaseModal', () => {
         const tooFewSeats = existingUsers - 1;
         fireEvent.change(screen.getByTestId('selfHostedPurchaseSeatsInput'), valueEvent(tooFewSeats.toString()));
         expect(screen.getByText('Upgrade')).toBeDisabled();
-        screen.getByText('Your workspace currently has 10 active users', {exact: false});
+        screen.getByText('Your workspace currently has 10 users', {exact: false});
     });
 
     it('happy path submit shows success screen', async () => {

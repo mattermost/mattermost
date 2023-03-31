@@ -147,7 +147,7 @@ describe('System Console - Subscriptions section', () => {
 
                 // * Ensure that the yearly, monthly, and yearly saving prices match the new user seats value entered
                 checkValues(lessThanUserCount);
-                cy.get('.RHS').get('.Input___customMessage').contains(`Your workspace currently has ${count} active users`);
+                cy.get('.RHS').get('.Input___customMessage').contains(`Your workspace currently has ${count} users`);
 
                 // * Check that Upgrade button is not enabled
                 cy.get('.RHS').find('button').should('be.disabled');
