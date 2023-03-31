@@ -11,7 +11,6 @@ import {FormattedMessage, useIntl} from 'react-intl'
 import {useRouteMatch, useHistory} from 'react-router-dom'
 
 import Workspace from 'src/components/workspace'
-import CloudMessage from 'src/components/messages/cloudMessage'
 import VersionMessage from 'src/components/messages/versionMessage'
 import octoClient from 'src/octoClient'
 import {Subscription, WSClient} from 'src/wsclient'
@@ -297,7 +296,6 @@ const BoardPage = (props: Props): JSX.Element => {
                     <SetWindowTitleAndIcon/>
                     <UndoRedoHotKeys/>
                     <WebsocketConnection/>
-                    <CloudMessage/>
                     <VersionMessage/>
 
                     {!mobileWarningClosed &&
