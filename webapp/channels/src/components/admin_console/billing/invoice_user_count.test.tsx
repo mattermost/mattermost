@@ -80,7 +80,7 @@ describe('InvoiceUserCount', () => {
                 [1, InvoiceLineItemType.Full],
                 [249, InvoiceLineItemType.Partial],
             ),
-            expected: '1 seat at full rate, 249 users with partial charges',
+            expected: '1 seats at full rate, 249 seats with partial charges',
         },
         {
             name: 'Shows default of 0 full users, 0 partial users when there are no users',
