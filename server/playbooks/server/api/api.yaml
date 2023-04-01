@@ -1249,7 +1249,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/timeline/{event-id}/:
+  /runs/{id}/timeline/{event_id}/:
     delete:
       summary: Remove a timeline event from the playbook run
       operationId: removeTimelineEvent
@@ -1265,7 +1265,7 @@ paths:
           example: zjy2q2iy2jafl0lo2oddos5xn7
           schema:
             type: string
-        - name: event-id
+        - name: event_id
           in: path
           required: true
           description: ID of the timeline event to be deleted
