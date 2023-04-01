@@ -60,6 +60,9 @@ type State = {
     show: boolean;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
 export default class SubMenuItem extends React.PureComponent<Props, State> {
     private node: React.RefObject<HTMLLIElement>;
 

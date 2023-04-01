@@ -4,7 +4,6 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
@@ -22,7 +21,7 @@ import {Constants} from 'src/constants'
 import ViewHeaderPropertiesMenu from './viewHeaderPropertiesMenu'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 let activeView: BoardView
@@ -40,7 +39,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
         jest.clearAllMocks()
         activeView = TestBlockFactory.createBoardView(board)
     })
-    test('return properties menu', () => {
+    test('return properties menu', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -52,10 +51,10 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'Properties menu'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('return properties menu with gallery typeview', () => {
+    test('return properties menu with gallery typeview', async () => {
         activeView.fields.viewType = 'gallery'
         const {container} = render(
             wrapIntl(
@@ -68,10 +67,10 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'Properties menu'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('show menu and verify the call for showing card badges', () => {
+    test('show menu and verify the call for showing card badges', async () => {
         render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -83,9 +82,9 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
             ),
         )
         const menuButton = screen.getByRole('button', {name: 'Properties menu'})
-        userEvent.click(menuButton)
+        await userEvent.click(menuButton)
         const badgesButton = screen.getByRole('button', {name: 'Comments and description'})
-        userEvent.click(badgesButton)
+        await userEvent.click(badgesButton)
         expect(mockedMutator.changeViewVisibleProperties).toHaveBeenCalledWith(
             activeView.boardId,
             activeView.id,
@@ -93,7 +92,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
             [...activeView.fields.visiblePropertyIds, Constants.badgesColumnId],
         )
     })
-    test('show menu and verify that it is not closed after clicking on the item', () => {
+    test('show menu and verify that it is not closed after clicking on the item', async () => {
         render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -105,14 +104,14 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
             ),
         )
         const menuButton = screen.getByRole('button', {name: 'Properties menu'})
-        userEvent.click(menuButton)
+        await userEvent.click(menuButton)
 
         const property1Button = screen.getByRole('button', {name: 'Property 1'})
-        userEvent.click(property1Button)
+        await userEvent.click(property1Button)
         expect(property1Button).toBeInTheDocument()
 
         const property2Button = screen.getByRole('button', {name: 'Property 2'})
-        userEvent.click(property2Button)
+        await userEvent.click(property2Button)
         expect(property2Button).toBeInTheDocument()
 
         expect(mockedMutator.changeViewVisibleProperties).toHaveBeenCalledTimes(2)
