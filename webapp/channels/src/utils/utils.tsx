@@ -282,20 +282,23 @@ export function getRemainingDaysFromFutureTimestamp(timestamp?: number): number 
 }
 
 export function addTimeToTimestamp(timestamp: number, type: TimeUnit, diff: number, timeline: TimeDirection) {
+    let modifier = 1;
     switch (type) {
-    case TimeInformation.MILLISECONDS:
-        return timeline === TimeInformation.FUTURE ? timestamp + diff : timestamp - diff;
     case TimeInformation.SECONDS:
-        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_SECOND) : timestamp + (diff * MS_PER_SECOND);
+        modifier = MS_PER_SECOND;
+        break;
     case TimeInformation.MINUTES:
-        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_MINUTE) : timestamp + (diff * MS_PER_MINUTE);
+        modifier = MS_PER_MINUTE;
+        break;
     case TimeInformation.HOURS:
-        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_HOUR) : timestamp + (diff * MS_PER_HOUR);
+        modifier = MS_PER_HOUR;
+        break;
     case TimeInformation.DAYS:
-        return timeline === TimeInformation.FUTURE ? timestamp + (diff * MS_PER_DAY) : timestamp + (diff * MS_PER_DAY);
-    default:
-        return timeline === TimeInformation.FUTURE ? diff + timestamp : timestamp - diff;
+        modifier = MS_PER_DAY;
+        break;
     }
+
+    return timeline === TimeInformation.FUTURE ? timestamp + (diff * modifier) : timestamp - (diff * modifier);
 }
 
 /**
