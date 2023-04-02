@@ -771,7 +771,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			TeamId:       channel.TeamId,
 			CallbackURLs: testCallBackURLs,
 			Username:     "some-user-name",
-			IconURL:      "http://some-icon/",
+			IconURL:      "http://some-website.com/assets/some-icon.png",
 			DisplayName:  "some-display-name",
 			Description:  "some-description",
 			CreatorId:    th.BasicUser.Id,
