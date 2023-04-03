@@ -366,12 +366,12 @@ export class TestHelper {
             baseURL: '',
             switcherLinkURL: '',
             mainComponent: () => null,
-            publicComponent: null,
             headerCentreComponent: () => null,
             headerRightComponent: () => null,
             showTeamSidebar: false,
             showAppBar: false,
             wrapped: true,
+            publicComponent: null,
         };
     }
 

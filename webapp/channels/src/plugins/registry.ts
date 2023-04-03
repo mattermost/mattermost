@@ -1013,12 +1013,12 @@ export default class PluginRegistry {
                 baseURL: '/' + standardizeRoute(baseURL),
                 switcherLinkURL: '/' + standardizeRoute(switcherLinkURL),
                 mainComponent,
-                publicComponent,
                 headerCentreComponent,
                 headerRightComponent,
                 showTeamSidebar,
                 showAppBar,
                 wrapped,
+                publicComponent,
             },
         });
 

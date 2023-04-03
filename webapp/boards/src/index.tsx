@@ -363,6 +363,8 @@ export default class Plugin {
                 HeaderComponent,
                 () => null,
                 true,
+                true,
+                true,
                 PublicMainApp,
             )
 
