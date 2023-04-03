@@ -252,8 +252,6 @@ export default function SelfHostedExpansionModal() {
             const card = cardRef.current?.getCard();
             if (!card) {
                 const message = 'Failed to get card when it was expected';
-                // eslint-disable-next-line no-console
-                console.error(message);
                 setFormState({...formState, error: message});
                 return;
             }
@@ -302,8 +300,6 @@ export default function SelfHostedExpansionModal() {
             }
             setFormState({...formState, submitting: false});
         } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error('could not complete setup', e);
             setFormState({...formState, error: 'unable to complete signup'});
         }
     };

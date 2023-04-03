@@ -25,7 +25,7 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
     const titleText = (
         <FormattedMessage
             id={'self_hosted_expansion.expand_success'}
-            defaultMessage={'You\'ve successfully updated your license seat count'}
+            defaultMessage={"You've successfully updated your license seat count"}
         />
     );
 
