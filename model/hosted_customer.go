@@ -8,7 +8,7 @@ type BootstrapSelfHostedSignupRequest struct {
 	Reset bool   `json:"reset"`
 }
 
-type SubscribeNewletterRequest struct {
+type SubscribeNewsletterRequest struct {
 	Email             string `json:"email"`
 	ServerID          string `json:"server_id"`
 	SubscribedContent string `json:"subscribed_content"`

@@ -53,7 +53,7 @@ import SaveButton from 'components/save_button';
 import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import ExternalLink from 'components/external_link';
 
-import {Constants, ItemStatus, ValidationErrors} from 'utils/constants';
+import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import './signup.scss';
@@ -149,9 +149,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
-    const subscribeToSecurityNewsletterFunc = async () => {
+    const subscribeToSecurityNewsletterFunc = () => {
         try {
-            await Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
+            Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
@@ -591,57 +591,57 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const handleReturnButtonOnClick = () => history.replace('/');
 
     const getNewsletterCheck = () => {
-        if (!isCloud) {
-            if (canReachCWS) {
-                return (
-                    <CheckInput
-                        id='signup-body-card-form-check-newsletter'
-                        name='newsletter'
-                        onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
-                        text={
-                            formatMessage(
-                                {id: 'newsletter_optin.checkmark.text', defaultMessage: 'I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply'},
-                                {
-                                    a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                        <ExternalLink
-                                            location='signup-newsletter-checkmark'
-                                            href='https://mattermost.com/security-updates/'
-                                        >
-                                            {chunks}
-                                        </ExternalLink>
-                                    ),
-                                },
-                            )}
-                        checked={subscribeToSecurityNewsletter}
-                    />
-                );
-            }
+        if (isCloud) {
+            return null;
+        }
+
+        if (canReachCWS) {
             return (
-                <div className='newsletter'>
-                    <span className='interested'>
-                        {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security updates via newsletter?'})}
-                    </span>
-                    <span className='link'>
-                        {formatMessage(
-                            {id: 'newsletter_optin.desc', defaultMessage: 'Sign up at <a>{link}</a>.'},
+                <CheckInput
+                    id='signup-body-card-form-check-newsletter'
+                    name='newsletter'
+                    onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
+                    text={
+                        formatMessage(
+                            {id: 'newsletter_optin.checkmark.text', defaultMessage: 'I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply'},
                             {
-                                link: 'https://mattermost.com/security-updates/',
                                 a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                                     <ExternalLink
-                                        location='signup'
-                                        href='https://mattermost.com/security-updates/'
+                                        location='signup-newsletter-checkmark'
+                                        href={HostedCustomerLinks.SECURITY_UPDATES}
                                     >
                                         {chunks}
                                     </ExternalLink>
                                 ),
                             },
                         )}
-                    </span>
-                </div>
+                    checked={subscribeToSecurityNewsletter}
+                />
             );
         }
-
-        return null;
+        return (
+            <div className='newsletter'>
+                <span className='interested'>
+                    {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security updates via newsletter?'})}
+                </span>
+                <span className='link'>
+                    {formatMessage(
+                        {id: 'newsletter_optin.desc', defaultMessage: 'Sign up at <a>{link}</a>.'},
+                        {
+                            link: HostedCustomerLinks.SECURITY_UPDATES,
+                            a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                <ExternalLink
+                                    location='signup'
+                                    href={HostedCustomerLinks.SECURITY_UPDATES}
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
+                        },
+                    )}
+                </span>
+            </div>
+        );
     };
 
     const handleOnBlur = (e: FocusEvent<HTMLInputElement>, inputId: string) => {

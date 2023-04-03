@@ -540,12 +540,12 @@ func (_m *CloudInterface) SelfServeDeleteWorkspace(userID string, deletionReques
 	return r0
 }
 
-// SubscribeToNewletter provides a mock function with given fields: userID, req
-func (_m *CloudInterface) SubscribeToNewletter(userID string, req *model.SubscribeNewletterRequest) error {
+// SubscribeToNewsletter provides a mock function with given fields: userID, req
+func (_m *CloudInterface) SubscribeToNewsletter(userID string, req *model.SubscribeNewsletterRequest) error {
 	ret := _m.Called(userID, req)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *model.SubscribeNewletterRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(string, *model.SubscribeNewsletterRequest) error); ok {
 		r0 = rf(userID, req)
 	} else {
 		r0 = ret.Error(0)

@@ -5,7 +5,7 @@ import React from 'react';
 import {shallow, ReactWrapper} from 'enzyme';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
-import {act} from '@testing-library/react';
+import {act, screen} from '@testing-library/react';
 
 import * as global_actions from 'actions/global_actions';
 
@@ -14,7 +14,6 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import Signup from 'components/signup/signup';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import CheckInput from 'components/widgets/inputs/check';
 import SaveButton from 'components/save_button';
 import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
@@ -22,6 +21,7 @@ import {RequestStatus} from 'mattermost-redux/constants';
 import {ClientConfig} from '@mattermost/types/config';
 import {GlobalState} from 'types/store';
 import {WindowSizes} from 'utils/constants';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};
@@ -302,48 +302,34 @@ describe('components/signup/Signup', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
-        );
+        renderWithIntlAndStore(
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>, {});
 
-        const checkInput = wrapper.find(CheckInput);
-        expect(checkInput.find('input').props().type).toBe('checkbox');
-        expect(checkInput.find('.text').text()).toEqual('I would like to receive Mattermost security updates via newsletter. Data Terms and Conditions apply');
+        screen.getByTestId('signup-body-card-form-check-newsletter');
+        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
+        expect(checkInput).toHaveAttribute('type', 'checkbox');
+        screen.findByText('I would like to receive Mattermost security updates via newsletter. Data Terms and Conditions apply');
     });
 
     it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => false);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
-        );
-
-        expect(wrapper.find(CheckInput).exists()).toBeFalsy();
-        expect(wrapper.find('.newsletter').text()).toEqual('Interested in receiving Mattermost security updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
+        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
+        screen.findByText('Interested in receiving Mattermost security updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
     });
 
     it('should not show any newsletter related opt-in or text for cloud', async () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'true'};
 
-        const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
-        );
+        renderWithIntlAndStore(
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>, {});
 
-        expect(wrapper.find(CheckInput).exists()).toBeFalsy();
-        expect(wrapper.find('.newsletter').exists()).toBeFalsy();
+        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
     });
 });

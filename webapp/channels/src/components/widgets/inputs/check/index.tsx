@@ -17,6 +17,7 @@ function CheckInput(props: Props) {
         <div className='check-input'>
             <input
                 {...props}
+                data-testid={props.id}
                 type='checkbox'
             />
             <span className='text'>{props.text}</span>
