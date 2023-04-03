@@ -314,6 +314,13 @@ func TestPostAction(t *testing.T) {
 			require.True(t, ok)
 
 			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
+			require.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			})
+
+			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
