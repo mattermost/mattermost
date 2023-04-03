@@ -4274,7 +4274,7 @@ export default class Client4 {
     }
 
     cwsAvailabilityCheck = () => {
-        return this.doFetch<StatusOK>(
+        return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,
             {method: 'get'},
         );

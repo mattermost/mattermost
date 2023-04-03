@@ -153,7 +153,6 @@ describe('components/AboutBuildModal', () => {
                 <AboutBuildModal
                     config={config}
                     license={license}
-                    webappBuildHash='0a1b2c3d4f'
                     onExited={onExited}
                 />
             </Provider>,
@@ -211,7 +210,6 @@ describe('components/AboutBuildModal', () => {
         const allProps = {
             show,
             onExited,
-            webappBuildHash: '0a1b2c3d4f',
             config,
             license,
             ...props,
