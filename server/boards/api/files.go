@@ -145,6 +145,12 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 		_ = a.app.MoveFile(board.ChannelID, board.TeamID, boardID, filename)
 	}
 
+	if err != nil {
+		// if err is still not nil then it was not found via teams or workspace paths so we must
+		// return the error to the requestor.  fileReader and Fileinfo are nil in this case.
+		a.errorResponse(w, r, err)
+	}
+
 	defer fileReader.Close()
 
 	mimeType := ""
