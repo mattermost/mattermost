@@ -60,7 +60,7 @@ export function isCustomStatusEnabled(state: GlobalState) {
 function showCustomStatusPulsatingDotAndPostHeader(state: GlobalState) {
     // only show this for users after the first seven days
     const currentUser = getCurrentUser(state);
-    const hasUserCreationMoreThanSevenDays = isDateWithinDaysRange(currentUser.create_at, 7, TimeInformation.FUTURE);
+    const hasUserCreationMoreThanSevenDays = isDateWithinDaysRange(currentUser?.create_at, 7, TimeInformation.FUTURE);
     const customStatusTutorialState = get(state, Preferences.CATEGORY_CUSTOM_STATUS, Preferences.NAME_CUSTOM_STATUS_TUTORIAL_STATE);
     const modalAlreadyViewed = customStatusTutorialState && JSON.parse(customStatusTutorialState)[Preferences.CUSTOM_STATUS_MODAL_VIEWED];
     return !modalAlreadyViewed && hasUserCreationMoreThanSevenDays;

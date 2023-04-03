@@ -107,25 +107,30 @@ describe('showStatusDropdownPulsatingDot and showPostHeaderUpdateStatusButton', 
         expect(showPostHeaderUpdateStatusButton(store.getState())).toBeFalsy();
     });
 
-    it('should return false if user has been created before seven days from today', async () => {
+    it('should return false if user was created less than seven days before from today', async () => {
         const store = await configureStore();
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
-        const todayTimestapm = new Date().getTime();
-        const todayPlusEightDays = addTimeToTimestamp(todayTimestapm, TimeInformation.DAYS, 8, TimeInformation.PAST);
-        const newUser = {...user, created_at: todayPlusEightDays};
+        const todayTimestamp = new Date().getTime();
+
+        // set the user create date to 6 days in the past from today
+        const todayMinusSixDays = addTimeToTimestamp(todayTimestamp, TimeInformation.DAYS, 6, TimeInformation.PAST);
+        const newUser = {...user, create_at: todayMinusSixDays};
         newUser.props.customStatus = JSON.stringify(customStatus);
         (UserSelectors.getCurrentUser as jest.Mock).mockReturnValue(newUser);
         expect(showStatusDropdownPulsatingDot(store.getState())).toBeFalsy();
     });
 
-    it('should return true if user has been created after seven days from today', async () => {
+    it('should return true if user was created more than seven days before from today', async () => {
         const store = await configureStore();
+        preference.myPreference.value = JSON.stringify({[Preferences.CUSTOM_STATUS_MODAL_VIEWED]: false});
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
-        const todayTimestapm = new Date().getTime();
-        const todayPlusEightDays = addTimeToTimestamp(todayTimestapm, TimeInformation.DAYS, 8, TimeInformation.FUTURE);
-        const newUser = {...user, created_at: todayPlusEightDays};
+        const todayTimestamp = new Date().getTime();
+
+        // set the user create date to 8 days in the past from today
+        const todayMinusEightDays = addTimeToTimestamp(todayTimestamp, TimeInformation.DAYS, 8, TimeInformation.PAST);
+        const newUser = {...user, create_at: todayMinusEightDays};
         newUser.props.customStatus = JSON.stringify(customStatus);
         (UserSelectors.getCurrentUser as jest.Mock).mockReturnValue(newUser);
-        expect(showStatusDropdownPulsatingDot(store.getState())).toBeFalsy();
+        expect(showStatusDropdownPulsatingDot(store.getState())).toBeTruthy();
     });
 });
