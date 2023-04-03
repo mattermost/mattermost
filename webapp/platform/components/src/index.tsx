@@ -17,3 +17,4 @@ export {FocusTrap} from './focus_trap';
 // hooks
 export * from './common/hooks/useMeasurePunchouts';
 export {useElementAvailable} from './common/hooks/useElementAvailable';
+export {useFollowElementDimensions} from './common/hooks/useFollowElementDimensions';

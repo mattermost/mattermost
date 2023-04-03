@@ -6,7 +6,6 @@ import {Provider as ReduxProvider} from 'react-redux'
 import {render} from '@testing-library/react'
 import configureStore from 'redux-mock-store'
 
-import '@testing-library/jest-dom'
 import {wrapDNDIntl} from 'src/testUtils'
 
 import 'isomorphic-fetch'

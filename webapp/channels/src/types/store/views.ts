@@ -180,6 +180,10 @@ export type ViewsState = {
         isOpen: boolean;
     };
 
+    addChannelCtaDropdown: {
+        isOpen: boolean;
+    };
+
     onboardingTasks: {
         isShowOnboardingTaskCompletion: boolean;
         isShowOnboardingCompleteProfileTour: boolean;
